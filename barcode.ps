@@ -4,10 +4,10 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2007-02-25
+% Barcode Writer in Pure PostScript - Version 2007-04-22
 % http://www.terryburton.co.uk/barcodewriter/
 %
-% Copyright (c) 2006 Terry Burton - tez@terryburton.co.uk
+% Copyright (c) 2007 Terry Burton - tez@terryburton.co.uk
 %
 % Permission is hereby granted, free of charge, to any
 % person obtaining a copy of this software and associated
@@ -3502,6 +3502,17 @@
         width 72 mul x div 1 scale
     } if
 
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
     % Display the border and background
     newpath
     borderleft neg borderbottom neg moveto
@@ -3510,26 +3521,17 @@
     x borderleft add borderright add neg 0 rlineto
     0 maxh borderbottom add bordertop add neg rlineto    
     closepath
-    backgroundcolor (unset) ne {
-        gsave
-        (<      >) dup 1 backgroundcolor putinterval cvx exec {255 div} forall setrgbcolor
-        fill
-        grestore  
-    } if     
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
     showborder {
         gsave
-        bordercolor (unset) ne {
-            (<      >) dup 1 bordercolor putinterval cvx exec {255 div} forall setrgbcolor
-        } if
+        bordercolor (unset) ne { bordercolor setanycolor } if
         borderwidth setlinewidth stroke
         grestore
     } if    
    
     % Display the bars for elements in the bars array
     gsave
-    barcolor (unset) ne {
-        (<      >) dup 1 barcolor putinterval cvx exec {255 div} forall setrgbcolor
-    } if
+    barcolor (unset) ne { barcolor setanycolor } if
     bars {
         {} forall
         newpath setlinewidth moveto 0 exch rlineto stroke
@@ -3537,9 +3539,7 @@
     grestore
     
     % Display the text for elements in the text array
-    textcolor (unset) ne {
-        (<      >) dup 1 textcolor putinterval cvx exec {255 div} forall setrgbcolor
-    } if
+    textcolor (unset) ne { textcolor setanycolor } if
     /s 0 def /f () def
     txt {
         {} forall
