@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2007-05-19
+% Barcode Writer in Pure PostScript - Version 2007-06-16
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2007 Terry Burton - tez@terryburton.co.uk
@@ -45,6 +45,7 @@
 % --DESC: EAN-13
 % --EXAM: 977147396801
 % --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
 /ean13 {
 
     0 begin
@@ -161,7 +162,8 @@
     sbs barlen 1 sub 4 mul 8 add encs 12 get putinterval
     
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     includetext {
         retval (bhs) [height height 12{height .075 sub}repeat height height 12{height .075 sub}repeat height height] put
@@ -186,6 +188,7 @@
 % --DESC: EAN-8
 % --EXAM: 01335583
 % --EXOP: includetext guardwhitespace height=0.5
+% --RNDR: renlinear
 /ean8 {
 
     0 begin
@@ -261,7 +264,8 @@
     sbs barlen 4 mul 8 add encs 12 get putinterval
 
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     includetext {
         retval (bhs) [height height 8{height .075 sub}repeat height height 8{height .075 sub}repeat height height] put
@@ -287,6 +291,7 @@
 % --DESC: UPC-A
 % --EXAM: 78858101497
 % --EXOP: includetext
+% --RNDR: renlinear
 /upca {
 
     0 begin
@@ -391,7 +396,8 @@
     sbs barlen 4 mul 8 add encs 12 get putinterval
 
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     includetext {
         retval (bhs) [4{height}repeat 10{height .075 sub}repeat height height 10{height .075 sub}repeat 5{height}repeat] put      
@@ -415,6 +421,7 @@
 % --DESC: UPC-E
 % --EXAM: 0123456
 % --EXOP: includetext height=0.4
+% --RNDR: renlinear
 /upce {
 
     0 begin
@@ -548,7 +555,8 @@
     sbs barlen 2 sub 4 mul 3 add encs 11 get putinterval
 
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     includetext {
         retval (bhs) [height height 12{height .075 sub}repeat height height height] put      
@@ -572,6 +580,7 @@
 % --DESC: EAN-5 (5 digit addon)
 % --EXAM: 90200
 % --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
 /ean5 {
 
     0 begin
@@ -665,7 +674,8 @@
     } for
 
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [16{height}repeat] put
     retval (bbs) [16{0}repeat] put
@@ -688,6 +698,7 @@
 % --DESC: EAN-2 (2 digit addon)
 % --EXAM: 05
 % --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
 /ean2 {
 
     0 begin
@@ -766,7 +777,8 @@
     } for
 
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [12{height}repeat] put
     retval (bbs) [12{0}repeat] put
@@ -790,6 +802,7 @@
 % --DESC: ISBN
 % --EXAM: 978-1-56592-479
 % --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
 /isbn {
 
     0 begin
@@ -907,6 +920,7 @@
 % --DESC: Code 128
 % --EXAM: ^104^102Count^0990123456789^101!
 % --EXOP: includetext
+% --RNDR: renlinear
 /code128 {
 
     0 begin                  % Confine variables to local scope
@@ -1008,7 +1022,8 @@
     /txt txt 0 j getinterval def
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -1028,6 +1043,7 @@
 % --DESC: Code 39
 % --EXAM: THIS IS CODE 39
 % --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
 /code39 {
 
     0 begin                 % Confine variables to local scope
@@ -1117,7 +1133,8 @@
     } ifelse
     
     % Return the arguments
-    /retval 2 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -1137,6 +1154,7 @@
 % --DESC: Code 93
 % --EXAM: THIS IS CODE 93
 % --EXOP: includetext includecheck
+% --RNDR: renlinear
 /code93 {
 
     0 begin                 % Confine variables to local scope
@@ -1234,7 +1252,8 @@
     } ifelse
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -1254,6 +1273,7 @@
 % --DESC: Interleaved 2 of 5 (ITF)
 % --EXAM: 24012345678905
 % --EXOP: showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textpos=-10
+% --RNDR: renlinear
 /interleaved2of5 {
 
     0 begin         % Confine variables to local scope
@@ -1366,7 +1386,8 @@
     sbs barlen 5 mul 4 add encs 11 get putinterval
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -1386,6 +1407,7 @@
 % --DESC: Reduced Space Symbology 14 (RSS-14)
 % --EXAM: 24012345678905
 % --EXOP: height=0.3
+% --RNDR: renlinear
 /rss14 {
 
     0 begin            % Confine variables to local scope
@@ -1592,7 +1614,8 @@
     ] def
     
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put   
@@ -1609,6 +1632,7 @@
 % --DESC: Reduced Space Symbology Limited (RSS-Limited)
 % --EXAM: 00978186074271
 % --EXOP: height=0.3
+% --RNDR: renlinear
 /rsslimited {
 
     0 begin            % Confine variables to local scope
@@ -1768,7 +1792,8 @@
     ] def
     
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put   
@@ -1785,6 +1810,7 @@
 % --DESC: Reduced Space Symbology Expanded (RSS-Expanded)
 % --EXAM: 000000010011001010100001000000010000
 % --EXOP: height=0.3
+% --RNDR: renlinear
 /rssexpanded {
 
     0 begin            % Confine variables to local scope
@@ -1973,7 +1999,8 @@
     ] def
     
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put   
@@ -1990,6 +2017,7 @@
 % --DESC: Pharmaceutical Binary Code
 % --EXAM: 117480
 % --EXOP: showborder
+% --RNDR: renlinear
 /pharmacode {
 
     0 begin                 % Confine variables to local scope
@@ -2033,7 +2061,8 @@
     } for
 
     % Return the arguments
-    /retval 2 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -2050,6 +2079,7 @@
 % --DESC: Code 25
 % --EXAM: 01234567
 % --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
 /code2of5 {
 
     % Thanks to Michael Landers
@@ -2136,7 +2166,8 @@
     } ifelse
     
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -2156,6 +2187,7 @@
 % --DESC: Code 11
 % --EXAM: 0123456789
 % --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
 /code11 {
 
     0 begin            % Confine variables to local scope
@@ -2264,7 +2296,8 @@
     } ifelse
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -2284,6 +2317,7 @@
 % --DESC: Rationalized Codabar
 % --EXAM: A0123456789B
 % --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
 /rationalizedCodabar {
 
     0 begin                    % Confine variables to local scope
@@ -2381,7 +2415,8 @@
     } ifelse
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -2401,6 +2436,7 @@
 % --DESC: United States Postal Service OneCode
 % --EXAM: 0123456709498765432101234567891
 % --EXOP: barcolor=FF0000
+% --RNDR: renlinear
 /onecode {
 
     0 begin
@@ -2651,7 +2687,8 @@
         } if
     } for
     
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (bbs) bbs put
     retval (bhs) bhs put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put    
@@ -2668,6 +2705,7 @@
 % --DESC: United States Postal Service Postnet
 % --EXAM: 012345
 % --EXOP: includetext includecheckintext
+% --RNDR: renlinear
 /postnet {
 
     0 begin
@@ -2762,7 +2800,8 @@
     } for
     bhs barlen 5 mul 6 add heights putinterval  
 
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (bhs) bhs put
     retval (bbs) [bhs length {0} repeat] put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put
@@ -2782,6 +2821,7 @@
 % --DESC: Royal Mail 4 State Customer Code (RM4SCC)
 % --EXAM: LE28HS9Z
 % --EXOP: includetext includecheckintext barcolor=FF0000
+% --RNDR: renlinear
 /royalmail {
 
     0 begin
@@ -2881,7 +2921,8 @@
         } if
     } for
     
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (bbs) bbs put
     retval (bhs) bhs put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put
@@ -2901,6 +2942,7 @@
 % --DESC: AusPost 4 State Customer Code
 % --EXAM: 5956439111ABA 9
 % --EXOP: includetext custinfoenc=character
+% --RNDR: renlinear
 /auspost {
 
     0 begin
@@ -3072,7 +3114,8 @@
         } if
     } for   
     
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (bbs) bbs put
     retval (bhs) bhs put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put
@@ -3092,6 +3135,7 @@
 % --DESC: Royal Dutch TPG Post KIX 4-State Barcode
 % --EXAM: 1231FZ13XHS
 % --EXOP: includetext includecheckintext
+% --RNDR: renlinear
 /kix {
 
     0 begin
@@ -3170,7 +3214,8 @@
         } if
     } for
     
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (bbs) bbs put
     retval (bhs) bhs put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put
@@ -3190,6 +3235,7 @@
 % --DESC: MSI Modified Plessey
 % --EXAM: 0123456789
 % --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
 /msi {
 
     0 begin                 % Confine variables to local scope
@@ -3274,7 +3320,8 @@
     } ifelse
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -3294,6 +3341,7 @@
 % --DESC: Plessey
 % --EXAM: 01234ABCD
 % --EXOP: includetext includecheckintext
+% --RNDR: renlinear
 /plessey {
 
     0 begin                  % Confine variables to local scope
@@ -3395,7 +3443,8 @@
     sbs barlen 8 mul 24 add encs 17 get putinterval
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
@@ -3415,6 +3464,7 @@
 % --DESC: Raw bar space succession for custom symbologies 
 % --EXAM: 331132131313411122131311333213114131131221323
 % --EXOP: height=0.5
+% --RNDR: renlinear
 /raw {
 
     0 begin                  % Confine variables to local scope
@@ -3433,7 +3483,8 @@
     /height height cvr def
 
     % Return the arguments
-    /retval 1 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) [sbs {48 sub} forall] put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put 
@@ -3450,6 +3501,7 @@
 % --DESC: Miscellaneous symbols
 % --EXAM: fima
 % --EXOP: backgroundcolor=DD000011
+% --RNDR: renlinear
 /symbol {
 
     0 begin            % Confine variables to local scope
@@ -3482,7 +3534,8 @@
     } if
     
     % Return the arguments
-    /retval 4 dict def
+    /retval 8 dict def
+    retval (ren) (renlinear) put
     retval (sbs) sbs put
     retval (bhs) bhs put
     retval (bbs) bbs put
@@ -3495,8 +3548,8 @@
 /symbol load 0 1 dict put
 % --END ENCODER symbol--
 
-% --BEGIN RENDERER--
-/barcode {
+% --BEGIN RENDERER renlinear--
+/renlinear {
 
     0 begin          % Confine variables to local scope
 
@@ -3660,8 +3713,73 @@
     end
 
 } bind def
+/renlinear load 0 1 dict put
+% --END RENDERER renlinear--
+
+% --BEGIN RENDERER renmaximatrix--
+/renmaximatrix {
+
+    0 begin
+
+    /args exch def   % We are given some arguments
+
+    % Apply the renderer options
+    args {exch cvlit exch def} forall
+ 
+    % Parse the user options   
+    opt {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    gsave
+
+    currentpoint translate
+
+    2.4945 dup scale  % from 1pt to 1.88mm
+    0.5 0.5774 translate
+
+    pixs {
+        dup 
+        /x exch 30 mod def 
+        /y exch 30 idiv def
+        y 2 mod 0 eq {x} {x 0.5 add} ifelse
+        32 y sub 0.8661 mul
+        moveto
+        0     0.5774 rmoveto
+        -0.5 -0.2887 rlineto
+        0    -0.5774 rlineto
+        0.5  -0.2887 rlineto
+        0.5   0.2887 rlineto
+        0     0.5774 rlineto
+        -0.5  0.2887 rlineto
+        closepath fill
+    } forall
+
+    % Plot the locator symbol
+    newpath 14 13.8576 0.5774 0 360 arc closepath
+    14 13.8576 1.3359 360 0 arcn closepath fill
+    newpath 14 13.8576 2.1058 0 360 arc closepath
+    14 13.8576 2.8644 360 0 arcn closepath fill
+    newpath 14 13.8576 3.6229 0 360 arc closepath
+    14 13.8576 4.3814 360 0 arcn closepath fill
+
+    grestore
+
+    end
+
+} bind def
+/renmaximatrix load 0 1 dict put
+% --END RENDERER renmaximatrix--
+
+% --BEGIN DISPATCHER--
+/barcode {
+    0 begin
+    dup (ren) get cvx exec 
+    end
+} bind def
 /barcode load 0 1 dict put
-% --END RENDERER--
+% --END DISPATCHER--
 
 % --END TEMPLATE--
 %!
