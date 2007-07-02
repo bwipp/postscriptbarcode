@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2007-06-16
+% Barcode Writer in Pure PostScript - Version 2007-07-02
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2007 Terry Burton - tez@terryburton.co.uk
@@ -3548,6 +3548,315 @@
 /symbol load 0 1 dict put
 % --END ENCODER symbol--
 
+% --BEGIN ENCODER maxicode--
+% --DESC: MaxiCode
+% --EXAM: ^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063
+% --EXOP: mode=2
+% --RNDR: maximatrix
+/maxicode {
+
+    0 begin
+
+    /options exch def        % We are given an option string
+    /useropts options def
+    /barcode exch def        % We are given a barcode string
+
+    /mode 4 def
+    /sam -1 def
+
+    % Parse the input options
+    options {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    /mode mode cvi def
+    /sam sam cvi def
+
+    /txtvals (@ABCDEFGHIJKLMNOPQRSTUVWXYZ@@@@@ @@@@@@@@@@@@@@@0123456789@@@@@@) def
+
+    % Parse a given message into codewords
+    /maxiparse {
+        /txt exch def
+        /out txt length array def
+        /i 0 def /j 0 def
+        { % loop  
+            i txt length eq {exit} if
+            txt i 1 getinterval (^) eq {
+                % Codeword is given by the next three characters
+                /cw txt i 1 add 3 getinterval cvi def
+                /i i 4 add def
+            } {
+                % Codeword is the characters position in txtvals
+                txtvals txt i 1 getinterval search 
+                pop length /cw exch def pop pop
+                /i i 1 add def
+            } ifelse
+            out j cw put
+            /j j 1 add def 
+        } loop
+        out 0 j getinterval
+    } bind def
+
+    % Calcalate the structured append mode insert
+    /sami () def
+    sam -1 ne {
+        /sami (^033^000) def
+        sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add 10 2 string cvrs
+        dup length 8 exch sub sami exch 3 -1 roll putinterval 
+    } if
+
+    % Message handling for modes 2 and 3
+    mode 2 eq mode 3 eq or {
+
+        /msg barcode def
+
+        % Normalise messages that begin with a field identifier [)>RS01GSyy
+        msg (^059^042^041^059^040^03001^029) search {
+            pop
+            dup length 2 add string /fid exch def
+            fid 0 3 -1 roll putinterval
+            dup fid fid length 2 sub 3 -1 roll 0 2 getinterval putinterval
+            dup length 2 sub 2 exch getinterval /msg exch def
+        } {
+            pop
+            /fid () def
+        } ifelse
+
+        % Read the postcode, country code and service code fields
+        msg (^029) search pop /pc exch def
+        pop (^029) search pop /cc exch def
+        pop (^029) search pop /sc exch def
+        pop /msg exch def
+
+        % Calculate the fixed-width binary values for the mode, postcode, country code and service
+        /mdb (0000) dup mode cvi 2 4 string cvrs dup length 4 exch sub exch putinterval def
+        /ccb (0000000000) dup cc cvi 2 10 string cvrs dup length 10 exch sub exch putinterval def
+        /scb (0000000000) dup sc cvi 2 10 string cvrs dup length 10 exch sub exch putinterval def
+        /pcb (000000000000000000000000000000000000) def
+        mode 2 eq {
+            % For numeric postcode, first six bits represent length and remaining 30 bits the value
+            pcb pc length 2 6 string cvrs dup length 6 exch sub exch putinterval
+            pcb pc cvi 2 30 string cvrs dup length 36 exch sub exch putinterval
+        } {  % mode=3
+            % For alphanumeric postcode, trim or pad with spaces to 6 chars and encode to binary
+            /pccw (      ) dup 0 pc length 6 gt {pc 0 6 getinterval} {pc} ifelse putinterval maxiparse def
+            0 1 5 {
+                /i exch def
+                pcb pccw i get 2 6 string cvrs dup length 6 i mul 6 add exch sub exch putinterval
+            } for
+        } ifelse
+
+        % Convolute the binary values into the structured carrier message
+        /scm 60 string def
+        scm 2  mdb putinterval
+        scm 38 pcb 0  4 getinterval putinterval
+        scm 30 pcb 4  6 getinterval putinterval
+        scm 24 pcb 10 6 getinterval putinterval
+        scm 18 pcb 16 6 getinterval putinterval
+        scm 12 pcb 22 6 getinterval putinterval
+        scm 6  pcb 28 6 getinterval putinterval
+        scm 0  pcb 34 2 getinterval putinterval
+        scm 52 ccb 0  2 getinterval putinterval
+        scm 42 ccb 2  6 getinterval putinterval
+        scm 36 ccb 8  2 getinterval putinterval
+        scm 54 scb 0  6 getinterval putinterval
+        scm 48 scb 6  4 getinterval putinterval
+
+        % Evaluate the structured carrier message as codewords
+        /pri [ 0 0 0 0 0 0 0 0 0 0 ] def
+        0 1 59 { 
+            /i exch def
+            /ps i 6 idiv def
+            /ep 2 5 i 6 mod sub exp cvi scm i get 48 sub mul def
+            pri ps pri ps get ep add put
+        } for
+
+        % Encode the secondary parts, including any SAM insert and field identifier
+        /sec [ 84 {33} repeat ] def
+        sec 0 [ sami maxiparse {} forall fid maxiparse {} forall msg maxiparse {} forall ] putinterval
+
+    } if
+
+    % Message handling for modes 4, 5 and 6
+    mode 4 eq mode 5 eq or mode 6 eq or {
+
+        % Prefix the message with the structured append insert
+        /msg sami length barcode length add string def
+        msg 0 sami putinterval
+        msg sami length barcode putinterval
+
+        % First symbol is the mode and the remainder are the padded message
+        /cws [ mode 5 eq {94} {78} ifelse {33} repeat ] def
+        cws 0 mode put
+        cws 1 msg maxiparse putinterval
+
+        % Fit the message into the primary and secondary components
+        /pri cws 0 10 getinterval def
+        /sec cws 10 cws length 10 sub getinterval def
+
+    } if
+
+    % Create the 64x64 Reed-Solomon table
+    /rstable 64 64 mul array def
+    rstable 0 [ 64 {0} repeat ] putinterval
+    rstable 64 [ 0 1 63 {} for ] putinterval
+    /prev 1 def
+    64 {       
+        /next prev 1 bitshift def
+        next 64 and 0 ne {
+            /next next 67 xor def
+        } if        
+        0 1 63 {
+            /j exch def
+            /nextcell {rstable 64 next mul j add} def
+            nextcell rstable 64 prev mul j add get 1 bitshift put
+            nextcell get 64 and 0 ne {
+                nextcell nextcell get 67 xor put
+            } if
+        } for
+        /prev next def
+    } repeat
+
+    % Calculate the parity codewords for primary codewords 
+    /pgen [46 44 49 3 2 57 42 39 28 31 1] def
+    /rscodes [ 10 {0} repeat 9 -1 0 { pri exch get } for ] def
+    rscodes length 11 sub -1 0 {
+        /i exch def
+        0 1 10 {
+            /j exch def
+            rscodes i j add rscodes i j add get
+            rstable 64 pgen j get mul rscodes i 10 add get add get
+            xor put
+        } for
+    } for
+    /prichk [ 9 -1 0 { rscodes exch get } for ] def
+
+    % Split secondary codeword into odd and even elements
+    /seco [ 0 2 sec length 1 sub { sec exch get } for ] def
+    /sece [ 1 2 sec length 1 sub { sec exch get } for ] def
+
+    % Calculate the parity codewords for secondary codeword parts based on mode
+    sec length 84 eq {  % SEC mode
+        /sgen [ 59 23 19 31 33 38 17 22 48 15 36 57 37 22 8 27 33 11 44 23 1 ] def
+    } {  % EEC mode
+        /sgen [ 28 11 20 7 43 9 41 34 49 46 37 40 55 34 45 61 13 23 29 22 10 35 55 41 10 53 45 22 1 ] def
+    } ifelse
+    /scodes sgen length 1 sub def
+    /rscodes [ scodes {0} repeat seco length 1 sub -1 0 { seco exch get } for ] def
+    rscodes length scodes sub 1 sub -1 0 {
+        /i exch def
+        0 1 scodes {
+            /j exch def
+            rscodes i j add rscodes i j add get
+            rstable 64 sgen j get mul rscodes i scodes add get add get
+            xor put
+        } for
+    } for
+    /secochk [ scodes 1 sub -1 0 { rscodes exch get } for ] def
+    /rscodes [ scodes {0} repeat sece length 1 sub -1 0 { sece exch get } for ] def
+    rscodes length scodes sub 1 sub -1 0 {
+        /i exch def
+        0 1 scodes {
+            /j exch def
+            rscodes i j add rscodes i j add get
+            rstable 64 sgen j get mul rscodes i scodes add get add get
+            xor put
+        } for
+    } for
+    /secechk [ scodes 1 sub -1 0 { rscodes exch get } for ] def
+
+    % Recompose the secondary parity codewords
+    /secchk [ 0 1 scodes 1 sub { dup secochk exch get exch secechk exch get } for ] def
+
+    % Concatinate the data into final codewords
+    /codewords [
+        pri {} forall 
+        prichk {} forall
+        sec {} forall 
+        secchk {} forall
+    ] def
+
+    % Convert the codewords into module bits
+    /mods [ 864 {0} repeat ] def
+    0 1 143 {
+        /i exch def
+        /cw [ codewords i get 2 6 string cvrs {48 sub} forall ] def
+        mods 6 i mul 6 cw length sub add cw putinterval
+    } for
+
+    % Maps modules to pixels in the grid
+    /modmap [
+        469 529 286 316 347 346 673 672 703 702 647 676 283 282 313 312 370 610 618 379 
+        378 409 408 439 705 704 559 589 588 619 458 518 640 701 675 674 285 284 315 314 
+        310 340 531 289 288 319 349 348 456 486 517 516 471 470 369 368 399 398 429 428 
+        549 548 579 578 609 608 649 648 679 678 709 708 639 638 669 668 699 698 279 278 
+        309 308 339 338 381 380 411 410 441 440 561 560 591 590 621 620 547 546 577 576 
+        607 606 367 366 397 396 427 426 291 290 321 320 351 350 651 650 681 680 711 710 
+        1   0   31  30  61  60  3   2   33  32  63  62  5   4   35  34  65  64  7   6   
+        37  36  67  66  9   8   39  38  69  68  11  10  41  40  71  70  13  12  43  42  
+        73  72  15  14  45  44  75  74  17  16  47  46  77  76  19  18  49  48  79  78  
+        21  20  51  50  81  80  23  22  53  52  83  82  25  24  55  54  85  84  27  26  
+        57  56  87  86  117 116 147 146 177 176 115 114 145 144 175 174 113 112 143 142 
+        173 172 111 110 141 140 171 170 109 108 139 138 169 168 107 106 137 136 167 166 
+        105 104 135 134 165 164 103 102 133 132 163 162 101 100 131 130 161 160 99  98  
+        129 128 159 158 97  96  127 126 157 156 95  94  125 124 155 154 93  92  123 122 
+        153 152 91  90  121 120 151 150 181 180 211 210 241 240 183 182 213 212 243 242 
+        185 184 215 214 245 244 187 186 217 216 247 246 189 188 219 218 249 248 191 190 
+        221 220 251 250 193 192 223 222 253 252 195 194 225 224 255 254 197 196 227 226 
+        257 256 199 198 229 228 259 258 201 200 231 230 261 260 203 202 233 232 263 262 
+        205 204 235 234 265 264 207 206 237 236 267 266 297 296 327 326 357 356 295 294 
+        325 324 355 354 293 292 323 322 353 352 277 276 307 306 337 336 275 274 305 304 
+        335 334 273 272 303 302 333 332 271 270 301 300 331 330 361 360 391 390 421 420 
+        363 362 393 392 423 422 365 364 395 394 425 424 383 382 413 412 443 442 385 384 
+        415 414 445 444 387 386 417 416 447 446 477 476 507 506 537 536 475 474 505 504 
+        535 534 473 472 503 502 533 532 455 454 485 484 515 514 453 452 483 482 513 512 
+        451 450 481 480 511 510 541 540 571 570 601 600 543 542 573 572 603 602 545 544 
+        575 574 605 604 563 562 593 592 623 622 565 564 595 594 625 624 567 566 597 596 
+        627 626 657 656 687 686 717 716 655 654 685 684 715 714 653 652 683 682 713 712 
+        637 636 667 666 697 696 635 634 665 664 695 694 633 632 663 662 693 692 631 630 
+        661 660 691 690 721 720 751 750 781 780 723 722 753 752 783 782 725 724 755 754 
+        785 784 727 726 757 756 787 786 729 728 759 758 789 788 731 730 761 760 791 790 
+        733 732 763 762 793 792 735 734 765 764 795 794 737 736 767 766 797 796 739 738 
+        769 768 799 798 741 740 771 770 801 800 743 742 773 772 803 802 745 744 775 774 
+        805 804 747 746 777 776 807 806 837 836 867 866 897 896 835 834 865 864 895 894 
+        833 832 863 862 893 892 831 830 861 860 891 890 829 828 859 858 889 888 827 826 
+        857 856 887 886 825 824 855 854 885 884 823 822 853 852 883 882 821 820 851 850 
+        881 880 819 818 849 848 879 878 817 816 847 846 877 876 815 814 845 844 875 874 
+        813 812 843 842 873 872 811 810 841 840 871 870 901 900 931 930 961 960 903 902 
+        933 932 963 962 905 904 935 934 965 964 907 906 937 936 967 966 909 908 939 938 
+        969 968 911 910 941 940 971 970 913 912 943 942 973 972 915 914 945 944 975 974 
+        917 916 947 946 977 976 919 918 949 948 979 978 921 920 951 950 981 980 923 922 
+        953 952 983 982 925 924 955 954 985 984 927 926 957 956 987 986 58  89  88  118 
+        149 148 178 209 208 238 269 268 298 329 328 358 389 388 418 449 448 478 509 508 
+        538 569 568 598 629 628 658 689 688 718 749 748 778 809 808 838 869 868 898 929 
+        928 958 989 988
+    ] def
+
+    % Lookup pixels for enabled modules from modmap
+    /pixs 864 array def
+    /j 0 def
+    0 1 mods length 1 sub {
+        /i exch def
+        mods i get 1 eq {
+            pixs j modmap i get put
+            /j j 1 add def
+        } if
+    } for
+    /pixs [ pixs 0 j getinterval {} forall 28 29 280 281 311 457 488 500 530 670 700 677 707 ] def
+
+    /retval 3 dict def
+    retval (ren) (renmaximatrix) put
+    retval (pixs) pixs put
+    retval (opt) useropts put
+    retval
+
+    end
+
+} bind def
+/maxicode load 0 1 dict put
+% --END ENCODER maxicode--
+
 % --BEGIN RENDERER renlinear--
 /renlinear {
 
@@ -3857,10 +4166,10 @@
 385 515 moveto (5956439111ABA 9) (includetext) auspost barcode
 0 -17 rmoveto (AusPost) show
 
-30 200 moveto (0123456789) (includecheck includetext) msi barcode
+350 300 moveto (12345) (includecheck includetext) msi barcode
 0 -17 rmoveto (MSI) show
 
-350 300 moveto (01234ABCD) (includetext) plessey barcode
+30 200 moveto (123ABCD) (includetext) plessey barcode
 0 -17 rmoveto (Plessey) show
 
 47 135 moveto (1001234567890) (showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textpos=-10) interleaved2of5 barcode
@@ -3877,6 +4186,9 @@
 
 325 140 moveto (fimd) () symbol barcode
 0 -9 rmoveto (FIM D) show
+
+485 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode barcode
+0 -10 rmoveto (MaxiCode) show
 
 showpage
 
