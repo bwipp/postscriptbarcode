@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2007-07-02
+% Barcode Writer in Pure PostScript - Version 2007-12-01
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2007 Terry Burton - tez@terryburton.co.uk
@@ -57,7 +57,7 @@
     /includetext false def             % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos -4 def
+    /textyoffset -4 def
     /height 1 def
     
     % Parse the input options
@@ -68,7 +68,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /barlen barcode length def         % Length of the code
@@ -117,7 +117,7 @@
 
     % First digit - determine mirrormap by this and show before guard bars
     /mirrormap mirrormaps barcode 0 get 48 sub get def
-    txt 0 [barcode 0 1 getinterval -10 textpos textfont textsize] put
+    txt 0 [barcode 0 1 getinterval -10 textyoffset textfont textsize] put
 
     % Left side - performs mirroring
     1 1 6 {
@@ -139,7 +139,7 @@
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textyoffset textfont textsize] put
     } for
 
     % Put the middle character
@@ -155,7 +155,7 @@
         pop pop                        % Discard seek and post
         /enc encs indx get def         % Get the indxth encoding
         sbs i 1 sub 4 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 8 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 8 add textyoffset textfont textsize] put
     } for
 
     % Put the end character
@@ -200,7 +200,7 @@
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos -4 def
+    /textyoffset -4 def
     /height 1 def
     
     % Parse the input options
@@ -211,7 +211,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -241,7 +241,7 @@
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul 4 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul 4 add textyoffset textfont textsize] put
     } for
 
     % Put the middle character
@@ -257,7 +257,7 @@
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul 8 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul 8 add textyoffset textfont textsize] put
     } for
 
     % Put the end character
@@ -303,7 +303,7 @@
     /includetext false def         % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos -4 def
+    /textyoffset -4 def
     /height 1 def
     
     % Parse the input options
@@ -314,7 +314,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /barlen barcode length def         % Length of the code
@@ -366,9 +366,9 @@
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
         i 0 eq {      % First digit is before the guard bars
-            txt 0 [barcode 0 1 getinterval -7 textpos textfont textsize 2 sub] put
+            txt 0 [barcode 0 1 getinterval -7 textyoffset textfont textsize 2 sub] put
         } {
-            txt i [barcode i 1 getinterval i 7 mul 4 add textpos textfont textsize] put
+            txt i [barcode i 1 getinterval i 7 mul 4 add textyoffset textfont textsize] put
         } ifelse
     } for
 
@@ -386,9 +386,9 @@
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
         i 11 eq {       % Last digit is after guard bars
-            txt 11 [barcode 11 1 getinterval 96 textpos textfont textsize 2 sub] put
+            txt 11 [barcode 11 1 getinterval 96 textyoffset textfont textsize 2 sub] put
         } {
-            txt i [barcode i 1 getinterval i 7 mul 8 add textpos textfont textsize] put
+            txt i [barcode i 1 getinterval i 7 mul 8 add textyoffset textfont textsize] put
         } ifelse
     } for
 
@@ -433,7 +433,7 @@
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos -4 def
+    /textyoffset -4 def
     /height 1 def
     
     % Parse the input options
@@ -444,7 +444,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /barlen barcode length def          % Length of the code
@@ -503,7 +503,7 @@
         /barlen barlen 1 add def        % barlen++
     } if
     /txt barlen array def
-    txt 0 [barcode 0 1 getinterval -7 textpos textfont textsize 2 sub] put
+    txt 0 [barcode 0 1 getinterval -7 textyoffset textfont textsize 2 sub] put
 
     % Determine the mirror map based on checksum
     /mirrormap mirrormaps barcode barlen 1 sub get 48 sub get def
@@ -546,10 +546,10 @@
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textyoffset textfont textsize] put
     } for
 
-    txt 7 [barcode 7 1 getinterval 6 7 mul 11 add textpos textfont textsize 2 sub] put
+    txt 7 [barcode 7 1 getinterval 6 7 mul 11 add textyoffset textfont textsize 2 sub] put
 
     % Put the end character
     sbs barlen 2 sub 4 mul 3 add encs 11 get putinterval
@@ -592,7 +592,7 @@
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos (unset) def
+    /textyoffset (unset) def
     /height 0.7 def    
     
     % Parse the input options
@@ -604,10 +604,10 @@
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /height height cvr def
-    textpos (unset) eq {
-        /textpos height 72 mul 1 add def
+    textyoffset (unset) eq {
+        /textyoffset height 72 mul 1 add def
     } {
-        /textpos textpos cvr def
+        /textyoffset textyoffset cvr def
     } ifelse
     
     /barlen barcode length def          % Length of the code
@@ -670,7 +670,7 @@
             /enc revenc def
         } if
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textyoffset textfont textsize] put
     } for
 
     % Return the arguments
@@ -684,7 +684,7 @@
     } if
     retval (opt) useropts put
     retval (guardrightpos) 10 put
-    retval (guardrightypos) textpos 4 add put
+    retval (guardrightypos) textyoffset 4 add put
     retval (bordertop) 10 put
     retval
 
@@ -710,7 +710,7 @@
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
-    /textpos (unset) def
+    /textyoffset (unset) def
     /height 0.7 def
     
     % Parse the input options
@@ -722,10 +722,10 @@
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /height height cvr def
-    textpos (unset) eq {
-        /textpos height 72 mul 1 add def
+    textyoffset (unset) eq {
+        /textyoffset height 72 mul 1 add def
     } {
-        /textpos textpos cvr def
+        /textyoffset textyoffset cvr def
     } ifelse
     
     /barlen barcode length def          % Length of the code
@@ -773,7 +773,7 @@
             /enc revenc def
         } if
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textyoffset textfont textsize] put
     } for
 
     % Return the arguments
@@ -787,7 +787,7 @@
     } if
     retval (opt) useropts put
     retval (guardrightpos) 10 put
-    retval (guardrightypos) textpos 4 add put
+    retval (guardrightypos) textyoffset 4 add put
     retval (bordertop) 10 put
     retval
 
@@ -932,7 +932,7 @@
     /includetext false def    % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -943,7 +943,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -981,20 +981,20 @@
         barcode i 1 getinterval (^) eq {
             % indx is given by the next three characters
             /indx barcode i 1 add 3 getinterval cvi def
-            txt j [( ) j 11 mul textpos textfont textsize] put
+            txt j [( ) j 11 mul textyoffset textfont textsize] put
             /i i 4 add def
         } {
             % indx depends on the mode
             mode 2 eq {
                 /indx barcode i 2 getinterval cvi def
-                txt j [barcode i 2 getinterval j 11 mul textpos textfont textsize] put
+                txt j [barcode i 2 getinterval j 11 mul textyoffset textfont textsize] put
                 /i i 2 add def
             } {
                 barchars barcode i 1 getinterval search
                 pop                    % Discard true leaving pre
                 length /indx exch def  % indx is the length of pre
                 pop pop                % Discard seek and post
-                txt j [barchars indx 1 getinterval j 11 mul textpos textfont textsize] put
+                txt j [barchars indx 1 getinterval j 11 mul textyoffset textfont textsize] put
                 /i i 1 add def
             } ifelse
         } ifelse
@@ -1057,7 +1057,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -1068,7 +1068,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -1101,7 +1101,7 @@
 
     % Put the start character
     sbs 0 encs 43 get putinterval
-    txt 0 [(*) 0 textpos textfont textsize] put
+    txt 0 [(*) 0 textyoffset textfont textsize] put
 
     0 1 barlen 1 sub {
         /i exch def
@@ -1112,7 +1112,7 @@
         pop pop                              % Discard seek and post
         /enc encs indx get def               % Get the indxth encoding
         sbs i 10 mul 10 add enc putinterval  % Put encoded digit into sbs
-        txt i 1 add [barcode i 1 getinterval i 1 add 16 mul textpos textfont textsize] put
+        txt i 1 add [barcode i 1 getinterval i 1 add 16 mul textyoffset textfont textsize] put
         /checksum checksum indx add def
     } for
 
@@ -1121,15 +1121,15 @@
         /checksum checksum 43 mod def
         sbs barlen 10 mul 10 add encs checksum get putinterval
         includecheckintext {
-            txt barlen 1 add [barchars checksum 1 getinterval barlen 1 add 16 mul textpos textfont textsize] put
+            txt barlen 1 add [barchars checksum 1 getinterval barlen 1 add 16 mul textyoffset textfont textsize] put
         } {
-            txt barlen 1 add [() barlen 1 add 16 mul textpos textfont textsize] put
+            txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
         } ifelse
         sbs barlen 10 mul 20 add encs 43 get putinterval
-        txt barlen 2 add [(*) barlen 2 add 16 mul textpos textfont textsize] put
+        txt barlen 2 add [(*) barlen 2 add 16 mul textyoffset textfont textsize] put
     } {
         sbs barlen 10 mul 10 add encs 43 get putinterval
-        txt barlen 1 add [(*) barlen 1 add 16 mul textpos textfont textsize] put
+        txt barlen 1 add [(*) barlen 1 add 16 mul textyoffset textfont textsize] put
     } ifelse
     
     % Return the arguments
@@ -1167,7 +1167,7 @@
     /includetext false def   % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -1178,7 +1178,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /encs
@@ -1221,14 +1221,14 @@
         barcode i 1 getinterval (^) eq {
             % indx is given by the next three characters
             /indx barcode i 1 add 3 getinterval cvi def
-            txt j [( ) j 9 mul 9 add textpos textfont textsize] put
+            txt j [( ) j 9 mul 9 add textyoffset textfont textsize] put
             /i i 4 add def
         } {
             barchars barcode i 1 getinterval search
             pop                         % Discard true leaving pre
             length /indx exch def       % indx is the length of pre
             pop pop                     % Discard seek and post
-            txt j [barchars indx 1 getinterval j 9 mul 9 add textpos textfont textsize] put
+            txt j [barchars indx 1 getinterval j 9 mul 9 add textyoffset textfont textsize] put
             /i i 1 add def
         } ifelse
         /enc encs indx get def             % Get the indxth encoding
@@ -1272,7 +1272,7 @@
 % --BEGIN ENCODER interleaved2of5--
 % --DESC: Interleaved 2 of 5 (ITF)
 % --EXAM: 24012345678905
-% --EXOP: showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textpos=-10
+% --EXOP: showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textyoffset=-10
 % --RNDR: renlinear
 /interleaved2of5 {
 
@@ -1287,7 +1287,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -1298,7 +1298,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /barlen barcode length def      % Length of the code
@@ -1374,11 +1374,11 @@
         } for
 
         sbs i 5 mul 4 add intl putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 9 mul 4 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 9 mul 4 add textyoffset textfont textsize] put
         includecheck includecheckintext not and barlen 2 sub i eq and {
-            txt i 1 add [( ) i 1 add 9 mul 4 add textpos textfont textsize] put
+            txt i 1 add [( ) i 1 add 9 mul 4 add textyoffset textfont textsize] put
         } {
-            txt i 1 add [barcode i 1 add 1 getinterval i 1 add 9 mul 4 add textpos textfont textsize] put
+            txt i 1 add [barcode i 1 add 1 getinterval i 1 add 9 mul 4 add textyoffset textfont textsize] put
         } ifelse
     } for
 
@@ -2095,7 +2095,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -2106,7 +2106,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -2143,7 +2143,7 @@
         pop pop                             % Discard seek and post
         /enc encs indx get def              % Get the indxth encoding
         sbs i 10 mul 6 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 14 mul 10 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 14 mul 10 add textyoffset textfont textsize] put
         barlen i sub 2 mod 0 eq {
             /checksum checksum indx add def
         } {            
@@ -2157,9 +2157,9 @@
         sbs barlen 10 mul 6 add encs checksum get putinterval
         sbs barlen 10 mul 16 add encs 11 get putinterval
         includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen 14 mul 10 add textpos textfont textsize] put
+            txt barlen [barchars checksum 1 getinterval barlen 14 mul 10 add textyoffset textfont textsize] put
         } {            
-            txt barlen [( ) barlen 14 mul 10 add textpos textfont textsize] put
+            txt barlen [( ) barlen 14 mul 10 add textyoffset textfont textsize] put
         } ifelse
     } {
         sbs barlen 10 mul 6 add encs 11 get putinterval
@@ -2201,7 +2201,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -2212,7 +2212,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -2255,7 +2255,7 @@
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 6 mul 6 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval xpos textpos textfont textsize] put
+        txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
         0 1 5 {       % xpos+=width of the character
             /xpos exch enc exch get 48 sub xpos add def
         } for
@@ -2271,23 +2271,23 @@
             sbs barlen 6 mul 6 add encs checksum1 get putinterval        
             sbs barlen 6 mul 12 add encs checksum2 get putinterval
             includecheckintext {
-                txt barlen [barchars checksum1 1 getinterval xpos textpos textfont textsize] put
+                txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
                 /enc encs checksum1 get def   
                 0 1 5 {       % xpos+=width of the character
                     /xpos exch enc exch get 48 sub xpos add def
                 } for
-                txt barlen 1 add [barchars checksum2 1 getinterval xpos textpos textfont textsize] put
+                txt barlen 1 add [barchars checksum2 1 getinterval xpos textyoffset textfont textsize] put
             } {
-                txt barlen [() xpos textpos textfont textsize] put
-                txt barlen 1 add [() xpos textpos textfont textsize] put
+                txt barlen [() xpos textyoffset textfont textsize] put
+                txt barlen 1 add [() xpos textyoffset textfont textsize] put
             } ifelse
             sbs barlen 6 mul 18 add encs 11 get putinterval
         } {
             sbs barlen 6 mul 6 add encs checksum1 get putinterval          
             includecheckintext {
-                txt barlen [barchars checksum1 1 getinterval xpos textpos textfont textsize] put
+                txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
             } {
-                txt barlen [() xpos textpos textfont textsize] put
+                txt barlen [() xpos textyoffset textfont textsize] put
             } ifelse
             sbs barlen 6 mul 12 add encs 11 get putinterval
         } ifelse
@@ -2331,7 +2331,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -2342,7 +2342,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -2377,7 +2377,7 @@
         pop pop                      % Discard seek and post
         /enc encs indx get def       % Get the indxth encoding
         sbs i 8 mul enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval xpos textpos textfont textsize] put
+        txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
         0 1 7 {       % xpos+=width of the character
             /xpos exch enc exch get 48 sub xpos add def
         } for
@@ -2396,9 +2396,9 @@
         /checksum 16 checksum 16 mod sub 16 mod def
         sbs barlen 8 mul 8 sub encs checksum get putinterval
         includecheckintext {
-            txt barlen 1 sub [barchars checksum 1 getinterval xpos textpos textfont textsize] put
+            txt barlen 1 sub [barchars checksum 1 getinterval xpos textyoffset textfont textsize] put
         } {
-            txt barlen 1 sub [( ) xpos textpos textfont textsize] put
+            txt barlen 1 sub [( ) xpos textyoffset textfont textsize] put
         } ifelse
         0 1 7 {       % xpos+=width of the character
             /xpos exch encs checksum get exch get 48 sub xpos add def
@@ -2406,12 +2406,12 @@
         % Put the end character
         /enc encs indx get def            % Get the indxth encoding
         sbs barlen 8 mul enc putinterval  % Put encoded digit into sbs
-        txt barlen [barcode barlen 1 sub 1 getinterval xpos textpos textfont textsize] put
+        txt barlen [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
     } {
         % Put the end character
         /enc encs indx get def                  % Get the indxth encoding
         sbs barlen 8 mul 8 sub enc putinterval  % Put encoded digit into sbs
-        txt barlen 1 sub [barcode barlen 1 sub 1 getinterval xpos textpos textfont textsize] put
+        txt barlen 1 sub [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
     } ifelse
 
     % Return the arguments
@@ -2718,7 +2718,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 0.125 def
     
     % Parse the input options
@@ -2729,7 +2729,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     /barlen barcode length def
@@ -2771,7 +2771,7 @@
             heights j enc j 1 getinterval cvi height mul 5 div put
         } for
         bhs i 5 mul 1 add heights putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
         /checksum checksum indx add def     % checksum+=indx
     } for
 
@@ -2786,9 +2786,9 @@
     bhs barlen 5 mul 1 add heights putinterval  
     
     includecheckintext {
-        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textpos textfont textsize] put
+        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } {
-        txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textpos textfont textsize] put
+        txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textyoffset textfont textsize] put
     } ifelse
     
     % Put end character
@@ -2834,7 +2834,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 0.175 def
     
     % Parse the input options
@@ -2845,7 +2845,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -2880,7 +2880,7 @@
         pop pop                             % Discard seek and post
         /enc encs indx get def              % Get the indxth encoding
         encstr i 4 mul 1 add enc putinterval
-        txt i [barcode i 1 getinterval i 4 mul 1 add 3.312 mul textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
         /checksumrow checksumrow indx 6 idiv add def
         /checksumcol checksumcol indx 6 mod add def 
     } for
@@ -2890,9 +2890,9 @@
     /enc encs checksum get def
     encstr barlen 4 mul 1 add enc putinterval
     includecheckintext {
-        txt barlen [barchars checksum 1 getinterval barlen 4 mul 1 add 3.312 mul textpos textfont textsize] put
+        txt barlen [barchars checksum 1 getinterval barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } {
-        txt barlen [( ) barlen 4 mul 1 add 3.312 mul textpos textfont textsize] put
+        txt barlen [( ) barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } ifelse
     
     % Put end character
@@ -2954,7 +2954,7 @@
     /includetext false def         % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 0.175 def
     /custinfoenc (character) def
     
@@ -2966,7 +2966,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
 
     % Create an array containing the character mappings
@@ -3008,7 +3008,7 @@
         /i exch def       
         encs barcode i 1 getinterval cvi 64 add get
         encstr i 2 mul 2 add 3 2 roll putinterval
-        txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textpos textfont textsize] put
+        txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textyoffset textfont textsize] put
     } for
     
     % Encode the customer information   
@@ -3017,7 +3017,7 @@
             /i exch def
             encs barcode i 10 add 1 getinterval cvi 64 add get
             encstr i 2 mul 22 add 3 2 roll putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textpos textfont textsize] put
+            txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
         } for        
         /ciflen barlen 10 sub 2 mul def
     } {
@@ -3029,7 +3029,7 @@
             pop pop                            
             /enc encs indx get def          
             encstr i 3 mul 22 add enc putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textpos textfont textsize] put
+            txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textyoffset textfont textsize] put
         } for        
         /ciflen barlen 10 sub 3 mul def
     } ifelse
@@ -3148,7 +3148,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 0.175 def
     
     % Parse the input options
@@ -3159,7 +3159,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -3188,7 +3188,7 @@
         pop pop                             % Discard seek and post
         /enc encs indx get def              % Get the indxth encoding
         encstr i 4 mul enc putinterval
-        txt i [barcode i 1 getinterval i 4 mul 3.312 mul textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
     } for
 
     /bbs encstr length array def    
@@ -3249,7 +3249,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -3260,7 +3260,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -3297,7 +3297,7 @@
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 16 mul 4 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 16 mul 4 add textyoffset textfont textsize] put
         barlen i sub 2 mod 0 eq {
             /checksum indx checksum add def
         } {
@@ -3310,9 +3310,9 @@
         /checksum 10 checksum 10 mod sub 10 mod def
         sbs barlen 8 mul 2 add encs checksum get putinterval
         includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen 16 mul 4 add textpos textfont textsize] put
+            txt barlen [barchars checksum 1 getinterval barlen 16 mul 4 add textyoffset textfont textsize] put
         } {
-            txt barlen [( ) barlen 16 mul 4 add textpos textfont textsize] put
+            txt barlen [( ) barlen 16 mul 4 add textyoffset textfont textsize] put
         } ifelse
         sbs barlen 8 mul 10 add encs 11 get putinterval
     } {
@@ -3354,7 +3354,7 @@
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
-    /textpos -7 def
+    /textyoffset -7 def
     /height 1 def
     
     % Parse the input options
@@ -3365,7 +3365,7 @@
     
     /textfont textfont cvlit def
     /textsize textsize cvr def
-    /textpos textpos cvr def
+    /textyoffset textyoffset cvr def
     /height height cvr def
     
     % Create an array containing the character mappings
@@ -3398,7 +3398,7 @@
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 8 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 16 mul 16 add textpos textfont textsize] put
+        txt i [barcode i 1 getinterval i 16 mul 16 add textyoffset textfont textsize] put
         checkbits i 4 mul [
                 indx 1 and
                 indx -1 bitshift 1 and
@@ -3432,11 +3432,11 @@
     sbs barlen 8 mul 8 add encs checksum1 get putinterval
     sbs barlen 8 mul 16 add encs checksum2 get putinterval
     includecheckintext {
-        txt barlen [barchars checksum1 1 getinterval barlen 16 mul 16 add textpos textfont textsize] put
-        txt barlen 1 add [barchars checksum2 1 getinterval barlen 1 add 16 mul 16 add textpos textfont textsize] put
+        txt barlen [barchars checksum1 1 getinterval barlen 16 mul 16 add textyoffset textfont textsize] put
+        txt barlen 1 add [barchars checksum2 1 getinterval barlen 1 add 16 mul 16 add textyoffset textfont textsize] put
     } {
-        txt barlen [( ) barlen 16 mul 16 add textpos textfont textsize] put
-        txt barlen 1 add [( ) barlen 1 add 16 mul 16 add textpos textfont textsize] put
+        txt barlen [( ) barlen 16 mul 16 add textyoffset textfont textsize] put
+        txt barlen 1 add [( ) barlen 1 add 16 mul 16 add textyoffset textfont textsize] put
     } ifelse
 
     % Put end character
@@ -3871,6 +3871,12 @@
     /txt [] def
     /barcolor (unset) def
     /textcolor (unset) def
+    /textxalign (unset) def
+    /textyalign (unset) def
+    /textfont (Helvetica) def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset 0 def
     /bordercolor (unset) def
     /backgroundcolor (unset) def
     /inkspread 0.15 def
@@ -3902,6 +3908,12 @@
 
     /barcolor barcolor cvlit def
     /textcolor textcolor cvlit def
+    /textxalign textxalign cvlit def
+    /textyalign textyalign cvlit def
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
     /bordercolor bordercolor cvlit def
     /backgroundcolor backgroundcolor cvlit def
     /inkspread inkspread cvr def
@@ -3986,18 +3998,33 @@
     
     % Display the text for elements in the text array
     textcolor (unset) ne { textcolor setanycolor } if
-    /s 0 def /f () def
-    txt {
-        {} forall
-        2 copy s ne exch f ne or {
-            2 copy /s exch def /f exch def            
-            exch findfont exch scalefont setfont          
-        } {
-            pop pop
-        } ifelse
-        moveto show
-    } forall
-
+    textxalign (unset) eq textyalign (unset) eq and {
+        /s 0 def /f () def
+        txt {
+            {} forall
+            2 copy s ne exch f ne or {
+                2 copy /s exch def /f exch def            
+                exch findfont exch scalefont setfont          
+            } {
+                pop pop
+            } ifelse
+            moveto show
+        } forall
+    } {
+        textfont findfont textsize scalefont setfont
+        /tstr txt length string def
+        0 1 txt length 1 sub { dup txt exch get 0 get tstr 3 1 roll putinterval } for
+        /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
+        textxalign (left) eq { /textxpos textxoffset } if
+        textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
+        textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
+        textxalign (offright) eq { /textxpos x textxoffset add def } if
+        /textypos textyoffset textsize add 2 sub neg def
+        textyalign (above) eq { /textypos textyoffset maxh add 2 add def } if
+        textyalign (center) eq { /textypos textyoffset maxh textsize 1 sub sub 2 div add def } if
+        textxpos textypos moveto tstr show
+    } ifelse
+    
     % Display the guard elements
     guardwhitespace {
         0.75 setlinewidth
