@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2007-12-01
+% Barcode Writer in Pure PostScript - Version 2007-12-03
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2007 Terry Burton - tez@terryburton.co.uk
@@ -1424,7 +1424,14 @@
         token false eq {exit} if dup length string cvs (=) search
         true eq {cvlit exch pop exch def} {cvlit true def} ifelse
     } loop
-    
+   
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+ 
     /height height cvr def
 
     /getRSSwidths {     
@@ -1619,6 +1626,8 @@
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put   
+    retval (txt) txt put
+    retval (textxalign) (center) put
     retval (opt) useropts put
     retval
 
@@ -1648,7 +1657,14 @@
         token false eq {exit} if dup length string cvs (=) search
         true eq {cvlit exch pop exch def} {cvlit true def} ifelse
     } loop
-    
+   
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+
     /height height cvr def
 
     /getRSSwidths {
@@ -1797,6 +1813,8 @@
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put   
+    retval (txt) txt put
+    retval (textxalign) (center) put
     retval (opt) useropts put
     retval
 
@@ -2042,6 +2060,13 @@
     /wwidth wwidth cvr def
     /swidth swidth cvr def
 
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+
     % Convert the integer into the paramacode string 
     /barcode barcode cvi 1 add 2 17 string cvrs def
     /barcode barcode 1 barcode length 1 sub getinterval def
@@ -2066,6 +2091,8 @@
     retval (sbs) sbs put
     retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
     retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
+    retval (txt) txt put
+    retval (textxalign) (center) put
     retval (opt) useropts put
     retval
 
@@ -2456,6 +2483,13 @@
     /height height cvr def
 
     /barlen barcode length def
+ 
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
 
     /normalize {
         /base exch def
@@ -2692,6 +2726,8 @@
     retval (bbs) bbs put
     retval (bhs) bhs put
     retval (sbs) [bhs length 1 sub {1.44 1.872} repeat 1.44] put    
+    retval (txt) txt put
+    retval (textxalign) (center) put
     retval (opt) useropts put
     retval
 
@@ -3870,10 +3906,11 @@
     /bbs [] def
     /txt [] def
     /barcolor (unset) def
+    /includetext false def
     /textcolor (unset) def
     /textxalign (unset) def
     /textyalign (unset) def
-    /textfont (Helvetica) def
+    /textfont (Courier) def
     /textsize 10 def
     /textxoffset 0 def
     /textyoffset 0 def
@@ -3899,7 +3936,7 @@
     
     % Apply the renderer options
     args {exch cvlit exch def} forall
-       
+ 
     % Parse the user options   
     opt {
         token false eq {exit} if dup length string cvs (=) search
@@ -3998,6 +4035,7 @@
     
     % Display the text for elements in the text array
     textcolor (unset) ne { textcolor setanycolor } if
+    includetext {
     textxalign (unset) eq textyalign (unset) eq and {
         /s 0 def /f () def
         txt {
@@ -4015,16 +4053,17 @@
         /tstr txt length string def
         0 1 txt length 1 sub { dup txt exch get 0 get tstr 3 1 roll putinterval } for
         /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
-        textxalign (left) eq { /textxpos textxoffset } if
+        textxalign (left) eq { /textxpos textxoffset def } if
         textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
         textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
         textxalign (offright) eq { /textxpos x textxoffset add def } if
-        /textypos textyoffset textsize add 2 sub neg def
-        textyalign (above) eq { /textypos textyoffset maxh add 2 add def } if
-        textyalign (center) eq { /textypos textyoffset maxh textsize 1 sub sub 2 div add def } if
+        /textypos textyoffset textsize add 3 sub neg def
+        textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
+        textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
         textxpos textypos moveto tstr show
     } ifelse
-    
+    } if    
+
     % Display the guard elements
     guardwhitespace {
         0.75 setlinewidth
@@ -4136,17 +4175,17 @@
 150 700 moveto (0123456789) (includecheck includetext) interleaved2of5 barcode
 0 -17 rmoveto (Interleaved 2 of 5) show
 
-215 300 moveto (24012345678905) (height=0.3) rss14 barcode
-0 -10 rmoveto (RSS-14) show
+215 300 moveto (24012345678905) (height=0.3 includetext) rss14 barcode
+0 -17 rmoveto (RSS-14) show
 
-220 550 moveto (00978186074271) (height=0.3) rsslimited barcode
-0 -10 rmoveto (RSS Limited) show
+220 550 moveto (00978186074271) (height=0.3 includetext) rsslimited barcode
+0 -17 rmoveto (RSS Limited) show
 
 220 500 moveto (000000010011001010100001000000010000) (height=0.3) rssexpanded barcode
 0 -10 rmoveto (RSS Expanded) show
 
-215 348 moveto (117480) () pharmacode barcode
-0 -10 rmoveto (Pharmacode) show
+215 348 moveto (117480) (includetext) pharmacode barcode
+0 -17 rmoveto (Pharmacode) show
 
 30 300 moveto (01234567) (includetext includecheck) code2of5 barcode
 0 -17 rmoveto (Code 2 of 5) show
@@ -4179,7 +4218,7 @@
 0 -17 rmoveto (EAN-5) show
 
 345 550 moveto (0123456709498765432101234567891) (includetext) onecode barcode
-0 -10 rmoveto (OneCode) show
+0 -17 rmoveto (OneCode) show
 
 240 455 moveto (012345) (includetext) postnet barcode
 0 -17 rmoveto (Postnet) show
