@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-01-01
+% Barcode Writer in Pure PostScript - Version 2008-01-02
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
@@ -3696,19 +3696,25 @@
         m 321 ge {/eclevel 5 def} if
     } if
 
-    % Ensure that the error level does not cause an excessive number of codewords
+    % Reduce the error level so that it does not cause an excessive number of codewords
     /maxeclevel 928 1 sub m sub ln 2 ln div cvi 1 sub def
     eclevel maxeclevel gt {/eclevel maxeclevel def} if
-    /gen coeffs eclevel get def
-    /k gen length def
+    /k 2 eclevel 1 add exp cvi def
 
-    % Number of columns if given by user
+    % To determine size of matrix, number of columns if given by user...
     columns 1 ge columns 30 le and {/c columns def} if
 
-    % Rows is greater of those required and that given by user within limits
+    % ... and rows is greater of those required and that given by user within limits
     /r m k add 1 add columns div ceiling cvi def  % Required
     r rows lt rows 90 le and {/r rows def} if
     r 3 lt {/r 3 def} if
+
+    % Opportunistically raise the error level if a better fit to the matrix is possible
+    /maxeclevel c r mul 1 sub m sub ln 2 ln div cvi 1 sub def
+    maxeclevel eclevel gt {
+      /eclevel maxeclevel def
+      /k 2 eclevel 1 add exp cvi def
+    } if
 
     % Create codewords array with one extra working space element and add padding
     /n c r mul k sub def
@@ -3718,6 +3724,7 @@
     cws m 1 add [ n m sub 1 sub {900} repeat ] putinterval
     cws n [ k {0} repeat 0 ] putinterval
     % Derive the error codewords
+    /gen coeffs eclevel get def
     0 1 n 1 sub {
         /t exch cws exch get cws n get add 929 mod def
         0 1 k 1 sub {
