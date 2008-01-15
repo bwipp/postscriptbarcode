@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-01-02
+% Barcode Writer in Pure PostScript - Version 2008-01-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
@@ -3723,6 +3723,7 @@
     cws 1 datcws putinterval
     cws m 1 add [ n m sub 1 sub {900} repeat ] putinterval
     cws n [ k {0} repeat 0 ] putinterval
+
     % Derive the error codewords
     /gen coeffs eclevel get def
     0 1 n 1 sub {
@@ -3865,7 +3866,7 @@
             118224 115912 123494 118216 124646 118212 115906 118210 100816 115948 105424 100808
             115942 105416 118246 105412 100802 105410  70608 100844  79824  70600 100838  79816
             105446  79812  70594  79810  70636  79852  70630  79846 129960  95728 113404 129956
-            95480 113278 129954  95356  95294 127784 129430  78588 128872 129974  95996  78462
+             95480 113278 129954  95356  95294 127784 129430  78588 128872 129974  95996  78462
             128868 127778  95870 128866 123432 127254 124520 123428 126696 128886 123426 126692
             124514 126690 115816 123446 117992 115812 122344 117988 115810 122340 117986 122338
             100584 115830 104936 100580 113640 104932 100578 113636 104930 113634  70120 100598
@@ -4039,6 +4040,362 @@
 } bind def
 /pdf417 load 0 1 dict put
 % --END ENCODER pdf417--
+
+% --BEGIN ENCODER datamatrix--
+% --DESC: Data Matrix
+% --EXAM: ^142^164^186
+% --EXOP: rows=32 columns=32
+% --RNDR: renmatrix
+/datamatrix {
+
+    0 begin
+
+    /options exch def
+    /useropts options def
+    /barcode exch def
+
+    /columns 0 def
+    /rows 0 def
+
+    % Parse the input options
+    options {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    /columns columns cvi def
+    /rows rows cvi def
+
+    % Split the input barcode into an array of codewords
+    /cws barcode length array def
+    /i 0 def /j 0 def
+    { % loop
+        i barcode length eq {exit} if
+        /cw barcode i 1 add 3 getinterval cvi def
+        cws j cw put
+        /i i 4 add def
+        /j j 1 add def
+    } loop
+    /cws cws 0 j getinterval def
+
+    % Basic metrics for the each symbol
+    %    rows  cols  regh  regv  rscw  rsbl
+    /metrics [
+        % Standard square symbols
+        [  10    10     1     1     5     1 ]
+        [  12    12     1     1     7     1 ]
+        [  14    14     1     1    10     1 ]
+        [  16    16     1     1    12     1 ]
+        [  18    18     1     1    14     1 ]
+        [  20    20     1     1    18     1 ] 
+        [  22    22     1     1    20     1 ]
+        [  24    24     1     1    24     1 ]
+        [  26    26     1     1    28     1 ]
+        [  32    32     2     2    36     1 ]
+        [  36    36     2     2    42     1 ]
+        [  40    40     2     2    48     1 ]
+        [  44    44     2     2    56     1 ]
+        [  48    48     2     2    68     1 ]
+        [  52    52     2     2    84     2 ]
+        [  64    64     4     4   112     2 ]
+        [  72    72     4     4   144     4 ]
+        [  80    80     4     4   192     4 ]
+        [  88    88     4     4   224     4 ]
+        [  96    96     4     4   272     4 ]
+        [ 104   104     4     4   336     6 ]
+        [ 120   120     6     6   408     6 ]
+        [ 132   132     6     6   496     8 ]
+        [ 144   144     6     6   620    10 ]
+        % Optional rectangular symbols
+        [   8    18     1     1     7     1 ]
+        [   8    32     1     2    11     1 ]
+        [  12    26     1     1    14     1 ]
+        [  12    36     1     2    18     1 ]
+        [  16    36     1     2    24     1 ]
+        [  16    48     1     2    28     1 ]
+    ] def
+
+    % Select metrics of an appropriate symbol
+    /urows rows def
+    /ucols columns def
+    /i 0 def
+    { % loop
+        /m metrics i get def
+        /rows m 0 get def                          % Rows in symbol
+        /cols m 1 get def                          % Columns in symbol
+        /regh m 2 get def                          % Horizontal regions
+        /regv m 3 get def                          % Vertical regions
+        /rscw m 4 get def                          % Error correction codewords
+        /rsbl m 5 get def                          % Error correction blocks
+        /mrows rows 2 regh mul sub def             % Rows in the mapping matrix
+        /mcols cols 2 regv mul sub def             % Columns in the mapping matrix
+        /rrows mrows regh idiv def                 % Rows per region
+        /rcols mcols regv idiv def                 % Columns per region
+        /ncws mrows mcols mul 8 idiv rscw sub def  % Data codewords
+        /okay true def
+        cws length ncws gt           {/okay false def} if
+        urows 0 ne urows rows ne and {/okay false def} if
+        ucols 0 ne ucols cols ne and {/okay false def} if
+        okay {exit} if
+        /i i 1 add def
+    } loop
+
+    % Extend cws to ncws codewords by addition of pseudo-randomised pad characters
+    cws length ncws lt {
+        /datlen cws length def
+        /cws [ cws {} forall ncws datlen sub {129} repeat ] def
+        datlen 1 add 1 ncws 1 sub {
+            /i exch def
+            i 149 mul 253 mod 1 add 129 add
+            dup 254 gt {254 sub} if
+            cws exch i exch put
+        } for
+    } if
+
+    % De-interleave the codewords into blocks
+    /cwbs rsbl array def  % Array of data codeword blocks
+    /ecbs rsbl array def  % Array of error correction blocks
+    0 1 rsbl 1 sub {
+        /i exch def
+        cws length 1558 ne {
+            /cwbsize cws length rsbl idiv def
+        } {
+            i 7 le {/cwbsize 156 def} {/cwbsize 155 def} ifelse
+        } ifelse
+        /cwb cwbsize array def 
+        0 1 cwbsize 1 sub {
+            /j exch def
+            cwb j cws j rsbl mul i add get put
+        } for 
+        cwbs i cwb put
+        ecbs i [ rscw rsbl idiv {0} repeat ] put
+    } for
+
+    % Calculate the log and anti-log tables
+    /rslog [ -255 255 {0} repeat ] def
+    /rsalog [ 1 255 {0} repeat ] def
+    1 1 255 {
+        /i exch def
+        rsalog i rsalog i 1 sub get 2 mul put
+        rsalog i get 256 ge { rsalog i rsalog i get 301 xor put } if
+        rslog rsalog i get i put
+    } for
+
+    % Generator polynomials for the Reed-Solomon algorithm
+    /coeffs [
+        [] [] [] [] []
+        [ 228  48  15 111  62 ]
+        []
+        [  23  68 144 134 240  92 254 ]
+        [] []
+        [  28  24 185 166 223 248 116 255 110  61 ]
+        [ 175 138 205  12 194 168  39 245  60  97 120 ]
+        [  41 153 158  91  61  42 142 213  97 178 100 242 ]
+        []
+        [ 156  97 192 252  95   9 157 119 138  45  18 186  83 185 ]
+        [] [] []
+        [  83 195 100  39 188  75  66  61 241 213 109 129  94 254 225  48  90 188 ]
+        []
+        [  15 195 244   9 233  71 168   2 188 160 153 145 253  79 108  82  27 174 186 172 ]
+        [] [] [] 
+        [  52 190  88 205 109  39 176  21 155 197 251 223 155  21   5 172 254 124  12 181 
+          184  96  50 193 ]
+        [] [] [] 
+        [ 211 231  43  97  71  96 103 174  37 151 170  53  75  34 249 121  17 138 110 213 
+          141 136 120 151 233 168  93 255 ]
+        [] [] [] [] [] [] []
+        [ 245 127 242 218 130 250 162 181 102 120  84 179 220 251  80 182 229  18   2   4 
+           68  33 101 137  95 119 115  44 175 184  59  25 225  98  81 112 ]
+        [] [] [] [] []
+        [  77 193 137  31  19  38  22 153 247 105 122   2 245 133 242   8 175  95 100   9 
+          167 105 214 111  57 121  21   1 253  57  54 101 248 202  69  50 150 177 226   5 
+            9   5 ]
+        [] [] [] [] []
+        [ 245 132 172 223  96  32 117  22 238 133 238 231 205 188 237  87 191 106  16 147 
+          118  23  37  90 170 205 131  88 120 100  66 138 186 240  82  44 176  87 187 147 
+          160 175  69 213  92 253 225  19 ]
+        [] [] [] [] [] [] [] 
+        [ 175   9 223 238  12  17 220 208 100  29 175 170 230 192 215 235 150 159  36 223 
+           38 200 132  54 228 146 218 234 117 203  29 232 144 238  22 150 201 117  62 207 
+          164  13 137 245 127  67 247  28 155  43 203 107 233  53 143  46 ]
+        [] [] [] [] []
+        [ 242  93 169  50 144 210  39 118 202 188 201 189 143 108 196  37 185 112 134 230 
+          245  63 197 190 250 106 185 221 175  64 114  71 161  44 147   6  27 218  51  63 
+           87  10  40 130 188  17 163  31 176 170   4 107 232   7  94 166 224 124  86  47 
+           11 204 ]
+        [] [] [] [] []
+        [ 220 228 173  89 251 149 159  56  89  33 147 244 154  36  73 127 213 136 248 180 
+          234 197 158 177  68 122  93 213  15 160 227 236  66 139 153 185 202 167 179  25 
+          220 232  96 210 231 136 223 239 181 241  59  52 172  25  49 232 211 189  64  54 
+          108 153 132  63  96 103  82 186 ]
+    ] def
+
+    % Calculate the error correction codewords for each block
+    0 1 cwbs length 1 sub {
+        /i exch def
+        /cwb cwbs i get def
+        /ecb ecbs i get def
+        /gen coeffs ecb length get def
+        0 1 cwb length 1 sub {
+            /t exch cwb exch get ecb 0 get xor def 
+            ecb length 1 sub -1 0 {
+                /j exch def
+                /p ecb length j sub 1 sub def
+                t 0 eq {
+                    ecb p 0 put
+                } {
+                    ecb p rsalog rslog t get rslog gen j get get add 255 mod get put
+                } ifelse
+                j 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
+            } for 
+        } for
+        ecbs i ecb put
+    } for
+
+    % Extend codewords with the interleaved error correction codes
+    /cws [ cws {} forall rscw {0} repeat ] def
+    0 1 rscw 1 sub {
+        /i exch def
+        cws ncws i add ecbs i rsbl mod get i rsbl idiv get put
+    } for
+
+    % Create the module placement matrix
+    /module {
+        /tmpc exch def
+        /tmpr exch def
+        tmpr 0 lt {  
+            /tmpr tmpr mrows add def
+            /tmpc tmpc 4 mrows 4 add 8 mod sub add def
+        } if
+        tmpc 0 lt { 
+            /tmpc tmpc mcols add def
+            /tmpr tmpr 4 mcols 4 add 8 mod sub add def
+        } if
+        mmat tmpr mcols mul tmpc add bit put
+        /bit bit 1 add def
+    } bind def
+
+    /mmat [ mrows mcols mul {-1} repeat ] def
+    /bit 0 def /row 4 def /col 0 def
+    { % loop
+
+        row mrows eq col 0 eq and {
+            [ [mrows 1 sub 0] [mrows 1 sub 1] [mrows 1 sub 2] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
+            {{} forall module} forall 
+        } if
+        row mrows 2 sub eq col 0 eq and mcols 4 mod 0 ne and {
+            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 4 sub]
+              [0 mcols 3 sub] [0 mcols 2 sub] [0 mcols 1 sub] [1 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+        row mrows 2 sub eq col 0 eq and mcols 8 mod 4 eq and {
+            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+        row mrows 4 add eq col 2 eq and mcols 8 mod 0 eq and {
+            [ [mrows 1 sub 0] [mrows 1 sub mcols 1 sub] [0 mcols 3 sub] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 3 sub]           [1 mcols 2 sub] [1 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+
+        { % loop for sweeping upwards
+            row mrows lt col 0 ge and {
+                mmat row mcols mul col add get -1 eq {
+                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
+                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
+                    {{} forall module} forall
+                } if
+            } if
+            /row row 2 sub def
+            /col col 2 add def
+            row 0 ge col mcols lt and not {exit} if
+        } loop
+        /row row 1 add def
+        /col col 3 add def
+
+        { % loop for sweeping downwards
+            row 0 ge col mcols lt and {
+                mmat row mcols mul col add get -1 eq {
+                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
+                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
+                    {{} forall module} forall
+                } if
+            } if
+            /row row 2 add def
+            /col col 2 sub def
+            row mrows lt col 0 ge and not {exit} if
+        } loop
+        /row row 3 add def
+        /col col 1 add def
+
+        row mrows lt col mcols lt or not {exit} if
+    } loop
+
+    % Set checker pattern if required
+    mmat mrows mcols mul 1 sub get -1 eq {
+        mmat mrows mcols 1 sub mul 2 sub [-1 -2] putinterval
+        mmat mrows mcols mul 2 sub [-2 -1] putinterval
+    } if
+
+    % Invert the map to form the mapping matrix correcting the checker case
+    /modmap mrows mcols mul 8 idiv 8 mul array def
+    0 1 mmat length 1 sub {
+        /i exch def
+        mmat i get 0 ge {
+            modmap mmat i get i put
+        } {
+            mmat i mmat i get 2 add put
+        } ifelse
+    } for
+
+    % Place the codewords in the matrix according to the mapping matrix
+    0 1 cws length 1 sub {
+        /i exch def
+        [ 8 {0} repeat cws i get 2 8 string cvrs {48 sub} forall ]
+        dup length 8 sub 8 getinterval /bits exch def
+        0 1 7 {
+            /j exch def
+            mmat modmap i 8 mul j add get bits j get put
+        } for
+    } for
+
+    % Place the modules onto a pixel map between alignment patterns
+    /pixs rows cols mul array def
+    /cwpos 0 def
+    0 1 rows 1 sub {
+        /i exch def
+        i rrows 2 add mod 0 eq { pixs i cols mul [ cols 2 idiv {1 0} repeat ] putinterval } if  
+        i rrows 2 add mod rrows 1 add eq { pixs i cols mul [ cols {1} repeat ] putinterval } if 
+        i rrows 2 add mod 0 ne i rrows 2 add mod rrows 1 add ne and {
+            0 1 cols 1 sub {
+                /j exch def
+                j rcols 2 add mod 0 eq { pixs i cols mul j add 1 put } if
+                j rcols 2 add mod rcols 1 add eq { pixs i cols mul j add i 2 mod put } if
+                j rcols 2 add mod 0 ne j rcols 2 add mod rcols 1 add ne and {
+                    pixs i cols mul j add mmat cwpos get put
+                    /cwpos cwpos 1 add def
+                } if
+            } for
+        } if 
+    } for
+
+    /retval 7 dict def
+    retval (ren) (renmatrix) put
+    retval (pixs) pixs put
+    retval (pixx) cols put
+    retval (pixy) rows put
+    retval (height) rows 72 div 1.5 mul put
+    retval (width) cols 72 div 1.5 mul put
+    retval (opt) useropts put
+    retval
+
+    end
+
+} bind def
+/datamatrix load 0 1 dict put
+% --END ENCODER datamatrix--
 
 % --BEGIN ENCODER maxicode--
 % --DESC: MaxiCode
