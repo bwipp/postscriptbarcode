@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-03-01
+% Barcode Writer in Pure PostScript - Version 2008-03-08
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
@@ -5239,8 +5239,9 @@
         } forall
     } {
         textfont findfont textsize scalefont setfont
+        /txt [ txt { 0 get {} forall } forall ] def
         /tstr txt length string def
-        0 1 txt length 1 sub { dup txt exch get 0 get tstr 3 1 roll putinterval } for
+        0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
         /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
         textxalign (left) eq { /textxpos textxoffset def } if
         textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
