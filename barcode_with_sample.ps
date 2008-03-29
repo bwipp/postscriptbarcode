@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-03-13
+% Barcode Writer in Pure PostScript - Version 2008-03-29
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
@@ -4415,6 +4415,543 @@
 /datamatrix load 0 1 dict put
 % --END ENCODER datamatrix--
 
+% --BEGIN ENCODER qrcode--
+% --DESC: QR Code
+% --EXAM: 000100000010000000001100010101100110000110000
+% --EXOP: version=1 eclevel=M
+% --RNDR: renmatrix
+/qrcode {
+
+    0 begin
+
+    /options exch def
+    /useropts options def
+    /barcode exch def
+
+    /format (unset) def    % full or micro
+    /version (unset) def
+    /eclevel (L) def       % L, M, Q or H
+    /size -1 def
+
+    % Parse the input options
+    options {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    /size size cvi def
+
+    % Convert from input into message bitstream
+    /msgbits barcode def 
+
+    % Lookup the most appropriate symbol specification
+    /metrics [
+        % format   vers  size align modules    error codewords        error correction blocks 
+        %                                      L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
+        [ (micro)  (M1)   11  98 99     36  [   2   99   99   99 ]  [  1  0 99 99 99 99 99 99 ] ]
+        [ (micro)  (M2)   13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 99 99 99 99 ] ]
+        [ (micro)  (M3)   15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 99 99 99 99 ] ]
+        [ (micro)  (M4)   17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 99 99 ] ]
+        [ (full)   (1)    21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
+        [ (full)   (2)    25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
+        [ (full)   (3)    29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
+        [ (full)   (4)    33  26 99    807  [  20   36   52   64 ]  [  1  0  2  0  2  0  4  0 ] ]
+        [ (full)   (5)    37  30 99   1079  [  26   48   72   88 ]  [  1  0  2  0  2  2  2  2 ] ]
+        [ (full)   (6)    41  34 99   1383  [  36   64   96  112 ]  [  2  0  4  0  4  0  4  0 ] ]
+        [ (full)   (7)    45  22 38   1568  [  40   72  108  130 ]  [  2  0  4  0  2  4  4  1 ] ]
+        [ (full)   (8)    49  24 42   1936  [  48   88  132  156 ]  [  2  0  2  2  4  2  4  2 ] ]
+        [ (full)   (9)    53  26 46   2336  [  60  110  160  192 ]  [  2  0  3  2  4  4  4  4 ] ]
+        [ (full)   (10)   57  28 50   2768  [  72  130  192  224 ]  [  2  2  4  1  6  2  6  2 ] ]
+        [ (full)   (11)   61  30 54   3232  [  80  150  224  264 ]  [  4  0  1  4  4  4  3  8 ] ]
+        [ (full)   (12)   65  32 58   3728  [  96  176  260  308 ]  [  2  2  6  2  4  6  7  4 ] ]
+        [ (full)   (13)   69  34 62   4256  [ 104  198  288  352 ]  [  4  0  8  1  8  4 12  4 ] ]
+        [ (full)   (14)   73  26 46   4651  [ 120  216  320  384 ]  [  3  1  4  5 11  5 11  5 ] ]
+        [ (full)   (15)   77  26 48   5243  [ 132  240  360  432 ]  [  5  1  5  5  5  7 11  7 ] ]
+        [ (full)   (16)   81  26 50   5867  [ 144  280  408  480 ]  [  5  1  7  3 15  2  3 13 ] ]
+        [ (full)   (17)   85  30 54   6523  [ 168  308  448  532 ]  [  1  5 10  1  1 15  2 17 ] ]
+        [ (full)   (18)   89  30 56   7211  [ 180  338  504  588 ]  [  5  1  9  4 17  1  2 19 ] ]
+        [ (full)   (19)   93  30 58   7931  [ 196  364  546  650 ]  [  3  4  3 11 17  4  9 16 ] ]
+        [ (full)   (20)   97  34 62   8683  [ 224  416  600  700 ]  [  3  5  3 13 15  5 15 10 ] ]
+        [ (full)   (21)  101  28 50   9252  [ 224  442  644  750 ]  [  4  4 17  0 17  6 19  6 ] ]
+        [ (full)   (22)  105  26 50  10068  [ 252  476  690  816 ]  [  2  7 17  0  7 16 34  0 ] ]
+        [ (full)   (23)  109  30 54  10916  [ 270  504  750  900 ]  [  4  5  4 14 11 14 16 14 ] ]
+        [ (full)   (24)  113  28 54  11796  [ 300  560  810  960 ]  [  6  4  6 14 11 16 30  2 ] ]
+        [ (full)   (25)  117  32 58  12708  [ 312  588  870 1050 ]  [  8  4  8 13  7 22 22 13 ] ]
+        [ (full)   (26)  121  30 58  13652  [ 336  644  952 1110 ]  [ 10  2 19  4 28  6 33  4 ] ]
+        [ (full)   (27)  125  34 62  14628  [ 360  700 1020 1200 ]  [  8  4 22  3  8 26 12 28 ] ]
+        [ (full)   (28)  129  26 50  15371  [ 390  728 1050 1260 ]  [  3 10  3 23  4 31 11 31 ] ]
+        [ (full)   (29)  133  30 54  16411  [ 420  784 1140 1350 ]  [  7  7 21  7  1 37 19 26 ] ]
+        [ (full)   (30)  137  26 52  17483  [ 450  812 1200 1440 ]  [  5 10 19 10 15 25 23 25 ] ]
+        [ (full)   (31)  141  30 56  18587  [ 480  868 1290 1530 ]  [ 13  3  2 29 42  1 23 28 ] ]
+        [ (full)   (32)  145  34 60  19723  [ 510  924 1350 1620 ]  [ 17  0 10 23 10 35 19 35 ] ]
+        [ (full)   (33)  149  30 58  20891  [ 540  980 1440 1710 ]  [ 17  1 14 21 29 19 11 46 ] ]
+        [ (full)   (34)  153  34 62  22091  [ 570 1036 1530 1800 ]  [ 13  6 14 23 44  7 59  1 ] ]
+        [ (full)   (35)  157  30 54  23008  [ 570 1064 1590 1890 ]  [ 12  7 12 26 39 14 22 41 ] ]
+        [ (full)   (36)  161  24 50  24272  [ 600 1120 1680 1980 ]  [  6 14  6 34 46 10  2 64 ] ]
+        [ (full)   (37)  165  28 54  25568  [ 630 1204 1770 2100 ]  [ 17  4 29 14 49 10 24 46 ] ]
+        [ (full)   (38)  169  32 58  26896  [ 660 1260 1860 2220 ]  [  4 18 13 32 48 14 42 32 ] ]
+        [ (full)   (39)  173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
+        [ (full)   (40)  177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
+    ] def
+
+    /eclval (LMQH) eclevel search pop length exch pop exch pop def
+    /i 0 def
+    { % loop
+        /m metrics i get def
+        /frmt m 0 get def                             % Format of the symbol
+        /vers m 1 get def                             % Version of symbol
+        /ssze m 2 get def                             % Length of side
+        /asp2 m 3 get def                             % Position of second alignment symbol
+        /asp3 m 4 get def                             % Position of third alignment symbol
+        /nmod m 5 get def                             % Number of modules
+        /ncws nmod 8 idiv def                         % Total number of codewords
+        /rbit nmod 8 mod def                          % Number of remainder bits
+        /lc4b false def                               % Last data codeword is 4 bits long
+        ssze 11 eq ssze 15 eq or {                    % Adjustments for M1 and M3 symbols
+            /ncws ncws 1 add def
+            /rbit 0 def
+            /lc4b true def
+        } if
+        /ecws m 6 get eclval get def                  % Number of error correction codewords
+        /dcws ncws ecws sub def                       % Number of data codewords
+        /dmod dcws 8 mul lc4b {4} {0} ifelse sub def  % Number of data modules
+        /ecb1 m 7 get eclval 2 mul get def            % First error correction blocks
+        /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
+        /dcpb dcws ecb1 ecb2 add idiv def             % Base data codewords per block
+        /ecpb ncws ecb1 ecb2 add idiv dcpb sub def    % Error correction codewords per block
+        /okay true def
+        format (unset) ne format frmt ne and {/okay false def} if
+        version (unset) ne version vers ne and {/okay false def} if
+        size -1 ne size ssze ne and {/okay false def} if
+        msgbits length dmod gt {/okay false def} if
+        okay {exit} if
+        /i i 1 add def
+    } loop
+    /format frmt def
+    /version vers def
+    /size ssze def
+
+    % Expand the message bits by adding padding as necessary
+    /pad dmod string def
+    0 4 dmod 1 sub {pad exch (0000) putinterval} for
+    pad 0 msgbits putinterval
+    /padstrs [ (11101100) (00010001) ] def
+    /padnum 0 def
+    msgbits length 8 div ceiling 8 mul cvi 8 dmod lc4b {5} {1} ifelse sub {
+        pad exch padstrs padnum get putinterval 
+        /padnum padnum 1 add 2 mod def
+    } for
+
+    % Evaluate the padded message into codewords
+    /cws dcws array def 
+    0 1 cws length 1 sub {
+        /c exch def
+        /bpcw 8 def
+        lc4b c cws length 1 sub eq and {/bpcw 4 def} if
+        /cwb pad c 8 mul bpcw getinterval def
+        /cw 0 def
+        0 1 bpcw 1 sub {
+            /i exch def
+            /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
+        } for 
+        cws c cw put
+    } for 
+
+    % Calculate the log and anti-log tables
+    /rslog [ -255 255 {0} repeat ] def
+    /rsalog [ 1 255 {0} repeat ] def
+    1 1 255 {
+        /i exch def
+        rsalog i rsalog i 1 sub get 2 mul put
+        rsalog i get 256 ge { rsalog i rsalog i get 285 xor put } if 
+        rslog rsalog i get i put 
+    } for
+
+    % Function to calculate the product in the field
+    /rsprod {
+        /y exch def
+        /x exch def
+        x y mul 0 ne { 
+            rsalog rslog x get rslog y get add 255 mod get
+        } {
+            0
+        } ifelse
+    } bind def
+
+    % Generate the coefficients for the Reed-Solomon algorithm
+    /coeffs [ 1 ecpb {0} repeat ] def
+    0 1 ecpb 1 sub {
+        /i exch def 
+        coeffs i 1 add coeffs i get put
+        i -1 1 {
+            /j exch def
+            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+        } for 
+        coeffs 0 coeffs 0 get rsalog i get rsprod put
+    } for
+    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+
+    % Reed-Solomon algorithm to derive the error correction codewords
+    /rscodes {
+        /rscws exch def
+        /rsnd rscws length def
+        /rscws [ rscws {} forall ecpb {0} repeat ] def
+        0 1 rsnd 1 sub {
+            /m exch def
+            /k rscws m get def
+            0 1 ecpb 1 sub {
+                /j exch def
+                rscws m j add 1 add coeffs ecpb j sub 1 sub get k rsprod rscws m j add 1 add get xor put
+            } for
+        } for
+        rscws rsnd ecpb getinterval
+    } bind def
+
+    % Divide codewords into two groups of blocks and calculate the error correction codewords
+    /dcwsb ecb1 ecb2 add array def
+    /ecwsb ecb1 ecb2 add array def
+    0 1 ecb1 1 sub {  % First group of blocks has smaller number of data codewords
+        /i exch def
+        dcwsb i cws i dcpb mul dcpb getinterval put
+        ecwsb i dcwsb i get rscodes put
+    } for
+    0 1 ecb2 1 sub {  % Second group of blocks has larger number of data codewords
+        /i exch def
+        dcwsb ecb1 i add cws ecb1 dcpb mul i dcpb 1 add mul add dcpb 1 add getinterval put
+        ecwsb ecb1 i add dcwsb ecb1 i add get rscodes put
+    } for
+    
+    % Reassemble the codewords
+    /cws ncws array def
+    /cw 0 def
+    0 1 dcpb {  % Interleave the data codeword blocks
+        /i exch def
+        0 1 ecb1 ecb2 add 1 sub {
+            /j exch def
+            i dcwsb j get length lt {  % Ignore the end of short blocks
+                cws cw dcwsb j get i get put
+                /cw cw 1 add def
+            } if
+        } for
+    } for
+    0 1 ecpb 1 sub {  % Interleave the error codeword blocks
+        /i exch def
+        0 1 ecb1 ecb2 add 1 sub {
+            /j exch def
+            cws cw ecwsb j get i get put
+            /cw cw 1 add def
+        } for
+    } for
+    
+    % Extend codewords by one if there are remainder bits
+    rbit 0 gt {
+        /pad cws length 1 add array def
+        pad 0 cws putinterval
+        pad pad length 1 sub 0 put
+        /cws pad def
+    } if
+ 
+    % Fixups for the short final data byte in M1 and M3 symbols
+    lc4b {
+        dcws 1 sub 1 ncws 2 sub {
+            /i exch def
+            cws i cws i get 15 and 4 bitshift put
+            cws i cws i 1 add get -4 bitshift 15 and cws i get or put
+        } for
+        cws ncws 1 sub cws ncws 1 sub get 15 and 4 bitshift put
+    } if
+
+    % Create the bitmap
+    /pixs [ size size mul {-1} repeat ] def
+    /qmv {size mul add} bind def
+    
+    % Finder patterns
+    /fpat [
+        [ 1 1 1 1 1 1 1 0 ]
+        [ 1 0 0 0 0 0 1 0 ]
+        [ 1 0 1 1 1 0 1 0 ]
+        [ 1 0 1 1 1 0 1 0 ]
+        [ 1 0 1 1 1 0 1 0 ]
+        [ 1 0 0 0 0 0 1 0 ]
+        [ 1 1 1 1 1 1 1 0 ]
+        [ 0 0 0 0 0 0 0 0 ]
+    ] def
+    0 1 fpat length 1 sub {
+      /y exch def
+      0 1 fpat 0 get length 1 sub {
+        /x exch def
+        /fpb fpat y get x get def
+        pixs x y qmv fpb put
+        format (full) eq {
+            pixs size x sub 1 sub y qmv fpb put
+            pixs x size y sub 1 sub qmv fpb put
+        } if
+      } for
+    } for
+    
+    % Alignment patterns
+    /algnpat [
+        [ 1 1 1 1 1 ]
+        [ 1 0 0 0 1 ]
+        [ 1 0 1 0 1 ]
+        [ 1 0 0 0 1 ]
+        [ 1 1 1 1 1 ]
+    ] def
+    /putalgnpat {
+        /py exch def
+        /px exch def
+        0 1 4 {
+            /pb exch def
+            0 1 4 {
+                /pa exch def
+                pixs px pa add py pb add qmv algnpat pb get pa get put
+            } for
+        } for
+    } bind def
+    asp2 2 sub asp3 asp2 sub size 13 sub {
+        /i exch def
+        i 4 putalgnpat
+        4 i putalgnpat
+    } for
+    asp2 2 sub asp3 asp2 sub size 9 sub { 
+        /x exch def
+        asp2 2 sub asp3 asp2 sub size 9 sub {
+            /y exch def
+            x y putalgnpat
+        } for
+    } for
+    
+    % Timing patterns
+    format (full) eq {
+        8 1 size 9 sub {
+            /i exch def
+            pixs i 6 qmv i 1 add 2 mod put
+            pixs 6 i qmv i 1 add 2 mod put
+        } for
+    } {
+        8 1 size 1 sub {
+            /i exch def
+            pixs i 0 qmv i 1 add 2 mod put
+            pixs 0 i qmv i 1 add 2 mod put
+        } for
+    } ifelse
+    
+    % Format information modules
+    format (full) eq {
+        /formatmap [
+            [ [ 0 8 ] [ 8 size 1 sub ] ]  [ [ 1 8 ] [ 8 size 2 sub ] ]  [ [ 2 8 ] [ 8 size 3 sub ] ]
+            [ [ 3 8 ] [ 8 size 4 sub ] ]  [ [ 4 8 ] [ 8 size 5 sub ] ]  [ [ 5 8 ] [ 8 size 6 sub ] ]
+            [ [ 7 8 ] [ 8 size 7 sub ] ]  [ [ 8 8 ] [ size 8 sub 8 ] ]  [ [ 8 7 ] [ size 7 sub 8 ] ]
+            [ [ 8 5 ] [ size 6 sub 8 ] ]  [ [ 8 4 ] [ size 5 sub 8 ] ]  [ [ 8 3 ] [ size 4 sub 8 ] ]
+            [ [ 8 2 ] [ size 3 sub 8 ] ]  [ [ 8 1 ] [ size 2 sub 8 ] ]  [ [ 8 0 ] [ size 1 sub 8 ] ]
+        ] def
+    } {
+        /formatmap [
+            [ [ 1 8 ] ]  [ [ 2 8 ] ]  [ [ 3 8 ] ]  [ [ 4 8 ] ]  [ [ 5 8 ] ]
+            [ [ 6 8 ] ]  [ [ 7 8 ] ]  [ [ 8 8 ] ]  [ [ 8 7 ] ]  [ [ 8 6 ] ]
+            [ [ 8 5 ] ]  [ [ 8 4 ] ]  [ [ 8 3 ] ]  [ [ 8 2 ] ]  [ [ 8 1 ] ]
+        ] def
+    } ifelse
+    formatmap {
+        { {} forall qmv pixs exch 0 put } forall
+    } forall
+    
+    % Version information modules
+    size 45 ge {
+        /versionmap [
+            [ [ size  9 sub 5 ] [ 5 size  9 sub ] ]  [ [ size 10 sub 5 ] [ 5 size 10 sub ] ]
+            [ [ size 11 sub 5 ] [ 5 size 11 sub ] ]  [ [ size  9 sub 4 ] [ 4 size  9 sub ] ]
+            [ [ size 10 sub 4 ] [ 4 size 10 sub ] ]  [ [ size 11 sub 4 ] [ 4 size 11 sub ] ]
+            [ [ size  9 sub 3 ] [ 3 size  9 sub ] ]  [ [ size 10 sub 3 ] [ 3 size 10 sub ] ]
+            [ [ size 11 sub 3 ] [ 3 size 11 sub ] ]  [ [ size  9 sub 2 ] [ 2 size  9 sub ] ]
+            [ [ size 10 sub 2 ] [ 2 size 10 sub ] ]  [ [ size 11 sub 2 ] [ 2 size 11 sub ] ]
+            [ [ size  9 sub 1 ] [ 1 size  9 sub ] ]  [ [ size 10 sub 1 ] [ 1 size 10 sub ] ]
+            [ [ size 11 sub 1 ] [ 1 size 11 sub ] ]  [ [ size  9 sub 0 ] [ 0 size  9 sub ] ]
+            [ [ size 10 sub 0 ] [ 0 size 10 sub ] ]  [ [ size 11 sub 0 ] [ 0 size 11 sub ] ]
+        ] def
+    } {
+        /versionmap [] def
+    } ifelse
+    versionmap {
+        { {} forall qmv pixs exch 0 put } forall
+    } forall
+    
+    % Solitary dark module in full symbols
+    format (full) eq {
+        pixs 8 size 8 sub qmv 1 put
+    } if
+    
+    % Calculate the mask patterns
+    format (full) eq {
+        /maskfuncs [ 
+            {add 2 mod} bind
+            {exch pop 2 mod} bind
+            {pop 3 mod} bind
+            {add 3 mod} bind
+            {2 idiv exch 3 idiv add 2 mod} bind
+            {mul dup 2 mod exch 3 mod add} bind
+            {mul dup 2 mod exch 3 mod add 2 mod} bind
+            {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
+        ] def
+    } {
+        /maskfuncs [ 
+            {exch pop 2 mod} bind
+            {2 idiv exch 3 idiv add 2 mod} bind
+            {mul dup 2 mod exch 3 mod add 2 mod} bind
+            {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
+        ] def
+    } ifelse
+    /masks maskfuncs length array def
+    0 1 masks length 1 sub {
+        /m exch def
+        /mask size size mul array def
+        0 1 size 1 sub {
+            /j exch def
+            0 1 size 1 sub {
+                /i exch def
+                i j maskfuncs m get exec 0 eq 
+                pixs i j qmv get -1 eq and {1} {0} ifelse
+                mask i j qmv 3 -1 roll put
+            } for
+        } for
+        masks m mask put
+    } for
+    
+    % Walk the symbol placing the bitstream
+    /posx size 1 sub def
+    /posy size 1 sub def
+    /dir -1 def  % -1 is upwards, 1 is downwards
+    /col 1 def   % 0 is left bit, 1 is right bit
+    /num 0 def
+    { % loop
+        posx 0 lt {exit} if
+        pixs posx posy qmv get -1 eq {
+            cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and
+            pixs posx posy qmv 3 -1 roll put
+            /num num 1 add def
+        } if
+        col 1 eq {
+            /col 0 def
+            /posx posx 1 sub def
+        } {
+            /col 1 def
+            /posx posx 1 add def 
+            /posy posy dir add def
+            posy 0 lt posy size ge or {  % Turn around at top and bottom
+                /dir dir -1 mul def
+                /posy posy dir add def
+                /posx posx 2 sub def
+                % Hop over the timing pattern in full size symbols
+                format (full) eq posx 6 eq and {/posx posx 1 sub def} if
+            } if
+        } ifelse
+    } loop
+    
+    % Evaluation algorithm for full symbols
+    /evalfull {
+        /sym exch def
+        m 2 eq {1} {2} ifelse  % In future we may evaluate the masks
+    } bind def
+    
+    % Evaluation algoritm for micro symbols
+    /evalmicro {
+        /sym exch def
+        /dkrhs 0 def /dkbot 0 def
+        1 1 size 1 sub {
+            /i exch def
+            /dkrhs dkrhs sym size 1 sub i qmv get add def
+            /dkbot dkbot sym i size 1 sub qmv get add def
+        } for
+        dkrhs dkbot le {
+            dkrhs 16 mul dkbot add neg
+        } {
+            dkbot 16 mul dkrhs add neg
+        } ifelse
+    } bind def
+    
+    % Evaluate the masked symbols to find the most suitable
+    /bestscore 999999999 def
+    0 1 masks length 1 sub {
+        /m exch def
+        /masksym size size mul array def
+        0 1 size size mul 1 sub {
+            /i exch def
+            masksym i pixs i get masks m get i get xor put
+        } for
+        format (full) eq {
+            masksym evalfull /score exch def
+        } {
+            masksym evalmicro /score exch def
+        } ifelse
+        score bestscore lt { 
+            /bestsym masksym def
+            /bestmaskval m def
+            /bestscore score def
+        } if    
+    } for
+    /pixs bestsym def
+    
+    % Add the format information
+    format (full) eq {
+        /fmtvals [
+            16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0 
+            16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
+            16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b 
+            16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
+        ] def
+        /ecid (MLHQ) eclevel search pop length exch pop exch pop def
+        /fmtval fmtvals ecid 3 bitshift bestmaskval add get def
+    } {
+        /fmtvals [
+            16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
+            16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
+            16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
+            16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
+        ] def
+        /symid [ [0] [1 2] [3 4] [5 6 7] ] size 11 sub 2 idiv get eclval get def
+        /fmtval fmtvals symid 2 bitshift bestmaskval add get def
+    } ifelse
+    0 1 formatmap length 1 sub {
+        /i exch def
+        formatmap i get {
+            pixs exch {} forall qmv fmtval 14 i sub neg bitshift 1 and put
+        } forall
+    } for
+    
+    % Add the version information
+    size 45 ge {
+        /vervals [
+            16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847 
+            16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6 
+            16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e 
+            16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216fd 16#228ba 
+            16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
+        ] def
+        /verval vervals size 17 sub 4 idiv 7 sub get def
+        0 1 versionmap length 1 sub {
+            /i exch def
+            versionmap i get {
+                pixs exch {} forall qmv verval 17 i sub neg bitshift 1 and put
+            } forall
+        } for
+    } if
+    
+    /retval 7 dict def
+    retval (ren) (renmatrix) put
+    retval (pixs) pixs put
+    retval (pixx) size put
+    retval (pixy) size put
+    retval (height) size 2 mul 72 div put
+    retval (width) size 2 mul 72 div put
+    retval (opt) useropts put
+    retval
+
+    end
+
+} bind def
+/qrcode load 0 1 dict put
+% --END ENCODER qrcode--
+
 % --BEGIN ENCODER maxicode--
 % --DESC: MaxiCode
 % --EXAM: ^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063
@@ -5474,8 +6011,8 @@
 47 135 moveto (1001234567890) (showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textyoffset=-10) interleaved2of5 barcode
 -15 -20 rmoveto (ITF-14) show
 
-245 140 moveto (fima) () symbol barcode
-0 -9 rmoveto (FIM A) show
+245 140 moveto (000100000010000000001100010101100110000110000) (version=1 eclevel=M) qrcode barcode
+0 -10 rmoveto (QR Code) show
 
 485 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode barcode
 0 -10 rmoveto (MaxiCode) show
