@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-03-30
+% Barcode Writer in Pure PostScript - Version 2008-03-30-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
@@ -4431,15 +4431,12 @@
     /format (full) def     % full or micro
     /version (unset) def
     /eclevel (L) def       % L, M, Q or H
-    /size -1 def
 
     % Parse the input options
     options {
         token false eq {exit} if dup length string cvs (=) search
         true eq {cvlit exch pop exch def} {cvlit true def} ifelse
     } loop
-
-    /size size cvi def
 
     % Convert from input into message bitstream
     /msgbits barcode def 
@@ -4500,14 +4497,14 @@
         /m metrics i get def
         /frmt m 0 get def                             % Format of the symbol
         /vers m 1 get def                             % Version of symbol
-        /ssze m 2 get def                             % Length of side
+        /size m 2 get def                             % Length of side
         /asp2 m 3 get def                             % Position of second alignment symbol
         /asp3 m 4 get def                             % Position of third alignment symbol
         /nmod m 5 get def                             % Number of modules
         /ncws nmod 8 idiv def                         % Total number of codewords
         /rbit nmod 8 mod def                          % Number of remainder bits
         /lc4b false def                               % Last data codeword is 4 bits long
-        ssze 11 eq ssze 15 eq or {                    % Adjustments for M1 and M3 symbols
+        size 11 eq size 15 eq or {                    % Adjustments for M1 and M3 symbols
             /ncws ncws 1 add def
             /rbit 0 def
             /lc4b true def
@@ -4522,14 +4519,12 @@
         /okay true def
         version (unset) ne version vers ne and {/okay false def} if
         version (unset) eq format frmt ne and {/okay false def} if
-        size -1 ne size ssze ne and {/okay false def} if
         msgbits length dmod gt {/okay false def} if
         okay {exit} if
         /i i 1 add def
     } loop
     /format frmt def
     /version vers def
-    /size ssze def
 
     % Expand the message bits by adding padding as necessary
     /pad dmod string def
