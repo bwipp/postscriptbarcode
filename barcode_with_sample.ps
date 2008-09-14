@@ -4,10 +4,10 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-07-10
+% Barcode Writer in Pure PostScript - Version 2008-09-14
 % http://www.terryburton.co.uk/barcodewriter/
 %
-% Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
+% Copyright (c) 2008 Terry Burton
 %
 % Permission is hereby granted, free of charge, to any
 % person obtaining a copy of this software and associated
@@ -1056,6 +1056,7 @@
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def
     /includecheckintext false def
+    /hidestars false def
     /textfont /Courier def
     /textsize 10 def
     /textyoffset -7 def
@@ -1102,7 +1103,11 @@
 
     % Put the start character
     sbs 0 encs 43 get putinterval
-    txt 0 [(*) 0 textyoffset textfont textsize] put
+    hidestars not {
+        txt 0 [(*) 0 textyoffset textfont textsize] put
+    } {
+        txt 0 [() 0 textyoffset textfont textsize] put
+    } ifelse
 
     0 1 barlen 1 sub {
         /i exch def
@@ -1127,10 +1132,18 @@
             txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
         } ifelse
         sbs barlen 10 mul 20 add encs 43 get putinterval
-        txt barlen 2 add [(*) barlen 2 add 16 mul textyoffset textfont textsize] put
+	hidestars not {
+            txt barlen 2 add [(*) barlen 2 add 16 mul textyoffset textfont textsize] put
+	} {
+            txt barlen 2 add [() barlen 2 add 16 mul textyoffset textfont textsize] put
+	} ifelse
     } {
         sbs barlen 10 mul 10 add encs 43 get putinterval
-        txt barlen 1 add [(*) barlen 1 add 16 mul textyoffset textfont textsize] put
+	hidestars not {
+            txt barlen 1 add [(*) barlen 1 add 16 mul textyoffset textfont textsize] put
+	} {
+            txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
+	} ifelse
     } ifelse
     
     % Return the arguments
