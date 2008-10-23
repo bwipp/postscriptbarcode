@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-10-17
+% Barcode Writer in Pure PostScript - Version 2008-10-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -1433,20 +1433,23 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw 4 string cvrs def} if
-            0 v {48 sub add} forall 4 add nm eq {
-                /out [ 4 {1} repeat v {47 sub} forall ] v length 4 getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                oe not hasone or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ 1 1 1 1 ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw 4 string cvrs def
+                0 v {48 sub add} forall 4 add nm eq {
+                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
 
     /binval [barcode {48 sub} forall] def
@@ -1672,22 +1675,25 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw el string cvrs def} if
-            0 v {48 sub add} forall el add nm eq {
-                /out [ el {1} repeat v {47 sub} forall ] v length el getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                oe not hasone or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ el {1} repeat ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw el string cvrs def
+                0 v {48 sub add} forall el add nm eq {
+                    /out (0000000) 7 string copy 0 el getinterval dup el v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
-    
+ 
     /binval [barcode {48 sub} forall] def
     /binval [binval 0 13 getinterval {} forall] def
     
@@ -1857,21 +1863,24 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw 4 string cvrs def} if
-            0 v {48 sub add} forall 4 add nm eq {
-                /out [ 4 {1} repeat v {47 sub} forall ] v length 4 getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                /lessfive out 0 get 5 lt def
-                oe not hasone lessfive and or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ 1 1 1 1 ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw 4 string cvrs def
+                0 v {48 sub add} forall 4 add nm eq {
+                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    /lessfive out 0 get 4 lt def
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
 
     /binval [barcode {48 sub} forall] def

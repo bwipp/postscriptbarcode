@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-10-17
+% Barcode Writer in Pure PostScript - Version 2008-10-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -1433,20 +1433,23 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw 4 string cvrs def} if
-            0 v {48 sub add} forall 4 add nm eq {
-                /out [ 4 {1} repeat v {47 sub} forall ] v length 4 getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                oe not hasone or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ 1 1 1 1 ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw 4 string cvrs def
+                0 v {48 sub add} forall 4 add nm eq {
+                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
 
     /binval [barcode {48 sub} forall] def
@@ -1672,22 +1675,25 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw el string cvrs def} if
-            0 v {48 sub add} forall el add nm eq {
-                /out [ el {1} repeat v {47 sub} forall ] v length el getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                oe not hasone or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ el {1} repeat ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw el string cvrs def
+                0 v {48 sub add} forall el add nm eq {
+                    /out (0000000) 7 string copy 0 el getinterval dup el v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
-    
+ 
     /binval [barcode {48 sub} forall] def
     /binval [binval 0 13 getinterval {} forall] def
     
@@ -1857,21 +1863,24 @@
         /mw exch def
         /nm exch def
         /val exch def
-        /j 0 def /i 0 def {
-            /v () def
-            mw 1 ne {/v i mw 4 string cvrs def} if
-            0 v {48 sub add} forall 4 add nm eq {
-                /out [ 4 {1} repeat v {47 sub} forall ] v length 4 getinterval def
-                /hasone false def out {1 eq {/hasone true def} if} forall
-                /lessfive out 0 get 5 lt def
-                oe not hasone lessfive and or {
-                    j val eq {exit} if
-                    /j j 1 add def
+        mw 1 eq {
+            [ 1 1 1 1 ]
+        } {
+            /j 0 def /i 0 def {
+                /v i mw 4 string cvrs def
+                0 v {48 sub add} forall 4 add nm eq {
+                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
+                    mark out (0) search /hasone exch def cleartomark
+                    /lessfive out 0 get 4 lt def
+                    oe not hasone or {
+                        j val eq {exit} if
+                        /j j 1 add def
+                    } if
                 } if
-            } if
-            /i i 1 add def
-        } loop
-        out
+                /i i 1 add def
+            } loop
+            [ out {47 sub} forall ]
+        } ifelse
     } bind def
 
     /binval [barcode {48 sub} forall] def
@@ -5904,7 +5913,7 @@
 30 500 moveto (CODE 39) (includecheck includetext) code39 barcode
 0 -17 rmoveto (Code 39) show
 
-390 200 moveto (THIS IS CODE 93) (includecheck includetext) code93 barcode
+385 200 moveto (THIS IS CODE 93) (includecheck includetext) code93 barcode
 0 -17 rmoveto (Code 93) show
 
 400 600 moveto (^104^102Abc^09912345678^101!) (includetext) code128 barcode
@@ -5934,19 +5943,19 @@
 30 400 moveto (A0123456789B) (includecheck includetext) rationalizedCodabar barcode
 0 -17 rmoveto (Rationalized Codabar) show
 
-430 700 moveto (977147396801) (includetext) ean13 barcode
+420 700 moveto (977147396801) (includetext) ean13 barcode
 0 -17 rmoveto (EAN-13) show
 
-535 705.4 moveto (05) (includetext guardwhitespace) ean2 barcode
+525 705.4 moveto (05) (includetext guardwhitespace) ean2 barcode
 0 -17 rmoveto (EAN-2) show
 
-30 700 moveto (01335583) (includetext guardwhitespace) ean8 barcode
+41 700 moveto (01335583) (includetext guardwhitespace) ean8 barcode
 0 -17 rmoveto (EAN-8) show
 
-30 600 moveto (78858101497) (includetext) upca barcode
+37 600 moveto (78858101497) (includetext) upca barcode
 0 -17 rmoveto (UPC-A) show
 
-320 700 moveto (0425261) (includetext) upce barcode
+315 700 moveto (0425261) (includetext) upce barcode
 0 -17 rmoveto (UPC-E) show
 
 405 400 moveto (978-1-86074-271) (includetext) isbn barcode
@@ -5970,7 +5979,7 @@
 385 515 moveto (5956439111ABA 9) (includetext) auspost barcode
 0 -17 rmoveto (AusPost) show
 
-350 300 moveto (12345) (includecheck includetext) msi barcode
+348 300 moveto (12345) (includecheck includetext) msi barcode
 0 -17 rmoveto (MSI) show
 
 30 200 moveto (123ABCD) (includetext) plessey barcode
@@ -5982,10 +5991,10 @@
 245 140 moveto (000100000010000000001100010101100110000110000) (version=1 eclevel=M) qrcode barcode
 0 -10 rmoveto (QR Code) show
 
-485 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode barcode
+483 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode barcode
 0 -10 rmoveto (MaxiCode) show
 
-250 220 moveto (^453^178^121^239) (columns=2 rows=10) pdf417 barcode
+245 220 moveto (^453^178^121^239) (columns=2 rows=10) pdf417 barcode
 0 -10 rmoveto (PDF417) show
 
 300 600 moveto (^142^164^186) (rows=48 columns=48) datamatrix barcode
