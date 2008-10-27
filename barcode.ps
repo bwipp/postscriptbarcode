@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-10-24
+% Barcode Writer in Pure PostScript - Version 2008-10-27
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -1428,28 +1428,66 @@
  
     /height height cvr def
 
+    /ncr {
+        /mind exch def
+        /cn exch def
+        /maxd cn mind sub def
+        mind maxd gt {
+            mind maxd /mind exch def /maxd exch def
+        } if
+        /cv 1 def /cj 1 def
+        cn -1 maxd 1 add {
+            cv mul /cv exch def
+            cj mind le {
+                /cv cv cj idiv def
+                /cj cj 1 add def
+             } if  
+        } for
+        {
+            cj mind gt {exit} if
+            /cv cv cj idiv def
+            /cj cj 1 add def
+        } loop
+        cv
+    } bind def
+    
     /getRSSwidths {
         /oe exch def
+        /el exch def
         /mw exch def
         /nm exch def
         /val exch def
-        mw 1 eq {
-            [ 1 1 1 1 ]
-        } {
-            /j 0 def /i 0 def {
-                /v i mw 4 string cvrs def
-                0 v {48 sub add} forall 4 add nm eq {
-                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
-                    mark out (0) search /hasone exch def cleartomark
-                    oe not hasone or {
-                        j val eq {exit} if
-                        /j j 1 add def
-                    } if
+        /out el array def
+        /mask 0 def
+        0 1 el 2 sub {
+            /bar exch def
+            /ew 1 def 
+            /mask mask 1 bar bitshift or def {
+                /sval nm ew sub 1 sub el bar sub 2 sub ncr def
+                oe mask 0 eq and nm ew sub el 2 mul sub bar 2 mul add -2 ge and {
+                    /sval sval nm ew sub el sub bar add el bar sub 2 sub ncr sub def
                 } if
-                /i i 1 add def
-            } loop
-            [ out {47 sub} forall ]
-        } ifelse
+                el bar sub 2 gt {
+                    /lval 0 def
+                    nm ew sub el sub bar add 2 add -1 mw 1 add {
+                        nm exch sub ew sub 1 sub el bar sub 3 sub ncr
+                        /lval exch lval add def
+                    } for
+                    /sval sval lval el bar sub 1 sub mul sub def
+                } {
+                    nm ew sub mw gt {/sval sval 1 sub def} if
+                } ifelse
+                /val val sval sub def
+                val 0 lt {exit} if
+                /ew ew 1 add def
+                /mask mask 1 bar bitshift not and def
+            } loop  
+            /val val sval add def
+            /nm nm ew sub def
+            out bar ew put 
+        } for
+        out el 1 sub nm put
+        out
     } bind def
 
     /binval [barcode {48 sub} forall] def
@@ -1544,14 +1582,14 @@
         /i i 8 add def
     } loop
     
-    /d1wo d1 d1gs sub d1te idiv d1elo d1mwo false getRSSwidths def
-    /d1we d1 d1gs sub d1te mod  d1ele d1mwe true  getRSSwidths def
-    /d2wo d2 d2gs sub d2to mod  d2elo d2mwo true  getRSSwidths def
-    /d2we d2 d2gs sub d2to idiv d2ele d2mwe false getRSSwidths def
-    /d3wo d3 d3gs sub d3te idiv d3elo d3mwo false getRSSwidths def
-    /d3we d3 d3gs sub d3te mod  d3ele d3mwe true  getRSSwidths def
-    /d4wo d4 d4gs sub d4to mod  d4elo d4mwo true  getRSSwidths def
-    /d4we d4 d4gs sub d4to idiv d4ele d4mwe false getRSSwidths def
+    /d1wo d1 d1gs sub d1te idiv d1elo d1mwo 4 false getRSSwidths def
+    /d1we d1 d1gs sub d1te mod  d1ele d1mwe 4 true  getRSSwidths def
+    /d2wo d2 d2gs sub d2to mod  d2elo d2mwo 4 true  getRSSwidths def
+    /d2we d2 d2gs sub d2to idiv d2ele d2mwe 4 false getRSSwidths def
+    /d3wo d3 d3gs sub d3te idiv d3elo d3mwo 4 false getRSSwidths def
+    /d3we d3 d3gs sub d3te mod  d3ele d3mwe 4 true  getRSSwidths def
+    /d4wo d4 d4gs sub d4to mod  d4elo d4mwo 4 true  getRSSwidths def
+    /d4we d4 d4gs sub d4to idiv d4ele d4mwe 4 false getRSSwidths def
 
     /d1w 8 array def
     0 1 3 {
@@ -1669,31 +1707,68 @@
 
     /height height cvr def
 
+    /ncr {
+        /mind exch def
+        /cn exch def
+        /maxd cn mind sub def
+        mind maxd gt {
+            mind maxd /mind exch def /maxd exch def
+        } if
+        /cv 1 def /cj 1 def
+        cn -1 maxd 1 add {
+            cv mul /cv exch def
+            cj mind le {
+                /cv cv cj idiv def
+                /cj cj 1 add def
+             } if  
+        } for
+        {
+            cj mind gt {exit} if
+            /cv cv cj idiv def
+            /cj cj 1 add def
+        } loop
+        cv
+    } bind def
+    
     /getRSSwidths {
         /oe exch def
         /el exch def
         /mw exch def
         /nm exch def
         /val exch def
-        mw 1 eq {
-            [ el {1} repeat ]
-        } {
-            /j 0 def /i 0 def {
-                /v i mw el string cvrs def
-                0 v {48 sub add} forall el add nm eq {
-                    /out (0000000) 7 string copy 0 el getinterval dup el v length sub v putinterval def
-                    mark out (0) search /hasone exch def cleartomark
-                    oe not hasone or {
-                        j val eq {exit} if
-                        /j j 1 add def
-                    } if
+        /out el array def
+        /mask 0 def
+        0 1 el 2 sub {
+            /bar exch def
+            /ew 1 def 
+            /mask mask 1 bar bitshift or def {
+                /sval nm ew sub 1 sub el bar sub 2 sub ncr def
+                oe mask 0 eq and nm ew sub el 2 mul sub bar 2 mul add -2 ge and {
+                    /sval sval nm ew sub el sub bar add el bar sub 2 sub ncr sub def
                 } if
-                /i i 1 add def
-            } loop
-            [ out {47 sub} forall ]
-        } ifelse
+                el bar sub 2 gt {
+                    /lval 0 def
+                    nm ew sub el sub bar add 2 add -1 mw 1 add {
+                        nm exch sub ew sub 1 sub el bar sub 3 sub ncr
+                        /lval exch lval add def
+                    } for
+                    /sval sval lval el bar sub 1 sub mul sub def
+                } {
+                    nm ew sub mw gt {/sval sval 1 sub def} if
+                } ifelse
+                /val val sval sub def
+                val 0 lt {exit} if
+                /ew ew 1 add def
+                /mask mask 1 bar bitshift not and def
+            } loop  
+            /val val sval add def
+            /nm nm ew sub def
+            out bar ew put 
+        } for
+        out el 1 sub nm put
+        out
     } bind def
- 
+    
     /binval [barcode {48 sub} forall] def
     /binval [binval 0 13 getinterval {} forall] def
     
@@ -1858,29 +1933,66 @@
     
     /height height cvr def
 
+    /ncr {
+        /mind exch def
+        /cn exch def
+        /maxd cn mind sub def
+        mind maxd gt {
+            mind maxd /mind exch def /maxd exch def
+        } if
+        /cv 1 def /cj 1 def
+        cn -1 maxd 1 add {
+            cv mul /cv exch def
+            cj mind le {
+                /cv cv cj idiv def
+                /cj cj 1 add def
+             } if  
+        } for
+        {
+            cj mind gt {exit} if
+            /cv cv cj idiv def
+            /cj cj 1 add def
+        } loop
+        cv
+    } bind def
+    
     /getRSSwidths {
         /oe exch def
+        /el exch def
         /mw exch def
         /nm exch def
         /val exch def
-        mw 1 eq {
-            [ 1 1 1 1 ]
-        } {
-            /j 0 def /i 0 def {
-                /v i mw 4 string cvrs def
-                0 v {48 sub add} forall 4 add nm eq {
-                    /out (0000000) 7 string copy 0 4 getinterval dup 4 v length sub v putinterval def
-                    mark out (0) search /hasone exch def cleartomark
-                    /lessfive out 0 get 4 lt def
-                    oe not hasone or {
-                        j val eq {exit} if
-                        /j j 1 add def
-                    } if
+        /out el array def
+        /mask 0 def
+        0 1 el 2 sub {
+            /bar exch def
+            /ew 1 def 
+            /mask mask 1 bar bitshift or def {
+                /sval nm ew sub 1 sub el bar sub 2 sub ncr def
+                oe mask 0 eq and nm ew sub el 2 mul sub bar 2 mul add -2 ge and {
+                    /sval sval nm ew sub el sub bar add el bar sub 2 sub ncr sub def
                 } if
-                /i i 1 add def
-            } loop
-            [ out {47 sub} forall ]
-        } ifelse
+                el bar sub 2 gt {
+                    /lval 0 def
+                    nm ew sub el sub bar add 2 add -1 mw 1 add {
+                        nm exch sub ew sub 1 sub el bar sub 3 sub ncr
+                        /lval exch lval add def
+                    } for
+                    /sval sval lval el bar sub 1 sub mul sub def
+                } {
+                    nm ew sub mw gt {/sval sval 1 sub def} if
+                } ifelse
+                /val val sval sub def
+                val 0 lt {exit} if
+                /ew ew 1 add def
+                /mask mask 1 bar bitshift not and def
+            } loop  
+            /val val sval add def
+            /nm nm ew sub def
+            out bar ew put 
+        } for
+        out el 1 sub nm put
+        out
     } bind def
 
     /binval [barcode {48 sub} forall] def
@@ -1915,8 +2027,8 @@
             /j j 8 add def
         } loop
 
-        /dwo d dgs sub dte idiv delo dmwo true  getRSSwidths def
-        /dwe d dgs sub dte mod  dele dmwe false getRSSwidths def
+        /dwo d dgs sub dte idiv delo dmwo 4 true  getRSSwidths def
+        /dwe d dgs sub dte mod  dele dmwe 4 false getRSSwidths def
 
         /dw 8 array def        
         x 2 mod 0 eq {                    
@@ -1986,8 +2098,8 @@
         /i i 8 add def
     } loop
 
-    /cwo checksum cgs sub cte idiv celo cmwo true  getRSSwidths def
-    /cwe checksum cgs sub cte mod  cele cmwe false getRSSwidths def
+    /cwo checksum cgs sub cte idiv celo cmwo 4 true  getRSSwidths def
+    /cwe checksum cgs sub cte mod  cele cmwe 4 false getRSSwidths def
     
     /cw 8 array def        
     0 1 3 {
