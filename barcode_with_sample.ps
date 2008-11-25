@@ -4,7 +4,7 @@
 %%EndComments
 %%EndProlog
 
-% Barcode Writer in Pure PostScript - Version 2008-11-16
+% Barcode Writer in Pure PostScript - Version 2008-11-25
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -4935,14 +4935,96 @@
             } if
         } ifelse
     } loop
+
+    % Evaluate runlength encoded rows or columns in full symbols
+    /evalfulln1n3 {
+        /rle exch def
+        /scr1 0 def
+        /scr3 0 def
+        0 1 rle length 1 sub {
+            /j exch def
+            % Detect runs of 5 or more like modules
+            rle j get 5 ge {
+                /scr1 scr1 rle j get add 2 sub def
+            } if
+            % Detect 1:1:3:1:1 ratio next to 4 modules of whitespace
+            j 3 ge j rle length 3 sub le and             % Within bounds
+            j 2 mod 0 ne and rle j get 3 mod 0 eq and {  % Multiple of 3 black modules
+                /fact rle j get 3 idiv def
+                rle j 2 sub 5 getinterval {fact eq} forall and exch pop and and {
+                    j 3 eq j 4 add rle length ge or {    % At either extent of run
+                        /scr3 scr3 40 add def
+                    } {  % Bounded by dark modules
+                        rle j 3 sub get 4 ge rle j 3 add get 4 ge or {
+                            /scr3 scr3 40 add def
+                        } if
+                    } ifelse
+                } if
+            } if
+        } for
+        scr1 scr3
+    } bind def
     
     % Evaluation algorithm for full symbols
     /evalfull {
         /sym exch def
-        m 2 eq {1} {2} ifelse  % In future we may evaluate the masks
+        /n1 0 def /n2 0 def /n3 0 def /n4 0 def
+        0 1 size 1 sub {  % Runlength encode each row
+            /y exch def
+            /rle [ 1 ] def
+            0 1 size 1 sub {
+                /x exch def
+                x 0 gt y 0 gt and {
+                    sym x 1 sub y 1 sub qmv get 
+                    sym x y 1 sub qmv get add
+                    sym x 1 sub y qmv get add 
+                    sym x y qmv get add 
+                    dup 0 eq exch 4 eq or {  % Blocks of like modules
+                        /n2 n2 3 add def
+                    } if
+                } if
+                x 0 eq sym x y qmv get 1 eq and {
+                    /rle [ 0 1 ] def
+                } {
+                    x 0 gt {
+                         sym x y qmv get sym x 1 sub y qmv get ne {
+                             /rle [ rle {} forall 1 ] def 
+                         } {
+                             rle rle length 1 sub 2 copy get 1 add put
+                         } ifelse
+                    } if
+                } ifelse
+            } for
+            rle evalfulln1n3 n3 add /n3 exch def n1 add /n1 exch def
+        } for
+        /dark 0 def
+        0 1 size 1 sub {  % Runlength encode each column
+            /x exch def
+            /rle [ 1 ] def
+            0 1 size 1 sub {
+                /y exch def
+                sym x y qmv get 1 eq {
+                    /dark dark 1 add def
+                } if
+                y 0 eq sym x y qmv get 1 eq and {
+                    /rle [ 0 1 ] def
+                } {
+                    y 0 gt {
+                        sym x y qmv get sym x y 1 sub qmv get ne {
+                            /rle [ rle {} forall 1 ] def
+                        } {
+                            rle rle length 1 sub 2 copy get 1 add put
+                        } ifelse
+                    } if
+                } ifelse
+            } for
+            rle evalfulln1n3 n3 add /n3 exch def n1 add /n1 exch def
+        } for
+        /n4 dark 100 mul size dup mul div 50 sub abs 5 div cvi 10 mul def
+        n1 n2 add n3 add n4 add
     } bind def
-    
-    % Evaluation algoritm for micro symbols
+ 
+    % Evaluation algorithm for micro symbols
     /evalmicro {
         /sym exch def
         /dkrhs 0 def /dkbot 0 def
