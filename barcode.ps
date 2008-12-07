@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-06-1
+% Barcode Writer in Pure PostScript - Version 2008-12-07
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -6009,6 +6009,8 @@
     % Default options
     /width 1 def
     /height 1 def
+    /color (unset) def
+    /backgroundcolor (unset) def
 
     % Apply the renderer options
     args {exch cvlit exch def} forall
@@ -6021,18 +6023,44 @@
  
     /width width cvr def
     /height height cvr def
+    /color color cvlit def
+    /backgroundcolor backgroundcolor cvlit def
 
-    % Convert the bits into a string
-    /imgstr pixs length string def
-    0 1 pixs length 1 sub {
-        dup imgstr 3 1 roll pixs exch get 1 exch sub 255 mul put
+    % Extend bitmap horizontally to an 8-bit boundary
+    /pixx8 pixx 8 div ceiling cvi 8 mul def
+    /pixs8 [ pixx8 pixy mul {0} repeat ] def
+    0 1 pixy 1 sub {
+        /i exch def
+        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
     } for
+    /pixs pixs8 def
+
+    % Convert bitmap into 8-bit sample string
+    /imgstr pixs length 8 idiv string def
+    0 1 pixs length 1 sub {
+        /i exch def
+        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
+    } for
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
 
     % Draw the image
     gsave
     currentpoint translate
     72 width mul 72 height mul scale
-    pixx pixy 8 [ pixx 0 0 pixy neg 0 pixy ] {imgstr} image
+    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
+    color (unset) ne { color setanycolor } if
+    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
     grestore
 
     end
