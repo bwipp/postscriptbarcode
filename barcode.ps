@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-07
+% Barcode Writer in Pure PostScript - Version 2008-12-14
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -4366,8 +4366,12 @@
                 j 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
             } for 
         } for
-        ecbs i ecb put
     } for
+
+    % Strange fixup for 144x144 symbols
+    ncws 1558 eq {
+        /ecbs [ ecbs 8 2 getinterval {} forall ecbs 0 8 getinterval {} forall ] def
+    } if
 
     % Extend codewords with the interleaved error correction codes
     /cws [ cws {} forall rscw {0} repeat ] def
