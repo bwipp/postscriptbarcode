@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-22
+% Barcode Writer in Pure PostScript - Version 2008-12-26
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -3833,23 +3833,16 @@
     cws n [ k {0} repeat 0 ] putinterval
 
     % Calculate the log and anti-log tables
-    /rslog [ -928 928 {0} repeat ] def
-    /rsalog [ 1 928 {0} repeat ] def
-    1 1 928 {
-        /i exch def
-        rsalog i rsalog i 1 sub get 3 mul put
-        rsalog i get 928 ge { rsalog i rsalog i get 929 mod put } if
-        rslog rsalog i get i put
-    } for
+    /rsalog [ 1 928 {dup 3 mul 929 mod} repeat ] def
+    /rslog 929 array def
+    1 1 928 {dup rsalog exch get exch rslog 3 1 roll put} for
 
     % Function to calculate the product in the field
     /rsprod {
-        /y exch def
-        /x exch def
-        x y mul 0 ne { 
-            rsalog rslog x get rslog y get add 928 mod get
+        2 copy 0 ne exch 0 ne and {
+            rslog exch get exch rslog exch get add 928 mod rsalog exch get
         } {
-            0
+            pop pop 0
         } ifelse
     } bind def
 
@@ -4315,23 +4308,16 @@
     } for
 
     % Calculate the log and anti-log tables
-    /rslog [ -255 255 {0} repeat ] def
-    /rsalog [ 1 255 {0} repeat ] def
-    1 1 255 {
-        /i exch def
-        rsalog i rsalog i 1 sub get 2 mul put
-        rsalog i get 256 ge { rsalog i rsalog i get 301 xor put } if
-        rslog rsalog i get i put
-    } for
+    /rsalog [ 1 255 { dup 2 mul dup 256 ge {301 xor} if } repeat ] def
+    /rslog 256 array def
+    1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
 
     % Function to calculate the product in the field
     /rsprod {
-        /y exch def
-        /x exch def
-        x y mul 0 ne { 
-            rsalog rslog x get rslog y get add 255 mod get
+        2 copy 0 ne exch 0 ne and { 
+            rslog exch get exch rslog exch get add 255 mod rsalog exch get
         } {
-            0
+            pop pop 0
         } ifelse
     } bind def
 
@@ -4358,11 +4344,7 @@
             ecb length 1 sub -1 0 {
                 /j exch def
                 /p ecb length j sub 1 sub def
-                t 0 eq {
-                    ecb p 0 put
-                } {
-                    ecb p rsalog rslog t get rslog coeffs j get get add 255 mod get put
-                } ifelse
+                ecb p t coeffs j get rsprod put
                 j 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
             } for 
         } for
@@ -4657,23 +4639,16 @@
     } for 
 
     % Calculate the log and anti-log tables
-    /rslog [ -255 255 {0} repeat ] def
-    /rsalog [ 1 255 {0} repeat ] def
-    1 1 255 {
-        /i exch def
-        rsalog i rsalog i 1 sub get 2 mul put
-        rsalog i get 256 ge { rsalog i rsalog i get 285 xor put } if 
-        rslog rsalog i get i put 
-    } for
+    /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
+    /rslog 256 array def
+    1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
 
     % Function to calculate the product in the field
     /rsprod {
-        /y exch def
-        /x exch def
-        x y mul 0 ne { 
-            rsalog rslog x get rslog y get add 255 mod get
+        2 copy 0 ne exch 0 ne and { 
+            rslog exch get exch rslog exch get add 255 mod rsalog exch get
         } {
-            0
+            pop pop 0
         } ifelse
     } bind def
 
@@ -4992,7 +4967,7 @@
             rle 0 counttomark 2 sub getinterval astore
             evalfulln1n3 n3 add /n3 exch def n1 add /n1 exch def
             pop
- 
+
             % Runlength encode (light, dark, light, ...) and evaluate each row
             /symrow sym i size mul size getinterval def
             mark 0 0 
@@ -5013,8 +4988,8 @@
             i 0 gt {
                 mark
                 lastpairs aload pop thispairs aload pop
-                0 size { exch sizeadd1 index add 3 and 0 eq {1 add} if } repeat
-                /n2 exch 3 mul n2 add def
+                n2 size { exch sizeadd1 index add 3 and 0 eq {3 add} if } repeat
+                /n2 exch def
                 cleartomark
             } if
 
@@ -5552,23 +5527,16 @@
         /rscws exch def
 
         % Calculate the log and anti-log tables
-        /rslog [ 1 rsgf sub rsgf 1 sub {0} repeat ] def
-        /rsalog [ 1 rsgf 1 sub {0} repeat ] def
-        1 1 rsgf 1 sub {
-            /i exch def
-            rsalog i rsalog i 1 sub get 2 mul put
-            rsalog i get rsgf ge { rsalog i rsalog i get rspm xor put } if
-            rslog rsalog i get i put
-        } for
+        /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
+        /rslog rsgf array def
+        1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
 
         % Function to calculate the product in the field
         /rsprod {
-            /y exch def
-            /x exch def
-            x y mul 0 ne { 
-                rsalog rslog x get rslog y get add rsgf 1 sub mod get
+            2 copy 0 ne exch 0 ne and {
+                rslog exch get exch rslog exch get add rsgf 1 sub mod rsalog exch get
             } {
-                0
+                pop pop 0
             } ifelse
         } bind def
 
