@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-26
+% Barcode Writer in Pure PostScript - Version 2008-12-27
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -4364,105 +4364,105 @@
 
     % Create the module placement matrix
     /module {
-        /tmpc exch def
-        /tmpr exch def
-        tmpr 0 lt {  
-            /tmpr tmpr mrows add def
-            /tmpc tmpc 4 mrows 4 add 8 mod sub add def
+        % row col
+        1 index 0 lt {
+            exch mrows add exch
+            4 mrows 4 add 8 mod sub add
         } if
-        tmpc 0 lt { 
-            /tmpc tmpc mcols add def
-            /tmpr tmpr 4 mcols 4 add 8 mod sub add def
+        dup 0 lt {
+            mcols add exch
+            4 mcols 4 add 8 mod sub add exch
         } if
-        mmat tmpr mcols mul tmpc add bit put
+        exch mcols mul add mmat exch
+        cws bit 8 idiv get 1 7 bit 8 mod sub bitshift and 0 eq {0} {1} ifelse
+        put
         /bit bit 1 add def
     } bind def
 
-    /mmat [ mrows mcols mul {-1} repeat ] def
-    /bit 0 def /row 4 def /col 0 def
-    { % loop
+    % Placement patterns
+    /dmn [
+        { 2 copy 2 sub exch 2 sub exch } bind  { 2 copy 1 sub exch 2 sub exch } bind
+        { 2 copy 2 sub exch 1 sub exch } bind  { 2 copy 1 sub exch 1 sub exch } bind
+        { 2 copy exch 1 sub exch } bind        { 2 copy 2 sub } bind
+        { 2 copy 1 sub } bind                  { 2 copy } bind
+    ] def
+    
+    /dmc1 [
+        { mrows 1 sub 0 } bind  { mrows 1 sub 1 } bind
+        { mrows 1 sub 2 } bind  { 0 mcols 2 sub } bind
+        { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
+        { 2 mcols 1 sub } bind  { 3 mcols 1 sub } bind
+    ] def
+    
+    /dmc2 [
+        { mrows 3 sub 0 } bind  { mrows 2 sub 0 } bind
+        { mrows 1 sub 0 } bind  { 0 mcols 4 sub } bind
+        { 0 mcols 3 sub } bind  { 0 mcols 2 sub } bind
+        { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
+    ] def
+    
+    /dmc3 [
+        { mrows 3 sub 0 } bind  { mrows 2 sub 0 } bind
+        { mrows 1 sub 0 } bind  { 0 mcols 2 sub } bind
+        { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
+        { 2 mcols 1 sub } bind  { 3 mcols 1 sub } bind
+    ] def
+    
+    /dmc4 [
+        { mrows 1 sub 0 } bind  { mrows 1 sub mcols 1 sub } bind
+        { 0 mcols 3 sub } bind  { 0 mcols 2 sub } bind
+        { 0 mcols 1 sub } bind  { 1 mcols 3 sub } bind
+        { 1 mcols 2 sub } bind  { 1 mcols 1 sub } bind
+    ] def
 
-        row mrows eq col 0 eq and {
-            [ [mrows 1 sub 0] [mrows 1 sub 1] [mrows 1 sub 2] [0 mcols 2 sub]
-              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
-            {{} forall module} forall 
+    /mmat [ mrows mcols mul {-1} repeat ] def
+    /bit 0 def
+    4 0  % Starting row and column
+    { % loop
+        2 copy 0 eq exch mrows eq and {
+            dmc1 {exec module} forall
         } if
-        row mrows 2 sub eq col 0 eq and mcols 4 mod 0 ne and {
-            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 4 sub]
-              [0 mcols 3 sub] [0 mcols 2 sub] [0 mcols 1 sub] [1 mcols 1 sub] ]
-            {{} forall module} forall
+        2 copy 0 eq exch mrows 2 sub eq and mcols 4 mod 0 ne and {
+            dmc2 {exec module} forall
         } if
-        row mrows 2 sub eq col 0 eq and mcols 8 mod 4 eq and {
-            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 2 sub]
-              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
-            {{} forall module} forall
+        2 copy 0 eq exch mrows 2 sub eq and mcols 8 mod 4 eq and {
+            dmc3 {exec module} forall
         } if
-        row mrows 4 add eq col 2 eq and mcols 8 mod 0 eq and {
-            [ [mrows 1 sub 0] [mrows 1 sub mcols 1 sub] [0 mcols 3 sub] [0 mcols 2 sub]
-              [0 mcols 1 sub] [1 mcols 3 sub]           [1 mcols 2 sub] [1 mcols 1 sub] ]
-            {{} forall module} forall
+        2 copy 2 eq exch mrows 4 add eq and mcols 8 mod 0 eq and {
+            dmc4 {exec module} forall
         } if
 
         { % loop for sweeping upwards
-            row mrows lt col 0 ge and {
-                mmat row mcols mul col add get -1 eq {
-                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
-                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
-                    {{} forall module} forall
+            2 copy 0 ge exch mrows lt and {
+                2 copy exch mcols mul add mmat exch get -1 eq {
+                    dmn {exec module} forall
                 } if
             } if
-            /row row 2 sub def
-            /col col 2 add def
-            row 0 ge col mcols lt and not {exit} if
+            2 add exch 2 sub exch
+            2 copy mcols lt exch 0 ge and not {exit} if
         } loop
-        /row row 1 add def
-        /col col 3 add def
+        3 add exch 1 add exch
 
         { % loop for sweeping downwards
-            row 0 ge col mcols lt and {
-                mmat row mcols mul col add get -1 eq {
-                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
-                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
-                    {{} forall module} forall
+            2 copy mcols lt exch 0 ge and {
+                2 copy exch mcols mul add mmat exch get -1 eq {
+                    dmn {exec module} forall
                 } if
             } if
-            /row row 2 add def
-            /col col 2 sub def
-            row mrows lt col 0 ge and not {exit} if
+            2 sub exch 2 add exch
+            2 copy 0 ge exch mrows lt and not {exit} if
         } loop
-        /row row 3 add def
-        /col col 1 add def
+        1 add exch 3 add exch
 
-        row mrows lt col mcols lt or not {exit} if
+        2 copy mcols lt exch mrows lt or not {pop pop exit} if
+
     } loop
 
     % Set checker pattern if required
     mmat mrows mcols mul 1 sub get -1 eq {
-        mmat mrows mcols 1 sub mul 2 sub [-1 -2] putinterval
-        mmat mrows mcols mul 2 sub [-2 -1] putinterval
+        mmat mrows mcols 1 sub mul 2 sub [1 0] putinterval
+        mmat mrows mcols mul 2 sub [0 1] putinterval
     } if
-
-    % Invert the map to form the mapping matrix correcting the checker case
-    /modmap mrows mcols mul 8 idiv 8 mul array def
-    0 1 mmat length 1 sub {
-        /i exch def
-        mmat i get 0 ge {
-            modmap mmat i get i put
-        } {
-            mmat i mmat i get 2 add put
-        } ifelse
-    } for
-
-    % Place the codewords in the matrix according to the mapping matrix
-    0 1 cws length 1 sub {
-        /i exch def
-        [ 8 {0} repeat cws i get 2 8 string cvrs {48 sub} forall ]
-        dup length 8 sub 8 getinterval /bits exch def
-        0 1 7 {
-            /j exch def
-            mmat modmap i 8 mul j add get bits j get put
-        } for
-    } for
 
     % Place the modules onto a pixel map between alignment patterns
     /pixs rows cols mul array def
