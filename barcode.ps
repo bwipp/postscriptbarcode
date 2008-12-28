@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-27
+% Barcode Writer in Pure PostScript - Version 2008-12-28
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2008 Terry Burton
@@ -4362,21 +4362,28 @@
         cws ncws i add ecbs i rsbl mod get i rsbl idiv get put
     } for
 
-    % Create the module placement matrix
+    % Place the codewords into the matrix
     /module {
-        % row col
-        1 index 0 lt {
-            exch mrows add exch
-            4 mrows 4 add 8 mod sub add
-        } if
-        dup 0 lt {
-            mcols add exch
-            4 mcols 4 add 8 mod sub add exch
-        } if
-        exch mcols mul add mmat exch
-        cws bit 8 idiv get 1 7 bit 8 mod sub bitshift and 0 eq {0} {1} ifelse
-        put
-        /bit bit 1 add def
+        % cw row col shape
+        4 -1 roll 
+        (00000000) 8 string copy dup 3 -1 roll 2 8 string cvrs 
+        dup length 8 exch sub exch putinterval 
+        7 -1 0 {1 index exch get 48 sub exch} for pop
+        11 -3 roll
+        % 1 2 4 8 16 32 64 128 row col shape
+        {  % Place each bit of the codeword in the shape, MSB first
+            exec
+            1 index 0 lt {
+                exch mrows add exch
+                4 mrows 4 add 8 mod sub add
+            } if
+            dup 0 lt {
+                mcols add exch
+                4 mcols 4 add 8 mod sub add exch
+            } if
+            exch mcols mul add
+            mmat exch 5 -1 roll put
+        } forall
     } bind def
 
     % Placement patterns
@@ -4416,26 +4423,26 @@
     ] def
 
     /mmat [ mrows mcols mul {-1} repeat ] def
-    /bit 0 def
+    cws length 1 sub -1 0 {cws exch get} for  % Reverse cws onto stack
     4 0  % Starting row and column
     { % loop
         2 copy 0 eq exch mrows eq and {
-            dmc1 {exec module} forall
+            dmc1 module
         } if
         2 copy 0 eq exch mrows 2 sub eq and mcols 4 mod 0 ne and {
-            dmc2 {exec module} forall
+            dmc2 module
         } if
         2 copy 0 eq exch mrows 2 sub eq and mcols 8 mod 4 eq and {
-            dmc3 {exec module} forall
+            dmc3 module
         } if
         2 copy 2 eq exch mrows 4 add eq and mcols 8 mod 0 eq and {
-            dmc4 {exec module} forall
+            dmc4 module
         } if
 
         { % loop for sweeping upwards
             2 copy 0 ge exch mrows lt and {
                 2 copy exch mcols mul add mmat exch get -1 eq {
-                    dmn {exec module} forall
+                    dmn module
                 } if
             } if
             2 add exch 2 sub exch
@@ -4446,7 +4453,7 @@
         { % loop for sweeping downwards
             2 copy mcols lt exch 0 ge and {
                 2 copy exch mcols mul add mmat exch get -1 eq {
-                    dmn {exec module} forall
+                    dmn module
                 } if
             } if
             2 sub exch 2 add exch
