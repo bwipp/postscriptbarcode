@@ -3,10 +3,10 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2008-12-28
+% Barcode Writer in Pure PostScript - Version 2009-01-11
 % http://www.terryburton.co.uk/barcodewriter/
 %
-% Copyright (c) 2004-2008 Terry Burton
+% Copyright (c) 2004-2009 Terry Burton
 %
 % Permission is hereby granted, free of charge, to any
 % person obtaining a copy of this software and associated
@@ -1427,29 +1427,22 @@
  
     /height height cvr def
 
-    /ncr {
-        /mind exch def
-        /cn exch def
-        /maxd cn mind sub def
-        mind maxd gt {
-            mind maxd /mind exch def /maxd exch def
-        } if
-        /cv 1 def /cj 1 def
-        cn -1 maxd 1 add {
-            cv mul /cv exch def
-            cj mind le {
-                /cv cv cj idiv def
-                /cj cj 1 add def
-             } if  
+    /ncr {  % n r
+        2 copy sub 2 copy lt {exch} if  % n r maxd mind
+        1 1 5 3 roll  % mind j=1 v=1 n maxd
+        1 add -1 exch {  % mind j v  n -1 maxd+1
+            mul  % mind j v*i
+            1 index 3 index le {
+                1 index idiv exch 1 add exch
+            } if
         } for
-        {
-            cj mind gt {exit} if
-            /cv cv cj idiv def
-            /cj cj 1 add def
+        {  % mind j v
+            1 index 3 index gt {exit} if
+            1 index idiv exch 1 add exch
         } loop
-        cv
+        exch pop exch pop
     } bind def
-    
+     
     /getRSSwidths {
         /oe exch def
         /el exch def
@@ -1706,27 +1699,20 @@
 
     /height height cvr def
 
-    /ncr {
-        /mind exch def
-        /cn exch def
-        /maxd cn mind sub def
-        mind maxd gt {
-            mind maxd /mind exch def /maxd exch def
-        } if
-        /cv 1 def /cj 1 def
-        cn -1 maxd 1 add {
-            cv mul /cv exch def
-            cj mind le {
-                /cv cv cj idiv def
-                /cj cj 1 add def
-             } if  
+    /ncr {  % n r
+        2 copy sub 2 copy lt {exch} if  % n r maxd mind
+        1 1 5 3 roll  % mind j=1 v=1 n maxd
+        1 add -1 exch {  % mind j v  n -1 maxd+1
+            mul  % mind j v*i
+            1 index 3 index le {
+                1 index idiv exch 1 add exch
+            } if
         } for
-        {
-            cj mind gt {exit} if
-            /cv cv cj idiv def
-            /cj cj 1 add def
+        {  % mind j v
+            1 index 3 index gt {exit} if
+            1 index idiv exch 1 add exch
         } loop
-        cv
+        exch pop exch pop
     } bind def
     
     /getRSSwidths {
@@ -1932,27 +1918,20 @@
     
     /height height cvr def
 
-    /ncr {
-        /mind exch def
-        /cn exch def
-        /maxd cn mind sub def
-        mind maxd gt {
-            mind maxd /mind exch def /maxd exch def
-        } if
-        /cv 1 def /cj 1 def
-        cn -1 maxd 1 add {
-            cv mul /cv exch def
-            cj mind le {
-                /cv cv cj idiv def
-                /cj cj 1 add def
-             } if  
+    /ncr {  % n r
+        2 copy sub 2 copy lt {exch} if  % n r maxd mind
+        1 1 5 3 roll  % mind j=1 v=1 n maxd
+        1 add -1 exch {  % mind j v  n -1 maxd+1
+            mul  % mind j v*i
+            1 index 3 index le {
+                1 index idiv exch 1 add exch
+            } if
         } for
-        {
-            cj mind gt {exit} if
-            /cv cv cj idiv def
-            /cj cj 1 add def
+        {  % mind j v
+            1 index 3 index gt {exit} if
+            1 index idiv exch 1 add exch
         } loop
-        cv
+        exch pop exch pop
     } bind def
     
     /getRSSwidths {
