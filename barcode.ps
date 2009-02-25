@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-02-25
+% Barcode Writer in Pure PostScript - Version 2009-02-25-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -41,6 +41,8 @@
 % --BEGIN TEMPLATE--
 
 % --BEGIN ENCODER ean13--
+% --SUGGESTS ean5--
+% --SUGGESTS ean2--
 % --DESC: EAN-13
 % --EXAM: 977147396801
 % --EXOP: includetext guardwhitespace
@@ -57,7 +59,8 @@
     /textsize 12 def
     /textyoffset -4 def
     /height 1 def
-    
+    /addongap 12 def
+
     % Parse the input options, either a string or a dict
     options type /stringtype eq {
         1 dict begin
@@ -73,7 +76,18 @@
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+    /addongap addongap cvr def   
+
+    % Split off the addon
+    barcode ( ) search {
+        /barcode exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+ 
     % Add checksum digit
     /pad 13 string def
     /checksum 0 def
@@ -158,21 +172,45 @@
 
     % Put the end character
     sbs 56 encs 12 get putinterval
-    
+
+    /sbs [sbs {48 sub} forall] def
+    includetext {
+        /bhs [height height 12{height .075 sub}repeat height height 12{height .075 sub}repeat height height] def
+        /bbs [0 0 12{.075}repeat 0 0 12{.075}repeat 0 0] def
+    } {
+        /bhs [30{height}repeat] def
+        /bbs [30{0}repeat] def
+        /txt [] def
+    } ifelse
+    /guardrightypos 0 def
+
+    % Append the addon
+    addon () ne {
+        /addopts <<
+            /includetext true
+            /height height 0.15 sub
+            /textxoffset 96 addongap add
+        >> def
+        addon length 2 eq {addon addopts ean2} if
+        addon length 5 eq {addon addopts ean5} if
+        /addcode exch def
+        /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
+        /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
+        /bbs [bbs aload pop addcode (bbs) get {.075 add} forall] def
+        /txt [txt aload pop addcode (txt) get aload pop] def
+        /guardrightypos height 72 mul 6 sub def
+    } if 
+   
     % Return the arguments
     <<
     /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
-    includetext {
-        /bhs [height height 12{height .075 sub}repeat height height 12{height .075 sub}repeat height height]
-        /bbs [0 0 12{.075}repeat 0 0 12{.075}repeat 0 0]
-        /txt txt
-    } {
-        /bhs [30{height}repeat]
-        /bbs [30{0}repeat]
-    } ifelse
+    /sbs sbs
+    /bhs bhs
+    /bbs bbs
+    /txt txt
     /opt options
     /guardrightpos 10
+    /guardrightypos guardrightypos
     /borderbottom 5
     >>
 
@@ -183,6 +221,8 @@
 % --END ENCODER ean13--
 
 % --BEGIN ENCODER ean8--
+% --SUGGESTS ean5--
+% --SUGGESTS ean2--
 % --DESC: EAN-8
 % --EXAM: 01335583
 % --EXOP: includetext guardwhitespace height=0.5
@@ -199,6 +239,7 @@
     /textsize 12 def
     /textyoffset -4 def
     /height 1 def
+    /addongap 12 def
     
     % Parse the input options, either a string or a dict
     options type /stringtype eq {
@@ -215,7 +256,18 @@
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+    /addongap addongap cvr def   
+
+    % Split off the addon
+    barcode ( ) search {
+        /barcode exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+ 
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
@@ -264,21 +316,45 @@
     % Put the end character
     sbs 40 encs 12 get putinterval
 
-    % Return the arguments
-    <<
-    /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
+    /sbs [sbs {48 sub} forall] def
     includetext {
-        /bhs [height height 8{height .075 sub}repeat height height 8{height .075 sub}repeat height height]
-        /bbs [0 0 8{.075}repeat 0 0 8{.075}repeat 0 0]
-        /txt txt
+        /bhs [height height 8{height .075 sub}repeat height height 8{height .075 sub}repeat height height] def
+        /bbs [0 0 8{.075}repeat 0 0 8{.075}repeat 0 0] def
     } {
         /bhs [22{height}repeat]
         /bbs [22{0}repeat]
+        /txt [] def
     } ifelse
+    /guardrightypos 0 def
+
+    % Append the addon
+    addon () ne {
+        /addopts <<
+            /includetext true
+            /height height 0.15 sub
+            /textxoffset 68 addongap add
+        >> def
+        addon length 2 eq {addon addopts ean2} if
+        addon length 5 eq {addon addopts ean5} if
+        /addcode exch def
+        /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
+        /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
+        /bbs [bbs aload pop addcode (bbs) get {.075 add} forall] def
+        /txt [txt aload pop addcode (txt) get aload pop] def
+        /guardrightypos height 72 mul 6 sub def
+    } if 
+
+    % Return the arguments
+    <<
+    /ren (renlinear)
+    /sbs sbs
+    /bhs bhs
+    /bbs bbs
+    /txt txt
     /opt options
     /guardleftpos 10
     /guardrightpos 10
+    /guardrightypos guardrightypos
     /borderbottom 5
     >>
 
@@ -289,6 +365,8 @@
 % --END ENCODER ean8--
 
 % --BEGIN ENCODER upca--
+% --SUGGESTS ean5--
+% --SUGGESTS ean2--
 % --DESC: UPC-A
 % --EXAM: 78858101497
 % --EXOP: includetext
@@ -304,8 +382,9 @@
     /textfont /Helvetica def
     /textsize 12 def
     /textyoffset -4 def
-    /height 1 def
-    
+    /height 1 def 
+    /addongap 12 def
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -321,7 +400,18 @@
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+    /addongap addongap cvr def
+   
+    % Split off the addon
+    barcode ( ) search {
+        /barcode exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+ 
     % Add checksum digit to barcode
     /pad 12 string def   % Create pad one bigger than barcode
     /checksum 0 def
@@ -395,19 +485,44 @@
     % Put the end character
     sbs 56 encs 12 get putinterval
 
+    /sbs [sbs {48 sub} forall] def
+    includetext {
+        /bhs [4{height}repeat 10{height .075 sub}repeat height height 10{height .075 sub}repeat 4{height}repeat] def
+        /bbs [0 0 0 0 10{.075}repeat 0 0 10{.075}repeat 0 0 0 0] def
+    } {
+        /bhs [30{height}repeat] def
+        /bbs [30{0}repeat] def
+        /txt [] def
+    } ifelse
+    /guardrightypos 0 def
+
+    % Append the addon
+    addon () ne {
+        /addopts <<
+            /includetext true
+            /height height 0.15 sub
+            /textxoffset 96 addongap add
+        >> def
+        addon length 2 eq {addon addopts ean2} if
+        addon length 5 eq {addon addopts ean5} if
+        /addcode exch def
+        /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
+        /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
+        /bbs [bbs aload pop addcode (bbs) get {.075 add} forall] def
+        /txt [txt aload pop addcode (txt) get aload pop] def
+        /guardrightypos height 72 mul 6 sub def
+    } if 
+
     % Return the arguments
     <<
     /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
-    includetext {
-        /bhs [4{height}repeat 10{height .075 sub}repeat height height 10{height .075 sub}repeat 5{height}repeat]
-        /bbs [0 0 0 0 10{.075}repeat 0 0 10{.075}repeat 0 0 0 0 0]
-        /txt txt
-    } {
-        /bhs [31{height}repeat]
-        /bbs [31{0}repeat]
-    } ifelse
+    /sbs sbs
+    /bhs bhs
+    /bbs bbs
+    /txt txt
     /opt options
+    /guardrightpos 10
+    /guardrightypos guardrightypos
     /borderbottom 5
     >>
 
@@ -418,6 +533,8 @@
 % --END ENCODER upca--
 
 % --BEGIN ENCODER upce--
+% --SUGGESTS ean5--
+% --SUGGESTS ean2--
 % --DESC: UPC-E
 % --EXAM: 0123456
 % --EXOP: includetext height=0.4
@@ -434,7 +551,8 @@
     /textsize 12 def
     /textyoffset -4 def
     /height 1 def
-    
+    /addongap 12 def   
+ 
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -450,12 +568,23 @@
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+    /addongap addongap cvr def    
+
+    % Split off the addon
+    barcode ( ) search {
+        /barcode exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
       (1231) (1114) (1312) (1213) (3112)
-      (111) (1111111)
+      (111) (111111)
     ] def
 
     % Create a string of the available characters
@@ -520,7 +649,7 @@
         /mirrormap invt def
     } if
 
-    /sbs 34 string def
+    /sbs 33 string def
 
     % Put the start character
     sbs 0 encs 10 get putinterval
@@ -552,19 +681,44 @@
     % Put the end character
     sbs 27 encs 11 get putinterval
 
+    /sbs [sbs {48 sub} forall] def
+    includetext {
+        /bhs [height height 12{height .075 sub}repeat height height height] def
+        /bbs [0 0 12{.075}repeat 0 0 0] def
+    } {
+        /bhs [17{height}repeat] def
+        /bbs [17{0}repeat] def
+        /txt [] def
+    } ifelse
+    /guardrightypos 0 def
+
+    % Append the addon
+    addon () ne {
+        /addopts <<
+            /includetext true
+            /height height 0.15 sub
+            /textxoffset 52 addongap add
+        >> def
+        addon length 2 eq {addon addopts ean2} if
+        addon length 5 eq {addon addopts ean5} if
+        /addcode exch def
+        /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
+        /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
+        /bbs [bbs aload pop addcode (bbs) get {.075 add} forall] def
+        /txt [txt aload pop addcode (txt) get aload pop] def
+        /guardrightypos height 72 mul 6 sub def
+    } if
+
     % Return the arguments
     <<
     /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
-    includetext {
-        /bhs [height height 12{height .075 sub}repeat height height height]
-        /bbs [0 0 12{.075}repeat 0 0 0]
-        /txt txt
-    } {
-        /bhs [17{height}repeat]
-        /bbs [17{0}repeat]
-    } ifelse
+    /sbs sbs
+    /bhs bhs
+    /bbs bbs
+    /txt txt
     /opt options
+    /guardrightpos 10
+    /guardrightypos guardrightypos
     /borderbottom 5
     >>
 
@@ -589,6 +743,7 @@
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset 0 def
     /textyoffset (unset) def
     /height 0.7 def    
     
@@ -606,6 +761,7 @@
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /height height cvr def
+    /textxoffset textxoffset cvr def
     textyoffset (unset) eq {
         /textyoffset height 72 mul 1 add def
     } {
@@ -670,7 +826,7 @@
             /enc revenc def
         } if
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
     } for
 
     % Return the arguments
@@ -709,6 +865,7 @@
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset 0 def
     /textyoffset (unset) def
     /height 0.7 def
     
@@ -726,6 +883,7 @@
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /height height cvr def
+    /textxoffset textxoffset cvr def
     textyoffset (unset) eq {
         /textyoffset height 72 mul 1 add def
     } {
@@ -775,7 +933,7 @@
             /enc revenc def
         } if
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
     } for
 
     % Return the arguments
@@ -801,6 +959,8 @@
 
 % --BEGIN ENCODER isbn--
 % --REQUIRES ean13--
+% --SUGGESTS ean5--
+% --SUGGESTS ean2--
 % --DESC: ISBN
 % --EXAM: 978-1-56592-479
 % --EXOP: includetext guardwhitespace
@@ -817,7 +977,8 @@
     /isbnsize 9 def
     /isbnpos (unset) def
     /height 1 def
-    
+    /addongap 12 def   
+ 
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -832,12 +993,23 @@
     /isbnfont isbnfont cvlit def
     /isbnsize isbnsize cvr def
     /height height cvr def
+    /addongap addongap cvr def
     isbnpos (unset) eq {
         /isbnpos height 72 mul 3 add def
     } {
         /isbnpos isbnpos cvr def
     } ifelse
-    
+   
+    % Split off the addon
+    isbntxt ( ) search {
+        /isbntxt exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+ 
     % Read the digits from isbntxt and calculate checksums
     /isbn 13 string def
     /checksum10 0 def
@@ -894,7 +1066,17 @@
         barcode 0 isbn putinterval
     } ifelse
 
-    % Get the result of encoding with ean13    
+    % Append the addon
+    addon () ne {
+        12 addon length add 1 add string 
+        dup 0 barcode putinterval
+        dup 12 ( ) putinterval
+        dup 13 addon putinterval
+        /barcode exch def
+    } if
+
+    % Get the result of encoding with ean13
+    options (addongap) addongap put 
     /args barcode options ean13 def
 
     % Add the ISBN text
