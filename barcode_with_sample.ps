@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-02-26
+% Barcode Writer in Pure PostScript - Version 2009-03-06
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -40,6 +40,553 @@
 
 % --BEGIN TEMPLATE--
 
+% --BEGIN RENDERER renlinear--
+/renlinear {
+
+    1 dict begin          % Confine variables to local scope
+
+    /args exch def   % We are given some arguments
+
+    % Default options
+    /sbs [] def
+    /bhs [] def
+    /bbs [] def
+    /txt [] def
+    /barcolor (unset) def
+    /includetext false def
+    /textcolor (unset) def
+    /textxalign (unset) def
+    /textyalign (unset) def
+    /textfont (Courier) def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset 0 def
+    /alttext () def
+    /bordercolor (unset) def
+    /backgroundcolor (unset) def
+    /inkspread 0.15 def
+    /width 0 def
+    /barratio 1 def
+    /spaceratio 1 def
+    /showborder false def
+    /borderleft 10 def
+    /borderright 10 def
+    /bordertop 1 def
+    /borderbottom 1 def
+    /borderwidth 0.5 def
+    /guardwhitespace false def
+    /guardleftpos 0 def
+    /guardleftypos 0 def
+    /guardrightpos 0 def
+    /guardrightypos 0 def
+    /guardwidth 6 def
+    /guardheight 7 def
+    
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall 
+
+    /barcolor barcolor cvlit def
+    /textcolor textcolor cvlit def
+    /textxalign textxalign cvlit def
+    /textyalign textyalign cvlit def
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /alttext alttext cvlit def
+    /bordercolor bordercolor cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+    /inkspread inkspread cvr def
+    /width width cvr def
+    /barratio barratio cvr def
+    /spaceratio spaceratio cvr def
+    /borderleft borderleft cvr def
+    /borderright borderright cvr def
+    /bordertop bordertop cvr def
+    /borderbottom borderbottom cvr def
+    /borderwidth borderwidth cvr def
+    /guardleftpos guardleftpos cvr def
+    /guardleftypos guardleftypos cvr def
+    /guardrightpos guardrightpos cvr def
+    /guardrightypos guardrightypos cvr def
+    /guardwidth guardwidth cvr def
+    /guardheight guardheight cvr def
+    
+    % Create bar elements and put them into the bars array
+    /bars sbs length 1 add 2 idiv array def
+    /x 0.00 def /maxh 0 def
+    0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
+        /i exch def
+        i 2 mod 0 eq {           % i is even
+            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1 
+            /h bhs i 2 idiv get 72 mul def  % Height from bhs
+            /c d 2 div x add def            % Centre of the bar = x + d/2
+            /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
+            /w d inkspread sub def          % bar width = digit - inkspread
+            bars i 2 idiv [h c y w] put     % Add the bar entry
+            h maxh gt {/maxh h def} if
+        } {
+            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
+        } ifelse
+        /x x d add def  % x+=d
+    } for
+
+    gsave
+
+    currentpoint translate
+
+    % Force symbol to given width
+    width 0 ne {
+        width 72 mul x div 1 scale
+    } if
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Display the border and background
+    newpath
+    borderleft neg borderbottom neg moveto
+    x borderleft add borderright add 0 rlineto
+    0 maxh borderbottom add bordertop add rlineto
+    x borderleft add borderright add neg 0 rlineto
+    0 maxh borderbottom add bordertop add neg rlineto    
+    closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
+    showborder {
+        gsave
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth setlinewidth stroke
+        grestore
+    } if    
+   
+    % Display the bars for elements in the bars array
+    gsave
+    0 setlinecap
+    barcolor (unset) ne { barcolor setanycolor } if
+    bars {
+        {} forall
+        newpath setlinewidth moveto 0 exch rlineto stroke
+    } forall
+    grestore
+    
+    % Display the text for elements in the text array
+    textcolor (unset) ne { textcolor setanycolor } if
+    includetext {
+        textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
+            /s 0 def /f () def
+            txt {
+                {} forall
+                2 copy s ne exch f ne or {
+                    2 copy /s exch def /f exch def            
+                    exch findfont exch scalefont setfont          
+                } {
+                    pop pop
+                } ifelse
+                moveto show
+            } forall
+        } {
+            textfont findfont textsize scalefont setfont
+            alttext () eq {
+                /txt [ txt { 0 get {} forall } forall ] def
+                /tstr txt length string def
+                0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
+            } {
+                /tstr alttext def
+            } ifelse
+            /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
+            textxalign (left) eq { /textxpos textxoffset def } if
+            textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
+            textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
+            textxalign (offright) eq { /textxpos x textxoffset add def } if
+            /textypos textyoffset textsize add 3 sub neg def
+            textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
+            textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
+            textxpos textypos moveto tstr show
+        } ifelse
+    } if    
+
+    % Display the guard elements
+    guardwhitespace {
+        0.75 setlinewidth
+        guardleftpos 0 ne {
+            newpath
+            guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
+            guardwidth neg guardheight -2 div rlineto
+            guardwidth guardheight -2 div rlineto
+            stroke            
+        } if
+        guardrightpos 0 ne {
+            newpath
+            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
+            guardwidth guardheight -2 div rlineto
+            guardwidth neg guardheight -2 div rlineto
+            stroke            
+        } if
+    } if
+    
+    grestore
+    
+    end
+
+} bind def
+% --END RENDERER renlinear--
+
+% --BEGIN RENDERER renmatrix--
+/renmatrix {
+
+    1 dict begin
+
+    /args exch def
+
+    % Default options
+    /width 1 def
+    /height 1 def
+    /color (unset) def
+    /backgroundcolor (unset) def
+
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall
+
+    /width width cvr def
+    /height height cvr def
+    /color color cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+
+    % Extend bitmap horizontally to an 8-bit boundary
+    /pixx8 pixx 8 div ceiling cvi 8 mul def
+    /pixs8 [ pixx8 pixy mul {0} repeat ] def
+    0 1 pixy 1 sub {
+        /i exch def
+        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
+    } for
+    /pixs pixs8 def
+
+    % Convert bitmap into 8-bit sample string
+    /imgstr pixs length 8 idiv string def
+    0 1 pixs length 1 sub {
+        /i exch def
+        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
+    } for
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Draw the image
+    gsave
+    currentpoint translate
+    72 width mul 72 height mul scale
+    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
+    color (unset) ne { color setanycolor } if
+    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
+    grestore
+
+    end
+
+} bind def
+% --END RENDERER renmatrix--
+
+% --BEGIN RENDERER renmaximatrix--
+/renmaximatrix {
+
+    1 dict begin
+
+    /args exch def   % We are given some arguments
+
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall
+ 
+    gsave
+
+    currentpoint translate
+
+    2.4945 dup scale  % from 1pt to 1.88mm
+    0.5 0.5774 translate
+
+    pixs {
+        dup 
+        /x exch 30 mod def 
+        /y exch 30 idiv def
+        y 2 mod 0 eq {x} {x 0.5 add} ifelse
+        32 y sub 0.8661 mul
+        moveto
+        0     0.5774 rmoveto
+        -0.5 -0.2887 rlineto
+        0    -0.5774 rlineto
+        0.5  -0.2887 rlineto
+        0.5   0.2887 rlineto
+        0     0.5774 rlineto
+        -0.5  0.2887 rlineto
+        closepath fill
+    } forall
+
+    % Plot the locator symbol
+    newpath 14 13.8576 0.5774 0 360 arc closepath
+    14 13.8576 1.3359 360 0 arcn closepath fill
+    newpath 14 13.8576 2.1058 0 360 arc closepath
+    14 13.8576 2.8644 360 0 arcn closepath fill
+    newpath 14 13.8576 3.6229 0 360 arc closepath
+    14 13.8576 4.3814 360 0 arcn closepath fill
+
+    grestore
+
+    end
+
+} bind def
+% --END RENDERER renmaximatrix--
+
+% --BEGIN ENCODER ean5--
+% --DESC: EAN-5 (5 digit addon)
+% --EXAM: 90200
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/ean5 {
+
+    1 dict begin
+
+    /options exch def                   % We are given an option string
+    /barcode exch def                   % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def              % Enable/disable text
+    /textfont /Helvetica def
+    /textsize 12 def
+    /textxoffset 0 def
+    /textyoffset (unset) def
+    /height 0.7 def    
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall   
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /height height cvr def
+    /textxoffset textxoffset cvr def
+    textyoffset (unset) eq {
+        /textyoffset height 72 mul 1 add def
+    } {
+        /textyoffset textyoffset cvr def
+    } ifelse
+    
+    % Create an array containing the character mappings
+    /encs
+    [ (3211) (2221) (2122) (1411) (1132)
+      (1231) (1114) (1312) (1213) (3112)
+      (112) (11)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    % Determine the mirror map based on mod 10 checksum
+    /mirrormaps
+    [ (11000) (10100) (10010) (10001) (01100)
+      (00110) (00011) (01010) (01001) (00101)
+    ] def
+    /checksum 0 def
+    0 1 4 {
+        /i exch def
+        /barchar barcode i get 48 sub def
+        i 2 mod 0 eq {
+            /checksum barchar 3 mul checksum add def
+        } {
+            /checksum barchar 9 mul checksum add def
+        } ifelse
+    } for
+    /checksum checksum 10 mod def
+    /mirrormap mirrormaps checksum get def
+
+    /sbs 31 string def
+    /txt 5 array def
+   
+    0 1 4 {
+        /i exch def
+
+        % Prefix with either a start character or separator character
+        i 0 eq {
+            sbs 0 encs 10 get putinterval
+        } {
+            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
+        } ifelse
+
+        % Lookup the encoding for the barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                     % Discard true leaving pre
+        length /indx exch def   % indx is the length of pre
+        pop pop                 % Discard seek and post
+        /enc encs indx get def  % Get the indxth encoding
+        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap
+            /enclen enc length def
+            /revenc enclen string def
+            0 1 enclen 1 sub {
+                /j exch def
+                /char enc j get def
+                revenc enclen j sub 1 sub char put
+            } for
+            /enc revenc def
+        } if
+        sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
+    } for
+
+    % Return the arguments
+    <<
+    /ren (renlinear)
+    /sbs [sbs {48 sub} forall]
+    /bhs [16{height}repeat]
+    /bbs [16{0}repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    /guardrightpos 10
+    /guardrightypos textyoffset 4 add
+    /bordertop 10
+    >>
+
+    dontdraw not {//renlinear exec} if
+
+    end
+
+} bind def
+% --END ENCODER ean5--
+
+% --BEGIN ENCODER ean2--
+% --DESC: EAN-2 (2 digit addon)
+% --EXAM: 05
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/ean2 {
+
+    1 dict begin
+
+    /options exch def                   % We are given an options string
+    /barcode exch def                   % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def               % Enable/disable text
+    /textfont /Helvetica def
+    /textsize 12 def
+    /textxoffset 0 def
+    /textyoffset (unset) def
+    /height 0.7 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /height height cvr def
+    /textxoffset textxoffset cvr def
+    textyoffset (unset) eq {
+        /textyoffset height 72 mul 1 add def
+    } {
+        /textyoffset textyoffset cvr def
+    } ifelse
+    
+    % Create an array containing the character mappings
+    /encs
+    [ (3211) (2221) (2122) (1411) (1132)
+      (1231) (1114) (1312) (1213) (3112)
+      (112) (11)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    % Determine the mirror map based on mod 4 checksum
+    /mirrormap [(00) (01) (10) (11)] barcode 0 2 getinterval cvi 4 mod get def
+
+    /sbs 13 string def
+    /txt 2 array def
+    
+    0 1 1 {
+        /i exch def
+
+        % Prefix with either a start character or separator character
+        i 0 eq {
+            sbs 0 encs 10 get putinterval
+        } {
+            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
+        } ifelse
+
+        % Lookup the encoding for the barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                     % Discard true leaving pre
+        length /indx exch def   % indx is the length of pre
+        pop pop                 % Discard seek and post
+        /enc encs indx get def  % Get the indxth encoding
+        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap    
+            /enclen enc length def
+            /revenc enclen string def
+            0 1 enclen 1 sub {
+                /j exch def
+                /char enc j get def
+                revenc enclen j sub 1 sub char put
+            } for
+            /enc revenc def
+        } if
+        sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
+    } for
+
+    % Return the arguments
+    <<
+    /ren (renlinear)
+    /sbs [sbs {48 sub} forall]
+    /bhs [12{height}repeat]
+    /bbs [12{0}repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    /guardrightpos 10
+    /guardrightypos textyoffset 4 add
+    /bordertop 10
+    >>
+
+    dontdraw not {//renlinear exec} if
+
+    end
+
+} bind def
+% --END ENCODER ean2--
+
 % --BEGIN ENCODER ean13--
 % --SUGGESTS ean5 ean2--
 % --DESC: EAN-13
@@ -48,11 +595,12 @@
 % --RNDR: renlinear
 /ean13 {
 
-    0 begin
+    1 dict begin
 
     /options exch def                  % We are given an option string
     /barcode exch def                  % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def             % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
@@ -186,12 +734,13 @@
     % Append the addon
     addon () ne {
         /addopts <<
+            /dontdraw true
             /includetext true
             /height height 0.15 sub
             /textxoffset 95 addongap add
         >> def
-        addon length 2 eq {addon addopts ean2} if
-        addon length 5 eq {addon addopts ean5} if
+        addon length 2 eq {addon addopts //ean2 exec} if
+        addon length 5 eq {addon addopts //ean5 exec} if
         /addcode exch def
         /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
         /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
@@ -213,10 +762,11 @@
     /borderbottom 5
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/ean13 load 0 1 dict put
 % --END ENCODER ean13--
 
 % --BEGIN ENCODER ean8--
@@ -227,11 +777,12 @@
 % --RNDR: renlinear
 /ean8 {
 
-    0 begin
+    1 dict begin
 
     /options exch def                  % We are given an option string
     /barcode exch def                  % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
@@ -328,12 +879,13 @@
     % Append the addon
     addon () ne {
         /addopts <<
+            /dontdraw true
             /includetext true
             /height height 0.15 sub
             /textxoffset 67 addongap add
         >> def
-        addon length 2 eq {addon addopts ean2} if
-        addon length 5 eq {addon addopts ean5} if
+        addon length 2 eq {addon addopts //ean2 exec} if
+        addon length 5 eq {addon addopts //ean5 exec} if
         /addcode exch def
         /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
         /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
@@ -356,10 +908,11 @@
     /borderbottom 5
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/ean8 load 0 1 dict put
 % --END ENCODER ean8--
 
 % --BEGIN ENCODER upca--
@@ -370,11 +923,12 @@
 % --RNDR: renlinear
 /upca {
 
-    0 begin
+    1 dict begin
 
     /options exch def
     /barcode exch def             % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def         % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
@@ -496,12 +1050,13 @@
     % Append the addon
     addon () ne {
         /addopts <<
+            /dontdraw true
             /includetext true
             /height height 0.15 sub
             /textxoffset 95 addongap add
         >> def
-        addon length 2 eq {addon addopts ean2} if
-        addon length 5 eq {addon addopts ean5} if
+        addon length 2 eq {addon addopts //ean2 exec} if
+        addon length 5 eq {addon addopts //ean5 exec} if
         /addcode exch def
         /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
         /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
@@ -523,10 +1078,11 @@
     /borderbottom 5
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/upca load 0 1 dict put
 % --END ENCODER upca--
 
 % --BEGIN ENCODER upce--
@@ -537,11 +1093,12 @@
 % --RNDR: renlinear
 /upce {
 
-    0 begin
+    1 dict begin
 
     /options exch def                   % We are given an option string
     /barcode exch def                   % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
@@ -691,12 +1248,13 @@
     % Append the addon
     addon () ne {
         /addopts <<
+            /dontdraw true
             /includetext true
             /height height 0.15 sub
             /textxoffset 51 addongap add
         >> def
-        addon length 2 eq {addon addopts ean2} if
-        addon length 5 eq {addon addopts ean5} if
+        addon length 2 eq {addon addopts //ean2 exec} if
+        addon length 5 eq {addon addopts //ean5 exec} if
         /addcode exch def
         /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
         /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
@@ -718,240 +1276,12 @@
     /borderbottom 5
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/upce load 0 1 dict put
 % --END ENCODER upce--
-
-% --BEGIN ENCODER ean5--
-% --DESC: EAN-5 (5 digit addon)
-% --EXAM: 90200
-% --EXOP: includetext guardwhitespace
-% --RNDR: renlinear
-/ean5 {
-
-    0 begin
-
-    /options exch def                   % We are given an option string
-    /barcode exch def                   % We are given a barcode string
-
-    /includetext false def              % Enable/disable text
-    /textfont /Helvetica def
-    /textsize 12 def
-    /textxoffset 0 def
-    /textyoffset (unset) def
-    /height 0.7 def    
-    
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall   
- 
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /height height cvr def
-    /textxoffset textxoffset cvr def
-    textyoffset (unset) eq {
-        /textyoffset height 72 mul 1 add def
-    } {
-        /textyoffset textyoffset cvr def
-    } ifelse
-    
-    % Create an array containing the character mappings
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (112) (11)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Determine the mirror map based on mod 10 checksum
-    /mirrormaps
-    [ (11000) (10100) (10010) (10001) (01100)
-      (00110) (00011) (01010) (01001) (00101)
-    ] def
-    /checksum 0 def
-    0 1 4 {
-        /i exch def
-        /barchar barcode i get 48 sub def
-        i 2 mod 0 eq {
-            /checksum barchar 3 mul checksum add def
-        } {
-            /checksum barchar 9 mul checksum add def
-        } ifelse
-    } for
-    /checksum checksum 10 mod def
-    /mirrormap mirrormaps checksum get def
-
-    /sbs 31 string def
-    /txt 5 array def
-   
-    0 1 4 {
-        /i exch def
-
-        % Prefix with either a start character or separator character
-        i 0 eq {
-            sbs 0 encs 10 get putinterval
-        } {
-            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
-        } ifelse
-
-        % Lookup the encoding for the barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                     % Discard true leaving pre
-        length /indx exch def   % indx is the length of pre
-        pop pop                 % Discard seek and post
-        /enc encs indx get def  % Get the indxth encoding
-        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap
-            /enclen enc length def
-            /revenc enclen string def
-            0 1 enclen 1 sub {
-                /j exch def
-                /char enc j get def
-                revenc enclen j sub 1 sub char put
-            } for
-            /enc revenc def
-        } if
-        sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
-    } for
-
-    % Return the arguments
-    <<
-    /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
-    /bhs [16{height}repeat]
-    /bbs [16{0}repeat]
-    includetext {
-        /txt txt
-    } if
-    /opt options
-    /guardrightpos 10
-    /guardrightypos textyoffset 4 add
-    /bordertop 10
-    >>
-
-    end
-
-} bind def
-/ean5 load 0 1 dict put
-% --END ENCODER ean5--
-
-% --BEGIN ENCODER ean2--
-% --DESC: EAN-2 (2 digit addon)
-% --EXAM: 05
-% --EXOP: includetext guardwhitespace
-% --RNDR: renlinear
-/ean2 {
-
-    0 begin
-
-    /options exch def                   % We are given an options string
-    /barcode exch def                   % We are given a barcode string
-
-    /includetext false def               % Enable/disable text
-    /textfont /Helvetica def
-    /textsize 12 def
-    /textxoffset 0 def
-    /textyoffset (unset) def
-    /height 0.7 def
-    
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
- 
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /height height cvr def
-    /textxoffset textxoffset cvr def
-    textyoffset (unset) eq {
-        /textyoffset height 72 mul 1 add def
-    } {
-        /textyoffset textyoffset cvr def
-    } ifelse
-    
-    % Create an array containing the character mappings
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (112) (11)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Determine the mirror map based on mod 4 checksum
-    /mirrormap [(00) (01) (10) (11)] barcode 0 2 getinterval cvi 4 mod get def
-
-    /sbs 13 string def
-    /txt 2 array def
-    
-    0 1 1 {
-        /i exch def
-
-        % Prefix with either a start character or separator character
-        i 0 eq {
-            sbs 0 encs 10 get putinterval
-        } {
-            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
-        } ifelse
-
-        % Lookup the encoding for the barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                     % Discard true leaving pre
-        length /indx exch def   % indx is the length of pre
-        pop pop                 % Discard seek and post
-        /enc encs indx get def  % Get the indxth encoding
-        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap    
-            /enclen enc length def
-            /revenc enclen string def
-            0 1 enclen 1 sub {
-                /j exch def
-                /char enc j get def
-                revenc enclen j sub 1 sub char put
-            } for
-            /enc revenc def
-        } if
-        sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
-    } for
-
-    % Return the arguments
-    <<
-    /ren (renlinear)
-    /sbs [sbs {48 sub} forall]
-    /bhs [12{height}repeat]
-    /bbs [12{0}repeat]
-    includetext {
-        /txt txt
-    } if
-    /opt options
-    /guardrightpos 10
-    /guardrightypos textyoffset 4 add
-    /bordertop 10
-    >>
-
-    end
-
-} bind def
-/ean2 load 0 1 dict put
-% --END ENCODER ean2--
 
 % --BEGIN ENCODER isbn--
 % --REQUIRES ean13--
@@ -962,11 +1292,12 @@
 % --RNDR: renlinear
 /isbn {
 
-    0 begin
+    1 dict begin
 
     /options exch def      % We are given an options string
     /isbntxt exch def      % We are given the isbn text with dashes
 
+    /dontdraw false def
     /includetext false def  % Enable/disable ISBN text
     /isbnfont /Courier def
     /isbnsize 9 def
@@ -1071,8 +1402,9 @@
     } if
 
     % Get the result of encoding with ean13
+    options (dontdraw) true put
     options (addongap) addongap put 
-    /args barcode options ean13 def
+    /args barcode options //ean13 exec def
 
     % Add the ISBN text
     includetext {
@@ -1095,10 +1427,11 @@
     args (opt) options put
     args
 
+    dontdraw not {//renlinear exec} if
+
     end
  
 } bind def
-/isbn load 0 1 dict put
 % --END ENCODER isbn--
 
 % --BEGIN ENCODER code128--
@@ -1108,11 +1441,12 @@
 % --RNDR: renlinear
 /code128 {
 
-    0 begin                  % Confine variables to local scope
+    1 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
@@ -1222,10 +1556,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/code128 load 0 1 dict put
 % --END ENCODER code128--
 
 % --BEGIN ENCODER code39--
@@ -1235,11 +1570,12 @@
 % --RNDR: renlinear
 /code39 {
 
-    0 begin                 % Confine variables to local scope
+    1 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def
     /includecheckintext false def
@@ -1350,10 +1686,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/code39 load 0 1 dict put
 % --END ENCODER code39--
 
 % --BEGIN ENCODER code93--
@@ -1363,11 +1700,12 @@
 % --RNDR: renlinear
 /code93 {
 
-    0 begin                 % Confine variables to local scope
+    1 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
     /textfont /Courier def
@@ -1473,10 +1811,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/code93 load 0 1 dict put
 % --END ENCODER code93--
 
 % --BEGIN ENCODER interleaved2of5--
@@ -1486,11 +1825,12 @@
 % --RNDR: renlinear
 /interleaved2of5 {
 
-    0 begin         % Confine variables to local scope
+    1 dict begin         % Confine variables to local scope
 
     /options exch def               % We are given an option string
     /barcode exch def               % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def         % Enable/disable checkdigit
     /includetext false def          % Enable/disable text
     /includecheckintext false def
@@ -1611,10 +1951,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/interleaved2of5 load 0 1 dict put
 % --END ENCODER interleaved2of5--
 
 % --BEGIN ENCODER rss14--
@@ -1624,11 +1965,12 @@
 % --RNDR: renlinear
 /rss14 {
 
-    0 begin            % Confine variables to local scope
+    1 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /dontdraw false def
     /height 1 def
     /linkage false def
     
@@ -1888,10 +2230,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/rss14 load 0 1 dict put
 % --END ENCODER rss14--
 
 % --BEGIN ENCODER rsslimited--
@@ -1901,11 +2244,12 @@
 % --RNDR: renlinear
 /rsslimited {
 
-    0 begin            % Confine variables to local scope
+    1 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /dontdraw false def
     /height 1 def
     
     % Parse the input options
@@ -2118,10 +2462,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/rsslimited load 0 1 dict put
 % --END ENCODER rsslimited--
 
 % --BEGIN ENCODER rssexpanded--
@@ -2131,11 +2476,12 @@
 % --RNDR: renlinear
 /rssexpanded {
 
-    0 begin            % Confine variables to local scope
+    1 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /dontdraw false def
     /height 1 def
     
     % Parse the input options
@@ -2368,10 +2714,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/rssexpanded load 0 1 dict put
 % --END ENCODER rssexpanded--
 
 % --BEGIN ENCODER pharmacode--
@@ -2381,11 +2728,12 @@
 % --RNDR: renlinear
 /pharmacode {
 
-    0 begin                 % Confine variables to local scope
+    1 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /dontdraw false def
     /height 8 2.835 mul 72 div def
     /nwidth 0.5 2.835 mul def
     /wwidth 1.5 2.835 mul def
@@ -2443,10 +2791,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/pharmacode load 0 1 dict put
 % --END ENCODER pharmacode--
 
 % --BEGIN ENCODER code2of5--
@@ -2458,11 +2807,12 @@
 
     % Thanks to Michael Landers
 
-    0 begin                 % Confine variable to local scope
+    1 dict begin                 % Confine variable to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def
     /includetext false def   % Enable/disable text
     /includecheckintext false def
@@ -2555,10 +2905,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/code2of5 load 0 1 dict put
 % --END ENCODER code2of5--
 
 % --BEGIN ENCODER code11--
@@ -2568,11 +2919,12 @@
 % --RNDR: renlinear
 /code11 {
 
-    0 begin            % Confine variables to local scope
+    1 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def
     /includetext false def
     /includecheckintext false def
@@ -2689,10 +3041,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/code11 load 0 1 dict put
 % --END ENCODER code11--
 
 % --BEGIN ENCODER rationalizedCodabar--
@@ -2702,11 +3055,12 @@
 % --RNDR: renlinear
 /rationalizedCodabar {
 
-    0 begin                    % Confine variables to local scope
+    1 dict begin                    % Confine variables to local scope
 
     /options exch def          % We are given an option string
     /barcode exch def          % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def     % Enable/disable checkdigit
     /includetext false def      % Enable/disable text
     /includecheckintext false def
@@ -2812,10 +3166,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/rationalizedCodabar load 0 1 dict put
 % --END ENCODER rationalizedCodabar--
 
 % --BEGIN ENCODER onecode--
@@ -2825,11 +3180,12 @@
 % --RNDR: renlinear
 /onecode {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /height 0.175 def
     
     % Parse the input options
@@ -3127,10 +3483,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/onecode load 0 1 dict put
 % --END ENCODER onecode--
 
 % --BEGIN ENCODER postnet--
@@ -3140,11 +3497,12 @@
 % --RNDR: renlinear
 /postnet {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -3248,10 +3606,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/postnet load 0 1 dict put
 % --END ENCODER postnet--
 
 % --BEGIN ENCODER royalmail--
@@ -3261,11 +3620,12 @@
 % --RNDR: renlinear
 /royalmail {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -3374,10 +3734,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/royalmail load 0 1 dict put
 % --END ENCODER royalmail--
 
 % --BEGIN ENCODER auspost--
@@ -3387,11 +3748,12 @@
 % --RNDR: renlinear
 /auspost {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def         % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
@@ -3573,10 +3935,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/auspost load 0 1 dict put
 % --END ENCODER auspost--
 
 % --BEGIN ENCODER kix--
@@ -3586,11 +3949,12 @@
 % --RNDR: renlinear
 /kix {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -3678,10 +4042,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/kix load 0 1 dict put
 % --END ENCODER kix--
 
 % --BEGIN ENCODER japanpost--
@@ -3691,11 +4056,12 @@
 % --RNDR: renlinear
 /japanpost {
 
-    0 begin
+    1 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -3837,10 +4203,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/japanpost load 0 1 dict put
 % --END ENCODER japanpost--
 
 % --BEGIN ENCODER msi--
@@ -3850,11 +4217,12 @@
 % --RNDR: renlinear
 /msi {
 
-    0 begin                 % Confine variables to local scope
+    1 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
     /includecheckintext false def
@@ -3946,10 +4314,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/msi load 0 1 dict put
 % --END ENCODER msi--
 
 % --BEGIN ENCODER plessey--
@@ -3959,11 +4328,12 @@
 % --RNDR: renlinear
 /plessey {
 
-    0 begin                  % Confine variables to local scope
+    1 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /dontdraw false def
     /includetext false def    % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -4073,10 +4443,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/plessey load 0 1 dict put
 % --END ENCODER plessey--
 
 % --BEGIN ENCODER raw--
@@ -4086,11 +4457,12 @@
 % --RNDR: renlinear
 /raw {
 
-    0 begin                  % Confine variables to local scope
+    1 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /sbs exch def        % We are given a barcode string
 
+    /dontdraw false def
     /height 1 def
 
     % Parse the input options
@@ -4115,10 +4487,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/raw load 0 1 dict put
 % --END ENCODER raw--
 
 % --BEGIN ENCODER symbol--
@@ -4128,10 +4501,12 @@
 % --RNDR: renlinear
 /symbol {
 
-    0 begin            % Confine variables to local scope
+    1 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
+
+    /dontdraw false def
 
     barcode (fima) eq {
         /sbs [2.25 2.25 2.25 11.25 2.25 11.25 2.25 2.25 2.25] def
@@ -4166,10 +4541,11 @@
     /opt options
     >>
 
+    dontdraw not {//renlinear exec} if
+
     end
 
 } bind def
-/symbol load 0 1 dict put
 % --END ENCODER symbol--
 
 % --BEGIN ENCODER pdf417--
@@ -4179,11 +4555,12 @@
 % --RNDR: renmatrix
 /pdf417 {
 
-    0 begin
+    1 dict begin
 
     /options exch def
     /barcode exch def
 
+    /dontdraw false def
     /compact false def
     /eclevel -1 def
     /columns 0 def
@@ -4594,10 +4971,11 @@
     /opt options
     >>
 
+    dontdraw not {//renmatrix exec} if
+
     end
 
 } bind def
-/pdf417 load 0 1 dict put
 % --END ENCODER pdf417--
 
 % --BEGIN ENCODER datamatrix--
@@ -4607,11 +4985,12 @@
 % --RNDR: renmatrix
 /datamatrix {
 
-    0 begin
+    1 dict begin
 
     /options exch def
     /barcode exch def
 
+    /dontdraw false def
     /columns 0 def
     /rows 0 def
 
@@ -4929,10 +5308,11 @@
     /opt options
     >>
 
+    dontdraw not {//renmatrix exec} if
+
     end
 
 } bind def
-/datamatrix load 0 1 dict put
 % --END ENCODER datamatrix--
 
 % --BEGIN ENCODER qrcode--
@@ -4942,11 +5322,12 @@
 % --RNDR: renmatrix
 /qrcode {
 
-    0 begin
+    1 dict begin
 
     /options exch def
     /barcode exch def
 
+    /dontdraw false def
     /format (full) def     % full or micro
     /version (unset) def
     /eclevel (L) def       % L, M, Q or H
@@ -5534,10 +5915,11 @@
     /opt options
     >>
 
+    dontdraw not {//renmatrix exec} if
+
     end
 
 } bind def
-/qrcode load 0 1 dict put
 % --END ENCODER qrcode--
 
 % --BEGIN ENCODER maxicode--
@@ -5547,11 +5929,12 @@
 % --RNDR: renmaximatrix
 /maxicode {
 
-    0 begin
+    1 dict begin
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /dontdraw false def
     /mode 4 def
     /sam -1 def
 
@@ -5848,10 +6231,11 @@
     /opt options
     >>
 
+    dontdraw not {//renmaximatrix exec} if
+
     end
 
 } bind def
-/maxicode load 0 1 dict put
 % --END ENCODER maxicode--
 
 % --BEGIN ENCODER azteccode--
@@ -5861,11 +6245,12 @@
 % --RNDR: renmatrix
 /azteccode {
 
-    0 begin
+    1 dict begin
 
     /options exch def
     /barcode exch def
 
+    /dontdraw false def
     /format (unset) def    % full, compact or rune
     /readerinit false def
     /layers -1 def
@@ -6204,337 +6589,12 @@
     /opt options
     >>
 
+    dontdraw not {//renmatrix exec} if
+
     end
 
 } bind def
-/azteccode load 0 1 dict put
 % --END ENCODER azteccode--
-
-% --BEGIN RENDERER renlinear--
-/renlinear {
-
-    0 begin          % Confine variables to local scope
-
-    /args exch def   % We are given some arguments
-
-    % Default options
-    /sbs [] def
-    /bhs [] def
-    /bbs [] def
-    /txt [] def
-    /barcolor (unset) def
-    /includetext false def
-    /textcolor (unset) def
-    /textxalign (unset) def
-    /textyalign (unset) def
-    /textfont (Courier) def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset 0 def
-    /alttext () def
-    /bordercolor (unset) def
-    /backgroundcolor (unset) def
-    /inkspread 0.15 def
-    /width 0 def
-    /barratio 1 def
-    /spaceratio 1 def
-    /showborder false def
-    /borderleft 10 def
-    /borderright 10 def
-    /bordertop 1 def
-    /borderbottom 1 def
-    /borderwidth 0.5 def
-    /guardwhitespace false def
-    /guardleftpos 0 def
-    /guardleftypos 0 def
-    /guardrightpos 0 def
-    /guardrightypos 0 def
-    /guardwidth 6 def
-    /guardheight 7 def
-    
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt {def} forall 
-
-    /barcolor barcolor cvlit def
-    /textcolor textcolor cvlit def
-    /textxalign textxalign cvlit def
-    /textyalign textyalign cvlit def
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /alttext alttext cvlit def
-    /bordercolor bordercolor cvlit def
-    /backgroundcolor backgroundcolor cvlit def
-    /inkspread inkspread cvr def
-    /width width cvr def
-    /barratio barratio cvr def
-    /spaceratio spaceratio cvr def
-    /borderleft borderleft cvr def
-    /borderright borderright cvr def
-    /bordertop bordertop cvr def
-    /borderbottom borderbottom cvr def
-    /borderwidth borderwidth cvr def
-    /guardleftpos guardleftpos cvr def
-    /guardleftypos guardleftypos cvr def
-    /guardrightpos guardrightpos cvr def
-    /guardrightypos guardrightypos cvr def
-    /guardwidth guardwidth cvr def
-    /guardheight guardheight cvr def
-    
-    % Create bar elements and put them into the bars array
-    /bars sbs length 1 add 2 idiv array def
-    /x 0.00 def /maxh 0 def
-    0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
-        /i exch def
-        i 2 mod 0 eq {           % i is even
-            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1 
-            /h bhs i 2 idiv get 72 mul def  % Height from bhs
-            /c d 2 div x add def            % Centre of the bar = x + d/2
-            /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
-            /w d inkspread sub def          % bar width = digit - inkspread
-            bars i 2 idiv [h c y w] put     % Add the bar entry
-            h maxh gt {/maxh h def} if
-        } {
-            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
-        } ifelse
-        /x x d add def  % x+=d
-    } for
-
-    gsave
-
-    currentpoint translate
-
-    % Force symbol to given width
-    width 0 ne {
-        width 72 mul x div 1 scale
-    } if
-
-    % Set RGB or CMYK color depending on length of given hex string
-    /setanycolor {
-        /anycolor exch def
-        anycolor length 6 eq {
-            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
-        } if
-        anycolor length 8 eq {
-            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
-        } if
-    } bind def
-
-    % Display the border and background
-    newpath
-    borderleft neg borderbottom neg moveto
-    x borderleft add borderright add 0 rlineto
-    0 maxh borderbottom add bordertop add rlineto
-    x borderleft add borderright add neg 0 rlineto
-    0 maxh borderbottom add bordertop add neg rlineto    
-    closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
-    showborder {
-        gsave
-        bordercolor (unset) ne { bordercolor setanycolor } if
-        borderwidth setlinewidth stroke
-        grestore
-    } if    
-   
-    % Display the bars for elements in the bars array
-    gsave
-    0 setlinecap
-    barcolor (unset) ne { barcolor setanycolor } if
-    bars {
-        {} forall
-        newpath setlinewidth moveto 0 exch rlineto stroke
-    } forall
-    grestore
-    
-    % Display the text for elements in the text array
-    textcolor (unset) ne { textcolor setanycolor } if
-    includetext {
-        textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
-            /s 0 def /f () def
-            txt {
-                {} forall
-                2 copy s ne exch f ne or {
-                    2 copy /s exch def /f exch def            
-                    exch findfont exch scalefont setfont          
-                } {
-                    pop pop
-                } ifelse
-                moveto show
-            } forall
-        } {
-            textfont findfont textsize scalefont setfont
-            alttext () eq {
-                /txt [ txt { 0 get {} forall } forall ] def
-                /tstr txt length string def
-                0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
-            } {
-                /tstr alttext def
-            } ifelse
-            /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
-            textxalign (left) eq { /textxpos textxoffset def } if
-            textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
-            textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
-            textxalign (offright) eq { /textxpos x textxoffset add def } if
-            /textypos textyoffset textsize add 3 sub neg def
-            textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
-            textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
-            textxpos textypos moveto tstr show
-        } ifelse
-    } if    
-
-    % Display the guard elements
-    guardwhitespace {
-        0.75 setlinewidth
-        guardleftpos 0 ne {
-            newpath
-            guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
-            guardwidth neg guardheight -2 div rlineto
-            guardwidth guardheight -2 div rlineto
-            stroke            
-        } if
-        guardrightpos 0 ne {
-            newpath
-            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
-            guardwidth guardheight -2 div rlineto
-            guardwidth neg guardheight -2 div rlineto
-            stroke            
-        } if
-    } if
-    
-    grestore
-    
-    end
-
-} bind def
-/renlinear load 0 1 dict put
-% --END RENDERER renlinear--
-
-% --BEGIN RENDERER renmatrix--
-/renmatrix {
-
-    0 begin
-
-    /args exch def
-
-    % Default options
-    /width 1 def
-    /height 1 def
-    /color (unset) def
-    /backgroundcolor (unset) def
-
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt {def} forall
-
-    /width width cvr def
-    /height height cvr def
-    /color color cvlit def
-    /backgroundcolor backgroundcolor cvlit def
-
-    % Extend bitmap horizontally to an 8-bit boundary
-    /pixx8 pixx 8 div ceiling cvi 8 mul def
-    /pixs8 [ pixx8 pixy mul {0} repeat ] def
-    0 1 pixy 1 sub {
-        /i exch def
-        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
-    } for
-    /pixs pixs8 def
-
-    % Convert bitmap into 8-bit sample string
-    /imgstr pixs length 8 idiv string def
-    0 1 pixs length 1 sub {
-        /i exch def
-        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
-    } for
-
-    % Set RGB or CMYK color depending on length of given hex string
-    /setanycolor {
-        /anycolor exch def
-        anycolor length 6 eq {
-            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
-        } if
-        anycolor length 8 eq {
-            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
-        } if
-    } bind def
-
-    % Draw the image
-    gsave
-    currentpoint translate
-    72 width mul 72 height mul scale
-    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
-    color (unset) ne { color setanycolor } if
-    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
-    grestore
-
-    end
-
-} bind def
-/renmatrix load 0 1 dict put
-% --END RENDERER renmatrix--
-
-% --BEGIN RENDERER renmaximatrix--
-/renmaximatrix {
-
-    0 begin
-
-    /args exch def   % We are given some arguments
-
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt {def} forall
- 
-    gsave
-
-    currentpoint translate
-
-    2.4945 dup scale  % from 1pt to 1.88mm
-    0.5 0.5774 translate
-
-    pixs {
-        dup 
-        /x exch 30 mod def 
-        /y exch 30 idiv def
-        y 2 mod 0 eq {x} {x 0.5 add} ifelse
-        32 y sub 0.8661 mul
-        moveto
-        0     0.5774 rmoveto
-        -0.5 -0.2887 rlineto
-        0    -0.5774 rlineto
-        0.5  -0.2887 rlineto
-        0.5   0.2887 rlineto
-        0     0.5774 rlineto
-        -0.5  0.2887 rlineto
-        closepath fill
-    } forall
-
-    % Plot the locator symbol
-    newpath 14 13.8576 0.5774 0 360 arc closepath
-    14 13.8576 1.3359 360 0 arcn closepath fill
-    newpath 14 13.8576 2.1058 0 360 arc closepath
-    14 13.8576 2.8644 360 0 arcn closepath fill
-    newpath 14 13.8576 3.6229 0 360 arc closepath
-    14 13.8576 4.3814 360 0 arcn closepath fill
-
-    grestore
-
-    end
-
-} bind def
-/renmaximatrix load 0 1 dict put
-% --END RENDERER renmaximatrix--
-
-% --BEGIN DISPATCHER--
-/barcode {
-    0 begin
-    dup (ren) get cvx exec 
-    end
-} bind def
-/barcode load 0 1 dict put
-% --END DISPATCHER--
 
 % --END TEMPLATE--
 %!
@@ -6543,34 +6603,34 @@
 % We call the procedures like this:
 /Helvetica findfont 10 scalefont setfont
 
-30 500 moveto (CODE 39) (includecheck includetext) code39 barcode
+30 500 moveto (CODE 39) (includecheck includetext) code39
 0 -17 rmoveto (Code 39) show
 
-385 200 moveto (THIS IS CODE 93) (includecheck includetext) code93 barcode
+385 200 moveto (THIS IS CODE 93) (includecheck includetext) code93
 0 -17 rmoveto (Code 93) show
 
 380 400 moveto (^105^102010501234567890015011106) <<
     /includetext true
     /alttext (\(01\)05012345678900\(15\)011106)
->> code128 barcode
+>> code128
 0 -17 rmoveto (Code 128) show
 
-150 700 moveto (0123456789) (includecheck includetext) interleaved2of5 barcode
+150 700 moveto (0123456789) (includecheck includetext) interleaved2of5
 0 -17 rmoveto (Interleaved 2 of 5) show
 
-215 300 moveto (24012345678905) (height=0.3 includetext) rss14 barcode
+215 300 moveto (24012345678905) (height=0.3 includetext) rss14
 0 -17 rmoveto (RSS-14) show
 
-220 550 moveto (00978186074271) (height=0.3 includetext) rsslimited barcode
+220 550 moveto (00978186074271) (height=0.3 includetext) rsslimited
 0 -17 rmoveto (RSS Limited) show
 
-220 500 moveto (000000010011001010100001000000010000) (height=0.3) rssexpanded barcode
+220 500 moveto (000000010011001010100001000000010000) (height=0.3) rssexpanded
 0 -10 rmoveto (RSS Expanded) show
 
-215 348 moveto (117480) (includetext) pharmacode barcode
+215 348 moveto (117480) (includetext) pharmacode
 0 -17 rmoveto (Pharmacode) show
 
-30 300 moveto (01234567) (includetext includecheck) code2of5 barcode
+30 300 moveto (01234567) (includetext includecheck) code2of5
 0 -17 rmoveto (Code 2 of 5) show
 
 165 600 moveto (0124589) <<
@@ -6582,49 +6642,49 @@
     /backgroundcolor (2020FF0F)
     /showborder true
     /bordercolor (0000FF)
->> code11 barcode
+>> code11
 0 -17 rmoveto (Code 11) show
 
-30 400 moveto (A0123456789B) (includecheck includetext) rationalizedCodabar barcode
+30 400 moveto (A0123456789B) (includecheck includetext) rationalizedCodabar
 0 -17 rmoveto (Rationalized Codabar) show
 
-420 700 moveto (977147396801 05) (includetext guardwhitespace) ean13 barcode
+420 700 moveto (977147396801 05) (includetext guardwhitespace) ean13
 0 -17 rmoveto (EAN-13) show
 
-41 700 moveto (01335583) (includetext guardwhitespace) ean8 barcode
+41 700 moveto (01335583) (includetext guardwhitespace) ean8
 0 -17 rmoveto (EAN-8) show
 
-37 600 moveto (78858101497) (includetext) upca barcode
+37 600 moveto (78858101497) (includetext) upca
 0 -17 rmoveto (UPC-A) show
 
-315 700 moveto (0425261) (includetext) upce barcode
+315 700 moveto (0425261) (includetext) upce
 0 -17 rmoveto (UPC-E) show
 
-405 600 moveto (978-1-86074-271 54495) (includetext) isbn barcode
+405 600 moveto (978-1-86074-271 54495) (includetext) isbn
 0 -17 rmoveto (ISBN) show
 
-345 515 moveto (0123456709498765432101234567891) (includetext) onecode barcode
+345 515 moveto (0123456709498765432101234567891) (includetext) onecode
 0 -17 rmoveto (OneCode) show
 
-225 455 moveto (012345) (includetext) postnet barcode
+225 455 moveto (012345) (includetext) postnet
 0 -17 rmoveto (Postnet) show
 
-225 410 moveto (LE28HS9Z) (includetext) royalmail barcode
+225 410 moveto (LE28HS9Z) (includetext) royalmail
 0 -17 rmoveto (Royal Mail) show
 
-400 165 moveto (1231FZ13XHS) (includetext) kix barcode
+400 165 moveto (1231FZ13XHS) (includetext) kix
 0 -17 rmoveto (KIX) show
 
-335 555 moveto (6540123789-A-K-Z) (includetext textxalign=center) japanpost barcode
+335 555 moveto (6540123789-A-K-Z) (includetext textxalign=center) japanpost
 0 -17 rmoveto (JapanPost) show
 
-385 132 moveto (5956439111ABA 9) (includetext) auspost barcode
+385 132 moveto (5956439111ABA 9) (includetext) auspost
 0 -17 rmoveto (AusPost) show
 
-348 300 moveto (12345) (includecheck includetext) msi barcode
+348 300 moveto (12345) (includecheck includetext) msi
 0 -17 rmoveto (MSI) show
 
-30 200 moveto (123ABCD) (includetext) plessey barcode
+30 200 moveto (123ABCD) (includetext) plessey
 0 -17 rmoveto (Plessey) show
 
 47 135 moveto (1001234567890) <<
@@ -6637,22 +6697,22 @@
     /includetext true
     /includecheckintext true
     /textyoffset -10
->> interleaved2of5 barcode
+>> interleaved2of5
 -15 -20 rmoveto (ITF-14) show
 
-245 140 moveto (000100000010000000001100010101100110000110000) (version=1 eclevel=M) qrcode barcode
+245 140 moveto (000100000010000000001100010101100110000110000) (version=1 eclevel=M) qrcode
 0 -10 rmoveto (QR Code) show
 
-483 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode barcode
+483 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode
 0 -10 rmoveto (MaxiCode) show
 
-245 220 moveto (^453^178^121^239) (columns=2 rows=10 color=442222 backgroundcolor=AABBCC) pdf417 barcode
+245 220 moveto (^453^178^121^239) (columns=2 rows=10 color=442222 backgroundcolor=AABBCC) pdf417
 0 -10 rmoveto (PDF417) show
 
-300 600 moveto (^142^164^186) (rows=48 columns=48) datamatrix barcode
+300 600 moveto (^142^164^186) (rows=48 columns=48) datamatrix
 0 -10 rmoveto (Data Matrix) show
 
-315 140 moveto (00100111001000000101001101111000010100111100101000000110) (format=compact layers=3) azteccode barcode
+315 140 moveto (00100111001000000101001101111000010100111100101000000110) (format=compact layers=3) azteccode
 0 -10 rmoveto (Aztec Code) show
 
 showpage
