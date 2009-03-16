@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-03-06
+% Barcode Writer in Pure PostScript - Version 2009-03-16
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -43,7 +43,7 @@
 % --BEGIN RENDERER renlinear--
 /renlinear {
 
-    1 dict begin          % Confine variables to local scope
+    20 dict begin          % Confine variables to local scope
 
     /args exch def   % We are given some arguments
 
@@ -61,6 +61,7 @@
     /textsize 10 def
     /textxoffset 0 def
     /textyoffset 0 def
+    /textgaps 0 def
     /alttext () def
     /bordercolor (unset) def
     /backgroundcolor (unset) def
@@ -94,6 +95,7 @@
     /textsize textsize cvr def
     /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
+    /textgaps textgaps cvr def
     /alttext alttext cvlit def
     /bordercolor bordercolor cvlit def
     /backgroundcolor backgroundcolor cvlit def
@@ -202,15 +204,20 @@
             } {
                 /tstr alttext def
             } ifelse
-            /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
+            /swid tstr stringwidth pop tstr length 1 sub textgaps mul add def
+            /textxpos textxoffset x swid sub 2 div add def
             textxalign (left) eq { /textxpos textxoffset def } if
-            textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
-            textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
+            textxalign (right) eq { /textxpos x textxoffset sub swid sub def } if
+            textxalign (offleft) eq { /textxpos swid textxoffset add neg def } if
             textxalign (offright) eq { /textxpos x textxoffset add def } if
+            textxalign (justify) eq swid x lt and {
+                /textxpos 0 def
+                /textgaps x swid sub tstr length 1 sub div def
+            } if
             /textypos textyoffset textsize add 3 sub neg def
             textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
             textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
-            textxpos textypos moveto tstr show
+            textxpos textypos moveto textgaps 0 tstr ashow
         } ifelse
     } if    
 
@@ -243,7 +250,7 @@
 % --BEGIN RENDERER renmatrix--
 /renmatrix {
 
-    1 dict begin
+    20 dict begin
 
     /args exch def
 
@@ -307,7 +314,7 @@
 % --BEGIN RENDERER renmaximatrix--
 /renmaximatrix {
 
-    1 dict begin
+    20 dict begin
 
     /args exch def   % We are given some arguments
 
@@ -361,7 +368,7 @@
 % --RNDR: renlinear
 /ean5 {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def                   % We are given an option string
     /barcode exch def                   % We are given a barcode string
@@ -471,7 +478,7 @@
     /bordertop 10
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -485,7 +492,7 @@
 % --RNDR: renlinear
 /ean2 {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def                   % We are given an options string
     /barcode exch def                   % We are given a barcode string
@@ -580,7 +587,7 @@
     /bordertop 10
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -595,7 +602,7 @@
 % --RNDR: renlinear
 /ean13 {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def                  % We are given an option string
     /barcode exch def                  % We are given a barcode string
@@ -762,7 +769,7 @@
     /borderbottom 5
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -777,7 +784,7 @@
 % --RNDR: renlinear
 /ean8 {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def                  % We are given an option string
     /barcode exch def                  % We are given a barcode string
@@ -908,7 +915,7 @@
     /borderbottom 5
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -923,7 +930,7 @@
 % --RNDR: renlinear
 /upca {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def
     /barcode exch def             % We are given a barcode string
@@ -1078,7 +1085,7 @@
     /borderbottom 5
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1093,7 +1100,7 @@
 % --RNDR: renlinear
 /upce {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def                   % We are given an option string
     /barcode exch def                   % We are given a barcode string
@@ -1276,7 +1283,7 @@
     /borderbottom 5
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1292,7 +1299,7 @@
 % --RNDR: renlinear
 /isbn {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def      % We are given an options string
     /isbntxt exch def      % We are given the isbn text with dashes
@@ -1427,7 +1434,7 @@
     args (opt) options put
     args
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
  
@@ -1441,7 +1448,7 @@
 % --RNDR: renlinear
 /code128 {
 
-    1 dict begin                  % Confine variables to local scope
+    20 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
@@ -1556,7 +1563,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1570,7 +1577,7 @@
 % --RNDR: renlinear
 /code39 {
 
-    1 dict begin                 % Confine variables to local scope
+    20 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
@@ -1686,7 +1693,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1700,7 +1707,7 @@
 % --RNDR: renlinear
 /code93 {
 
-    1 dict begin                 % Confine variables to local scope
+    20 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
@@ -1811,7 +1818,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1825,7 +1832,7 @@
 % --RNDR: renlinear
 /interleaved2of5 {
 
-    1 dict begin         % Confine variables to local scope
+    20 dict begin         % Confine variables to local scope
 
     /options exch def               % We are given an option string
     /barcode exch def               % We are given a barcode string
@@ -1951,7 +1958,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -1965,7 +1972,7 @@
 % --RNDR: renlinear
 /rss14 {
 
-    1 dict begin            % Confine variables to local scope
+    20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
@@ -2230,7 +2237,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -2244,7 +2251,7 @@
 % --RNDR: renlinear
 /rsslimited {
 
-    1 dict begin            % Confine variables to local scope
+    20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
@@ -2462,7 +2469,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -2476,7 +2483,7 @@
 % --RNDR: renlinear
 /rssexpanded {
 
-    1 dict begin            % Confine variables to local scope
+    20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
@@ -2714,7 +2721,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -2728,7 +2735,7 @@
 % --RNDR: renlinear
 /pharmacode {
 
-    1 dict begin                 % Confine variables to local scope
+    20 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
@@ -2791,7 +2798,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -2805,9 +2812,7 @@
 % --RNDR: renlinear
 /code2of5 {
 
-    % Thanks to Michael Landers
-
-    1 dict begin                 % Confine variable to local scope
+    20 dict begin                 % Confine variable to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
@@ -2905,7 +2910,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -2919,7 +2924,7 @@
 % --RNDR: renlinear
 /code11 {
 
-    1 dict begin            % Confine variables to local scope
+    20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
@@ -3041,7 +3046,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3055,7 +3060,7 @@
 % --RNDR: renlinear
 /rationalizedCodabar {
 
-    1 dict begin                    % Confine variables to local scope
+    20 dict begin                    % Confine variables to local scope
 
     /options exch def          % We are given an option string
     /barcode exch def          % We are given a barcode string
@@ -3166,7 +3171,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3180,7 +3185,7 @@
 % --RNDR: renlinear
 /onecode {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -3483,7 +3488,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3497,7 +3502,7 @@
 % --RNDR: renlinear
 /postnet {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -3606,7 +3611,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3620,7 +3625,7 @@
 % --RNDR: renlinear
 /royalmail {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -3734,7 +3739,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3748,7 +3753,7 @@
 % --RNDR: renlinear
 /auspost {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -3935,7 +3940,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -3949,7 +3954,7 @@
 % --RNDR: renlinear
 /kix {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -4042,7 +4047,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4056,7 +4061,7 @@
 % --RNDR: renlinear
 /japanpost {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
@@ -4203,7 +4208,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4217,7 +4222,7 @@
 % --RNDR: renlinear
 /msi {
 
-    1 dict begin                 % Confine variables to local scope
+    20 dict begin                 % Confine variables to local scope
 
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
@@ -4314,7 +4319,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4328,7 +4333,7 @@
 % --RNDR: renlinear
 /plessey {
 
-    1 dict begin                  % Confine variables to local scope
+    20 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
@@ -4443,7 +4448,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4457,7 +4462,7 @@
 % --RNDR: renlinear
 /raw {
 
-    1 dict begin                  % Confine variables to local scope
+    20 dict begin                  % Confine variables to local scope
 
     /options exch def        % We are given an option string
     /sbs exch def        % We are given a barcode string
@@ -4487,7 +4492,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4501,7 +4506,7 @@
 % --RNDR: renlinear
 /symbol {
 
-    1 dict begin            % Confine variables to local scope
+    20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
@@ -4541,7 +4546,7 @@
     /opt options
     >>
 
-    dontdraw not {//renlinear exec} if
+    dontdraw not //renlinear if
 
     end
 
@@ -4555,7 +4560,7 @@
 % --RNDR: renmatrix
 /pdf417 {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def
     /barcode exch def
@@ -4971,7 +4976,7 @@
     /opt options
     >>
 
-    dontdraw not {//renmatrix exec} if
+    dontdraw not //renmatrix if
 
     end
 
@@ -4985,7 +4990,7 @@
 % --RNDR: renmatrix
 /datamatrix {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def
     /barcode exch def
@@ -5308,7 +5313,7 @@
     /opt options
     >>
 
-    dontdraw not {//renmatrix exec} if
+    dontdraw not //renmatrix if
 
     end
 
@@ -5322,7 +5327,7 @@
 % --RNDR: renmatrix
 /qrcode {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def
     /barcode exch def
@@ -5915,7 +5920,7 @@
     /opt options
     >>
 
-    dontdraw not {//renmatrix exec} if
+    dontdraw not //renmatrix if
 
     end
 
@@ -5929,7 +5934,7 @@
 % --RNDR: renmaximatrix
 /maxicode {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
@@ -6231,7 +6236,7 @@
     /opt options
     >>
 
-    dontdraw not {//renmaximatrix exec} if
+    dontdraw not //renmaximatrix if
 
     end
 
@@ -6245,7 +6250,7 @@
 % --RNDR: renmatrix
 /azteccode {
 
-    1 dict begin
+    20 dict begin
 
     /options exch def
     /barcode exch def
@@ -6589,7 +6594,7 @@
     /opt options
     >>
 
-    dontdraw not {//renmatrix exec} if
+    dontdraw not //renmatrix if
 
     end
 
