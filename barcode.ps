@@ -5013,15 +5013,28 @@
     /columns columns cvi def
     /rows rows cvi def
 
-    % Split the input barcode into an array of codewords
-    /cws barcode length array def
+    % Simple autoencoder from input to codewords using basic ASCII mode only
+    /cws 1558 array def
     /i 0 def /j 0 def
     { % loop
         i barcode length eq {exit} if
-        /cw barcode i 1 add 3 getinterval cvi def
-        cws j cw put
-        /i i 4 add def
-        /j j 1 add def
+        /char barcode i get def
+        char (^) 0 get eq {
+           cws j barcode i 1 add 3 getinterval cvi put
+           /i i 4 add def
+           /j j 1 add def
+        } {
+            char 127 le {
+                cws j char 1 add put
+                /i i 1 add def
+                /j j 1 add def
+            } {
+                cws j 235 put
+                cws j 1 add char 127 sub put
+                /i i 1 add def
+                /j j 2 add def
+            } ifelse
+        } ifelse
     } loop
     /cws cws 0 j getinterval def
 
