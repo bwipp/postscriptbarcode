@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-05-13
+% Barcode Writer in Pure PostScript - Version 2009-05-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -5348,7 +5348,8 @@
     /dontdraw false def
     /format (full) def     % full or micro
     /version (unset) def
-    /eclevel (L) def       % L, M, Q or H
+    /eclevel (unset) def   % L, M, Q or H
+    /raw false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -5362,16 +5363,79 @@
     options {def} forall
 
     % Convert from input into message bitstream
-    /msgbits barcode def 
+    raw {
+        /msgbits barcode def 
+    } {  % Simple autoencoder from input to bitstream using byte mode only for full format symbols
+
+        /barlen barcode length def
+        eclevel (unset) eq {/eclevel (M) def} if
+
+        % Determine smallest symbol version to hold given amount of byte-encoded data
+        version (unset) eq {
+            /caps [
+                [
+                      17    32    53    78   106   134   154   192   230   271   % 1-L  - 10-L
+                     321   367   425   458   520   586   644   718   792   858   % 11-L - 20-L
+                     929  1003  1091  1171  1273  1367  1465  1528  1628  1732   % 21-L - 30-L
+                    1840  1952  2068  2188  2303  2431  2563  2699  2809  2953   % 31-L - 40-L
+                ] [
+                      14    26    42    62    84   106   122   152   180   213   % 1-M  - 10-M
+                     251   287   331   362   412   450   504   560   624   666   % 11-M - 20-M
+                     711   779   857   911   997  1059  1125  1190  1264  1370   % 21-M - 30-M
+                    1452  1538  1628  1722  1809  1911  1989  2099  2213  2331   % 31-M - 40-M
+                ] [
+                      11    20    32    46    60    74    86   108   130   151   % 1-Q  - 10-Q
+                     177   203   241   258   292   322   364   394   442   482   % 11-Q - 20-Q
+                     509   565   611   661   715   751   805   868   908   982   % 21-Q - 30-Q
+                    1030  1112  1168  1228  1283  1351  1423  1499  1579  1663   % 31-Q - 40-Q
+                ] [
+                       7    14    24    34    44    58    64    84    98   119   % 1-H  - 10-H
+                     137   155   177   194   220   250   280   310   338   382   % 11-H - 20-H
+                     403   439   461   511   535   593   625   658   698   742   % 21-H - 30-H
+                     790   842   898   958   983  1051  1093  1139  1219  1273   % 31-H - 40-H
+                ]
+            ] def
+            /caps caps (LMQH) eclevel search pop length exch pop exch pop get def
+            /i 1 def
+            {
+                barlen caps i 1 sub get le {exit} if 
+                /i i 1 add def
+            } loop
+            /version i 10 2 string cvrs def
+        } if
+
+        % Set the control character data for the version
+        /mid (0100) def /term (0000) def /cclen 8 def
+        version 0 1 getinterval (M) ne {  % Version 10 and above
+            version cvi 10 ge {/cclen 16 def} if
+        } if
+        /midlen mid length def
+        /termlen term length def
+
+        % Create the bitstream as byte_mode_id character_count data_bytes term
+        /msgbits midlen cclen add barlen 8 mul add termlen add string def
+        msgbits 0 mid putinterval
+        (0000000000000000) 0 cclen getinterval cclen string copy 
+        dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
+        /cc exch def
+        msgbits midlen cc putinterval
+        0 1 barlen 1 sub {
+            /i exch def
+            (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
+            msgbits midlen cclen add i 8 mul add 3 -1 roll putinterval
+        } for
+        msgbits midlen cclen add barlen 8 mul add term putinterval
+
+    } ifelse
 
     % Lookup the most appropriate symbol specification
     /metrics [
         % format   vers  size align modules    error codewords        error correction blocks 
         %                                      L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
-        [ (micro)  (M1)   11  98 99     36  [   2   99   99   99 ]  [  1  0 99 99 99 99 99 99 ] ]
-        [ (micro)  (M2)   13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 99 99 99 99 ] ]
-        [ (micro)  (M3)   15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 99 99 99 99 ] ]
-        [ (micro)  (M4)   17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 99 99 ] ]
+        [ (micro)  (M1)   11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
+        [ (micro)  (M2)   13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+        [ (micro)  (M3)   15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+        [ (micro)  (M4)   17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 -1 -1 ] ]
         [ (full)   (1)    21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
         [ (full)   (2)    25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
         [ (full)   (3)    29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
@@ -5413,7 +5477,6 @@
         [ (full)   (39)  173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
         [ (full)   (40)  177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
     ] def
-
     /eclval (LMQH) eclevel search pop length exch pop exch pop def
     /i 0 def
     { % loop
@@ -5437,17 +5500,17 @@
         /dmod dcws 8 mul lc4b {4} {0} ifelse sub def  % Number of data modules
         /ecb1 m 7 get eclval 2 mul get def            % First error correction blocks
         /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
-        /dcpb dcws ecb1 ecb2 add idiv def             % Base data codewords per block
-        /ecpb ncws ecb1 ecb2 add idiv dcpb sub def    % Error correction codewords per block
         /okay true def
-        version (unset) ne version vers ne and {/okay false def} if
-        version (unset) eq format frmt ne and {/okay false def} if
-        msgbits length dmod gt {/okay false def} if
+        version vers ne {/okay false def} if          % The version must match that supplied
+        msgbits length dmod gt {/okay false def} if   % Bitstream must fit into data modules
+        ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         okay {exit} if
         /i i 1 add def
     } loop
     /format frmt def
     /version vers def
+    /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
+    /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
     % Expand the message bits by adding padding as necessary
     /pad dmod string def
@@ -6718,7 +6781,7 @@
 >> interleaved2of5
 -15 -20 rmoveto (ITF-14) show
 
-245 140 moveto (000100000010000000001100010101100110000110000) (version=1 eclevel=M) qrcode
+245 140 moveto (http://lwn.net) () qrcode
 0 -10 rmoveto (QR Code) show
 
 483 300 moveto (^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063) (mode=2) maxicode
