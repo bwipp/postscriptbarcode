@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-05-15-1
+% Barcode Writer in Pure PostScript - Version 2009-05-17
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -6321,8 +6321,8 @@
 
 % --BEGIN ENCODER azteccode--
 % --DESC: Aztec Code
-% --EXAM: 00100111001000000101001101111000010100111100101000000110
-% --EXOP: format=compact
+% --EXAM: This is Aztec Code
+% --EXOP: format=full
 % --RNDR: renmatrix
 /azteccode {
 
@@ -6337,6 +6337,7 @@
     /layers -1 def
     /eclevel 23 def
     /ecaddchars 3 def
+    /raw false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -6355,8 +6356,34 @@
     
     % Convert from input into message bitstream
     /msgbits () def 
-    format (rune) ne {/msgbits barcode def} if 
-   
+    format (rune) ne raw and {/msgbits barcode def} if 
+    format (rune) ne raw not and {  % Simple autoencoder from input to bitstream using byte mode only
+
+        % Determine the character count
+        /barlen barcode length def
+        barlen 31 le {
+            (00000) 5 string copy dup barlen 2 5 string cvrs
+            dup length 5 exch sub exch putinterval
+            /cc exch def
+        } {
+            (0000000000000000) 16 string copy dup barlen 31 sub 2 16 string cvrs
+            dup length 16 exch sub exch putinterval
+            /cc exch def
+        } ifelse
+        /cclen cc length def
+
+        % Create the bitstream as byte_mode_id character_count data_bytes
+        /msgbits 5 cclen add barlen 8 mul add string def
+        msgbits 0 (11111) putinterval
+        msgbits 5 cc putinterval
+        0 1 barlen 1 sub {
+            /i exch def
+            (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
+            msgbits 5 cclen add i 8 mul add 3 -1 roll putinterval
+        } for
+
+    } if
+
     % Lookup the most appropriate symbol specification 
     /metrics [
         [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
