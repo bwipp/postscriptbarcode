@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-05-17
+% Barcode Writer in Pure PostScript - Version 2009-05-20
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -4555,8 +4555,8 @@
 
 % --BEGIN ENCODER pdf417--
 % --DESC: PDF417
-% --EXAM: ^453^178^121^239
-% --EXOP: columns=2 rows=10
+% --EXAM: This is PDF417
+% --EXOP: columns=2
 % --RNDR: renmatrix
 /pdf417 {
 
@@ -4571,6 +4571,7 @@
     /columns 0 def
     /rows 0 def
     /rowmult 3 def
+    /raw false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -4588,17 +4589,64 @@
     /rows rows cvi def
     /rowmult rowmult cvr def
 
-    % Split the input barcode into an array of codewords
-    /datcws barcode length array def
-    /i 0 def /j 0 def
-    { % loop
-        i barcode length eq {exit} if
-        /cw barcode i 1 add 3 getinterval cvi def
-        datcws j cw put
-        /i i 4 add def
-        /j j 1 add def
-    } loop
-    /datcws datcws 0 j getinterval def
+    % Convert input into array of codewords
+    raw {
+        /datcws barcode length array def
+        /i 0 def /j 0 def
+        { % loop
+            i barcode length eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            datcws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /datcws datcws 0 j getinterval def
+    } {  % Simple autoencoder from input to codewords using byte mode
+        /barlen barcode length def
+        barlen 6 mod 0 eq {
+            /datcws barlen 6 idiv 5 mul 1 add array def
+            datcws 0 924 put
+        } {
+            /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
+            datcws 0 901 put 
+        } ifelse
+
+        % Rebase groups of 6 bytes splitting into 3 byte chunks
+        0 1 barlen 6 idiv 1 sub {
+            /i exch def
+            /msbs [ barcode i 6 mul 3 getinterval {} forall ] def
+            /mscs [
+                msbs aload pop exch 256 mul add exch 65536 mul add 
+                3 {dup 900 mod exch 900 idiv} repeat 
+            ] def
+            /lsbs [barcode i 6 mul 3 add 3 getinterval {} forall] def
+            /lscs [
+                lsbs aload pop exch 256 mul add exch 65536 mul add
+                3 {dup 900 mod exch 900 idiv} repeat
+            ] def
+            /cws 5 array def
+            lscs 0 get mscs 0 get 316 mul add
+            cws 4 2 index 900 mod put
+            900 idiv lscs 1 get add mscs 0 get 641 mul add mscs 1 get 316 mul add
+            cws 3 2 index 900 mod put 
+            900 idiv lscs 2 get add mscs 0 get 20 mul add mscs 1 get 641 mul add mscs 2 get 316 mul add 
+            cws 2 2 index 900 mod put
+            900 idiv lscs 3 get add mscs 1 get 20 mul add mscs 2 get 641 mul add
+            cws 1 2 index 900 mod put
+            900 idiv mscs 2 get 20 mul add
+            cws 0 3 -1 roll 900 mod put
+            datcws i 5 mul 1 add cws putinterval 
+        } for
+
+        % Add the remaining bytes to the end of the codewords
+        /rem barlen 6 mod def
+        rem 0 ne {
+            datcws datcws length rem sub 
+            [ barcode barlen rem sub rem getinterval {} forall ] 
+            putinterval
+        } if
+
+    } ifelse
 
     % Determine the error correction level if unspecified
     /m datcws length def
