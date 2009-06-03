@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-05-20
+% Barcode Writer in Pure PostScript - Version 2009-06-03
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -5046,6 +5046,8 @@
     /dontdraw false def
     /columns 0 def
     /rows 0 def
+    /encoding (byte) def
+    /raw false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -5061,17 +5063,43 @@
     /columns columns cvi def
     /rows rows cvi def
 
-    % Simple autoencoder from input to codewords using basic ASCII mode only
-    /cws 1558 array def
-    /i 0 def /j 0 def
-    { % loop
-        i barcode length eq {exit} if
-        /char barcode i get def
-        char (^) 0 get eq {
-           cws j barcode i 1 add 3 getinterval cvi put
-           /i i 4 add def
-           /j j 1 add def
+    /barlen barcode length def
+
+    raw {/encoding (raw) def} if
+
+    encoding (raw) eq {
+        /cws barlen array def
+        /i 0 def /j 0 def
+        { % loop
+            i barlen eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            cws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /cws cws 0 j getinterval def
+    } if
+
+    encoding (byte) eq {
+        barlen 250 lt {
+            /cws [231 barlen barcode {} forall] def
         } {
+            /cws [231 barlen 250 idiv 249 add barlen 250 mod barcode {} forall] def
+        } ifelse 
+        1 1 cws length 1 sub {
+            /i exch def
+            i 1 add 149 mul 255 mod 1 add cws i get add
+            dup 256 ge {256 sub} if
+            cws exch i exch put
+        } for
+    } if
+
+    encoding (ascii) eq {
+        /cws barlen 2 mul array def
+        /i 0 def /j 0 def
+        { % loop
+            i barlen eq {exit} if
+            /char barcode i get def
             char 127 le {
                 cws j char 1 add put
                 /i i 1 add def
@@ -5082,9 +5110,9 @@
                 /i i 1 add def
                 /j j 2 add def
             } ifelse
-        } ifelse
-    } loop
-    /cws cws 0 j getinterval def
+        } loop
+        /cws cws 0 j getinterval def
+    } if
 
     % Basic metrics for the each symbol
     %    rows  cols  regh  regv  rscw  rsbl
