@@ -5114,6 +5114,34 @@
         /cws cws 0 j getinterval def
     } if
 
+    encoding (edifact) eq {
+        /cws 1558 array def
+        /i 0 def /j 1 def /k 0 def
+        cws 0 240 put
+        { % loop
+            i barlen gt {exit} if
+            /k 0 def /v 0 def
+            { % loop until triplet is full or beyond end of data
+                k 4 eq i barlen gt or {exit} if
+                /cval (unset) def
+                i barlen lt {
+                    /char barcode i get def
+                    char 32 ge char 94 le and {
+                        /cval char 63 and def
+                    } if
+                } {  % Unlatch at end of data
+                    /cval 31 def
+                } ifelse
+                /v v cval 3 k sub 6 mul bitshift or def
+                /k k 1 add def
+                /i i 1 add def
+            } loop
+            cws j [ v -16 bitshift v -8 bitshift 255 and v 255 and ] putinterval
+            /j j 3 add def
+        } loop
+        /cws cws 0 j getinterval def
+    } if
+
     % Basic metrics for the each symbol
     %    rows  cols  regh  regv  rscw  rsbl
     /metrics [
