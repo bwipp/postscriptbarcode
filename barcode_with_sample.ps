@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-06-19
+% Barcode Writer in Pure PostScript - Version 2009-06-20
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -5100,16 +5100,22 @@
         { % loop
             i barlen eq {exit} if
             /char barcode i get def
-            char 127 le {
+            char 48 ge char 57 le and i barlen 1 sub lt and {  % Digit pair
+                barcode i 1 add get dup 48 ge exch 57 le and {
+                    cws j barcode i 2 getinterval cvi 130 add put
+                    /i i 2 add def
+                    /j j 1 add def
+                } if
+            } { char 127 le {  % ASCII
                 cws j char 1 add put
                 /i i 1 add def
                 /j j 1 add def
-            } {
+            } {  % Extended ASCII
                 cws j 235 put
                 cws j 1 add char 127 sub put
                 /i i 1 add def
                 /j j 2 add def
-            } ifelse
+            } ifelse } ifelse
         } loop
         /cws cws 0 j getinterval def
     } if
