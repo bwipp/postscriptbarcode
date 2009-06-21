@@ -823,6 +823,23 @@
         pop
         /addon () def
     } ifelse
+
+    % Add checksum digit
+    /pad 8 string def
+    /checksum 0 def
+    0 1 6 {
+        /i exch def
+        /barchar barcode i get 48 sub def
+        i 2 mod 0 ne {
+            /checksum barchar checksum add def
+        } {
+            /checksum barchar 3 mul checksum add def
+        } ifelse
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    pad 0 barcode putinterval      % Add barcode to the start of the pad
+    pad 7 checksum 48 add put      % Put ascii for checksum at end of pad
+    /barcode pad def
  
     % Create an array containing the character mappings
     /encs
@@ -877,8 +894,8 @@
         /bhs [height height 8{height .075 sub}repeat height height 8{height .075 sub}repeat height height] def
         /bbs [0 0 8{.075}repeat 0 0 8{.075}repeat 0 0] def
     } {
-        /bhs [22{height}repeat]
-        /bbs [22{0}repeat]
+        /bhs [22{height}repeat] def
+        /bbs [22{0}repeat] def
         /txt [] def
     } ifelse
     /guardrightypos 0 def
