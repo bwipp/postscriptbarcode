@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-06-22
+% Barcode Writer in Pure PostScript - Version 2009-07-03
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -6243,8 +6243,8 @@
 
 % --BEGIN ENCODER maxicode--
 % --DESC: MaxiCode
-% --EXAM: ^059^042^041^059^040^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291^0471^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^062^004^063
-% --EXOP: mode=2
+% --EXAM: [\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
+% --EXOP: mode=2 parse
 % --RNDR: renmaximatrix
 /maxicode {
 
@@ -6254,8 +6254,9 @@
     /barcode exch def        % We are given a barcode string
 
     /dontdraw false def
-    /mode 4 def
+    /mode -1 def
     /sam -1 def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -6271,37 +6272,285 @@
     /mode mode cvi def
     /sam sam cvi def
 
-    /txtvals (@ABCDEFGHIJKLMNOPQRSTUVWXYZ@@@@@ @@@@@@@@@@@@@@@0123456789@@@@@@) def
-
-    % Parse a given message into codewords
-    /maxiparse {
-        /txt exch def
-        /out txt length array def
-        /i 0 def /j 0 def
-        { % loop  
-            i txt length eq {exit} if
-            txt i 1 getinterval (^) eq {
-                % Codeword is given by the next three characters
-                /cw txt i 1 add 3 getinterval cvi def
-                /i i 4 add def
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval                    % Copy prefix
+                length j add 1 add /j exch def
+                pop                                                % Remove ^ character
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put  % Copy value
+                dup length 3 sub 3 exch getinterval
             } {
-                % Codeword is the characters position in txtvals
-                txtvals txt i 1 getinterval search 
-                pop length /cw exch def pop pop
-                /i i 1 add def
-            } ifelse
-            out j cw put
-            /j j 1 add def 
+                pop
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
         } loop
-        out 0 j getinterval
+    } if
+
+    % Special function characters
+    /eci -1 def  /pad -2 def  /ns -3 def
+    /la  -4 def  /lb  -5 def
+    /sa  -6 def  /sb  -7 def  /sc -8 def  /sd -9 def  /se -10 def
+    /sa2 -11 def /sa3 -12 def  
+    /lkc -13 def /lkd -14 def /lke -15 def
+    
+    % Character maps for each state
+    /charmaps [
+        %  A    B    C    D    E
+        [  13  (`)  192  224    0 ]  % 0
+        [ (A)  (a)  193  225    1 ]  % 1
+        [ (B)  (b)  194  226    2 ]  % 2
+        [ (C)  (c)  195  227    3 ]  % 3
+        [ (D)  (d)  196  228    4 ]  % 4
+        [ (E)  (e)  197  229    5 ]  % 5
+        [ (F)  (f)  198  230    6 ]  % 6
+        [ (G)  (g)  199  231    7 ]  % 7
+        [ (H)  (h)  200  232    8 ]  % 8
+        [ (I)  (i)  201  233    9 ]  % 9 
+        [ (J)  (j)  202  234   10 ]  % 10
+        [ (K)  (k)  203  235   11 ]  % 11
+        [ (L)  (l)  204  236   12 ]  % 12
+        [ (M)  (m)  205  237   13 ]  % 13
+        [ (N)  (n)  206  238   14 ]  % 14
+        [ (O)  (o)  207  239   15 ]  % 15
+        [ (P)  (p)  208  240   16 ]  % 16
+        [ (Q)  (q)  209  241   17 ]  % 17
+        [ (R)  (r)  210  242   18 ]  % 18
+        [ (S)  (s)  211  243   19 ]  % 19
+        [ (T)  (t)  212  244   20 ]  % 20
+        [ (U)  (u)  213  245   21 ]  % 21
+        [ (V)  (v)  214  246   22 ]  % 22
+        [ (W)  (w)  215  247   23 ]  % 23
+        [ (X)  (x)  216  248   24 ]  % 24
+        [ (Y)  (y)  217  249   25 ]  % 25
+        [ (Z)  (z)  218  250   26 ]  % 26
+        [ eci  eci  eci  eci  eci ]  % 27
+        [  28   28   28   28  pad ]  % 28
+        [  29   29   29   29  pad ]  % 29
+        [  30   30   30   30   27 ]  % 30
+        [  ns   ns   ns   ns   ns ]  % 31
+        [ ( )  ({)  219  251   28 ]  % 32
+        [ pad  pad  220  252   29 ]  % 33
+        [ (")  (})  221  253   30 ]  % 34
+        [ (#)  (~)  222  254   31 ]  % 35
+        [ ($)  127  223  255  159 ]  % 36
+        [ (%)  (;)  170  161  160 ]  % 37
+        [ (&)  (<)  172  168  162 ]  % 38
+        [ (')  (=)  177  171  163 ]  % 39
+        [  40  (>)  178  175  164 ]  % 40
+        [  41  (?)  179  176  165 ]  % 41
+        [ (*)  ([)  181  180  166 ]  % 42
+        [ (+)   92  185  183  167 ]  % 43
+        [ (,)  (])  186  184  169 ]  % 44
+        [ (-)  (^)  188  187  173 ]  % 45
+        [ (.)  (_)  189  191  174 ]  % 46
+        [ (/)  ( )  190  138  182 ]  % 47
+        [ (0)  (,)  128  139  149 ]  % 48
+        [ (1)  (.)  129  140  150 ]  % 49
+        [ (2)  (/)  130  141  151 ]  % 50
+        [ (3)  (:)  131  142  152 ]  % 51
+        [ (4)  (@)  132  143  153 ]  % 52
+        [ (5)  (!)  133  144  154 ]  % 53
+        [ (6)  (|)  134  145  155 ]  % 54
+        [ (7)  pad  135  146  156 ]  % 55
+        [ (8)  sa2  136  147  157 ]  % 56
+        [ (9)  sa3  137  148  158 ]  % 57
+        [ (:)  pad   la   la   la ]  % 58
+        [  sb   sa  ( )  ( )  ( ) ]  % 59
+        [  sc   sc  lkc   sc   sc ]  % 60
+        [  sd   sd   sd  lkd   sd ]  % 61
+        [  se   se   se   se  lke ]  % 62
+        [  lb   la   lb   lb   lb ]  % 63
+    ] def 
+    
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 64 dict 64 dict 64 dict 64 dict 64 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 4 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put 
+        } for
+    } for
+    /seta charvals 0 get def
+    /setb charvals 1 get def
+    /setc charvals 2 get def
+    /setd charvals 3 get def
+    /sete charvals 4 get def
+    
+    /prefixinset {
+        0 {
+            2 copy exch length ge {exit} if 
+            2 copy get 3 index exch known {1 add} {exit} ifelse
+        } loop
+        exch pop exch pop
+    } bind def
+    
+    /enc {
+        exch get out exch j exch put
+        /j j 1 add def
     } bind def
 
+    % Encode from ASCII to codewords    
+    /maxiencode {
+
+        /chars exch def
+        /charslen chars length def
+    
+        % Compute numeric runlengths
+        /nseq [ charslen 1 add {0} repeat ] def
+        charslen 1 sub -1 0 {
+            /i exch def
+            chars i get dup 48 ge exch 57 le and {
+                nseq i nseq i 1 add get 1 add put
+            } {
+                nseq i 0 put
+            } ifelse
+        } for
+        /nseq nseq 0 charslen getinterval def
+       
+        /out 144 array def
+        /i 0 def /j 0 def /cset (seta) def
+        { % loop
+            % Exit when no characters remain latching back to A if necessary
+            i charslen eq {
+                cset (seta) ne cset (setb) ne and {
+                    la cset load enc
+                } if
+                exit
+            } if
+            { % not a loop but common exit point
+        
+                % If 9 numerals available then use NS
+                nseq i get 9 ge {
+                    chars i 9 getinterval cvi 4 { dup 63 and exch -6 bitshift } repeat cset load ns get
+                    0 2 10 {index} for 6 array astore 7 1 roll 6 {pop} repeat
+                    out exch j exch putinterval
+                    /i i 9 add def
+                    /j j 6 add def
+                    exit
+                } if
+        
+                % Read next three characters
+                /char1 chars i get def
+                /char2 i 1 add charslen lt {chars i 1 add get} {-99} ifelse def
+                /char3 i 2 add charslen lt {chars i 2 add get} {-99} ifelse def
+        
+                % If current mode is sufficient then directly encode
+                cset load char1 known { 
+                    char1 cset load enc
+                    /i i 1 add def
+                    exit
+                } if
+        
+                % For switching from A to B
+                cset (seta) eq setb char1 known and {
+                    setb char2 known {
+                        lb seta enc
+                        /cset (setb) def
+                    } {
+                        sb seta enc
+                        char1 setb enc
+                        /i i 1 add def
+                    } ifelse
+                    exit
+                } if
+        
+                % For switching from B to A encode according to length of prefix
+                cset (setb) eq seta char1 known and {
+                    /p seta chars i 4 charslen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+                    p 1 eq {
+                        sa setb enc
+                        char1 seta enc
+                        /i i 1 add def
+                    } if
+                    p 2 eq {
+                        sa2 setb enc
+                        char1 seta enc
+                        char2 seta enc
+                        /i i 2 add def 
+                    } if
+                    p 3 eq {
+                        sa3 setb enc
+                        char1 seta enc
+                        char2 seta enc
+                        char3 seta enc
+                        /i i 3 add def 
+                    } if
+                    p 4 ge {
+                        la setb enc
+                        /cset (seta) def
+                    } if
+                    exit
+                } if
+        
+                % If character is in A or B then directly latch
+                seta char1 known {
+                    la cset load enc
+                    /cset (seta) def
+                    exit
+                } if      
+                setb char1 known {
+                    lb cset load enc
+                    /cset (setb) def
+                    exit
+                } if      
+         
+                % Determine which one of sets C, D or E the character is in
+                setc char1 known {/setx (setc) def /sx sc def /lkx lkc def} if
+                setd char1 known {/setx (setd) def /sx sd def /lkx lkd def} if
+                sete char1 known {/setx (sete) def /sx se def /lkx lke def} if
+        
+                % Encode according to the length of the prefix
+                /p setx load chars i 4 charslen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+                p 1 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    /i i 1 add def
+                } if
+                p 2 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    sx cset load enc
+                    char2 setx load enc
+                    /i i 2 add def
+                } if
+                p 3 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    sx cset load enc
+                    char2 setx load enc
+                    sx cset load enc
+                    char3 setx load enc
+                    /i i 3 add def
+                } if
+                p 4 ge {
+                    sx cset load enc
+                    lkx setx load enc
+                    /cset setx def 
+                } if
+        
+                exit
+            } loop  % out
+        } loop
+        out 0 j getinterval
+        /padval cset load pad get def 
+
+    } bind def  % maxiencode
+
     % Calcalate the structured append mode insert
-    /sami () def
+    /sami [] def
     sam -1 ne {
-        /sami (^033^000) 8 string copy def
-        sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add 10 2 string cvrs
-        dup length 8 exch sub sami exch 3 -1 roll putinterval 
+        /sami 2 array def
+        sami 0 seta pad get put 
+        sami 1 sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add put
     } if
 
     % Message handling for modes 2 and 3
@@ -6310,7 +6559,7 @@
         /msg barcode def
 
         % Normalise messages that begin with a field identifier [)>RS01GSyy
-        msg (^059^042^041^059^040^03001^029) search {
+        msg <5b293e1e30311d> search {
             pop
             dup length 2 add string /fid exch def
             fid 0 3 -1 roll putinterval
@@ -6320,12 +6569,13 @@
             pop
             /fid () def
         } ifelse
+        /fidenc fid maxiencode def
 
-        % Read the postcode, country code and service code fields
-        msg (^029) search pop /pc exch def
-        pop (^029) search pop /cc exch def
-        pop (^029) search pop /sc exch def
-        pop /msg exch def
+        % Read the postcode, country code and service code fields seperated by GS
+        msg <1d> search pop /pc exch def
+        pop <1d> search pop /cc exch def
+        pop <1d> search pop /sc exch def
+        pop maxiencode /encmsg exch def
 
         % Calculate the fixed-width binary values for the mode, postcode, country code and service
         /mdb (0000) 4 string copy dup mode cvi 2 4 string cvrs dup length 4 exch sub exch putinterval def
@@ -6338,7 +6588,10 @@
             pcb pc cvi 2 30 string cvrs dup length 36 exch sub exch putinterval
         } {  % mode=3
             % For alphanumeric postcode, trim or pad with spaces to 6 chars and encode to binary
-            /pccw (      ) 6 string copy dup 0 pc length 6 gt {pc 0 6 getinterval} {pc} ifelse putinterval maxiparse def
+            /pccw [ 
+                (      ) 6 string copy dup 0 pc length 6 gt {pc 0 6 getinterval} {pc} ifelse putinterval 
+                {seta exch get} forall
+            ] def
             0 1 5 {
                 /i exch def
                 pcb pccw i get 2 6 string cvrs dup length 6 i mul 6 add exch sub exch putinterval
@@ -6371,23 +6624,26 @@
         } for
 
         % Encode the secondary parts, including any SAM insert and field identifier
-        /sec [ 84 {33} repeat ] def
-        sec 0 [ sami maxiparse {} forall fid maxiparse {} forall msg maxiparse {} forall ] putinterval
+        /sec [ 84 {padval} repeat ] def
+        sec 0 [ sami aload pop fidenc aload pop encmsg aload pop ] putinterval
 
     } if
 
     % Message handling for modes 4, 5 and 6
-    mode 4 eq mode 5 eq or mode 6 eq or {
+    mode 4 eq mode 5 eq or mode 6 eq or mode -1 eq or {
 
-        % Prefix the message with the structured append insert
-        /msg sami length barcode length add string def
-        msg 0 sami putinterval
-        msg sami length barcode putinterval
+        % Prefix the encoded message with the structured append insert
+        /encmsg [ sami aload pop barcode maxiencode aload pop ] def
+
+        % If mode isn't specified then use EEC if message fits, otherwise SEC
+        mode -1 eq {
+            /mode encmsg length 77 le {5} {4} ifelse def
+        } if
 
         % First symbol is the mode and the remainder are the padded message
-        /cws [ mode 5 eq {78} {94} ifelse {33} repeat ] def
+        /cws [ mode 5 eq {78} {94} ifelse {padval} repeat ] def
         cws 0 mode put
-        cws 1 msg maxiparse putinterval
+        cws 1 encmsg putinterval
 
         % Fit the message into the primary and secondary components
         /pri cws 0 10 getinterval def
