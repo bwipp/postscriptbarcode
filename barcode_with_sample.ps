@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-07-03-2
+% Barcode Writer in Pure PostScript - Version 2009-07-06
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -204,19 +204,38 @@
             } {
                 /tstr alttext def
             } ifelse
-            /swid tstr stringwidth pop tstr length 1 sub textgaps mul add def
-            /textxpos textxoffset x swid sub 2 div add def
+
+            % Find true ascent of font
+            tstr length 0 eq {
+                0
+            } {
+                gsave
+                newpath 0 0 moveto (0) false charpath pathbbox
+                4 1 roll pop pop pop
+                grestore
+                currentfont /PaintType known {currentfont /PaintType get 2 eq} {false} ifelse
+                currentfont /StrokeWidth known and {
+                    currentfont /StrokeWidth get 2 div 0 exch
+                    currentfont /FontMatrix get dtransform
+                    dup mul exch dup mul add sqrt
+                    add
+                } if
+            } ifelse
+            /textascent exch def
+            /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
+
+            /textxpos textxoffset x textwidth sub 2 div add def
             textxalign (left) eq { /textxpos textxoffset def } if
-            textxalign (right) eq { /textxpos x textxoffset sub swid sub def } if
-            textxalign (offleft) eq { /textxpos swid textxoffset add neg def } if
+            textxalign (right) eq { /textxpos x textxoffset sub textwidth sub def } if
+            textxalign (offleft) eq { /textxpos textwidth textxoffset add neg def } if
             textxalign (offright) eq { /textxpos x textxoffset add def } if
-            textxalign (justify) eq swid x lt and {
+            textxalign (justify) eq textwidth x lt and {
                 /textxpos 0 def
-                /textgaps x swid sub tstr length 1 sub div def
+                /textgaps x textwidth sub tstr length 1 sub div def
             } if
-            /textypos textyoffset textsize add 3 sub neg def
+            /textypos textyoffset textascent add 1 add neg def
             textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
-            textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
+            textyalign (center) eq { /textypos textyoffset maxh textascent sub 2 div add def } if
             textxpos textypos moveto textgaps 0 tstr ashow
         } ifelse
     } if    
@@ -3208,7 +3227,7 @@
     /barcode exch def              % We are given a barcode string
 
     /dontdraw false def
-    /height 0.175 def
+    /height 0.15 def
     
     % Parse the input options
     options type /stringtype eq {
@@ -3226,11 +3245,25 @@
     /barlen barcode length def
  
     % Create the human readable text
-    /txt barcode length array def
-    0 1 barcode length 1 sub {
+    /txtdict <<
+        2 dup
+        5 dup
+        barcode 5 1 getinterval (9) eq {14} {11} ifelse dup
+        20 dup
+        25 dup
+        29 dup
+    >> def
+    /txt barlen 6 add array def
+    /spacecnt 0 def
+    0 1 barlen 1 sub {
         /i exch def
-        txt i [barcode i 1 getinterval 0 0 () 0] put
+        txtdict i known {
+            txt i spacecnt add [( ) 0 0 () 0] put
+            /spacecnt spacecnt 1 add def
+        } if
+        txt i spacecnt add [barcode i 1 getinterval 0 0 () 0] put
     } for
+    /txt txt 0 barcode length spacecnt add getinterval def
 
     /normalize {
         /base exch def
@@ -3501,7 +3534,10 @@
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
     /txt txt
-    /textxalign (center)
+    /textxalign (left)
+    /textfont /Helvetica
+    /textyoffset 1
+    /textxoffset -0.3
     /opt options
     >>
 
@@ -7216,6 +7252,7 @@
 380 400 moveto (^105^102010501234567890015011106) <<
     /includetext true
     /alttext (\(01\)05012345678900\(15\)011106)
+    /textxalign (justify)
 >> code128
 0 -17 rmoveto (Code 128) show
 
@@ -7267,8 +7304,8 @@
 405 600 moveto (978-1-86074-271 54495) (includetext) isbn
 0 -17 rmoveto (ISBN) show
 
-345 515 moveto (0123456709498765432101234567891) (includetext textxalign=justify) onecode
-0 -17 rmoveto (OneCode) show
+345 515 moveto (0123456709498765432101234567891) (includetext) onecode
+0 -18 rmoveto (OneCode) show
 
 225 455 moveto (012345) (includetext) postnet
 0 -17 rmoveto (Postnet) show
