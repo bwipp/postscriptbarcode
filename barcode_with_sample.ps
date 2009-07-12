@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-07-06-1
+% Barcode Writer in Pure PostScript - Version 2009-07-12
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -2004,8 +2004,8 @@
 % --BEGIN ENCODER rss14--
 % --DESC: GS1 DataBar Omnidirectional
 % --EXAM: 24012345678905
-% --EXOP: height=0.3
-% --RNDR: renlinear
+% --EXOP:
+% --RNDR: renlinear renmatrix
 /rss14 {
 
     20 dict begin            % Confine variables to local scope
@@ -2014,8 +2014,9 @@
     /barcode exch def  % We are given a barcode string
 
     /dontdraw false def
-    /height 1 def
+    /height 33 72 div def
     /linkage false def
+    /format (omni) def
     
     % Parse the input options
     options type /stringtype eq {
@@ -2027,15 +2028,16 @@
         currentdict end /options exch def
     } if
     options {def} forall
-   
+  
+    format (truncated) eq {/height 13 72 div def} if
+    /height height cvr def
+ 
     % Create the human readable text
     /txt barcode length array def
     0 1 barcode length 1 sub {
         /i exch def
         txt i [barcode i 1 getinterval 0 0 () 0] put
     } for
- 
-    /height height cvr def
 
     /ncr {  % n r
         2 copy sub 2 copy lt {exch} if  % n r maxd mind
@@ -2257,24 +2259,125 @@
         checkrt i checkrtrev 4 i sub get put
     } for
 
-    /sbs [
-        1 d1w {} forall checklt {} forall d2w {}
-        forall d4w {} forall checkrt {} forall d3w {} forall 1 1
-    ] def
+    % Stacked format
+    format (omni) eq format (truncated) eq or {  % linear
+
+        /sbs [
+            1 d1w {} forall checklt {} forall d2w {} forall 
+            d4w {} forall checkrt {} forall d3w {} forall 1 1
+        ] def
+        
+        <<
+        /ren (renlinear)
+        /sbs sbs
+        /bhs [sbs length 1 add 2 idiv {height} repeat]
+        /bbs [sbs length 1 add 2 idiv {0} repeat]
+        /txt txt
+        /textxalign (center)
+        /opt options
+        >>
     
-    % Return the arguments
-    <<
-    /ren (renlinear)
-    /sbs sbs
-    /bhs [sbs length 1 add 2 idiv {height} repeat]
-    /bbs [sbs length 1 add 2 idiv {0} repeat]
-    /txt txt
-    /textxalign (center)
-    /opt options
-    >>
+        dontdraw not //renlinear if
 
-    dontdraw not //renlinear if
+    } {  % 2D - stacked or stackedomni
 
+        /top [ 1 1 d1w {} forall checklt {} forall d2w {} forall 1 1 0 ] def
+        /bot [ 1 1 d4w {} forall checkrt {} forall d3w {} forall 1 1 0 ] def 
+        0 2 24 {
+            /i exch def
+            top i get {0} repeat
+            top i 1 add get {1} repeat
+        } for
+        50 array astore /top exch def 
+        0 2 24 {
+            /i exch def
+            bot i get {1} repeat
+            bot i 1 add get {0} repeat
+        } for
+        50 array astore /bot exch def
+
+        % Stacked
+        format (stacked) eq {
+            /sep [ 50 {0} repeat ] def
+            4 1 45 {
+                /i exch def
+                top i get bot i get eq {
+                    sep i 1 top i get sub put
+                } {
+                    sep i 1 sep i 1 sub get sub put
+                } ifelse
+            } for
+            /pixs [
+                5 {top aload pop} repeat
+                sep aload pop
+                7 {bot aload pop} repeat
+            ] def
+            /pixy pixs length 50 idiv def
+        } if
+    
+        % Stacked omnidirectional
+        format (stackedomni) eq {
+            /sep1 [ top {1 exch sub} forall ] def
+            sep1 0  [ 0 0 0 0 ] putinterval
+            sep1 46 [ 0 0 0 0 ] putinterval
+            18 1 30 {
+                /i exch def
+                top i get 0 eq {
+                    top i 1 sub get 1 eq {
+                        1
+                    } {
+                        sep1 i 1 sub get 0 eq {1} {0} ifelse
+                    } ifelse
+                } {
+                    0
+                } ifelse
+                sep1 exch i exch put
+            } for
+            /sep2 [ 0 0 0 0 21 { 0 1 } repeat 0 0 0 0 ] def
+            /sep3 [ bot {1 exch sub} forall ] def
+            sep3 0  [ 0 0 0 0 ] putinterval
+            sep3 46 [ 0 0 0 0 ] putinterval
+            19 1 31 {
+                /i exch def
+                bot i get 0 eq {
+                    bot i 1 sub get 1 eq {
+                        1
+                    } {
+                        sep3 i 1 sub get 0 eq {1} {0} ifelse
+                    } ifelse
+                } {
+                    0
+                } ifelse
+                sep3 exch i exch put
+            } for
+            checksum 9 mod 3 eq {  % Right shifted module for value 3 finder
+                sep3 19 [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+            } if
+            /pixs [
+                33 {top aload pop} repeat
+                sep1 aload pop
+                sep2 aload pop
+                sep3 aload pop
+                33 {bot aload pop} repeat
+            ] def
+            /pixy pixs length 50 idiv def
+        } if
+    
+        % Return the arguments
+        <<
+        /ren (renmatrix)
+        /pixs pixs
+        /pixx 50
+        /pixy pixy
+        /height pixy 72 div
+        /width 50 72 div
+        /opt options
+        >>
+    
+        dontdraw not //renmatrix if
+     
+    } ifelse
+    
     end
 
 } bind def
@@ -7259,14 +7362,17 @@
 150 700 moveto (0123456789) (includecheck includetext) interleaved2of5
 0 -17 rmoveto (Interleaved 2 of 5) show
 
-215 300 moveto (24012345678905) (height=0.3 includetext) rss14
-0 -17 rmoveto (RSS-14) show
+215 300 moveto (24012345678905) (format=truncated includetext) rss14
+0 -17 rmoveto (DataBar Truncated) show
+
+250 250 moveto (24012345678905) (format=stacked) rss14
+0 -10 rmoveto (DataBar Stacked) show
 
 220 550 moveto (00978186074271) (height=0.3 includetext) rsslimited
-0 -17 rmoveto (RSS Limited) show
+0 -17 rmoveto (DataBar Limited) show
 
 220 500 moveto (000000010011001010100001000000010000) (height=0.3) rssexpanded
-0 -10 rmoveto (RSS Expanded) show
+0 -10 rmoveto (DataBar Expanded) show
 
 215 348 moveto (117480) (includetext) pharmacode
 0 -17 rmoveto (Pharmacode) show
@@ -7341,19 +7447,19 @@
 >> interleaved2of5
 -15 -20 rmoveto (ITF-14) show
 
-245 140 moveto (http://lwn.net) () qrcode
+245 125 moveto (http://lwn.net) () qrcode
 0 -10 rmoveto (QR Code) show
 
 483 300 moveto ([\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004) (mode=2 parse) maxicode
 0 -10 rmoveto (MaxiCode) show
 
-245 220 moveto (This is PDF417) (columns=2 color=442222 backgroundcolor=AABBCC) pdf417
+245 190 moveto (This is PDF417) (columns=2 color=442222 backgroundcolor=AABBCC) pdf417
 0 -10 rmoveto (PDF417) show
 
 300 600 moveto (http://www.terryburton.co.uk/barcodewriter/) (rows=48 columns=48) datamatrix
 0 -10 rmoveto (Data Matrix) show
 
-315 140 moveto (This is Aztec Code) (format=compact layers=3) azteccode
+315 125 moveto (This is Aztec Code) (format=compact layers=3) azteccode
 0 -10 rmoveto (Aztec Code) show
 
 showpage
