@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-07-19
+% Barcode Writer in Pure PostScript - Version 2009-07-30
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -2617,8 +2617,8 @@
 
 % --BEGIN ENCODER rssexpanded--
 % --DESC: GS1 DataBar Expanded
-% --EXAM: 000000010011001010100001000000010000
-% --EXOP: segments=2
+% --EXAM: (01)95012345678903(3103)000123
+% --EXOP: segments=6
 % --RNDR: renlinear renmatrix
 /rssexpanded {
 
@@ -2630,7 +2630,8 @@
     /dontdraw false def
     /height 34 72 div def
     /segments 22 def
-    
+    /linkage false def   
+ 
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -2644,7 +2645,491 @@
  
     /height height cvr def
     /segments segments cvi def
-
+    
+    % Expand ordinals of the form ^NNN to ASCII
+    /expand {
+        /in exch def
+        /out in length string def
+        /j 0 def
+        in
+        { % loop
+            (^) search {
+                dup out exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi out exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup out exch j exch putinterval
+                length j add /j exch def
+                out 0 j getinterval exit
+            } ifelse 
+        } loop
+    } bind def
+    
+    % Parse out AIs
+    /ais [] def
+    /aival 2 dict def
+    barcode dup length 1 sub 1 exch getinterval
+    {  % loop
+        dup () eq {exit} if
+        (\)) search pop
+        exch pop
+        exch (\() search {
+            exch pop exch 3 1 roll 
+        } { 
+            () 3 1 roll
+        }  ifelse
+        [ ais aload pop counttomark 2 add index ] /ais exch def
+        aival 3 1 roll expand put
+    } loop
+    pop
+    
+    % Method selection
+    {  % common exit
+    
+        % (01)9...(3103)...
+        ais length 2 eq {
+            ais 0 get (01) eq ais 1 get (3103) eq and { 
+                aival (01) get 0 1 getinterval (9) eq aival (3103) get cvi 32767 le and {
+                   (0100) false exit 
+                } if
+            } if
+        } if
+    
+        % (01)9...(3202)...
+        ais length 2 eq {
+            ais 0 get (01) eq ais 1 get (3202) eq and {
+                aival (01) get 0 1 getinterval (9) eq aival (3202) get cvi 9999 le and {
+                    (0101) false exit
+                } if
+            } if
+        } if
+    
+        % (01)9...(3203)...
+        ais length 2 eq {
+            ais 0 get (01) eq ais 1 get (3203) eq and {
+                aival (01) get 0 1 getinterval (9) eq aival (3203) get cvi 22767 le and {
+                    (0101) false exit
+                } if
+            } if
+        } if
+    
+        % (01)9...(310x/320x)...[(11/13/15/17)...]
+        ais length dup 2 eq exch 3 eq or {
+           /ai310x false 3100 1 3109 {10 4 string cvrs ais 1 get eq or} for def
+           /ai320x false 3200 1 3209 {10 4 string cvrs ais 1 get eq or} for def
+           ais length 3 eq {
+               /aibad true [ (11) (13) (15) (17) ] {ais 2 get ne and} forall def
+           } {
+               /aibad false def
+           } ifelse
+           ais 0 get (01) eq ai310x ai320x or and aibad not and {
+               ais length 3 eq {
+                   aival (01) get 0 1 getinterval (9) eq 
+                   aival ais 1 get get cvi 99999 le and 
+                   aival ais 2 get get cvi 999999 le and {
+                       ai310x ais 2 get (11) eq and { (0111000) false exit } if
+                       ai320x ais 2 get (11) eq and { (0111001) false exit } if
+                       ai310x ais 2 get (13) eq and { (0111010) false exit } if
+                       ai320x ais 2 get (13) eq and { (0111011) false exit } if
+                       ai310x ais 2 get (15) eq and { (0111100) false exit } if
+                       ai320x ais 2 get (15) eq and { (0111101) false exit } if
+                       ai310x ais 2 get (17) eq and { (0111110) false exit } if
+                       ai320x ais 2 get (17) eq and { (0111111) false exit } if
+                   } if
+               } {
+                   aival (01) get 0 1 getinterval (9) eq 
+                   aival ais 1 get get cvi 99999 le and {
+                       ai310x { (0111000) false exit } if
+                       ai320x { (0111001) false exit } if
+                   } if
+               } ifelse
+           } if
+        } if
+    
+        % (01)9...(392x)...
+        ais length 2 ge {
+            /ai392x false 3920 1 3923 {10 4 string cvrs ais 1 get eq or} for def
+            ais 0 get (01) eq ai392x and {
+                aival (01) get 0 1 getinterval (9) eq { (01100) true exit } if
+            } if
+        } if
+    
+        % (01)9...(393x)...
+        ais length 2 ge {
+            /ai393x false 3930 1 3933 {10 4 string cvrs ais 1 get eq or} for def
+            ais 0 get (01) eq ai393x and {
+                aival (01) get 0 1 getinterval (9) eq { (01101) true exit } if
+            } if
+        } if
+    
+        % (01)...
+        ais 0 get (01) eq { (1) true exit } if
+    
+        % Freeform
+        (00) true exit
+    
+    } loop
+    /gpfallow exch def
+    /method exch def
+   
+    /conv12to40 {
+        (0000000000000000000000000000000000000000) 40 string copy
+        2 copy  0 10 getinterval exch 0 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+        2 copy 10 10 getinterval exch 3 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+        2 copy 20 10 getinterval exch 6 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+        2 copy 30 10 getinterval exch 9 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
+        exch pop
+    } bind def
+    
+    /conv13to44 {
+        (00000000000000000000000000000000000000000000) 44 string copy
+        2 copy 0 4 getinterval exch 0 1 getinterval cvi 2 4 string cvrs dup length 4 exch sub exch putinterval
+        dup 3 -1 roll 1 12 getinterval conv12to40 4 exch putinterval
+    } bind def
+    
+    /tobin {
+        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+    } bind def
+    
+    method (00) eq {
+        /cdf [] def
+        /gpf [] def
+    } if
+    
+    method (1) eq {
+        /cdf aival (01) get 0 13 getinterval conv13to44 def
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [] def
+        /ais ais 1 ais length 1 sub getinterval def
+    } if
+    
+    method (0100) eq {
+        /cdf 55 string def
+        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        cdf 40 aival (3103) get cvi 15 tobin putinterval
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [] def
+        /ais [] def
+    } if
+    
+    method (0101) eq {
+        /cdf 55 string def
+        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        ais 1 get (3202) eq {
+            aival (3202) get cvi 15 tobin
+        } {
+            aival (3203) get cvi 10000 add 15 tobin
+        } ifelse
+        cdf exch 40 exch putinterval
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [] def
+        /ais [] def
+    } if
+    
+    method length 7 eq {
+        /cdf 76 string def
+        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        6 string dup 0 ais 1 get 3 1 getinterval putinterval
+        dup aival ais 1 get get 1 5 getinterval 1 exch putinterval cvi 20 tobin
+        cdf exch 40 exch putinterval
+        ais length 3 eq {
+            aival ais 2 get get
+            dup 0 2 getinterval cvi 384 mul exch
+            dup 2 2 getinterval cvi 1 sub 32 mul exch
+            4 2 getinterval cvi add add 
+        } {
+            38400
+        } ifelse
+        16 tobin cdf exch 60 exch putinterval
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [] def
+        /ais [] def
+    } if
+    
+    method (01100) eq {
+        /cdf 42 string def
+        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        cdf 40 ais 1 get 3 1 getinterval cvi 2 tobin putinterval
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [ aival ais 1 get get {} forall ] def
+        /ais ais 2 ais length 2 sub getinterval def
+    } if
+    
+    method (01101) eq {
+        /cdf 52 string def
+        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        cdf 40 ais 1 get 3 1 getinterval cvi 2 tobin putinterval
+        cdf 42 aival ais 1 get get 0 3 getinterval cvi 10 tobin putinterval
+        /cdf [ cdf {48 sub} forall ] def
+        /gpf [ aival ais 1 get get dup length 3 sub 3 exch getinterval {} forall ] def
+        /ais ais 2 ais length 2 sub getinterval def
+    } if
+    
+    % Variable length symbol field
+    gpfallow {
+        /vlf 2 array def
+    } {
+        /vlf [] def
+    } ifelse
+    
+    % FNC1 terminated AIs
+    % TODO this list seems wrong
+    /aifnc1 100 dict def
+    [
+        10
+        21    22
+        240   241   242
+        250   251   253   254
+        30    37
+        3900 1 3909 {} for
+        3910 1 3919 {} for
+        3920 1 3929 {} for
+        3930 1 3939 {} for
+        400   401   402   403
+        420   421   422   423   424   425   426
+        7001  7002  7003
+        7030 1 7039 {} for
+        8001  8002  8003  8004  8005  8006  8007  8008
+        8018  8020
+        8100  8101  8102
+        8110
+        90 1 99 {} for
+    ] {
+        10 4 string cvrs dup aifnc1 3 1 roll put
+    } forall
+    
+    /fnc1 -1 def /lnumeric -2 def /lalpha -3 def /liso646 -4 def
+    
+    /numeric <<
+        0 1 119 {
+            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
+            dup length 2 exch sub exch putinterval 
+            dup 0 get 65 eq {dup 0 94 put} if 
+            dup 1 get 65 eq {dup 1 94 put} if 
+            exch 8 add
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs 
+            dup length 7 exch sub exch putinterval
+        } for
+        lalpha (0000)
+    >> def
+    
+    /alpha <<
+        48 1 57 {dup 43 sub 5 tobin} for
+        fnc1 (01111)
+        65 1 90 {dup 33 sub 6 tobin} for
+        42 (111010)
+        44 1 47 {dup 15 add 6 tobin} for
+        lnumeric (000)
+        liso646 (00100)
+    >> def
+    
+    /iso646 <<
+        48 1 57 {dup 43 sub 5 tobin} for
+        fnc1 (01111)
+        65 1 90 {dup 1 sub 7 tobin} for
+        97 1 122 {dup 7 sub 7 tobin} for
+        33 (11101000)
+        34 (11101001)
+        37 1 47 {dup 197 add 8 tobin} for
+        58 1 63 {dup 187 add 8 tobin} for
+        95 (11111011)
+        32 (11111100)
+        lnumeric (000)
+        lalpha (00100)
+    >> def
+    
+    % Append the remaining AI data
+    0 1 ais length 1 sub {
+        /i exch def
+        /ai ais i get def
+        /val aival ai get def
+        gpf length ai length add val length add array
+        dup 0 gpf putinterval
+        dup gpf length ai [ exch {} forall ] putinterval
+        dup gpf length ai length add val [ exch {} forall ] putinterval
+        /gpf exch def
+        i ais length 1 sub ne aifnc1 ai known and {  % Append FNC1
+            gpf length 1 add array
+            dup 0 gpf putinterval
+            dup gpf length fnc1 put
+            /gpf exch def
+        } if
+    } for
+    
+    % Calculate the number of bits remaining to the next valid symbol size
+    /rembits {
+        dup
+        12 div ceiling cvi 12 mul            % Round up to multiple of 12 
+        48 2 copy lt {exch} if pop           % At least 4 symbols
+        dup 12 idiv dup segments mod 1 eq {  % At least 2 symbols on last row of stacked symbol
+            1 add 12 mul exch pop
+        } {
+            pop
+        } ifelse 
+        exch sub
+    } bind def
+    
+    /encode {
+        dup /raw ne {exch get} {pop} ifelse
+        [ exch {48 sub} forall ]
+        dup length exch
+        gpfenc exch j exch putinterval
+        /j exch j add def
+    } bind def
+   
+    % Pre-compute alpha and numeric runlengths and position of next ISO646-only characters
+    /numericruns [ gpf length {0} repeat 0 -1 ] def
+    /alpharuns [ gpf length {0} repeat 0 ] def
+    /nextiso646only [ gpf length {0} repeat 9999 ] def
+    gpf length 1 sub -1 0 {
+        /i exch def
+        gpf i get
+        (00) 2 string copy
+        dup 0 gpf i get dup fnc1 eq {pop 94} if put 
+        i gpf length 1 sub lt {dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put} if
+        numeric exch known {
+            numericruns i numericruns i 2 add get 2 add put
+        } {
+            numericruns i 0 put
+        } ifelse
+        dup alpha exch known {
+            alpharuns i alpharuns i 1 add get 1 add put
+        } {
+            alpharuns i 0 put
+        } ifelse
+        dup iso646 exch known exch alpha exch known not and {
+            nextiso646only i 0 put
+        } {
+            nextiso646only i nextiso646only i 1 add get 1 add put
+        } ifelse
+    } for
+   
+    % Encode the general purpose field
+    /gpfenc 168 array def
+    /i 0 def /j 0 def /mode (numeric) def
+    {  % loop
+        i gpf length eq {exit} if
+        {  % not a loop but common exit point
+    
+            mode (numeric) eq {
+                i gpf length 2 sub lt {
+                    2 string 
+                    dup 0 gpf i get dup fnc1 eq {pop 94} if put
+                    dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put
+                    dup numeric exch known {
+                        numeric encode
+                        /i i 2 add def
+                        exit
+                    } if
+                    pop
+                    lalpha numeric encode 
+                    /mode (alpha) def
+                    exit
+                } {
+                    gpf i get dup 48 lt exch 57 gt or {
+                        lalpha numeric encode
+                        /mode (alpha) def
+                        exit
+                    } if
+                    12 1 add method length add vlf length add cdf length add j add rembits 
+                    dup 4 ge exch 6 le and {  % C1 + 1 into 4 bits
+                        (0000) 4 string copy dup gpf i get 47 sub 2 4 string cvrs
+                        dup length 4 exch sub exch putinterval /raw encode
+                        /i i 1 add def
+                        exit
+                    } {  % C1.FNC1
+                        2 string dup 0 gpf i get put dup 1 94 put numeric encode 
+                        /i i 1 add def
+                        exit
+                    } ifelse
+                } ifelse
+            } if
+    
+            mode (alpha) eq {
+                gpf i get fnc1 eq {
+                    fnc1 alpha encode
+                    /i i 1 add def
+                    exit
+                } if
+                gpf i get dup iso646 exch known exch alpha exch known not and {
+                     liso646 alpha encode
+                     /mode (iso646) def
+                     exit
+                } if
+                numericruns i get 6 ge {
+                    lnumeric alpha encode
+                    /mode (numeric) def
+                    exit
+                } if
+                numericruns i get dup 4 ge exch i add gpf length eq and {
+                    lnumeric alpha encode
+                    /mode (numeric) def
+                    exit
+                } if
+                gpf i get alpha encode
+                /i i 1 add def
+                exit
+            } if
+    
+            mode (iso646) eq {
+                gpf i get fnc1 eq {
+                    fnc1 iso646 encode
+                    /i i 1 add def
+                    exit
+                } if
+                numericruns i get 4 ge nextiso646only i get 10 ge and {
+                    lnumeric iso646 encode
+                    /mode (numeric) def
+                    exit
+                } if
+                alpharuns i get 5 ge nextiso646only i get 10 ge and {
+                    lalpha iso646 encode
+                    /mode (alpha) def
+                    exit
+                } if
+                gpf i get iso646 encode
+                /i i 1 add def
+                exit
+            } if
+    
+        } loop
+    } loop
+    /gpf gpfenc 0 j getinterval def
+   
+    % Complete the variable length field and create pad
+    1 12 add method length add vlf length add cdf length add gpf length add 
+    dup rembits dup array /pad exch def
+    vlf length 0 ne {
+        add 12 idiv
+        dup 2 mod vlf exch 0 exch put
+        14 le {0} {1} ifelse vlf exch 1 exch put
+    } {
+        pop pop
+    } ifelse
+    pad length 0 gt {
+        0 5 pad length 1 sub {  % Fill with 00100
+            /i exch def
+            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval 
+        } for 
+        mode (numeric) eq {  % Prefix shift from numeric to ASCII
+            /pad [ 0 0 0 0 pad 0 pad length 4 sub getinterval aload pop ] def
+        } if
+    } if
+   
+    % Concatinate fields
+    /binval [
+        linkage {1} {0} ifelse 
+        method {48 sub} forall
+        vlf aload pop
+        cdf aload pop
+        gpf aload pop
+        pad aload pop
+    ] def
+    /datalen binval length 12 idiv def
+    
     /ncr {  % n r
         2 copy sub 2 copy lt {exch} if  % n r maxd mind
         1 1 5 3 roll  % mind j=1 v=1 n maxd
@@ -2700,9 +3185,6 @@
         out
     } bind def
 
-    /binval [barcode {48 sub} forall] def
-    /datalen binval length 12 idiv def
-    
     /tab174 [
         347   0     12 5   7 2  87  4
         1387  348   10 7   5 4  52  20
@@ -2754,40 +3236,74 @@
 
     } for
     
+    /finderwidths [
+        1 8 4 1 1    1 1 4 8 1
+        3 6 4 1 1    1 1 4 6 3
+        3 4 6 1 1    1 1 6 4 3
+        3 2 8 1 1    1 1 8 2 3
+        2 6 5 1 1    1 1 5 6 2
+        2 2 9 1 1    1 1 9 2 2
+    ] def
+
+    /finderseq [
+        [0 1]
+        [0 3 2]
+        [0 5 2 7]
+        [0 9 2 7 4]
+        [0 9 2 7 6 11]
+        [0 9 2 7 8 11 10]
+        [0 1 2 3 4 5 6 7]
+        [0 1 2 3 4 5 6 9 8]
+        [0 1 2 3 4 5 6 9 10 11]
+        [0 1 2 3 4 7 6 9 8 11 10]
+    ] def
+
+    /seq finderseq datalen 2 sub 2 idiv get def
+    /fxw seq length array def
+    0 1 seq length 1 sub {
+        /x exch def
+        fxw x finderwidths seq x get 5 mul 5 getinterval put
+    } for
+
+    /checkweights [
+        -1   -1   -1   -1   -1   -1   -1   -1   % A1L
+        77   96   32   81   27   9    3    1    % A1R
+        20   60   180  118  143  7    21   63   % A2L
+        205  209  140  117  39   13   145  189  % A2R
+        193  157  49   147  19   57   171  91   % B1L 
+        132  44   85   169  197  136  186  62   % B1R
+        185  133  188  142  4    12   36   108  % B2L
+        50   87   29   80   97   173  128  113  % B2R
+        150  28   84   41   123  158  52   156  % C1L
+        166  196  206  139  187  203  138  46   % C1R
+        76   17   51   153  37   111  122  155  % C2L
+        146  119  110  107  106  176  129  43   % C2R
+        16   48   144  10   30   90   59   177  % D1L
+        164  125  112  178  200  137  116  109  % D1R
+        70   210  208  202  184  130  179  115  % D2L
+        190  204  68   93   31   151  191  134  % D2R
+        148  22   66   198  172  94   71   2    % E1L
+        40   154  192  64   162  54   18   6    % E1R
+        120  149  25   75   14   42   126  167  % E2L
+        175  199  207  69   23   78   26   79   % E2R
+        103  98   83   38   114  131  182  124  % F1L
+        159  53   88   170  127  183  61   161  % F1R
+        55   165  73   8    24   72   5    15   % F2L
+        89   100  174  58   160  194  135  45   % F2R
+    ] def
+
+    /checkweightseq [
+       seq {16 mul checkweights exch 16 getinterval aload pop} forall
+    ] dup length 8 sub 8 exch getinterval def
+
     /widths [
         dxw {{} forall} forall
     ] def
-
-    /checkweights [
-        77   96   32   81   27   9    3    1
-        20   60   180  118  143  7    21   63
-        205  209  140  117  39   13   145  189
-        193  157  49   147  19   57   171  91
-        132  44   85   169  197  136  186  62
-        185  133  188  142  4    12   36   108
-        50   87   29   80   97   173  128  113
-        150  28   84   41   123  158  52   156
-        166  196  206  139  187  203  138  46
-        76   17   51   153  37   111  122  155
-        146  119  110  107  106  176  129  43
-        16   48   144  10   30   90   59   177
-        164  125  112  178  200  137  116  109
-        70   210  208  202  184  130  179  115
-        190  204  68   93   31   151  191  134
-        148  22   66   198  172  94   71   2
-        40   154  192  64   162  54   18   6
-        120  149  25   75   14   42   126  167
-        175  199  207  69   23   78   26   79
-        103  98   83   38   114  131  182  124
-        159  53   88   170  127  183  61   161
-        55   165  73   8    24   72   5    15
-        89   100  174  58   160  194  135  45
-    ] def
-    
+   
     /checksum 0 def
     0 1 widths length 1 sub {
         /i exch def
-        /checksum checksum widths i get checkweights i get mul add def 
+        /checksum checksum widths i get checkweightseq i get mul add def 
     } for
     /checksum checksum 211 mod datalen 3 sub 211 mul add def
 
@@ -2817,35 +3333,6 @@
     0 cw put 1 dxw putinterval 0 datalen 1 add getinterval
     /dxw exch def
     /datalen dxw length def
-
-    /finderwidths [
-        1 8 4 1 1    1 1 4 8 1
-        3 6 4 1 1    1 1 4 6 3
-        3 4 6 1 1    1 1 6 4 3
-        3 2 8 1 1    1 1 8 2 3
-        2 6 5 1 1    1 1 5 6 2
-        2 2 9 1 1    1 1 9 2 2
-    ] def
-
-    /finderseq [
-        [0 1]
-        [0 3 2]
-        [0 5 2 7]
-        [0 9 2 7 4]
-        [0 9 2 7 6 11]
-        [0 9 2 7 8 11 10]
-        [0 1 2 3 4 5 6 7]
-        [0 1 2 3 4 5 6 9 8]
-        [0 1 2 3 4 5 6 9 10 11]
-        [0 1 2 3 4 7 6 9 8 11 10]
-    ] def
-
-    /seq finderseq datalen 1 add 2 idiv get def
-    /fxw seq length array def
-    0 1 seq length 1 sub {
-        /x exch def
-        fxw x finderwidths seq x get 5 mul 5 getinterval put
-    } for
 
     % Encode row runlengths
     /rows datalen segments div ceiling cvi array def
@@ -2892,8 +3379,6 @@
         dontdraw not //renlinear if
 
     } {  % 2D - stacked
-
-        % TODO Pad symbol to avoid fewer than two symbols on final row
 
         /seps numrows array def
         0 1 numrows 1 sub {
@@ -7500,10 +7985,10 @@
 250 250 moveto (24012345678905) (format=stacked) rss14
 0 -10 rmoveto (DataBar Stacked) show
 
-220 550 moveto (00978186074271) (height=0.3 includetext) rsslimited
-0 -17 rmoveto (DataBar Limited) show
+220 560 moveto (00978186074271) () rsslimited
+0 -10 rmoveto (DataBar Limited) show
 
-220 500 moveto (000000010011001010100001000000010000) (height=0.3) rssexpanded
+220 500 moveto ((10)12A) () rssexpanded
 0 -10 rmoveto (DataBar Expanded) show
 
 215 348 moveto (117480) (includetext) pharmacode
