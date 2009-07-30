@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-07-30
+% Barcode Writer in Pure PostScript - Version 2009-07-30-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -2618,7 +2618,7 @@
 % --BEGIN ENCODER rssexpanded--
 % --DESC: GS1 DataBar Expanded
 % --EXAM: (01)95012345678903(3103)000123
-% --EXOP: segments=6
+% --EXOP: segments=4
 % --RNDR: renlinear renmatrix
 /rssexpanded {
 
@@ -3008,7 +3008,7 @@
     } for
    
     % Encode the general purpose field
-    /gpfenc 168 array def
+    /gpfenc 252 array def
     /i 0 def /j 0 def /mode (numeric) def
     {  % loop
         i gpf length eq {exit} if
@@ -3115,7 +3115,7 @@
             pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval 
         } for 
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
-            /pad [ 0 0 0 0 pad 0 pad length 4 sub getinterval aload pop ] def
+            /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
     } if
    
