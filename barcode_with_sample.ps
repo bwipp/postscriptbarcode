@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-07-30-1
+% Barcode Writer in Pure PostScript - Version 2009-07-31
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -2003,7 +2003,7 @@
 
 % --BEGIN ENCODER rss14--
 % --DESC: GS1 DataBar Omnidirectional
-% --EXAM: 24012345678905
+% --EXAM: (01)24012345678905
 % --EXOP:
 % --RNDR: renlinear renmatrix
 /rss14 {
@@ -2031,7 +2031,29 @@
   
     format (truncated) eq {/height 13 72 div def} if
     /height height cvr def
- 
+
+    % Strip the AI and optional check digit
+    barcode length dup 17 eq exch 18 eq or {
+        barcode 0 4 getinterval (\(01\)) eq {
+            /binval [ 
+                linkage {1} {0} ifelse
+                barcode 4 13 getinterval {48 sub} forall
+            ] def
+        } if
+    } if
+
+    % Calculate EAN checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    18 string
+    dup 0 barcode 0 17 getinterval putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
     % Create the human readable text
     /txt barcode length array def
     0 1 barcode length 1 sub {
@@ -2093,10 +2115,7 @@
         out el 1 sub nm put
         out
     } bind def
-
-    /binval [barcode {48 sub} forall] def
-    /binval [linkage {1} {0} ifelse binval 0 13 getinterval {} forall] def
-    
+   
     0 1 12 {
         /i exch def
         binval i 1 add 2 copy get binval i get 4537077 mod 10 mul add put
@@ -2385,7 +2404,7 @@
 
 % --BEGIN ENCODER rsslimited--
 % --DESC: GS1 DataBar Limited
-% --EXAM: 00978186074271
+% --EXAM: (01)15012345678907
 % --EXOP: height=0.3
 % --RNDR: renlinear
 /rsslimited {
@@ -2397,7 +2416,8 @@
 
     /dontdraw false def
     /height 10 72 div def
-    
+    /linkage false def
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -2409,14 +2429,42 @@
     } if
     options {def} forall
    
+    /height height cvr def
+
+    % Strip the AI and optional check digit
+    barcode length dup 17 eq exch 18 eq or {
+        barcode 0 5 getinterval dup (\(01\)0) eq exch (\(01\)1) eq or {
+            /binval [ 
+                barcode 4 13 getinterval {48 sub} forall
+            ] def
+            linkage {
+                /linkval [ 2 0 1 5 1 3 3 5 3 1 0 9 6 ] def
+                0 1 binval length 1 sub {
+                    /i exch def
+                    binval i binval i get linkval i get add put
+                } for
+            } if 
+        } if
+    } if
+
+    % Calculate EAN checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    18 string
+    dup 0 barcode 0 17 getinterval putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
     % Create the human readable text
     /txt barcode length array def
     0 1 barcode length 1 sub {
         /i exch def
         txt i [barcode i 1 getinterval 0 0 () 0] put
     } for
-
-    /height height cvr def
 
     /ncr {  % n r
         2 copy sub 2 copy lt {exch} if  % n r maxd mind
@@ -2472,10 +2520,7 @@
         out el 1 sub nm put
         out
     } bind def
-    
-    /binval [barcode {48 sub} forall] def
-    /binval [binval 0 13 getinterval {} forall] def
-    
+   
     0 1 11 {
         /i exch def
         binval i 1 add 2 copy get binval i get 2013571 mod 10 mul add put
@@ -7979,13 +8024,13 @@
 150 700 moveto (0123456789) (includecheck includetext) interleaved2of5
 0 -17 rmoveto (Interleaved 2 of 5) show
 
-215 300 moveto (24012345678905) (format=truncated includetext) rss14
+215 300 moveto ((01)24012345678905) (format=truncated includetext) rss14
 0 -17 rmoveto (DataBar Truncated) show
 
-250 250 moveto (24012345678905) (format=stacked) rss14
+250 250 moveto ((01)24012345678905) (format=stacked) rss14
 0 -10 rmoveto (DataBar Stacked) show
 
-220 560 moveto (00978186074271) () rsslimited
+220 560 moveto ((01)15012345678907) () rsslimited
 0 -10 rmoveto (DataBar Limited) show
 
 220 500 moveto ((10)12A) () rssexpanded
