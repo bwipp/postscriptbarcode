@@ -5390,6 +5390,7 @@
     /rows 0 def
     /rowmult 3 def
     /raw false def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -5406,6 +5407,27 @@
     /columns columns cvi def
     /rows rows cvi def
     /rowmult rowmult cvr def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
 
     % Convert input into array of codewords
     raw {
@@ -5866,6 +5888,7 @@
     /rows 0 def
     /encoding (byte) def
     /raw false def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -5880,6 +5903,27 @@
 
     /columns columns cvi def
     /rows rows cvi def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
 
     /barlen barcode length def
 
@@ -6389,6 +6433,7 @@
     /version (unset) def
     /eclevel (unset) def   % L, M, Q or H
     /raw false def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -6400,6 +6445,27 @@
         currentdict end /options exch def
     } if
     options {def} forall
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
 
     % Convert from input into message bitstream
     raw {
@@ -7635,6 +7701,7 @@
     /eclevel 23 def
     /ecaddchars 3 def
     /raw false def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -7650,7 +7717,28 @@
     /layers layers cvi def
     /eclevel eclevel cvr def
     /ecaddchars ecaddchars cvi def
-    
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
     % Convert from input into message bitstream
     /msgbits () def 
     format (rune) ne raw and {/msgbits barcode def} if 
