@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-11-06
+% Barcode Writer in Pure PostScript - Version 2009-11-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -6474,6 +6474,12 @@
         } loop
     } if
 
+    % Force raw mode for micro format symbols
+    format (micro) eq {/raw true def} if
+
+    % Default to error correction level M
+    eclevel (unset) eq {/eclevel (M) def} if
+
     % Convert from input into message bitstream
     raw {
         /msgbits barcode def 
@@ -6613,7 +6619,8 @@
         /ecb1 m 7 get eclval 2 mul get def            % First error correction blocks
         /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
         /okay true def
-        version vers ne {/okay false def} if          % The version must match that supplied
+        format frmt ne {/okay false def} if           % The format must match that supplied
+        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         msgbits length dmod gt {/okay false def} if   % Bitstream must fit into data modules
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         okay {exit} if
