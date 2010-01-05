@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2009-11-15
+% Barcode Writer in Pure PostScript - Version 2010-01-05
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2009 Terry Burton
@@ -40,7 +40,20 @@
 
 % --BEGIN TEMPLATE--
 
+% --BEGIN PREAMBLE--
+currentglobal
+true setglobal
+/Generic /Category findresource
+dup length 1 add dict copy
+dup /InstanceType /packedarraytype put
+/uk.co.terryburton.bwipp exch /Category defineresource pop
+setglobal
+% --END PREAMBLE--
+
 % --BEGIN RENDERER renlinear--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+begin
 /renlinear {
 
     20 dict begin          % Confine variables to local scope
@@ -264,9 +277,15 @@
     end
 
 } bind def
+/renlinear dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END RENDERER renlinear--
 
 % --BEGIN RENDERER renmatrix--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+begin
 /renmatrix {
 
     20 dict begin
@@ -328,9 +347,15 @@
     end
 
 } bind def
+/renmatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END RENDERER renmatrix--
 
 % --BEGIN RENDERER renmaximatrix--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+begin
 /renmaximatrix {
 
     20 dict begin
@@ -378,6 +403,9 @@
     end
 
 } bind def
+/renmaximatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END RENDERER renmaximatrix--
 
 % --BEGIN ENCODER ean5--
@@ -385,6 +413,10 @@
 % --EXAM: 90200
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /ean5 {
 
     20 dict begin
@@ -502,6 +534,9 @@
     end
 
 } bind def
+/ean5 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER ean5--
 
 % --BEGIN ENCODER ean2--
@@ -509,6 +544,10 @@
 % --EXAM: 05
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /ean2 {
 
     20 dict begin
@@ -611,6 +650,9 @@
     end
 
 } bind def
+/ean2 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER ean2--
 
 % --BEGIN ENCODER ean13--
@@ -619,6 +661,12 @@
 % --EXAM: 977147396801
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean2 dup /uk.co.terryburton.bwipp findresource put
+dup /ean5 dup /uk.co.terryburton.bwipp findresource put
+begin
 /ean13 {
 
     20 dict begin
@@ -793,6 +841,9 @@
     end
 
 } bind def
+/ean13 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER ean13--
 
 % --BEGIN ENCODER ean8--
@@ -801,6 +852,12 @@
 % --EXAM: 01335583
 % --EXOP: includetext guardwhitespace height=0.5
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean2 dup /uk.co.terryburton.bwipp findresource put
+dup /ean5 dup /uk.co.terryburton.bwipp findresource put
+begin
 /ean8 {
 
     20 dict begin
@@ -956,6 +1013,9 @@
     end
 
 } bind def
+/ean8 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER ean8--
 
 % --BEGIN ENCODER upca--
@@ -964,6 +1024,12 @@
 % --EXAM: 78858101497
 % --EXOP: includetext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean2 dup /uk.co.terryburton.bwipp findresource put
+dup /ean5 dup /uk.co.terryburton.bwipp findresource put
+begin
 /upca {
 
     20 dict begin
@@ -1126,6 +1192,9 @@
     end
 
 } bind def
+/upca dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER upca--
 
 % --BEGIN ENCODER upce--
@@ -1134,6 +1203,12 @@
 % --EXAM: 0123456
 % --EXOP: includetext height=0.4
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean2 dup /uk.co.terryburton.bwipp findresource put
+dup /ean5 dup /uk.co.terryburton.bwipp findresource put
+begin
 /upce {
 
     20 dict begin
@@ -1329,6 +1404,9 @@
     end
 
 } bind def
+/upce dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER upce--
 
 % --BEGIN ENCODER isbn--
@@ -1338,6 +1416,11 @@
 % --EXAM: 978-1-56592-479 54495
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+begin
 /isbn {
 
     20 dict begin
@@ -1480,6 +1563,9 @@
     end
  
 } bind def
+/isbn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER isbn--
 
 % --BEGIN ENCODER code128--
@@ -1487,6 +1573,10 @@
 % --EXAM: ^104^102Count^0990123456789^101!
 % --EXOP: includetext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /code128 {
 
     20 dict begin                  % Confine variables to local scope
@@ -1609,6 +1699,9 @@
     end
 
 } bind def
+/code128 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER code128--
 
 % --BEGIN ENCODER code39--
@@ -1616,6 +1709,10 @@
 % --EXAM: THIS IS CODE 39
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /code39 {
 
     20 dict begin                 % Confine variables to local scope
@@ -1739,6 +1836,9 @@
     end
 
 } bind def
+/code39 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER code39--
 
 % --BEGIN ENCODER code93--
@@ -1746,6 +1846,10 @@
 % --EXAM: THIS IS CODE 93
 % --EXOP: includetext includecheck
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /code93 {
 
     20 dict begin                 % Confine variables to local scope
@@ -1864,6 +1968,9 @@
     end
 
 } bind def
+/code93 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER code93--
 
 % --BEGIN ENCODER interleaved2of5--
@@ -1871,6 +1978,10 @@
 % --EXAM: 24012345678905
 % --EXOP: showborder borderwidth=4 borderleft=15 borderright=15 height=0.5 includecheck includetext includecheckintext textyoffset=-10
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /interleaved2of5 {
 
     20 dict begin         % Confine variables to local scope
@@ -2006,6 +2117,9 @@
     end
 
 } bind def
+/interleaved2of5 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER interleaved2of5--
 
 % --BEGIN ENCODER rss14--
@@ -2013,6 +2127,11 @@
 % --EXAM: (01)24012345678905
 % --EXOP:
 % --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /rss14 {
 
     20 dict begin            % Confine variables to local scope
@@ -2407,6 +2526,9 @@
     end
 
 } bind def
+/rss14 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER rss14--
 
 % --BEGIN ENCODER rsslimited--
@@ -2414,6 +2536,10 @@
 % --EXAM: (01)15012345678907
 % --EXOP: height=0.3
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /rsslimited {
 
     20 dict begin            % Confine variables to local scope
@@ -2665,6 +2791,9 @@
     end
 
 } bind def
+/rsslimited dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER rsslimited--
 
 % --BEGIN ENCODER rssexpanded--
@@ -2672,6 +2801,11 @@
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP:
 % --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /rssexpanded {
 
     20 dict begin            % Confine variables to local scope
@@ -3534,6 +3668,9 @@
     end
 
 } bind def
+/rssexpanded dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER rssexpanded--
 
 % --BEGIN ENCODER pharmacode--
@@ -3541,6 +3678,10 @@
 % --EXAM: 117480
 % --EXOP: showborder
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /pharmacode {
 
     20 dict begin                 % Confine variables to local scope
@@ -3611,6 +3752,9 @@
     end
 
 } bind def
+/pharmacode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER pharmacode--
 
 % --BEGIN ENCODER code2of5--
@@ -3618,6 +3762,10 @@
 % --EXAM: 01234567
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /code2of5 {
 
     20 dict begin                 % Confine variable to local scope
@@ -3723,6 +3871,9 @@
     end
 
 } bind def
+/code2of5 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER code2of5--
 
 % --BEGIN ENCODER code11--
@@ -3730,6 +3881,10 @@
 % --EXAM: 0123456789
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /code11 {
 
     20 dict begin            % Confine variables to local scope
@@ -3859,6 +4014,9 @@
     end
 
 } bind def
+/code11 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER code11--
 
 % --BEGIN ENCODER rationalizedCodabar--
@@ -3866,6 +4024,10 @@
 % --EXAM: A0123456789B
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /rationalizedCodabar {
 
     20 dict begin                    % Confine variables to local scope
@@ -3984,6 +4146,9 @@
     end
 
 } bind def
+/rationalizedCodabar dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER rationalizedCodabar--
 
 % --BEGIN ENCODER onecode--
@@ -3991,6 +4156,10 @@
 % --EXAM: 0123456709498765432101234567891
 % --EXOP: barcolor=FF0000
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /onecode {
 
     20 dict begin
@@ -4318,6 +4487,9 @@
     end
 
 } bind def
+/onecode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER onecode--
 
 % --BEGIN ENCODER postnet--
@@ -4325,6 +4497,10 @@
 % --EXAM: 012345
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /postnet {
 
     20 dict begin
@@ -4441,6 +4617,9 @@
     end
 
 } bind def
+/postnet dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER postnet--
 
 % --BEGIN ENCODER royalmail--
@@ -4448,6 +4627,10 @@
 % --EXAM: LE28HS9Z
 % --EXOP: includetext includecheckintext barcolor=FF0000
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /royalmail {
 
     20 dict begin
@@ -4569,6 +4752,9 @@
     end
 
 } bind def
+/royalmail dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER royalmail--
 
 % --BEGIN ENCODER auspost--
@@ -4576,6 +4762,10 @@
 % --EXAM: 5956439111ABA 9
 % --EXOP: includetext custinfoenc=character
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /auspost {
 
     20 dict begin
@@ -4770,6 +4960,9 @@
     end
 
 } bind def
+/auspost dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER auspost--
 
 % --BEGIN ENCODER kix--
@@ -4777,6 +4970,10 @@
 % --EXAM: 1231FZ13XHS
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /kix {
 
     20 dict begin
@@ -4877,6 +5074,9 @@
     end
 
 } bind def
+/kix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER kix--
 
 % --BEGIN ENCODER japanpost--
@@ -4884,6 +5084,10 @@
 % --EXAM: 6540123789-A-K-Z
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /japanpost {
 
     20 dict begin
@@ -5038,6 +5242,9 @@
     end
 
 } bind def
+/japanpost dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER japanpost--
 
 % --BEGIN ENCODER msi--
@@ -5045,6 +5252,10 @@
 % --EXAM: 0123456789
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /msi {
 
     20 dict begin                 % Confine variables to local scope
@@ -5149,6 +5360,9 @@
     end
 
 } bind def
+/msi dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER msi--
 
 % --BEGIN ENCODER plessey--
@@ -5156,6 +5370,10 @@
 % --EXAM: 01234ABCD
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /plessey {
 
     20 dict begin                  % Confine variables to local scope
@@ -5278,6 +5496,9 @@
     end
 
 } bind def
+/plessey dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER plessey--
 
 % --BEGIN ENCODER raw--
@@ -5285,6 +5506,10 @@
 % --EXAM: 331132131313411122131311333213114131131221323
 % --EXOP: height=0.5
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /raw {
 
     20 dict begin                  % Confine variables to local scope
@@ -5322,6 +5547,9 @@
     end
 
 } bind def
+/raw dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER raw--
 
 % --BEGIN ENCODER symbol--
@@ -5329,6 +5557,10 @@
 % --EXAM: fima
 % --EXOP: backgroundcolor=DD000011
 % --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
 /symbol {
 
     20 dict begin            % Confine variables to local scope
@@ -5376,6 +5608,9 @@
     end
 
 } bind def
+/symbol dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER symbol--
 
 % --BEGIN ENCODER pdf417--
@@ -5383,6 +5618,10 @@
 % --EXAM: This is PDF417
 % --EXOP: columns=2
 % --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /pdf417 {
 
     20 dict begin
@@ -5876,6 +6115,9 @@
     end
 
 } bind def
+/pdf417 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER pdf417--
 
 % --BEGIN ENCODER datamatrix--
@@ -5883,6 +6125,10 @@
 % --EXAM: This is Data Matrix!
 % --EXOP: rows=32 columns=32
 % --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /datamatrix {
 
     20 dict begin
@@ -6421,6 +6667,9 @@
     end
 
 } bind def
+/datamatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER datamatrix--
 
 % --BEGIN ENCODER qrcode--
@@ -6428,6 +6677,10 @@
 % --EXAM: http://www.terryburton.co.uk/barcodewriter/
 % --EXOP: eclevel=M
 % --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /qrcode {
 
     20 dict begin
@@ -7120,6 +7373,9 @@
     end
 
 } bind def
+/qrcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER qrcode--
 
 % --BEGIN ENCODER maxicode--
@@ -7127,6 +7383,10 @@
 % --EXAM: [\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
 % --EXOP: mode=2 parse
 % --RNDR: renmaximatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /maxicode {
 
     20 dict begin
@@ -7694,6 +7954,9 @@
     end
 
 } bind def
+/maxicode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER maxicode--
 
 % --BEGIN ENCODER azteccode--
@@ -7701,6 +7964,10 @@
 % --EXAM: This is Aztec Code
 % --EXOP: format=full
 % --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
 /azteccode {
 
     20 dict begin
@@ -8101,6 +8368,9 @@
     end
 
 } bind def
+/azteccode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
 % --END ENCODER azteccode--
 
 % --END TEMPLATE--
