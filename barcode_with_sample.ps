@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-01-05
+% Barcode Writer in Pure PostScript - Version 2010-01-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -1242,8 +1242,8 @@ begin
     /height height cvr def
     /addongap addongap cvr def    
 
-    % Ensure 0 number system
-    barcode 0 get 48 ne {
+    % Ensure 0 or 1 number systems
+    barcode 0 get dup 48 ne exch 49 ne and {
         /barcode () def
     } if
 
@@ -1274,6 +1274,7 @@ begin
 
     % Derive the equivalent UPC-A for its checksum
     /upcacode (00000000000) 11 string copy def
+    upcacode 0 barcode 0 get put
     barcode 6 get 48 sub 2 le {
         upcacode 1 barcode 1 2 getinterval putinterval
         upcacode 3 barcode 6 1 getinterval putinterval
