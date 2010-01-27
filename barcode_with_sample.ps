@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-01-26
+% Barcode Writer in Pure PostScript - Version 2010-01-27
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3063,32 +3063,23 @@ begin
         /vlf [] def
     } ifelse
     
-    % FNC1 terminated AIs
-    % TODO this list seems wrong
-    /aifnc1 100 dict def
+    % Pre-defined fixed length data field AIs
+    % any AI whose prefix is not included in this table must be
+    % terminated with "FNC1", even if it's fixed length
+    /aifixed 22 dict def
     [
-        10
-        21    22
-        240   241   242
-        250   251   253   254
-        30    37
-        3900 1 3909 {} for
-        3910 1 3919 {} for
-        3920 1 3929 {} for
-        3930 1 3939 {} for
-        400   401   402   403
-        420   421   422   423   424   425   426
-        7001  7002  7003
-        7030 1 7039 {} for
-        8001  8002  8003  8004  8005  8006  8007  8008
-        8018  8020
-        8100  8101  8102
-        8110
-        90 1 99 {} for
+        0 1 4 {} for
     ] {
-        10 4 string cvrs dup aifnc1 3 1 roll put
+        (00) 2 string copy dup dup 1 5 -1 roll 48 add put aifixed 3 1 roll put
     } forall
-    
+    [
+        11 1 20 {} for
+        31 1 36 {} for
+        41
+    ] {
+        10 2 string cvrs dup aifixed 3 1 roll put
+    } forall
+
     /fnc1 -1 def /lnumeric -2 def /lalpha -3 def /liso646 -4 def
     
     /numeric <<
@@ -3139,7 +3130,7 @@ begin
         dup gpf length ai [ exch {} forall ] putinterval
         dup gpf length ai length add val [ exch {} forall ] putinterval
         /gpf exch def
-        i ais length 1 sub ne aifnc1 ai known and {  % Append FNC1
+        i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
             gpf length 1 add array
             dup 0 gpf putinterval
             dup gpf length fnc1 put
