@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-01-27
+% Barcode Writer in Pure PostScript - Version 2010-05-20
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -4486,8 +4486,8 @@ end
 % --END ENCODER onecode--
 
 % --BEGIN ENCODER postnet--
-% --DESC: United States Postal Service Postnet
-% --EXAM: 012345
+% --DESC: United States Postal Service POSTNET
+% --EXAM: 01234
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
@@ -4526,6 +4526,21 @@ begin
     /height height cvr def
     
     /barlen barcode length def
+
+    % Ensure 5, 9 or 11 digits
+    barlen 5 lt {
+        /barlen -1 def  % Error
+    } {
+        barlen 11 ge {
+            /barlen 11 def
+        } if
+        barlen 10 eq {
+            /barlen 9 def
+        } if
+        barlen 8 le {
+            /barlen 5 def
+        } if
+    } ifelse
 
     % Create an array containing the character mappings
     /encs
@@ -4614,6 +4629,147 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER postnet--
+
+% --BEGIN ENCODER planet--
+% --DESC: United States Postal Service PLANET
+% --EXAM: 01234567890
+% --EXOP: includetext includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/planet {
+
+    20 dict begin
+
+    /options exch def              % We are given an option string
+    /barcode exch def              % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def          % Enable/disable text
+    /includecheckintext false def
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 0.125 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+    
+    /barlen barcode length def
+
+    % Ensure 11 or 13 digits
+    barlen 11 lt {
+        /barlen -1 def  % Error
+    } {
+        barlen 13 ge {
+            /barlen 13 def
+        } {
+            /barlen 11 def
+        } ifelse
+    } ifelse
+
+    % Create an array containing the character mappings
+    /encs
+    [ (22555) (55522) (55252) (55225) (52552)
+      (52525) (52255) (25552) (25525) (25255)
+      (5) (5)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    /bhs barlen 5 mul 7 add array def
+    /txt barlen 1 add array def
+
+    % Put start character
+    /enc encs 10 get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs 0 heights putinterval   % Put encoded digit into sbs
+
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                 % Discard true leaving pre
+        length /indx exch def               % indx is the length of pre
+        pop pop                             % Discard seek and post
+        /enc encs indx get def              % Get the indxth encoding
+        /heights enc length array def
+        0 1 enc length 1 sub {
+            /j exch def
+            heights j enc j 1 getinterval cvi height mul 5 div put
+        } for
+        bhs i 5 mul 1 add heights putinterval   % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+        /checksum checksum indx add def     % checksum+=indx
+    } for
+
+    % Put the checksum character
+    /checksum 10 checksum 10 mod sub 10 mod def
+    /enc encs checksum get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs barlen 5 mul 1 add heights putinterval  
+    
+    includecheckintext {
+        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+    } {
+        txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textyoffset textfont textsize] put
+    } ifelse
+    
+    % Put end character
+    /enc encs 11 get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs barlen 5 mul 6 add heights putinterval  
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /bhs bhs
+    /bbs [bhs length {0} repeat]
+    /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/planet dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER planet--
 
 % --BEGIN ENCODER royalmail--
 % --DESC: Royal Mail 4 State Customer Code (RM4SCC)
@@ -8440,7 +8596,7 @@ end
 345 515 moveto (0123456709498765432101234567891) (includetext) /onecode /uk.co.terryburton.bwipp findresource exec
 0 -17 rmoveto (OneCode) show
 
-225 455 moveto (012345) (includetext) /postnet /uk.co.terryburton.bwipp findresource exec
+225 455 moveto (01234) (includetext) /postnet /uk.co.terryburton.bwipp findresource exec
 0 -17 rmoveto (Postnet) show
 
 225 410 moveto (LE28HS9Z) (includetext) /royalmail /uk.co.terryburton.bwipp findresource exec
