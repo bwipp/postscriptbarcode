@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-07-16-1
+% Barcode Writer in Pure PostScript - Version 2010-09-27
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -5416,6 +5416,7 @@ begin
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
     /includecheckintext false def
+    /checktype (mod10) def
     /textfont /Courier def
     /textsize 10 def
     /textyoffset -7 def
@@ -5448,18 +5449,59 @@ begin
     /barchars (0123456789) def
 
     /barlen barcode length def     % Length of the code
+    /txtlen barlen def
 
+    /mod10 {
+        /code exch def
+        0 0 code {48 sub exch 10 mul add exch} forall pop 2 mul  
+        0 {1 index 10 mod add exch 10 idiv dup 0 eq {pop exit} if exch} loop
+        0 0 code {48 sub add exch} forall exch pop add
+        10 mod 10 exch sub 10 mod
+        code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+    } bind def
+
+    /mod11 {
+        /code exch def
+        code length 1 sub code {48 sub exch dup 1 sub exch 6 mod 2 add exch} forall pop
+        0 code length {3 1 roll mul add} repeat 
+        11 mod 11 exch sub 11 mod
+        dup 10 eq {
+            pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
+        } {
+            code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+        } ifelse
+    } bind def
+
+    /ncrmod11 {
+        /code exch def
+        code length 1 sub code {48 sub exch dup 1 sub exch 8 mod 2 add exch} forall pop
+        0 code length {3 1 roll mul add} repeat 
+        11 mod 11 exch sub 11 mod
+        dup 10 eq {
+            pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
+        } {
+            code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+        } ifelse
+    } bind def
+
+    % Calculate checksum
     includecheck {
-        /sbs barlen 8 mul 13 add string def
-        /txt barlen 1 add array def
-    } {
-        /sbs barlen 8 mul 5 add string def
-        /txt barlen array def
-    } ifelse
+        checktype (mod10) eq      {barcode mod10} if
+        checktype (mod1010) eq    {barcode mod10 mod10} if
+        checktype (mod11) eq      {barcode mod11} if
+        checktype (ncrmod11) eq   {barcode ncrmod11} if
+        checktype (mod1110) eq    {barcode mod11 mod10} if
+        checktype (ncrmod1110) eq {barcode ncrmod11 mod10} if
+        /barcode exch def
+        /barlen barcode length def
+        includecheckintext {/txtlen barlen def} if
+    } if
+
+    /sbs barlen 8 mul 5 add string def
+    /txt barlen array def
 
     % Put start character
     sbs 0 encs 10 get putinterval
-    /checksum 0 def
 
     0 1 barlen 1 sub {
         /i exch def
@@ -5471,26 +5513,10 @@ begin
         /enc encs indx get def             % Get the indxth encoding
         sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 16 mul 4 add textyoffset textfont textsize] put
-        barlen i sub 2 mod 0 eq {
-            /checksum indx checksum add def
-        } {
-            /checksum indx 2 mul dup 10 idiv add checksum add def
-        } ifelse
     } for
 
-    % Put the checksum and end characters
-    includecheck {
-        /checksum 10 checksum 10 mod sub 10 mod def
-        sbs barlen 8 mul 2 add encs checksum get putinterval
-        includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen 16 mul 4 add textyoffset textfont textsize] put
-        } {
-            txt barlen [( ) barlen 16 mul 4 add textyoffset textfont textsize] put
-        } ifelse
-        sbs barlen 8 mul 10 add encs 11 get putinterval
-    } {
-        sbs barlen 8 mul 2 add encs 11 get putinterval
-    } ifelse
+    % Put the end character
+    sbs barlen 8 mul 2 add encs 11 get putinterval
 
     % Return the arguments
     <<
@@ -5499,7 +5525,7 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt txt 0 txtlen getinterval
     } if
     /opt options
     >>
