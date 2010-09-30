@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-09-27
+% Barcode Writer in Pure PostScript - Version 2010-09-30
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -5541,7 +5541,7 @@ end
 % --END ENCODER msi--
 
 % --BEGIN ENCODER plessey--
-% --DESC: Plessey
+% --DESC: Plessey UK
 % --EXAM: 01234ABCD
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
@@ -5635,12 +5635,12 @@ begin
     /checkval 0 def
     0 1 7 {
         /i exch def
-        /checkval checkval 2 7 i sub exp cvi checkbits barlen 4 mul i add get mul add def
+        /checkval checkval 2 i exp cvi checkbits barlen 4 mul i add get mul add def
     } for
 
     % Put the checksum characters
-    /checksum1 checkval -4 bitshift def
-    /checksum2 checkval 15 and def
+    /checksum1 checkval 15 and def
+    /checksum2 checkval -4 bitshift def
     sbs barlen 8 mul 8 add encs checksum1 get putinterval
     sbs barlen 8 mul 16 add encs checksum2 get putinterval
     includecheckintext {
