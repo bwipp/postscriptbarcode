@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-09-30-1
+% Barcode Writer in Pure PostScript - Version 2010-10-01
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -5512,7 +5512,7 @@ begin
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 16 mul 4 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 12 mul 3 add textyoffset textfont textsize] put
     } for
 
     % Put the end character
@@ -5610,7 +5610,7 @@ begin
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 8 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 16 mul 16 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 20 mul 20 add textyoffset textfont textsize] put
         checkbits i 4 mul [
                 indx 1 and
                 indx -1 bitshift 1 and
@@ -5644,11 +5644,11 @@ begin
     sbs barlen 8 mul 8 add encs checksum1 get putinterval
     sbs barlen 8 mul 16 add encs checksum2 get putinterval
     includecheckintext {
-        txt barlen [barchars checksum1 1 getinterval barlen 16 mul 16 add textyoffset textfont textsize] put
-        txt barlen 1 add [barchars checksum2 1 getinterval barlen 1 add 16 mul 16 add textyoffset textfont textsize] put
+        txt barlen [barchars checksum1 1 getinterval barlen 20 mul 20 add textyoffset textfont textsize] put
+        txt barlen 1 add [barchars checksum2 1 getinterval barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
     } {
-        txt barlen [( ) barlen 16 mul 16 add textyoffset textfont textsize] put
-        txt barlen 1 add [( ) barlen 1 add 16 mul 16 add textyoffset textfont textsize] put
+        txt barlen [( ) barlen 20 mul 20 add textyoffset textfont textsize] put
+        txt barlen 1 add [( ) barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
     } ifelse
 
     % Put end character
