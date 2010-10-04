@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-04
+% Barcode Writer in Pure PostScript - Version 2010-10-04-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -5417,6 +5417,7 @@ begin
     /includetext false def   % Enable/disable text
     /includecheckintext false def
     /checktype (mod10) def
+    /badmod11 false def
     /textfont /Courier def
     /textsize 10 def
     /textyoffset -7 def
@@ -5465,7 +5466,7 @@ begin
         code length 1 sub code {48 sub exch dup 1 sub exch 6 mod 2 add exch} forall pop
         0 code length {3 1 roll mul add} repeat 
         11 mod 11 exch sub 11 mod
-        dup 10 eq {
+        dup 10 eq badmod11 and {
             pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
         } {
             code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
@@ -5477,7 +5478,7 @@ begin
         code length 1 sub code {48 sub exch dup 1 sub exch 8 mod 2 add exch} forall pop
         0 code length {3 1 roll mul add} repeat 
         11 mod 11 exch sub 11 mod
-        dup 10 eq {
+        dup 10 eq badmod11 and {
             pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
         } {
             code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
