@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-04-1
+% Barcode Writer in Pure PostScript - Version 2010-10-05
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3753,7 +3753,7 @@ end
 % --BEGIN ENCODER code2of5--
 % --DESC: Code 25
 % --EXAM: 01234567
-% --EXOP: includetext includecheck includecheckintext
+% --EXOP: version=iata includetext includecheck includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -3774,7 +3774,8 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 1 def
-    
+    /version (industrial) def
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -3785,18 +3786,42 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
-    
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
     % Create an array containing the character mappings
-    /encs
-    [ (1111313111) (3111111131) (1131111131) (3131111111)
-      (1111311131) (3111311111) (1131311111) (1111113131)
-      (3111113111) (1131113111) (313111) (311131)
-    ] def
+    << 
+    /industrial
+        [ (1111313111) (3111111131) (1131111131) (3131111111)
+          (1111311131) (3111311111) (1131311111) (1111113131)
+          (3111113111) (1131113111) (313111)     (31113)
+        ] 
+    /iata
+        [ (1111313111) (3111111131) (1131111131) (3131111111)
+          (1111311131) (3111311111) (1131311111) (1111113131)
+          (3111113111) (1131113111) (1111)       (311)
+        ]
+    /matrix
+        [ (113311) (311131) (131131) (331111) (113131) (313111)
+          (133111) (111331) (311311) (131311) (311111) (31111)
+        ]
+    /coop
+        [ (331111) (111331) (113131) (113311) (131131) (131311)
+          (133111) (311131) (311311) (313111) (3131)   (133)
+        ]
+    /datalogic
+        [ (113311) (311131) (131131) (331111) (113131) (313111)
+          (133111) (111331) (311311) (131311) (1111)   (311)
+        ]
+    >>
+    version get /encs exch def
+    /cs encs 0 get length def
+    /cw 0 encs 0 get {48 sub add} forall def
+    /ss encs dup length 2 sub get length def
+    /sw 0 encs dup length 2 sub get {48 sub add} forall def
 
     % Create a string of the available characters
     /barchars (0123456789) def
@@ -3804,18 +3829,18 @@ begin
     /barlen barcode length def            % Length of the code
 
     includecheck {
-        /sbs barlen 10 mul 22 add string def
+        /sbs barlen 1 add cs mul ss add ss add string def
         /txt barlen 1 add array def
     } {
-        /sbs barlen 10 mul 12 add string def
+        /sbs barlen cs mul ss add ss add string def
         /txt barlen array def
     } ifelse
-    
+
     % Put the start character
     sbs 0 encs 10 get putinterval
 
     /checksum 0 def
-    
+
     0 1 barlen 1 sub {
         /i exch def
         % Lookup the encoding for the each barcode character
@@ -3824,29 +3849,29 @@ begin
         length /indx exch def               % indx is the length of pre
         pop pop                             % Discard seek and post
         /enc encs indx get def              % Get the indxth encoding
-        sbs i 10 mul 6 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 14 mul 10 add textyoffset textfont textsize] put
+        sbs i cs mul ss add enc putinterval % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i cw mul sw add textyoffset textfont textsize] put
         barlen i sub 2 mod 0 eq {
             /checksum checksum indx add def
-        } {            
+        } {
             /checksum checksum indx 3 mul add def
-        } ifelse        
+        } ifelse
     } for
-    
+
     % Put the checksum and end characters
     includecheck {
         /checksum 10 checksum 10 mod sub 10 mod def
-        sbs barlen 10 mul 6 add encs checksum get putinterval
-        sbs barlen 10 mul 16 add encs 11 get putinterval
+        sbs barlen cs mul ss add encs checksum get putinterval
+        sbs barlen cs mul cs add ss add encs 11 get putinterval
         includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen 14 mul 10 add textyoffset textfont textsize] put
-        } {            
-            txt barlen [( ) barlen 14 mul 10 add textyoffset textfont textsize] put
+            txt barlen [barchars checksum 1 getinterval barlen cw mul sw add textyoffset textfont textsize] put
+        } {
+            txt barlen [( ) barlen cw mul sw add textyoffset textfont textsize] put
         } ifelse
     } {
-        sbs barlen 10 mul 6 add encs 11 get putinterval
+        sbs barlen cs mul ss add encs 11 get putinterval
     } ifelse
-    
+
     % Return the arguments
     <<
     /ren //renlinear
