@@ -1437,6 +1437,7 @@ begin
     /isbnpos (unset) def
     /height 1 def
     /addongap 12 def   
+    /legacy false def
  
     % Parse the input options
     options type /stringtype eq {
@@ -1458,7 +1459,7 @@ begin
     } {
         /isbnpos isbnpos cvr def
     } ifelse
-   
+
     % Split off the addon
     isbntxt ( ) search {
         /isbntxt exch def
@@ -1469,6 +1470,14 @@ begin
         /addon () def
     } ifelse
  
+    % Convert ISBN-10 to ISBN-13
+    legacy not isbntxt length 13 le and {
+        /pad isbntxt length 4 add string def
+        pad 0 (978-) putinterval
+        pad 4 isbntxt putinterval
+        /isbntxt pad def
+    } if
+
     % Read the digits from isbntxt and calculate checksums
     /isbn 13 string def
     /checksum10 0 def
