@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-07
+% Barcode Writer in Pure PostScript - Version 2010-10-08-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -1732,6 +1732,148 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER ismn--
+
+% --BEGIN ENCODER issn--
+% --REQUIRES ean13--
+% --SUGGESTS ean2--
+% --DESC: ISSN
+% --EXAM: 0317-8471 00
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+begin
+/issn {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /issntxt exch def      % We are given the issn text with dashes
+
+    /dontdraw false def
+    /includetext false def  % Enable/disable ISSN text
+    /issnfont /Courier def
+    /issnsize 9 def
+    /issnpos (unset) def
+    /height 1 def
+    /addongap 12 def   
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+    
+    /issnfont issnfont cvlit def
+    /issnsize issnsize cvr def
+    /height height cvr def
+    /addongap addongap cvr def
+    issnpos (unset) eq {
+        /issnpos height 72 mul 3 add def
+    } {
+        /issnpos issnpos cvr def
+    } ifelse
+   
+    % Split off the ISSN
+    issntxt ( ) search {
+        /issntxt exch def
+        pop
+        /seqvar exch def
+    } if
+
+    % Split off the sequence variant and 2 digit addon
+    seqvar ( ) search {
+        /seqvar exch def
+        pop
+        2 string dup exch 0 4 -1 roll putinterval /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+
+    % Read the digits from issntxt and calculate checksums
+    /issn 8 string def
+    /checksum 0 def
+    /i 0 def /n 0 def
+    { % loop
+        /issnchar issntxt i get 48 sub def
+        issnchar -3 ne {           % Ignore dashes
+            issn n issnchar 48 add put
+            n 7 lt {
+                /checksum checksum issnchar 8 n sub mul add def
+            } if
+            /n n 1 add def
+        } if
+        /i i 1 add def
+        i issntxt length eq {exit} if
+    } loop
+    /checksum 11 checksum 11 mod sub 11 mod def
+
+    % Add the ISSN header to the issntxt
+    /pad 14 string def
+    pad 0 (ISSN ) putinterval
+    pad 5 issntxt putinterval  % Add issntxt to the pad
+
+    % Add checksum digit
+    pad 13 checksum 48 add put  % Put check digit
+    /issntxt pad def
+
+    % Convert ISSN digits to EAN-13
+    /barcode issn 0 7 getinterval def 
+
+    % Append the sequence variant
+    /barcode 12 string def
+    barcode 0 (977) putinterval
+    barcode 3 issn putinterval
+    barcode 10 seqvar putinterval
+
+    % Append the addon
+    addon () ne {
+        12 addon length add 1 add string 
+        dup 0 barcode putinterval
+        dup 12 ( ) putinterval
+        dup 13 addon putinterval
+        /barcode exch def
+    } if
+
+    % Get the result of encoding with ean13
+    options (dontdraw) true put
+    options (addongap) addongap put 
+    /args barcode options //ean13 exec def
+
+    % Add the ISSN text
+    includetext {
+        /issnxpos 10 def
+        args (txt) known {
+            /txt args (txt) get def
+            /newtxt txt length 1 add array def
+            newtxt 0 txt putinterval
+            newtxt newtxt length 1 sub [issntxt issnxpos issnpos issnfont issnsize] put
+            args (txt) newtxt put
+        } {
+            args (txt) [ [issntxt issnxpos issnpos issnfont issnsize] ] put
+        } ifelse
+    } if
+
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+ 
+} bind def
+/issn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER issn--
 
 % --BEGIN ENCODER code128--
 % --DESC: Code 128
