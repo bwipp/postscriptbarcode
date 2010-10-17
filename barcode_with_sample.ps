@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-11-1
+% Barcode Writer in Pure PostScript - Version 2010-10-18
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -4430,6 +4430,144 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER code11--
+
+% --BEGIN ENCODER bc412--
+% --DESC: BC412
+% --EXAM: BC412
+% --EXOP: semi includetext includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/bc412 {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /includecheck false def  % Enable/disable checkdigit
+    /includetext false def
+    /includecheckintext false def
+    /includestartstop false def
+    /semi false def
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 1 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+   
+    semi {
+        /includecheck true def
+        /includestartstop true def
+    } if
+ 
+    % Create an array containing the character mappings
+    /encs
+    [ (11111115) (13111212) (11131113) (12111213) (12121311)
+      (13131111) (12111312) (11131212) (11121411) (11151111)
+      (15111111) (11111511) (12131211) (13121112) (13111212)
+      (11111214) (12121113) (11111313) (13111113) (11121213)
+      (11141112) (11121312) (11141211) (14121111) (12121212)
+      (11131311) (13121211) (12111411) (14111211) (11111412)
+      (12111114) (14111112) (12141111) (11121114) (12131112)
+      (12) (111)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0R9GLVHA8EZ4NTS1J2Q6C7DYKBUIX3FWP5M) def
+
+    /barlen barcode length def  % Length of the code
+
+    /sbs barlen 1 add 8 mul 5 add string def
+    includecheck {
+        /txt barlen 1 add array def
+    } {
+        /txt barlen array def
+    } ifelse
+
+    % Put the start character
+    includestartstop {
+        sbs 0 encs 35 get putinterval
+        /pos 2 def
+        /txtpos 3 def
+    } {
+        /pos 0 def
+        /txtpos 0 def
+    } ifelse
+
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /enc encs indx get def               % Get the indxth encoding
+        sbs pos enc putinterval  % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 12 mul txtpos add textyoffset textfont textsize] put
+        /checksum checksum indx add def
+        /pos pos 8 add def
+    } for
+
+    % Put the checksum
+    includecheck {
+        /checksum checksum 35 mod def
+        sbs pos encs checksum get putinterval
+        includecheckintext {
+            txt barlen [barchars checksum 1 getinterval barlen 12 mul txtpos add textyoffset textfont textsize] put
+        } {
+            txt barlen [() barlen 12 mul txtpos add textyoffset textfont textsize] put
+        } ifelse
+        /pos pos 8 add def
+    } if 
+
+    % Put the stop character
+    includestartstop { 
+        sbs pos encs 36 get putinterval
+        /pos pos 2 add def
+    } if
+
+    % Return the arguments
+    /sbs sbs 0 pos getinterval def 
+    <<
+    /ren //renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/bc412 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER bc412--
 
 % --BEGIN ENCODER rationalizedCodabar--
 % --DESC: Rationalized Codabar
