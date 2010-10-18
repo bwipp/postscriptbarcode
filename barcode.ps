@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-18-1
+% Barcode Writer in Pure PostScript - Version 2010-10-19
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -6472,6 +6472,82 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER raw--
+
+% --BEGIN ENCODER daft--
+% --DESC: Raw descender, ascender, full, tracker succession for custom 4 state symbologies
+% --EXAM: FATDAFTDAD
+% --EXOP:
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/daft {
+
+    20 dict begin
+
+    /options exch def              % We are given an option string
+    /barcode exch def              % We are given a barcode string
+
+    /dontdraw false def
+    /height 0.175 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /height height cvr def
+
+    /barlen barcode length def
+
+    /bbs barlen array def
+    /bhs barlen array def
+    0 1 barlen 1 sub {
+        /i exch def
+        /enc barcode i 1 getinterval def
+        enc (D) eq {
+            bbs i 0 height mul 8 div put
+            bhs i 5 height mul 8 div put
+        } if
+        enc (A) eq {
+            bbs i 3 height mul 8 div put
+            bhs i 5 height mul 8 div put
+        } if
+        enc (F) eq {
+            bbs i 0 height mul 8 div put
+            bhs i 8 height mul 8 div put
+        } if
+        enc (T) eq {
+            bbs i 3 height mul 8 div put
+            bhs i 2 height mul 8 div put
+        } if
+    } for
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /bbs bbs
+    /bhs bhs
+    /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/daft dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER daft--
 
 % --BEGIN ENCODER symbol--
 % --DESC: Miscellaneous symbols
