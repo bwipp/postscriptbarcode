@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-18
+% Barcode Writer in Pure PostScript - Version 2010-10-18-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -6117,6 +6117,7 @@ begin
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /includecheckintext false def
+    /unidirectional false def
     /textfont /Courier def
     /textsize 10 def
     /textyoffset -7 def
@@ -6144,13 +6145,18 @@ begin
       (14143214) (32143214) (14323214) (32323214)
       (14141432) (32141432) (14321432) (32321432)
       (14143232) (32143232) (14323232) (32323232)
-      (32321432) (541412323)
+      (32321432) (541412323) (323)
     ] def
 
     % Create a string of the available characters
     /barchars (0123456789ABCDEF) def
 
     /barlen barcode length def     % Length of the code
+    unidirectional {
+        /sbs barlen 8 mul 27 add string def
+    } {
+        /sbs barlen 8 mul 33 add string def
+    } ifelse
     /sbs barlen 8 mul 33 add string def
     /txt barlen 2 add array def
     /checkbits barlen 4 mul 8 add array def
@@ -6210,7 +6216,11 @@ begin
     } ifelse
 
     % Put end character
-    sbs barlen 8 mul 24 add encs 17 get putinterval
+    unidirectional {
+        sbs barlen 8 mul 24 add encs 17 get putinterval
+    } {
+        sbs barlen 8 mul 24 add encs 17 get putinterval
+    } ifelse
 
     % Return the arguments
     <<
