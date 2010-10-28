@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-19
+% Barcode Writer in Pure PostScript - Version 2010-10-28
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -2147,6 +2147,94 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER code39--
+
+% --BEGIN ENCODER code32--
+% --REQUIRES code39--
+% --DESC: Italian PharmaCode
+% --EXAM: 01234567
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/code32 {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /barcode exch def      % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def  % Enable/disable code32 text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /textxoffset 0 def
+    /height 1 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+
+    /text 10 string def
+    text 0 barcode 0 8 getinterval putinterval
+
+    % calculate check digit
+    text 8 0
+    0 1 7 {
+        dup text exch get 48 sub exch 1 and 1 add mul dup 9 gt {9 sub} if add
+    } for
+    10 mod 48 add put
+
+    % convert number from base10 to base32
+    /val text cvi 32 barcode cvrs def
+    /barcode 6 string def
+    0 1 5 {barcode exch 48 put} for
+    barcode 6 val length sub val putinterval
+
+    % convert base32 number to specified character set
+    0 1 5 {
+        dup barcode exch get
+        dup (AEIO) {ge {1 add} if dup} forall pop
+        barcode 3 1 roll put
+    } for
+
+    % format HRI
+    text 1 text 0 9 getinterval putinterval
+    text 0 65 put
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    /args barcode options //code39 exec def
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/code32 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code32--
 
 % --BEGIN ENCODER code93--
 % --DESC: Code 93
