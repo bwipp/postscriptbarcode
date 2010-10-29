@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-28
+% Barcode Writer in Pure PostScript - Version 2010-10-29
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -1822,7 +1822,7 @@ begin
     pad 5 issntxt putinterval  % Add issntxt to the pad
 
     % Add checksum digit
-    pad 13 checksum 48 add put  % Put check digit
+    pad 13 checksum 48 add dup 58 eq {pop 88} if put  % Put check digit
     /issntxt pad def
 
     % Convert ISSN digits to EAN-13
