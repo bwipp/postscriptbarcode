@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-29-1
+% Barcode Writer in Pure PostScript - Version 2010-10-30
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -2243,6 +2243,85 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER code32--
+
+% --BEGIN ENCODER pzn--
+% --REQUIRES code39--
+% --DESC: Pharmazentralnummer (PZN)
+% --EXAM: 123456
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/pzn {
+
+    20 dict begin
+ 
+    /options exch def      % We are given an options string
+    /barcode exch def      % We are given a barcode string
+ 
+    /dontdraw false def
+    /includetext false def  % Enable/disable code32 text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /textxoffset 0 def
+    /height 1 def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+ 
+    /text 13 string def
+    text 0 barcode 0 6 getinterval putinterval
+ 
+    % calculate check digit
+    text 6 0
+    0 1 5 {
+        dup text exch get 48 sub exch 2 add mul add
+    } for
+    11 mod 48 add put
+ 
+    /barcode 8 string def
+    barcode 1 text 0 7 getinterval putinterval
+    barcode 0 45 put
+ 
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    /args barcode options //code39 exec def
+ 
+    % format HRI
+    text 6 text 0 7 getinterval putinterval
+    text 0 (PZN - ) putinterval
+ 
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+ 
+    dontdraw not //renlinear if
+ 
+    end
+ 
+} bind def
+/pzn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER pzn--
 
 % --BEGIN ENCODER code93--
 % --DESC: Code 93
