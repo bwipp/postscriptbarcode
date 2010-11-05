@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-10-30
+% Barcode Writer in Pure PostScript - Version 2010-11-05
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -1885,8 +1885,8 @@ end
 
 % --BEGIN ENCODER code128--
 % --DESC: Code 128
-% --EXAM: ^104^102Count^0990123456789^101!
-% --EXOP: includetext
+% --EXAM: Count01234567^FNC2!
+% --EXOP: includetext parsefnc
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -1903,9 +1903,14 @@ begin
     /includetext false def    % Enable/disable text
     /textfont /Courier def
     /textsize 10 def
+    /textxoffset 0 def
     /textyoffset -7 def
     /height 1 def
-    
+    /encoding (auto) def
+    /raw false def
+    /parse false def
+    /parsefnc false def
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -1916,12 +1921,343 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    /barlen barcode length def
+
+    % Special function characters
+    /sta  -1 def  /stb  -2 def  /stc  -3 def 
+    /swa  -4 def  /swb  -5 def  /swc  -6 def 
+    /fn1  -7 def  /fn2  -8 def  /fn3  -9 def 
+    /fn4 -10 def  /sft -11 def  /stp -12 def
     
+    % Character maps for each state
+    /charmaps [
+      %  A    B    C         A    B    C         A    B    C
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2 
+      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
+      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
+      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
+      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
+      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
+      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
+      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
+      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
+      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
+      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
+      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
+      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
+      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
+      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
+      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
+      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
+      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
+      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
+      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
+      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
+      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
+      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
+      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
+      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
+      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
+      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
+      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
+      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
+      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
+      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
+      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
+      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sft  sft  (98) ]  % 96-98
+      [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
+      [ fn1  fn1  fn1  ]  [ sta  sta  sta  ]  [ stb  stb  stb  ]  % 102-104
+      [ stc  stc  stc  ]  [ stp  stp  stp  ]                      % 105-106
+    ] def 
+    
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 107 dict 107 dict 107 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 2 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put 
+        } for
+    } for
+    /seta charvals 0 get def
+    /setb charvals 1 get def
+    /setc charvals 2 get def
+  
+    raw {/encoding (raw) def} if
+
+    encoding (raw) eq {
+        /cws barlen array def
+        /i 0 def /j 0 def
+        { % loop
+            i barlen eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            cws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /cws cws 0 j getinterval def
+        /text () def
+    } if
+
+    encoding (auto) eq { 
+
+        /fncvals <<
+            (FNC1) fn1
+            (FNC2) fn2
+            (FNC3) fn3
+            (FNC4) fn4
+        >> def
+
+        % Convert input into bytes accounting for FNC characters 
+        /msg barlen array def
+        /text barlen string def
+        /i 0 def /j 0 def {
+            i barlen eq {exit} if
+            /char barcode i get def
+            text j char put
+            parsefnc char 94 eq and i barlen 4 sub lt and {
+                barcode i 1 add get 94 ne {
+                    /char fncvals barcode i 1 add 4 getinterval get def
+                    text j ( ) putinterval
+                    /i i 4 add def
+                } {
+                    /i i 1 add def
+                } ifelse
+            } if
+            msg j char put
+            /i i 1 add def
+            /j j 1 add def
+        } loop
+        /msg msg 0 j getinterval def
+        /msglen msg length def
+        /text text 0 j getinterval def
+
+        % Determine digit runlength and characters from given position
+        /numsscr {
+            /n 0 def /s 0 def
+            /p exch def {
+                p msglen ge {exit} if
+                msg p get
+                dup setc exch known not {pop exit} if
+                fn1 eq {  % Score an FNC1 in odd position of a run as two digits
+                    s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
+                } if
+                /n n 1 add def
+                /s s 1 add def
+                /p p 1 add def
+            } loop
+            n s
+        } bind def
+
+        % Encoding for each alphabet
+        /enca {
+            seta exch get cws exch j exch put
+            /j j 1 add def
+        } bind def
+        /encb {
+            setb exch get cws exch j exch put
+            /j j 1 add def
+        } bind def
+        /encc {
+            dup type /arraytype ne {
+                setc exch get cws exch j exch put
+                /j j 1 add def
+            } {
+                /in exch def
+                /k 0 def {
+                    k in length eq {exit} if
+                    in k get fn1 eq {
+                        setc fn1 get
+                        /k k 1 add def
+                    } {
+                        in k get 48 sub 10 mul in k 1 add get 48 sub add
+                        /k k 2 add def
+                    } ifelse
+                    cws exch j exch put
+                    /j j 1 add def
+                } loop
+            } ifelse
+        } bind def
+
+        % Character exclusively in either alphabet A or B
+        /anotb {dup seta exch known exch setb exch known not and} bind def
+        /bnota {dup setb exch known exch seta exch known not and} bind def
+        
+        /cws barcode length 2 mul 3 add array def
+        
+        % Select start character
+        /j 0 def
+        msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
+        {  % common exit
+            msglen 0 eq {
+                stb enca
+                /cset (setb) def
+                exit
+            } if
+            msglen 2 eq nums 2 eq and {
+                stc enca
+                /cset (setc) def
+                exit
+            } if
+            nums 4 ge {
+                stc enca
+                /cset (setc) def
+                exit
+            } if
+            nchars msglen lt {
+                msg nchars get anotb {
+                    sta enca
+                    /cset (seta) def
+                    exit
+                } if
+            } if
+            stb enca
+            /cset (setb) def
+            exit
+        } loop
+        
+        % Special handling of data starting in set C
+        /i 0 def
+        cset (setc) eq {
+            nums 2 mod 1 eq {
+                nchars msglen eq {
+                    msg 0 nchars 1 sub getinterval encc
+                    swb encc
+                    msg nchars 1 sub get encb
+                    /cset (setb) def
+                } {
+                    msg nchars get anotb {
+                        msg 0 nchars 1 sub getinterval encc
+                        swa encc
+                        msg nchars 1 sub get enca
+                        /cset (seta) def
+                    } {
+                        msg 0 nchars 1 sub getinterval encc
+                        swb encc
+                        msg nchars 1 sub get encb
+                        /cset (setb) def
+                    } ifelse
+                } ifelse
+                /i nchars def
+            } if
+        } if
+        
+        {  % Main encoding loop
+            i msglen eq {exit} if
+        
+            i numsscr /nums exch def /nchars exch def
+        
+            % Determine switches and shifts
+            {  % common exit
+                cset (seta) eq cset (setb) eq or nums 4 ge and {
+                    swc cset (seta) eq {enca} {encb} ifelse
+                    /cset (setc) def
+                    exit
+                } if
+                cset (setb) eq msg i get anotb and {
+                    i msglen 1 sub lt {
+                        msg i 1 add get bnota {
+                            sft encb
+                            msg i get enca
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    swa encb
+                    /cset (seta) def
+                    exit
+                } if
+                cset (seta) eq msg i get bnota and {
+                    i msglen 1 sub lt {
+                        msg i 1 add get anotb {
+                            sft enca
+                            msg i get encb
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    swb enca
+                    /cset (setb) def
+                    exit
+                } if
+                cset (setc) eq nums 2 lt and {
+                    msg i get anotb {
+                        swa encc
+                        /cset (seta) def
+                    } {
+                        swb encc
+                        /cset (setb) def
+                    } ifelse
+                    exit
+                } if
+        
+                % No switches or latches so encode
+                cset (seta) eq {
+                    msg i get enca
+                    /i i 1 add def
+                } if
+                cset (setb) eq {
+                    msg i get encb
+                    /i i 1 add def
+                } if
+                cset (setc) eq {
+                    nums 2 mod 0 eq {
+                        msg i nchars getinterval encc
+                        /i i nchars add def
+                    } { 
+                        msg i nchars 1 sub getinterval encc
+                        /i i nchars 1 sub add def
+                    } ifelse
+                } if
+         
+                exit
+            } loop
+        
+        } loop
+        /cws cws 0 j getinterval def
+    } if  % auto encoding
+ 
+    % Derive checksum and place stop character
+    /cws j 2 add array dup 0 cws putinterval def
+    /csum cws 0 get def
+    1 1 j 1 sub {
+        /i exch def
+        /csum csum cws i get i mul add def
+    } for
+    /csum csum 103 mod def
+    cws j csum put
+    cws j 1 add seta stp get put
+
     % Create an array containing the character mappings
     /encs
     [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
@@ -1942,60 +2278,12 @@ begin
       (211232) (2331112)
     ] def
 
-    % Create a string of the available characters for alphabets A and B
-    /barchars ( !"#$%&'\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~) def
-    /barlen barcode length def    % Length of the code
-    /sbs barlen 6 mul string def  % sbs is 6 times length of barcode
-    /txt barlen array def
-
-    /mode -1 def         % A=0, B=1, C=2
-    /checksum barcode 1 3 getinterval cvi def  % Initialise the checksum
-
-    /i 0 def /j 0 def
-    { % loop
-        i barlen eq {exit} if
-        barcode i 1 getinterval (^) eq {
-            % indx is given by the next three characters
-            /indx barcode i 1 add 3 getinterval cvi def
-            txt j [( ) j 11 mul textyoffset textfont textsize] put
-            /i i 4 add def
-        } {
-            % indx depends on the mode
-            mode 2 eq {
-                /indx barcode i 2 getinterval cvi def
-                txt j [barcode i 2 getinterval j 11 mul textyoffset textfont textsize] put
-                /i i 2 add def
-            } {
-                barchars barcode i 1 getinterval search
-                pop                    % Discard true leaving pre
-                length /indx exch def  % indx is the length of pre
-                pop pop                % Discard seek and post
-                txt j [barchars indx 1 getinterval j 11 mul textyoffset textfont textsize] put
-                /i i 1 add def
-            } ifelse
-        } ifelse
-        /enc encs indx get def         % Get the indxth encoding
-        sbs j 6 mul enc putinterval    % Put encoded digit into sbs
-
-        % Update the mode
-        indx 101 eq indx 103 eq or {/mode 0 def} if
-        indx 100 eq indx 104 eq or {/mode 1 def} if
-        indx 99 eq indx 105 eq or {/mode 2 def} if
-
-        /checksum indx j mul checksum add def  % checksum+=indx*j
-        /j j 1 add def
-    } loop
-
-    % Put the checksum character
-    /checksum checksum 103 mod def
-    sbs j 6 mul encs checksum get putinterval
-
-    % Put the end character
-    sbs j 6 mul 6 add encs 106 get putinterval
-
-    % Shrink sbs and txt to fit exactly
-    /sbs sbs 0 j 6 mul 13 add getinterval def
-    /txt txt 0 j getinterval def
+    % Derive space bar succession
+    /sbs cws length 6 mul 1 add string def
+    0 1 cws length 1 sub {
+        /i exch def
+        sbs i 6 mul encs cws i get get putinterval
+    } for
 
     % Return the arguments
     <<
@@ -2003,9 +2291,8 @@ begin
     /sbs [sbs {48 sub} forall]
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
-    includetext {
-        /txt txt
-    } if
+    /txt [ [text textxoffset textyoffset textfont textsize] ]
+    /textxalign (center)
     /opt options
     >>
 
