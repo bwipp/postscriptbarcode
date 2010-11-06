@@ -2603,14 +2603,14 @@ begin
         dup 0 barcode 0 21 getinterval putinterval
         dup 21 checksum 48 add put
         /barcode exch def
-        /gtin barcode 4 18 getinterval def
+        /sscc barcode 4 18 getinterval def
     } if
 
     % Compose input to code128
     /text barcode def
     /barcode 25 string def
     barcode 0 (^FNC100) putinterval
-    barcode 7 gtin putinterval
+    barcode 7 sscc putinterval
 
     % Get the result of encoding with code128
     options (dontdraw) true put
