@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-06-1
+% Barcode Writer in Pure PostScript - Version 2010-11-07
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3216,6 +3216,79 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER interleaved2of5--
+
+% --BEGIN ENCODER itf14--
+% --REQUIRES interleaved2of5--
+% --DESC: ITF-14
+% --EXAM: 04601234567893
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
+begin
+/itf14 {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def  % We are given an option string
+    /barcode exch def  % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def    % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset -7 def
+    /height 1 def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def 
+
+    % Calculate EAN checksum and add to end of barcode
+    barcode length dup 13 eq exch 14 eq or {
+        /gtin barcode 0 13 getinterval def
+    } if
+
+    % Get the result of encoding with interleaved2of5
+    options (dontdraw) true put
+    options (showborder) true put
+    options (borderwidth) 4 put
+    options (borderleft) 15 put
+    options (borderright) 15 put
+    options (height) 0.5 put
+    options (includecheck) true put
+    options (includecheckintext) true put
+    options (textyoffset) -10 put
+    /args gtin options //interleaved2of5 exec def
+
+    args (opt) options put
+    args
+ 
+    dontdraw not //renlinear if
+ 
+    end
+
+} bind def
+/itf14 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER itf14--
 
 % --BEGIN ENCODER rss14--
 % --DESC: GS1 DataBar Omnidirectional
@@ -10171,10 +10244,7 @@ end
 385 200 moveto (THIS IS CODE 93) (includecheck includetext) /code93 /uk.co.terryburton.bwipp findresource exec
 0 -17 rmoveto (Code 93) show
 
-365 400 moveto (\(01\)95012345678903\(3103\)000123) <<
-    /includetext true
-    /parsefnc true
->> /gs1-128 /uk.co.terryburton.bwipp findresource exec
+365 400 moveto (\(01\)95012345678903\(3103\)000123) (includetext parsefnc) /gs1-128 /uk.co.terryburton.bwipp findresource exec
 0 -17 rmoveto (GS1-128) show
 
 150 700 moveto (0123456789) (includecheck includetext) /interleaved2of5 /uk.co.terryburton.bwipp findresource exec
@@ -10252,17 +10322,7 @@ end
 30 200 moveto (123AB) (includetext) /plessey /uk.co.terryburton.bwipp findresource exec
 0 -17 rmoveto (Plessey) show
 
-47 135 moveto (1001234567890) <<
-    /showborder true
-    /borderwidth 4
-    /borderleft 15
-    /borderright 15
-    /height 0.5
-    /includecheck true
-    /includetext true
-    /includecheckintext true
-    /textyoffset -10
->> /interleaved2of5 /uk.co.terryburton.bwipp findresource exec
+47 135 moveto (10012345678902) (includetext) /itf14 /uk.co.terryburton.bwipp findresource exec
 -15 -20 rmoveto (ITF-14) show
 
 245 125 moveto (http://lwn.net) () /qrcode /uk.co.terryburton.bwipp findresource exec
