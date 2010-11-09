@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-07
+% Barcode Writer in Pure PostScript - Version 2010-11-09
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -2442,7 +2442,7 @@ begin
     } loop
     /barcode barcode 0 j getinterval def
 
-    % Get the result of encoding with code39
+    % Get the result of encoding with code128
     options (dontdraw) true put
     options (parsefnc) true put
     /args barcode options //code128 exec def
@@ -2768,6 +2768,116 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER code39--
+
+% --BEGIN ENCODER code39ext--
+% --REQUIRES code39--
+% --DESC: Code 39 Extended
+% --EXAM: Code 39 Extended!
+% --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/code39ext {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /barcode exch def      % We are given the code39extended text
+
+    /dontdraw false def
+    /includetext false def
+    /parse false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    /barlen barcode length def
+
+    % Extended alphabet to non-extended alphabet
+    /extencs
+    [ (%U) ($A) ($B) ($C) ($D) ($E) ($F) ($G) ($H) ($I) ($J) ($K) ($L) ($M) ($N) ($O)
+      ($P) ($Q) ($R) ($S) ($T) ($U) ($V) ($W) ($X) ($Y) ($Z) (%A) (%B) (%C) (%D) (%E)
+      ( )  (/A) (/B) (/C) (/D) (/E) (/F) (/G) (/H) (/I) (/J) (/K) (/L) (-)  (.)  (/O)
+      (0)  (1)  (2)  (3)  (4)  (5)  (6)  (7)  (8)  (9)  (/Z) (%F) (%G) (%H) (%I) (%J)
+      (%V) (A)  (B)  (C)  (D)  (E)  (F)  (G)  (H)  (I)  (J)  (K)  (L)  (M)  (N)  (O)
+      (P)  (Q)  (R)  (S)  (T)  (U)  (V)  (W)  (X)  (Y)  (Z)  (%K) (%L) (%M) (%N) (%O)
+      (%W) (+A) (+B) (+C) (+D) (+E) (+F) (+G) (+H) (+I) (+J) (+K) (+L) (+M) (+N) (+O)
+      (+P) (+Q) (+R) (+S) (+T) (+U) (+V) (+W) (+X) (+Y) (+Z) (%P) (%Q) (%R) (%S) (%T)
+    ] def
+
+    /newcode barlen 2 mul string def
+    /newtext barlen 2 mul string def
+    /j 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /extchar extencs barcode i get get def
+        newcode j extchar putinterval
+        newtext j barcode i get put
+        extchar length 1 ne {newtext j 1 add ( ) putinterval} if
+        /j j extchar length add def
+    } for
+    /newcode newcode 0 j getinterval def
+    /newtext newtext 0 j getinterval def
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    /args newcode options //code39 exec def
+
+    % Replace chars in /txt with chars in newtext
+    includetext {
+        /txt args (txt) get def
+        0 1 newtext length 1 sub {
+            /i exch def
+            /txtentry txt i 1 add get def
+            txtentry 0 newtext i 1 getinterval put
+            txt i 1 add txtentry put
+        } for
+        args (txt) txt put
+    } if
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/code39ext dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code39ext--
 
 % --BEGIN ENCODER code32--
 % --REQUIRES code39--
