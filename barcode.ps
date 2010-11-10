@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-09
+% Barcode Writer in Pure PostScript - Version 2010-11-10
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3069,7 +3069,8 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 1 def
-    
+    /parsefnc false def   
+ 
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -3102,58 +3103,79 @@ begin
     % Create a string of the available characters
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
 
-    /barlen barcode length def  % Length of the code    
-    barcode {
-        (^) search false eq {pop exit} if
-        pop pop /barlen barlen 3 sub def
+    /barlen barcode length def
+
+    % Special function characters
+    /sft1 -1 def  /sft2 -2 def  /sft3 -3 def  /sft4 -4 def
+    /fncvals <<
+        (SFT$) sft1
+        (SFT%) sft2
+        (SFT/) sft3
+        (SFT+) sft4
+    >> def
+
+    % Convert input into bytes accounting for shift characters 
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        parsefnc char 94 eq and i barlen 4 sub lt and {
+            barcode i 1 add get 94 ne {
+                /char fncvals barcode i 1 add 4 getinterval get def
+                /i i 4 add def
+            } {
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /i i 1 add def
+        /j j 1 add def
     } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
 
     includecheck {
-        /sbs barlen 6 mul 25 add string def
+        /sbs msglen 6 mul 25 add string def
     } {
-        /sbs barlen 6 mul 13 add string def
+        /sbs msglen 6 mul 13 add string def
     } ifelse
-    /txt barlen array def
-    
+    /txt msglen array def
+
     % Put the start character
     sbs 0 encs 47 get putinterval
     
     /checksum1 0 def /checksum2 0 def
-
-    /i 0 def /j 0 def
-    { % loop
-        j barlen eq {exit} if
-        barcode i 1 getinterval (^) eq {
-            % indx is given by the next three characters
-            /indx barcode i 1 add 3 getinterval cvi def
-            txt j [( ) j 9 mul 9 add textyoffset textfont textsize] put
-            /i i 4 add def
+    0 1 msglen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        msg i get dup 0 lt { 
+            42 exch sub /indx exch def
+            /char ( ) def
         } {
-            barchars barcode i 1 getinterval search
-            pop                         % Discard true leaving pre
-            length /indx exch def       % indx is the length of pre
-            pop pop                     % Discard seek and post
-            txt j [barchars indx 1 getinterval j 9 mul 9 add textyoffset textfont textsize] put
-            /i i 1 add def
+            1 string dup 0 4 -1 roll put /char exch def
+            barchars char search
+            pop                                  % Discard true leaving pre
+            length /indx exch def                % indx is the length of pre
+            pop pop                              % Discard seek and post
         } ifelse
-        /enc encs indx get def             % Get the indxth encoding
-        sbs j 6 mul 6 add enc putinterval  % Put encoded digit into sbs
-        /checksum1 checksum1 barlen j sub 1 sub 20 mod 1 add indx mul add def
-        /checksum2 checksum2 barlen j sub 15 mod 1 add indx mul add def
-        /j j 1 add def
-    } loop
-    
+        /enc encs indx get def                   % Get the indxth encoding
+        sbs i 6 mul 6 add enc putinterval        % Put encoded digit into sbs
+        txt i [char i 9 mul 9 add textyoffset textfont textsize] put
+        /checksum1 checksum1 msglen i sub 1 sub 20 mod 1 add indx mul add def
+        /checksum2 checksum2 msglen i sub 15 mod 1 add indx mul add def
+    } for
+
     includecheck {
         % Put the first checksum character
         /checksum1 checksum1 47 mod def
         /checksum2 checksum2 checksum1 add 47 mod def
-        sbs j 6 mul 6 add encs checksum1 get putinterval
-        sbs j 6 mul 12 add encs checksum2 get putinterval
+        sbs msglen 6 mul 6 add encs checksum1 get putinterval
+        sbs msglen 6 mul 12 add encs checksum2 get putinterval
         % Put the end character
-        sbs j 6 mul 18 add encs 48 get putinterval
+        sbs msglen 6 mul 18 add encs 48 get putinterval
     } {
         % Put the end character
-        sbs j 6 mul 6 add encs 48 get putinterval      
+        sbs msglen 6 mul 6 add encs 48 get putinterval      
     } ifelse
 
     % Return the arguments
@@ -3177,6 +3199,127 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER code93--
+
+% --BEGIN ENCODER code93ext--
+% --REQUIRES code93--
+% --DESC: Code 93 Extended
+% --EXAM: Code93 Ext!
+% --EXOP: includetext includecheck
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code93 dup /uk.co.terryburton.bwipp findresource put
+begin
+/code93ext {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /barcode exch def      % We are given the code39extended text
+
+    /dontdraw false def
+    /includetext false def
+    /parse false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    /barlen barcode length def
+
+    % Extended alphabet to non-extended alphabet
+    /extencs
+    [ (^SFT%U) (^SFT$A) (^SFT$B) (^SFT$C) (^SFT$D) (^SFT$E) (^SFT$F) (^SFT$G) 
+      (^SFT$H) (^SFT$I) (^SFT$J) (^SFT$K) (^SFT$L) (^SFT$M) (^SFT$N) (^SFT$O)
+      (^SFT$P) (^SFT$Q) (^SFT$R) (^SFT$S) (^SFT$T) (^SFT$U) (^SFT$V) (^SFT$W)
+      (^SFT$X) (^SFT$Y) (^SFT$Z) (^SFT%A) (^SFT%B) (^SFT%C) (^SFT%D) (^SFT%E)
+      ( )      (^SFT/A) (^SFT/B) (^SFT/C) (^SFT/D) (^SFT/E) (^SFT/F) (^SFT/G)
+      (^SFT/H) (^SFT/I) (^SFT/J) (^SFT/K) (^SFT/L) (-)      (.)      (^SFT/O)
+      (0)      (1)      (2)      (3)      (4)      (5)      (6)      (7)
+      (8)      (9)      (^SFT/Z) (^SFT%F) (^SFT%G) (^SFT%H) (^SFT%I) (^SFT%J)
+      (^SFT%V) (A)      (B)      (C)      (D)      (E)      (F)      (G)
+      (H)      (I)      (J)      (K)      (L)      (M)      (N)      (O)
+      (P)      (Q)      (R)      (S)      (T)      (U)      (V)      (W)
+      (X)      (Y)      (Z)      (^SFT%K) (^SFT%L) (^SFT%M) (^SFT%N) (^SFT%O)
+      (^SFT%W) (^SFT+A) (^SFT+B) (^SFT+C) (^SFT+D) (^SFT+E) (^SFT+F) (^SFT+G)
+      (^SFT+H) (^SFT+I) (^SFT+J) (^SFT+K) (^SFT+L) (^SFT+M) (^SFT+N) (^SFT+O)
+      (^SFT+P) (^SFT+Q) (^SFT+R) (^SFT+S) (^SFT+T) (^SFT+U) (^SFT+V) (^SFT+W)
+      (^SFT+X) (^SFT+Y) (^SFT+Z) (^SFT%P) (^SFT%Q) (^SFT%R) (^SFT%S) (^SFT%T)
+    ] def
+
+    /newcode barlen 6 mul string def
+    /newtext barlen 6 mul string def
+    /j 0 def /k 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /extchar extencs barcode i get get def
+        /extlen extchar length def
+        newcode j extchar putinterval
+        newtext k barcode i get put
+        extlen 1 ne {newtext k 1 add ( ) putinterval} if
+        /j j extlen add def
+        /k k extlen 1 eq {1} {2} ifelse add def
+    } for
+    /newcode newcode 0 j getinterval def
+    /newtext newtext 0 k getinterval def
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    options (parsefnc) true put
+    /args newcode options //code93 exec def
+
+    % Replace chars in /txt with chars in newtext
+    includetext {
+        /txt args (txt) get def
+        0 1 newtext length 1 sub {
+            /i exch def
+            /txtentry txt i get def
+            txtentry 0 newtext i 1 getinterval put
+            txt i txtentry put
+        } for
+        args (txt) txt put
+    } if
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/code93ext dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code93ext--
 
 % --BEGIN ENCODER interleaved2of5--
 % --DESC: Interleaved 2 of 5 (ITF)
