@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-10
+% Barcode Writer in Pure PostScript - Version 2010-11-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -5183,11 +5183,11 @@ begin
     20 dict begin
 
     /options exch def           % We are given an option string
-    /barcode exch def		% We are given a barcode string
+    /barcode exch def           % We are given a barcode string
 
     /dontdraw false def
     /includetext false def      % Enable/disable text
-    /height 4 def		% Height of short bars in millimetres
+    /height 4 def               % Height of short bars in millimetres
 
     % Parse the input options
     options type /stringtype eq {
@@ -5212,30 +5212,30 @@ begin
     /encstr 16 string def
     /bhs 16 array def
     /bbs 16 array def
-    /sbs 32 array def			% Measurements are specified as formulas
-    /1mm {1 25.4 div} bind def		% rather than constants to preserve precision.
-    /spc {1 25.4 div 72 mul} bind def	% width of bars & spaces is 1mm
-
+    /sbs 32 array def
+    /bar 1 25.4 div height mul def     % bar height (mm)
+    /spc 1 25.4 div 72 mul def         % bar width & spacing (1mm)
+ 
+    % Convert number into a base3 representation
     /i 15 def
     /val barcode cvi def
     {  % loop
         val 0 eq {exit} if
-        [ {/val val 3 sub 3 idiv def encstr i 50 put}
-          {/val val 1 sub 3 idiv def encstr i 48 put}
-          {/val val 2 sub 3 idiv def encstr i 49 put}
-        ] val 3 mod get exec 
+        val 3 mod dup
+        [3 1 2] exch get val exch sub 3 idiv /val exch def
+        encstr i [2 0 1] 4 -1 roll get put
         /i i 1 sub def
     } loop
     /encstr encstr i 1 add 15 i sub getinterval def
-
+ 
+    % Generate the bar pattern
     0 1 encstr length 1 sub {
         /i exch def
-    	[ {bhs i 1mm height mul put bbs i 0 put}
-          {bhs i 1mm height mul put bbs i 1mm height mul put}
-          {bhs i 1mm 2 mul height mul put bbs i 0 put}
-        ] encstr i get 48 sub get exec
+        encstr i get dup
+        bhs i bar [1 1 2] 5 -1 roll get mul put
+        bbs i [0 bar 0] 4 -1 roll get put
     } for
-
+     
     % Return the arguments
     <<
     /ren //renlinear
