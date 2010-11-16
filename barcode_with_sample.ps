@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-15
+% Barcode Writer in Pure PostScript - Version 2010-11-16
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3007,6 +3007,7 @@ begin
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
+    /textxoffset textxoffset cvr def
     /height height cvr def
  
     /text 13 string def
@@ -10483,6 +10484,380 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER azteccode--
+
+% --BEGIN ENCODER hibccode39--
+% --REQUIRES code39--
+% --DESC: HIBC Code 39
+% --EXAM: A123BJC5D6E71
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/hibccode39 {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /textxoffset 0 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /textxoffset textxoffset cvr def
+
+    /barlen barcode length def
+
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barcode barlen 2 add string dup 1 barcode putinterval def
+    barcode 0 43 put
+
+    /checksum 0 def
+    0 1 barlen {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /checksum checksum indx add def
+    } for
+    barcode barlen 1 add barchars checksum 43 mod get put
+
+    /text barlen 4 add string def
+    text 0 42 put
+    text 1 barcode putinterval
+    text barlen 2 add barcode barlen 1 add get dup 32 eq {pop 95} if put
+    text barlen 3 add 42 put
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    options (includecheck) false put
+    /args barcode options //code39 exec def
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+ 
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/hibccode39 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER hibccode39--
+
+% --BEGIN ENCODER hibccode128--
+% --REQUIRES code128--
+% --DESC: HIBC Code 128
+% --EXAM: A123BJC5D6E71
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code128 dup /uk.co.terryburton.bwipp findresource put
+begin
+/hibccode128 {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /textxoffset 0 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /textxoffset textxoffset cvr def
+
+    /barlen barcode length def
+
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barcode barlen 2 add string dup 1 barcode putinterval def
+    barcode 0 43 put
+
+    /checksum 0 def
+    0 1 barlen {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /checksum checksum indx add def
+    } for
+    barcode barlen 1 add barchars checksum 43 mod get put
+
+    /text barlen 4 add string def
+    text 0 42 put
+    text 1 barcode putinterval
+    text barlen 2 add barcode barlen 1 add get dup 32 eq {pop 95} if put
+    text barlen 3 add 42 put
+
+    % Get the result of encoding with code128
+    options (dontdraw) true put
+    /args barcode options //code128 exec def
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+ 
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/hibccode128 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER hibccode128--
+
+% --BEGIN ENCODER hibcdatamatrix--
+% --REQUIRES datamatrix--
+% --DESC: HIBC Data Matrix
+% --EXAM: A123BJC5D6E71
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/hibcdatamatrix {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /barlen barcode length def
+
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barcode barlen 2 add string dup 1 barcode putinterval def
+    barcode 0 43 put
+
+    /checksum 0 def
+    0 1 barlen {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /checksum checksum indx add def
+    } for
+    barcode barlen 1 add barchars checksum 43 mod get put
+
+    % Get the result of encoding with datamatrix
+    options (dontdraw) true put
+    /args barcode options //datamatrix exec def
+
+    args (opt) options put
+    args
+ 
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/hibcdatamatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER hibcdatamatrix--
+
+% --BEGIN ENCODER hibcpdf417--
+% --REQUIRES pdf417--
+% --DESC: HIBC PDF417
+% --EXAM: A123BJC5D6E71
+% --EXOP: columns=2
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
+begin
+/hibcpdf417 {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /columns 2 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /columns columns cvi def
+
+    /barlen barcode length def
+
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barcode barlen 2 add string dup 1 barcode putinterval def
+    barcode 0 43 put
+
+    /checksum 0 def
+    0 1 barlen {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /checksum checksum indx add def
+    } for
+    barcode barlen 1 add barchars checksum 43 mod get put
+
+    % Get the result of encoding with pdf417
+    options (dontdraw) true put
+    options (columns) columns put
+    /args barcode options //pdf417 exec def
+
+    args (opt) options put
+    args
+ 
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/hibcpdf417 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER hibcpdf417--
+
+% --BEGIN ENCODER hibcqrcode--
+% --REQUIRES qrcode--
+% --DESC: HIBC QR Code
+% --EXAM: A123BJC5D6E71
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /qrcode dup /uk.co.terryburton.bwipp findresource put
+begin
+/hibcqrcode {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /barlen barcode length def
+
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barcode barlen 2 add string dup 1 barcode putinterval def
+    barcode 0 43 put
+
+    /checksum 0 def
+    0 1 barlen {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard seek and post
+        /checksum checksum indx add def
+    } for
+    barcode barlen 1 add barchars checksum 43 mod get put
+
+    % Get the result of encoding with qrcode
+    options (dontdraw) true put
+    /args barcode options //qrcode exec def
+
+    args (opt) options put
+    args
+ 
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/hibcqrcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER hibcqrcode--
 
 % --END TEMPLATE--
 %!
