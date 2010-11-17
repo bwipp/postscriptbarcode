@@ -7540,7 +7540,7 @@ end
 % --BEGIN ENCODER channelcode--
 % --DESC: Channel Code
 % --EXAM: 3493
-% --EXOP: height=0.5 
+% --EXOP: height=0.5 includetext 
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -7622,15 +7622,21 @@ begin
     /value 0 def
     channels dup 3 nexts
 
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+
     % Return the arguments
     <<
     /ren //renlinear
     /sbs sbs
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
-    includetext {
-        /txt txt
-    } if
+    /txt txt
+    /textxalign (center)
     /opt options
     >>
 
