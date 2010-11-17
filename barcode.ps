@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-16
+% Barcode Writer in Pure PostScript - Version 2010-11-17
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3293,7 +3293,7 @@ begin
     /newcode newcode 0 j getinterval def
     /newtext newtext 0 k getinterval def
 
-    % Get the result of encoding with code39
+    % Get the result of encoding with code93
     options (dontdraw) true put
     options (parsefnc) true put
     /args newcode options //code93 exec def
@@ -7536,6 +7536,113 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER telepen--
+
+% --BEGIN ENCODER channelcode--
+% --DESC: Channel Code
+% --EXAM: 3493
+% --EXOP: height=0.5 
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/channelcode {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def
+    /height 1 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /height height cvr def
+  
+    /barlen barcode length def
+
+    barlen 2 ge barlen 7 le and {
+        /channels barlen 1 add def
+    } if
+
+    /nextb {
+        % maxs maxb i
+        dup
+        dup s exch get exch
+        dup b exch 1 sub get exch
+        dup s exch 1 sub get exch
+        b exch 2 sub get exch
+        add add add 4 gt {1} {2} ifelse
+        % maxs maxb i b
+        1 index channels 2 add lt {  % i < chan+2
+            dup 1 4 index {  % b: b -> maxb
+                b 3 index 2 index put  % B[i]=b
+                3 index exch sub 1 add 4 index 3 index 1 add nexts
+            } for
+        } {
+            dup 3 index le {  % b <= maxb
+                b 2 index 4 index put
+                value target eq {
+                    /sbs [
+                        1 1 1 1 1 1 1 1 1
+                        3 1 10 {dup s exch get exch b exch get} for
+                    ] 0 channels 2 mul 9 add getinterval def
+                } if
+                /value value 1 add def
+            } if
+        } ifelse 
+        pop pop pop pop
+    } bind def
+
+    /nexts {
+        % maxb maxs i
+        % s:i<chan+2?1:maxs->maxs
+        dup channels 2 add lt {1} {1 index} ifelse 1 3 index {
+            % maxb maxs i s
+            s 2 index 2 index put  % S[i] = s
+            2 index exch sub 1 add 3 index 2 index nextb  % nextb(maxs+1-s,maxb,i)
+        } for
+        pop pop pop
+    } bind def
+
+    /b [ 1 1 1 0 0 0 0 0 0 0 0 ] def
+    /s [ 0 1 1 0 0 0 0 0 0 0 0 ] def
+    /target barcode cvi def
+    /value 0 def
+    channels dup 3 nexts
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /sbs sbs
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/channelcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER channelcode--
 
 % --BEGIN ENCODER raw--
 % --DESC: Raw bar space succession for custom symbologies 
