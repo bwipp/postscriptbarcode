@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-17
+% Barcode Writer in Pure PostScript - Version 2010-11-18
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -7554,6 +7554,7 @@ begin
     /barcode exch def       % We are given a barcode string
 
     /dontdraw false def
+    /shortfinder false def
     /includetext false def
     /height 1 def
     
@@ -7567,7 +7568,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /height height cvr def
   
     /barlen barcode length def
@@ -7583,7 +7584,7 @@ begin
         dup s exch 1 sub get exch
         b exch 2 sub get exch
         add add add 4 gt {1} {2} ifelse
-        1 index channels 2 add lt {
+        1 index chan 2 add lt {
             dup 1 4 index {
                 b 3 index 2 index put
                 3 index exch sub 1 add 4 index 3 index 1 add nexts
@@ -7592,10 +7593,9 @@ begin
             dup 3 index le {
                 b 2 index 4 index put
                 value target eq {
-                    /sbs [
-                        1 1 1 1 1 1 1 1 1
+                    /out [ 
                         3 1 10 {dup s exch get exch b exch get} for
-                    ] 0 channels 2 mul 9 add getinterval def
+                    ] 0 chan 2 mul getinterval def 
                 } if
                 /value value 1 add def
             } if
@@ -7604,22 +7604,43 @@ begin
     } bind def
 
     /nexts {
-        dup channels 2 add lt {1} {1 index} ifelse 1 3 index {
+        dup chan 2 add lt {1} {1 index} ifelse 1 3 index {
             s 2 index 2 index put
             2 index exch sub 1 add 3 index 2 index nextb
         } for
         pop pop pop
     } bind def
 
-    /b [ 1 1 1 0 0 0 0 0 0 0 0 ] def
-    /s [ 0 1 1 0 0 0 0 0 0 0 0 ] def
-    /target barcode cvi def
-    /value 0 def
-    channels dup 3 nexts
+    /encode {
+        /chan exch def
+        /target exch def
+        /value 0 def
+        /out -1 def
+        /b [ 1 1 1 0 0 0 0 0 0 0 0 ] def
+        /s [ 0 1 1 0 0 0 0 0 0 0 0 ] def
+        chan dup 3 nexts
+        out
+    } bind def
+
+    % Encode the main data
+    /data barcode cvi channels encode def
+
+    % Determine finder
+    shortfinder {
+        /finder [ 1 1 1 1 1 ] def
+    } {
+        /finder [ 1 1 1 1 1 1 1 1 1 ] def
+    } ifelse
+
+    % Construct the symbol
+    /sbs [
+        finder aload pop
+        data aload pop
+    ] def
 
     % Create the human readable text
-    /txt barcode length array def
-    0 1 barcode length 1 sub {
+    /txt barlen array def
+    0 1 barlen 1 sub {
         /i exch def
         txt i [barcode i 1 getinterval 0 0 () 0] put
     } for
