@@ -7577,21 +7577,19 @@ begin
     } if
 
     /nextb {
-        % maxs maxb i
         dup
         dup s exch get exch
         dup b exch 1 sub get exch
         dup s exch 1 sub get exch
         b exch 2 sub get exch
         add add add 4 gt {1} {2} ifelse
-        % maxs maxb i b
-        1 index channels 2 add lt {  % i < chan+2
-            dup 1 4 index {  % b: b -> maxb
-                b 3 index 2 index put  % B[i]=b
+        1 index channels 2 add lt {
+            dup 1 4 index {
+                b 3 index 2 index put
                 3 index exch sub 1 add 4 index 3 index 1 add nexts
             } for
         } {
-            dup 3 index le {  % b <= maxb
+            dup 3 index le {
                 b 2 index 4 index put
                 value target eq {
                     /sbs [
@@ -7606,12 +7604,9 @@ begin
     } bind def
 
     /nexts {
-        % maxb maxs i
-        % s:i<chan+2?1:maxs->maxs
         dup channels 2 add lt {1} {1 index} ifelse 1 3 index {
-            % maxb maxs i s
-            s 2 index 2 index put  % S[i] = s
-            2 index exch sub 1 add 3 index 2 index nextb  % nextb(maxs+1-s,maxb,i)
+            s 2 index 2 index put
+            2 index exch sub 1 add 3 index 2 index nextb
         } for
         pop pop pop
     } bind def
