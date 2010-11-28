@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-26
+% Barcode Writer in Pure PostScript - Version 2010-11-28
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -135,13 +135,17 @@ begin
     0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
         /i exch def
         i 2 mod 0 eq {           % i is even
-            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1 
-            /h bhs i 2 idiv get 72 mul def  % Height from bhs
-            /c d 2 div x add def            % Centre of the bar = x + d/2
-            /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
-            /w d inkspread sub def          % bar width = digit - inkspread
-            bars i 2 idiv [h c y w] put     % Add the bar entry
-            h y add maxh gt {/maxh h y add def} if
+            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1
+            sbs i get 0 ne {
+                /h bhs i 2 idiv get 72 mul def  % Height from bhs
+                /c d 2 div x add def            % Centre of the bar = x + d/2
+                /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
+                /w d inkspread sub def          % bar width = digit - inkspread
+                bars i 2 idiv [h c y w] put     % Add the bar entry
+                h y add maxh gt {/maxh h y add def} if
+            } {
+                /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1
+            } ifelse
         } {
             /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
         } ifelse
@@ -189,8 +193,11 @@ begin
     0 setlinecap
     barcolor (unset) ne { barcolor setanycolor } if
     bars {
-        {} forall
-        newpath setlinewidth moveto 0 exch rlineto stroke
+        dup -1 ne {
+            aload pop newpath setlinewidth moveto 0 exch rlineto stroke
+        } {
+            pop
+        } ifelse
     } forall
     grestore
     
@@ -8078,6 +8085,91 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER channelcode--
+
+% --BEGIN ENCODER flattermarken--
+% --DESC: Flattermarken
+% --EXAM: 12345
+% --EXOP: inkspread=-0.25
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/flattermarken {
+
+    20 dict begin                 % Confine variable to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def   % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 0.3 def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+
+    % Create an array containing the character mappings
+    /encs
+    [ (0018) (0117) (0216) (0315) (0414) (0513) (0612) (0711) (0810)
+      (0900)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (1234567890) def
+
+    /barlen barcode length def            % Length of the code
+
+    /sbs barlen 4 mul string def
+    /txt barlen array def
+
+    0 1 barlen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                 % Discard true leaving pre
+        length /indx exch def               % indx is the length of pre
+        pop pop                             % Discard seek and post
+        /enc encs indx get def              % Get the indxth encoding
+        sbs i 4 mul enc putinterval         % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 9 mul textyoffset textfont textsize] put
+    } for
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    /txt txt
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/flattermarken dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER flattermarken--
 
 % --BEGIN ENCODER raw--
 % --DESC: Raw bar space succession for custom symbologies 
