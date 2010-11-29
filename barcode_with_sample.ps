@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-28
+% Barcode Writer in Pure PostScript - Version 2010-11-29
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -7569,6 +7569,7 @@ begin
     /height 1 def
     /encoding (auto) def
     /version (a) def
+    /checkoffset 0 def
     /raw false def
     /parse false def
     /parsefnc false def
@@ -7590,6 +7591,7 @@ begin
     /textyoffset textyoffset cvr def
     /encoding encoding cvlit def
     /version version cvlit def
+    /checkoffset checkoffset cvi def
     /height height cvr def
 
     % Parse ordinals of the form ^NNN to ASCII
@@ -7856,6 +7858,7 @@ begin
             /cw cw -1 bitshift def
         } repeat 
     } forall
+    /v v checkoffset add def
 
     version (limiteda) eq version (limitedb) eq or {
         /v v 1023 and def
