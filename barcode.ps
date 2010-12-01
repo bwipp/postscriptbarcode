@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-11-29
+% Barcode Writer in Pure PostScript - Version 2010-12-01
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -3550,6 +3550,91 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER itf14--
+
+% --BEGIN ENCODER identcode-- 
+% --REQUIRES interleaved2of5--
+% --DESC: Deutsche Post Identcode
+% --EXAM: 563102430313
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
+begin
+/identcode {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def  % We are given an option string
+    /barcode exch def  % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def    % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset -7 def
+    /height 1 def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def 
+
+    % Calculate checksum and add to end of barcode
+    barcode length dup 11 eq exch 12 eq or {
+        /checksum 0 def
+        0 1 10 {
+            /i exch def
+            /checksum checksum barcode i get 48 sub i 2 mod 0 eq {4 mul} {9 mul} ifelse add def
+        } for 
+        /checksum 10 checksum 10 mod sub 10 mod def
+        12 string
+        dup 0 barcode 0 11 getinterval putinterval
+        dup 11 checksum 48 add put
+        /pad exch def
+    } if
+    /barcode pad def
+
+    % Compose the human readable text
+    /text (  .       .     ) def
+    text  0 barcode  0 2 getinterval putinterval
+    text  3 barcode  2 3 getinterval putinterval
+    text  7 barcode  5 3 getinterval putinterval
+    text 11 barcode  8 3 getinterval putinterval
+    text 15 barcode 11 1 getinterval putinterval
+
+    % Get the result of encoding with interleaved2of5
+    options (dontdraw) true put
+    /args barcode options //interleaved2of5 exec def
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+ 
+    dontdraw not //renlinear if
+ 
+    end
+
+} bind def
+/identcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER identcode--
 
 % --BEGIN ENCODER rss14--
 % --DESC: GS1 DataBar Omnidirectional
