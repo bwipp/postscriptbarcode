@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-12-06
+% Barcode Writer in Pure PostScript - Version 2010-12-08
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -4681,7 +4681,7 @@ begin
         10 2 string cvrs dup aifixed 3 1 roll put
     } forall
 
-    /fnc1 -1 def /lnumeric -2 def /lalpha -3 def /liso646 -4 def
+    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
     
     /numeric <<
         0 1 119 {
@@ -4693,10 +4693,10 @@ begin
             (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs 
             dup length 7 exch sub exch putinterval
         } for
-        lalpha (0000)
+        lalphanumeric (0000)
     >> def
     
-    /alpha <<
+    /alphanumeric <<
         48 1 57 {dup 43 sub 5 tobin} for
         fnc1 (01111)
         65 1 90 {dup 33 sub 6 tobin} for
@@ -4718,7 +4718,7 @@ begin
         95 (11111011)
         32 (11111100)
         lnumeric (000)
-        lalpha (00100)
+        lalphanumeric (00100)
     >> def
     
     % Append the remaining AI data
@@ -4760,9 +4760,9 @@ begin
         /j exch j add def
     } bind def
    
-    % Pre-compute alpha and numeric runlengths and position of next ISO646-only characters
+    % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
     /numericruns [ gpf length {0} repeat 0 -1 ] def
-    /alpharuns [ gpf length {0} repeat 0 ] def
+    /alphanumericruns [ gpf length {0} repeat 0 ] def
     /nextiso646only [ gpf length {0} repeat 9999 ] def
     gpf length 1 sub -1 0 {
         /i exch def
@@ -4775,12 +4775,12 @@ begin
         } {
             numericruns i 0 put
         } ifelse
-        dup alpha exch known {
-            alpharuns i alpharuns i 1 add get 1 add put
+        dup alphanumeric exch known {
+            alphanumericruns i alphanumericruns i 1 add get 1 add put
         } {
-            alpharuns i 0 put
+            alphanumericruns i 0 put
         } ifelse
-        dup iso646 exch known exch alpha exch known not and {
+        dup iso646 exch known exch alphanumeric exch known not and {
             nextiso646only i 0 put
         } {
             nextiso646only i nextiso646only i 1 add get 1 add put
@@ -4805,13 +4805,13 @@ begin
                         exit
                     } if
                     pop
-                    lalpha numeric encode 
-                    /mode (alpha) def
+                    lalphanumeric numeric encode 
+                    /mode (alphanumeric) def
                     exit
                 } {
                     gpf i get dup 48 lt exch 57 gt or {
-                        lalpha numeric encode
-                        /mode (alpha) def
+                        lalphanumeric numeric encode
+                        /mode (alphanumeric) def
                         exit
                     } if
                     12 1 add method length add vlf length add cdf length add j add rembits 
@@ -4828,28 +4828,28 @@ begin
                 } ifelse
             } if
     
-            mode (alpha) eq {
+            mode (alphanumeric) eq {
                 gpf i get fnc1 eq {
-                    fnc1 alpha encode
+                    fnc1 alphanumeric encode
                     /i i 1 add def
                     exit
                 } if
-                gpf i get dup iso646 exch known exch alpha exch known not and {
-                     liso646 alpha encode
+                gpf i get dup iso646 exch known exch alphanumeric exch known not and {
+                     liso646 alphanumeric encode
                      /mode (iso646) def
                      exit
                 } if
                 numericruns i get 6 ge {
-                    lnumeric alpha encode
+                    lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
                 numericruns i get dup 4 ge exch i add gpf length eq and {
-                    lnumeric alpha encode
+                    lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
-                gpf i get alpha encode
+                gpf i get alphanumeric encode
                 /i i 1 add def
                 exit
             } if
@@ -4865,9 +4865,9 @@ begin
                     /mode (numeric) def
                     exit
                 } if
-                alpharuns i get 5 ge nextiso646only i get 10 ge and {
-                    lalpha iso646 encode
-                    /mode (alpha) def
+                alphanumericruns i get 5 ge nextiso646only i get 10 ge and {
+                    lalphanumeric iso646 encode
+                    /mode (alphanumeric) def
                     exit
                 } if
                 gpf i get iso646 encode
