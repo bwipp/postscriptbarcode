@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-12-08
+% Barcode Writer in Pure PostScript - Version 2010-12-17
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -4814,9 +4814,10 @@ begin
                         /mode (alphanumeric) def
                         exit
                     } if
-                    12 1 add method length add vlf length add cdf length add j add rembits 
-                    dup 4 ge exch 6 le and {  % C1 + 1 into 4 bits
-                        (0000) 4 string copy dup gpf i get 47 sub 2 4 string cvrs
+                    /rem 12 1 add method length add vlf length add cdf length add j add rembits def
+                    rem 4 ge rem 6 le and {  % C1 + 1 into 4 to 6 bits
+                        (000000) 6 string copy 0 rem getinterval
+                        dup gpf i get 47 sub 2 4 string cvrs
                         dup length 4 exch sub exch putinterval /raw encode
                         /i i 1 add def
                         exit
