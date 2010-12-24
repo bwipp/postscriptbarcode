@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2010-12-19-1
+% Barcode Writer in Pure PostScript - Version 2010-12-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -1963,7 +1963,8 @@ begin
     /swa  -4 def  /swb  -5 def  /swc  -6 def 
     /fn1  -7 def  /fn2  -8 def  /fn3  -9 def 
     /fn4 -10 def  /sft -11 def  /stp -12 def
-    
+    /lka -13 def  /lkc -14 def  % CC-A/B and CC-C linkage
+
     % Character maps for each state
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
@@ -2006,7 +2007,7 @@ begin
     ] def 
     
     % Invert charmaps to give character to value maps for each state
-    /charvals [ 107 dict 107 dict 107 dict ] def
+    /charvals [ 109 dict 109 dict 109 dict ] def
     0 1 charmaps length 1 sub {
         /i exch def
         /encs charmaps i get def
@@ -2019,7 +2020,12 @@ begin
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
-  
+
+    % Include pseudo characters for GS1-128 Composite linkage identifiers
+    seta lka seta swb get put  seta lkc seta swc get put
+    setb lka setb swc get put  setb lkc setb swa get put
+    setc lka setc swa get put  setc lkc setc swb get put
+
     raw {/encoding (raw) def} if
 
     encoding (raw) eq {
@@ -2043,9 +2049,11 @@ begin
             (FNC2) fn2
             (FNC3) fn3
             (FNC4) fn4
+            (LNKA) lka
+            (LNKC) lkc
         >> def
 
-        % Convert input into bytes accounting for FNC characters 
+        % Convert input into bytes accounting for FNC and LNK characters 
         /msg barlen array def
         /text barlen string def
         /i 0 def /j 0 def {
@@ -2076,7 +2084,8 @@ begin
                 p msglen ge {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
-                fn1 eq {  % Score an FNC1 in odd position of a run as two digits
+                dup 48 lt exch 57 gt or {
+                    % Non-digit in odd position of run like two digits
                     s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
                 } if
                 /n n 1 add def
@@ -2103,8 +2112,8 @@ begin
                 /in exch def
                 /k 0 def {
                     k in length eq {exit} if
-                    in k get fn1 eq {
-                        setc fn1 get
+                    in k get dup 48 lt exch 57 gt or {
+                        setc in k get get
                         /k k 1 add def
                     } {
                         in k get 48 sub 10 mul in k 1 add get 48 sub add
@@ -2338,6 +2347,8 @@ begin
     /textxoffset 0 def
     /textyoffset -7 def
     /height 1 def
+    /linkagea false def
+    /linkagec false def
  
     % Parse the input options
     options type /stringtype eq {
@@ -2436,7 +2447,7 @@ begin
     } for
 
     % Compose input to code128
-    /barcode c128 length 5 mul string def
+    /barcode c128 length 1 add 5 mul string def
     /i 0 def /j 0 def {
         i c128 length eq {exit} if
         c128 i get dup fnc1 eq {
@@ -2448,6 +2459,10 @@ begin
         /i i 1 add def
         /j j 1 add def
     } loop
+    linkagea linkagec or {
+        barcode j linkagea {(^LNKA)} {(^LNKC)} ifelse putinterval
+        /j j 5 add def
+    } if
     /barcode barcode 0 j getinterval def
 
     % Get the result of encoding with code128
