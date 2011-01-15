@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-01-15
+% Barcode Writer in Pure PostScript - Version 2011-01-15-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2010 Terry Burton
@@ -12833,6 +12833,222 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER ean13composite--
+
+% --BEGIN ENCODER ean8composite--
+% --REQUIRES ean8 gs1-cc--
+% --SUGGESTS ean5 ean2--
+% --DESC: EAN-8 Composite
+% --EXAM: 12345670|(21)A12345678
+% --EXOP: includetext
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /ean8 dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/ean8composite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    % Define the separator
+    /sep <<
+        /ren //renmatrix
+        /pixs [
+            0 1  65 {0} repeat  1 0
+            1 0  65 {0} repeat  0 1
+            0 1  65 {0} repeat  1 0
+        ] 
+        /pixx 69
+        /pixy 3
+        /height 6 72 div
+        /width 69 72 div
+        /opt options
+    >> def
+
+    % Get the result of encoding with ean8 and gs1-cc
+    options (lintype) (ean8) put
+    options (inkspread) (0) put
+    linear options //ean8 exec
+    -1 72 rmoveto sep //renmatrix exec
+    -3 6 rmoveto comp options //gs1-cc exec
+
+    end
+
+} bind def
+/ean8composite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER ean8composite--
+
+% --BEGIN ENCODER upcacomposite--
+% --REQUIRES upca micropdf417 pdf417 gs1-cc--
+% --SUGGESTS ean5 ean2--
+% --DESC: UPC-A Composite
+% --EXAM: 01600033610|(99)1234-abcd
+% --EXOP: includetext
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /upca dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/upcacomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    % Define the separator
+    /sep <<
+        /ren //renmatrix
+        /pixs [
+            0 1  93 {0} repeat  1 0
+            1 0  93 {0} repeat  0 1
+            0 1  93 {0} repeat  1 0
+        ] 
+        /pixx 97
+        /pixy 3
+        /height 6 72 div
+        /width 97 72 div
+        /opt options
+    >> def
+
+    % Get the result of encoding with upca and gs1-cc
+    options (lintype) (ean13) put
+    options (inkspread) (0) put
+    linear options //upca exec
+    -1 72 rmoveto sep //renmatrix exec
+    -2 6 rmoveto comp options //gs1-cc exec
+
+    end
+
+} bind def
+/upcacomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER upcacomposite--
+
+% --BEGIN ENCODER upcecomposite--
+% --REQUIRES upce micropdf417 pdf417 gs1-cc--
+% --SUGGESTS ean5 ean2--
+% --DESC: UPC-E Composite
+% --EXAM: 121230|(15)021231
+% --EXOP: includetext
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /upce dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/upcecomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    % Define the separator
+    /sep <<
+        /ren //renmatrix
+        /pixs [
+            0 1  49 {0} repeat  1 0
+            1 0  49 {0} repeat  0 1
+            0 1  49 {0} repeat  1 0
+        ] 
+        /pixx 53
+        /pixy 3
+        /height 6 72 div
+        /width 53 72 div
+        /opt options
+    >> def
+
+    % Get the result of encoding with upca and gs1-cc
+    options (lintype) (upce) put
+    options (inkspread) (0) put
+    linear options //upce exec
+    -1 72 rmoveto sep //renmatrix exec
+    -2 6 rmoveto comp options //gs1-cc exec
+
+    end
+
+} bind def
+/upcecomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER upcecomposite--
 
 % --BEGIN ENCODER hibccode39--
 % --REQUIRES code39--
