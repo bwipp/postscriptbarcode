@@ -13050,6 +13050,85 @@ end
 /setpacking where {pop setpacking} if
 % --END ENCODER upcecomposite--
 
+% --BEGIN ENCODER databarlimitedcomposite--
+% --REQUIRES databarlimited micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Limited Composite
+% --EXAM: (01)03512345678907|(21)abcdefghijklmnopqrstuv
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databarlimited dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarlimitedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databarlimited) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarlimited exec
+    dup (sbs) get /linsbs exch def
+    //renlinear exec
+
+    % Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    sep 0 [0 0 0] putinterval
+    sep 69 [0 0 0 0] putinterval
+    0 10 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx 73
+        /pixy 1
+        /height 1 72 div
+        /width 73 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    -10 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databarlimitedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarlimitedcomposite--
+
 % --BEGIN ENCODER hibccode39--
 % --REQUIRES code39--
 % --DESC: HIBC Code 39
