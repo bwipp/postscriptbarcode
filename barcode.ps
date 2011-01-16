@@ -12773,6 +12773,7 @@ end
 2 dict
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean13composite {
@@ -12804,27 +12805,30 @@ begin
         pop
     } ifelse
 
-    % Define the separator
-    /sep <<
+    options (lintype) (ean13) put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //ean13 exec //renlinear exec
+
+    % Plot the separator
+    -1 72 rmoveto <<
         /ren //renmatrix
         /pixs [
             0 1  93 {0} repeat  1 0
             1 0  93 {0} repeat  0 1
             0 1  93 {0} repeat  1 0
-        ] 
+        ]
         /pixx 97
         /pixy 3
         /height 6 72 div
         /width 97 72 div
         /opt options
-    >> def
+    >> //renmatrix exec
 
-    % Get the result of encoding with ean13 and gs1-cc
-    options (lintype) (ean13) put
-    options (inkspread) (0) put
-    linear options //ean13 exec
-    -1 72 rmoveto sep //renmatrix exec
-    -2 6 rmoveto comp options //gs1-cc exec
+    % Plot the 2D part
+    -2 6 rmoveto comp options //gs1-cc exec //renmatrix exec
 
     end
 
@@ -12845,6 +12849,7 @@ end
 2 dict
 dup /ean8 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean8composite {
@@ -12876,27 +12881,33 @@ begin
         pop
     } ifelse
 
-    % Define the separator
-    /sep <<
+    % Get the result of encoding with ean8 and gs1-cc
+    options (lintype) (ean8) put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //ean8 exec //renlinear exec
+
+    % Plot the separator
+    -1 72 rmoveto <<
         /ren //renmatrix
         /pixs [
             0 1  65 {0} repeat  1 0
             1 0  65 {0} repeat  0 1
             0 1  65 {0} repeat  1 0
-        ] 
+        ]
         /pixx 69
         /pixy 3
         /height 6 72 div
         /width 69 72 div
         /opt options
-    >> def
+    >> //renmatrix exec
 
-    % Get the result of encoding with ean8 and gs1-cc
-    options (lintype) (ean8) put
-    options (inkspread) (0) put
-    linear options //ean8 exec
-    -1 72 rmoveto sep //renmatrix exec
-    -3 6 rmoveto comp options //gs1-cc exec
+    % Plot the 2D part
+    comp options //gs1-cc exec
+    dup (pixx) get 69 exch sub 6 rmoveto
+    //renmatrix exec
 
     end
 
@@ -12917,6 +12928,7 @@ end
 2 dict
 dup /upca dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /upcacomposite {
@@ -12948,27 +12960,30 @@ begin
         pop
     } ifelse
 
-    % Define the separator
-    /sep <<
+    options (lintype) (ean13) put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //upca exec //renlinear exec
+
+    % Plot the separator
+    -1 72 rmoveto <<
         /ren //renmatrix
         /pixs [
             0 1  93 {0} repeat  1 0
             1 0  93 {0} repeat  0 1
             0 1  93 {0} repeat  1 0
-        ] 
+        ]
         /pixx 97
         /pixy 3
         /height 6 72 div
         /width 97 72 div
         /opt options
-    >> def
+    >> //renmatrix exec
 
-    % Get the result of encoding with upca and gs1-cc
-    options (lintype) (ean13) put
-    options (inkspread) (0) put
-    linear options //upca exec
-    -1 72 rmoveto sep //renmatrix exec
-    -2 6 rmoveto comp options //gs1-cc exec
+    % Plot the 2D part
+    -2 6 rmoveto comp options //gs1-cc exec //renmatrix exec
 
     end
 
@@ -12989,6 +13004,7 @@ end
 2 dict
 dup /upce dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /upcecomposite {
@@ -13035,12 +13051,30 @@ begin
         /opt options
     >> def
 
-    % Get the result of encoding with upca and gs1-cc
     options (lintype) (upce) put
     options (inkspread) (0) put
-    linear options //upce exec
-    -1 72 rmoveto sep //renmatrix exec
-    -2 6 rmoveto comp options //gs1-cc exec
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //upce exec //renlinear exec
+
+    % Plot the separator
+    -1 72 rmoveto <<
+        /ren //renmatrix
+        /pixs [
+            0 1  49 {0} repeat  1 0
+            1 0  49 {0} repeat  0 1
+            0 1  49 {0} repeat  1 0
+        ]
+        /pixx 53
+        /pixy 3
+        /height 6 72 div
+        /width 53 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    -2 6 rmoveto comp options //gs1-cc exec //renmatrix exec
 
     end
 
@@ -13054,8 +13088,8 @@ end
 % --REQUIRES databarlimited micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Limited Composite
 % --EXAM: (01)03512345678907|(21)abcdefghijklmnopqrstuv
-% --EXOP: includetext
-% --RNDR: renmatrix
+% --EXOP:
+% --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databarlimited dup /uk.co.terryburton.bwipp findresource put
@@ -13119,7 +13153,9 @@ begin
     >> //renmatrix exec
 
     % Plot the 2D part
-    -10 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+    comp options //gs1-cc exec
+    dup (pixx) get 72 exch sub 1 rmoveto
+    //renmatrix exec
 
     end
 
