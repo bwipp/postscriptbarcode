@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-01-16
+% Barcode Writer in Pure PostScript - Version 2011-01-20
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -12126,14 +12126,13 @@ dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1-cc {
-
+    
     20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
     /dontdraw false def
-    /height 34 72 div def
     /ccversion (a) def
     /cccolumns -1 def
     /lintype () def
@@ -12150,7 +12149,6 @@ begin
     } if
     options {def} forall
  
-    /height height cvr def
     /cccolumns cccolumns cvi def
     /linwidth linwidth cvi def
 
@@ -12161,7 +12159,8 @@ begin
             /upca                   4
             /ean8                   3
             /upce                   2
-            /gs1-128                4
+            /gs1-128
+                ccversion (c) ne {4} {linwidth 62 sub 17 idiv} ifelse
             /databaromni            4
             /databarstacked         2
             /databarstackedomni     2
@@ -12315,7 +12314,7 @@ begin
         lalphanumeric (00100)
     >> def
 
-    method (10) eq {
+    method (10) eq {  % TODO: fixme
         ais 0 get (11) eq ais 0 get (17) eq or {
             aival ais 0 get get
             dup 0 2 getinterval cvi 384 mul exch
@@ -12513,11 +12512,15 @@ begin
         dup -1 eq {  % Upgrade CC-A to CC-B or CC-B to CC-C to fit
             pop
             ccversion (a) eq {
-                (b)
+                /ccversion (b) def
             } {
-                ccversion (b) eq lintype (gs1-128) eq and {(c)} {-1} ifelse
+                ccversion (b) eq lintype (gs1-128) eq and {
+                    /ccversion (c) def
+                    /cccolumns linwidth 62 sub 17 idiv def
+                } {
+                    /ccversion -1 def
+                } ifelse
             } ifelse 
-            /ccversion exch def
             used rembits
         } if
     } bind def
@@ -12767,7 +12770,7 @@ end
 % --BEGIN ENCODER ean13composite--
 % --REQUIRES ean13 micropdf417 pdf417 gs1-cc--
 % --SUGGESTS ean5 ean2--
-% --DESC: EAN-13 Composite
+% --DESC: EAN-13 Composite (beta)
 % --EXAM: 331234567890|(99)1234-abcd
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
@@ -12843,7 +12846,7 @@ end
 % --BEGIN ENCODER ean8composite--
 % --REQUIRES ean8 micropdf417 pdf417 gs1-cc--
 % --SUGGESTS ean5 ean2--
-% --DESC: EAN-8 Composite
+% --DESC: EAN-8 Composite (beta)
 % --EXAM: 12345670|(21)A12345678
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
@@ -12922,7 +12925,7 @@ end
 % --BEGIN ENCODER upcacomposite--
 % --REQUIRES upca micropdf417 pdf417 gs1-cc--
 % --SUGGESTS ean5 ean2--
-% --DESC: UPC-A Composite
+% --DESC: UPC-A Composite (beta)
 % --EXAM: 01600033610|(99)1234-abcd
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
@@ -12998,7 +13001,7 @@ end
 % --BEGIN ENCODER upcecomposite--
 % --REQUIRES upce micropdf417 pdf417 gs1-cc--
 % --SUGGESTS ean5 ean2--
-% --DESC: UPC-E Composite
+% --DESC: UPC-E Composite (beta)
 % --EXAM: 0121230|(15)021231
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
@@ -13086,11 +13089,321 @@ end
 /setpacking where {pop setpacking} if
 % --END ENCODER upcecomposite--
 
+% --BEGIN ENCODER databaromnicomposite--
+% --REQUIRES databaromni micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Omnidirectional Composite (beta)
+% --EXAM: (01)03612345678904|(11)990102
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databaromni dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databaromnicomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databaromni) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databaromni exec
+    dup (sbs) get /linsbs exch def
+    //renlinear exec
+
+    % TODO: Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 33 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    -5 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databaromnicomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databaromnicomposite--
+
+% --BEGIN ENCODER databarstackedcomposite--
+% --REQUIRES databarstacked micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Stacked Composite (beta)
+% --EXAM: (01)03412345678900|(17)010200
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databarstacked dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarstackedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databarstacked) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarstacked exec
+    dup (pixs) get 0 2 index (pixx) get getinterval /sep exch def
+    //renmatrix exec
+
+    % TODO: Plot the separator
+    /sep [ sep {1 exch sub} forall ] def
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 13 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    1 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databarstackedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarstackedcomposite--
+
+% --BEGIN ENCODER databarstackedomnicomposite--
+% --REQUIRES databarstackedomni micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Stacked Omnidirectional Composite (beta)
+% --EXAM: (01)03612345678904|(11)990102
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databarstackedomni dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarstackedomnicomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databarstackedomni) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarstackedomni exec
+    dup (pixs) get 0 2 index (pixx) get getinterval /sep exch def
+    //renmatrix exec
+
+    % TODO: Plot the separator
+    /sep [ sep {1 exch sub} forall ] def
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 69 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    1 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databarstackedomnicomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarstackedomnicomposite--
+
+% --BEGIN ENCODER databartruncatedcomposite--
+% --REQUIRES databaromni micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Truncated Composite (beta)
+% --EXAM: (01)03612345678904|(11)990102
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databartruncated dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databartruncatedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databartruncated) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databartruncated exec
+    dup (sbs) get /linsbs exch def
+    //renlinear exec
+
+    % TODO: Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 13 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    -5 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databartruncatedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databartruncatedcomposite--
+
 % --BEGIN ENCODER databarlimitedcomposite--
 % --REQUIRES databarlimited micropdf417 pdf417 gs1-cc--
-% --DESC: GS1 DataBar Limited Composite
+% --DESC: GS1 DataBar Limited Composite (beta)
 % --EXAM: (01)03512345678907|(21)abcdefghijklmnopqrstuv
-% --EXOP:
+% --EXOP: includetext
 % --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
@@ -13155,8 +13468,8 @@ begin
     >> //renmatrix exec
 
     % Plot the 2D part
-    comp options //gs1-cc exec
-    dup (pixx) get 72 exch sub 1 rmoveto
+    comp options //gs1-cc exec 
+    dup (pixx) get 72 exch sub 1 rmoveto 
     //renmatrix exec
 
     end
@@ -13166,6 +13479,263 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER databarlimitedcomposite--
+
+% --BEGIN ENCODER databarexpandedcomposite--
+% --REQUIRES databarexpanded micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Expanded Composite (beta)
+% --EXAM: (01)03612345678904|(11)990102
+% --EXOP: includetext
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databarexpanded dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarexpandedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databarexpanded) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarexpanded exec
+    dup (sbs) get /linsbs exch def
+    //renlinear exec
+
+    % TODO: Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 34 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    1 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databarexpandedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarexpandedcomposite--
+
+% --BEGIN ENCODER databarexpandedstackedcomposite--
+% --REQUIRES databarexpandedstacked micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Expanded Stacked Composite (beta)
+% --EXAM: (01)03612345678904|(11)990102
+% --EXOP: includetext
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarexpandedstackedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (lintype) (databarexpandedstacked) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarexpandedstacked exec
+    dup (pixs) get 0 2 index (pixx) get getinterval /row1 exch def
+    dup (pixy) get /linheight exch def
+    //renmatrix exec
+
+    % TODO: Plot the separator
+    /sep row1 def
+    /sep [ sep {1 exch sub} forall ] def
+    sep 0 [0 0 0] putinterval
+    sep sep length 4 sub [0 0 0 0] putinterval
+    0 linheight rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    row1 0 get 0 eq {2} {0} ifelse 1 rmoveto
+    comp options //gs1-cc exec //renmatrix exec
+
+    end
+
+} bind def
+/databarexpandedstackedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarexpandedstackedcomposite--
+
+% --BEGIN ENCODER gs1-128composite--
+% --REQUIRES code128 gs1-128 micropdf417 pdf417 gs1-cc--
+% --DESC: GS1-128 Composite (beta)
+% --EXAM: (00)030123456789012340|(02)13012345678909(37)24(10)1234567ABCDEFG
+% --EXOP: ccversion=c
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /gs1-128 dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1-128composite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Dummy plot of linear part with CC-A to get width
+    options (linkagea) true put
+    linear << options {} forall >> //gs1-128 exec
+    (sbs) get 0 exch {add} forall /linwidth exch def
+
+    % Create 2D part and determine type
+    options (lintype) (gs1-128) put
+    options (linwidth) linwidth put
+    comp options //gs1-cc exec /compsym exch def
+    compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def 
+
+    % Plot linear part
+    linktype (a) eq {
+        options (linkagea) true put
+        options (linkagec) false put
+    } {
+        options (linkagea) false put
+        options (linkagec) true put
+    } ifelse
+    linear << options {} forall >> //gs1-128 exec
+    dup (sbs) get /linsbs exch def
+    //renlinear exec
+
+    % Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    0 36 rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    linktype (a) eq {
+        0 1 rmoveto  % TODO
+    } {
+        -7 1 rmoveto 
+    } ifelse
+
+    compsym //renmatrix exec
+
+    end
+
+} bind def
+/gs1-128composite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1-128composite--
 
 % --BEGIN ENCODER hibccode39--
 % --REQUIRES code39--
