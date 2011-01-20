@@ -4602,7 +4602,7 @@ begin
     /segments segments cvi def
 
     segments -1 eq {
-        /segments format (expandedstacked) eq {2} {22} ifelse def
+        /segments format (expandedstacked) eq {4} {22} ifelse def
     } if
 
     % Expand ordinals of the form ^NNN to ASCII
@@ -12115,7 +12115,7 @@ end
 
 % --BEGIN ENCODER gs1-cc--
 % --REQUIRES micropdf417 pdf417--
-% --DESC: GS1 Composite 2D Component
+% --DESC: GS1 Composite 2D Component (beta)
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP: ccversion=b cccolumns=4
 % --RNDR: renmatrix
@@ -13094,7 +13094,7 @@ end
 % --DESC: GS1 DataBar Omnidirectional Composite (beta)
 % --EXAM: (01)03612345678904|(11)990102
 % --EXOP: includetext
-% --RNDR: renmatrix
+% --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databaromni dup /uk.co.terryburton.bwipp findresource put
@@ -13169,11 +13169,11 @@ end
 % --END ENCODER databaromnicomposite--
 
 % --BEGIN ENCODER databarstackedcomposite--
-% --REQUIRES databarstacked micropdf417 pdf417 gs1-cc--
+% --REQUIRES databaromni databarstacked micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Stacked Composite (beta)
 % --EXAM: (01)03412345678900|(17)010200
 % --EXOP: includetext
-% --RNDR: renmatrix
+% --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databarstacked dup /uk.co.terryburton.bwipp findresource put
@@ -13245,11 +13245,11 @@ end
 % --END ENCODER databarstackedcomposite--
 
 % --BEGIN ENCODER databarstackedomnicomposite--
-% --REQUIRES databarstackedomni micropdf417 pdf417 gs1-cc--
+% --REQUIRES databaromni databarstackedomni micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Stacked Omnidirectional Composite (beta)
 % --EXAM: (01)03612345678904|(11)990102
 % --EXOP: includetext
-% --RNDR: renmatrix
+% --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databarstackedomni dup /uk.co.terryburton.bwipp findresource put
@@ -13321,11 +13321,11 @@ end
 % --END ENCODER databarstackedomnicomposite--
 
 % --BEGIN ENCODER databartruncatedcomposite--
-% --REQUIRES databaromni micropdf417 pdf417 gs1-cc--
+% --REQUIRES databaromni databartruncated micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Truncated Composite (beta)
 % --EXAM: (01)03612345678904|(11)990102
 % --EXOP: includetext
-% --RNDR: renmatrix
+% --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databartruncated dup /uk.co.terryburton.bwipp findresource put
@@ -13483,7 +13483,7 @@ end
 % --BEGIN ENCODER databarexpandedcomposite--
 % --REQUIRES databarexpanded micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Expanded Composite (beta)
-% --EXAM: (01)03612345678904|(11)990102
+% --EXAM: (01)93712345678904(3103)001234|(91)1A2B3C4D5E
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
@@ -13560,11 +13560,11 @@ end
 % --END ENCODER databarexpandedcomposite--
 
 % --BEGIN ENCODER databarexpandedstackedcomposite--
-% --REQUIRES databarexpandedstacked micropdf417 pdf417 gs1-cc--
+% --REQUIRES databarexpanded databarexpandedstacked micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Expanded Stacked Composite (beta)
 % --EXAM: (01)03612345678904|(11)990102
 % --EXOP: includetext
-% --RNDR: renmatrix
+% --RNDR: renmatrix renlinear
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
