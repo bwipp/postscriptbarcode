@@ -12333,13 +12333,14 @@ begin
         ais length 0 ne {
             ais 0 get (10) eq {
                 /gpf [ aival (10) get {} forall ] def
-                ais length 1 gt {/gpf [ gpf aload pop fnc1 ] def} if
+                ais length 1 gt {/gpf [ gpf aload pop fnc1 ] def} if  % TODO: check
                 /ais ais 1 ais length 1 sub getinterval def
             } {
-                /gpf [fnc1] def
+                /gpf [fnc1] def  % TODO: check
             } ifelse
         } {
-            /gpf [fnc1] def
+            /cdf [ cdf aload pop 0 0 0 0 0 1 1 1 1 ] def
+            /gpf [] def
         } ifelse
         /mode (numeric) def
     } if
