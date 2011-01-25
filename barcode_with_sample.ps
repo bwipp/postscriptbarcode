@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-01-22
+% Barcode Writer in Pure PostScript - Version 2011-01-25
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -4113,7 +4113,9 @@ begin
                 } ifelse
                 sep3 exch i exch put
             } for
-            checksum 9 mod 3 eq {  % Right shifted module for value 3 finder
+            /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+            true 0 1 12 {dup bot exch 19 add get exch f3 exch get eq and} for {
+                % Right shifted module for value 3 finder
                 sep3 19 [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
             } if
             /pixs [
@@ -13158,15 +13160,39 @@ begin
     % Plot the linear part
     linear options //databaromni exec
     dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
     //renlinear exec
 
-    % TODO: Plot the separator
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+            % Right shifted module for value 3 finder
+            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+        } if
+    } bind def
     mark
-    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
-    counttomark 1 sub array astore /sep exch def pop pop
+    0 linsbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
+    counttomark 1 sub array astore /bot exch def pop pop
+    /sep [ bot {1 exch sub} forall ] def
     sep 0 [0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
-    0 33 rmoveto <<
+    18 sepfinder 64 sepfinder
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13239,14 +13265,37 @@ begin
 
     % Plot the linear part
     linear options //databarstacked exec
-    dup (pixs) get 0 2 index (pixx) get getinterval /sep exch def
+    dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
+    dup (pixy) get /linheight exch def
     //renmatrix exec
 
-    % TODO: Plot the separator
-    /sep [ sep {1 exch sub} forall ] def
-    sep 0 [0 0 0] putinterval
-    sep sep length 4 sub [0 0 0 0] putinterval
-    0 13 rmoveto <<
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+            % Right shifted module for value 3 finder
+            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+        } if
+    } bind def
+    /sep [ bot {1 exch sub} forall ] def
+    sep 0 [ 0 0 0 0 ] putinterval
+    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    18 sepfinder
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13319,14 +13368,37 @@ begin
 
     % Plot the linear part
     linear options //databarstackedomni exec
-    dup (pixs) get 0 2 index (pixx) get getinterval /sep exch def
+    dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
+    dup (pixy) get /linheight exch def
     //renmatrix exec
 
-    % TODO: Plot the separator
-    /sep [ sep {1 exch sub} forall ] def
-    sep 0 [0 0 0] putinterval
-    sep sep length 4 sub [0 0 0 0] putinterval
-    0 69 rmoveto <<
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+            % Right shifted module for value 3 finder
+            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+        } if
+    } bind def
+    /sep [ bot {1 exch sub} forall ] def
+    sep 0 [ 0 0 0 ] putinterval
+    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    18 sepfinder
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13401,15 +13473,39 @@ begin
     % Plot the linear part
     linear options //databartruncated exec
     dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
     //renlinear exec
 
-    % TODO: Plot the separator
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+            % Right shifted module for value 3 finder
+            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+        } if
+    } bind def
     mark
-    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
-    counttomark 1 sub array astore /sep exch def pop pop
+    0 linsbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
+    counttomark 1 sub array astore /bot exch def pop pop
+    /sep [ bot {1 exch sub} forall ] def
     sep 0 [0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
-    0 13 rmoveto <<
+    18 sepfinder 64 sepfinder
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13484,6 +13580,7 @@ begin
     % Plot the linear part
     linear options //databarlimited exec
     dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
     //renlinear exec
 
     % Plot the separator
@@ -13492,7 +13589,7 @@ begin
     counttomark 1 sub array astore /sep exch def pop pop
     sep 0 [0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
-    0 10 rmoveto <<
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13751,13 +13848,14 @@ begin
     } ifelse
     linear << options {} forall >> //gs1-128 exec
     dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
     //renlinear exec
 
     % Plot the separator
     mark
     1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
     counttomark 1 sub array astore /sep exch def pop pop
-    0 36 rmoveto <<
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
