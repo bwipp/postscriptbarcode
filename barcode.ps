@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-01-25
+% Barcode Writer in Pure PostScript - Version 2011-01-25-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -13666,15 +13666,37 @@ begin
     % Plot the linear part
     linear options //databarexpanded exec
     dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
     //renlinear exec
 
-    % TODO: Plot the separator
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+    } bind def
     mark
-    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
-    counttomark 1 sub array astore /sep exch def pop pop
+    0 linsbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
+    counttomark 1 sub array astore /bot exch def pop pop
+    /sep [ bot {1 exch sub} forall ] def
     sep 0 [0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
-    0 34 rmoveto <<
+    [  % Finder pattern module positions
+        18 98 bot length 13 sub {} for
+        69 98 bot length 13 sub {} for
+    ] {sepfinder} forall 
+    0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
         /pixx sep length
@@ -13747,15 +13769,34 @@ begin
 
     % Plot the linear part
     linear options //databarexpandedstacked exec
-    dup (pixs) get 0 2 index (pixx) get getinterval /row1 exch def
+    dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
     dup (pixy) get /linheight exch def
     //renmatrix exec
 
-    % TODO: Plot the separator
-    /sep row1 def
-    /sep [ sep {1 exch sub} forall ] def
-    sep 0 [0 0 0] putinterval
-    sep sep length 4 sub [0 0 0 0] putinterval
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+    } bind def
+    /sep [ bot {1 exch sub} forall ] def
+    sep 0 [ 0 0 0 ] putinterval
+    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    [  % Finder pattern module positions
+        19 98 bot length 13 sub {} for
+        70 98 bot length 13 sub {} for
+    ] {sepfinder} forall 
     0 linheight rmoveto <<
         /ren //renmatrix
         /pixs sep
@@ -13767,7 +13808,7 @@ begin
     >> //renmatrix exec
 
     % Plot the 2D part
-    row1 0 get 0 eq {2} {0} ifelse 1 rmoveto
+    bot 0 get 0 eq {2} {0} ifelse 1 rmoveto
     comp options //gs1-cc exec //renmatrix exec
 
     grestore
