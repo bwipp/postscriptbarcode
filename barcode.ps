@@ -12262,7 +12262,9 @@ begin
     } loop
 
     % Extend cws to ncws codewords by addition of pad characters
-    /cws [ cws aload pop dcws cws length sub {129} repeat ] def
+    stype not {
+        /cws [ cws aload pop dcws cws length sub {129} repeat ] def
+    } if
 
     % De-interleave the codewords into blocks
     /cwbs rsbl array def  % Array of data codeword blocks
