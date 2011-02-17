@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-02-13
+% Barcode Writer in Pure PostScript - Version 2011-02-17
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -2150,13 +2150,16 @@ begin
                 /cset (setc) def
                 exit
             } if
-            nchars msglen lt {
-                msg nchars get anotb {
-                    sta enca
-                    /cset (seta) def
-                    exit
-                } if
-            } if
+            /apos 99999 def /bpos 99999 def 
+            msglen 1 sub -1 0 {  % First a-only and b-only characters 
+                /pos exch def 
+                msg pos get dup anotb {/apos pos def} if bnota {/bpos pos def} if 
+            } for 
+            apos bpos lt { 
+                sta enca
+                /cset (seta) def
+                exit 
+            } if 
             stb enca
             /cset (setb) def
             exit
