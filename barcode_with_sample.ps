@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-02-17
+% Barcode Writer in Pure PostScript - Version 2011-02-19
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -8339,6 +8339,684 @@ begin
 end
 /setpacking where {pop setpacking} if
 % --END ENCODER posicode--
+
+% --BEGIN ENCODER code16k--
+% --DESC: Code 16K
+% --EXAM: ab0123456789
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/code16k {
+
+    20 dict begin
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+    /mode -1 def
+    /pos -1 def
+    /rows 0 def
+    /rowheight 8 def
+    /sepheight 1 def
+    /encoding (auto) def
+    /raw false def
+    /parse false def
+    /parsefnc false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /mode mode cvi def
+    /pos pos cvi def
+    /rows rows cvi def
+    /rowheight rowheight cvi def
+    /sepheight sepheight cvi def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    /barlen barcode length def
+
+    % Convert input into bytes accounting for FNC characters 
+    /swa  -1 def  /swb  -2 def  /swc  -3 def 
+    /sa1  -4 def  /sb1  -5 def  /sc1  -6 def 
+    /sa2  -7 def  /sb2  -8 def  /sc2  -9 def 
+    /pad -10 def  /sb3 -11 def  /sc3 -12 def
+    /fn1 -13 def  /fn2 -14 def  /fn3 -15 def  /fn4 -16 def
+
+    % Character maps for each state
+    /charmaps [
+      %  A    B    C         A    B    C         A    B    C
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2 
+      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
+      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
+      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
+      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
+      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
+      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
+      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
+      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
+      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
+      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
+      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
+      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
+      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
+      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
+      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
+      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
+      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
+      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
+      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
+      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
+      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
+      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
+      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
+      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
+      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
+      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
+      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
+      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
+      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
+      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
+      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
+      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sb1  sa1  (98) ]  % 96-98
+      [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
+      [ fn1  fn1  fn1  ]  [ pad  pad  pad  ]  [ sb2  sa2  sb1  ]  % 102-104
+      [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]                      % 105-106
+    ] def 
+    
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 109 dict 109 dict 109 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 2 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put 
+        } for
+    } for
+    /seta charvals 0 get def
+    /setb charvals 1 get def
+    /setc charvals 2 get def
+
+    raw {/encoding (raw) def} if
+
+    encoding (raw) eq {
+        /cws barlen array def
+        /i 0 def /j 0 def
+        { % loop
+            i barlen eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            cws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /cws cws 0 j getinterval def
+        /text () def
+    } if
+
+    encoding (auto) eq { 
+
+        /fncvals <<
+            (FNC1) fn1
+            (FNC2) fn2
+            (FNC3) fn3
+            (FNC4) fn4
+        >> def
+        /msg barlen array def
+        /i 0 def /j 0 def {
+            i barlen eq {exit} if
+            /char barcode i get def
+            parsefnc char 94 eq and i barlen 4 sub lt and {
+                barcode i 1 add get 94 ne {
+                    /char fncvals barcode i 1 add 4 getinterval get def
+                    /i i 4 add def
+                } {
+                    /i i 1 add def
+                } ifelse
+            } if
+            msg j char put
+            /i i 1 add def
+            /j j 1 add def
+        } loop
+        /msg msg 0 j getinterval def
+        /msglen msg length def
+    
+        % Determine digit runlength and characters from given position
+        /numsscr {
+            /n 0 def /s 0 def
+            /p exch def {
+                p msglen ge {exit} if
+                msg p get
+                dup setc exch known not {pop exit} if
+                dup 48 lt exch 57 gt or {
+                    % Non-digit in odd position of run like two digits
+                    s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
+                } if
+                /n n 1 add def
+                /s s 1 add def
+                /p p 1 add def
+            } loop
+            n s
+        } bind def
+
+        % Encoding for each alphabet
+        /enca {
+            seta exch get cws exch j exch put
+            /j j 1 add def
+        } bind def
+        /encb {
+            setb exch get cws exch j exch put
+            /j j 1 add def
+        } bind def
+        /encc {
+            dup type /arraytype ne {
+                setc exch get cws exch j exch put
+                /j j 1 add def
+            } {
+                /in exch def
+                /k 0 def {
+                    k in length eq {exit} if
+                    in k get dup 48 lt exch 57 gt or {
+                        setc in k get get
+                        /k k 1 add def
+                    } {
+                        in k get 48 sub 10 mul in k 1 add get 48 sub add
+                        /k k 2 add def
+                    } ifelse
+                    cws exch j exch put
+                    /j j 1 add def
+                } loop
+            } ifelse
+        } bind def
+
+        % Character exclusively in either alphabet A or B
+        /anotb {dup seta exch known exch setb exch known not and} bind def
+        /bnota {dup setb exch known exch seta exch known not and} bind def
+
+        % Pre-compute relative position of next anotb and next bnota characters
+        /nextanotb [ msg length {0} repeat 9999 ] def
+        /nextbnota [ msg length {0} repeat 9999 ] def
+        msg length 1 sub -1 0 {
+            /i exch def
+            msg i get anotb {
+                nextanotb i 0 put
+            } {
+                nextanotb i nextanotb i 1 add get 1 add put
+            } ifelse
+            msg i get bnota {
+                nextbnota i 0 put
+            } {
+                nextbnota i nextbnota i 1 add get 1 add put
+            } ifelse
+        } for
+
+        % Does a-only come before b-only after given position and vice versa
+        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
+        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
+ 
+        /cws barcode length 2 mul 3 add array def
+       
+        % Select mode and encode first characters
+        /i 0 def /j 0 def
+        {  % common exit
+            % empty => b
+            msglen 0 eq {
+                /cset (setb) def
+                /mode 1 def
+                exit
+            } if
+            % FNC1 . 2+ nums => c fnc1
+            msglen 2 ge {
+                msg 0 get fn1 eq 1 numsscr exch pop 2 ge and {
+                    /cset (setc) def
+                    /mode 4 def
+                    /i 1 def
+                    exit
+                } if
+            } if
+            % FNC1 => b fnc1
+            msg 0 get fn1 eq {
+                /cset (setb) def
+                /mode 3 def
+                /i 1 def
+                exit
+            } if
+            msglen 2 ge {
+                % 2+ even nums => c
+                0 numsscr exch pop dup 2 ge exch 2 mod 0 eq and {
+                    /cset (setc) def
+                    /mode 2 def
+                    exit
+                } if
+                % 3+ odd nums => c sb1 encode
+                0 numsscr exch pop dup 3 ge exch 2 mod 1 eq and {
+                    msg 0 get encb
+                    /cset (setc) def
+                    /mode 5 def
+                    /i 1 def
+                    exit
+                } if
+                % b . 2+ even nums => c sb1 encode
+                setb msg 0 get known
+                1 numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
+                    msg 0 get encb
+                    /cset (setc) def
+                    /mode 5 def
+                    /i 1 def
+                    exit
+                } if
+                % b . 3+ odd nums => c sb2 encode 
+                setb msg 0 get known
+                1 numsscr exch pop dup 3 ge exch 2 mod 1 eq and and {
+                    msg 0 get encb
+                    msg 1 get encb
+                    /cset (setc) def
+                    /mode 6 def
+                    /i 2 def
+                    exit
+                } if
+                % b . b . 2+ even nums => c sb2 encode
+                setb msg 0 get known
+                setb msg 1 get known and
+                2 numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
+                    msg 0 get encb
+                    msg 1 get encb
+                    /cset (setc) def
+                    /mode 6 def
+                    /i 2 def
+                    exit
+                } if
+            } if
+            % anotb before bnota => a
+            0 abeforeb {
+                /cset (seta) def
+                /mode 0 def
+                exit
+            } if
+            % otherwise => b
+            /cset (setb) def
+            /mode 1 def
+            exit
+        } loop
+
+        {  % Encode remainder
+            i msglen eq {exit} if
+        
+            i numsscr /nums exch def /nchars exch def
+        
+            % Determine switches and shifts
+            {  % common exit
+                cset (seta) eq {
+                    % bnota . anotb before bnota => sb1 encode
+                    i msglen 1 sub lt {
+                        msg i get bnota
+                        i 1 add abeforeb and {
+                            sb1 enca
+                            msg i get encb
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    % bnota . bnota . anotb before bnota => sb2 encode
+                    i msglen 2 sub lt {
+                        msg i get bnota
+                        msg i 1 add get bnota and
+                        i 2 add abeforeb and {
+                            sb2 enca
+                            msg i get encb
+                            msg i 1 add get encb
+                            /i i 2 add def
+                            exit
+                        } if
+                    } if
+                    % bnota => swb
+                    msg i get bnota {
+                        swb enca
+                        /cset (setb) def
+                        exit
+                    } if
+                    % 4 nums . a => sc2 encode
+                    i msglen 4 sub lt {
+                        nums 4 eq 
+                        seta msg i 4 add get known and {
+                            sc2 enca
+                            msg i nchars getinterval encc
+                            /i i nchars add def
+                            exit
+                        } if
+                    } if
+                    % 6 nums . a => sc3 encode
+                    i msglen 6 sub lt { 
+                        nums 6 eq 
+                        seta msg i 6 add get known and {
+                            sc3 enca
+                            msg i nchars getinterval encc 
+                            /i i nchars add def
+                            exit
+                        } if
+                    } if
+                    % 4+ even nums => swc
+                    nums 4 ge nums 2 mod 0 eq and {
+                        swc enca
+                        /cset (setc) def
+                        exit
+                    } if
+                    % otherwise => encode
+                    msg i get enca
+                    /i i 1 add def
+                    exit
+                } if
+                cset (setb) eq {
+                    % anotb . bnota before anotb => sa1 encode
+                    i msglen 1 sub lt {
+                        msg i get anotb
+                        i 1 add bbeforea and {
+                            sa1 encb
+                            msg i get enca
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    % anotb . anotb . bnota before anotb => sa2 encode
+                    i msglen 2 sub lt {
+                        msg i get anotb 
+                        msg i 1 add get anotb and
+                        i 2 add bbeforea and {
+                            sa2 encb
+                            msg i get enca
+                            msg i 1 add get enca
+                            /i i 2 add def
+                            exit
+                        } if
+                    } if
+                    % anotb => swa
+                    msg i get anotb {
+                        swa encb
+                        /cset (seta) def
+                        exit
+                    } if
+                    % 4 nums . b => sc2 encode
+                    i msglen 4 sub lt {
+                        nums 4 eq
+                        setb msg i 4 add get known and {
+                            sc2 encb
+                            msg i nchars getinterval encc
+                            /i i nchars add def
+                            exit
+                        } if
+                    } if
+                    % 6 nums . b => sc3 encode
+                    i msglen 6 sub lt {
+                        nums 6 eq
+                        setb msg i 6 add get known and {
+                            sc3 encb
+                            msg i nchars getinterval encc
+                            /i i nchars add def
+                            exit
+                        } if
+                    } if
+                    % 4+ even nums => swc
+                    nums 4 ge nums 2 mod 0 eq and {
+                        swc encb
+                        /cset (setc) def
+                        exit
+                    } if
+                    % otherwise => encode
+                    msg i get encb
+                    /i i 1 add def
+                    exit 
+                } if
+                cset (setc) eq {
+                    % 2+ nums => encode
+                    nums 2 ge {
+                        nums 2 mod 0 eq {
+                            msg i nchars getinterval encc
+                            /i i nchars add def
+                        } {
+                            msg i nchars 1 sub getinterval encc
+                            /i i nchars 1 sub add def
+                        } ifelse
+                        exit
+                    } if
+                    % b . 2+ even nums => sb1 encode
+                    i msglen 1 sub lt {
+                        setb msg i get known
+                        i 1 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and {
+                            sb1 encc
+                            msg i get encb
+                            /i i 1 add def
+                            exit
+                        } if
+                    } if
+                    % b . 3+ odd nums => sb2 encode
+                    i msglen 1 sub lt {
+                        setb msg i get known
+                        i 1 add numsscr exch pop dup 3 ge exch 2 mod 1 eq and {
+                            sb2 encc
+                            msg i get encb
+                            msg i 1 add get encb
+                            /i i 2 add def
+                            exit
+                        } if
+                    } if
+                    % b . b . 2+ even nums => sb2 encode
+                    i msglen 2 sub lt {
+                        setb msg i get known
+                        setb msg i 1 add get known and
+                        i 2 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and {
+                            sb2 encc
+                            msg i get encb
+                            msg i 1 add get encb
+                            /i i 2 add def
+                            exit
+                        } if
+                    } if
+                    % b . b . 3+ odd nums => sb3 encode
+                    i msglen 3 sub lt {
+                        setb msg i get known
+                        setb msg i 1 add get known and
+                        i 2 add numsscr exch pop dup 3 ge exch 2 mod 1 eq and {
+                            sb3 encc
+                            msg i get encb
+                            msg i 1 add get encb
+                            msg i 2 add get encb
+                            /i i 3 add def
+                            exit
+                        } if
+                    } if
+                    % b . b . b . 2+ even nums => sb3 encode
+                    i msglen 3 sub lt {
+                        setb msg i get known 
+                        setb msg i 1 add get known and
+                        setb msg i 2 add get known and
+                        i 3 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and {
+                            sb3 encc
+                            msg i get encb
+                            msg i 1 add get encb
+                            msg i 2 add get encb
+                            /i i 3 add def
+                            exit 
+                        } if
+                    } if
+                    % anotb before bnota => swa
+                    i abeforeb {
+                        swa encc
+                        /cset (seta) def
+                        exit
+                    } if
+                    % otherwise => swb
+                    swb encc
+                    /cset (setb) def
+                    exit
+                } if      
+                exit
+            } loop
+        
+        } loop
+        /cws cws 0 j getinterval def
+    } if  % auto encoding
+
+    % Basic metrics for the each symbol
+    %     r  dcws 
+    /metrics [
+        [  2    7 ]
+        [  3   12 ]
+        [  4   17 ]
+        [  5   22 ]
+        [  6   27 ]
+        [  7   32 ]
+        [  8   37 ]
+        [  9   42 ]
+        [ 10   47 ]
+        [ 11   52 ]
+        [ 12   57 ]
+        [ 13   62 ]
+        [ 14   67 ]
+        [ 15   72 ]
+        [ 16   77 ]
+    ] def
+
+    % Select metrics of an appropriate symbol
+    /urows rows def
+    /i 0 def
+    { % loop
+        /m metrics i get def
+        /r    m 0 get def        % Columns in symbol
+        /dcws m 1 get def        % Data codewords in symbol
+        /okay true def
+        urows 0 ne urows r ne and {/okay false def} if
+        cws length dcws gt {/okay false def} if
+        okay {exit} if
+        /i i 1 add def
+    } loop
+
+    % Extend cws to ncws codewords by addition of pad characters
+    /cws [ cws aload pop dcws cws length sub {103} repeat ] def
+
+    % Add the start character
+    /cws [ r 2 sub 7 mul mode add cws aload pop ] def
+
+    % Calculate the check characters
+    0 0 1 dcws {dup 2 add exch cws exch get mul add} for 
+    107 mod /c1 exch def
+    0 0 1 dcws {dup 1 add exch cws exch get mul add} for 
+    c1 dcws 2 add mul add 107 mod /c2 exch def
+    /cws [ cws aload pop c1 c2 ] def
+
+    % Create an array containing the character mappings
+    /encs
+    [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
+      (122312) (132212) (221213) (221312) (231212) (112232) (122132)
+      (122231) (113222) (123122) (123221) (223211) (221132) (221231)
+      (213212) (223112) (312131) (311222) (321122) (321221) (312212)
+      (322112) (322211) (212123) (212321) (232121) (111323) (131123)
+      (131321) (112313) (132113) (132311) (211313) (231113) (231311)
+      (112133) (112331) (132131) (113123) (113321) (133121) (313121)
+      (211331) (231131) (213113) (213311) (213131) (311123) (311321)
+      (331121) (312113) (312311) (332111) (314111) (221411) (431111)
+      (111224) (111422) (121124) (121421) (141122) (141221) (112214)
+      (112412) (122114) (122411) (142112) (142211) (241211) (221114)
+      (413111) (241112) (134111) (111242) (121142) (121241) (114212)
+      (124112) (124211) (411212) (421112) (421211) (212141) (214121)
+      (412121) (111143) (111341) (131141) (114113) (114311) (411113)
+      (411311) (113141) (114131) (311141) (411131) (211412) (211214)
+      (211232) (211133)
+    ] def
+
+    % Start/stop character encodings
+    /startencs [ 
+        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+    ] def
+    /stopencs [
+        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+        (1132) (1231) (1114) (3112) (3211) (2221) (2122) (1411)
+    ] def
+   
+    % Derive the bits for each row
+    /rowbits r array def
+    0 1 r 1 sub {
+        /i exch def
+        /sbs [
+            10
+            startencs i get {48 sub} forall
+            1
+            cws i 5 mul 5 getinterval {
+                encs exch get {48 sub} forall
+            } forall 
+            stopencs i get {48 sub} forall
+            1
+        ] def
+        mark
+        1 sbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+        counttomark 1 sub array astore exch pop exch pop
+        rowbits i 3 -1 roll put
+    } for
+
+    % Populate the bitmap
+    /pixs [
+        81 sepheight mul {1} repeat
+        0 1 r 2 sub {
+            /i exch def
+            rowheight {rowbits i get aload pop} repeat
+            sepheight {10 {0} repeat 70 {1} repeat 0} repeat
+        } for
+        rowheight {rowbits r 1 sub get aload pop} repeat
+        81 sepheight mul {1} repeat
+    ] def
+
+    % Return the arguments
+    <<
+    /ren //renmatrix
+    /pixs pixs
+    /pixx 81
+    /pixy pixs length 81 idiv
+    /height pixs length 81 idiv 72 div
+    /width 81 72 div
+    /opt options
+    >>
+
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/code16k dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code16k--
 
 % --BEGIN ENCODER code49--
 % --DESC: Code 49
