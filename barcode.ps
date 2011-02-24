@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-02-20
+% Barcode Writer in Pure PostScript - Version 2011-02-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -2128,6 +2128,27 @@ begin
         % Character exclusively in either alphabet A or B
         /anotb {dup seta exch known exch setb exch known not and} bind def
         /bnota {dup setb exch known exch seta exch known not and} bind def
+
+        % Pre-compute relative position of next anotb and next bnota characters
+        /nextanotb [ msg length {0} repeat 9999 ] def
+        /nextbnota [ msg length {0} repeat 9999 ] def
+        msg length 1 sub -1 0 {
+            /i exch def
+            msg i get anotb {
+                nextanotb i 0 put
+            } {
+                nextanotb i nextanotb i 1 add get 1 add put
+            } ifelse
+            msg i get bnota {
+                nextbnota i 0 put
+            } {
+                nextbnota i nextbnota i 1 add get 1 add put
+            } ifelse
+        } for
+
+        % Does a-only come before b-only after given position and vice versa
+        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
+        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
         
         /cws barcode length 2 mul 3 add array def
         
@@ -2150,12 +2171,7 @@ begin
                 /cset (setc) def
                 exit
             } if
-            /apos 99999 def /bpos 99999 def 
-            msglen 1 sub -1 0 {  % First a-only and b-only characters 
-                /pos exch def 
-                msg pos get dup anotb {/apos pos def} if bnota {/bpos pos def} if 
-            } for 
-            apos bpos lt { 
+            0 abeforeb { 
                 sta enca
                 /cset (seta) def
                 exit 
@@ -2164,7 +2180,7 @@ begin
             /cset (setb) def
             exit
         } loop
-        
+
         % Special handling of data starting in set C
         /i 0 def
         cset (setc) eq {
@@ -2175,7 +2191,7 @@ begin
                     msg nchars 1 sub get encb
                     /cset (setb) def
                 } {
-                    msg nchars get anotb {
+                    nchars abeforeb {
                         msg 0 nchars 1 sub getinterval encc
                         swa encc
                         msg nchars 1 sub get enca
@@ -2203,9 +2219,9 @@ begin
                     /cset (setc) def
                     exit
                 } if
-                cset (setb) eq msg i get anotb and {
+                cset (setb) eq msg i get anotb and { 
                     i msglen 1 sub lt {
-                        msg i 1 add get bnota {
+                        i 1 add bbeforea { 
                             sft encb
                             msg i get enca
                             /i i 1 add def
@@ -2218,7 +2234,7 @@ begin
                 } if
                 cset (seta) eq msg i get bnota and {
                     i msglen 1 sub lt {
-                        msg i 1 add get anotb {
+                        i 1 add abeforeb {
                             sft enca
                             msg i get encb
                             /i i 1 add def
@@ -2230,13 +2246,13 @@ begin
                     exit
                 } if
                 cset (setc) eq nums 2 lt and {
-                    msg i get anotb {
+                    i abeforeb {
                         swa encc
                         /cset (seta) def
-                    } {
-                        swb encc
-                        /cset (setb) def
-                    } ifelse
+                        exit
+                    } if
+                    swb encc
+                    /cset (setb) def
                     exit
                 } if
         
