@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-02-24
+% Barcode Writer in Pure PostScript - Version 2011-02-28
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -2084,8 +2084,8 @@ begin
                 p msglen ge {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
-                dup 48 lt exch 57 gt or {
-                    % Non-digit in odd position of run like two digits
+                fn1 eq {
+                    % FNC1 in odd position of run like two digits
                     s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
                 } if
                 /n n 1 add def
@@ -2106,23 +2106,12 @@ begin
         } bind def
         /encc {
             dup type /arraytype ne {
-                setc exch get cws exch j exch put
-                /j j 1 add def
+                setc exch get
             } {
-                /in exch def
-                /k 0 def {
-                    k in length eq {exit} if
-                    in k get dup 48 lt exch 57 gt or {
-                        setc in k get get
-                        /k k 1 add def
-                    } {
-                        in k get 48 sub 10 mul in k 1 add get 48 sub add
-                        /k k 2 add def
-                    } ifelse
-                    cws exch j exch put
-                    /j j 1 add def
-                } loop
+                aload pop 48 sub exch 48 sub 10 mul add
             } ifelse
+            cws exch j exch put
+            /j j 1 add def
         } bind def
 
         % Character exclusively in either alphabet A or B
@@ -2151,7 +2140,7 @@ begin
         /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
         
         /cws barcode length 2 mul 3 add array def
-        
+
         % Select start character
         /j 0 def
         msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
@@ -2181,43 +2170,27 @@ begin
             exit
         } loop
 
-        % Special handling of data starting in set C
-        /i 0 def
-        cset (setc) eq {
-            nums 2 mod 1 eq {
-                nchars msglen eq {
-                    msg 0 nchars 1 sub getinterval encc
-                    swb encc
-                    msg nchars 1 sub get encb
-                    /cset (setb) def
-                } {
-                    nchars abeforeb {
-                        msg 0 nchars 1 sub getinterval encc
-                        swa encc
-                        msg nchars 1 sub get enca
-                        /cset (seta) def
-                    } {
-                        msg 0 nchars 1 sub getinterval encc
-                        swb encc
-                        msg nchars 1 sub get encb
-                        /cset (setb) def
-                    } ifelse
-                } ifelse
-                /i nchars def
-            } if
-        } if
-        
-        {  % Main encoding loop
+        % Main encoding loop
+        /i 0 def {  
             i msglen eq {exit} if
         
             i numsscr /nums exch def /nchars exch def
         
             % Determine switches and shifts
             {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and {
-                    swc cset (seta) eq {enca} {encb} ifelse
-                    /cset (setc) def
-                    exit
+                cset (seta) eq cset (setb) eq or nums 4 ge and 
+                msg i get fn1 ne and {
+                    nums 2 mod 0 eq {
+                        swc cset (seta) eq {enca} {encb} ifelse
+                        /cset (setc) def
+                        exit
+                    } {
+                        msg i get cset (seta) eq {enca} {encb} ifelse
+                        /i i 1 add def
+                        swc cset (seta) eq {enca} {encb} ifelse
+                        /cset (setc) def
+                        exit
+                    } ifelse
                 } if
                 cset (setb) eq msg i get anotb and { 
                     i msglen 1 sub lt {
@@ -2266,12 +2239,12 @@ begin
                     /i i 1 add def
                 } if
                 cset (setc) eq {
-                    nums 2 mod 0 eq {
-                        msg i nchars getinterval encc
-                        /i i nchars add def
-                    } { 
-                        msg i nchars 1 sub getinterval encc
-                        /i i nchars 1 sub add def
+                    msg i get fn1 eq {
+                        fn1 encc
+                        /i i 1 add def
+                    } {
+                        msg i 2 getinterval encc
+                        /i i 2 add def 
                     } ifelse
                 } if
          
@@ -2281,7 +2254,7 @@ begin
         } loop
         /cws cws 0 j getinterval def
     } if  % auto encoding
- 
+
     % Derive checksum and place stop character
     /cws j 2 add array dup 0 cws putinterval def
     /csum cws 0 get def
