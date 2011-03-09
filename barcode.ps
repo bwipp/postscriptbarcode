@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-03-07
+% Barcode Writer in Pure PostScript - Version 2011-03-09
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -13847,84 +13847,73 @@ begin
 
     } if
 
-    % Create the 64x64 Reed-Solomon table
-    /rstable 64 64 mul array def
-    rstable 0 [ 64 {0} repeat ] putinterval
-    rstable 64 [ 0 1 63 {} for ] putinterval
-    /prev 1 def
-    64 {       
-        /next prev 1 bitshift def
-        next 64 and 0 ne {
-            /next next 67 xor def
-        } if        
-        0 1 63 {
-            /j exch def
-            /nextcell {rstable 64 next mul j add} def
-            nextcell rstable 64 prev mul j add get 1 bitshift put
-            nextcell get 64 and 0 ne {
-                nextcell nextcell get 67 xor put
-            } if
-        } for
-        /prev next def
-    } repeat
+    % Calculate the log and anti-log tables
+    /rsalog [ 1 63 { dup 2 mul dup 64 ge {67 xor} if } repeat ] def
+    /rslog 64 array def
+    1 1 63 {dup rsalog exch get exch rslog 3 1 roll put} for
 
-    % Calculate the parity codewords for primary codewords 
-    /pgen [46 44 49 3 2 57 42 39 28 31 1] def
-    /rscodes [ 10 {0} repeat 9 -1 0 { pri exch get } for ] def
-    rscodes length 11 sub -1 0 {
-        /i exch def
-        0 1 10 {
-            /j exch def
-            rscodes i j add rscodes i j add get
-            rstable 64 pgen j get mul rscodes i 10 add get add get
-            xor put
+    % Function to calculate the product in the field
+    /rsprod {
+        2 copy 0 ne exch 0 ne and {
+            rslog exch get exch rslog exch get add 63 mod rsalog exch get
+        } {
+            pop pop 0
+        } ifelse
+    } bind def
+
+    % Generate error correction codewords
+    /rscodes {
+
+        /rsnum exch def
+        /cwb exch def
+
+        % Generate the coefficients
+        /coeffs [ 1 rsnum {0} repeat ] def
+        1 1 rsnum {
+            /i exch def
+            coeffs i coeffs i 1 sub get put
+            i 1 sub -1 1 {
+                /j exch def
+                coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+            } for
+            coeffs 0 coeffs 0 get rsalog i get rsprod put
         } for
-    } for
-    /prichk [ 9 -1 0 { rscodes exch get } for ] def
+        /coeffs coeffs 0 coeffs length 1 sub getinterval def
+
+        % Calculate the error correction codewords
+        /ecb [ rsnum {0} repeat ] def
+        0 1 cwb length 1 sub {
+            /t exch cwb exch get ecb 0 get xor def
+            ecb length 1 sub -1 0 {
+                /i exch def
+                /p ecb length i sub 1 sub def
+                ecb p t coeffs i get rsprod put
+                i 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
+            } for
+        } for
+
+        ecb
+
+    } bind def
 
     % Split secondary codeword into odd and even elements
     /seco [ 0 2 sec length 1 sub { sec exch get } for ] def
     /sece [ 1 2 sec length 1 sub { sec exch get } for ] def
 
     % Calculate the parity codewords for secondary codeword parts based on mode
-    sec length 84 eq {  % SEC mode
-        /sgen [ 59 23 19 31 33 38 17 22 48 15 36 57 37 22 8 27 33 11 44 23 1 ] def
-    } {  % EEC mode
-        /sgen [ 28 11 20 7 43 9 41 34 49 46 37 40 55 34 45 61 13 23 29 22 10 35 55 41 10 53 45 22 1 ] def
-    } ifelse
-    /scodes sgen length 1 sub def
-    /rscodes [ scodes {0} repeat seco length 1 sub -1 0 { seco exch get } for ] def
-    rscodes length scodes sub 1 sub -1 0 {
-        /i exch def
-        0 1 scodes {
-            /j exch def
-            rscodes i j add rscodes i j add get
-            rstable 64 sgen j get mul rscodes i scodes add get add get
-            xor put
-        } for
-    } for
-    /secochk [ scodes 1 sub -1 0 { rscodes exch get } for ] def
-    /rscodes [ scodes {0} repeat sece length 1 sub -1 0 { sece exch get } for ] def
-    rscodes length scodes sub 1 sub -1 0 {
-        /i exch def
-        0 1 scodes {
-            /j exch def
-            rscodes i j add rscodes i j add get
-            rstable 64 sgen j get mul rscodes i scodes add get add get
-            xor put
-        } for
-    } for
-    /secechk [ scodes 1 sub -1 0 { rscodes exch get } for ] def
+    /scodes sec length 84 eq {20} {28} ifelse def  % SEC/EEC mode
+    /secochk seco scodes rscodes def
+    /secechk sece scodes rscodes def
 
     % Recompose the secondary parity codewords
     /secchk [ 0 1 scodes 1 sub { dup secochk exch get exch secechk exch get } for ] def
 
     % Concatinate the data into final codewords
     /codewords [
-        pri {} forall 
-        prichk {} forall
-        sec {} forall 
-        secchk {} forall
+        pri aload pop 
+        pri 10 rscodes aload pop
+        sec aload pop 
+        secchk aload pop
     ] def
 
     % Convert the codewords into module bits
