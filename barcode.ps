@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-03-21
+% Barcode Writer in Pure PostScript - Version 2011-04-13
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -12203,9 +12203,10 @@ begin
     /dontdraw false def
     /columns 0 def
     /rows 0 def
-    /encoding (byte) def
+    /encoding (ascii) def
     /raw false def
     /parse false def
+    /parsefnc false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -12259,29 +12260,44 @@ begin
         /cws cws 0 j getinterval def
     } if
 
-    encoding (byte) eq {
-        barlen 250 lt {
-            /cws [231 barlen barcode {} forall] def
-        } {
-            /cws [231 barlen 250 idiv 249 add barlen 250 mod barcode {} forall] def
-        } ifelse 
-        1 1 cws length 1 sub {
-            /i exch def
-            i 1 add 149 mul 255 mod 1 add cws i get add
-            dup 256 ge {256 sub} if
-            cws exch i exch put
-        } for
-    } if
+    % Special function characters
+    /fn1 -1 def
 
     encoding (ascii) eq {
-        /cws barlen 2 mul array def
-        /i 0 def /j 0 def
-        { % loop
+        /fncvals <<
+            (FNC1) fn1
+        >> def
+        /msg barlen array def
+        /i 0 def /j 0 def {
             i barlen eq {exit} if
             /char barcode i get def
-            char 48 ge char 57 le and i barlen 1 sub lt and {
-                barcode i 1 add get dup 48 ge exch 57 le and {  % Digit pair
-                    cws j barcode i 2 getinterval cvi 130 add put
+            parsefnc char 94 eq and i barlen 4 sub lt and {
+                barcode i 1 add get 94 ne {
+                    /char fncvals barcode i 1 add 4 getinterval get def
+                    /i i 4 add def
+                } {
+                    /i i 1 add def
+                } ifelse
+            } if
+            msg j char put
+            /i i 1 add def
+            /j j 1 add def
+        } loop
+        /msg msg 0 j getinterval def
+        /msglen msg length def
+
+        /cws msglen 2 mul array def
+        /i 0 def /j 0 def
+        { % loop
+            i msglen eq {exit} if
+            /char msg i get def
+            char fn1 eq {  % FNC1
+                cws j 232 put
+                /i i 1 add def
+                /j j 1 add def
+            } { char 48 ge char 57 le and i msglen 1 sub lt and {
+                msg i 1 add get dup 48 ge exch 57 le and {  % Digit pair
+                    cws j msg i 2 getinterval cvi 130 add put
                     /i i 2 add def
                     /j j 1 add def
                 } {  % Singular digit
@@ -12298,144 +12314,9 @@ begin
                 cws j 1 add char 127 sub put
                 /i i 1 add def
                 /j j 2 add def
-            } ifelse } ifelse
+            } ifelse } ifelse } ifelse
         } loop
         /cws cws 0 j getinterval def
-    } if
-
-    encoding (edifact) eq {
-        /cws 1558 array def
-        /i 0 def /j 1 def /k 0 def
-        cws 0 240 put
-        { % loop
-            i barlen gt {exit} if
-            /k 0 def /v 0 def
-            { % loop until triplet is full or beyond end of data
-                k 4 eq i barlen gt or {exit} if
-                /cval (unset) def
-                i barlen lt {
-                    /char barcode i get def
-                    char 32 ge char 94 le and {
-                        /cval char 63 and def
-                    } if
-                } {  % Unlatch at end of data
-                    /cval 31 def
-                } ifelse
-                /v v cval 3 k sub 6 mul bitshift or def
-                /k k 1 add def
-                /i i 1 add def
-            } loop
-            cws j [ v -16 bitshift v -8 bitshift 255 and v 255 and ] putinterval
-            /j j 3 add def
-        } loop
-        /cws cws 0 j getinterval def
-    } if
-
-    encoding (c40) eq encoding (text) eq or encoding (x12) eq or {
-
-        /s1 0 def /s2 1 def /s3 2 def /us 30 def
-
-        encoding (c40) eq {
-            /latch 230 def
-            /charmap [
-                0 1 31  { [ exch s1 exch ]            } for  % 0-31
-                          [ 3 ]                              % 32
-                0 1 14  { [ exch s2 exch ]            } for  % 33-47
-                4 1 13  { [ exch ]                    } for  % 48-57
-                15 1 21 { [ exch s2 exch ]            } for  % 58-64
-                14 1 39 { [ exch ]                    } for  % 65-90
-                22 1 26 { [ exch s2 exch ]            } for  % 91-95
-                          [ s3 0 ]                           % 96 
-                1 1 26  { [ exch s3 exch ]            } for  % 97-122
-                27 1 31 { [ exch s3 exch ]            } for  % 123-127
-                0 1 31  { [ s2 us 4 -1 roll s1 exch ] } for  % 128-159
-                          [ s2 us 3 ]                        % 160
-                0 1 14  { [ s2 us 4 -1 roll s2 exch ] } for  % 161-175
-                4 1 13  { [ s2 us 4 -1 roll ]         } for  % 176-185
-                15 1 21 { [ s2 us 4 -1 roll s2 exch ] } for  % 186-192
-                14 1 39 { [ s2 us 4 -1 roll ]         } for  % 193-218
-                22 1 26 { [ s2 us 4 -1 roll s2 exch ] } for  % 219-223
-                          [ s2 us s3 0 ]                     % 224
-                1 1 26  { [ s2 us 4 -1 roll s3 exch ] } for  % 225-250
-                27 1 31 { [ s2 us 4 -1 roll s3 exch ] } for  % 251-255
-            ] def
-        } if
-
-        encoding (text) eq {
-            /latch 239 def
-            /charmap [
-                0 1 31  { [ exch s1 exch ]            } for  % 0-31
-                          [ 3 ]                              % 32
-                0 1 14  { [ exch s2 exch ]            } for  % 33-47
-                4 1 13  { [ exch ]                    } for  % 48-57
-                15 1 21 { [ exch s2 exch ]            } for  % 58-64
-                1 1 26  { [ exch s3 exch ]            } for  % 65-90
-                22 1 26 { [ exch s2 exch ]            } for  % 91-95
-                          [ s3 0 ]                           % 96 
-                14 1 39 { [ exch ]                    } for  % 97-122
-                27 1 31 { [ exch s3 exch ]            } for  % 123-127
-                0 1 31  { [ s2 us 4 -1 roll s1 exch ] } for  % 128-159
-                          [ s2 us 3 ]                        % 160
-                0 1 14  { [ s2 us 4 -1 roll s2 exch ] } for  % 161-175
-                4 1 13  { [ s2 us 4 -1 roll ]         } for  % 176-185
-                15 1 21 { [ s2 us 4 -1 roll s2 exch ] } for  % 186-192
-                1 1 26  { [ s2 us 4 -1 roll s3 exch ] } for  % 193-218
-                22 1 26 { [ s2 us 4 -1 roll s2 exch ] } for  % 219-223
-                          [ s2 us s3 0 ]                     % 224
-                14 1 39 { [ s2 us 4 -1 roll ]         } for  % 225-250
-                27 1 31 { [ s2 us 4 -1 roll s3 exch ] } for  % 251-255
-            ] def
-         } if
-
-         encoding (x12) eq {
-             /latch 238 def
-             /charmap [
-                 13      { [ () ]   } repeat  % 0-12
-                           [ 0 ]              % 13
-                 18      { [ () ]   } repeat  % 14-31
-                           [ 3 ]              % 32
-                 9       { [ () ]   } repeat  % 33-41
-                           [ 1 ]              % 42
-                 5       { [ () ]   } repeat  % 43-47
-                 4 1 13  { [ exch ] } for     % 48-57
-                 4       { [ () ]   } repeat  % 58-61
-                           [ 2 ]              % 62
-                 2       { [ () ]   } repeat  % 63-64
-                 14 1 39 { [ exch ] } for     % 65-90
-                 165     { [ () ]   } repeat  % 91-255 
-             ] def
-         } if
-
-         % Derive the encoded character stream
-         /encstr barlen 4 mul array def
-         /j 0 def
-         0 1 barlen 1 sub {
-             barcode exch get charmap exch get
-             dup encstr exch j exch putinterval
-             length j add /j exch def
-         } for
-         /encstr encstr 0 j getinterval def
-         /enclen j def
-
-         % Compress triples into doubles
-         /cws 1558 array def
-         /i 0 def /j 1 def /k 0 def
-         cws 0 latch put
-         { % loop
-            i enclen ge {exit} if
-            /k 0 def /v 1 def
-            { % loop until triple is full or end of data
-                k 3 eq i enclen ge or {exit} if
-                /v v encstr i get 40 2 k sub exp cvi mul add def
-                /k k 1 add def
-                /i i 1 add def
-            } loop
-            cws j [ v -8 bitshift v 255 and ] putinterval
-            /j j 2 add def
-        } loop
-        cws j 254 put
-        /cws cws 0 j 1 add getinterval def
-
     } if
 
     % Basic metrics for the each symbol
