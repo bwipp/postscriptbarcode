@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2011-05-10
+% Barcode Writer in Pure PostScript - Version 2012-04-26
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2011 Terry Burton
@@ -3011,6 +3011,7 @@ begin
     /textyoffset -7 def
     /textxoffset 0 def
     /height 1 def
+    /pzn8 false def
  
     % Parse the input options
     options type /stringtype eq {
@@ -3028,28 +3029,26 @@ begin
     /textyoffset textyoffset cvr def
     /textxoffset textxoffset cvr def
     /height height cvr def
- 
-    /text 13 string def
-    text 0 barcode 0 6 getinterval putinterval
+
+    /msg pzn8 {9} {8} ifelse string def
+    /msglen msg length def
+    msg 0 45 put 
+    msg 1 barcode 0 msglen 2 sub getinterval putinterval
  
     % calculate check digit
-    text 6 0
-    0 1 5 {
-        dup text exch get 48 sub exch 2 add mul add
-    } for
-    11 mod 48 add put
- 
-    /barcode 8 string def
-    barcode 1 text 0 7 getinterval putinterval
-    barcode 0 45 put
+    0 
+    1 1 msglen 2 sub {dup msg exch get 48 sub exch pzn8 not {1 add} if mul add} for
+    11 mod 48 add
+    msg exch msglen 1 sub exch put
  
     % Get the result of encoding with code39
     options (dontdraw) true put
-    /args barcode options //code39 exec def
+    /args msg options //code39 exec def
  
     % format HRI
-    text 6 text 0 7 getinterval putinterval
+    /text msglen 5 add string def
     text 0 (PZN - ) putinterval
+    text 6 msg 1 msglen 1 sub getinterval putinterval
  
     args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
     args (textxalign) (center) put
