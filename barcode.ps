@@ -3,10 +3,10 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2012-04-26
+% Barcode Writer in Pure PostScript - Version 2012-06-23
 % http://www.terryburton.co.uk/barcodewriter/
 %
-% Copyright (c) 2004-2011 Terry Burton
+% Copyright (c) 2004-2012 Terry Burton
 %
 % Permission is hereby granted, free of charge, to any
 % person obtaining a copy of this software and associated
@@ -12636,6 +12636,7 @@ begin
     /format (full) def     % full or micro
     /version (unset) def
     /eclevel (unset) def   % L, M, Q or H
+    /encoding (unset) def
     /raw false def
     /parse false def
 
@@ -12671,75 +12672,237 @@ begin
         } loop
     } if
 
+    /barlen barcode length def
+
     % Force raw mode for micro format symbols
     format (micro) eq {/raw true def} if
 
     % Default to error correction level M
     eclevel (unset) eq {/eclevel (M) def} if
 
+    % Default encoding is byte unless raw is given
+    encoding (unset) eq {/encoding (byte) def} if
+    raw {/encoding (raw) def} if
+
     % Convert from input into message bitstream
-    raw {
+    encoding (raw) eq {
         /msgbits barcode def 
-    } {  % Simple autoencoder from input to bitstream using byte mode only for full format symbols
+    } {
 
-        /barlen barcode length def
-        eclevel (unset) eq {/eclevel (M) def} if
+        % Symbol capacities
+        /caps <<
+            /numeric <<
+                /L [   41    77   127   187   255   322   370   461   552   652    % 1-L  - 10-L
+                      772   883  1022  1101  1250  1408  1548  1725  1903  2061    % 11-L - 20-L
+                     2232  2409  2620  2812  3057  3283  3517  3669  3909  4158    % 21-L - 30-L
+                     4417  4686  4965  5253  5529  5836  6153  6479  6743  7089 ]  % 31-L - 40-L
+                /M [   34    63   101   149   202   255   293   365   432   513    % 1-M  - 10-M
+                      604   691   796   871   991  1082  1212  1346  1500  1600    % 11-M - 20-M
+                     1708  1872  2059  2188  2395  2544  2701  2857  3035  3289    % 21-M - 30-M
+                     3486  3693  3909  4134  4343  4588  4775  5039  5313  5596 ]  % 31-M - 40-M
+                /Q [   27    48    77   111   144   178   207   259   312   364    % 1-Q  - 10-Q
+                      427   489   580   621   703   775   876   948  1063  1159    % 11-Q - 20-Q
+                     1224  1358  1468  1588  1718  1804  1933  2085  2181  2358    % 21-Q - 30-Q
+                     2473  2670  2805  2949  3081  3244  3417  3599  3791  3993 ]  % 31-Q - 40-Q
+                /H [   17    34    58    82   106   139   154   202   235   288    % 1-H  - 10-H
+                      331   374   427   468   530   602   674   746   813   919    % 11-H - 20-H
+                      969  1056  1108  1228  1286  1425  1501  1581  1677  1782    % 21-H - 30-H
+                     1897  2022  2157  2301  2361  2524  2625  2735  2927  3057 ]  % 31-H - 40-H
+            >>
+            /alphanumeric <<
+                /L [   25    47    77   114   154   195   224   279   335   395    % 1-L  - 10-L
+                      468   535   619   667   758   854   938  1046  1153  1249    % 11-L - 20-L
+                     1352  1460  1588  1704  1853  1990  2132  2223  2369  2520    % 21-L - 30-L
+                     2677  2840  3009  3183  3351  3537  3729  3927  4087  4296 ]  % 31-L - 40-L
+                /M [   20    38    61    90   122   154   178   221   262   331    % 1-M  - 10-M
+                      366   419   483   528   600   656   734   816   909   970    % 11-M - 20-M
+                     1035  1134  1248  1326  1451  1542  1637  1732  1839  1994    % 21-M - 30-M
+                     2113  2238  2369  2506  2632  2780  2894  3054  3220  3391 ]  % 31-M - 40-M
+                /Q [   16    29    47    67    87   108   125   157   189   221    % 1-Q  - 10-Q
+                      259   296   352   376   426   470   531   574   644   702    % 11-Q - 20-Q
+                      742   823   890   963  1041  1094  1172  1263  1322  1429    % 21-Q - 30-Q
+                     1499  1618  1700  1787  1867  1966  2071  2181  2298  2420 ]  % 31-Q - 40-Q
+                /H [   10    20    35    50    64    84    93   122   143   174    % 1-H  - 10-H
+                      200   227   259   283   321   365   408   452   493   557    % 11-H - 20-H
+                      557   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
+                     1150  1226  1307  1394  1431  1530  1591  1658  1774  1852 ]  % 31-H - 40-H
+            >>
+            /byte <<
+                /L [   17    32    53    78   106   134   154   192   230   271    % 1-L  - 10-L
+                      321   367   425   458   520   586   644   718   792   858    % 11-L - 20-L
+                      929  1003  1091  1171  1273  1367  1465  1528  1628  1732    % 21-L - 30-L
+                     1840  1952  2068  2188  2303  2431  2563  2699  2809  2953 ]  % 31-L - 40-L
+                /M [   14    26    42    62    84   106   122   152   180   213    % 1-M  - 10-M
+                      251   287   331   362   412   450   504   560   624   666    % 11-M - 20-M
+                      711   779   857   911   997  1059  1125  1190  1264  1370    % 21-M - 30-M
+                     1452  1538  1628  1722  1809  1911  1989  2099  2213  2331 ]  % 31-M - 40-M
+                /Q [   11    20    32    46    60    74    86   108   130   151    % 1-Q  - 10-Q
+                      177   203   241   258   292   322   364   394   442   482    % 11-Q - 20-Q
+                      509   565   611   661   715   751   805   868   908   982    % 21-Q - 30-Q
+                     1030  1112  1168  1228  1283  1351  1423  1499  1579  1663 ]  % 31-Q - 40-Q
+                /H [    7    14    24    34    44    58    64    84    98   119    % 1-H  - 10-H
+                      137   155   177   194   220   250   280   310   338   382    % 11-H - 20-H
+                      403   439   461   511   535   593   625   658   698   742    % 21-H - 30-H
+                      790   842   898   958   983  1051  1093  1139  1219  1273 ]  % 31-H - 40-H
+            >>
+            /kanji <<
+                /L [   10    20    32    48    65    82    95   118   141   167    % 1-L  - 10-L
+                      198   226   262   282   320   361   397   442   488   528    % 11-L - 20-L
+                      572   618   672   721   784   842   902   940  1002  1066    % 21-L - 30-L
+                     1132  1201  1273  1347  1417  1496  1577  1661  1729  1817 ]  % 31-L - 40-L
+                /M [    8    16    26    38    52    65    75    93   111   131    % 1-M  - 10-M
+                      155   177   204   223   254   277   310   345   384   410    % 11-M - 20-M
+                      438   480   528   561   614   652   692   732   778   843    % 21-M - 30-M
+                      894   947  1002  1060  1113  1176  1224  1292  1362  1435 ]  % 31-M - 40-M
+                /Q [    7    12    20    28    37    45    53    66    80    93    % 1-Q  - 10-Q
+                      109   125   149   159   180   198   224   243   272   297    % 11-Q - 20-Q
+                      314   348   376   407   440   462   496   534   559   604    % 21-Q - 30-Q
+                      634   684   719   756   790   832   876   923   972  1024 ]  % 31-Q - 40-Q
+                /H [    4     8    15    21    27    36    39    52    60    74    % 1-H  - 10-H
+                       85    96   109   120   136   154   173   191   208   235    % 11-H - 20-H
+                      248   270   284   315   330   365   385   405   430   457    % 21-H - 30-H
+                      486   518   553   590   605   647   673   701   750   784 ]  % 31-H - 40-H 
+            >> 
+        >> def 
+    
+        /mids <<
+            /numeric      (0001)
+            /alphanumeric (0010)
+            /byte         (0100)
+            /kanji        (1000)
+        >> def
+    
+        /cclens <<
+            /numeric      [10 12 14]
+            /alphanumeric [ 9 11 13]
+            /byte         [ 8 16 16]
+            /kanji        [ 8 10 12]
+        >> def
 
-        % Determine smallest symbol version to hold given amount of byte-encoded data
+        /encs <<
+            /numeric      /encnumeric
+            /alphanumeric /encalphanumeric
+            /byte         /encbyte
+            /kanji        /enckanji
+        >> def
+
+        % Alphanumeric character to value map
+        /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
+        /charvals 44 dict def
+        0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
+
+        /encnumeric {
+            /in exch def
+            /out in length 10 mul 3 idiv 1 add string def
+            /i 0 def /j 0 def {
+                i in length eq {exit} if
+                i in length 2 sub lt {
+                    (0000000000) 10 string copy
+                    dup in i 3 getinterval cvi
+                    2 10 string cvrs dup length 10 exch sub exch putinterval
+                    /i i 3 add def
+                } {
+                    i in length 2 sub eq {  % Two final digits
+                        (0000000) 7 string copy
+                        dup in i 2 getinterval cvi
+                        2 7 string cvrs dup length 7 exch sub exch putinterval
+                        /i i 2 add def
+                    } {  % One final digit
+                        (0000) 4 string copy
+                        dup in i 1 getinterval cvi
+                        2 4 string cvrs dup length 4 exch sub exch putinterval
+                        /i i 1 add def
+                    } ifelse
+                } ifelse
+                dup out exch j exch putinterval
+                length j add /j exch def
+            } loop
+            out 0 j getinterval
+        } bind def
+
+        /encalphanumeric {
+            /in exch def
+            /out in length 11 mul 2 idiv 1 add string def
+            /i 0 def /j 0 def {
+                i in length eq {exit} if
+                i in length 1 sub lt {
+                    (00000000000) 11 string copy
+                    dup charvals in i get get 45 mul charvals in i 1 add get get add
+                    2 11 string cvrs dup length 11 exch sub exch putinterval
+                    /i i 2 add def
+                } {
+                    (000000) 6 string copy
+                    dup charvals in i get get
+                    2 6 string cvrs dup length 6 exch sub exch putinterval
+                    /i i 1 add def
+                } ifelse
+                dup out exch j exch putinterval
+                length j add /j exch def
+            } loop
+            out 0 j getinterval
+        } bind def
+
+        /encbyte {
+            /in exch def
+            /out in length 8 mul string def
+            0 1 in length 1 sub {
+                /i exch def
+                (00000000) 8 string copy
+                dup in i get cvi
+                2 8 string cvrs dup length 8 exch sub exch putinterval 
+                out i 8 mul 3 -1 roll putinterval
+            } for
+            out
+        } bind def
+
+        /enckanji {
+            /in exch def
+            /out in length 2 idiv 13 mul string def
+            /i 0 def /j 0 def {
+                i in length eq {exit} if
+                in i get 256 mul in i 1 add get add
+                dup 16#E040 lt {16#8140} {16#C140} ifelse sub
+                dup -8 bitshift 16#C0 mul exch 16#00FF and add
+                (0000000000000) 13 string copy
+                dup 3 -1 roll 2 13 string cvrs dup length 13 exch sub exch putinterval
+                dup out exch j exch putinterval
+                length j add /j exch def
+                /i i 2 add def
+            } loop
+            out
+        } bind def
+
+        % Determine smallest symbol version to hold given amount of data
         version (unset) eq {
-            /caps [
-                [
-                      17    32    53    78   106   134   154   192   230   271   % 1-L  - 10-L
-                     321   367   425   458   520   586   644   718   792   858   % 11-L - 20-L
-                     929  1003  1091  1171  1273  1367  1465  1528  1628  1732   % 21-L - 30-L
-                    1840  1952  2068  2188  2303  2431  2563  2699  2809  2953   % 31-L - 40-L
-                ] [
-                      14    26    42    62    84   106   122   152   180   213   % 1-M  - 10-M
-                     251   287   331   362   412   450   504   560   624   666   % 11-M - 20-M
-                     711   779   857   911   997  1059  1125  1190  1264  1370   % 21-M - 30-M
-                    1452  1538  1628  1722  1809  1911  1989  2099  2213  2331   % 31-M - 40-M
-                ] [
-                      11    20    32    46    60    74    86   108   130   151   % 1-Q  - 10-Q
-                     177   203   241   258   292   322   364   394   442   482   % 11-Q - 20-Q
-                     509   565   611   661   715   751   805   868   908   982   % 21-Q - 30-Q
-                    1030  1112  1168  1228  1283  1351  1423  1499  1579  1663   % 31-Q - 40-Q
-                ] [
-                       7    14    24    34    44    58    64    84    98   119   % 1-H  - 10-H
-                     137   155   177   194   220   250   280   310   338   382   % 11-H - 20-H
-                     403   439   461   511   535   593   625   658   698   742   % 21-H - 30-H
-                     790   842   898   958   983  1051  1093  1139  1219  1273   % 31-H - 40-H
-                ]
-            ] def
-            /caps caps (LMQH) eclevel search pop length exch pop exch pop get def
-            /i 1 def
-            {
+            /caps caps encoding get eclevel get def
+            /i 1 def {
                 barlen caps i 1 sub get le {exit} if 
                 /i i 1 add def
             } loop
             /version i 10 2 string cvrs def
         } if
-
+ 
         % Set the control character data for the version
-        /mid (0100) def /term (0000) def /cclen 8 def
-        version 0 1 getinterval (M) ne {  % Version 10 and above
-            version cvi 10 ge {/cclen 16 def} if
+        /mid mids encoding get def
+        /term (0000) def 
+        /cclen cclens encoding get 0 get def
+        version 0 1 getinterval (M) ne {
+            version cvi 10 ge {/cclen cclens encoding get 1 get def} if  % Version 10-26
+            version cvi 27 ge {/cclen cclens encoding get 2 get def} if  % Version 27-40
         } if
         /midlen mid length def
         /termlen term length def
-
-        % Create the bitstream as byte_mode_id character_count data_bytes term
-        /msgbits midlen cclen add barlen 8 mul add termlen add string def
-        msgbits 0 mid putinterval
+ 
+        % Create the bitstream as mode_id character_count encoded_data terminator
+        /enc barcode encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
         dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
+        /msgbits midlen cclen add enc length add termlen add string def
+        msgbits 0 mid putinterval
         msgbits midlen cc putinterval
-        0 1 barlen 1 sub {
-            /i exch def
-            (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
-            msgbits midlen cclen add i 8 mul add 3 -1 roll putinterval
-        } for
-        msgbits midlen cclen add barlen 8 mul add term putinterval
+        msgbits midlen cclen add enc putinterval
+        msgbits midlen cclen add enc length add term putinterval
 
     } ifelse
 
