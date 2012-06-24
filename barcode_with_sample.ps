@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2012-06-23
+% Barcode Writer in Pure PostScript - Version 2012-06-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2012 Terry Burton
@@ -12714,7 +12714,7 @@ begin
                       468   535   619   667   758   854   938  1046  1153  1249    % 11-L - 20-L
                      1352  1460  1588  1704  1853  1990  2132  2223  2369  2520    % 21-L - 30-L
                      2677  2840  3009  3183  3351  3537  3729  3927  4087  4296 ]  % 31-L - 40-L
-                /M [   20    38    61    90   122   154   178   221   262   331    % 1-M  - 10-M
+                /M [   20    38    61    90   122   154   178   221   262   311    % 1-M  - 10-M
                       366   419   483   528   600   656   734   816   909   970    % 11-M - 20-M
                      1035  1134  1248  1326  1451  1542  1637  1732  1839  1994    % 21-M - 30-M
                      2113  2238  2369  2506  2632  2780  2894  3054  3220  3391 ]  % 31-M - 40-M
@@ -12724,7 +12724,7 @@ begin
                      1499  1618  1700  1787  1867  1966  2071  2181  2298  2420 ]  % 31-Q - 40-Q
                 /H [   10    20    35    50    64    84    93   122   143   174    % 1-H  - 10-H
                       200   227   259   283   321   365   408   452   493   557    % 11-H - 20-H
-                      557   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
+                      587   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
                      1150  1226  1307  1394  1431  1530  1591  1658  1774  1852 ]  % 31-H - 40-H
             >>
             /byte <<
@@ -12876,7 +12876,7 @@ begin
         version (unset) eq {
             /caps caps encoding get eclevel get def
             /i 1 def {
-                barlen caps i 1 sub get le {exit} if 
+                barlen encoding (kanji) eq {2 idiv} if caps i 1 sub get le {exit} if 
                 /i i 1 add def
             } loop
             /version i 10 2 string cvrs def
@@ -12884,25 +12884,23 @@ begin
  
         % Set the control character data for the version
         /mid mids encoding get def
-        /term (0000) def 
         /cclen cclens encoding get 0 get def
         version 0 1 getinterval (M) ne {
             version cvi 10 ge {/cclen cclens encoding get 1 get def} if  % Version 10-26
             version cvi 27 ge {/cclen cclens encoding get 2 get def} if  % Version 27-40
         } if
         /midlen mid length def
-        /termlen term length def
  
-        % Create the bitstream as mode_id character_count encoded_data terminator
+        % Create the bitstream as mode_id character_count encoded_data
         /enc barcode encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
-        dup barlen cvi 2 cclen string cvrs dup length cclen exch sub exch putinterval 
+        dup barlen encoding (kanji) eq {2 idiv} if cvi
+        2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
-        /msgbits midlen cclen add enc length add termlen add string def
+        /msgbits midlen cclen add enc length add string def
         msgbits 0 mid putinterval
         msgbits midlen cc putinterval
         msgbits midlen cclen add enc putinterval
-        msgbits midlen cclen add enc length add term putinterval
 
     } ifelse
 
@@ -12986,14 +12984,29 @@ begin
         okay {exit} if
         /i i 1 add def
     } loop
+
     /format frmt def
     /version vers def
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
+    % Complete the message bits by adding the terminator, truncated if neccessary
+    /terms <<
+        /M1 (000)
+        /M2 (00000)
+        /M3 (0000000)
+        /M4 (000000000)
+    >> def
+    /term terms version known {terms version get} {(0000)} ifelse def
+    /term term 0 dmod msgbits length sub term length 2 copy gt {exch} if pop getinterval def
+    msgbits length term length add string
+    dup 0 msgbits putinterval
+    dup msgbits length term putinterval
+    /msgbits exch def
+    
     % Expand the message bits by adding padding as necessary
     /pad dmod string def
-    0 4 dmod 1 sub {pad exch (0000) putinterval} for
+    0 1 pad length 1 sub {pad exch 48 put} for
     pad 0 msgbits putinterval
     /padstrs [ (11101100) (00010001) ] def
     /padnum 0 def
