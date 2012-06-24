@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2012-06-24
+% Barcode Writer in Pure PostScript - Version 2012-06-25
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2012 Terry Burton
@@ -12680,11 +12680,9 @@ begin
     % Default to error correction level M
     eclevel (unset) eq {/eclevel (M) def} if
 
-    % Default encoding is byte unless raw is given
-    encoding (unset) eq {/encoding (byte) def} if
+    % Convert from input into message bitstream
     raw {/encoding (raw) def} if
 
-    % Convert from input into message bitstream
     encoding (raw) eq {
         /msgbits barcode def 
     } {
@@ -12871,6 +12869,31 @@ begin
             } loop
             out
         } bind def
+
+        % Determine a compact encoding for the data
+        encoding (unset) eq {
+            /numericokay true def
+            /alphanumericokay true def
+            /kanjiokay true def
+            /byteokay true def
+            barlen 2 mod 0 ne {/kanjiokay false def} if
+            0 1 barlen 1 sub {
+                /i exch def
+                /barchar barcode i get def
+                barchar 48 lt barchar 57 gt or {/numericokay false def} if
+                charvals barchar known not {/alphanumericokay false def} if
+                i 2 mod 0 eq {
+                    barchar 16#81 lt barchar 16#9F gt or
+                    barchar 16#E0 lt barchar 16#EB gt or and {
+                        /kanjiokay false def
+                    } if
+                } if
+            } for
+            byteokay         {/encoding (byte) def} if
+            kanjiokay        {/encoding (kanji) def} if
+            alphanumericokay {/encoding (alphanumeric) def} if
+            numericokay      {/encoding (numeric) def} if
+        } if
 
         % Determine smallest symbol version to hold given amount of data
         version (unset) eq {
