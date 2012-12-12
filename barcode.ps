@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2012-11-15
+% Barcode Writer in Pure PostScript - Version 2012-12-12
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2012 Terry Burton
@@ -4831,7 +4831,7 @@ begin
     } {
         /vlf [] def
     } ifelse
-    
+
     % Pre-defined fixed length data field AIs
     % any AI whose prefix is not included in this table must be
     % terminated with "FNC1", even if it's fixed length
@@ -4907,7 +4907,7 @@ begin
             /gpf exch def
         } if
     } for
-    
+
     % Calculate the number of bits remaining to the next valid symbol size
     /rembits {
         dup
@@ -5001,6 +5001,7 @@ begin
             mode (alphanumeric) eq {
                 gpf i get fnc1 eq {
                     fnc1 alphanumeric encode
+                    /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
@@ -5027,6 +5028,7 @@ begin
             mode (iso646) eq {
                 gpf i get fnc1 eq {
                     fnc1 iso646 encode
+                    /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
@@ -5048,7 +5050,7 @@ begin
         } loop
     } loop
     /gpf gpfenc 0 j getinterval def
-   
+
     % Complete the variable length field and create pad
     1 12 add method length add vlf length add cdf length add gpf length add 
     dup rembits dup array /pad exch def
@@ -15369,6 +15371,7 @@ begin
             mode (alphanumeric) eq {
                 gpf i get fnc1 eq {
                     fnc1 alphanumeric encode
+                    /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
@@ -15395,6 +15398,7 @@ begin
             mode (iso646) eq {
                 gpf i get fnc1 eq {
                     fnc1 iso646 encode
+                    /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
