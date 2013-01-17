@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2012-12-12
+% Barcode Writer in Pure PostScript - Version 2013-01-17
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2012 Terry Burton
@@ -688,9 +688,14 @@ begin
     /includetext false def             % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset -10 def
     /textyoffset -4 def
     /height 1 def
     /addongap 12 def
+    /addontextfont (unset) def
+    /addontextsize (unset) def
+    /addontextxoffset (unset) def
+    /addontextyoffset (unset) def
 
     % Parse the input options, either a string or a dict
     options type /stringtype eq {
@@ -705,9 +710,14 @@ begin
 
     /textfont textfont cvlit def
     /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
     /addongap addongap cvr def   
+    addontextfont (unset) ne {/addontextfont addontextfont cvlit def} if
+    addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
+    addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
+    addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
 
     % Split off the addon
     barcode ( ) search {
@@ -760,7 +770,7 @@ begin
 
     % First digit - determine mirrormap by this and show before guard bars
     /mirrormap mirrormaps barcode 0 get 48 sub get def
-    txt 0 [barcode 0 1 getinterval -10 textyoffset textfont textsize] put
+    txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize] put
 
     % Left side - performs mirroring
     1 1 6 {
@@ -782,7 +792,7 @@ begin
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 14 add textxoffset add textyoffset textfont textsize] put
     } for
 
     % Put the middle character
@@ -798,7 +808,7 @@ begin
         pop pop                        % Discard seek and post
         /enc encs indx get def         % Get the indxth encoding
         sbs i 1 sub 4 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 8 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 18 add textxoffset add textyoffset textfont textsize] put
     } for
 
     % Put the end character
@@ -821,9 +831,10 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset 95 addongap add
-            /textsize textsize
-            /textfont textfont
+            /textxoffset addontextxoffset (unset) ne {addontextxoffset} {95 addongap add} ifelse
+            addontextyoffset (unset) ne {/textyoffset addontextyoffset} if
+            /textsize addontextsize (unset) ne {addontextsize} {textsize} ifelse
+            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
         >> def
         addon length 2 eq {addon addopts //ean2 exec} if
         addon length 5 eq {addon addopts //ean5 exec} if
@@ -881,9 +892,14 @@ begin
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset 4 def
     /textyoffset -4 def
     /height 1 def
     /addongap 12 def
+    /addontextfont (unset) def
+    /addontextsize (unset) def
+    /addontextxoffset (unset) def
+    /addontextyoffset (unset) def
     
     % Parse the input options, either a string or a dict
     options type /stringtype eq {
@@ -898,9 +914,14 @@ begin
    
     /textfont textfont cvlit def
     /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    /addongap addongap cvr def   
+    /addongap addongap cvr def
+    addontextfont (unset) ne {/addontextfont addontextfont cvlit def} if
+    addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
+    addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
+    addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
 
     % Split off the addon
     barcode ( ) search {
@@ -955,7 +976,7 @@ begin
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul 4 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul textxoffset add textyoffset textfont textsize] put
     } for
 
     % Put the middle character
@@ -971,7 +992,7 @@ begin
         pop pop                            % Discard seek and post
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul 8 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul textxoffset add 4 add textyoffset textfont textsize] put
     } for
 
     % Put the end character
@@ -994,9 +1015,10 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset 67 addongap add
-            /textsize textsize
-            /textfont textfont
+            /textxoffset addontextxoffset (unset) ne {addontextxoffset} {67 addongap add} ifelse
+            addontextyoffset (unset) ne {/textyoffset addontextyoffset} if
+            /textsize addontextsize (unset) ne {addontextsize} {textsize} ifelse
+            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
         >> def
         addon length 2 eq {addon addopts //ean2 exec} if
         addon length 5 eq {addon addopts //ean5 exec} if
@@ -1055,9 +1077,14 @@ begin
     /includetext false def         % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset -7 def
     /textyoffset -4 def
     /height 1 def 
     /addongap 12 def
+    /addontextfont (unset) def
+    /addontextsize (unset) def
+    /addontextxoffset (unset) def
+    /addontextyoffset (unset) def
 
     % Parse the input options
     options type /stringtype eq {
@@ -1072,10 +1099,15 @@ begin
 
     /textfont textfont cvlit def
     /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
     /addongap addongap cvr def
-   
+    addontextfont (unset) ne {/addontextfont addontextfont cvlit def} if
+    addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
+    addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
+    addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
+
     % Split off the addon
     barcode ( ) search {
         /barcode exch def
@@ -1130,9 +1162,9 @@ begin
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
         i 0 eq {      % First digit is before the guard bars
-            txt 0 [barcode 0 1 getinterval -7 textyoffset textfont textsize 2 sub] put
+            txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize 2 sub] put
         } {
-            txt i [barcode i 1 getinterval i 7 mul 4 add textyoffset textfont textsize] put
+            txt i [barcode i 1 getinterval i 7 mul 11 add textxoffset add textyoffset textfont textsize] put
         } ifelse
     } for
 
@@ -1150,9 +1182,9 @@ begin
         /enc encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
         i 11 eq {       % Last digit is after guard bars
-            txt 11 [barcode 11 1 getinterval 96 textyoffset textfont textsize 2 sub] put
+            txt 11 [barcode 11 1 getinterval textxoffset 103 add textyoffset textfont textsize 2 sub] put
         } {
-            txt i [barcode i 1 getinterval i 7 mul 8 add textyoffset textfont textsize] put
+            txt i [barcode i 1 getinterval i 7 mul textxoffset add 15 add textyoffset textfont textsize] put
         } ifelse
     } for
 
@@ -1176,9 +1208,10 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset 95 addongap add
-            /textsize textsize
-            /textfont textfont
+            /textxoffset addontextxoffset (unset) ne {addontextxoffset} {95 addongap add} ifelse
+            addontextyoffset (unset) ne {/textyoffset addontextyoffset} if
+            /textsize addontextsize (unset) ne {addontextsize} {textsize} ifelse
+            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
         >> def
         addon length 2 eq {addon addopts //ean2 exec} if
         addon length 5 eq {addon addopts //ean5 exec} if
@@ -1236,9 +1269,14 @@ begin
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12 def
+    /textxoffset -7 def
     /textyoffset -4 def
     /height 1 def
-    /addongap 12 def   
+    /addongap 12 def
+    /addontextfont (unset) def
+    /addontextsize (unset) def
+    /addontextxoffset (unset) def
+    /addontextyoffset (unset) def
  
     % Parse the input options
     options type /stringtype eq {
@@ -1253,9 +1291,14 @@ begin
  
     /textfont textfont cvlit def
     /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    /addongap addongap cvr def    
+    /addongap addongap cvr def
+    addontextfont (unset) ne {/addontextfont addontextfont cvlit def} if
+    addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
+    addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
+    addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
 
     % Ensure 0 or 1 number systems
     barcode 0 get dup 48 ne exch 49 ne and {
@@ -1323,7 +1366,7 @@ begin
     pad 7 checksum 48 add put       % Put ascii for checksum at end of pad
     /barcode pad def
     /txt 8 array def
-    txt 0 [barcode 0 1 getinterval -7 textyoffset textfont textsize 2 sub] put
+    txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize 2 sub] put
 
     % Determine the mirror map based on checksum
     /mirrormap mirrormaps checksum get def
@@ -1366,10 +1409,10 @@ begin
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 4 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 11 add textxoffset add textyoffset textfont textsize] put
     } for
 
-    txt 7 [barcode 7 1 getinterval 6 7 mul 11 add textyoffset textfont textsize 2 sub] put
+    txt 7 [barcode 7 1 getinterval 6 7 mul 18 add textxoffset add textyoffset textfont textsize 2 sub] put
 
     % Put the end character
     sbs 27 encs 11 get putinterval
@@ -1391,9 +1434,10 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset 51 addongap add
-            /textsize textsize
-            /textfont textfont
+            /textxoffset addontextxoffset (unset) ne {addontextxoffset} {51 addongap add} ifelse
+            addontextyoffset (unset) ne {/textyoffset addontextyoffset} if
+            /textsize addontextsize (unset) ne {addontextsize} {textsize} ifelse
+            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
         >> def
         addon length 2 eq {addon addopts //ean2 exec} if
         addon length 5 eq {addon addopts //ean5 exec} if
