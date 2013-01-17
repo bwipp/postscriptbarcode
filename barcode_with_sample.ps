@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-01-17
+% Barcode Writer in Pure PostScript - Version 2013-01-17-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2012 Terry Burton
@@ -1493,9 +1493,10 @@ begin
 
     /dontdraw false def
     /includetext false def  % Enable/disable ISBN text
-    /isbnfont /Courier def
-    /isbnsize 9 def
-    /isbnpos (unset) def
+    /isbntextfont /Courier def
+    /isbntextsize 9 def
+    /isbntextxoffset (unset) def
+    /isbntextyoffset (unset) def
     /height 1 def
     /addongap 12 def   
     /legacy false def
@@ -1511,15 +1512,12 @@ begin
     } if
     options {def} forall
     
-    /isbnfont isbnfont cvlit def
-    /isbnsize isbnsize cvr def
+    /isbntextfont isbntextfont cvlit def
+    /isbntextsize isbntextsize cvr def
+    isbntextxoffset (unset) ne {/isbntextxoffset isbntextxoffset cvr def} if
+    isbntextyoffset (unset) ne {/isbntextyoffset isbntextyoffset cvr def} if
     /height height cvr def
     /addongap addongap cvr def
-    isbnpos (unset) eq {
-        /isbnpos height 72 mul 3 add def
-    } {
-        /isbnpos isbnpos cvr def
-    } ifelse
 
     % Split off the addon
     isbntxt ( ) search {
@@ -1611,19 +1609,20 @@ begin
 
     % Add the ISBN text
     includetext {
-        isbn length 9 eq {
-            /isbnxpos -1 def
-        } {
-            /isbnxpos -12 def
-        } ifelse
+        isbntextxoffset (unset) eq {
+            /isbntextxoffset isbn length 9 eq {-1} {-12} ifelse def
+        } if
+        isbntextyoffset (unset) eq {
+            /isbntextyoffset height 72 mul 3 add def
+        } if
         args (txt) known {
             /txt args (txt) get def
             /newtxt txt length 1 add array def
             newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [isbntxt isbnxpos isbnpos isbnfont isbnsize] put
+            newtxt newtxt length 1 sub [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] put
             args (txt) newtxt put
         } {
-            args (txt) [ [isbntxt isbnxpos isbnpos isbnfont isbnsize] ] put
+            args (txt) [ [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] ] put
         } ifelse
     } if
 
@@ -1661,9 +1660,10 @@ begin
 
     /dontdraw false def
     /includetext false def  % Enable/disable ISMN text
-    /ismnfont /Courier def
-    /ismnsize 9 def
-    /ismnpos (unset) def
+    /ismntextfont /Courier def
+    /ismntextsize 9 def
+    /ismntextxoffset (unset) def
+    /ismntextyoffset (unset) def
     /height 1 def
     /addongap 12 def   
     /legacy false def
@@ -1679,15 +1679,12 @@ begin
     } if
     options {def} forall
     
-    /ismnfont ismnfont cvlit def
-    /ismnsize ismnsize cvr def
+    /ismntextfont ismntextfont cvlit def
+    /ismntextsize ismntextsize cvr def
+    ismntextxoffset (unset) ne {/ismntextxoffset ismntextxoffset cvr def} if
+    ismntextyoffset (unset) ne {/ismntextyoffset ismntextyoffset cvr def} if
     /height height cvr def
     /addongap addongap cvr def
-    ismnpos (unset) eq {
-        /ismnpos height 72 mul 3 add def
-    } {
-        /ismnpos ismnpos cvr def
-    } ifelse
    
     % Split off the addon
     ismntxt ( ) search {
@@ -1765,19 +1762,20 @@ begin
 
     % Add the ISMN text
     includetext {
-        ismntxt length 18 eq {
-            /ismnxpos -1 def
-        } {
-            /ismnxpos -12 def
-        } ifelse
+        ismntextxoffset (unset) eq {
+            /ismntextxoffset ismntxt length 18 eq {-1} {-12} ifelse def
+        } if
+        ismntextyoffset (unset) eq {
+            /ismntextyoffset height 72 mul 3 add def
+        } if
         args (txt) known {
             /txt args (txt) get def
             /newtxt txt length 1 add array def
             newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [ismntxt ismnxpos ismnpos ismnfont ismnsize] put
+            newtxt newtxt length 1 sub [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] put
             args (txt) newtxt put
         } {
-            args (txt) [ [ismntxt ismnxpos ismnpos ismnfont ismnsize] ] put
+            args (txt) [ [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] ] put
         } ifelse
     } if
 
@@ -1815,9 +1813,10 @@ begin
 
     /dontdraw false def
     /includetext false def  % Enable/disable ISSN text
-    /issnfont /Courier def
-    /issnsize 9 def
-    /issnpos (unset) def
+    /issntextfont /Courier def
+    /issntextsize 9 def
+    /issntextxoffset (unset) def
+    /issntextyoffset (unset) def
     /height 1 def
     /addongap 12 def   
 
@@ -1832,15 +1831,12 @@ begin
     } if
     options {def} forall
     
-    /issnfont issnfont cvlit def
-    /issnsize issnsize cvr def
+    /issntextfont issntextfont cvlit def
+    /issntextsize issntextsize cvr def
+    issntextxoffset (unset) ne {/issntextxoffset issntextxoffset cvr def} if
+    issntextyoffset (unset) ne {/issntextyoffset issntextyoffset cvr def} if
     /height height cvr def
     /addongap addongap cvr def
-    issnpos (unset) eq {
-        /issnpos height 72 mul 3 add def
-    } {
-        /issnpos issnpos cvr def
-    } ifelse
    
     % Split off the ISSN
     issntxt ( ) search {
@@ -1911,15 +1907,18 @@ begin
 
     % Add the ISSN text
     includetext {
-        /issnxpos 10 def
+        issntextxoffset (unset) eq {/issntextxoffset 10 def} if
+        issntextyoffset (unset) eq {
+            /issntextyoffset height 72 mul 3 add def
+        } if
         args (txt) known {
             /txt args (txt) get def
             /newtxt txt length 1 add array def
             newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [issntxt issnxpos issnpos issnfont issnsize] put
+            newtxt newtxt length 1 sub [issntxt issntextxoffset issntextyoffset issntextfont issntextsize] put
             args (txt) newtxt put
         } {
-            args (txt) [ [issntxt issnxpos issnpos issnfont issnsize] ] put
+            args (txt) [ [issntxt issntextxoffset issntextyoffset issntextfont issntextsize] ] put
         } ifelse
     } if
 
