@@ -3,10 +3,10 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-01-17-1
+% Barcode Writer in Pure PostScript - Version 2013-01-25
 % http://www.terryburton.co.uk/barcodewriter/
 %
-% Copyright (c) 2004-2012 Terry Burton
+% Copyright (c) 2004-2013 Terry Burton
 %
 % $Id$
 %
@@ -14390,7 +14390,7 @@ begin
     % Create the codewords and bit string for the mode
     format (full) eq {
         /mode layers 1 sub 11 bitshift cws length 1 sub add def
-        readerinit {/mode mode 2#1000000000000000 or def} if
+        readerinit {/mode mode 2#0000010000000000 or def} if
         /mode [
             mode 2#1111000000000000 and -12 bitshift
             mode 2#0000111100000000 and -8 bitshift
@@ -14401,7 +14401,7 @@ begin
     } if
     format (compact) eq {
         /mode layers 1 sub 6 bitshift cws length 1 sub add def
-        readerinit {/mode mode 2#10000000 or def} if 
+        readerinit {/mode mode 2#00100000 or def} if 
         /mode [
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
