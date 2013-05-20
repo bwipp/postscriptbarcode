@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-19
+% Barcode Writer in Pure PostScript - Version 2013-05-20
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -51,6 +51,22 @@ true setglobal
 /uk.co.terryburton.bwipp exch /Category defineresource pop
 setglobal
 % --END PREAMBLE--
+
+% --BEGIN RESOURCE raiseerror--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+begin
+/raiseerror {
+  $error exch /errorinfo exch put
+  $error exch /errorname exch put
+  $error /command //null put
+  $error /newerror true put 
+  handleerror quit
+} bind def
+/raiseerror dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RESOURCE raiseerror--
 
 % --BEGIN RENDERER renlinear--
 /setpacking where {pop currentpacking true setpacking} if
@@ -418,12 +434,14 @@ end
 % --END RENDERER renmaximatrix--
 
 % --BEGIN ENCODER ean5--
+% --REQUIRES raiseerror--
 % --DESC: EAN-5 (5 digit addon)
 % --EXAM: 90200
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean5 {
@@ -461,7 +479,12 @@ begin
     } {
         /textyoffset textyoffset cvr def
     } ifelse
-    
+
+    % Validate input
+    barcode length 5 ne {
+      /bwipp.badEAN5Length (EAN-5 must be five digits) //raiseerror exec
+    } if
+ 
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
