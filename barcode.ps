@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-23
+% Barcode Writer in Pure PostScript - Version 2013-05-24
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -3555,6 +3555,13 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
+
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.interleaved2of5badCharacter (Interleaved 2 of 5 must contain only digits) //raiseerror exec
+        } if
+    } forall
     
     /barlen barcode length def      % Length of the code
 
@@ -3708,10 +3715,32 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
-    % Calculate EAN checksum and add to end of barcode
-    barcode length dup 13 eq exch 14 eq or {
-        /gtin barcode 0 13 getinterval def
+    % Validate the input
+    barcode length 13 ne barcode length 14 ne and {
+        /bwipp.itf14badLength (ITF-14 must be 13 or 14 digits) //raiseerror exec
     } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.itf14badCharacter (ITF-14 must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate ITF checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 14 eq {
+        barcode 13 get checksum 48 add ne {
+            /bwipp.itf14badCheckDigit (Incorrect ITF-14 check digit provided) //raiseerror exec
+        } if
+    } if
+    14 string
+    dup 0 barcode putinterval
+    dup 13 checksum 48 add put
+    /barcode exch def
 
     % Get the result of encoding with interleaved2of5
     options (dontdraw) true put
@@ -3720,10 +3749,9 @@ begin
     options (borderleft) 15 put
     options (borderright) 15 put
     options (height) 0.5 put
-    options (includecheck) true put
     options (includecheckintext) true put
     options (textyoffset) -10 put
-    /args gtin options //interleaved2of5 exec def
+    /args barcode options //interleaved2of5 exec def
 
     args (opt) options put
     args
@@ -3782,20 +3810,32 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
-    % Calculate checksum and add to end of barcode
-    barcode length dup 11 eq exch 12 eq or {
-        /checksum 0 def
-        0 1 10 {
-            /i exch def
-            /checksum checksum barcode i get 48 sub i 2 mod 0 eq {4 mul} {9 mul} ifelse add def
-        } for 
-        /checksum 10 checksum 10 mod sub 10 mod def
-        12 string
-        dup 0 barcode 0 11 getinterval putinterval
-        dup 11 checksum 48 add put
-        /pad exch def
+    % Validate the input
+    barcode length 11 ne barcode length 12 ne and {
+        /bwipp.identcodeBadLength (Deutsche Post Identcode must be 11 or 12 digits) //raiseerror exec
     } if
-    /barcode pad def
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.identcodeBadCharacter (Deutsche Post Identcode must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 10 {
+        /i exch def
+        /checksum checksum barcode i get 48 sub i 2 mod 0 eq {4 mul} {9 mul} ifelse add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 12 eq {
+        barcode 11 get checksum 48 add ne {
+            /bwipp.identcodeBadCheckDigit (Incorrect Deutsche Post Identcode check digit provided) //raiseerror exec
+        } if
+    } if
+    12 string
+    dup 0 barcode putinterval
+    dup 11 checksum 48 add put
+    /barcode exch def
 
     % Compose the human readable text
     /text (  .       .     ) 16 string copy def
@@ -3869,20 +3909,32 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
-    % Calculate checksum and add to end of barcode
-    barcode length dup 13 eq exch 14 eq or {
-        /checksum 0 def
-        0 1 12 {
-            /i exch def
-            /checksum checksum barcode i get 48 sub i 2 mod 0 eq {4 mul} {9 mul} ifelse add def
-        } for 
-        /checksum 10 checksum 10 mod sub 10 mod def
-        14 string
-        dup 0 barcode 0 13 getinterval putinterval
-        dup 13 checksum 48 add put
-        /pad exch def
+    % Validate the input
+    barcode length 13 ne barcode length 14 ne and {
+        /bwipp.leitcodeBadLength (Deutsche Post Leitcode must be 13 or 14 digits) //raiseerror exec
     } if
-    /barcode pad def
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.leitcodeBadCharacter (Deutsche Post Leitcode must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i get 48 sub i 2 mod 0 eq {4 mul} {9 mul} ifelse add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 14 eq {
+        barcode 13 get checksum 48 add ne {
+            /bwipp.leitcodeBadCheckDigit (Incorrect Deutsche Post Leitcode check digit provided) //raiseerror exec
+        } if
+    } if
+    14 string
+    dup 0 barcode putinterval
+    dup 13 checksum 48 add put
+    /barcode exch def
 
     % Compose the human readable text
     /text (     .   .   .    ) 18 string copy def
