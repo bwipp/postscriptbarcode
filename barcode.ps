@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-22
+% Barcode Writer in Pure PostScript - Version 2013-05-23
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -482,8 +482,13 @@ begin
 
     % Validate input
     barcode length 5 ne {
-      /bwipp.badEAN5Length (EAN-5 must be five digits) //raiseerror exec
+      /bwipp.ean5badLength (EAN-5 add-on must be 5 digits) //raiseerror exec
     } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean5badCharacter (EAN-5 add-on must contain only digits) //raiseerror exec
+        } if
+    } forall
  
     % Create an array containing the character mappings
     /encs
@@ -617,6 +622,16 @@ begin
     } {
         /textyoffset textyoffset cvr def
     } ifelse
+
+    % Validate input
+    barcode length 2 ne {
+      /bwipp.ean2badLength (EAN-2 add-on must be 2 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean2badCharacter (EAN-2 add-on must contain only digits) //raiseerror exec
+        } if
+    } forall
     
     % Create an array containing the character mappings
     /encs
@@ -753,7 +768,20 @@ begin
         pop
         /addon () def
     } ifelse
- 
+
+    % Validate the input
+    barcode length 12 ne barcode length 13 ne and {
+        /bwipp.ean13badLength (EAN-13 must be 12 or 13 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean13badCharacter (EAN-13 must contain only digits) //raiseerror exec
+        } if
+    } forall
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.ean13badAddOnLength (Add-on for EAN-13 must be 2 or 5 digits) //raiseerror exec
+    } if
+
     % Add checksum digit
     /pad 13 string def
     /checksum 0 def
@@ -964,6 +992,19 @@ begin
         /addon () def
     } ifelse
 
+    % Validate the input
+    barcode length 7 ne barcode length 8 ne and {
+        /bwipp.ean8badLength (EAN-8 must be 7 or 8 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean8badCharacter (EAN-8 must contain only digits) //raiseerror exec
+        } if
+    } forall
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.ean8badAddOnLength (Add-on for EAN-8 must be 2 or 5 digits) //raiseerror exec
+    } if
+
     % Add checksum digit
     /pad 8 string def
     /checksum 0 def
@@ -1154,6 +1195,19 @@ begin
         pop
         /addon () def
     } ifelse
+
+    % Validate the input
+    barcode length 11 ne barcode length 12 ne and {
+        /bwipp.upcAbadLength (UPC-A must be 11 or 12 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.upcAbadCharacter (UPC-A must contain only digits) //raiseerror exec
+        } if
+    } forall
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.upcAbadAddOnLength (Add-on for UPC-A must be 2 or 5 digits) //raiseerror exec
+    } if
  
     % Add checksum digit to barcode
     /pad 12 string def   % Create pad one bigger than barcode
@@ -1343,11 +1397,6 @@ begin
     addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
     addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
 
-    % Ensure 0 or 1 number systems
-    barcode 0 get dup 48 ne exch 49 ne and {
-        /barcode () def
-    } if
-
     % Split off the addon
     barcode ( ) search {
         /barcode exch def
@@ -1357,6 +1406,24 @@ begin
         pop
         /addon () def
     } ifelse
+
+    % Validate the input
+    barcode length 7 ne barcode length 8 ne and {
+        /bwipp.upcEbadLength (UPC-E must be 7 or 8 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.upcEbadCharacter (UPC-E must contain only digits) //raiseerror exec
+        } if
+    } forall
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.upcEbadAddOnLength (Add-on for UPC-E must be 2 or 5 digits) //raiseerror exec
+    } if
+
+    % Ensure 0 or 1 number systems
+    barcode 0 get dup 48 ne exch 49 ne and {
+        /bwipp.upcEbadNumberSystem (UPC-E must have number system 0 or 1) //raiseerror exec
+    } if
 
     % Create an array containing the character mappings
     /encs
