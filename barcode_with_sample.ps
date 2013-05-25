@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-24-2
+% Barcode Writer in Pure PostScript - Version 2013-05-25
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -2691,21 +2691,36 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
-    % Calculate EAN checksum and add to end of barcode
-    barcode length dup 17 eq exch 18 eq or 
-    barcode 0 4 getinterval (\(01\)) eq and {
-        /checksum 0 def
-        0 1 12 {
-            /i exch def
-            /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
-        } for 
-        /checksum 10 checksum 10 mod sub 10 mod def
-        18 string
-        dup 0 barcode 0 17 getinterval putinterval
-        dup 17 checksum 48 add put
-        /barcode exch def
-        /gtin barcode 4 14 getinterval def
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.ean14badAI (EAN-14 must begin with (01) application identifier) //raiseerror exec
     } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.ean14badLength (EAN-14 must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean14badCharacter (EAN-14 must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.ean14badCheckDigit (Incorrect EAN-14 check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+    /gtin barcode 4 14 getinterval def
 
     % Compose input to code128
     /text barcode def
@@ -2777,21 +2792,36 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
-    % Calculate EAN checksum and add to end of barcode
-    barcode length dup 21 eq exch 22 eq or 
-    barcode 0 4 getinterval (\(00\)) eq and {
-        /checksum 0 def
-        0 1 16 {
-            /i exch def
-            /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
-        } for 
-        /checksum 10 checksum 10 mod sub 10 mod def
-        22 string
-        dup 0 barcode 0 21 getinterval putinterval
-        dup 21 checksum 48 add put
-        /barcode exch def
-        /sscc barcode 4 18 getinterval def
+    % Validate the input
+    barcode 0 4 getinterval (\(00\)) ne {
+        /bwipp.sscc18badAI (SSCC-18 must begin with (00) application identifier) //raiseerror exec
     } if
+    barcode length 21 ne barcode length 22 ne and {
+        /bwipp.sscc18badLength (SSCC-18 must be 17 or 18 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.sscc18badCharacter (SSCC-18 must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 16 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for 
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 22 eq {
+        barcode 21 get checksum 48 add ne {
+            /bwipp.sscc18badCheckDigit (Incorrect SSCC-18 check digit provided) //raiseerror exec
+        } if
+    } if
+    22 string
+    dup 0 barcode putinterval
+    dup 21 checksum 48 add put
+    /barcode exch def
+    /sscc barcode 4 18 getinterval def
 
     % Compose input to code128
     /text barcode def
@@ -3071,7 +3101,7 @@ end
 
 % --BEGIN ENCODER code32--
 % --REQUIRES preamble raiseerror renlinear code39--
-% --DESC: Italian PharmaCode
+% --DESC: Italian Pharmacode
 % --EXAM: 01234567
 % --EXOP: includetext
 % --RNDR: renlinear
@@ -3112,15 +3142,33 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
-    /text 10 string def
-    text 0 barcode 0 8 getinterval putinterval
+    % Validate the input
+    barcode length 8 ne barcode length 9 ne and {
+        /bwipp.code32badLength (Italian Pharmacode must be 8 or 9 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.code32badCharacter (Italian Pharmacode must contain only digits) //raiseerror exec
+        } if
+    } forall
 
-    % calculate check digit
-    text 8 0
+    % Calculate check digit
+    /checksum 0 def
     0 1 7 {
-        dup text exch get 48 sub exch 1 and 1 add mul dup 9 gt {9 sub} if add
+        /i exch def
+        barcode i get 48 sub i 2 mod 0 ne {2 mul} if dup 9 gt {9 sub} if
+        checksum add /checksum exch def
     } for
-    10 mod 48 add put
+    /checksum checksum 10 mod def
+    barcode length 9 eq {
+        barcode 8 get checksum 48 add ne {
+            /bwipp.code32badCheckDigit (Incorrect Italian Pharmacode check digit provided) //raiseerror exec
+        } if
+    } if
+    10 string
+    dup 0 barcode putinterval
+    dup 8 checksum 48 add put
+    /text exch def
 
     % convert number from base10 to base32
     /val text cvi 32 barcode cvrs def
@@ -3203,16 +3251,44 @@ begin
     /textxoffset textxoffset cvr def
     /height height cvr def
 
-    /msg pzn8 {9} {8} ifelse string def
-    /msglen msg length def
-    msg 0 45 put 
-    msg 1 barcode 0 msglen 2 sub getinterval putinterval
- 
-    % calculate check digit
-    0 
-    1 1 msglen 2 sub {dup msg exch get 48 sub exch pzn8 not {1 add} if mul add} for
-    11 mod 48 add
-    msg exch msglen 1 sub exch put
+    % Validate the input
+    pzn8 {
+        barcode length 7 ne barcode length 8 ne and {
+            /bwipp.pzn8badLength (PZN8 must be 7 or 8 digits) //raiseerror exec
+        } if
+    } {
+        barcode length 6 ne barcode length 7 ne and {
+            /bwipp.pzn7badLength (PZN7 must be 6 or 7 digits) //raiseerror exec
+        } if
+    } ifelse
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.pznBadCharacter (PZN must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate check digit
+    /msglen pzn8 {9} {8} ifelse def
+    /checksum 0 def
+    0 1 msglen 3 sub {
+        /i exch def
+        barcode i get 48 sub i pzn8 {1} {2} ifelse add mul
+        checksum add /checksum exch def 
+    } for 
+    /checksum checksum 11 mod def
+    checksum 10 eq {
+        /bwipp.pznBadInputSequence (Incorrect PZN input sequence provided) //raiseerror exec
+    } if
+    barcode length msglen 1 sub eq {
+        barcode msglen 2 sub get checksum 48 add ne {
+            /bwipp.pznBadCheckDigit (Incorrect PZN check digit provided) //raiseerror exec
+        } if
+    } if
+    msglen string
+    dup 0 45 put 
+    dup 1 barcode putinterval
+    dup msglen 1 sub checksum 48 add put
+    /msg exch def
  
     % Get the result of encoding with code39
     options (dontdraw) true put
