@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-25
+% Barcode Writer in Pure PostScript - Version 2013-05-27
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -5846,6 +5846,19 @@ begin
     /wwidth wwidth cvr def
     /swidth swidth cvr def
 
+    % Validate the input
+    barcode length 1 lt barcode length 6 gt or {
+        /bwipp.pharmacodeBadLength (Pharmacode must be 1 to 6 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.pharmacodeBadCharacter (Pharmacode must contain only digits) //raiseerror exec
+        } if
+    } forall
+    barcode cvi dup 3 lt exch 131070 gt or {
+        /bwipp.pharmacodeBadValue (Pharmacode value must be between 3 and 131070) //raiseerror exec
+    } if
+
     % Create the human readable text
     /txt barcode length array def
     0 1 barcode length 1 sub {
@@ -5927,6 +5940,19 @@ begin
 
     /height height cvr def
 
+    % Validate the input
+    barcode length 1 lt barcode length 8 gt or {
+        /bwipp.pharmacode2BadLength (Two-track Pharmacode must be 1 to 6 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.pharmacode2badCharacter (Two-track Pharmacode must contain only digits) //raiseerror exec
+        } if
+    } forall
+    barcode cvi dup 4 lt exch 64570080 gt or {
+        /bwipp.pharmacode2badValue (Two-track Pharmacode value must be between 4 and 64570080) //raiseerror exec
+    } if
+
     % Create the human readable text
     /txt barcode length array def
     0 1 barcode length 1 sub {
@@ -6003,6 +6029,7 @@ begin
 
     /dontdraw false def
     /includecheck false def
+    /validatecheck false def
     /includetext false def   % Enable/disable text
     /includecheckintext false def
     /textfont /Courier def
@@ -6026,6 +6053,28 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
+
+    % Validate input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.code2of5badCharacter (Code 25 must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    /barlen barcode length validatecheck {1 sub} if def
+
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /checksum checksum barcode i get 48 sub barlen i sub 2 mod 0 ne {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    validatecheck {
+        barcode barlen get checksum 48 add ne {
+            /bwipp.code2of5badCheckDigit (Incorrect Code 25 check digit provided) //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+    } if
 
     % Create an array containing the character mappings
     << 
@@ -6061,21 +6110,11 @@ begin
     % Create a string of the available characters
     /barchars (0123456789) def
 
-    /barlen barcode length def            % Length of the code
-
-    includecheck {
-        /sbs barlen 1 add cs mul ss add ss add string def
-        /txt barlen 1 add array def
-    } {
-        /sbs barlen cs mul ss add ss add string def
-        /txt barlen array def
-    } ifelse
+    /sbs barlen includecheck {1 add} if cs mul ss add ss add string def
+    /txt barlen includecheck {1 add} if array def
 
     % Put the start character
     sbs 0 encs 10 get putinterval
-
-    /checksum 0 def
-
     0 1 barlen 1 sub {
         /i exch def
         % Lookup the encoding for the each barcode character
@@ -6086,16 +6125,10 @@ begin
         /enc encs indx get def              % Get the indxth encoding
         sbs i cs mul ss add enc putinterval % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i cw mul sw add textyoffset textfont textsize] put
-        barlen i sub 2 mod 0 eq {
-            /checksum checksum indx add def
-        } {
-            /checksum checksum indx 3 mul add def
-        } ifelse
     } for
 
     % Put the checksum and end characters
     includecheck {
-        /checksum 10 checksum 10 mod sub 10 mod def
         sbs barlen cs mul ss add encs checksum get putinterval
         sbs barlen cs mul cs add ss add encs 11 get putinterval
         includecheckintext {
@@ -6184,18 +6217,9 @@ begin
 
     /barlen barcode length def        % Length of the code
 
-    includecheck {
-        barlen 10 ge {
-            /sbs barlen 6 mul 24 add string def
-            /txt barlen 2 add array def
-        } {
-            /sbs barlen 6 mul 18 add string def
-            /txt barlen 1 add array def
-        } ifelse
-    } {
-        /sbs barlen 6 mul 12 add string def
-        /txt barlen array def
-    } ifelse
+    /numchecks includecheck {barlen 10 ge {2} {1} ifelse} {0} ifelse def
+    /sbs barlen numchecks add 6 mul 12 add string def
+    /txt barlen numchecks add array def
 
     % Put the start character
     sbs 0 encs 11 get putinterval
