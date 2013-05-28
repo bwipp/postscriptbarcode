@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-28-1
+% Barcode Writer in Pure PostScript - Version 2013-05-28-2
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -3057,6 +3057,13 @@ begin
             } ifelse 
         } loop
     } if
+
+    % Validate the input
+    barcode 4 barcode length 4 sub getinterval {
+        128 ge {
+            /bwipp.code39extBadCharacter (Code 39 Extended must contain only ASCII characters) //raiseerror exec
+        } if
+    } forall
 
     /barlen barcode length def
 
