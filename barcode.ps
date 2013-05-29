@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-29
+% Barcode Writer in Pure PostScript - Version 2013-05-29-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -485,7 +485,7 @@ begin
 
     % Validate input
     barcode length 5 ne {
-      /bwipp.ean5badLength (EAN-5 add-on must be 5 digits) //raiseerror exec
+        /bwipp.ean5badLength (EAN-5 add-on must be 5 digits) //raiseerror exec
     } if
     barcode {
         dup 48 lt exch 57 gt or {
@@ -6200,6 +6200,7 @@ begin
 
     /dontdraw false def
     /includecheck false def
+    /validatecheck false def
     /includetext false def
     /includecheckintext false def
     /textfont /Courier def
@@ -6232,41 +6233,70 @@ begin
 
     % Create a string of the available characters
     /barchars (0123456789-) def
+    /charvals 11 dict def
+    0 1 10 {charvals exch dup barchars exch 1 getinterval exch put} for
 
-    /barlen barcode length def        % Length of the code
+    % Validate the input
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.code11badCharacter (Code 11 must contain only digits and dashes) //raiseerror exec
+        } if
+    } for
 
-    /numchecks includecheck {barlen 10 ge {2} {1} ifelse} {0} ifelse def
+    /barlen barcode length def
+    validatecheck {
+        barlen 11 eq {
+            /bwipp.code11badLength (Code 11 cannot be 11 characters using check digits) //raiseerror exec
+        } if
+        /barlen barlen barlen 10 le {1} {2} ifelse sub def
+    } if
+
+    /numchecks includecheck validatecheck or {barlen 10 ge {2} {1} ifelse} {0} ifelse def
+    /checksum1 0 def /checksum2 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        /checksum1 checksum1 barlen i sub 1 sub 10 mod 1 add indx mul add def
+        /checksum2 checksum2 barlen i sub 9 mod 1 add indx mul add def
+    } for
+    /checksum1 checksum1 11 mod def
+    /checksum2 checksum2 checksum1 add 11 mod def
+    validatecheck {
+        numchecks 1 eq {
+            barcode barlen get barchars checksum1 get ne {
+                /bwipp.code11badCheckDigit (Incorrect Code 11 check digit provided) //raiseerror exec
+            } if
+        } {
+            barcode barlen get barchars checksum1 get ne
+            barcode barlen 1 add get barchars checksum2 get ne or {
+                /bwipp.code11badCheckDigits (Incorrect Code 11 check digits provided) //raiseerror exec
+            } if
+        } ifelse
+        /barcode barcode 0 barlen getinterval def
+        /includecheck true def
+    } if
+
     /sbs barlen numchecks add 6 mul 12 add string def
     /txt barlen numchecks add array def
 
     % Put the start character
     sbs 0 encs 11 get putinterval
 
-    /checksum1 0 def /checksum2 0 def
-    
     /xpos 8 def
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                % Discard true leaving pre
-        length /indx exch def              % indx is the length of pre
-        pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
-        sbs i 6 mul 6 add enc putinterval  % Put encoded digit into sbs
+        /indx charvals barcode i 1 getinterval get def
+        /enc encs indx get def
+        sbs i 6 mul 6 add enc putinterval
         txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
         0 1 5 {       % xpos+=width of the character
             /xpos exch enc exch get 48 sub xpos add def
         } for
-        /checksum1 checksum1 barlen i sub 1 sub 10 mod 1 add indx mul add def
-        /checksum2 checksum2 barlen i sub 9 mod 1 add indx mul add def
     } for
    
     % Put the checksum and end characters
     includecheck {
-        /checksum1 checksum1 11 mod def        
         barlen 10 ge {
-            /checksum2 checksum2 checksum1 add 11 mod def
             sbs barlen 6 mul 6 add encs checksum1 get putinterval        
             sbs barlen 6 mul 12 add encs checksum2 get putinterval
             includecheckintext {
