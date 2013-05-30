@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-30-2
+% Barcode Writer in Pure PostScript - Version 2013-05-30-3
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -8223,6 +8223,7 @@ begin
 
     /dontdraw false def
     /includetext false def    % Enable/disable text
+    /validatecheck false def
     /includecheckintext false def
     /unidirectional false def
     /textfont /Courier def
@@ -8246,41 +8247,26 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
     
-    % Create an array containing the character mappings
-    /encs
-    [ (14141414) (32141414) (14321414) (32321414)
-      (14143214) (32143214) (14323214) (32323214)
-      (14141432) (32141432) (14321432) (32321432)
-      (14143232) (32143232) (14323232) (32323232)
-      (32321432) (541412323) (323)
-    ] def
-
     % Create a string of the available characters
     /barchars (0123456789ABCDEF) def
+    /charvals 16 dict def
+    0 1 15 {charvals exch dup barchars exch 1 getinterval exch put} for
 
-    /barlen barcode length def     % Length of the code
-    unidirectional {
-        /sbs barlen 8 mul 27 add string def
-    } {
-        /sbs barlen 8 mul 33 add string def
-    } ifelse
-    /txt barlen 2 add array def
+    % Validate the input
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.plesseyBadCharacter (Plessey must contain only digits and letters A B C D E F) //raiseerror exec
+        } if
+    } for
+
+    /barlen barcode length validatecheck {2 sub} if def
+
+    % Calculate the checksums
     /checkbits barlen 4 mul 8 add array def
     checkbits barlen 4 mul [ 0 0 0 0 0 0 0 0 ] putinterval
-
-    % Put start character
-    sbs 0 encs 16 get putinterval
-
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                % Discard true leaving pre
-        length /indx exch def              % indx is the length of pre
-        pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
-        sbs i 8 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 20 mul 20 add textyoffset textfont textsize] put
+        /indx charvals barcode i 1 getinterval get def
         checkbits i 4 mul [
                 indx 1 and
                 indx -1 bitshift 1 and
@@ -8288,8 +8274,6 @@ begin
                 indx -3 bitshift
         ] putinterval
     } for
-
-    % Checksum is last 8 bits of a CRC using a salt
     /checksalt [ 1 1 1 1 0 1 0 0 1 ] def
     0 1 barlen 4 mul 1 sub {
         /i exch def
@@ -8300,17 +8284,45 @@ begin
             } for
         } if
     } for
-
-    % Calculate the value of the checksum digits
     /checkval 0 def
     0 1 7 {
         /i exch def
         /checkval checkval 2 i exp cvi checkbits barlen 4 mul i add get mul add def
     } for
-
-    % Put the checksum characters
     /checksum1 checkval 15 and def
     /checksum2 checkval -4 bitshift def
+    validatecheck {
+        barcode barlen get barchars checksum1 get ne
+        barcode barlen 1 add get barchars checksum2 get ne or {
+            /bwipp.plesseyBadCheckDigits (Incorrect Plessey check digits provided) //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+        /includecheck true def
+    } if
+
+    % Create an array containing the character mappings
+    /encs
+    [ (14141414) (32141414) (14321414) (32321414)
+      (14143214) (32143214) (14323214) (32323214)
+      (14141432) (32141432) (14321432) (32321432)
+      (14143232) (32143232) (14323232) (32323232)
+      (32321432) (541412323) (323)
+    ] def
+
+    /sbs barlen 8 mul unidirectional {27} {33} ifelse add string def
+    /txt barlen 2 add array def
+
+    % Put start character
+    sbs 0 encs 16 get putinterval
+
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        sbs i 8 mul 8 add encs indx get putinterval
+        txt i [barcode i 1 getinterval i 20 mul 20 add textyoffset textfont textsize] put
+    } for
+
+    % Put the checksum characters
     sbs barlen 8 mul 8 add encs checksum1 get putinterval
     sbs barlen 8 mul 16 add encs checksum2 get putinterval
     includecheckintext {
@@ -8322,11 +8334,7 @@ begin
     } ifelse
 
     % Put end character
-    unidirectional {
-        sbs barlen 8 mul 24 add encs 18 get putinterval
-    } {
-        sbs barlen 8 mul 24 add encs 17 get putinterval
-    } ifelse
+    sbs barlen 8 mul 24 add encs unidirectional {18} {17} ifelse get putinterval
 
     % Return the arguments
     <<
