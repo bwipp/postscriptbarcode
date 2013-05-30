@@ -6215,7 +6215,7 @@ begin
     } if
 
     % Create an array containing the character mappings
-    << 
+    /versions << 
     /industrial
         [ (1111313111) (3111111131) (1131111131) (3131111111)
           (1111311131) (3111311111) (1131311111) (1111113131)
@@ -6238,8 +6238,12 @@ begin
         [ (113311) (311131) (131131) (331111) (113131) (313111)
           (133111) (111331) (311311) (131311) (1111)   (311)
         ]
-    >>
-    version get /encs exch def
+    >> def
+    versions version known not {
+        /bwipp.code2of5badVersion (Unrecognised Code 25 version) //raiseerror exec
+    } if
+    /encs versions version get def
+
     /cs encs 0 get length def
     /cw 0 encs 0 get {48 sub add} forall def
     /ss encs dup length 2 sub get length def
