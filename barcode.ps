@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-30
+% Barcode Writer in Pure PostScript - Version 2013-05-30-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -2693,14 +2693,14 @@ begin
 
     % Validate the input
     barcode 0 4 getinterval (\(01\)) ne {
-        /bwipp.ean14badAI (EAN-14 must begin with (01) application identifier) //raiseerror exec
+        /bwipp.ean14badAI (GS1-14 must begin with (01) application identifier) //raiseerror exec
     } if
     barcode length 17 ne barcode length 18 ne and {
-        /bwipp.ean14badLength (EAN-14 must be 13 or 14 digits) //raiseerror exec
+        /bwipp.ean14badLength (GS1-14 must be 13 or 14 digits) //raiseerror exec
     } if
     barcode 4 barcode length 4 sub getinterval {
         dup 48 lt exch 57 gt or {
-            /bwipp.ean14badCharacter (EAN-14 must contain only digits) //raiseerror exec
+            /bwipp.ean14badCharacter (GS1-14 must contain only digits) //raiseerror exec
         } if
     } forall
 
@@ -2713,7 +2713,7 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     barcode length 18 eq {
         barcode 17 get checksum 48 add ne {
-            /bwipp.ean14badCheckDigit (Incorrect EAN-14 check digit provided) //raiseerror exec
+            /bwipp.ean14badCheckDigit (Incorrect GS1-14 check digit provided) //raiseerror exec
         } if
     } if
     18 string
@@ -4098,25 +4098,33 @@ begin
     format (truncated) eq {/height 13 72 div def} if
     /height height cvr def
 
-    % Strip the AI and optional check digit
-    barcode length dup 17 eq exch 18 eq or {
-        barcode 0 4 getinterval (\(01\)) eq {
-            /binval [ 
-                linkage {1} {0} ifelse
-                barcode 4 13 getinterval {48 sub} forall
-            ] def
-        } if
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databaromniBadAI (GS1 DataBar Omnidirectional must begin with (01) application identifier) //raiseerror exec
     } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databaromniBadLength (GS1 DataBar Omnidirectional must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databaromniBadCharacter (GS1 DataBar Omnidirectional must contain only digits) //raiseerror exec
+        } if
+    } forall
 
-    % Calculate EAN checksum and add to end of barcode
+    % Calculate checksum and add to end of barcode
     /checksum 0 def
     0 1 12 {
         /i exch def
         /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
-    } for 
+    } for
     /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databaromniBadCheckDigit (Incorrect GS1 DataBar Omnidirectional check digit provided) //raiseerror exec
+        } if
+    } if
     18 string
-    dup 0 barcode 0 17 getinterval putinterval
+    dup 0 barcode putinterval
     dup 17 checksum 48 add put
     /barcode exch def
 
@@ -4181,7 +4189,12 @@ begin
         out el 1 sub nm put
         out
     } bind def
-   
+  
+    /binval [ 
+                linkage {1} {0} ifelse
+                barcode 4 13 getinterval {48 sub} forall
+    ] def
+ 
     0 1 12 {
         /i exch def
         binval i 1 add 2 copy get binval i get 4537077 mod 10 mul add put
@@ -4505,6 +4518,36 @@ begin
     } if
     options {def} forall
 
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databarstackedBadAI (GS1 DataBar Stacked must begin with (01) application identifier) //raiseerror exec
+    } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databarstackedBadLength (GS1 DataBar Stacked must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databarstackedBadCharacter (GS1 DataBar Stacked must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databarstackedBadCheckDigit (Incorrect GS1 DataBar Stacked check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
     % Get the result of encoding with databaromni with format=stacked
     options (dontdraw) true put
     options (format) (stacked) put
@@ -4556,6 +4599,36 @@ begin
     } if
     options {def} forall
 
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databarstackedomniBadAI (GS1 DataBar Stacked Omnidirectional must begin with (01) application identifier) //raiseerror exec
+    } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databarstackedomniBadLength (GS1 DataBar Stacked Omnidirectional must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databarstackedomniBadCharacter (GS1 DataBar Stacked Omnidirectional must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databarstackedomniBadCheckDigit (Incorrect GS1 DataBar Stacked Omnidirectional check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
     % Get the result of encoding with databaromni with format=stackedomni
     options (dontdraw) true put
     options (format) (stackedomni) put
@@ -4606,6 +4679,36 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
+
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databartruncatedBadAI (GS1 DataBar Truncated must begin with (01) application identifier) //raiseerror exec
+    } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databartruncatedBadLength (GS1 DataBar Truncated must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databartruncatedBadCharacter (GS1 DataBar Truncated must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databartruncatedBadCheckDigit (Incorrect GS1 DataBar Truncated check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
 
     % Get the result of encoding with databaromni with format=truncated
     options (dontdraw) true put
