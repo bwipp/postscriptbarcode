@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-31
+% Barcode Writer in Pure PostScript - Version 2013-06-01
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -7427,7 +7427,7 @@ end
 % --REQUIRES preamble raiseerror renlinear--
 % --DESC: Royal Mail 4 State Customer Code (RM4SCC)
 % --EXAM: LE28HS9Z
-% --EXOP: includetext includecheckintext barcolor=FF0000
+% --EXOP: includetext barcolor=FF0000
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -7494,7 +7494,6 @@ begin
             /bwipp.royalmailBadCheckDigit (Incorrect RM4SCC check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     % Create an array containing the character mappings
@@ -7516,19 +7515,13 @@ begin
     
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                 % Discard true leaving pre
-        length /indx exch def               % indx is the length of pre
-        pop pop                             % Discard seek and post
-        /enc encs indx get def              % Get the indxth encoding
-        encstr i 4 mul 1 add enc putinterval
+        /indx charvals barcode i 1 getinterval get def
+        encstr i 4 mul 1 add encs indx get putinterval
         txt i [barcode i 1 getinterval i 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } for
 
     % Put the checksum character
-    /enc encs checksum get def
-    encstr barlen 4 mul 1 add enc putinterval
+    encstr barlen 4 mul 1 add encs checksum get putinterval
     includecheckintext {
         txt barlen [barchars checksum 1 getinterval barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } {
@@ -7797,7 +7790,7 @@ end
 % --REQUIRES preamble raiseerror renlinear--
 % --DESC: Royal Dutch TPG Post KIX 4-State Barcode
 % --EXAM: 1231FZ13XHS
-% --EXOP: includetext includecheckintext
+% --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -7813,7 +7806,6 @@ begin
 
     /dontdraw false def
     /includetext false def          % Enable/disable text
-    /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
     /textyoffset -7 def
@@ -7847,6 +7839,15 @@ begin
 
     % Create a string of the available characters
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
+    /charvals 36 dict def
+    0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
+
+    % Validate the input
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.kixBadCharacter (KIX must contain only capital letters and digits) //raiseerror exec
+        } if
+    } for
 
     /barlen barcode length def
     /encstr barlen 4 mul string def
@@ -7854,13 +7855,8 @@ begin
     
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                 % Discard true leaving pre
-        length /indx exch def               % indx is the length of pre
-        pop pop                             % Discard seek and post
-        /enc encs indx get def              % Get the indxth encoding
-        encstr i 4 mul enc putinterval
+        /indx charvals barcode i 1 getinterval get def
+        encstr i 4 mul encs indx get putinterval
         txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
     } for
 
@@ -8320,7 +8316,6 @@ begin
             /bwipp.plesseyBadCheckDigits (Incorrect Plessey check digits provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     % Create an array containing the character mappings
