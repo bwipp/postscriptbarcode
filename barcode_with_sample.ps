@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-05-30-3
+% Barcode Writer in Pure PostScript - Version 2013-05-31
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -7443,6 +7443,7 @@ begin
 
     /dontdraw false def
     /includetext false def          % Enable/disable text
+    /validatecheck false def
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
@@ -7464,7 +7465,38 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
+    % Create a string of the available characters
+    /barchars (ZUVWXY501234B6789AHCDEFGNIJKLMTOPQRS) def
+    /charvals 36 dict def
+    0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
+
+    % Validate the input
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.royalmailBadCharacter (RM4SCC must contain only capital letters and digits) //raiseerror exec
+        } if
+    } for
+
+    /barlen barcode length validatecheck {1 sub} if def
+
+    /checksumrow 0 def
+    /checksumcol 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        /checksumrow checksumrow indx 6 idiv add def
+        /checksumcol checksumcol indx 6 mod add def 
+    } for
+    /checksum checksumrow 6 mod 6 mul checksumcol 6 mod add def
+    validatecheck {
+        barcode barlen get barchars checksum get ne {
+            /bwipp.royalmailBadCheckDigit (Incorrect RM4SCC check digit provided) //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+        /includecheck true def
+    } if
+
     % Create an array containing the character mappings
     /encs
     [ (3300) (2211) (2301) (2310) (3201) (3210) 
@@ -7476,18 +7508,12 @@ begin
       (2) (3)
     ] def
 
-    % Create a string of the available characters
-    /barchars (ZUVWXY501234B6789AHCDEFGNIJKLMTOPQRS) def
-
-    /barlen barcode length def
     /encstr barlen 4 mul 6 add string def
     /txt barlen 1 add array def
 
     % Put start character
     encstr 0 encs 36 get putinterval
     
-    /checksumrow 0 def
-    /checksumcol 0 def
     0 1 barlen 1 sub {
         /i exch def
         % Lookup the encoding for the each barcode character
@@ -7498,12 +7524,9 @@ begin
         /enc encs indx get def              % Get the indxth encoding
         encstr i 4 mul 1 add enc putinterval
         txt i [barcode i 1 getinterval i 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
-        /checksumrow checksumrow indx 6 idiv add def
-        /checksumcol checksumcol indx 6 mod add def 
     } for
 
     % Put the checksum character
-    /checksum checksumrow 6 mod 6 mul checksumcol 6 mod add def
     /enc encs checksum get def
     encstr barlen 4 mul 1 add enc putinterval
     includecheckintext {
