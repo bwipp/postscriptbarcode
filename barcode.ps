@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-01
+% Barcode Writer in Pure PostScript - Version 2013-06-01-1
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -7153,6 +7153,7 @@ begin
 
     /dontdraw false def
     /includetext false def          % Enable/disable text
+    /validatecheck false def
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
@@ -7175,22 +7176,33 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
     
-    /barlen barcode length def
+    /barlen barcode length validatecheck {1 sub} if def
 
-    % Ensure 5, 9 or 11 digits
-    barlen 5 lt {
-        /barlen -1 def  % Error
-    } {
-        barlen 11 ge {
-            /barlen 11 def
+    % Validate the input
+    barlen 5 ne barlen 9 ne and barlen 11 ne and {
+        /bwipp.postnetBadLength (USPS POSTNET must be 5, 9 or 11 digits excluding check digit) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.postnetBadCharacter (USPS POSTNET must contain only digits) //raiseerror exec
         } if
-        barlen 10 eq {
-            /barlen 9 def
+    } forall
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /checksum checksum barcode i get 48 sub add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    validatecheck {
+        barcode barlen get barchars checksum get ne {
+            /bwipp.postnetBadCheckDigit (Incorrect USPS POSTNET check digit provided) //raiseerror exec
         } if
-        barlen 8 le {
-            /barlen 5 def
-        } if
-    } ifelse
+        /barcode barcode 0 barlen getinterval def
+    } if
 
     % Create an array containing the character mappings
     /encs
@@ -7198,9 +7210,6 @@ begin
       (25252) (25522) (52225) (52252) (52522)
       (5) (5)
     ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
 
     /bhs barlen 5 mul 7 add array def
     /txt barlen 1 add array def
@@ -7214,15 +7223,9 @@ begin
     } for
     bhs 0 heights putinterval   % Put encoded digit into sbs
 
-    /checksum 0 def
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                 % Discard true leaving pre
-        length /indx exch def               % indx is the length of pre
-        pop pop                             % Discard seek and post
-        /enc encs indx get def              % Get the indxth encoding
+        /enc encs barcode i get 48 sub get def
         /heights enc length array def
         0 1 enc length 1 sub {
             /j exch def
@@ -7230,11 +7233,9 @@ begin
         } for
         bhs i 5 mul 1 add heights putinterval   % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
-        /checksum checksum indx add def     % checksum+=indx
     } for
 
     % Put the checksum character
-    /checksum 10 checksum 10 mod sub 10 mod def
     /enc encs checksum get def
     /heights enc length array def
     0 1 enc length 1 sub {
@@ -7300,6 +7301,7 @@ begin
 
     /dontdraw false def
     /includetext false def          % Enable/disable text
+    /validatecheck false def
     /includecheckintext false def
     /textfont /Courier def
     /textsize 10 def
@@ -7321,19 +7323,35 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
-    /barlen barcode length def
 
-    % Ensure 11 or 13 digits
-    barlen 11 lt {
-        /barlen -1 def  % Error
-    } {
-        barlen 13 ge {
-            /barlen 13 def
-        } {
-            /barlen 11 def
-        } ifelse
-    } ifelse
+    /barlen barcode length validatecheck {1 sub} if def
+
+    % Validate the input
+    barlen 11 ne barlen 13 ne and {
+        /bwipp.planetBadLength (USPS PLANET must be 11 or 13 digits excluding check digit) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.planetBadCharacter (USPS PLANET must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    % Calculate the checksum
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /checksum checksum barcode i get 48 sub add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    validatecheck {
+        barcode barlen get barchars checksum get ne {
+            /bwipp.planetBadCheckDigit (Incorrect USPS PLANET check digit provided) //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+    } if
 
     % Create an array containing the character mappings
     /encs
@@ -7341,9 +7359,6 @@ begin
       (52525) (52255) (25552) (25525) (25255)
       (5) (5)
     ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
 
     /bhs barlen 5 mul 7 add array def
     /txt barlen 1 add array def
@@ -7357,15 +7372,9 @@ begin
     } for
     bhs 0 heights putinterval   % Put encoded digit into sbs
 
-    /checksum 0 def
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                 % Discard true leaving pre
-        length /indx exch def               % indx is the length of pre
-        pop pop                             % Discard seek and post
-        /enc encs indx get def              % Get the indxth encoding
+        /enc encs barcode i get 48 sub get def
         /heights enc length array def
         0 1 enc length 1 sub {
             /j exch def
@@ -7373,11 +7382,9 @@ begin
         } for
         bhs i 5 mul 1 add heights putinterval   % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
-        /checksum checksum indx add def     % checksum+=indx
     } for
 
     % Put the checksum character
-    /checksum 10 checksum 10 mod sub 10 mod def
     /enc encs checksum get def
     /heights enc length array def
     0 1 enc length 1 sub {
