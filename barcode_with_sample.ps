@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-01-1
+% Barcode Writer in Pure PostScript - Version 2013-06-02
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -2895,14 +2895,14 @@ begin
     /height height cvr def
 
     % Create a string of the available characters
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*) def
-    /charvals 44 dict def
-    0 1 43 {charvals exch dup barchars exch 1 getinterval exch put} for
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+    /charvals 43 dict def
+    0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
 
     % Validate the input
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
-            /bwipp.code39badCharacter (Code 39 must contain only digits, capital letters, spaces and the symbols -.$/+%*) //raiseerror exec
+            /bwipp.code39badCharacter (Code 39 must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
         } if
     } for
 
