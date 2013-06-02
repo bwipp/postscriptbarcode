@@ -1594,7 +1594,7 @@ end
 % --REQUIRES preamble raiseerror renlinear ean5 ean2 ean13--
 % --DESC: ISBN
 % --EXAM: 978-1-56592-479 54495
-% --EXOP: includetext guardwhitespace
+% --EXOP: includetext guardwhitespace isbntextfont=CourierNewPSMT
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -1761,7 +1761,7 @@ end
 % --REQUIRES preamble raiseerror renlinear ean5 ean2 ean13--
 % --DESC: ISMN
 % --EXAM: 979-0-2600-0043
-% --EXOP: includetext guardwhitespace
+% --EXOP: includetext guardwhitespace ismntextfont=CourierNewPSMT
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -1914,7 +1914,7 @@ end
 % --REQUIRES preamble raiseerror renlinear ean2 ean5 ean13--
 % --DESC: ISSN
 % --EXAM: 0317-8471 00 05
-% --EXOP: includetext guardwhitespace
+% --EXOP: includetext guardwhitespace issntextfont=CourierNewPSMT
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -17586,7 +17586,6 @@ begin
             /bwipp.hibccode39badCheckDigit (Incorrect HIBC Code 39 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -17602,6 +17601,7 @@ begin
     % Get the result of encoding with code39
     options (dontdraw) true put
     options (includecheck) false put
+    options (validatecheck) false put
     /args barcode options //code39 exec def
 
     args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
@@ -17686,7 +17686,6 @@ begin
             /bwipp.hibccode128badCheckDigit (Incorrect HIBC Code 128 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -17701,6 +17700,7 @@ begin
 
     % Get the result of encoding with code128
     options (dontdraw) true put
+    options (validatecheck) false put
     /args barcode options //code128 exec def
 
     args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
@@ -17776,7 +17776,6 @@ begin
             /bwipp.hibcdatamatrixBadCheckDigit (Incorrect HIBC Data Matrix check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -17785,6 +17784,7 @@ begin
 
     % Get the result of encoding with datamatrix
     options (dontdraw) true put
+    options (validatecheck) false put
     /args barcode options //datamatrix exec def
 
     args (opt) options put
@@ -17861,7 +17861,6 @@ begin
             /bwipp.hibcpdf417BadCheckDigit (Incorrect HIBC PDF417 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -17871,6 +17870,7 @@ begin
     % Get the result of encoding with pdf417
     options (dontdraw) true put
     options (columns) columns put
+    options (validatecheck) false put
     /args barcode options //pdf417 exec def
 
     args (opt) options put
@@ -17947,7 +17947,6 @@ begin
             /bwipp.hibcmicropdf417BadCheckDigit (Incorrect HIBC MicroPDF417 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -17957,6 +17956,7 @@ begin
     % Get the result of encoding with micropdf417
     options (dontdraw) true put
     options (columns) columns put
+    options (validatecheck) false put
     /args barcode options //micropdf417 exec def
 
     args (opt) options put
@@ -18030,7 +18030,6 @@ begin
             /bwipp.hibcqrcodeBadCheckDigit (Incorrect HIBC QR Code check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -18039,6 +18038,7 @@ begin
 
     % Get the result of encoding with qrcode
     options (dontdraw) true put
+    options (validatecheck) false put
     /args barcode options //qrcode exec def
 
     args (opt) options put
@@ -18112,7 +18112,6 @@ begin
             /bwipp.hibccodablockfBadCheckDigit (Incorrect HIBC Codablock F check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
-        /includecheck true def
     } if
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
@@ -18121,6 +18120,7 @@ begin
 
     % Get the result of encoding with codablockf
     options (dontdraw) true put
+    options (validatecheck) false put
     /args barcode options //codablockf exec def
 
     args (opt) options put
