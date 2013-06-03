@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-02-1
+% Barcode Writer in Pure PostScript - Version 2013-06-03
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -11319,19 +11319,19 @@ begin
     options {def} forall
 
     /height height cvr def
-  
-    /barlen barcode length def
 
-    barlen 2 ge barlen 7 le and {
-        /channels barlen 1 add def
+    % Validate the input
+    barcode length 2 lt barcode length 7 gt and {
+        /bwipp.channelcodeBadLength (Channel Code must be 2 to 7 digits) //raiseerror exec
     } if
-
-    % Determine finder
-    shortfinder {
-        /finder [ 1 1 1 1 1 ] def
-    } {
-        /finder [ 1 1 1 1 1 1 1 1 1 ] def
-    } ifelse
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.channelcodeBadCharacter (Channel Code must contain only digits) //raiseerror exec
+        } if
+    } forall
+    barcode cvi [ 26 292 3493 44072 576688 7742862 ] barcode length 2 sub get gt {
+        /bwipp.channelcodeTooBig (The Channel Code value is too big for the number of channels) //raiseerror exec
+    } if
 
     /nextb {
         dup
@@ -11378,21 +11378,26 @@ begin
         out
     } bind def
 
+    /barlen barcode length def
+
+    % Determine finder
+    /finder shortfinder { [ 1 1 1 1 1 ] } { [ 1 1 1 1 1 1 1 1 1 ] } ifelse def
+
     % Encode the main data
-    /data barcode cvi channels encode def
+    /data barcode cvi barlen 1 add encode def
 
     % Determine check data
     /check [] def
     includecheck {
         /mod23 [
-            [] [] []
+            [] []
             [ 13 12  4  9  3  1 ]
             [ 13  2 12  3 18 16  4  1 ]
             [ 11 16 17  8 20  4 10  2  5  1 ]
             [  1  4 16 18  3 12  2  8  9 13  6  1 ]
             [ 20 16 22 13 15 12  5  4  8  9 21  3  7  1 ]
             [  2  6 18  8  1  3  9  4 12 13 16  2  6 18  8  1 ]
-        ] channels get def
+        ] barlen get def
         0
         0 1 data length 1 sub {
             dup data exch get 1 sub exch mod23 exch get mul add
