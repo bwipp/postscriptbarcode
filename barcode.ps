@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-03
+% Barcode Writer in Pure PostScript - Version 2013-06-07
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -11443,8 +11443,8 @@ end
 % --BEGIN ENCODER flattermarken--
 % --REQUIRES preamble raiseerror renlinear--
 % --DESC: Flattermarken
-% --EXAM: 12345
-% --EXOP: inkspread=-0.25
+% --EXAM: 11099
+% --EXOP: inkspread=-0.25 showborder borderleft=0 borderright=0
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -11464,6 +11464,13 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 0.3 def
+
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.flattermarkenBadCharacter (Flattermarken must contain only digits) //raiseerror exec
+        } if
+    } forall
 
     % Parse the input options
     options type /stringtype eq {
