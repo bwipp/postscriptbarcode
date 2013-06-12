@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-07
+% Barcode Writer in Pure PostScript - Version 2013-06-12
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -4649,7 +4649,7 @@ end
 % --END ENCODER databarstackedomni--
 
 % --BEGIN ENCODER databartruncated--
-% --REQUIRES preamble raiseerror renlinear databaromni--
+% --REQUIRES preamble raiseerror renlinear renmatrix databaromni--
 % --DESC: GS1 DataBar Truncated
 % --EXAM: (01)24012345678905
 % --EXOP:
@@ -8447,6 +8447,23 @@ begin
         } loop
     } if
 
+    numeric {
+        0 1 barcode length 1 sub {
+            /i exch def
+            barcode i get dup 48 lt exch 57 gt or
+            barcode i get 16 gt and
+            i 2 mod 0 ne {barcode i get 88 ne} if and {
+
+            } if
+        } for
+    } {
+        barcode {
+            128 ge {
+                /bwipp.telepenBadCharacter (Telepen must contain only ASCII characters) //raiseerror exec
+            } if
+        } forall
+    } ifelse
+
     % Create an array containing the character mappings
     /encs
     [ (31313131)        (1131313111)     (33313111)       (1111313131)
@@ -11487,6 +11504,13 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
+
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.flattermarkenBadCharacter (Flattermarken must contain only digits) //raiseerror exec
+        } if
+    } forall
 
     % Create an array containing the character mappings
     /encs
