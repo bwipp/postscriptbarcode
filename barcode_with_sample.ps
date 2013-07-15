@@ -3,7 +3,7 @@
 %%DocumentPaperSizes: a4
 %%EndComments
 
-% Barcode Writer in Pure PostScript - Version 2013-06-12
+% Barcode Writer in Pure PostScript - Version 2013-07-15
 % http://www.terryburton.co.uk/barcodewriter/
 %
 % Copyright (c) 2004-2013 Terry Burton
@@ -8446,23 +8446,6 @@ begin
             } ifelse 
         } loop
     } if
-
-    numeric {
-        0 1 barcode length 1 sub {
-            /i exch def
-            barcode i get dup 48 lt exch 57 gt or
-            barcode i get 16 gt and
-            i 2 mod 0 ne {barcode i get 88 ne} if and {
-
-            } if
-        } for
-    } {
-        barcode {
-            128 ge {
-                /bwipp.telepenBadCharacter (Telepen must contain only ASCII characters) //raiseerror exec
-            } if
-        } forall
-    } ifelse
 
     % Create an array containing the character mappings
     /encs
