@@ -1,0 +1,151 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER kix--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: Royal Dutch TPG Post KIX
+% --EXAM: 1231FZ13XHS
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/kix {
+
+    20 dict begin
+
+    /options exch def              % We are given an option string
+    /barcode exch def              % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def          % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 0.175 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+    
+    % Create an array containing the character mappings
+    /encs
+    [ (0033) (0123) (0132) (1023) (1032) (1122)
+      (0213) (0303) (0312) (1203) (1212) (1302) 
+      (0231) (0321) (0330) (1221) (1230) (1320)
+      (2013) (2103) (2112) (3003) (3012) (3102)
+      (2031) (2121) (2130) (3021) (3030) (3120) 
+      (2211) (2301) (2310) (3201) (3210) (3300) 
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
+    /charvals 36 dict def
+    0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
+
+    % Validate the input
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.kixBadCharacter (KIX must contain only capital letters and digits) //raiseerror exec
+        } if
+    } for
+
+    /barlen barcode length def
+    /encstr barlen 4 mul string def
+    /txt barlen array def
+    
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        encstr i 4 mul encs indx get putinterval
+        txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
+    } for
+
+    /bbs encstr length array def    
+    /bhs encstr length array def
+    0 1 encstr length 1 sub {
+        /i exch def
+        /enc encstr i 1 getinterval def
+        enc (0) eq {
+            bbs i 3 height mul 8 div put
+            bhs i 2 height mul 8 div put
+        } if
+        enc (1) eq {
+            bbs i 0 height mul 8 div put
+            bhs i 5 height mul 8 div put
+        } if
+        enc (2) eq {
+            bbs i 3 height mul 8 div put
+            bhs i 5 height mul 8 div put
+        } if
+        enc (3) eq {
+            bbs i 0 height mul 8 div put
+            bhs i 8 height mul 8 div put
+        } if
+    } for
+    
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /bbs bbs
+    /bhs bhs
+    /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/kix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER kix--

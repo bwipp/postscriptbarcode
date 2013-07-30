@@ -1,0 +1,136 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER databarstackedcomposite--
+% --REQUIRES preamble raiseerror renlinear renmatrix databaromni databarstacked micropdf417 pdf417 gs1-cc--
+% --DESC: GS1 DataBar Stacked Composite
+% --EXAM: (01)03412345678900|(17)010200
+% --EXOP:
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /databarstacked dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarstackedcomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    gsave
+
+    options (lintype) (databarstacked) put
+    options (linkage) true put
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Plot the linear part
+    linear options //databarstacked exec
+    dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
+    dup (pixy) get /linheight exch def
+    //renmatrix exec
+
+    % Plot the separator
+    /sepfinder {
+        /fp exch def
+        fp 1 fp 12 add {
+            /i exch def
+            bot i get 0 eq {
+                bot i 1 sub get 1 eq {
+                    1
+                } {
+                    sep i 1 sub get 0 eq {1} {0} ifelse
+                } ifelse
+            } {
+                0
+            } ifelse
+            sep exch i exch put
+        } for
+        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+            % Right shifted module for value 3 finder
+            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+        } if
+    } bind def
+    /sep [ bot {1 exch sub} forall ] def
+    sep 0 [ 0 0 0 0 ] putinterval
+    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    18 sepfinder
+    0 linheight rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    1 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+    grestore
+
+    end
+
+} bind def
+/databarstackedcomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarstackedcomposite--

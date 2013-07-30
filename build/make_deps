@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# $Id$ 
+
+UPRFILE=src/uk.co.terryburton.bwipp.upr
+
+PSFILE=$1
+shift
+
+if [ ! -f "$PSFILE" ]; then
+  echo "File not found: $PSFILE"
+  exit 1
+fi
+
+PROVIDES=`sed -n -e 's/^% --BEGIN \([^ ]*\) \(.*\)--$/\2/p' $PSFILE`
+if [ "$PROVIDES" == "preamble" ]; then
+  PROVIDES="uk.co.terryburton.bwipp"
+fi
+
+PROVFILE=`sed -n -e "s/^$PROVIDES=//p" $UPRFILE`
+RESOURCES=`sed -n -e 's/^% --REQUIRES \(.*\)--$/\1/p' $PSFILE`
+
+for TARGETDIR in $@; do
+
+  RESFILES="$TARGETDIR/$PROVFILE : "
+  for RESOURCE in $RESOURCES; do
+    if [ "$RESOURCE" == "preamble" ]; then
+      RESOURCE="uk.co.terryburton.bwipp"
+    fi
+    RESFILE=`sed -n -e "s/^$RESOURCE=//p" $UPRFILE`
+    RESFILES="$RESFILES $TARGETDIR/$RESFILE"
+  done
+
+  echo $RESFILES
+
+done 
+

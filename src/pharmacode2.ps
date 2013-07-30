@@ -1,0 +1,136 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER pharmacode2--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: Two-track Pharmacode
+% --EXAM: 117480
+% --EXOP: includetext showborder
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/pharmacode2 {
+
+    20 dict begin
+
+    /options exch def           % We are given an option string
+    /barcode exch def           % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def      % Enable/disable text
+    /height 4 def               % Height of short bars in millimetres
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /height height cvr def
+
+    % Validate the input
+    barcode length 1 lt barcode length 8 gt or {
+        /bwipp.pharmacode2BadLength (Two-track Pharmacode must be 1 to 6 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.pharmacode2badCharacter (Two-track Pharmacode must contain only digits) //raiseerror exec
+        } if
+    } forall
+    barcode cvi dup 4 lt exch 64570080 gt or {
+        /bwipp.pharmacode2badValue (Two-track Pharmacode value must be between 4 and 64570080) //raiseerror exec
+    } if
+
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+
+    /encstr 16 string def
+    /bhs 16 array def
+    /bbs 16 array def
+    /sbs 32 array def
+    /bar 1 25.4 div height mul def     % bar height (mm)
+    /spc 1 25.4 div 72 mul def         % bar width & spacing (1mm)
+ 
+    % Convert number into a base3 representation
+    /i 15 def
+    /val barcode cvi def
+    {  % loop
+        val 0 eq {exit} if
+        val 3 mod dup
+        [3 1 2] exch get val exch sub 3 idiv /val exch def
+        encstr i [2 0 1] 4 -1 roll get put
+        /i i 1 sub def
+    } loop
+    /encstr encstr i 1 add 15 i sub getinterval def
+ 
+    % Generate the bar pattern
+    0 1 encstr length 1 sub {
+        /i exch def
+        encstr i get dup
+        bhs i bar [1 1 2] 5 -1 roll get mul put
+        bbs i [0 bar 0] 4 -1 roll get put
+    } for
+     
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /bhs bhs
+    /bbs bbs
+    /sbs [encstr length 2 mul {spc} repeat]
+    /txt txt
+    /textxalign (center)
+    /textyoffset 4
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/pharmacode2 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER pharmacode2--

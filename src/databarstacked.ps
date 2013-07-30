@@ -1,0 +1,113 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER databarstacked--
+% --REQUIRES preamble raiseerror renlinear renmatrix databaromni--
+% --DESC: GS1 DataBar Stacked
+% --EXAM: (01)24012345678905
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /databaromni dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarstacked {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Validate the input
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databarstackedBadAI (GS1 DataBar Stacked must begin with (01) application identifier) //raiseerror exec
+    } if
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databarstackedBadLength (GS1 DataBar Stacked must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databarstackedBadCharacter (GS1 DataBar Stacked must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databarstackedBadCheckDigit (Incorrect GS1 DataBar Stacked check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
+    % Get the result of encoding with databaromni with format=stacked
+    options (dontdraw) true put
+    options (format) (stacked) put
+
+    /args barcode options //databaromni exec def
+
+    args (opt) options put
+    args
+ 
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/databarstacked dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarstacked--

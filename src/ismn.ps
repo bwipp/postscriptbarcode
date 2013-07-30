@@ -1,0 +1,185 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER ismn--
+% --REQUIRES preamble raiseerror renlinear ean5 ean2 ean13--
+% --DESC: ISMN
+% --EXAM: 979-0-2600-0043
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+begin
+/ismn {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /ismntxt exch def      % We are given the ismn text with dashes
+
+    /dontdraw false def
+    /includetext false def  % Enable/disable ISMN text
+    /ismntextfont /Courier def
+    /ismntextsize 9 def
+    /ismntextxoffset (unset) def
+    /ismntextyoffset (unset) def
+    /height 1 def
+    /addongap 12 def   
+    /legacy false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+    
+    /ismntextfont ismntextfont cvlit def
+    /ismntextsize ismntextsize cvr def
+    ismntextxoffset (unset) ne {/ismntextxoffset ismntextxoffset cvr def} if
+    ismntextyoffset (unset) ne {/ismntextyoffset ismntextyoffset cvr def} if
+    /height height cvr def
+    /addongap addongap cvr def
+   
+    % Split off the addon
+    ismntxt ( ) search {
+        /ismntxt exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+
+    % Convert old ISMN to ISMN-13
+    /legacytxt () def
+    ismntxt 0 1 getinterval (M) eq ismntxt length 13 le and {
+        /legacytxt ismntxt def
+        /pad ismntxt length 4 add string def
+        pad 0 (979-0-) putinterval
+        pad 6 ismntxt 2 ismntxt length 2 sub getinterval putinterval
+        /ismntxt pad def
+    } if
+
+    % Read the digits from ismntxt and calculate checksums
+    /ismn 13 string def
+    /checksum 0 def
+    /i 0 def /n 0 def
+    { % loop
+        /ismnchar ismntxt i get 48 sub def
+        ismnchar -3 ne {           % Ignore dashes
+            ismn n ismnchar 48 add put
+            n 12 lt {
+                n 2 mod 0 eq {
+                    /checksum ismnchar checksum add def
+                } {
+                    /checksum ismnchar 3 mul checksum add def
+                } ifelse
+            } if
+            /n n 1 add def
+        } if
+        /i i 1 add def
+        i ismntxt length eq {exit} if
+    } loop
+    /checksum 10 checksum 10 mod sub 10 mod def
+
+    % Add the ISMN header to the ismntxt
+    legacy legacytxt () ne and {
+        /ismntxt legacytxt def
+        /pad 18 string def
+    } {
+        /pad 22 string def
+    } ifelse
+    pad 0 (ISMN ) putinterval
+    pad 5 ismntxt putinterval  % Add ismntxt to the pad
+
+    % Add checksum digit
+    pad pad length 2 sub 45 put  % Put a dash
+    pad pad length 1 sub checksum 48 add put  % Put check digit
+    /ismntxt pad def
+
+    % Convert ISMN digits to EAN-13
+    /barcode ismn 0 12 getinterval def 
+
+    % Append the addon
+    addon () ne {
+        12 addon length add 1 add string 
+        dup 0 barcode putinterval
+        dup 12 ( ) putinterval
+        dup 13 addon putinterval
+        /barcode exch def
+    } if
+
+    % Get the result of encoding with ean13
+    options (dontdraw) true put
+    options (addongap) addongap put 
+    /args barcode options //ean13 exec def
+
+    % Add the ISMN text
+    includetext {
+        ismntextxoffset (unset) eq {
+            /ismntextxoffset ismntxt length 18 eq {-1} {-12} ifelse def
+        } if
+        ismntextyoffset (unset) eq {
+            /ismntextyoffset height 72 mul 3 add def
+        } if
+        args (txt) known {
+            /txt args (txt) get def
+            /newtxt txt length 1 add array def
+            newtxt 0 txt putinterval
+            newtxt newtxt length 1 sub [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] put
+            args (txt) newtxt put
+        } {
+            args (txt) [ [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] ] put
+        } ifelse
+    } if
+
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+ 
+} bind def
+/ismn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER ismn--

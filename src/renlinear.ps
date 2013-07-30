@@ -1,0 +1,272 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RENDERER renlinear--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/renlinear {
+
+    20 dict begin          % Confine variables to local scope
+
+    /args exch def   % We are given some arguments
+
+    % Default options
+    /sbs [] def
+    /bhs [] def
+    /bbs [] def
+    /txt [] def
+    /barcolor (unset) def
+    /includetext false def
+    /textcolor (unset) def
+    /textxalign (unset) def
+    /textyalign (unset) def
+    /textfont (Courier) def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset 0 def
+    /textgaps 0 def
+    /alttext () def
+    /bordercolor (unset) def
+    /backgroundcolor (unset) def
+    /inkspread 0.15 def
+    /width 0 def
+    /barratio 1 def
+    /spaceratio 1 def
+    /showborder false def
+    /borderleft 10 def
+    /borderright 10 def
+    /bordertop 1 def
+    /borderbottom 1 def
+    /borderwidth 0.5 def
+    /guardwhitespace false def
+    /guardleftpos 0 def
+    /guardleftypos 0 def
+    /guardrightpos 0 def
+    /guardrightypos 0 def
+    /guardwidth 6 def
+    /guardheight 7 def
+    
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall 
+
+    /barcolor barcolor cvlit def
+    /textcolor textcolor cvlit def
+    /textxalign textxalign cvlit def
+    /textyalign textyalign cvlit def
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /textgaps textgaps cvr def
+    /alttext alttext cvlit def
+    /bordercolor bordercolor cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+    /inkspread inkspread cvr def
+    /width width cvr def
+    /barratio barratio cvr def
+    /spaceratio spaceratio cvr def
+    /borderleft borderleft cvr def
+    /borderright borderright cvr def
+    /bordertop bordertop cvr def
+    /borderbottom borderbottom cvr def
+    /borderwidth borderwidth cvr def
+    /guardleftpos guardleftpos cvr def
+    /guardleftypos guardleftypos cvr def
+    /guardrightpos guardrightpos cvr def
+    /guardrightypos guardrightypos cvr def
+    /guardwidth guardwidth cvr def
+    /guardheight guardheight cvr def
+    
+    % Create bar elements and put them into the bars array
+    /bars sbs length 1 add 2 idiv array def
+    /x 0.00 def /maxh 0 def
+    0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
+        /i exch def
+        i 2 mod 0 eq {           % i is even
+            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1
+            sbs i get 0 ne {
+                /h bhs i 2 idiv get 72 mul def  % Height from bhs
+                /c d 2 div x add def            % Centre of the bar = x + d/2
+                /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
+                /w d inkspread sub def          % bar width = digit - inkspread
+                bars i 2 idiv [h c y w] put     % Add the bar entry
+                h y add maxh gt {/maxh h y add def} if
+            } {
+                bars i 2 idiv -1 put            % Dummy entry
+            } ifelse
+        } {
+            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
+        } ifelse
+        /x x d add def  % x+=d
+    } for
+
+    gsave
+
+    currentpoint translate
+
+    % Force symbol to given width
+    width 0 ne {
+        width 72 mul x div 1 scale
+    } if
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Display the border and background
+    newpath
+    borderleft neg borderbottom neg moveto
+    x borderleft add borderright add 0 rlineto
+    0 maxh borderbottom add bordertop add rlineto
+    x borderleft add borderright add neg 0 rlineto
+    0 maxh borderbottom add bordertop add neg rlineto    
+    closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
+    showborder {
+        gsave
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth setlinewidth stroke
+        grestore
+    } if    
+   
+    % Display the bars for elements in the bars array
+    gsave
+    0 setlinecap
+    barcolor (unset) ne { barcolor setanycolor } if
+    bars {
+        dup -1 ne {
+            aload pop newpath setlinewidth moveto 0 exch rlineto stroke
+        } {
+            pop
+        } ifelse
+    } forall
+    grestore
+    
+    % Display the text for elements in the text array
+    textcolor (unset) ne { textcolor setanycolor } if
+    includetext {
+        textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
+            /s 0 def /fn () def
+            txt {
+                {} forall
+                2 copy s ne exch fn ne or {
+                    2 copy /s exch def /fn exch def            
+                    exch findfont exch scalefont setfont          
+                } {
+                    pop pop
+                } ifelse
+                moveto show
+            } forall
+        } {
+            textfont findfont textsize scalefont setfont
+            alttext () eq {
+                /txt [ txt { 0 get {} forall } forall ] def
+                /tstr txt length string def
+                0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
+            } {
+                /tstr alttext def
+            } ifelse
+
+            % Find true ascent of font
+            tstr length 0 eq {
+                0
+            } {
+                gsave
+                newpath 0 0 moveto (0) false charpath pathbbox
+                4 1 roll pop pop pop
+                grestore
+                currentfont /PaintType known {currentfont /PaintType get 2 eq} {false} ifelse
+                currentfont /StrokeWidth known and {
+                    currentfont /StrokeWidth get 2 div 0 exch
+                    currentfont /FontMatrix get dtransform
+                    dup mul exch dup mul add sqrt
+                    add
+                } if
+            } ifelse
+            /textascent exch def
+            /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
+
+            /textxpos textxoffset x textwidth sub 2 div add def
+            textxalign (left) eq { /textxpos textxoffset def } if
+            textxalign (right) eq { /textxpos x textxoffset sub textwidth sub def } if
+            textxalign (offleft) eq { /textxpos textwidth textxoffset add neg def } if
+            textxalign (offright) eq { /textxpos x textxoffset add def } if
+            textxalign (justify) eq textwidth x lt and {
+                /textxpos 0 def
+                /textgaps x textwidth sub tstr length 1 sub div def
+            } if
+            /textypos textyoffset textascent add 1 add neg def
+            textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
+            textyalign (center) eq { /textypos textyoffset maxh textascent sub 2 div add def } if
+            textxpos textypos moveto textgaps 0 tstr ashow
+        } ifelse
+    } if    
+
+    % Display the guard elements
+    guardwhitespace {
+        0.75 setlinewidth
+        guardleftpos 0 ne {
+            newpath
+            guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
+            guardwidth neg guardheight -2 div rlineto
+            guardwidth guardheight -2 div rlineto
+            stroke            
+        } if
+        guardrightpos 0 ne {
+            newpath
+            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
+            guardwidth guardheight -2 div rlineto
+            guardwidth neg guardheight -2 div rlineto
+            stroke            
+        } if
+    } if
+    
+    grestore
+    
+    end
+
+} bind def
+/renlinear dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RENDERER renlinear--

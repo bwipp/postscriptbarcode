@@ -1,0 +1,31 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+use strict;
+
+my $infile=$ARGV[0];
+my $outfile=$ARGV[1];
+
+open(PS,$infile) || die "File not found: $infile";
+my $template=join('',<PS>);
+close(PS);
+
+open(HEAD,'src/ps.head') || die 'Unable to open ps.head';
+my $head=join('',<HEAD>);
+close HEAD;
+
+$template=~/
+    ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
+    (.*?)
+    (^[^%].*?)
+    ^%\ --END\ \1\ \2--$
+/msgx;
+
+my $body=$4;
+
+open(PS,">$outfile") || die "Failed to write $outfile";
+print PS $head;
+print PS $body;
+close(PS);
+

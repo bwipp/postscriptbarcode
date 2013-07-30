@@ -1,0 +1,199 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER isbn--
+% --REQUIRES preamble raiseerror renlinear ean5 ean2 ean13--
+% --DESC: ISBN
+% --EXAM: 978-1-56592-479-6 54495
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+begin
+/isbn {
+
+    20 dict begin
+
+    /options exch def      % We are given an options string
+    /isbntxt exch def      % We are given the isbn text with dashes
+
+    /dontdraw false def
+    /includetext false def  % Enable/disable ISBN text
+    /isbntextfont /Courier def
+    /isbntextsize 9 def
+    /isbntextxoffset (unset) def
+    /isbntextyoffset (unset) def
+    /height 1 def
+    /addongap 12 def   
+    /legacy false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+    
+    /isbntextfont isbntextfont cvlit def
+    /isbntextsize isbntextsize cvr def
+    isbntextxoffset (unset) ne {/isbntextxoffset isbntextxoffset cvr def} if
+    isbntextyoffset (unset) ne {/isbntextyoffset isbntextyoffset cvr def} if
+    /height height cvr def
+    /addongap addongap cvr def
+
+    % Split off the addon
+    isbntxt ( ) search {
+        /isbntxt exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+ 
+    % Convert ISBN-10 to ISBN-13
+    legacy not isbntxt length 13 le and {
+        /pad isbntxt length 4 add string def
+        pad 0 (978-) putinterval
+        pad 4 isbntxt putinterval
+        /isbntxt pad def
+    } if
+
+    % Read the digits from isbntxt and calculate checksums
+    /isbn 13 string def
+    /checksum10 0 def
+    /checksum13 0 def
+    /i 0 def /n 0 def
+    { % loop
+        /isbnchar isbntxt i get 48 sub def
+        isbnchar -3 ne {     % Ignore dashes
+            isbn n isbnchar 48 add put
+            n 9 lt {
+                /checksum10 checksum10 10 n sub isbnchar mul add def
+            } if
+            n 12 lt {
+                n 2 mod 0 eq {
+                    /checksum13 isbnchar checksum13 add def
+                } {
+                    /checksum13 isbnchar 3 mul checksum13 add def
+                } ifelse
+            } if
+            /n n 1 add def
+        } if
+        /i i 1 add def
+        i isbntxt length eq {exit} if
+    } loop
+
+    % Add the ISBN header to the isbntxt
+    n 9 eq n 10 eq or {
+        /checksum 11 checksum10 11 mod sub 11 mod def
+        /isbn isbn 0 9 getinterval def
+        /pad 18 string def
+    } {
+        /checksum 10 checksum13 10 mod sub 10 mod def
+        /isbn isbn 0 12 getinterval def
+        /pad 22 string def
+    } ifelse
+    pad 0 (ISBN ) putinterval
+    pad 5 isbntxt putinterval  % Add isbntxt to the pad
+
+    % Add checksum digit
+    pad pad length 2 sub 45 put  % Put a dash
+    checksum 10 eq {
+        pad pad length 1 sub checksum 78 add put  % Check digit for 10 is X
+    } {
+        pad pad length 1 sub checksum 48 add put  % Put check digit
+    } ifelse
+    /isbntxt pad def
+
+    % Convert ISBN digits to EAN-13
+    /barcode 12 string def
+    isbn length 9 eq {        
+        barcode 0 (978) putinterval
+        barcode 3 isbn putinterval
+    } {
+        barcode 0 isbn putinterval
+    } ifelse
+
+    % Append the addon
+    addon () ne {
+        12 addon length add 1 add string 
+        dup 0 barcode putinterval
+        dup 12 ( ) putinterval
+        dup 13 addon putinterval
+        /barcode exch def
+    } if
+
+    % Get the result of encoding with ean13
+    options (dontdraw) true put
+    options (addongap) addongap put 
+    /args barcode options //ean13 exec def
+
+    % Add the ISBN text
+    includetext {
+        isbntextxoffset (unset) eq {
+            /isbntextxoffset isbn length 9 eq {-1} {-12} ifelse def
+        } if
+        isbntextyoffset (unset) eq {
+            /isbntextyoffset height 72 mul 3 add def
+        } if
+        args (txt) known {
+            /txt args (txt) get def
+            /newtxt txt length 1 add array def
+            newtxt 0 txt putinterval
+            newtxt newtxt length 1 sub [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] put
+            args (txt) newtxt put
+        } {
+            args (txt) [ [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] ] put
+        } ifelse
+    } if
+
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+ 
+} bind def
+/isbn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER isbn--

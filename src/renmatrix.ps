@@ -1,0 +1,103 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RENDERER renmatrix--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/renmatrix {
+
+    20 dict begin
+
+    /args exch def
+
+    % Default options
+    /width 1 def
+    /height 1 def
+    /color (unset) def
+    /backgroundcolor (unset) def
+
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall
+
+    /width width cvr def
+    /height height cvr def
+    /color color cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+
+    % Extend bitmap horizontally to an 8-bit boundary
+    /pixx8 pixx 8 div ceiling cvi 8 mul def
+    /pixs8 [ pixx8 pixy mul {0} repeat ] def
+    0 1 pixy 1 sub {
+        /i exch def
+        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
+    } for
+    /pixs pixs8 def
+
+    % Convert bitmap into 8-bit sample string
+    /imgstr pixs length 8 idiv string def
+    0 1 pixs length 1 sub {
+        /i exch def
+        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
+    } for
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Draw the image
+    gsave
+    currentpoint translate
+    72 width mul 72 height mul scale
+    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
+    color (unset) ne { color setanycolor } if
+    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
+    grestore
+
+    end
+
+} bind def
+/renmatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RENDERER renmatrix--

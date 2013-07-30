@@ -1,0 +1,202 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER japanpost--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: Japan Post 4 State Customer Code
+% --EXAM: 6540123789-A-K-Z
+% --EXOP: includetext includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/japanpost {
+
+    20 dict begin
+
+    /options exch def              % We are given an option string
+    /barcode exch def              % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def          % Enable/disable text
+    /includecheckintext false def
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 0.175 def
+  
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+    
+    % Create an array containing the character mappings
+    % 0123456789- C1C2C3C4C5C6C7C8 ST EN
+    /encs
+    [ (300) (330) (312) (132) (321) (303) (123) (231) (213) (033) (030)
+      (120) (102) (210) (012) (201) (021) (003) (333) 
+      (31) (13)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
+    /barlen barcode length def
+    
+    /encstr 20 1 add 3 mul 4 add string def
+    /digits 20 array def
+    /txt barlen 1 add array def
+
+    % Put start character
+    encstr 0 encs 19 get putinterval
+
+    /checksum 0 def
+    /j 0 def /i 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        barcode i 1 getinterval barchars exch search
+        pop                                  % Discard true leaving pre
+        length /indx exch def                % indx is the length of pre
+        pop pop                              % Discard match and post
+        indx 11 ge indx 37 lt and {          % Insert escape
+            j 18 gt {exit} if                % Should fit in 20 chars
+                                             % 11-20: C1 (11)
+                                             % 21-30: C2 (12)
+                                             % 31-36: C3 (13)
+            /digit indx 1 sub 10 idiv 10 add def
+            encstr j 3 mul 2 add encs digit get putinterval
+            /checksum checksum digit add def
+            digits j digit put
+            /j j 1 add def
+        } if
+        j 19 gt {exit} if                    % Should fit in 20 chars
+        /digit 0 def
+        indx 37 eq {
+            /digit 14 def                    % space (C14)
+        } if
+        indx 11 ge indx 37 lt and {
+            /digit indx 1 sub 10 mod def
+        } if
+        indx 11 lt {
+            /digit indx def
+        } if
+        encstr j 3 mul 2 add encs digit get putinterval % space
+        /checksum checksum digit add def
+        digits j digit put
+        txt i [barcode i 1 getinterval j 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
+        /j j 1 add def
+    } for
+
+    % Fill spaces (c14) at right end
+    j 1 20 1 sub {
+        /k exch def
+        encstr k 3 mul 2 add encs 14 get putinterval
+        /checksum checksum 14 add def
+        digits k 14 put
+    } for
+
+    % Put the checksum character
+    /checksum checksum 19 mod 19 exch sub def
+    encstr 2 20 3 mul add encs checksum get putinterval
+
+    % Put end character
+    encstr 2 21 3 mul add encs 20 get putinterval
+    /checkdigit ( ) def
+    includecheckintext {
+        /checkdigit barchars checksum 1 getinterval def
+    } if
+    txt i 1 add [ checkdigit 20 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
+
+    % Put end character
+    encstr 20 1 add 3 mul 2 add encs 20 get putinterval
+
+    /bbs 21 3 mul 4 add array def
+    /bhs bbs length array def
+    0 1 bbs length 1 sub {
+        /i exch def
+        /enc encstr i 1 getinterval def
+        /bunit 0 def
+        /hunit 0 def
+        enc (0) eq {
+            /bunit 3 def
+            /hunit 2 def
+        } if
+        enc (1) eq {
+            /bunit 0 def
+            /hunit 5 def
+        } if
+        enc (2) eq {
+            /bunit 3 def
+            /hunit 5 def
+        } if
+        enc (3) eq {
+            /bunit 0 def
+            /hunit 8 def
+        } if
+        bbs i bunit height mul 8 div put
+        bhs i hunit height mul 8 div put
+    } for
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /bbs bbs
+    /bhs bhs
+    /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/japanpost dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER japanpost--

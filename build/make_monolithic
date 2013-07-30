@@ -1,0 +1,66 @@
+#!/usr/bin/perl -Tw
+
+# $Id$
+
+use strict;
+
+my $resourcedir=$ARGV[0] || '';
+
+open(UPR,'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
+my $upr=join('',<UPR>);
+close(UPR);
+
+open(HEAD,'src/ps.head') || die 'Unable to open ps.head';
+while(<HEAD>) {print;}
+close HEAD;
+
+print "% --BEGIN TEMPLATE--\n\n";
+
+while ($upr=~/^(.*)=(.*)$/mg) {
+
+  my $srcfile="src/$1.ps";
+  $srcfile='src/preamble.ps' if $1 eq 'uk.co.terryburton.bwipp';
+  my $resfile="$resourcedir/$2";
+
+  open(SRC,$srcfile) || die "Unable to open source file: $srcfile";
+  my $src=join('',<SRC>);
+  close(SRC);
+
+  (my $begin, $_, $_, my $meta, $_, my $end)=$src=~/
+    (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
+    (.*?)
+    (^[^%].*?)
+    (^%\ --END\ \2\ \3--$)
+  /msgx;
+
+  my $body;
+  if ($resourcedir ne '') {
+    open(RES,$resfile) || die "Unable to open resource file: $resfile";
+    my $res=join('',<RES>);
+    close(RES);
+    $res=~/
+      (^%%BeginResource:\ [\w\.]+\ [\w\.-]+?\ .*?$)
+      .*
+      (^%%BeginData:.*?$
+      .*
+      ^%%EndResource$)
+    /msgx;
+    $body="$1\n$2\n";
+  } else {
+    $src=~/
+        ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
+        (.*?)
+        (^[^%].*?)
+        ^%\ --END\ \1\ \2--$
+    /msgx;
+    $body=$4;
+  }
+
+  print $begin;
+  print $meta;
+  print $body;
+  print "$end\n\n";
+
+}
+
+print "% --END TEMPLATE--\n";

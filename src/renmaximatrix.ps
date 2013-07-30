@@ -1,0 +1,89 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RENDERER renmaximatrix--
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/renmaximatrix {
+
+    20 dict begin
+
+    /args exch def   % We are given some arguments
+
+    % Apply the renderer options and the user options
+    args {def} forall
+    opt {def} forall
+ 
+    gsave
+
+    currentpoint translate
+
+    2.4945 dup scale  % from 1pt to 1.88mm
+    0.5 0.5774 translate
+
+    pixs {
+        dup 
+        /x exch 30 mod def 
+        /y exch 30 idiv def
+        y 2 mod 0 eq {x} {x 0.5 add} ifelse
+        32 y sub 0.8661 mul
+        moveto
+        0     0.5774 rmoveto
+        -0.5 -0.2887 rlineto
+        0    -0.5774 rlineto
+        0.5  -0.2887 rlineto
+        0.5   0.2887 rlineto
+        0     0.5774 rlineto
+        -0.5  0.2887 rlineto
+        closepath fill
+    } forall
+
+    % Plot the locator symbol
+    newpath 14 13.8576 0.5774 0 360 arc closepath
+    14 13.8576 1.3359 360 0 arcn closepath fill
+    newpath 14 13.8576 2.1058 0 360 arc closepath
+    14 13.8576 2.8644 360 0 arcn closepath fill
+    newpath 14 13.8576 3.6229 0 360 arc closepath
+    14 13.8576 4.3814 360 0 arcn closepath fill
+
+    grestore
+
+    end
+
+} bind def
+/renmaximatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RENDERER renmaximatrix--

@@ -1,0 +1,213 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER telepen--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: Telepen
+% --EXAM: 123456
+% --EXOP: numeric includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/telepen {
+
+    20 dict begin                  % Confine variables to local scope
+
+    /options exch def        % We are given an option string
+    /barcode exch def        % We are given a barcode string
+
+    /numeric false def
+    /dontdraw false def
+    /includetext false def    % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 1 def
+    /parse false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    % Create an array containing the character mappings
+    /encs
+    [ (31313131)        (1131313111)     (33313111)       (1111313131)
+      (3111313111)      (11333131)       (13133131)       (111111313111)
+      (31333111)        (1131113131)     (33113131)       (1111333111)
+      (3111113131)      (1113133111)     (1311133111)     (111111113131)
+      (3131113111)      (11313331)       (333331)         (111131113111)
+      (31113331)        (1133113111)     (1313113111)     (1111113331)
+      (31131331)        (113111113111)   (3311113111)     (1111131331)
+      (311111113111)    (1113111331)     (1311111331)     (11111111113111)
+      (31313311)        (1131311131)     (33311131)       (1111313311)
+      (3111311131)      (11333311)       (13133311)       (111111311131)
+      (31331131)        (1131113311)     (33113311)       (1111331131)
+      (3111113311)      (1113131131)     (1311131131)     (111111113311)
+      (3131111131)      (1131131311)     (33131311)       (111131111131)
+      (3111131311)      (1133111131)     (1313111131)     (111111131311)
+      (3113111311)      (113111111131)   (3311111131)     (111113111311)
+      (311111111131)    (111311111311)   (131111111311)   (11111111111131)
+      (3131311111)      (11313133)       (333133)         (111131311111)
+      (31113133)        (1133311111)     (1313311111)     (1111113133)
+      (313333)          (113111311111)   (3311311111)     (11113333)
+      (311111311111)    (11131333)       (13111333)       (11111111311111)
+      (31311133)        (1131331111)     (33331111)       (1111311133)
+      (3111331111)      (11331133)       (13131133)       (111111331111)
+      (3113131111)      (1131111133)     (33111133)       (111113131111)
+      (3111111133)      (111311131111)   (131111131111)   (111111111133)
+      (31311313)        (113131111111)   (3331111111)     (1111311313)
+      (311131111111)    (11331313)       (13131313)       (11111131111111)
+      (3133111111)      (1131111313)     (33111313)       (111133111111)
+      (3111111313)      (111313111111)   (131113111111)   (111111111313)
+      (313111111111)    (1131131113)     (33131113)       (11113111111111)
+      (3111131113)      (113311111111)   (131311111111)   (111111131113)
+      (3113111113)      (11311111111111) (331111111111)   (111113111113)
+      (31111111111111)  (111311111113)   (131111111113)   (1111111111111111)
+    ] def
+
+    /barlen barcode length def    % Length of the code
+    /sbs barlen 16 mul 48 add string def
+    /txt barlen array def
+
+    % Put the start character ASCII 95
+    /enc encs 95 get def
+    sbs 0 enc putinterval
+    /l enc length def
+
+    /checksum 0 def
+    /i 0 def /j 0 def
+    { % loop
+        i barlen eq {exit} if
+        numeric {  % numeric mode: 00-99 & 0X-9X
+            barcode i get 16 gt { 
+                /np barcode i 2 getinterval def
+                np 1 1 getinterval (X) eq {  % X in even position amongst digits
+                    /indx np 0 1 getinterval cvi 17 add def
+                } {
+                    /indx np cvi 27 add def
+                } ifelse
+                txt j [np j 16 mul 16 add textyoffset textfont textsize] put
+                /i i 2 add def
+            } {
+                /indx barcode i get def
+                txt j [( ) j 16 mul 16 add textyoffset textfont textsize] put
+                /i i 1 add def
+            } ifelse
+        } {  % ASCII mode
+            /indx barcode i get def
+            indx 32 ge indx 126 le and {
+                txt j [barcode i 1 getinterval j 16 mul 16 add textyoffset textfont textsize] put
+            } {
+                txt j [( ) j 16 mul 16 add textyoffset textfont textsize] put
+            } ifelse
+            /i i 1 add def
+        } ifelse
+        /checksum checksum indx add def
+        /enc encs indx get def
+        sbs l enc putinterval          % Put encoded digit into sbs
+        /l l enc length add def
+        /j j 1 add def
+    } loop
+
+    % Put the checksum character
+    /checksum 127 checksum 127 mod sub 127 mod def
+    /enc encs checksum get def
+    sbs l enc putinterval
+    /l l enc length add def
+
+    % Put the end character ASCII 122
+    /enc encs 122 get def
+    sbs l enc putinterval
+    /l l enc length add def
+
+    % Shrink sbs and txt to fit exactly
+    /sbs sbs 0 l getinterval def
+    /txt txt 0 j getinterval def
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/telepen dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER telepen--

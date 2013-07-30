@@ -1,0 +1,53 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+use strict;
+
+my $infile=$ARGV[0];
+my $outfile=$ARGV[1];
+
+open(PS,$infile) || die "File not found: $infile";
+my $template=join('',<PS>);
+close(PS);
+
+$template=~/
+    ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
+    (.*?)
+    (^[^%].*?)
+    ^%\ --END\ \1\ \2--$
+/msgx;
+
+my $resource=$2;
+my $meta=$3;
+my $body=$4;
+
+(my $reqs)=$meta=~/^% --REQUIRES (.*)--$/mg;
+$reqs='' unless defined $reqs;
+
+my $neededresources='';
+foreach (split /\s+/, $reqs) {
+  if ($_ eq 'preamble') {
+    $neededresources.="Category/uk.co.terryburton.bwipp ";
+  } else {
+    $neededresources.="uk.co.terryburton.bwipp/$_ ";
+  }
+} 
+$neededresources=~s/\s+$//;
+
+open(PS,">$outfile.tmp") || die "Failed to write $outfile";
+print PS $body;
+close(PS);
+
+my $category='uk.co.terryburton.bwipp';
+my $key=$resource;
+if ($resource eq 'preamble') {
+  $category='Category';
+  $key='uk.co.terryburton.bwipp';
+}
+
+my $vmusage='0 0';  # TODO measure VM impact
+my $qualifier='0.0 0';
+print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='2013-10-10' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' build/make_packaged_resource.ps`;
+die 'GS error' if $?;
+unlink("$outfile.tmp");     

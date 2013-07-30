@@ -1,0 +1,160 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER ean2--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: EAN-2 (2 digit addon)
+% --EXAM: 05
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/ean2 {
+
+    20 dict begin
+
+    /options exch def                   % We are given an options string
+    /barcode exch def                   % We are given a barcode string
+
+    /dontdraw false def
+    /includetext false def               % Enable/disable text
+    /textfont /Helvetica def
+    /textsize 12 def
+    /textxoffset 0 def
+    /textyoffset (unset) def
+    /height 0.7 def
+    
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /height height cvr def
+    /textxoffset textxoffset cvr def
+    textyoffset (unset) eq {
+        /textyoffset height 72 mul 1 add def
+    } {
+        /textyoffset textyoffset cvr def
+    } ifelse
+
+    % Validate input
+    barcode length 2 ne {
+      /bwipp.ean2badLength (EAN-2 add-on must be 2 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.ean2badCharacter (EAN-2 add-on must contain only digits) //raiseerror exec
+        } if
+    } forall
+    
+    % Create an array containing the character mappings
+    /encs
+    [ (3211) (2221) (2122) (1411) (1132)
+      (1231) (1114) (1312) (1213) (3112)
+      (112) (11)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    % Determine the mirror map based on mod 4 checksum
+    /mirrormap [(00) (01) (10) (11)] barcode 0 2 getinterval cvi 4 mod get def
+
+    /sbs 13 string def
+    /txt 2 array def
+    
+    0 1 1 {
+        /i exch def
+
+        % Prefix with either a start character or separator character
+        i 0 eq {
+            sbs 0 encs 10 get putinterval
+        } {
+            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
+        } ifelse
+
+        % Lookup the encoding for the barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                     % Discard true leaving pre
+        length /indx exch def   % indx is the length of pre
+        pop pop                 % Discard seek and post
+        /enc encs indx get def  % Get the indxth encoding
+        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap    
+            /enclen enc length def
+            /revenc enclen string def
+            0 1 enclen 1 sub {
+                /j exch def
+                /char enc j get def
+                revenc enclen j sub 1 sub char put
+            } for
+            /enc revenc def
+        } if
+        sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 13 add textxoffset add textyoffset textfont textsize] put
+    } for
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [12{height}repeat]
+    /bbs [12{0}repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    /guardrightpos 10
+    /guardrightypos textyoffset 4 add
+    /bordertop 10
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/ean2 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER ean2--

@@ -1,0 +1,448 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER azteccode--
+% --REQUIRES preamble raiseerror renmatrix--
+% --DESC: Aztec Code
+% --EXAM: This is Aztec Code
+% --EXOP: format=full
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/azteccode {
+
+    20 dict begin
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+    /format (unset) def    % full, compact or rune
+    /readerinit false def
+    /layers -1 def
+    /eclevel 23 def
+    /ecaddchars 3 def
+    /raw false def
+    /parse false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /layers layers cvi def
+    /eclevel eclevel cvr def
+    /ecaddchars ecaddchars cvi def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+
+    % Convert from input into message bitstream
+    /msgbits () def 
+    format (rune) ne raw and {/msgbits barcode def} if 
+    format (rune) ne raw not and {  % Simple autoencoder from input to bitstream using byte mode only
+
+        % Determine the character count
+        /barlen barcode length def
+        barlen 31 le {
+            (00000) 5 string copy dup barlen 2 5 string cvrs
+            dup length 5 exch sub exch putinterval
+            /cc exch def
+        } {
+            (0000000000000000) 16 string copy dup barlen 31 sub 2 16 string cvrs
+            dup length 16 exch sub exch putinterval
+            /cc exch def
+        } ifelse
+        /cclen cc length def
+
+        % Create the bitstream as byte_mode_id character_count data_bytes
+        /msgbits 5 cclen add barlen 8 mul add string def
+        msgbits 0 (11111) putinterval
+        msgbits 5 cc putinterval
+        0 1 barlen 1 sub {
+            /i exch def
+            (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
+            msgbits 5 cclen add i 8 mul add 3 -1 roll putinterval
+        } for
+
+    } if
+
+    % Lookup the most appropriate symbol specification 
+    /metrics [
+        [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
+        [ (compact)  1 1   17  6 ] [ (full)     1 1   21  6 ] [ (compact)  2 0   40  6 ]
+        [ (full)     2 1   48  6 ] [ (compact)  3 0   51  8 ] [ (full)     3 1   60  8 ]
+        [ (compact)  4 0   76  8 ] [ (full)     4 1   88  8 ] [ (full)     5 1  120  8 ]
+        [ (full)     6 1  156  8 ] [ (full)     7 1  196  8 ] [ (full)     8 1  240  8 ]
+        [ (full)     9 1  230 10 ] [ (full)    10 1  272 10 ] [ (full)    11 1  316 10 ]
+        [ (full)    12 1  364 10 ] [ (full)    13 1  416 10 ] [ (full)    14 1  470 10 ]
+        [ (full)    15 1  528 10 ] [ (full)    16 1  588 10 ] [ (full)    17 1  652 10 ]
+        [ (full)    18 1  720 10 ] [ (full)    19 1  790 10 ] [ (full)    20 1  864 10 ]
+        [ (full)    21 1  940 10 ] [ (full)    22 1 1020 10 ] [ (full)    23 0  920 12 ]
+        [ (full)    24 0  992 12 ] [ (full)    25 0 1066 12 ] [ (full)    26 0 1144 12 ]
+        [ (full)    27 0 1224 12 ] [ (full)    28 0 1306 12 ] [ (full)    29 0 1392 12 ]
+        [ (full)    30 0 1480 12 ] [ (full)    31 0 1570 12 ] [ (full)    32 0 1664 12 ]
+    ] def
+
+    /i 0 def
+    { % loop
+        /m metrics i get def
+        /frmt m 0 get def                          % Format of the symbol
+        /mlyr m 1 get def                          % Data layers
+        /icap m 2 get def                          % Reader initialisation capable
+        /ncws m 3 get def                          % Total of codewords
+        /bpcw m 4 get def                          % Bits per codeword
+        /numecw ncws eclevel mul 100 div ecaddchars add ceiling cvi def
+        msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords 
+        /numdcw ncws numecw sub def                % Data codewords
+        /okay true def
+        format (unset) ne format frmt ne and {/okay false def} if
+        readerinit icap 1 ne and {/okay false def} if
+        layers -1 ne layers mlyr ne and {/okay false def} if 
+        msgbits length bpcw div ceiling cvi numdcw gt {/okay false def} if
+        okay {exit} if
+        /i i 1 add def
+    } loop
+    /layers mlyr def
+    /format frmt def
+
+    % Expand message bits into codewords avoiding codewords with all zeros or all ones
+    /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} bind def
+    /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} bind def
+    /cws ncws array def
+    /m 0 def /c 0 def
+    {
+        msgbits length m le {exit} if
+        msgbits length m sub bpcw ge {
+            /cwb msgbits m bpcw 1 sub getinterval def        % All but last bit
+            /cwf msgbits m bpcw add 1 sub 1 getinterval def  % Last bit
+            cwb allzero {/cwf (1) def /m m 1 sub def} if     % Flip last bit to avoid zeros
+            cwb allones {/cwf (0) def /m m 1 sub def} if     % Flip last bit to avoid ones
+            % Concatinate the bits 
+            12 string dup 0 cwb putinterval 
+            dup bpcw 1 sub cwf putinterval
+            0 bpcw getinterval
+            /cwb exch def
+        } {  %  Final codeword
+            /cwb msgbits m msgbits length m sub getinterval def
+            /cwb (111111111111) 12 string copy dup 0 cwb putinterval 0 bpcw getinterval def
+            cwb allones {cwb cwb length 1 sub (0) putinterval} if  % Prevent all ones
+        } ifelse
+        % Conversion of binary data into byte array
+        /cw 0 def
+        0 1 bpcw 1 sub {
+            /i exch def
+            /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
+        } for
+        cws c cw put
+        /m m bpcw add def 
+        /c c 1 add def
+    } loop    
+    /cws cws 0 c getinterval def
+
+    % Reed-Solomon algorithm
+    /rscodes {
+
+        /rspm exch def
+        /rsgf exch def
+        /rsnc exch def
+        /rscws exch def
+
+        % Calculate the log and anti-log tables
+        /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
+        /rslog rsgf array def
+        1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
+
+        % Function to calculate the product in the field
+        /rsprod {
+            2 copy 0 ne exch 0 ne and {
+                rslog exch get exch rslog exch get add rsgf 1 sub mod rsalog exch get
+            } {
+                pop pop 0
+            } ifelse
+        } bind def
+
+        % Generate the coefficients
+        /coeffs [ 1 rsnc {0} repeat ] def
+        1 1 rsnc {
+            /i exch def 
+            coeffs i coeffs i 1 sub get put
+            i 1 sub -1 1 {
+                /j exch def
+                coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+            } for 
+            coeffs 0 coeffs 0 get rsalog i get rsprod put
+        } for
+
+        % Extend the input with the error correction values
+        /nd rscws length def
+        /rscws [ rscws {} forall rsnc {0} repeat 0 ] def
+        0 1 nd 1 sub {
+            /k exch rscws exch get rscws nd get xor def 
+            0 1 rsnc 1 sub {
+                /j exch def 
+                rscws nd j add rscws nd j add 1 add get k coeffs rsnc j sub 1 sub get rsprod xor put
+            } for 
+        } for
+
+        % Return all but the last codeword
+        rscws 0 rscws length 1 sub getinterval
+
+    } bind def
+
+    % Create the codewords and bit string for the mode
+    format (full) eq {
+        /mode layers 1 sub 11 bitshift cws length 1 sub add def
+        readerinit {/mode mode 2#0000010000000000 or def} if
+        /mode [
+            mode 2#1111000000000000 and -12 bitshift
+            mode 2#0000111100000000 and -8 bitshift
+            mode 2#0000000011110000 and -4 bitshift
+            mode 2#0000000000001111 and
+        ] def
+        /mode mode 6 16 19 rscodes def 
+    } if
+    format (compact) eq {
+        /mode layers 1 sub 6 bitshift cws length 1 sub add def
+        readerinit {/mode mode 2#00100000 or def} if 
+        /mode [
+            mode 2#11110000 and -4 bitshift
+            mode 2#00001111 and
+        ] def
+        /mode mode 5 16 19 rscodes def
+    } if
+    format (rune) eq {
+        /mode barcode cvi def
+        /mode [
+            mode 2#11110000 and -4 bitshift
+            mode 2#00001111 and
+        ] def
+        /mode mode 5 16 19 rscodes def
+        /mode [mode {2#1010 xor} forall] def  % Invert alternate bits
+    } if
+    /modebits mode length 4 mul string def
+    0 1 modebits length 1 sub {modebits exch (0) putinterval} for
+    0 1 mode length 1 sub {
+        /i exch def
+        modebits mode i get 2 4 string cvrs dup length 4 exch sub 4 i mul add exch putinterval 
+    } for
+
+    % Extend the data codewords with error correction codewords to create the bit string for the data
+    /rsparams [
+        [] [] [] [] [] [] 
+        [ 64 67 ]      % 6-bit codewords 
+        []
+        [ 256 301 ]    % 8-bit codewords
+        [] 
+        [ 1024 1033 ]  % 10-bit codewords
+        []
+        [ 4096 4201 ]  % 12-bit codewords
+    ] def
+    /cws cws ncws cws length sub rsparams bpcw get {} forall rscodes def
+    format (full) eq {
+        /databits layers layers mul 16 mul layers 112 mul add string def 
+    } {
+        /databits layers layers mul 16 mul layers 88 mul add string def 
+    } ifelse
+    0 1 databits length 1 sub {databits exch (0) putinterval} for
+    0 1 ncws 1 sub { 
+        /i exch def
+        databits cws i get 2 bpcw string cvrs 
+        dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add 
+        exch putinterval 
+    } for
+
+    % Move to a point in the cartesian plane centered on the bullseye
+    /cmv {size mul sub mid add} bind def
+
+    % Move to a bit position within a layer
+    /lmv {
+        /lbit exch def
+        /llyr exch def
+        /lwid fw llyr 4 mul add def
+        /ldir lbit 2 idiv lwid idiv def
+        ldir 0 eq {  % Top
+            lwid 1 sub 2 idiv neg 1 add lbit 2 idiv lwid mod add 
+            fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add
+            cmv
+        } if
+        ldir 1 eq {  % Right
+            fw 2 idiv llyr 2 mul add lbit 2 mod add
+            lwid 1 sub 2 idiv 1 sub lbit 2 idiv lwid mod sub
+            cmv
+        } if
+        ldir 2 eq {  % Bottom
+            lwid 2 idiv neg 1 add lbit 2 idiv lwid mod add neg
+            fw 2 idiv llyr 2 mul add lbit 2 mod add neg
+            cmv
+        } if
+        ldir 3 eq {  % Left
+            fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add neg
+            lwid 2 idiv 1 sub lbit 2 idiv lwid mod sub neg
+            cmv
+        } if
+    } bind def
+
+    % Create the pixel map
+    % For full symbols we disregard the reference grid at this stage
+    format (full) eq {/fw 12 def} {/fw 9 def} ifelse
+    /size fw layers 4 mul add 2 add def 
+    /pixs [size size mul {-1} repeat] def
+    /mid size 1 sub 2 idiv size mul size 1 sub 2 idiv add def
+
+    % Data layers
+    /i 0 def
+    1 1 layers {
+        /layer exch def
+        0 1 fw layer 4 mul add 8 mul 1 sub {
+            /pos exch def
+            pixs layer pos lmv databits databits length i sub 1 sub get 48 sub put
+            /i i 1 add def
+        } for
+    } for
+
+    % For full symbols expand the pixel map by inserting the reference grid
+    format (full) eq {
+        /fw 13 def
+        /size fw layers 4 mul add 2 add layers 10.5 add 7.5 div 1 sub cvi 2 mul add def
+        /mid size size mul 2 idiv def
+        /npixs [size size mul {-2} repeat] def
+        0 16 size 2 idiv {
+            /i exch def
+            0 1 size 1 sub {
+                /j exch def
+                npixs size 2 idiv neg j add i cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
+                npixs size 2 idiv neg j add i neg cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
+                npixs i size 2 idiv neg j add cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
+                npixs i neg size 2 idiv neg j add cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
+            } for
+        } for 
+        /j 0 def
+        0 1 npixs length 1 sub {
+            /i exch def
+            npixs i get -2 eq {
+                npixs i pixs j get put
+                /j j 1 add def
+            } if
+        } for
+        /pixs npixs def
+    } if
+
+    % Finder pattern
+    /fw fw 2 idiv def
+    fw neg 1 fw {
+        /i exch def
+        fw neg 1 fw {
+            /j exch def
+            pixs i j cmv
+            i abs j abs gt {i abs} {j abs} ifelse 1 add 2 mod
+            put
+        } for
+    } for
+
+    % Orientation bits
+    [ [ fw 1 add neg   fw             1 ] [ fw 1 add neg   fw 1 add       1 ]
+      [ fw neg         fw 1 add       1 ] [ fw 1 add       fw 1 add       1 ]
+      [ fw 1 add       fw             1 ] [ fw 1 add       fw neg         1 ]
+      [ fw             fw 1 add       0 ] [ fw 1 add       fw 1 add neg   0 ]
+      [ fw             fw 1 add neg   0 ] [ fw neg         fw 1 add neg   0 ]
+      [ fw 1 add neg   fw 1 add neg   0 ] [ fw 1 add neg   fw neg         0 ]
+    ] {pixs exch {} forall 3 1 roll cmv exch put} forall
+
+    % Mode ring
+    format (full) eq {
+        /modemap [ 
+            [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
+            [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
+            [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]
+            [-7 -5] [-7 -4] [-7 -3] [-7 -2] [-7 -1] [-7  1] [-7  2] [-7  3] [-7  4] [-7  5]
+        ] def
+    } {
+        /modemap [
+            [-3  5] [-2  5] [-1  5] [ 0  5] [ 1  5] [ 2  5] [ 3  5]
+            [ 5  3] [ 5  2] [ 5  1] [ 5  0] [ 5 -1] [ 5 -2] [ 5 -3]
+            [ 3 -5] [ 2 -5] [ 1 -5] [ 0 -5] [-1 -5] [-2 -5] [-3 -5]
+            [-5 -3] [-5 -2] [-5 -1] [-5  0] [-5  1] [-5  2] [-5  3]
+        ] def
+    } ifelse
+    0 1 modemap length 1 sub {
+        /i exch def
+        pixs modemap i get {} forall cmv modebits i get 48 sub put
+    } for
+
+    <<
+    /ren //renmatrix
+    /pixs pixs
+    /pixx size
+    /pixy size
+    /height size 2 mul 72 div
+    /width size 2 mul 72 div
+    /opt options
+    >>
+
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/azteccode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER azteccode--

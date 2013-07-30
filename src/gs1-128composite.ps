@@ -1,0 +1,140 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER gs1-128composite--
+% --REQUIRES preamble raiseerror renlinear renmatrix code128 gs1-128 micropdf417 pdf417 gs1-cc--
+% --DESC: GS1-128 Composite
+% --EXAM: (00)030123456789012340|(02)13012345678909(37)24(10)1234567ABCDEFG
+% --EXOP: ccversion=c
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-128 dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1-128composite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop
+    } ifelse
+
+    gsave
+
+    options (inkspread) (0) put
+    options (dontdraw) true put
+
+    % Dummy plot of linear part with CC-A to get width
+    options (linkagea) true put
+    linear << options {} forall >> //gs1-128 exec
+    (sbs) get 0 exch {add} forall /linwidth exch def
+
+    % Create 2D part and determine type
+    options (lintype) (gs1-128) put
+    options (linwidth) linwidth put
+    comp options //gs1-cc exec /compsym exch def
+    compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def 
+
+    % Plot linear part
+    linktype (a) eq {
+        options (linkagea) true put
+        options (linkagec) false put
+    } {
+        options (linkagea) false put
+        options (linkagec) true put
+    } ifelse
+    linear << options {} forall >> //gs1-128 exec
+    dup (sbs) get /linsbs exch def
+    dup (bhs) get 0 get 72 mul /linheight exch def
+    //renlinear exec
+
+    % Plot the separator
+    mark
+    1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
+    counttomark 1 sub array astore /sep exch def pop pop
+    0 linheight rmoveto <<
+        /ren //renmatrix
+        /pixs sep
+        /pixx sep length
+        /pixy 1
+        /height 1 72 div
+        /width sep length 72 div
+        /opt options
+    >> //renmatrix exec
+
+    % Plot the 2D part
+    linktype (a) eq {
+        /s linwidth 2 sub 11 idiv def
+        /p s 9 sub 2 idiv def
+        /x s p sub 1 sub 11 mul 10 add p 0 eq {2 add} if 99 sub def
+        x 1 rmoveto
+    } {
+        -7 1 rmoveto 
+    } ifelse
+
+    compsym //renmatrix exec
+
+    grestore
+
+    end
+
+} bind def
+/gs1-128composite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1-128composite--

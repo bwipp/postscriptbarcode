@@ -1,0 +1,604 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER maxicode--
+% --REQUIRES preamble raiseerror renmaximatrix--
+% --DESC: MaxiCode
+% --EXAM: [)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
+% --EXOP: mode=2 parse
+% --RNDR: renmaximatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/maxicode {
+
+    20 dict begin
+
+    /options exch def        % We are given an option string
+    /barcode exch def        % We are given a barcode string
+
+    /dontdraw false def
+    /mode -1 def
+    /sam -1 def
+    /parse false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /mode mode cvi def
+    /sam sam cvi def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse 
+        } loop
+    } if
+    
+    /msg barcode def
+    /msglen msg length def
+
+    % Special message handling for modes 2 and 3
+    mode 2 eq mode 3 eq or {
+
+        % Normalise messages that begin with a field identifier [)>RS01GSyy
+        msg 0 7 getinterval <5b293e1e30311d> eq {
+            /fid msg 0 9 getinterval def
+            /msg msg 9 msglen 9 sub getinterval def 
+        } {
+            /fid () def
+        } ifelse
+
+        % Read the postcode, country code and service code fields seperated by GS
+        msg <1d> search pop /pcode exch def
+        pop <1d> search pop /ccode exch def
+        pop <1d> search pop /scode exch def
+        pop /msg exch def
+
+        % Prepend the field identifier
+        msg length fid length add string dup
+        0 fid putinterval dup 
+        fid length msg putinterval
+        /msg exch def
+        /msglen msg length def
+
+    } if
+
+    % Special function characters
+    /eci -1 def  /pad -2 def  /ns -3 def
+    /la  -4 def  /lb  -5 def
+    /sa  -6 def  /sb  -7 def  /sc -8 def  /sd -9 def  /se -10 def
+    /sa2 -11 def /sa3 -12 def  
+    /lkc -13 def /lkd -14 def /lke -15 def
+    /pd2 -16 def /pd3 -17 def 
+    
+    % Character maps for each state
+    /charmaps [
+        %  A    B    C    D    E
+        [  13  (`)  192  224    0 ]  % 0
+        [ (A)  (a)  193  225    1 ]  % 1
+        [ (B)  (b)  194  226    2 ]  % 2
+        [ (C)  (c)  195  227    3 ]  % 3
+        [ (D)  (d)  196  228    4 ]  % 4
+        [ (E)  (e)  197  229    5 ]  % 5
+        [ (F)  (f)  198  230    6 ]  % 6
+        [ (G)  (g)  199  231    7 ]  % 7
+        [ (H)  (h)  200  232    8 ]  % 8
+        [ (I)  (i)  201  233    9 ]  % 9 
+        [ (J)  (j)  202  234   10 ]  % 10
+        [ (K)  (k)  203  235   11 ]  % 11
+        [ (L)  (l)  204  236   12 ]  % 12
+        [ (M)  (m)  205  237   13 ]  % 13
+        [ (N)  (n)  206  238   14 ]  % 14
+        [ (O)  (o)  207  239   15 ]  % 15
+        [ (P)  (p)  208  240   16 ]  % 16
+        [ (Q)  (q)  209  241   17 ]  % 17
+        [ (R)  (r)  210  242   18 ]  % 18
+        [ (S)  (s)  211  243   19 ]  % 19
+        [ (T)  (t)  212  244   20 ]  % 20
+        [ (U)  (u)  213  245   21 ]  % 21
+        [ (V)  (v)  214  246   22 ]  % 22
+        [ (W)  (w)  215  247   23 ]  % 23
+        [ (X)  (x)  216  248   24 ]  % 24
+        [ (Y)  (y)  217  249   25 ]  % 25
+        [ (Z)  (z)  218  250   26 ]  % 26
+        [ eci  eci  eci  eci  eci ]  % 27
+        [  28   28   28   28  pad ]  % 28
+        [  29   29   29   29  pad ]  % 29
+        [  30   30   30   30   27 ]  % 30
+        [  ns   ns   ns   ns   ns ]  % 31
+        [ ( )  ({)  219  251   28 ]  % 32
+        [ pad  pad  220  252   29 ]  % 33
+        [ (")  (})  221  253   30 ]  % 34
+        [ (#)  (~)  222  254   31 ]  % 35
+        [ ($)  127  223  255  159 ]  % 36
+        [ (%)  (;)  170  161  160 ]  % 37
+        [ (&)  (<)  172  168  162 ]  % 38
+        [ (')  (=)  177  171  163 ]  % 39
+        [  40  (>)  178  175  164 ]  % 40
+        [  41  (?)  179  176  165 ]  % 41
+        [ (*)  ([)  181  180  166 ]  % 42
+        [ (+)   92  185  183  167 ]  % 43
+        [ (,)  (])  186  184  169 ]  % 44
+        [ (-)  (^)  188  187  173 ]  % 45
+        [ (.)  (_)  189  191  174 ]  % 46
+        [ (/)  ( )  190  138  182 ]  % 47
+        [ (0)  (,)  128  139  149 ]  % 48
+        [ (1)  (.)  129  140  150 ]  % 49
+        [ (2)  (/)  130  141  151 ]  % 50
+        [ (3)  (:)  131  142  152 ]  % 51
+        [ (4)  (@)  132  143  153 ]  % 52
+        [ (5)  (!)  133  144  154 ]  % 53
+        [ (6)  (|)  134  145  155 ]  % 54
+        [ (7)  pd2  135  146  156 ]  % 55
+        [ (8)  sa2  136  147  157 ]  % 56
+        [ (9)  sa3  137  148  158 ]  % 57
+        [ (:)  pd3   la   la   la ]  % 58
+        [  sb   sa  ( )  ( )  ( ) ]  % 59
+        [  sc   sc  lkc   sc   sc ]  % 60
+        [  sd   sd   sd  lkd   sd ]  % 61
+        [  se   se   se   se  lke ]  % 62
+        [  lb   la   lb   lb   lb ]  % 63
+    ] def 
+    
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 64 dict 64 dict 64 dict 64 dict 64 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 4 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put 
+        } for
+    } for
+    /seta charvals 0 get def
+    /setb charvals 1 get def
+    /setc charvals 2 get def
+    /setd charvals 3 get def
+    /sete charvals 4 get def
+
+    % Compute numeric runlengths
+    /nseq [ msglen 1 add {0} repeat ] def
+    msglen 1 sub -1 0 {
+        /i exch def
+        msg i get dup 48 ge exch 57 le and {
+            nseq i nseq i 1 add get 1 add put
+        } {
+            nseq i 0 put
+        } ifelse
+    } for
+    /nseq nseq 0 msglen getinterval def
+
+    % Encode the message from ASCII to codewords 
+    /prefixinset {
+        0 {
+            2 copy exch length ge {exit} if 
+            2 copy get 3 index exch known {1 add} {exit} ifelse
+        } loop
+        exch pop exch pop
+    } bind def
+    
+    /enc {
+        exch get out exch j exch put
+        /j j 1 add def
+    } bind def
+
+    /out 144 array def
+    /i 0 def /j 0 def /cset (seta) def
+    { % loop
+        % Exit when no characters remain latching back to A if necessary
+        i msglen eq {
+            cset (seta) ne cset (setb) ne and {
+                la cset load enc
+                /cset (seta) def
+            } if
+            exit
+        } if
+        { % not a loop but common exit point
+    
+            % If 9 numerals available then use NS
+            nseq i get 9 ge {
+                msg i 9 getinterval cvi 4 { dup 63 and exch -6 bitshift } repeat cset load ns get
+                0 2 10 {index} for 6 array astore 7 1 roll 6 {pop} repeat
+                out exch j exch putinterval
+                /i i 9 add def
+                /j j 6 add def
+                exit
+            } if
+    
+            % Read next three characters
+            /char1 msg i get def
+            /char2 i 1 add msglen lt {msg i 1 add get} {-99} ifelse def
+            /char3 i 2 add msglen lt {msg i 2 add get} {-99} ifelse def
+    
+            % If current mode is sufficient then directly encode
+            cset load char1 known { 
+                char1 cset load enc
+                /i i 1 add def
+                exit
+            } if
+    
+            % For switching from A to B
+            cset (seta) eq setb char1 known and {
+                setb char2 known {
+                    lb seta enc
+                    /cset (setb) def
+                } {
+                    sb seta enc
+                    char1 setb enc
+                    /i i 1 add def
+                } ifelse
+                exit
+            } if
+    
+            % For switching from B to A encode according to length of prefix
+            cset (setb) eq seta char1 known and {
+                /p seta msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+                p 1 eq {
+                    sa setb enc
+                    char1 seta enc
+                    /i i 1 add def
+                } if
+                p 2 eq {
+                    sa2 setb enc
+                    char1 seta enc
+                    char2 seta enc
+                    /i i 2 add def 
+                } if
+                p 3 eq {
+                    sa3 setb enc
+                    char1 seta enc
+                    char2 seta enc
+                    char3 seta enc
+                    /i i 3 add def 
+                } if
+                p 4 ge {
+                    la setb enc
+                    /cset (seta) def
+                } if
+                exit
+            } if
+    
+            % If character is in A or B then directly latch
+            seta char1 known {
+                la cset load enc
+                /cset (seta) def
+                exit
+            } if      
+            setb char1 known {
+                lb cset load enc
+                /cset (setb) def
+                exit
+            } if      
+     
+            % Determine which one of sets C, D or E the character is in
+            setc char1 known {/setx (setc) def /sx sc def /lkx lkc def} if
+            setd char1 known {/setx (setd) def /sx sd def /lkx lkd def} if
+            sete char1 known {/setx (sete) def /sx se def /lkx lke def} if
+    
+            % Encode according to the length of the prefix
+            /p setx load msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+            p 1 eq {
+                sx cset load enc
+                char1 setx load enc
+                /i i 1 add def
+            } if
+            p 2 eq {
+                sx cset load enc
+                char1 setx load enc
+                sx cset load enc
+                char2 setx load enc
+                /i i 2 add def
+            } if
+            p 3 eq {
+                sx cset load enc
+                char1 setx load enc
+                sx cset load enc
+                char2 setx load enc
+                sx cset load enc
+                char3 setx load enc
+                /i i 3 add def
+            } if
+            p 4 ge {
+                sx cset load enc
+                lkx setx load enc
+                /cset setx def 
+            } if
+    
+            exit
+        } loop  % out
+    } loop
+    /encmsg out 0 j getinterval def
+    /padval cset load pad get def 
+
+    % Prefix the encoded message with the structured append insert
+    /sami [] def
+    sam -1 ne {
+        /sami 2 array def
+        sami 0 seta pad get put 
+        sami 1 sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add put
+    } if
+    /encmsg [ sami aload pop encmsg aload pop ] def
+
+    % Derive the primary and secondary codewords for modes 2 and 3
+    mode 2 eq mode 3 eq or {
+
+        % Calculate the fixed-width binary values for the mode, postcode, country code and service
+        /mdb (0000) 4 string copy dup mode cvi 2 4 string cvrs dup length 4 exch sub exch putinterval def
+        /ccb (0000000000) 10 string copy dup ccode cvi 2 10 string cvrs dup length 10 exch sub exch putinterval def
+        /scb (0000000000) 10 string copy dup scode cvi 2 10 string cvrs dup length 10 exch sub exch putinterval def
+        /pcb (000000000000000000000000000000000000) 36 string copy def
+        mode 2 eq {
+            % For numeric postcode, first six bits represent length and remaining 30 bits the value
+            pcb pcode length 2 6 string cvrs dup length 6 exch sub exch putinterval
+            pcb pcode cvi 2 30 string cvrs dup length 36 exch sub exch putinterval
+        } {  % mode=3
+            % For alphanumeric postcode, trim or pad with spaces to 6 chars and encode to binary
+            /pccw [ 
+                (      ) 6 string copy dup 0 pcode length 6 gt {pcode 0 6 getinterval} {pcode} ifelse putinterval 
+                {seta exch get} forall
+            ] def
+            0 1 5 {
+                /i exch def
+                pcb pccw i get 2 6 string cvrs dup length 6 i mul 6 add exch sub exch putinterval
+            } for
+        } ifelse
+
+        % Convolute the binary values into the structured carrier message
+        /scm 60 string def
+        scm 2  mdb putinterval
+        scm 38 pcb 0  4 getinterval putinterval
+        scm 30 pcb 4  6 getinterval putinterval
+        scm 24 pcb 10 6 getinterval putinterval
+        scm 18 pcb 16 6 getinterval putinterval
+        scm 12 pcb 22 6 getinterval putinterval
+        scm 6  pcb 28 6 getinterval putinterval
+        scm 0  pcb 34 2 getinterval putinterval
+        scm 52 ccb 0  2 getinterval putinterval
+        scm 42 ccb 2  6 getinterval putinterval
+        scm 36 ccb 8  2 getinterval putinterval
+        scm 54 scb 0  6 getinterval putinterval
+        scm 48 scb 6  4 getinterval putinterval
+
+        % Evaluate the structured carrier message as codewords
+        /pri [ 0 0 0 0 0 0 0 0 0 0 ] def
+        0 1 59 { 
+            /i exch def
+            /ps i 6 idiv def
+            /ep 2 5 i 6 mod sub exp cvi scm i get 48 sub mul def
+            pri ps pri ps get ep add put
+        } for
+
+        % Pad the encoded message into the secondary component
+        /sec [ 84 {padval} repeat ] def
+        sec 0 encmsg putinterval
+
+    } if
+
+    % Derive the primary and secondary codewords for modes 4, 5 and 6
+    mode 4 eq mode 5 eq or mode 6 eq or mode -1 eq or {
+
+        % If mode isn't specified then use EEC if message fits, otherwise SEC
+        mode -1 eq {
+            /mode encmsg length 77 le {5} {4} ifelse def
+        } if
+
+        % First symbol is the mode and the remainder are the padded message
+        /cws [ mode 5 eq {78} {94} ifelse {padval} repeat ] def
+        cws 0 mode put
+        cws 1 encmsg putinterval
+
+        % Fit the message into the primary and secondary components
+        /pri cws 0 10 getinterval def
+        /sec cws 10 cws length 10 sub getinterval def
+
+    } if
+
+    % Calculate the log and anti-log tables
+    /rsalog [ 1 63 { dup 2 mul dup 64 ge {67 xor} if } repeat ] def
+    /rslog 64 array def
+    1 1 63 {dup rsalog exch get exch rslog 3 1 roll put} for
+
+    % Function to calculate the product in the field
+    /rsprod {
+        2 copy 0 ne exch 0 ne and {
+            rslog exch get exch rslog exch get add 63 mod rsalog exch get
+        } {
+            pop pop 0
+        } ifelse
+    } bind def
+
+    % Generate error correction codewords
+    /rscodes {
+
+        /rsnum exch def
+        /cwb exch def
+
+        % Generate the coefficients
+        /coeffs [ 1 rsnum {0} repeat ] def
+        1 1 rsnum {
+            /i exch def
+            coeffs i coeffs i 1 sub get put
+            i 1 sub -1 1 {
+                /j exch def
+                coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+            } for
+            coeffs 0 coeffs 0 get rsalog i get rsprod put
+        } for
+        /coeffs coeffs 0 coeffs length 1 sub getinterval def
+
+        % Calculate the error correction codewords
+        /ecb [ rsnum {0} repeat ] def
+        0 1 cwb length 1 sub {
+            /t exch cwb exch get ecb 0 get xor def
+            ecb length 1 sub -1 0 {
+                /i exch def
+                /p ecb length i sub 1 sub def
+                ecb p t coeffs i get rsprod put
+                i 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
+            } for
+        } for
+
+        ecb
+
+    } bind def
+
+    % Split secondary codeword into odd and even elements
+    /seco [ 0 2 sec length 1 sub { sec exch get } for ] def
+    /sece [ 1 2 sec length 1 sub { sec exch get } for ] def
+
+    % Calculate the parity codewords for secondary codeword parts based on mode
+    /scodes sec length 84 eq {20} {28} ifelse def  % SEC/EEC mode
+    /secochk seco scodes rscodes def
+    /secechk sece scodes rscodes def
+
+    % Recompose the secondary parity codewords
+    /secchk [ 0 1 scodes 1 sub { dup secochk exch get exch secechk exch get } for ] def
+
+    % Concatinate the data into final codewords
+    /codewords [
+        pri aload pop 
+        pri 10 rscodes aload pop
+        sec aload pop 
+        secchk aload pop
+    ] def
+
+    % Convert the codewords into module bits
+    /mods [ 864 {0} repeat ] def
+    0 1 143 {
+        /i exch def
+        /cw [ codewords i get 2 6 string cvrs {48 sub} forall ] def
+        mods 6 i mul 6 cw length sub add cw putinterval
+    } for
+
+    % Maps modules to pixels in the grid
+    /modmap [
+        469 529 286 316 347 346 673 672 703 702 647 676 283 282 313 312 370 610 618 379 
+        378 409 408 439 705 704 559 589 588 619 458 518 640 701 675 674 285 284 315 314 
+        310 340 531 289 288 319 349 348 456 486 517 516 471 470 369 368 399 398 429 428 
+        549 548 579 578 609 608 649 648 679 678 709 708 639 638 669 668 699 698 279 278 
+        309 308 339 338 381 380 411 410 441 440 561 560 591 590 621 620 547 546 577 576 
+        607 606 367 366 397 396 427 426 291 290 321 320 351 350 651 650 681 680 711 710 
+        1   0   31  30  61  60  3   2   33  32  63  62  5   4   35  34  65  64  7   6   
+        37  36  67  66  9   8   39  38  69  68  11  10  41  40  71  70  13  12  43  42  
+        73  72  15  14  45  44  75  74  17  16  47  46  77  76  19  18  49  48  79  78  
+        21  20  51  50  81  80  23  22  53  52  83  82  25  24  55  54  85  84  27  26  
+        57  56  87  86  117 116 147 146 177 176 115 114 145 144 175 174 113 112 143 142 
+        173 172 111 110 141 140 171 170 109 108 139 138 169 168 107 106 137 136 167 166 
+        105 104 135 134 165 164 103 102 133 132 163 162 101 100 131 130 161 160 99  98  
+        129 128 159 158 97  96  127 126 157 156 95  94  125 124 155 154 93  92  123 122 
+        153 152 91  90  121 120 151 150 181 180 211 210 241 240 183 182 213 212 243 242 
+        185 184 215 214 245 244 187 186 217 216 247 246 189 188 219 218 249 248 191 190 
+        221 220 251 250 193 192 223 222 253 252 195 194 225 224 255 254 197 196 227 226 
+        257 256 199 198 229 228 259 258 201 200 231 230 261 260 203 202 233 232 263 262 
+        205 204 235 234 265 264 207 206 237 236 267 266 297 296 327 326 357 356 295 294 
+        325 324 355 354 293 292 323 322 353 352 277 276 307 306 337 336 275 274 305 304 
+        335 334 273 272 303 302 333 332 271 270 301 300 331 330 361 360 391 390 421 420 
+        363 362 393 392 423 422 365 364 395 394 425 424 383 382 413 412 443 442 385 384 
+        415 414 445 444 387 386 417 416 447 446 477 476 507 506 537 536 475 474 505 504 
+        535 534 473 472 503 502 533 532 455 454 485 484 515 514 453 452 483 482 513 512 
+        451 450 481 480 511 510 541 540 571 570 601 600 543 542 573 572 603 602 545 544 
+        575 574 605 604 563 562 593 592 623 622 565 564 595 594 625 624 567 566 597 596 
+        627 626 657 656 687 686 717 716 655 654 685 684 715 714 653 652 683 682 713 712 
+        637 636 667 666 697 696 635 634 665 664 695 694 633 632 663 662 693 692 631 630 
+        661 660 691 690 721 720 751 750 781 780 723 722 753 752 783 782 725 724 755 754 
+        785 784 727 726 757 756 787 786 729 728 759 758 789 788 731 730 761 760 791 790 
+        733 732 763 762 793 792 735 734 765 764 795 794 737 736 767 766 797 796 739 738 
+        769 768 799 798 741 740 771 770 801 800 743 742 773 772 803 802 745 744 775 774 
+        805 804 747 746 777 776 807 806 837 836 867 866 897 896 835 834 865 864 895 894 
+        833 832 863 862 893 892 831 830 861 860 891 890 829 828 859 858 889 888 827 826 
+        857 856 887 886 825 824 855 854 885 884 823 822 853 852 883 882 821 820 851 850 
+        881 880 819 818 849 848 879 878 817 816 847 846 877 876 815 814 845 844 875 874 
+        813 812 843 842 873 872 811 810 841 840 871 870 901 900 931 930 961 960 903 902 
+        933 932 963 962 905 904 935 934 965 964 907 906 937 936 967 966 909 908 939 938 
+        969 968 911 910 941 940 971 970 913 912 943 942 973 972 915 914 945 944 975 974 
+        917 916 947 946 977 976 919 918 949 948 979 978 921 920 951 950 981 980 923 922 
+        953 952 983 982 925 924 955 954 985 984 927 926 957 956 987 986 58  89  88  118 
+        149 148 178 209 208 238 269 268 298 329 328 358 389 388 418 449 448 478 509 508 
+        538 569 568 598 629 628 658 689 688 718 749 748 778 809 808 838 869 868 898 929 
+        928 958 989 988
+    ] def
+
+    % Lookup pixels for enabled modules from modmap
+    /pixs 864 array def
+    /j 0 def
+    0 1 mods length 1 sub {
+        /i exch def
+        mods i get 1 eq {
+            pixs j modmap i get put
+            /j j 1 add def
+        } if
+    } for
+    /pixs [ pixs 0 j getinterval {} forall 28 29 280 281 311 457 488 500 530 670 700 677 707 ] def
+
+    % Return the arguments
+    <<
+    /ren //renmaximatrix
+    /pixs pixs
+    /opt options
+    >>
+
+    dontdraw not //renmaximatrix if
+
+    end
+
+} bind def
+/maxicode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER maxicode--

@@ -1,0 +1,690 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER gs1-cc--
+% --REQUIRES preamble raiseerror renmatrix micropdf417 pdf417--
+% --DESC: GS1 Composite 2D Component
+% --EXAM: (01)95012345678903(3103)000123
+% --EXOP: ccversion=b cccolumns=4
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
+dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1-cc {
+    
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def  % We are given an option string
+    /barcode exch def  % We are given a barcode string
+
+    /dontdraw false def
+    /ccversion (a) def
+    /cccolumns -1 def
+    /lintype () def
+    /linwidth -1 def
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /cccolumns cccolumns cvi def
+    /linwidth linwidth cvi def
+
+    % Select columns based on linear type
+    cccolumns -1 eq {
+        <<
+            /ean13                  4
+            /upca                   4
+            /ean8                   3
+            /upce                   2
+            /gs1-128
+                ccversion (c) ne {4} {linwidth 52 sub 17 idiv} ifelse
+            /databaromni            4
+            /databarstacked         2
+            /databarstackedomni     2
+            /databartruncated       4
+            /databarlimited         3
+            /databarexpanded        4
+            /databarexpandedstacked 4
+        >> lintype get /cccolumns exch def 
+    } if
+
+    % Expand ordinals of the form ^NNN to ASCII
+    /expand {
+        /in exch def
+        /out in length string def
+        /j 0 def
+        in
+        { % loop
+            (^) search {
+                dup out exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi out exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup out exch j exch putinterval
+                length j add /j exch def
+                out 0 j getinterval exit
+            } ifelse 
+        } loop
+    } bind def
+ 
+    % Parse out AIs
+    /ais [] def
+    /aival 2 dict def
+    barcode dup length 1 sub 1 exch getinterval
+    {  % loop
+        dup () eq {exit} if
+        (\)) search pop
+        exch pop
+        exch (\() search {
+            exch pop exch 3 1 roll 
+        } { 
+            () 3 1 roll
+        }  ifelse
+        [ ais aload pop counttomark 2 add index ] /ais exch def
+        aival 3 1 roll expand put
+    } loop
+    pop
+    
+    % Method selection
+    /isupper {dup 65 ge exch 90 le and} bind def  % A-Z
+    /isnum0  {dup 48 ge exch 57 le and} bind def  % 0-9
+    /isnum1  {dup 49 ge exch 57 le and} bind def  % 1-9
+    {  % common exit
+    
+        % (10/11/17)...
+        ais length 1 ge {
+            ais 0 get (10) eq ais 0 get (11) eq or ais 0 get (17) eq or {
+                -1 (10) exit
+            } if
+        } if
+
+        % (90){0-3 digits not starting 0}{upper alpha}...
+        ais length 1 ge {
+            ais 0 get (90) eq {
+                /v aival (90) get def
+                v length 1 ge {
+                   v 0 get isupper {
+                       0 (11) exit
+                   } if
+                } if
+                v length 2 ge {
+                   v 0 get isnum1
+                   v 1 get isupper and {
+                       1 (11) exit
+                   } if
+                } if
+                v length 3 ge {
+                    v 0 get isnum1
+                    v 1 get isnum0 and
+                    v 2 get isupper and {
+                        2 (11) exit
+                    } if
+                } if
+                v length 4 ge {
+                    v 0 get isnum1
+                    v 1 get isnum0 and
+                    v 2 get isnum0 and
+                    v 3 get isupper and {
+                        3 (11) exit
+                    } if
+                } if
+            } if
+        } if
+
+        % Freeform
+        -1 (0) exit
+    
+    } loop
+    /method exch def
+    /npre exch def
+
+    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
+
+    /tobin {
+        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+    } bind def
+ 
+    /alpha <<
+        65 1 90 {dup 65 sub 5 tobin} for
+        48 1 57 {dup 4 add 6 tobin} for
+        fnc1 (11111)
+    >> def
+
+    /numeric <<
+        0 1 119 {
+            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
+            dup length 2 exch sub exch putinterval 
+            dup 0 get 65 eq {dup 0 94 put} if 
+            dup 1 get 65 eq {dup 1 94 put} if 
+            exch 8 add
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs 
+            dup length 7 exch sub exch putinterval
+        } for
+        lalphanumeric (0000)
+    >> def
+ 
+    /alphanumeric <<
+        48 1 57 {dup 43 sub 5 tobin} for
+        fnc1 (01111)
+        65 1 90 {dup 33 sub 6 tobin} for
+        42 (111010)
+        44 1 47 {dup 15 add 6 tobin} for
+        lnumeric (000)
+        liso646 (00100)
+    >> def
+    
+    /iso646 <<
+        48 1 57 {dup 43 sub 5 tobin} for
+        fnc1 (01111)
+        65 1 90 {dup 1 sub 7 tobin} for
+        97 1 122 {dup 7 sub 7 tobin} for
+        33 (11101000)
+        34 (11101001)
+        37 1 47 {dup 197 add 8 tobin} for
+        58 1 63 {dup 187 add 8 tobin} for
+        95 (11111011)
+        32 (11111100)
+        lnumeric (000)
+        lalphanumeric (00100)
+    >> def
+
+    method (10) eq {  % TODO: fixme
+        ais 0 get (11) eq ais 0 get (17) eq or {
+            aival ais 0 get get
+            dup 0 2 getinterval cvi 384 mul exch
+            dup 2 2 getinterval cvi 1 sub 32 mul exch
+            4 2 getinterval cvi add add 
+            (0000000000000000) 16 string copy dup 3 -1 roll 2 16 string cvrs
+            dup length 16 exch sub exch putinterval
+            [ 1 0
+              4 -1 roll {48 sub} forall
+              ais 0 get (11) eq {0} {1} ifelse
+            ] /cdf exch def
+            /ais ais 1 ais length 1 sub getinterval def
+        } {
+            /cdf [ 1 0  1 1 ] def
+        } ifelse
+        ais length 0 ne {
+            ais 0 get (10) eq {
+                /gpf [ aival (10) get {} forall ] def
+                ais length 1 gt {/gpf [ gpf aload pop fnc1 ] def} if  % TODO: check
+                /ais ais 1 ais length 1 sub getinterval def
+            } {
+                /gpf [fnc1] def  % TODO: check
+            } ifelse
+        } {
+            /cdf [ cdf aload pop 0 0 0 0 0 1 1 1 1 ] def
+            /gpf [] def
+        } ifelse
+        /mode (numeric) def
+    } if
+
+    method (11) eq {
+        /cdf [ 1 1 ] def
+        /ai90 aival (90) get def
+        npre 1 add ai90 length ne {
+            ai90 npre 1 add ai90 length npre sub 1 sub getinterval
+        } {
+            ()
+        } ifelse
+        /ai90rem exch def
+        /nalpha 0 ai90rem {dup 65 ge exch 90 le and {1 add} if} forall def
+        /nnums  0 ai90rem {dup 48 ge exch 57 le and {1 add} if} forall def
+        /mode nalpha nnums gt {(alpha)} {(numeric)} ifelse def
+        nalpha nnums add ai90rem length ne {/mode (alphanumeric) def} if
+        /cdf [
+            cdf aload pop
+            mode (alphanumeric) eq {0} if   
+            mode (numeric) eq {1 0} if   
+            mode (alpha) eq {1 1} if   
+        ] def
+        /ais1 ais length 1 gt {ais 1 get} {-1} ifelse def
+        ais1 (21) eq ais1 (8004) eq or { 
+            /cdf [ cdf aload pop ais1 (21) eq {1 0} {1 1} ifelse ] def
+        } {
+            /cdf [ cdf aload pop 0 ] def
+        } ifelse
+        /nval npre 0 ne {ai90 0 npre getinterval cvi} {0} ifelse def
+        (BDHIJKLNPQRSTVXZ) ai90 npre 1 getinterval search {
+            length exch pop exch pop
+            /aval exch def
+        } {
+            pop /aval -1 def
+        } ifelse 
+        nval 31 lt aval -1 ne and {
+            (00000) 5 string copy dup nval 2 5 string cvrs
+            dup length 5 exch sub exch putinterval
+            [ exch {48 sub} forall ] /nbits exch def
+            (0000) 4 string copy dup aval 2 4 string cvrs
+            dup length 4 exch sub exch putinterval
+            [ exch {48 sub} forall ] /abits exch def
+            /cdf [
+                cdf aload pop 
+                nbits aload pop
+                abits aload pop
+            ] def
+        } {
+            (0000000000) 10 string copy dup nval 2 10 string cvrs
+            dup length 10 exch sub exch putinterval
+            [ exch {48 sub} forall ] /nbits exch def
+            (00000) 5 string copy dup ai90 npre get 65 sub 2 5 string cvrs
+            dup length 5 exch sub exch putinterval
+            [ exch {48 sub} forall ] /abits exch def
+            /cdf [
+                cdf aload pop
+                1 1 1 1 1
+                nbits aload pop
+                abits aload pop
+            ] def
+        } ifelse
+        mode (numeric) eq {
+            /gpf [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
+        } {
+            /encs mode (alpha) eq {alpha} {alphanumeric} ifelse def
+            /in [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
+            /out in length 6 mul array def
+            /j 0 def
+            0 1 in length 1 sub {
+                in exch get encs exch get 
+                dup [ exch {48 sub} forall ] out exch j exch putinterval
+                length j add /j exch def
+            } for
+            /cdf [
+                cdf aload pop 
+                out 0 j getinterval aload pop
+            ] def
+            /gpf [] def
+            ais length 1 gt mode (alpha) ne or {/mode (numeric) def} if
+        } ifelse
+        /ais ais 1 ais length 1 sub getinterval def
+        ais length 0 ne {
+            ais1 (21) eq ais1 (8004) eq or {
+                /gpf [
+                    gpf aload pop
+                    aival ais1 get {} forall
+                ] def
+                /ais ais 1 ais length 1 sub getinterval def
+                ais length 0 ne {/gpf [gpf aload pop fnc1] def} if
+            } if
+        } if
+    } if
+
+    method (0) eq {
+        /cdf [ 0 ] def
+        /gpf [] def
+        /mode (numeric) def
+    } if
+
+    % Pre-defined fixed length data field AIs
+    % any AI whose prefix is not included in this table must be
+    % terminated with "FNC1", even if it's fixed length
+    /aifixed 23 dict def
+    [
+        0 1 4 {} for
+    ] {
+        (00) 2 string copy dup dup 1 5 -1 roll 48 add put aifixed 3 1 roll put
+    } forall
+    [
+        11 1 20 {} for
+        23
+        31 1 36 {} for
+        41
+    ] {
+        10 2 string cvrs dup aifixed 3 1 roll put
+    } forall
+
+    % Append the remaining AI data
+    0 1 ais length 1 sub {
+        /i exch def
+        /ai ais i get def
+        /val aival ai get def
+        gpf length ai length add val length add array
+        dup 0 gpf putinterval
+        dup gpf length ai [ exch {} forall ] putinterval
+        dup gpf length ai length add val [ exch {} forall ] putinterval
+        /gpf exch def
+        i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
+            gpf length 1 add array
+            dup 0 gpf putinterval
+            dup gpf length fnc1 put
+            /gpf exch def
+        } if
+    } for
+
+    % Calculate the number of bits remaining to the next valid symbol size
+    /rembits {
+        /used exch def
+        ccversion (c) ne {  % cc-a or cc-b
+            <<
+            /a [
+                [167 138 118 108 88 78 59]
+                [167 138 118  98 78]
+                [197 167 138 108 78]
+            ]
+            /b [
+                [ 336  296 256 208 160 104  56]
+                [ 768  648 536 416 304 208 152 112  72 32]
+                [1184 1016 840 672 496 352 264 208 152 96 56]
+            ]
+            >> ccversion get cccolumns 2 sub get /bitcaps exch def
+            -1 bitcaps {dup used ge {exch} if pop} forall
+            dup -1 ne {used sub} if
+        } {
+            << /c -1 >> ccversion get pop  % Assert cc-c
+            /m used 8 div ceiling cvi dup 6 idiv 5 mul exch 6 mod add def
+            m   40 le               {8 } if
+            m   41 ge m  160 le and {16} if
+            m  161 ge m  320 le and {32} if
+            m  321 ge               {64} if
+            /eccws exch def
+            /m m eccws add 3 add def
+            /c linwidth 52 sub 17 idiv def
+            m c idiv 90 gt {/c c 1 add def} if
+            /r m c div ceiling cvi def
+            /tgt c r mul eccws sub 3 sub dup 5 idiv 6 mul exch 5 mod add 8 mul def
+            used 8296 le {tgt used sub} {-1} ifelse
+        } ifelse
+        dup -1 eq {  % Upgrade CC-A to CC-B or CC-B to CC-C to fit
+            pop
+            ccversion (a) eq {
+                /ccversion (b) def
+            } {
+                ccversion (b) eq lintype (gs1-128) eq and {
+                    /ccversion (c) def
+                    /cccolumns linwidth 52 sub 17 idiv def
+                } {
+                    /ccversion -1 def
+                } ifelse
+            } ifelse 
+            used rembits
+        } if
+    } bind def
+
+    /encode {
+        dup /raw ne {exch get} {pop} ifelse
+        [ exch {48 sub} forall ]
+        dup length exch
+        gpfenc exch j exch putinterval
+        /j exch j add def
+    } bind def
+
+    % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
+    /numericruns [ gpf length {0} repeat 0 -1 ] def
+    /alphanumericruns [ gpf length {0} repeat 0 ] def
+    /nextiso646only [ gpf length {0} repeat 9999 ] def
+    gpf length 1 sub -1 0 {
+        /i exch def
+        gpf i get
+        (00) 2 string copy
+        dup 0 gpf i get dup fnc1 eq {pop 94} if put 
+        i gpf length 1 sub lt {dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put} if
+        numeric exch known {
+            numericruns i numericruns i 2 add get 2 add put
+        } {
+            numericruns i 0 put
+        } ifelse
+        dup alphanumeric exch known {
+            alphanumericruns i alphanumericruns i 1 add get 1 add put
+        } {
+            alphanumericruns i 0 put
+        } ifelse
+        dup iso646 exch known exch alphanumeric exch known not and {
+            nextiso646only i 0 put
+        } {
+            nextiso646only i nextiso646only i 1 add get 1 add put
+        } ifelse
+    } for
+   
+    % Encode the general purpose field
+    /gpfenc 8296 array def
+    /i 0 def /j 0 def
+    {  % loop
+        i gpf length eq {exit} if
+        {  % not a loop but common exit point
+    
+            mode (numeric) eq {
+                i gpf length 2 sub le {
+                    2 string 
+                    dup 0 gpf i get dup fnc1 eq {pop 94} if put
+                    dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put
+                    dup numeric exch known {
+                        numeric encode
+                        /i i 2 add def
+                        exit
+                    } if
+                    pop
+                    lalphanumeric numeric encode 
+                    /mode (alphanumeric) def
+                    exit
+                } {
+                    gpf i get dup 48 lt exch 57 gt or {
+                        lalphanumeric numeric encode
+                        /mode (alphanumeric) def
+                        exit
+                    } if
+                    /rem cdf length j add rembits def
+                    rem 4 ge rem 6 le and {  % C1 + 1 into 4 to 6 bits
+                        (000000) 6 string copy 0 rem getinterval
+                        dup gpf i get 47 sub 2 4 string cvrs
+                        dup length 4 exch sub exch putinterval /raw encode
+                        /i i 1 add def
+                        exit
+                    } {  % C1.FNC1
+                        2 string dup 0 gpf i get put dup 1 94 put numeric encode 
+                        /i i 1 add def
+                        exit
+                    } ifelse
+                } ifelse
+            } if
+    
+            mode (alphanumeric) eq {
+                gpf i get fnc1 eq {
+                    fnc1 alphanumeric encode
+                    /mode (numeric) def
+                    /i i 1 add def
+                    exit
+                } if
+                gpf i get dup iso646 exch known exch alphanumeric exch known not and {
+                     liso646 alphanumeric encode
+                     /mode (iso646) def
+                     exit
+                } if
+                numericruns i get 6 ge {
+                    lnumeric alphanumeric encode
+                    /mode (numeric) def
+                    exit
+                } if
+                numericruns i get dup 4 ge exch i add gpf length eq and {
+                    lnumeric alphanumeric encode
+                    /mode (numeric) def
+                    exit
+                } if
+                gpf i get alphanumeric encode
+                /i i 1 add def
+                exit
+            } if
+    
+            mode (iso646) eq {
+                gpf i get fnc1 eq {
+                    fnc1 iso646 encode
+                    /mode (numeric) def
+                    /i i 1 add def
+                    exit
+                } if
+                numericruns i get 4 ge nextiso646only i get 10 ge and {
+                    lnumeric iso646 encode
+                    /mode (numeric) def
+                    exit
+                } if
+                alphanumericruns i get 5 ge nextiso646only i get 10 ge and {
+                    lalphanumeric iso646 encode
+                    /mode (alphanumeric) def
+                    exit
+                } if
+                gpf i get iso646 encode
+                /i i 1 add def
+                exit
+            } if
+    
+        } loop
+    } loop
+    /gpf gpfenc 0 j getinterval def
+
+    % Create pad
+    /pad cdf length gpf length add rembits array def
+    pad length 0 gt {
+        0 5 pad length 1 sub {  % Fill with 00100
+            /i exch def
+            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval 
+        } for 
+        mode (numeric) eq {  % Prefix shift from numeric to ASCII
+            /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
+        } if
+        mode (alpha) eq {  % Prefix FNC1
+            /pad [ 1 1 1 1 1 pad aload pop ] 0 pad length getinterval def
+        } if
+    } if
+
+    % Concatinate fields
+    /bits [
+        cdf aload pop
+        gpf aload pop
+        pad aload pop
+    ] def
+
+    ccversion (a) eq {
+        /pwr928 [
+            [ 0 0 0 0 0 0 1 ]
+            68 {7 array} repeat
+        ] def
+        1 1 68 {
+            /j exch def
+            /v 0 def
+            6 -1 1 {
+                /i exch def
+                /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
+                pwr928 j get i v 928 mod put 
+            } for   
+            pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
+        } for
+        /cws [ 28 {0} repeat ] def
+        /b 0 def /c 0 def
+        {  % loop
+            b bits length eq {exit} if
+            /bs bits b 69 bits length b sub 2 copy gt {exch} if pop getinterval def
+            /bsl bs length def
+            /cs cws c bsl 10 idiv 1 add getinterval def
+            /csl cs length def
+            0 1 bsl 1 sub {
+                /i exch def
+                0 1 csl 1 sub {
+                    /j exch def
+                    cs j 2 copy get
+                    pwr928 i get j 7 add csl sub get
+                    bs bsl i sub 1 sub get
+                    mul add put
+                } for
+            } for
+            csl 1 sub -1 1 {
+                /i exch def
+                cs i 1 sub 2 copy get cs i get 928 idiv add put
+                cs i 2 copy get 928 mod put
+            } for 
+            /b b bsl add def
+            /c c csl add def
+        } loop
+        /cws cws 0 c getinterval def
+        /barcode cws length 4 mul string def
+        0 1 cws length 1 sub {
+            /i exch def
+            (^   ) 4 string copy dup cws i get 10 4 string cvrs
+            dup length 4 exch sub exch putinterval
+            barcode i 4 mul 3 -1 roll putinterval
+        } for
+        options (dontdraw) true put
+        options (cca) true put
+        options (columns) cccolumns put
+        /args barcode options //micropdf417 exec def
+    } if
+
+    ccversion (b) eq {
+        /barcode bits length 8 idiv string def
+        0 1 barcode length 1 sub {
+            /i exch def
+            bits i 8 mul 8 getinterval 0 exch {add 2 mul} forall 2 idiv
+            barcode exch i exch put
+        } for
+        options (dontdraw) true put
+        options (ccb) true put
+        options (columns) cccolumns put
+        /args barcode options //micropdf417 exec def
+    } if
+
+    ccversion (c) eq {
+        /barcode bits length 8 idiv string def
+        0 1 barcode length 1 sub {
+            /i exch def
+            bits i 8 mul 8 getinterval 0 exch {add 2 mul} forall 2 idiv
+            barcode exch i exch put
+        } for
+        options (dontdraw) true put
+        options (ccc) true put
+        options (columns) cccolumns put
+        /args barcode options //pdf417 exec def
+    } if
+
+    args
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/gs1-cc dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1-cc--

@@ -1,0 +1,188 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2004-2013 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER code93--
+% --REQUIRES preamble raiseerror renlinear--
+% --DESC: Code 93
+% --EXAM: THIS IS CODE 93
+% --EXOP: includetext includecheck
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/code93 {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /options exch def       % We are given an option string
+    /barcode exch def       % We are given a barcode string
+
+    /dontdraw false def
+    /includecheck false def  % Enable/disable checkdigit
+    /includetext false def   % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 1 def
+    /parsefnc false def   
+ 
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+ 
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+    
+    /encs
+    [ (131112) (111213) (111312) (111411) (121113)
+      (121212) (121311) (111114) (131211) (141111)
+      (211113) (211212) (211311) (221112) (221211)
+      (231111) (112113) (112212) (112311) (122112)
+      (132111) (111123) (111222) (111321) (121122)
+      (131121) (212112) (212211) (211122) (211221)
+      (221121) (222111) (112122) (112221) (122121)
+      (123111) (121131) (311112) (311211) (321111)
+      (112131) (113121) (211131) (121221) (312111)
+      (311121) (122211) (111141) (1111411)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+
+    /barlen barcode length def
+
+    % Special function characters
+    /sft1 -1 def  /sft2 -2 def  /sft3 -3 def  /sft4 -4 def
+    /fncvals <<
+        (SFT$) sft1
+        (SFT%) sft2
+        (SFT/) sft3
+        (SFT+) sft4
+    >> def
+
+    % Convert input into bytes accounting for shift characters 
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        parsefnc char 94 eq and i barlen 4 sub lt and {
+            barcode i 1 add get 94 ne {
+                /char fncvals barcode i 1 add 4 getinterval get def
+                /i i 4 add def
+            } {
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /i i 1 add def
+        /j j 1 add def
+    } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
+
+    includecheck {
+        /sbs msglen 6 mul 25 add string def
+    } {
+        /sbs msglen 6 mul 13 add string def
+    } ifelse
+    /txt msglen array def
+
+    % Put the start character
+    sbs 0 encs 47 get putinterval
+    
+    /checksum1 0 def /checksum2 0 def
+    0 1 msglen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        msg i get dup 0 lt { 
+            42 exch sub /indx exch def
+            /char ( ) def
+        } {
+            1 string dup 0 4 -1 roll put /char exch def
+            barchars char search
+            pop                                  % Discard true leaving pre
+            length /indx exch def                % indx is the length of pre
+            pop pop                              % Discard seek and post
+        } ifelse
+        /enc encs indx get def                   % Get the indxth encoding
+        sbs i 6 mul 6 add enc putinterval        % Put encoded digit into sbs
+        txt i [char i 9 mul 9 add textyoffset textfont textsize] put
+        /checksum1 checksum1 msglen i sub 1 sub 20 mod 1 add indx mul add def
+        /checksum2 checksum2 msglen i sub 15 mod 1 add indx mul add def
+    } for
+
+    includecheck {
+        % Put the first checksum character
+        /checksum1 checksum1 47 mod def
+        /checksum2 checksum2 checksum1 add 47 mod def
+        sbs msglen 6 mul 6 add encs checksum1 get putinterval
+        sbs msglen 6 mul 12 add encs checksum2 get putinterval
+        % Put the end character
+        sbs msglen 6 mul 18 add encs 48 get putinterval
+    } {
+        % Put the end character
+        sbs msglen 6 mul 6 add encs 48 get putinterval      
+    } ifelse
+
+    % Return the arguments
+    <<
+    /ren //renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    end
+
+} bind def
+/code93 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code93--
