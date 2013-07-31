@@ -33,14 +33,13 @@ while ($upr=~/^(.*)=(.*)$/mg) {
   my $src=join('',<SRC>);
   close(SRC);
 
-  (my $begin, $_, $_, my $meta, $_, my $end)=$src=~/
+  (my $begin, $_, $_, my $meta, my $body, my $end)=$src=~/
     (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
     (.*?)
     (^[^%].*?)
     (^%\ --END\ \2\ \3--$)
   /msgx;
 
-  my $body;
   if ($resourcedir ne '') {
     open(RES,$resfile) || die "Unable to open resource file: $resfile";
     my $res=join('',<RES>);
@@ -53,14 +52,6 @@ while ($upr=~/^(.*)=(.*)$/mg) {
       ^%%EndResource$)
     /msgx;
     $body="$1\n$2\n";
-  } else {
-    $src=~/
-        ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
-        (.*?)
-        (^[^%].*?)
-        ^%\ --END\ \1\ \2--$
-    /msgx;
-    $body=$4;
   }
 
   print $begin;
