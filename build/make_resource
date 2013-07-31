@@ -11,9 +11,15 @@ open(PS,$infile) || die "File not found: $infile";
 my $template=join('',<PS>);
 close(PS);
 
+open(VER,'src/VERSION') || die 'Unable to open VERSION';
+my $version=join('',<VER>);
+close VER;
+chomp $version;
+
 open(HEAD,'src/ps.head') || die 'Unable to open ps.head';
 my $head=join('',<HEAD>);
 close HEAD;
+$head=~s/XXXX-XX-XX/$version/;
 
 $template=~/
     ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$

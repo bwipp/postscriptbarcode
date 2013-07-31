@@ -10,9 +10,16 @@ open(UPR,'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
 my $upr=join('',<UPR>);
 close(UPR);
 
+open(VER,'src/VERSION') || die 'Unable to open VERSION';
+my $version=join('',<VER>);
+close VER;
+chomp $version;
+
 open(HEAD,'src/ps.head') || die 'Unable to open ps.head';
-while(<HEAD>) {print;}
+my $head=join('',<HEAD>);
 close HEAD;
+$head=~s/XXXX-XX-XX/$version/;
+print $head;
 
 print "% --BEGIN TEMPLATE--\n\n";
 

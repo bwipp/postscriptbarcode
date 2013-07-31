@@ -7,6 +7,11 @@ use strict;
 my $infile=$ARGV[0];
 my $outfile=$ARGV[1];
 
+open(VER,'src/VERSION') || die 'Unable to open VERSION';
+my $version=join('',<VER>);
+close VER;
+chomp $version;
+
 open(PS,$infile) || die "File not found: $infile";
 my $template=join('',<PS>);
 close(PS);
@@ -48,6 +53,7 @@ if ($resource eq 'preamble') {
 
 my $vmusage='0 0';  # TODO measure VM impact
 my $qualifier='0.0 0';
-print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='2013-10-10' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' build/make_packaged_resource.ps`;
+print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' build/make_packaged_resource.ps`;
+
 die 'GS error' if $?;
 unlink("$outfile.tmp");     
