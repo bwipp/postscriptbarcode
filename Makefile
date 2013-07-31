@@ -17,6 +17,8 @@ SOURCES:=$(wildcard $(SRCDIR)/*.ps)
 TARGETS:=$(basename $(notdir $(SOURCES)))
 TARGETS:=$(filter-out preamble, $(TARGETS))
 
+UPR_FILE = src/uk.co.terryburton.bwipp.upr
+
 RESDIR = $(DSTDIR)/resource
 TARGETS_RES:=$(addprefix $(RESDIR)/Resource/uk.co.terryburton.bwipp/,$(TARGETS))
 TARGETS_RES+=$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp
@@ -53,7 +55,7 @@ resource: $(TARGETS_RES)
 
 packaged_resource: $(TARGETS_PACKAGE)
 
-$(SRCDIR)/%.d: $(SRCDIR)/%.ps
+$(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
 	build/make_deps $< $(addsuffix /Resource,$(TARGET_DIRS)) >$@
 cleanlist += ${SOURCES:.ps=.d}
 
@@ -67,7 +69,7 @@ $(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSI
 $(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
 
-$(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: src/uk.co.terryburton.bwipp.upr
+$(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
 $(RESDIR)/README: src/README.resource
 	cp $< $@
@@ -80,7 +82,7 @@ $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(V
 $(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: src/uk.co.terryburton.bwipp.upr
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
 $(PACKAGEDIR)/README: src/README.resource
 	cp $< $@
@@ -89,7 +91,7 @@ $(PACKAGEDIR)/sample.ps: src/sample
 
 monolithic: $(MONOLITHIC_FILE) $(MONOLITHIC_FILE_WITH_SAMPLE)
 
-$(MONOLITHIC_FILE): $(SOURCES) src/ps.head $(VERSION_FILE)
+$(MONOLITHIC_FILE): $(SOURCES) src/ps.head $(VERSION_FILE) $(UPR_FILE)
 	build/make_monolithic >$@
 
 $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) src/sample
@@ -97,7 +99,7 @@ $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) src/sample
 
 monolithic_package: $(MONOLITHIC_PACKAGE_FILE) $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE)
 
-$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head $(VERSION_FILE)
+$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head $(VERSION_FILE) $(UPR_FILE)
 	build/make_monolithic $(PACKAGEDIR)/Resource >$@
 
 $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) src/sample $(VERSION_FILE)
