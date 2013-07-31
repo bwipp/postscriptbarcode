@@ -62,6 +62,14 @@ RELEASE_PACKAGED_RESOURCE_TARBALL := $(RELEASEDIR)/postscriptbarcode-packaged-re
 RELEASE_MONOLITHIC_TARBALL := $(RELEASEDIR)/postscriptbarcode-monolithic-$(VERSION).tgz
 RELEASE_MONOLITHIC_PACKAGE_TARBALL := $(RELEASEDIR)/postscriptbarcode-monolithic-package-$(VERSION).tgz
 
+RELEASE_RESOURCE_ZIPFILE := $(RELEASEDIR)/postscriptbarcode-resource-$(VERSION).zip
+RELEASE_PACKAGED_RESOURCE_ZIPFILE := $(RELEASEDIR)/postscriptbarcode-packaged-resource-$(VERSION).zip
+RELEASE_MONOLITHIC_ZIPFILE := $(RELEASEDIR)/postscriptbarcode-monolithic-$(VERSION).zip
+RELEASE_MONOLITHIC_PACKAGE_ZIPFILE := $(RELEASEDIR)/postscriptbarcode-monolithic-package-$(VERSION).zip
+
+RELEASEFILES:=$(RELEASE_RESOURCE_TARBALL) $(RELEASE_PACKAGED_RESOURCE_TARBALL) $(RELEASE_MONOLITHIC_TARBALL) $(RELEASE_MONOLITHIC_PACKAGE_TARBALL)
+RELEASEFILES+=$(RELEASE_RESOURCE_ZIPFILE) $(RELEASE_PACKAGED_RESOURCE_ZIPFILE) $(RELEASE_MONOLITHIC_ZIPFILE) $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE)
+
 all: resource packaged_resource monolithic monolithic_package
 
 resource: $(TARGETS_RES)
@@ -136,23 +144,39 @@ $(MONOLITHIC_PACKAGE_DIR)/LICENSE: LICENSE
 $(MONOLITHIC_PACKAGE_DIR)/CHANGES: CHANGES
 	cp $< $@
 
-release: $(RELEASE_RESOURCE_TARBALL) $(RELEASE_PACKAGED_RESOURCE_TARBALL) $(RELEASE_MONOLITHIC_TARBALL) $(RELEASE_MONOLITHIC_PACKAGE_TARBALL)
+release: $(RELEASEFILES)
 
 define TARBALL
-  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@
+  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
+endef
+
+define ZIPFILE
+  $(RM) $@; FILE=`readlink -f $@` && cd $(1) && zip -q -X -r $$FILE .
 endef
 
 $(RELEASE_RESOURCE_TARBALL): $(TARGETS_RES) $(VERSION_FILE)
-	$(TARBALL) build/resource/
+	$(call TARBALL,build/resource/)
+
+$(RELEASE_RESOURCE_ZIPFILE): $(TARGETS_RES) $(VERSION_FILE)
+	$(call ZIPFILE,build/resource/)
 
 $(RELEASE_PACKAGED_RESOURCE_TARBALL): $(TARGETS_PACKAGE) $(VERSION_FILE)
-	$(TARBALL) build/packaged_resource/
+	$(call TARBALL,build/packaged_resource/)
+
+$(RELEASE_PACKAGED_RESOURCE_ZIPFILE): $(TARGETS_PACKAGE) $(VERSION_FILE)
+	$(call ZIPFILE,build/packaged_resource/)
 
 $(RELEASE_MONOLITHIC_TARBALL): $(TARGETS_MONOLITHIC) $(VERSION_FILE)
-	$(TARBALL) build/monolithic/
+	$(call TARBALL,build/monolithic/)
+
+$(RELEASE_MONOLITHIC_ZIPFILE): $(TARGETS_MONOLITHIC) $(VERSION_FILE)
+	$(call ZIPFILE,build/monolithic/)
 
 $(RELEASE_MONOLITHIC_PACKAGE_TARBALL): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_FILE)
-	$(TARBALL) build/monolithic_package/
+	$(call TARBALL,build/monolithic_package/)
+
+$(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_FILE)
+	$(call ZIPFILE,build/monolithic_package/)
 
 clean:
 	$(RM) $(cleanlist)
