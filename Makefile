@@ -10,9 +10,12 @@ DSTDIR = build
 
 .PHONY : all clean monolithic monolithic_package resource packaged_resource
 
+VERSION_FILE=$(SRCDIR)/VERSION
+VERSION:=$(shell head -n 1 $(VERSION_FILE))
+
 SOURCES:=$(wildcard $(SRCDIR)/*.ps)
 TARGETS:=$(basename $(notdir $(SOURCES)))
-TARGETS:=$(filter-out preamble, $(TARGETS) )
+TARGETS:=$(filter-out preamble, $(TARGETS))
 
 RESDIR = $(DSTDIR)/resource
 TARGETS_RES:=$(addprefix $(RESDIR)/Resource/uk.co.terryburton.bwipp/,$(TARGETS))
@@ -38,6 +41,12 @@ MONOLITHIC_PACKAGE_FILE = $(DSTDIR)/monolithic_package/barcode.ps
 MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE = $(DSTDIR)/monolithic_package/barcode_with_sample.ps
 cleanlist += $(MONOLITHIC_FILE) $(MONOLITHIC_FILE_WITH_SAMPLE) $(MONOLITHIC_PACKAGE_FILE) $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE)
 
+RELEASEDIR := $(DSTDIR)/release
+RELEASE_RESOURCE_TARBALL := $(RELEASEDIR)/postscriptbarcode-resource-$(VERSION).tgz
+RELEASE_PACKAGED_RESOURCE_TARBALL := $(RELEASEDIR)/postscriptbarcode-packaged-resource-$(VERSION).tgz
+RELEASE_MONOLITHIC_TARBALL := $(RELEASEDIR)/postscriptbarcode-monolithic-$(VERSION).tgz
+RELEASE_MONOLITHIC_PACKAGE_TARBALL := $(RELEASEDIR)/postscriptbarcode-monolithic-package-$(VERSION).tgz
+
 all: resource packaged_resource monolithic monolithic_package
 
 resource: $(TARGETS_RES)
@@ -52,10 +61,10 @@ ifneq "$(MAKECMDGOALS)" "clean"
 -include ${SOURCES:.ps=.d}
 endif
 
-$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head
+$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
 
-$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head
+$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: src/uk.co.terryburton.bwipp.upr
@@ -65,10 +74,10 @@ $(RESDIR)/README: src/README.resource
 $(RESDIR)/sample.ps: src/sample
 	cp $< $@
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
-$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head
+$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: src/uk.co.terryburton.bwipp.upr
@@ -80,7 +89,7 @@ $(PACKAGEDIR)/sample.ps: src/sample
 
 monolithic: $(MONOLITHIC_FILE) $(MONOLITHIC_FILE_WITH_SAMPLE)
 
-$(MONOLITHIC_FILE): $(SOURCES) src/ps.head
+$(MONOLITHIC_FILE): $(SOURCES) src/ps.head $(VERSION_FILE)
 	build/make_monolithic >$@
 
 $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) src/sample
@@ -88,11 +97,29 @@ $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) src/sample
 
 monolithic_package: $(MONOLITHIC_PACKAGE_FILE) $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE)
 
-$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head
+$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head $(VERSION_FILE)
 	build/make_monolithic $(PACKAGEDIR)/Resource >$@
 
-$(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) src/sample
+$(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) src/sample $(VERSION_FILE)
 	cat $(MONOLITHIC_PACKAGE_FILE) src/sample > $@
+
+release: $(RELEASE_RESOURCE_TARBALL) $(RELEASE_PACKAGED_RESOURCE_TARBALL) $(RELEASE_MONOLITHIC_TARBALL) $(RELEASE_MONOLITHIC_PACKAGE_TARBALL)
+
+define TARBALL
+  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@
+endef
+
+$(RELEASE_RESOURCE_TARBALL): $(TARGETS_RES) $(VERSION_FILE)
+	$(TARBALL) build/resource/
+
+$(RELEASE_PACKAGED_RESOURCE_TARBALL): $(TARGETS_PACKAGE) $(VERSION_FILE)
+	$(TARBALL) build/packaged_resource/
+
+$(RELEASE_MONOLITHIC_TARBALL): $(MONOLITHIC_FILE) $(VERSION_FILE)
+	$(TARBALL) build/monolithic/
+
+$(RELEASE_MONOLITHIC_PACKAGE_TARBALL): $(MONOLITHIC_PACKAGE_FILE) $(VERSION_FILE)
+	$(TARBALL) build/monolithic_package/
 
 clean:
 	$(RM) $(cleanlist)
