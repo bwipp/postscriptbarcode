@@ -8,8 +8,6 @@
 SRCDIR = src
 DSTDIR = build
 
-.PHONY : all clean monolithic monolithic_package resource packaged_resource
-
 VERSION_FILE=$(SRCDIR)/VERSION
 VERSION:=$(shell head -n 1 $(VERSION_FILE))
 
@@ -46,6 +44,7 @@ TARGETS_MONOLITHIC:=$(MONOLITHIC_FILE) $(MONOLITHIC_FILE_WITH_SAMPLE)
 TARGETS_MONOLITHIC+=$(MONOLITHIC_DIR)/README
 TARGETS_MONOLITHIC+=$(MONOLITHIC_DIR)/LICENSE
 TARGETS_MONOLITHIC+=$(MONOLITHIC_DIR)/CHANGES
+cleanlist += $(TARGETS_MONOLITHIC)
 
 MONOLITHIC_PACKAGE_DIR = $(DSTDIR)/monolithic_package
 MONOLITHIC_PACKAGE_FILE = $(MONOLITHIC_PACKAGE_DIR)/barcode.ps
@@ -54,7 +53,7 @@ TARGETS_MONOLITHIC_PACKAGE:=$(MONOLITHIC_PACKAGE_FILE) $(MONOLITHIC_PACKAGE_FILE
 TARGETS_MONOLITHIC_PACKAGE+=$(MONOLITHIC_PACKAGE_DIR)/README
 TARGETS_MONOLITHIC_PACKAGE+=$(MONOLITHIC_PACKAGE_DIR)/LICENSE
 TARGETS_MONOLITHIC_PACKAGE+=$(MONOLITHIC_PACKAGE_DIR)/CHANGES
-cleanlist += $(TARGETS_MONOLITHIC) $(TARGETS_MONOLITHIC_PACKAGE)
+cleanlist += $(TARGETS_MONOLITHIC_PACKAGE)
 
 RELEASEDIR := $(DSTDIR)/release
 RELEASE_RESOURCE_TARBALL := $(RELEASEDIR)/postscriptbarcode-resource-$(VERSION).tgz
@@ -70,11 +69,14 @@ RELEASE_MONOLITHIC_PACKAGE_ZIPFILE := $(RELEASEDIR)/postscriptbarcode-monolithic
 RELEASEFILES:=$(RELEASE_RESOURCE_TARBALL) $(RELEASE_PACKAGED_RESOURCE_TARBALL) $(RELEASE_MONOLITHIC_TARBALL) $(RELEASE_MONOLITHIC_PACKAGE_TARBALL)
 RELEASEFILES+=$(RELEASE_RESOURCE_ZIPFILE) $(RELEASE_PACKAGED_RESOURCE_ZIPFILE) $(RELEASE_MONOLITHIC_ZIPFILE) $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE)
 
+#------------------------------------------------------------
+
+.PHONY : all clean resource packaged_resource monolithic monolithic_package release
+
 all: resource packaged_resource monolithic monolithic_package
 
-resource: $(TARGETS_RES)
-
-packaged_resource: $(TARGETS_PACKAGE)
+clean:
+	$(RM) $(cleanlist)
 
 $(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
 	build/make_deps $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
@@ -83,6 +85,10 @@ cleanlist += ${SOURCES:.ps=.d}
 ifneq "$(MAKECMDGOALS)" "clean"
 -include ${SOURCES:.ps=.d}
 endif
+
+#------------------------------------------------------------
+
+resource: $(TARGETS_RES)
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
@@ -101,6 +107,10 @@ $(RESDIR)/LICENSE: LICENSE
 $(RESDIR)/CHANGES: CHANGES
 	cp $< $@
 
+#------------------------------------------------------------
+
+packaged_resource: $(TARGETS_PACKAGE)
+
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
@@ -118,6 +128,8 @@ $(PACKAGEDIR)/LICENSE: LICENSE
 $(PACKAGEDIR)/CHANGES: CHANGES
 	cp $< $@
 
+#------------------------------------------------------------
+
 monolithic: $(TARGETS_MONOLITHIC)
 
 $(MONOLITHIC_FILE): $(SOURCES) src/ps.head $(VERSION_FILE) $(UPR_FILE)
@@ -131,6 +143,8 @@ $(MONOLITHIC_DIR)/LICENSE: LICENSE
 $(MONOLITHIC_DIR)/CHANGES: CHANGES
 	cp $< $@
 
+#------------------------------------------------------------
+
 monolithic_package: $(TARGETS_MONOLITHIC_PACKAGE)
 
 $(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head $(VERSION_FILE) $(UPR_FILE)
@@ -143,6 +157,8 @@ $(MONOLITHIC_PACKAGE_DIR)/LICENSE: LICENSE
 	cp $< $@
 $(MONOLITHIC_PACKAGE_DIR)/CHANGES: CHANGES
 	cp $< $@
+
+#------------------------------------------------------------
 
 release: $(RELEASEFILES)
 
@@ -177,7 +193,4 @@ $(RELEASE_MONOLITHIC_PACKAGE_TARBALL): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_F
 
 $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_FILE)
 	$(call ZIPFILE,build/monolithic_package/)
-
-clean:
-	$(RM) $(cleanlist)
 
