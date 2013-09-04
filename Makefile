@@ -15,7 +15,7 @@ SOURCES:=$(wildcard $(SRCDIR)/*.ps)
 TARGETS:=$(basename $(notdir $(SOURCES)))
 TARGETS:=$(filter-out preamble, $(TARGETS))
 
-UPR_FILE = src/uk.co.terryburton.bwipp.upr
+UPR_FILE = $(SRCDIR)/uk.co.terryburton.bwipp.upr
 
 RESDIR = $(DSTDIR)/resource
 TARGETS_RES:=$(addprefix $(RESDIR)/Resource/uk.co.terryburton.bwipp/,$(TARGETS))
@@ -94,17 +94,17 @@ endif
 
 resource: $(TARGETS_RES)
 
-$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
+$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
 
-$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
+$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE)
 	build/make_resource $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
-$(RESDIR)/README: src/README.resource
+$(RESDIR)/README: $(SRCDIR)/README.resource
 	cp $< $@
-$(RESDIR)/sample.ps: src/sample
+$(RESDIR)/sample.ps: $(SRCDIR)/sample
 	cp $< $@
 $(RESDIR)/LICENSE: LICENSE
 	cp $< $@
@@ -115,17 +115,17 @@ $(RESDIR)/CHANGES: CHANGES
 
 packaged_resource: $(TARGETS_PACKAGE)
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps src/ps.head $(VERSION_FILE)
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
-$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps src/ps.head $(VERSION_FILE)
+$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE)
 	build/make_packaged_resource $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
-$(PACKAGEDIR)/README: src/README.resource
+$(PACKAGEDIR)/README: $(SRCDIR)/README.resource
 	cp $< $@
-$(PACKAGEDIR)/sample.ps: src/sample
+$(PACKAGEDIR)/sample.ps: $(SRCDIR)/sample
 	cp $< $@
 $(PACKAGEDIR)/LICENSE: LICENSE
 	cp $< $@
@@ -136,10 +136,10 @@ $(PACKAGEDIR)/CHANGES: CHANGES
 
 monolithic: $(TARGETS_MONOLITHIC)
 
-$(MONOLITHIC_FILE): $(SOURCES) src/ps.head $(VERSION_FILE) $(UPR_FILE)
+$(MONOLITHIC_FILE): $(SOURCES) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE)
 	build/make_monolithic >$@
-$(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) src/sample
-	cat $(MONOLITHIC_FILE) src/sample > $@
+$(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) $(SRCDIR)/sample
+	cat $(MONOLITHIC_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_DIR)/README: README
 	cp $< $@
 $(MONOLITHIC_DIR)/LICENSE: LICENSE
@@ -151,10 +151,10 @@ $(MONOLITHIC_DIR)/CHANGES: CHANGES
 
 monolithic_package: $(TARGETS_MONOLITHIC_PACKAGE)
 
-$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) src/ps.head $(VERSION_FILE) $(UPR_FILE)
+$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE)
 	build/make_monolithic $(PACKAGEDIR)/Resource >$@
-$(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) src/sample $(VERSION_FILE)
-	cat $(MONOLITHIC_PACKAGE_FILE) src/sample > $@
+$(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample $(VERSION_FILE)
+	cat $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_PACKAGE_DIR)/README: README
 	cp $< $@
 $(MONOLITHIC_PACKAGE_DIR)/LICENSE: LICENSE
