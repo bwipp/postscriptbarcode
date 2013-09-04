@@ -166,7 +166,7 @@ $(MONOLITHIC_PACKAGE_DIR)/CHANGES: CHANGES
 release: $(RELEASEFILES)
 
 define TARBALL
-  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
+  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
 endef
 
 define ZIPFILE
@@ -198,5 +198,5 @@ $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_F
 	$(call ZIPFILE,$(MONOLITHIC_PACKAGE_DIR))
 
 $(RELEASE_SOURCE_TARBALL): $(VERSION_FILE)
-	tar --exclude-vcs --exclude=$(RELEASEDIR) $(addprefix --exclude=,$(cleanlist)) --numeric-owner --owner=0 --group=0 --transform='s,^.,postscriptbarcode-$(VERSION),' -czf $@ .
+	tar --exclude-vcs --exclude=$(RELEASEDIR) $(addprefix --exclude=,$(cleanlist)) --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^.,postscriptbarcode-$(VERSION),' -czf $@ .
 
