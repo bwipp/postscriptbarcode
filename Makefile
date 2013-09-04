@@ -83,7 +83,7 @@ clean:
 	$(RM) $(cleanlist)
 
 $(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
-	build/make_deps $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
+	$(DSTDIR)/make_deps $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
 cleanlist += ${SOURCES:.ps=.d}
 
 ifneq "$(MAKECMDGOALS)" "clean"
@@ -95,10 +95,10 @@ endif
 resource: $(TARGETS_RES)
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE)
-	build/make_resource $< $@
+	$(DSTDIR)/make_resource $< $@
 
 $(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE)
-	build/make_resource $< $@
+	$(DSTDIR)/make_resource $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
@@ -116,10 +116,10 @@ $(RESDIR)/CHANGES: CHANGES
 packaged_resource: $(TARGETS_PACKAGE)
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE)
-	build/make_packaged_resource $< $@
+	$(DSTDIR)/make_packaged_resource $< $@
 
 $(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE)
-	build/make_packaged_resource $< $@
+	$(DSTDIR)/make_packaged_resource $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE)
 	cp $< $@
@@ -137,7 +137,7 @@ $(PACKAGEDIR)/CHANGES: CHANGES
 monolithic: $(TARGETS_MONOLITHIC)
 
 $(MONOLITHIC_FILE): $(SOURCES) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE)
-	build/make_monolithic >$@
+	$(DSTDIR)/make_monolithic >$@
 $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) $(SRCDIR)/sample
 	cat $(MONOLITHIC_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_DIR)/README: README
@@ -152,7 +152,7 @@ $(MONOLITHIC_DIR)/CHANGES: CHANGES
 monolithic_package: $(TARGETS_MONOLITHIC_PACKAGE)
 
 $(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE)
-	build/make_monolithic $(PACKAGEDIR)/Resource >$@
+	$(DSTDIR)/make_monolithic $(PACKAGEDIR)/Resource >$@
 $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample $(VERSION_FILE)
 	cat $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_PACKAGE_DIR)/README: README
@@ -167,7 +167,7 @@ $(MONOLITHIC_PACKAGE_DIR)/CHANGES: CHANGES
 release: $(RELEASEFILES)
 
 define TARBALL
-  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^build/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
+  tar --exclude-vcs --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^$(DSTDIR)/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
 endef
 
 define ZIPFILE
