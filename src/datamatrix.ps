@@ -52,6 +52,7 @@ begin
     /dontdraw false def
     /columns 0 def
     /rows 0 def
+    /prefix () def
     /encoding (ascii) def
     /raw false def
     /parse false def
@@ -92,13 +93,25 @@ begin
         } loop
     } if
 
+    /premaps <<
+        /FNC1 [ 232 ]  /PROG [ 234 ]  /MAC5 [ 236 ]  /MAC6 [ 237 ]
+        () []
+    >> def
+    premaps prefix known {
+        /precws premaps prefix get def
+    } {
+        /bwipp.datamatrixBadPrefix (The prefix for Data Matrix must be FNC1, PROG, MAC5 or MAC6) //raiseerror exec
+    } ifelse
+
+    /prelen precws length def
     /barlen barcode length def
 
     raw {/encoding (raw) def} if
 
     encoding (raw) eq {
-        /cws barlen array def
-        /i 0 def /j 0 def
+        /cws barlen prelen add array def
+        cws 0 precws putinterval
+        /i 0 def /j prelen def
         { % loop
             i barlen eq {exit} if
             /cw barcode i 1 add 3 getinterval cvi def
@@ -135,8 +148,9 @@ begin
         /msg msg 0 j getinterval def
         /msglen msg length def
 
-        /cws msglen 2 mul array def
-        /i 0 def /j 0 def
+        /cws msglen 2 mul prelen add array def
+        cws 0 precws putinterval
+        /i 0 def /j prelen def
         { % loop
             i msglen eq {exit} if
             /char msg i get def
@@ -166,6 +180,119 @@ begin
             } ifelse } ifelse } ifelse
         } loop
         /cws cws 0 j getinterval def
+    } if
+
+    /base40 false def       % Used for size optimization
+    encoding (c40) eq encoding (text) eq encoding (x12) eq or or {
+        % Pathological case : 8-bit chars encode to 4 base-40 values
+        % plus extra 2 for possible nul-pading
+        /b40 barlen 4 mul 2 add array def
+        /base40 true def
+
+        % Maps are encoded as static strings with the base-40 value in
+        % the right 6-bits and the shift-state in the two left bits.
+        % The value 255 indicates an invalid mapping (x12 only).
+        encoding (c40) eq {
+            /mode 230 def
+            /8bit true def
+            /charmap <
+                404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f
+                03808182838485868788898a8b8c8d8e0405060708090a0b0c0d8f9091929394
+                950e0f101112131415161718191a1b1c1d1e1f2021222324252627969798999a
+                c0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedf
+            > def
+        } if
+
+        encoding (text) eq {
+            /mode 239 def
+            /8bit true def
+            /charmap <
+                404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f
+                03808182838485868788898a8b8c8d8e0405060708090a0b0c0d8f9091929394
+                95c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9da969798999a
+                c00e0f101112131415161718191a1b1c1d1e1f2021222324252627dbdcdddedf
+            > def
+        } if
+
+        encoding (x12) eq {
+            /mode 238 def
+            /8bit false def
+            /parsefnc false def
+            /charmap <
+                ffffffffffffffffffffffffff00ffffffffffffffffffffffffffffffffffff
+                03ffffffffffffffffff01ffffffffff0405060708090a0b0c0dffffffff02ff
+                ff0e0f101112131415161718191a1b1c1d1e1f2021222324252627ffffffffff
+                ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+            > def
+        } if
+
+        /i 0 def /j 0 def
+        { % loop
+            i barlen ge {exit} if
+            /char barcode i get def
+            % ^FNC1
+            parsefnc char 94 eq and i barlen 4 sub lt and {
+                barcode i 5 getinterval (^FNC1) eq {
+                    b40 j [ 1 27 ] putinterval  % set-2, FNC1
+                    /char -1 def
+                    /i i 5 add def
+                    /j j 2 add def
+                } if
+            } if
+
+            % Replace ^^ with ^
+            parsefnc char 94 eq and i barlen 1 sub lt and {
+                barcode i 1 add get 94 eq {
+                    /i i 1 add def
+                } if
+            } if
+            8bit char 127 gt and {
+                /char char 127 and def
+                b40 j [ 1 30 ] putinterval  % set-2, high-bit
+                /j j 2 add def
+            } if
+            char 0 ge char 127 le and {
+                charmap char get
+                dup 255 ne {
+                    dup -6 bitshift 1 sub
+                    dup 0 ge {
+                        b40 j 3 -1 roll put
+                        /j j 1 add def
+                    } {
+                        pop
+                    } ifelse
+                    63 and b40 j 3 -1 roll put
+                    /j j 1 add def
+                } {
+                    /bwipp.datamatrixBadX12character (Invalid character for Data Matrix X12 encoding) //raiseerror exec
+                } ifelse
+                /i i 1 add def
+            } if
+        } loop
+
+        % Nul-pad to full triples
+        { % loop
+            j 3 mod 0 eq { exit } if
+            b40 j 0 put
+            /j j 1 add def
+        } loop
+
+        % Convert triples to 2 bytes
+        /b40len j def
+        /cws b40len 3 div 2 mul prelen add 1 add cvi array def
+        cws 0 precws putinterval
+        cws prelen mode put
+        /i 0 def /j prelen 1 add def
+        { % loop
+            i b40len eq { exit } if
+            cws j [
+                b40 i get 1600 mul b40 i 1 add get 40 mul add b40 i 2 add get add 1 add
+                dup -8 bitshift 
+                exch 255 and 
+            ] putinterval
+            /i i 3 add def
+            /j j 2 add def
+        } loop
     } if
 
     % Basic metrics for the each symbol
@@ -229,6 +356,11 @@ begin
         okay {exit} if
         /i i 1 add def
     } loop
+
+    % C40/TEXT/X12 size optimization - do not emit the unlatch unless we pad
+    base40 cws length ncws lt and {
+        /cws [ cws {} forall 254 ] def
+    } if
 
     % Extend cws to ncws codewords by addition of pseudo-randomised pad characters
     cws length ncws lt {
