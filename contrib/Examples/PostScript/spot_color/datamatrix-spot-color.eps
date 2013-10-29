@@ -1,0 +1,453 @@
+%!PS-Adobe-2.0 EPSF-1.2
+%%Title: DataMatrix 2D bar code Spot Color
+%%Creator: Ray Johnson (EPS Code)
+%%CreationDate: 12-5-08
+%%BoundingBox: 0 0 85.5 37
+%%DocumentProcessColors: Cyan Magenta Yellow Black
+%%DocumentCustomColors: (2D-Spot)
+%%CMYKCustomColor: 1.00 0.50 0.00 0.00 (2D-Spot)
+%%EndComments
+%%BeginProcSet: RJ_Header 1 0
+/RJ_ColorDict 30 dict def
+RJ_ColorDict begin
+/bdef { dup xcheck { bind } if def } bind def
+/xdef { exch def } bdef
+/ndef
+  { 1 index where { pop pop pop }{ dup xcheck { bind } if def }ifelse
+  } bdef
+/prevtint 1.0 def
+/setcustomcolor
+  { dup /prevtint xdef exch aload pop pop 4 { 4 index mul 4 1 roll } repeat
+    setcmykcolor pop
+  } ndef
+/setseparationgray { setgray } ndef
+/findcmykcustomcolor
+  { 5 /packedarray where { pop packedarray }{ array astore readonly }ifelse
+  } ndef
+/DC { 6 /packedarray where { pop packedarray }{ array astore readonly }ifelse
+  } bdef
+/C % [c m y k | tint custom | separationgray] C -
+  { dup length 4 eq { aload pop setcmykcolor }
+    { dup length 2 eq { aload 1 get colormap exch get 5 get pop colormap exch
+      get aload pop pop findcmykcustomcolor exch setcustomcolor }
+    { aload pop 1 exch sub setseparationgray }ifelse }ifelse
+  } bdef
+/colormap[
+1.00 0.00 0.00 0.00 (Process Cyan)    false DC
+0.00 1.00 0.00 0.00 (Process Magenta) false DC
+0.00 0.00 1.00 0.00 (Process Yellow)  false DC
+0.00 0.00 0.00 1.00 (Process Black)   true DC
+1.00 0.50 0.00 0.00 (2D-Spot) true DC
+] def
+end %RJ_ColorDict
+%%EndProcSet
+%%EndProlog
+
+/datamatrix {
+
+    0 begin
+
+    /options exch def
+    /useropts options def
+    /barcode exch def
+
+    /columns 0 def
+    /rows 0 def
+
+    % Parse the input options
+    options {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    /columns columns cvi def
+    /rows rows cvi def
+
+    % Split the input barcode into an array of codewords
+    /cws barcode length array def
+    /i 0 def /j 0 def
+    { % loop
+        i barcode length eq {exit} if
+        /cw barcode i 1 add 3 getinterval cvi def
+        cws j cw put
+        /i i 4 add def
+        /j j 1 add def
+    } loop
+    /cws cws 0 j getinterval def
+
+    % Basic metrics for the each symbol
+    %    rows  cols  regh  regv  rscw  rsbl
+    /metrics [
+        % Standard square symbols
+        [  10    10     1     1     5     1 ]
+        [  12    12     1     1     7     1 ]
+        [  14    14     1     1    10     1 ]
+        [  16    16     1     1    12     1 ]
+        [  18    18     1     1    14     1 ]
+        [  20    20     1     1    18     1 ] 
+        [  22    22     1     1    20     1 ]
+        [  24    24     1     1    24     1 ]
+        [  26    26     1     1    28     1 ]
+        [  32    32     2     2    36     1 ]
+        [  36    36     2     2    42     1 ]
+        [  40    40     2     2    48     1 ]
+        [  44    44     2     2    56     1 ]
+        [  48    48     2     2    68     1 ]
+        [  52    52     2     2    84     2 ]
+        [  64    64     4     4   112     2 ]
+        [  72    72     4     4   144     4 ]
+        [  80    80     4     4   192     4 ]
+        [  88    88     4     4   224     4 ]
+        [  96    96     4     4   272     4 ]
+        [ 104   104     4     4   336     6 ]
+        [ 120   120     6     6   408     6 ]
+        [ 132   132     6     6   496     8 ]
+        [ 144   144     6     6   620    10 ]
+        % Optional rectangular symbols
+        [   8    18     1     1     7     1 ]
+        [   8    32     1     2    11     1 ]
+        [  12    26     1     1    14     1 ]
+        [  12    36     1     2    18     1 ]
+        [  16    36     1     2    24     1 ]
+        [  16    48     1     2    28     1 ]
+    ] def
+
+    % Select metrics of an appropriate symbol
+    /urows rows def
+    /ucols columns def
+    /i 0 def
+    { % loop
+        /m metrics i get def
+        /rows m 0 get def                          % Rows in symbol
+        /cols m 1 get def                          % Columns in symbol
+        /regh m 2 get def                          % Horizontal regions
+        /regv m 3 get def                          % Vertical regions
+        /rscw m 4 get def                          % Error correction codewords
+        /rsbl m 5 get def                          % Error correction blocks
+        /mrows rows 2 regh mul sub def             % Rows in the mapping matrix
+        /mcols cols 2 regv mul sub def             % Columns in the mapping matrix
+        /rrows mrows regh idiv def                 % Rows per region
+        /rcols mcols regv idiv def                 % Columns per region
+        /ncws mrows mcols mul 8 idiv rscw sub def  % Data codewords
+        /okay true def
+        cws length ncws gt           {/okay false def} if
+        urows 0 ne urows rows ne and {/okay false def} if
+        ucols 0 ne ucols cols ne and {/okay false def} if
+        okay {exit} if
+        /i i 1 add def
+    } loop
+
+    % Extend cws to ncws codewords by addition of pseudo-randomised pad characters
+    cws length ncws lt {
+        /datlen cws length def
+        /cws [ cws {} forall ncws datlen sub {129} repeat ] def
+        datlen 1 add 1 ncws 1 sub {
+            /i exch def
+            i 1 add 149 mul 253 mod 1 add 129 add
+            dup 254 gt {254 sub} if
+            cws exch i exch put
+        } for
+    } if
+
+    % De-interleave the codewords into blocks
+    /cwbs rsbl array def  % Array of data codeword blocks
+    /ecbs rsbl array def  % Array of error correction blocks
+    0 1 rsbl 1 sub {
+        /i exch def
+        cws length 1558 ne {
+            /cwbsize cws length rsbl idiv def
+        } {
+            i 7 le {/cwbsize 156 def} {/cwbsize 155 def} ifelse
+        } ifelse
+        /cwb cwbsize array def 
+        0 1 cwbsize 1 sub {
+            /j exch def
+            cwb j cws j rsbl mul i add get put
+        } for 
+        cwbs i cwb put
+        ecbs i [ rscw rsbl idiv {0} repeat ] put
+    } for
+
+    % Calculate the log and anti-log tables
+    /rslog [ -255 255 {0} repeat ] def
+    /rsalog [ 1 255 {0} repeat ] def
+    1 1 255 {
+        /i exch def
+        rsalog i rsalog i 1 sub get 2 mul put
+        rsalog i get 256 ge { rsalog i rsalog i get 301 xor put } if
+        rslog rsalog i get i put
+    } for
+
+    % Function to calculate the product in the field
+    /rsprod {
+        /y exch def
+        /x exch def
+        x y mul 0 ne { 
+            rsalog rslog x get rslog y get add 255 mod get
+        } {
+            0
+        } ifelse
+    } bind def
+
+    % Generate the coefficients
+    /coeffs [ 1 rscw rsbl idiv {0} repeat ] def
+    1 1 rscw rsbl idiv {
+        /i exch def 
+        coeffs i coeffs i 1 sub get put
+        i 1 sub -1 1 {
+            /j exch def
+            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+        } for 
+        coeffs 0 coeffs 0 get rsalog i get rsprod put
+    } for
+    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+
+    % Calculate the error correction codewords for each block
+    0 1 cwbs length 1 sub {
+        /i exch def
+        /cwb cwbs i get def
+        /ecb ecbs i get def
+        0 1 cwb length 1 sub {
+            /t exch cwb exch get ecb 0 get xor def 
+            ecb length 1 sub -1 0 {
+                /j exch def
+                /p ecb length j sub 1 sub def
+                t 0 eq {
+                    ecb p 0 put
+                } {
+                    ecb p rsalog rslog t get rslog coeffs j get get add 255 mod get put
+                } ifelse
+                j 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
+            } for 
+        } for
+        ecbs i ecb put
+    } for
+
+    % Extend codewords with the interleaved error correction codes
+    /cws [ cws {} forall rscw {0} repeat ] def
+    0 1 rscw 1 sub {
+        /i exch def
+        cws ncws i add ecbs i rsbl mod get i rsbl idiv get put
+    } for
+
+    % Create the module placement matrix
+    /module {
+        /tmpc exch def
+        /tmpr exch def
+        tmpr 0 lt {  
+            /tmpr tmpr mrows add def
+            /tmpc tmpc 4 mrows 4 add 8 mod sub add def
+        } if
+        tmpc 0 lt { 
+            /tmpc tmpc mcols add def
+            /tmpr tmpr 4 mcols 4 add 8 mod sub add def
+        } if
+        mmat tmpr mcols mul tmpc add bit put
+        /bit bit 1 add def
+    } bind def
+
+    /mmat [ mrows mcols mul {-1} repeat ] def
+    /bit 0 def /row 4 def /col 0 def
+    { % loop
+
+        row mrows eq col 0 eq and {
+            [ [mrows 1 sub 0] [mrows 1 sub 1] [mrows 1 sub 2] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
+            {{} forall module} forall 
+        } if
+        row mrows 2 sub eq col 0 eq and mcols 4 mod 0 ne and {
+            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 4 sub]
+              [0 mcols 3 sub] [0 mcols 2 sub] [0 mcols 1 sub] [1 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+        row mrows 2 sub eq col 0 eq and mcols 8 mod 4 eq and {
+            [ [mrows 3 sub 0] [mrows 2 sub 0] [mrows 1 sub 0] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 1 sub] [2 mcols 1 sub] [3 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+        row mrows 4 add eq col 2 eq and mcols 8 mod 0 eq and {
+            [ [mrows 1 sub 0] [mrows 1 sub mcols 1 sub] [0 mcols 3 sub] [0 mcols 2 sub]
+              [0 mcols 1 sub] [1 mcols 3 sub]           [1 mcols 2 sub] [1 mcols 1 sub] ]
+            {{} forall module} forall
+        } if
+
+        { % loop for sweeping upwards
+            row mrows lt col 0 ge and {
+                mmat row mcols mul col add get -1 eq {
+                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
+                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
+                    {{} forall module} forall
+                } if
+            } if
+            /row row 2 sub def
+            /col col 2 add def
+            row 0 ge col mcols lt and not {exit} if
+        } loop
+        /row row 1 add def
+        /col col 3 add def
+
+        { % loop for sweeping downwards
+            row 0 ge col mcols lt and {
+                mmat row mcols mul col add get -1 eq {
+                    [ [row 2 sub col 2 sub] [row 2 sub col 1 sub] [row 1 sub col 2 sub] [row 1 sub col 1 sub]
+                      [row 1 sub col]       [row col 2 sub]       [row col 1 sub]       [row col] ]
+                    {{} forall module} forall
+                } if
+            } if
+            /row row 2 add def
+            /col col 2 sub def
+            row mrows lt col 0 ge and not {exit} if
+        } loop
+        /row row 3 add def
+        /col col 1 add def
+
+        row mrows lt col mcols lt or not {exit} if
+    } loop
+
+    % Set checker pattern if required
+    mmat mrows mcols mul 1 sub get -1 eq {
+        mmat mrows mcols 1 sub mul 2 sub [-1 -2] putinterval
+        mmat mrows mcols mul 2 sub [-2 -1] putinterval
+    } if
+
+    % Invert the map to form the mapping matrix correcting the checker case
+    /modmap mrows mcols mul 8 idiv 8 mul array def
+    0 1 mmat length 1 sub {
+        /i exch def
+        mmat i get 0 ge {
+            modmap mmat i get i put
+        } {
+            mmat i mmat i get 2 add put
+        } ifelse
+    } for
+
+    % Place the codewords in the matrix according to the mapping matrix
+    0 1 cws length 1 sub {
+        /i exch def
+        [ 8 {0} repeat cws i get 2 8 string cvrs {48 sub} forall ]
+        dup length 8 sub 8 getinterval /bits exch def
+        0 1 7 {
+            /j exch def
+            mmat modmap i 8 mul j add get bits j get put
+        } for
+    } for
+
+    % Place the modules onto a pixel map between alignment patterns
+    /pixs rows cols mul array def
+    /cwpos 0 def
+    0 1 rows 1 sub {
+        /i exch def
+        i rrows 2 add mod 0 eq { pixs i cols mul [ cols 2 idiv {1 0} repeat ] putinterval } if  
+        i rrows 2 add mod rrows 1 add eq { pixs i cols mul [ cols {1} repeat ] putinterval } if 
+        i rrows 2 add mod 0 ne i rrows 2 add mod rrows 1 add ne and {
+            0 1 cols 1 sub {
+                /j exch def
+                j rcols 2 add mod 0 eq { pixs i cols mul j add 1 put } if
+                j rcols 2 add mod rcols 1 add eq { pixs i cols mul j add i 2 mod put } if
+                j rcols 2 add mod 0 ne j rcols 2 add mod rcols 1 add ne and {
+                    pixs i cols mul j add mmat cwpos get put
+                    /cwpos cwpos 1 add def
+                } if
+            } for
+        } if 
+    } for
+
+    /retval 7 dict def
+    retval (ren) (renmatrix) put
+    retval (pixs) pixs put
+    retval (pixx) cols put
+    retval (pixy) rows put
+    retval (height) rows 72 div 1.5 mul put
+    retval (width) cols 72 div 1.5 mul put
+    retval (opt) useropts put
+    retval
+
+    end
+
+} bind def
+/datamatrix load 0 1 dict put
+
+/renmatrix {
+
+    0 begin
+
+    /args exch def
+
+    % Default options
+    /width 1 def
+    /height 1 def
+    /color (unset) def
+    /backgroundcolor (unset) def
+
+    % Apply the renderer options
+    args {exch cvlit exch def} forall
+
+    % Parse the user options
+    opt {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+ 
+    /width width cvr def
+    /height height cvr def
+    /color color cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+
+    % Extend bitmap horizontally to an 8-bit boundary
+    /pixx8 pixx 8 div ceiling cvi 8 mul def
+    /pixs8 [ pixx8 pixy mul {0} repeat ] def
+    0 1 pixy 1 sub {
+        /i exch def
+        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
+    } for
+    /pixs pixs8 def
+
+    % Convert bitmap into 8-bit sample string
+    /imgstr pixs length 8 idiv string def
+    0 1 pixs length 1 sub {
+        /i exch def
+        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
+    } for
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Draw the image
+    gsave
+    currentpoint translate
+    72 width mul 72 height mul scale
+    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
+    color (unset) ne { color setanycolor } if
+    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
+    grestore
+
+    end
+
+} bind def
+/renmatrix load 0 1 dict put
+
+/barcode {
+    0 begin
+    dup (ren) get cvx exec 
+    end
+} bind def
+/barcode load 0 1 dict put
+
+RJ_ColorDict begin
+% set color
+[1 4]C
+1.5 0 moveto (^142^164^186) (rows=24 columns=24) datamatrix barcode
+/Helvetica findfont 8 scalefont setfont
+40 20 moveto (123456) show
+40 10 moveto (Data Matrix) show
+%%Trailer
+end %RJ_ColorDict

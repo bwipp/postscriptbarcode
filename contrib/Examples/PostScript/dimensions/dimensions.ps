@@ -1,0 +1,65 @@
+%!PS
+
+% Code contributed by Tim Brunson, 2008-03-15.
+
+% It allows you to get the dimensions of the barcode produced,
+% similar to the stringwidth operator. It uses the dontdraw option to
+% return the rendering dictionary, totals up the bar widths and heights,
+% and returns the values (in points) on the stack. This can be used in
+% calculating a location for the barcode when it needs to be centered or
+% right justified.
+
+/barcodewidth {
+    exch dup length 9 add string dup 3 -1 roll 0 exch putinterval
+    dup dup length 9 sub ( dontdraw) putinterval exch
+    exec
+    /renlinear /uk.co.terryburton.bwipp resourcestatus {
+        pop pop
+        dup /ren get /renlinear /uk.co.terryburton.bwipp findresource eq {
+            dup begin
+            sbs aload length 1 sub { add } repeat
+            0 0 1 bhs length 1 sub {
+                dup bhs exch get exch bbs exch get add 2 copy gt {
+                    pop
+                } {
+                    exch pop
+                } ifelse
+            } for
+            72 mul
+            currentdict /txt known {
+                txt length 0 gt {
+                    txt 0 get 2 get dup 0 lt {
+                        abs
+                    } {
+                        pop 0
+                    } ifelse
+                    add
+                } if
+            } if
+            end
+            3 -1 roll
+        } if
+    } if
+    /renmatrix /uk.co.terryburton.bwipp resourcestatus {
+        pop pop
+        dup /ren get /renmatrix /uk.co.terryburton.bwipp findresource eq {
+            dup begin
+            width 72 mul height 72 mul
+            end
+            3 -1 roll
+        } if
+    } if
+    /renmaximatrix /uk.co.terryburton.bwipp resourcestatus {
+        pop pop
+        dup /ren get /renmaximatrix /uk.co.terryburton.bwipp findresource eq {
+            % Undefined
+            -1 -1
+            3 -1 roll
+        } if
+    } if
+    pop
+} bind def
+
+% Example:
+% (123456789012345ABC) (includetext) /code39 /uk.co.terryburton.bwipp findresource barcodewidth
+

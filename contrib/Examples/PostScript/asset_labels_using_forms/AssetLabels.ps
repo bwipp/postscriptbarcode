@@ -1,0 +1,614 @@
+%!PS-Adobe-2.0
+%%Title: This script prints consecutive pages of auto-incrementing asset labels
+%%Creator: Adrian Head - adrianhead1977 [at] { gogglemail.com, yahoo.co.uk}
+
+% This script prints consecutive pages of auto-incrementing asset labels
+% Features of this script are:
+%    * Completely self contained script - nothing else needed
+%    * Prints aset label including text, logo and barcode
+%    * Can toggle label outline (may be used for proofing/debugging)
+%    * Prints Labels in 4x10 grid suitable for Avery sheets listed below
+%    * Prints multi-pages at once and includes page numbering
+%    * Asset numbers are auto-incrementing - across pages
+%    * Barcode is made up of 4 char prefix + 10 digit auto-inc number
+%    * The barcode is Code 128 B allowing alpha-numeric values or hybrid
+%    * Can toggle hybrid Code 128 B & C to improve barcode resiliency & scan dist
+%    * When barcode num part is Code 128 B can print assetnum as dec or hex
+%    * Script version stamped on labels and page for version control
+
+% Howto Use:
+% Modify assetnum and numpage below to suit requirments.
+% Note: make sure the assetnum is one greater than last label number from
+%  previous printjob or doesn't overlap with previous numbers! 
+% Then pipe the modified script to the printer:
+%  On  Unix-like  system you can use 
+%   lpr -S computer_name -P queuename AssetLabelPageScript.ps
+%  On  Windows  can send the file to a printer as: 
+%   copy /b AssetLabelPageScript.ps lpr1
+
+% Currently this script is written to support the following labels only:
+%   Avery     L7654     White Mini Labels     40/sheet     45.7x21.2mm
+%   Avery     L6140     Triple Bond           40/sheet     45.7x21.2mm
+%   Avery     L6145     No Peel-Tamper Proof  40/sheet     45.7x21.2mm
+% If label size needs to change - then exchange LabelOutlineForm to suit as 
+% well as look for "Specific to label size/type" comments and change the 
+% preceding command values.  Trial and error will be required.
+
+% Barcode types supported:
+% Code 128 B - encodes alpha-numeric values; therefore, supports dec & hex
+% Code 128 C - only encodes numeric values; therefore, supports only dec
+%    assetnum supports 10 digits - should be enough for most things
+%    Dec max num = 9,999,999,999; Hex max num = 1,099,511,627,775
+% Code 128 C - encodes numeric digits in less symbols; when barcode is fit
+%   to the same size as Code 128 B - bar widths are wider improving scan
+%   distance and barcode resiliency to damage, age and wear-n-tear.
+
+% This asset label script: AssetLabelPageScript.ps:
+%
+% Copyright (C) 2008  Adrian Head
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+% This asset label script includes:
+% Barcode Writer in Pure PostScript - Version 2008-03-08
+% http://www.terryburton.co.uk/barcodewriter/
+%
+% Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+%%Pages:
+%%DocumentPaperSizes: a4
+%%BoundingBox: 0 0 595 842
+%%HiResBoundingBox: 0 0 595.276 841.89
+%%LanguageLevel: 2
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%BeginSetup
+%%EndSetup
+
+% ===== To edit initial asset num, total pages or label text edit here =====
+
+/assetnum 0000000101 def	% starting asset num - for initial label
+/numpage 5 def			% total consecutive pages to print
+/numprefix (abcd) def		% barcode value prefix printed before assetnum
+/scriptver (0.3e) def		% label and/or script ver printed on label
+/labeloutline true def		% true for proof; change to false to print
+/hybridcode true def		% true for Code 128 B & C; false for B only
+
+/LabelTextForm
+<< /FormType 1
+   /BBox [0 0 612 792]			% No idea - seems to work
+   /Matrix [1 0 0 1 0 0]
+   /PaintProc
+     { pop
+       % Draw Text on Label
+       gsave
+       /Helvetica findfont 15 scalefont setfont
+       78.5 771 moveto (Asset Label) show	% Specific to label size
+       /Helvetica findfont 9.6 scalefont setfont
+       79 759.5 moveto (Company. Co. Ltd.) show %Specific to label size
+       /Helvetica findfont 4.5 scalefont setfont
+       152.5 719.5 moveto scriptver show	% Specific to label size
+       grestore
+     } bind
+>> def
+
+% ======= No need to edit below this line (except if page changes) =========
+
+% ================= Code 128 Barcode Generation Code Begin =================
+% Routines from http://postscriptbarcode.googlecode.com/svn/trunk/barcode.ps
+
+% --BEGIN ENCODER code128--
+% --DESC: Code 128
+% --EXAM: ^104^102Count^0990123456789^101!
+% --EXOP: includetext
+% --RNDR: renlinear
+/code128 {
+
+    0 begin                  % Confine variables to local scope
+
+    /options exch def        % We are given an option string
+    /useropts options def
+    /barcode exch def        % We are given a barcode string
+
+    /includetext false def    % Enable/disable text
+    /textfont /Courier def
+    /textsize 10 def
+    /textyoffset -7 def
+    /height 1 def
+    
+    % Parse the input options
+    options {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+    
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textyoffset textyoffset cvr def
+    /height height cvr def
+    
+    % Create an array containing the character mappings
+    /encs
+    [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
+      (122312) (132212) (221213) (221312) (231212) (112232) (122132)
+      (122231) (113222) (123122) (123221) (223211) (221132) (221231)
+      (213212) (223112) (312131) (311222) (321122) (321221) (312212)
+      (322112) (322211) (212123) (212321) (232121) (111323) (131123)
+      (131321) (112313) (132113) (132311) (211313) (231113) (231311)
+      (112133) (112331) (132131) (113123) (113321) (133121) (313121)
+      (211331) (231131) (213113) (213311) (213131) (311123) (311321)
+      (331121) (312113) (312311) (332111) (314111) (221411) (431111)
+      (111224) (111422) (121124) (121421) (141122) (141221) (112214)
+      (112412) (122114) (122411) (142112) (142211) (241211) (221114)
+      (413111) (241112) (134111) (111242) (121142) (121241) (114212)
+      (124112) (124211) (411212) (421112) (421211) (212141) (214121)
+      (412121) (111143) (111341) (131141) (114113) (114311) (411113)
+      (411311) (113141) (114131) (311141) (411131) (211412) (211214)
+      (211232) (2331112)
+    ] def
+
+    % Create a string of the available characters for alphabets A and B
+    /barchars ( !"#$%&'\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~) def
+    /barlen barcode length def    % Length of the code
+    /sbs barlen 6 mul string def  % sbs is 6 times length of barcode
+    /txt barlen array def
+
+    /mode -1 def         % A=0, B=1, C=2
+    /checksum barcode 1 3 getinterval cvi def  % Initialise the checksum
+
+    /i 0 def /j 0 def
+    { % loop
+        i barlen eq {exit} if
+        barcode i 1 getinterval (^) eq {
+            % indx is given by the next three characters
+            /indx barcode i 1 add 3 getinterval cvi def
+            txt j [( ) j 11 mul textyoffset textfont textsize] put
+            /i i 4 add def
+        } {
+            % indx depends on the mode
+            mode 2 eq {
+                /indx barcode i 2 getinterval cvi def
+                txt j [barcode i 2 getinterval j 11 mul textyoffset textfont textsize] put
+                /i i 2 add def
+            } {
+                barchars barcode i 1 getinterval search
+                pop                    % Discard true leaving pre
+                length /indx exch def  % indx is the length of pre
+                pop pop                % Discard seek and post
+                txt j [barchars indx 1 getinterval j 11 mul textyoffset textfont textsize] put
+                /i i 1 add def
+            } ifelse
+        } ifelse
+        /enc encs indx get def         % Get the indxth encoding
+        sbs j 6 mul enc putinterval    % Put encoded digit into sbs
+
+        % Update the mode
+        indx 101 eq indx 103 eq or {/mode 0 def} if
+        indx 100 eq indx 104 eq or {/mode 1 def} if
+        indx 99 eq indx 105 eq or {/mode 2 def} if
+
+        /checksum indx j mul checksum add def  % checksum+=indx*j
+        /j j 1 add def
+    } loop
+
+    % Put the checksum character
+    /checksum checksum 103 mod def
+    sbs j 6 mul encs checksum get putinterval
+
+    % Put the end character
+    sbs j 6 mul 6 add encs 106 get putinterval
+
+    % Shrink sbs and txt to fit exactly
+    /sbs sbs 0 j 6 mul 13 add getinterval def
+    /txt txt 0 j getinterval def
+
+    % Return the arguments
+    /retval 8 dict def
+    retval (ren) (renlinear) put
+    retval (sbs) [sbs {48 sub} forall] put
+    retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
+    retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
+    includetext {
+        retval (txt) txt put
+    } if
+    retval (opt) useropts put
+    retval
+
+    end
+
+} bind def
+/code128 load 0 1 dict put
+% --END ENCODER code128--
+
+% --BEGIN RENDERER renlinear--
+/renlinear {
+
+    0 begin          % Confine variables to local scope
+
+    /args exch def   % We are given some arguments
+
+    % Default options
+    /sbs [] def
+    /bhs [] def
+    /bbs [] def
+    /txt [] def
+    /barcolor (unset) def
+    /includetext false def
+    /textcolor (unset) def
+    /textxalign (unset) def
+    /textyalign (unset) def
+    /textfont (Courier) def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset 0 def
+    /bordercolor (unset) def
+    /backgroundcolor (unset) def
+    /inkspread 0.15 def
+    /width 0 def
+    /barratio 1 def
+    /spaceratio 1 def
+    /showborder false def
+    /borderleft 10 def
+    /borderright 10 def
+    /bordertop 1 def
+    /borderbottom 1 def
+    /borderwidth 0.5 def
+    /guardwhitespace false def
+    /guardleftpos 0 def
+    /guardleftypos 0 def
+    /guardrightpos 0 def
+    /guardrightypos 0 def
+    /guardwidth 6 def
+    /guardheight 7 def
+    
+    % Apply the renderer options
+    args {exch cvlit exch def} forall
+ 
+    % Parse the user options   
+    opt {
+        token false eq {exit} if dup length string cvs (=) search
+        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+    } loop
+
+    /barcolor barcolor cvlit def
+    /textcolor textcolor cvlit def
+    /textxalign textxalign cvlit def
+    /textyalign textyalign cvlit def
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /bordercolor bordercolor cvlit def
+    /backgroundcolor backgroundcolor cvlit def
+    /inkspread inkspread cvr def
+    /width width cvr def
+    /barratio barratio cvr def
+    /spaceratio spaceratio cvr def
+    /borderleft borderleft cvr def
+    /borderright borderright cvr def
+    /bordertop bordertop cvr def
+    /borderbottom borderbottom cvr def
+    /borderwidth borderwidth cvr def
+    /guardleftpos guardleftpos cvr def
+    /guardleftypos guardleftypos cvr def
+    /guardrightpos guardrightpos cvr def
+    /guardrightypos guardrightypos cvr def
+    /guardwidth guardwidth cvr def
+    /guardheight guardheight cvr def
+    
+    % Create bar elements and put them into the bars array
+    /bars sbs length 1 add 2 idiv array def
+    /x 0.00 def /maxh 0 def
+    0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
+        /i exch def
+        i 2 mod 0 eq {           % i is even
+            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1 
+            /h bhs i 2 idiv get 72 mul def  % Height from bhs
+            /c d 2 div x add def            % Centre of the bar = x + d/2
+            /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
+            /w d inkspread sub def          % bar width = digit - inkspread
+            bars i 2 idiv [h c y w] put     % Add the bar entry
+            h maxh gt {/maxh h def} if
+        } {
+            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
+        } ifelse
+        /x x d add def  % x+=d
+    } for
+
+    gsave
+
+    currentpoint translate
+
+    % Force symbol to given width
+    width 0 ne {
+        width 72 mul x div 1 scale
+    } if
+
+    % Set RGB or CMYK color depending on length of given hex string
+    /setanycolor {
+        /anycolor exch def
+        anycolor length 6 eq {
+            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        } if
+        anycolor length 8 eq {
+            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
+        } if
+    } bind def
+
+    % Display the border and background
+    newpath
+    borderleft neg borderbottom neg moveto
+    x borderleft add borderright add 0 rlineto
+    0 maxh borderbottom add bordertop add rlineto
+    x borderleft add borderright add neg 0 rlineto
+    0 maxh borderbottom add bordertop add neg rlineto    
+    closepath
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
+    showborder {
+        gsave
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth setlinewidth stroke
+        grestore
+    } if    
+   
+    % Display the bars for elements in the bars array
+    gsave
+    barcolor (unset) ne { barcolor setanycolor } if
+    bars {
+        {} forall
+        newpath setlinewidth moveto 0 exch rlineto stroke
+    } forall
+    grestore
+    
+    % Display the text for elements in the text array
+    textcolor (unset) ne { textcolor setanycolor } if
+    includetext {
+    textxalign (unset) eq textyalign (unset) eq and {
+        /s 0 def /f () def
+        txt {
+            {} forall
+            2 copy s ne exch f ne or {
+                2 copy /s exch def /f exch def            
+                exch findfont exch scalefont setfont          
+            } {
+                pop pop
+            } ifelse
+            moveto show
+        } forall
+    } {
+        textfont findfont textsize scalefont setfont
+        /txt [ txt { 0 get {} forall } forall ] def
+        /tstr txt length string def
+        0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
+        /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
+        textxalign (left) eq { /textxpos textxoffset def } if
+        textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
+        textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
+        textxalign (offright) eq { /textxpos x textxoffset add def } if
+        /textypos textyoffset textsize add 3 sub neg def
+        textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
+        textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
+        textxpos textypos moveto tstr show
+    } ifelse
+    } if    
+
+    % Display the guard elements
+    guardwhitespace {
+        0.75 setlinewidth
+        guardleftpos 0 ne {
+            newpath
+            guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
+            guardwidth neg guardheight -2 div rlineto
+            guardwidth guardheight -2 div rlineto
+            stroke            
+        } if
+        guardrightpos 0 ne {
+            newpath
+            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
+            guardwidth guardheight -2 div rlineto
+            guardwidth neg guardheight -2 div rlineto
+            stroke            
+        } if
+    } if
+    
+    grestore
+    
+    end
+
+} bind def
+/renlinear load 0 1 dict put
+% --END RENDERER renlinear--
+
+% --BEGIN DISPATCHER--
+/barcode {
+    0 begin
+    dup (ren) get cvx exec 
+    end
+} bind def
+/barcode load 0 1 dict put
+% --END DISPATCHER--
+
+% ================== Code 128 Barcode Generation Code End ==================
+
+/LabelOutlineForm
+<< /FormType 1
+   /BBox [0 0 612 792]			% No idea - seems to work
+   /Matrix [1 0 0 1 0 0]
+   /PaintProc
+     { pop
+       % Draw label outline for proofing and debugging - toggled by labeloutline
+       % Drawn in Scribus -> export EPS -> manual edit
+       % Label specific to label size and type: Avery L7654, L6140, L6145
+       gsave
+       0.1 setlinewidth
+       0 setlinecap
+       0 setlinejoin
+       [] 0 setdash
+       40 788.673 translate		% Specific to label size
+       5.66929 0 moveto
+       5.66929 0 122.331 0 122.331 0 curveto
+       125.462 0 128 -3.13106 128 -5.66929 curveto
+       128 -5.66929 128 -65.8307 128 -65.8307 curveto
+       128 -68.9618 125.462 -71.5 122.331 -71.5 curveto
+       122.331 -71.5 5.66929 -71.5 5.66929 -71.5 curveto
+       3.13106 -71.5 0 -68.9618 0 -65.8307 curveto
+       0 -65.8307 0 -5.66929 0 -5.66929 curveto
+       0 -3.13106 3.13106 0 5.66929 0 curveto
+       closepath
+       stroke
+       grestore
+     } bind
+>> def
+
+/LabelLogoForm
+<< /FormType 1
+   /BBox [0 0 612 792]			% No idea - seems to work
+   /Matrix [1 0 0 1 0 0]
+   /PaintProc
+     { pop
+       % Draw the Logo - might be very messy but it works 
+       % Possible conversion path : PDF -> PS -> EPSI -> EPS -> manual edit
+       gsave
+       1 setlinewidth
+       0 setlinecap
+       0 setlinejoin
+       [2] 0 setdash
+       50 782 translate
+       0.85 0.85 scale
+       26.5 -14 moveto
+       26.5 -21.7323 20.568 -28 13.25 -28 curveto
+       5.93223 -28 0 -21.7323 0 -14 curveto
+       0 -6.26801 5.93223 0 13.25 0 curveto
+       20.568 0 26.5 -6.26801 26.5 -14 curveto
+       closepath fill
+       grestore
+     } bind
+>> def
+% Routine from http://www.tinaja.com/glib/strconv.pdf
+% Concatinate two strings:  (xx) (yy) mergestr -> (xxyy)
+/mergestr {
+   2 copy length exch length add string dup dup
+   4 3 roll 4 index length exch putinterval 3 1 roll exch
+   0 exch putinterval
+   } 
+def
+
+% Routine from http://groups.google.com/group/postscriptbarcode/
+% Convert num to str and pad leading zeros: num num2padstr -> (0000num)
+% Note: must change (00..00) & 10 for different str length
+/num2padstr {
+   /numbase 10 def			% numbase:  10 for dec; 16 for hex
+   (0000000000) 10 string copy dup 
+   3 2 roll numbase 10 string cvrs dup length 
+   10 exch sub exch putinterval
+   }
+def
+
+/LabelPageForm
+<< /FormType 1
+   /BBox [0 0 612 792]			% No idea - seems to work
+   /Matrix [1 0 0 1 0 0]
+   /PaintProc
+     { pop
+       % Draw the matrix of labels on the canvas - auto-incrementing assetnum
+        gsave
+
+        10 {			% 10 rows - Specific to label size/type
+           4 {			% 4 columns - Specific to lavel size/type
+              1 1 scale
+              labeloutline { LabelOutlineForm execform } if  % Print outline if true
+              LabelTextForm execform	% Print Label Text
+              LabelLogoForm execform	% Print Label Logo
+
+              gsave
+              47 732 translate		% Position barcode - Specific to label size
+              hybridcode {
+
+                 0.785 0.785 scale	% Scale barcode - Specific to label size
+                 % Convert assetnum into string - pad zeros and concatinate with prefix
+                 % ^104 required to set Code 128 B; ^099 to set Code 128 C
+                 /barcodetxt (^104) numprefix (^099) assetnum num2padstr mergestr mergestr mergestr def
+                 0 0 moveto barcodetxt (includetext height=0.382  textsize=12.2
+                                     textxalign=center textfont=Helvetica 
+                                     textxoffset=-2.5 textyoffset=2.28) code128 barcode
+              }{
+                 0.6 0.6 scale		% Scale barcode - Specific to label size
+                 % Convert assetnum into string - pad zeros and concatinate with prefix
+                 /barcodetxt (^104) numprefix assetnum num2padstr mergestr mergestr def
+                 0 0 moveto barcodetxt (includetext height=0.5  textsize=16
+                                     textxalign=center textfont=Helvetica 
+                                     textxoffset=-1 textyoffset=2) code128 barcode
+                 % Barcode text positioning parameters - Specific to label size
+                 % textxalign={left,right,center,offleft,offright} 
+                 % textyalign={above,below,center}
+                 % textxoffset - horiz offset of text from default position, in points.
+                 % textyoffset - vert offset of text from default position, in points.
+              } ifelse
+              grestore
+
+              /assetnum assetnum 1 add def
+              129 0 translate		% Move to next label - Specific to label size
+           } repeat
+           -516 -72.5 translate		% Move to next row - Specific to label size
+        } repeat
+
+        grestore
+     } bind
+>> def
+
+% main()
+save
+/page 1 def
+numpage {				% Iterate through pages
+   LabelPageForm execform
+   % Print script name and verison at the bottom of the canvas - Specific to page size
+   /Helvetica findfont 10 scalefont setfont
+   40 20 moveto (Printed by AssetLabelPageScript.ps : version ) scriptver mergestr show
+   % Print "page x of y" at the bottom of the canvas - Specific to page size
+   /Helvetica findfont 10 scalefont setfont
+   490 20 moveto (Page ) page 3 string cvs ( of ) numpage 3 string cvs mergestr mergestr mergestr show
+
+   showpage
+   /page page 1 add def
+} repeat
+restore
+
+%%PageTrailer
+%%Trailer
+%%EOF

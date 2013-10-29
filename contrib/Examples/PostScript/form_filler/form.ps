@@ -1,0 +1,67 @@
+% this code could be appended to the barcode.ps
+
+/line 		512 string def % for input line buffering
+
+/getfield { % cut the line with separator
+  /separator exch def
+  /original  exch def
+  original separator search
+  { exch pop }
+  { () original } ifelse %  give back the field before separator and the part after it
+} bind def
+
+  
+/printform { % printing  page with the sent variables
+  /qty exch def
+  /stockcode exch def
+  /palette exch def
+
+  % you can customize this as you need
+  20 350 500 350 rectstroke
+
+  /Helvetica findfont 10 scalefont setfont
+  
+  gsave
+  50 550 translate
+  palette code39 barcode
+  grestore
+
+  gsave
+  50 540 moveto (Palette:   ) show palette show
+  50 520 moveto (StockCode: ) show stockcode show
+  50 500 moveto (Qty:       ) show qty show
+  grestore
+	  
+  showpage
+} bind def
+
+
+/parseline { % bind string in line to variables
+  %palette;stockcode;qty
+
+  line 
+    (;) getfield /palette exch def
+    (;) getfield /stockcode exch def
+    (;) getfield /qty exch def
+  pop % remove the tempstring
+
+  palette stockcode qty printform % print the form with values from line
+} bind def
+
+
+% read the lines
+/parsefile {
+  line readline  % read a line from the file
+  {   % 'while' procedure body
+    parseline % parse the line 
+    currentfile cvlit % use as operand
+    line readline % and read the next line
+    not {exit} if % exit if no more input to be had
+  } loop   % end of while-proc
+} bind def   % /printfile
+
+currentfile cvlit % uses rest of this file as input
+
+% everything following 'parseFile' is treated as data, through EOF
+%palette;stockcode;qty
+parsefile
