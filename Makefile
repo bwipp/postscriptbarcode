@@ -207,7 +207,7 @@ define TARBALL
 endef
 
 define ZIPFILE
-  $(RM) $@; FILE=`readlink -f $@` && cd $(1) && zip -q -X -r $$FILE .
+  $(RM) $@; FILE=`readlink -f $@` && cd $(1) && zip -q -X -x '*.dirstamp' -r $$FILE .
 endef
 
 $(RELEASE_RESOURCE_TARBALL): $(TARGETS_RES) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
