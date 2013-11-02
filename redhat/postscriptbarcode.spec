@@ -3,7 +3,7 @@
 
 Name:           postscriptbarcode
 Version:        20131006
-Release:        1%{?dist}
+Release:        3%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 
 License:        MIT
@@ -34,11 +34,15 @@ cp -p build/monolithic/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 
 %files
 %doc CHANGES  LICENSE  README TODO docs/*
+%dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
 %changelog
-* Fri Nov 01 2013 Terry Burton <tez@terryburton.co.uk> - 20131006-2
+* Fri Nov 01 2013 Terry Burton <tez@terryburton.co.uk> - 20131006-3
 - Permanent download link from GitHub
+
+* Thu Oct 31 2013 Mario Blättermann <mariobl@fedoraproject.org> - 20131006-2
+- Add folder ownership for %%{_datadir}/%%{name}/
 
 * Wed Oct 23 2013 Mario Blättermann <mariobl@fedoraproject.org> - 20131006-1
 - New upstream version
