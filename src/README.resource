@@ -1,10 +1,16 @@
-The contents of the Resource directory provides Barcode Writer in Pure
-PostScript as generic PostScript Level 2 named resources.
+Barcode Writer in Pure PostScript
 
-This standard delivery mechanism allows BWIPP resources to be inlined in
-the prolog of any generated file, or pre-downloaded to a printer's memory or
-permanent storage, or supplied by a document manager, all without any change
-in the code an application generates to use the resources.
+http://www.terryburton.co.uk/barcodewriter/
+
+
+The contents of the Resource directory provides Barcode Writer in Pure
+PostScript as generic PostScript Level 2 named resources split into seperate
+files structured for ease of deployment.
+
+This standard delivery mechanism allows BWIPP resources to be added to a
+PostScript virtual machine's resource search path, or pre-downloaded to a
+printer's memory or permanent storage, or supplied by a document manager, all
+without any change in the code an application generates to use the resources.
 
 An application will generate code like the following. In the file's Setup
 or PageSetup section:
@@ -20,7 +26,7 @@ a conflict, then the setup could be:
 
 /foo /qrcode /uk.co.terryburton.bwipp findresource def
 
-followed by
+followed by:
 
 0 0 moveto (BWIPP1) (eclevel=M) foo
 0 0 moveto (BWIPP2) (eclevel=M) foo
@@ -33,12 +39,12 @@ Or, to generate a few barcodes with no setup section or local name at all:
 
 0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec
 
+This technique also reduces the possibility of namespace collision when using
+the library's procedures with other code.
+
 If the definitions for the routines that generate and render the barcode are
 not already resident in memory then they will be fetched from a standard
 resource location in a way that is transparent to the user.
-
-This technique also reduces the possibility of namespace collision when using
-the library's procedures with other code.
 
 
 GhostScript
@@ -84,3 +90,4 @@ accoss power cycles.
 PostScript Document Manager
 
 Any information about common document managers is welcome.
+
