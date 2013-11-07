@@ -12,8 +12,11 @@ PostScript virtual machine's resource search path, or pre-downloaded to a
 printer's memory or permanent storage, or supplied by a document manager, all
 without any change in the code an application generates to use the resources.
 
-An application will generate code like the following. In the file's Setup
-or PageSetup section:
+An application or administrator must first make the BWIPP resources available
+to the print system as described for a variety of situations below. An
+application will then generate code like the following.
+
+In the file's Setup or PageSetup section:
 
 /qrcode dup /uk.co.terryburton.bwipp findresource def
 
@@ -53,7 +56,7 @@ Unpack the contents of the Resource directory to somewhere accessible to the
 application.
 
 Specify the location of the Resource files using the -sGenericResourceDir
-parameter. Since this defaults to ./Resource (or equivalent) you can omit this
+parameter. Where this defaults to ./Resource (or equivalent) you can omit this
 parameter when running GhostScript from the location of the Resource files.
 
 
@@ -73,18 +76,6 @@ once and remain available across power cycles. Resources can be downloaded with
 a vendor-specific tool, or by sending them to the printer with a snippet of
 PostScript at the top that queries the printer for the correct file name and
 creates the file.
-
-
-Printer Initial Job VM
-
-Concatenate the resource files starting with Category/uk.co.terryburton.bwipp
-followed by the remaining uk.co.terryburton.bwipp/* files in order of their
-occurrence in barcode.ps. Send this to the printer with the line "true ()
-startjob" added at the top where the parentheses contain the printer's startjob
-password.
-
-The named resources will remain available between jobs but will not persist
-accoss power cycles.
 
 
 PostScript Document Manager

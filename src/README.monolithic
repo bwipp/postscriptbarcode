@@ -5,11 +5,16 @@ http://www.terryburton.co.uk/barcodewriter/
 
 The monolithic barcode.ps file provides Barcode Writer in Pure PostScript as
 generic PostScript Level 2 named resources shipped in a single file for ease of
-inclusion within the Prolog of a PostScript document template.
+inclusion within the Prolog section of a PostScript document template or for
+installing into a printer's initial job VM.
 
-An application will include the contents of barcode.ps in the Prolog of a
-PostScript file and then generate code like the following. In the file's Setup
-or PageSetup section:
+
+Inclusion Within the Prolog Section of a Document
+
+An application will first include the contents of barcode.ps in the Prolog
+section of a PostScript file and then generate code like the following.
+
+In the file's Setup or PageSetup section:
 
 /qrcode dup /uk.co.terryburton.bwipp findresource def
 
@@ -37,4 +42,13 @@ Or, to generate a few barcodes with no setup section or local name at all:
 
 This technique also reduces the possibility of namespace collision when using
 the library's procedures with other code.
+
+
+Installing to a Printer Initial Job VM 
+ 
+Send barcode.ps to the printer with the line "true () startjob" added at the
+top where the parentheses contain the printer's startjob password. 
+ 
+The named resources will remain available between jobs but will not persist 
+accoss power cycles.
 
