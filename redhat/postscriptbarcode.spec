@@ -33,7 +33,7 @@ make
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
-cp -p build/monolithic/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
+cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 
 %files
 %defattr(-,root,root)
@@ -42,7 +42,7 @@ cp -p build/monolithic/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 %{_datadir}/%{name}/barcode.ps
 
 %changelog
-* Fri Nov 01 2013 Terry Burton <tez@terryburton.co.uk> - 20131102-1
+* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20131102-1
 - Permanent download link from GitHub
 - Compatibility changes for old EPEL and SuSE
 
