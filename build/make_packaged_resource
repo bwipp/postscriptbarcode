@@ -53,7 +53,7 @@ if ($resource eq 'preamble') {
 
 my $vmusage='0 0';  # TODO measure VM impact
 my $qualifier='0.0 0';
-print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' build/make_packaged_resource.ps`;
+print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' -c '/Helvetica 18 selectfont' -- build/make_packaged_resource.ps`;
 
 die 'GS error' if $?;
 unlink("$outfile.tmp");     
