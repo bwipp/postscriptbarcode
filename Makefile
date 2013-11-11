@@ -91,12 +91,15 @@ cleanlist += $(RELEASEFILES) $(RELEASEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
-.PHONY : all clean resource packaged_resource monolithic monolithic_package release
+.PHONY : all clean test resource packaged_resource monolithic monolithic_package release
 
 all: resource packaged_resource monolithic monolithic_package
 
 clean:
 	$(RM) $(cleanlist)
+
+test:
+	tests/run_tests
 
 $(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
 	$(DSTDIR)/make_deps $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@

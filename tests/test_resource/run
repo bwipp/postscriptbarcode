@@ -1,0 +1,16 @@
+#!/bin/bash
+
+TEST=$(dirname $0)
+
+echo -n "Running $TEST: "
+
+cd build/resource/Resource && gs -dNOPAUSE -dSAFER -dQUIET -dBATCH -sDEVICE=nullpage -I . ../sample.ps
+
+if [ $? -eq 0 ]; then
+  echo "PASS"
+  exit 0
+else
+  echo "FAIL"
+  exit 1
+fi
+
