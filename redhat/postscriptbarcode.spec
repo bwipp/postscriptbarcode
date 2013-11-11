@@ -30,6 +30,7 @@ the barcode generation process whenever your language needs change.
 
 %build
 make
+make test
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
