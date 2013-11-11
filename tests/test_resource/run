@@ -4,6 +4,11 @@ TEST=$(dirname $0)
 
 echo -n "Running $TEST: "
 
+if gs --version | grep -q '^7\.'; then
+  echo "SKIPPED GS too old"
+  exit 0
+fi
+
 cd build/resource/Resource && gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=nullpage -P ../sample.ps
 
 if [ $? -eq 0 ]; then
