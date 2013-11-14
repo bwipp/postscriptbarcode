@@ -83,8 +83,8 @@ PostScript Document Manager
 Unpack the contents of the Resource directory to somewhere accessible to your
 document manager software then include the %%DocumentNeededResources and
 %%IncludeResource DSC comments at the appropriate locations within your
-PostScript output. The document manager software can be configured to insert
-the requested resources s necessary.
+PostScript output. The document manager software can be configured to
+transparently insert the requested resources as necessary.
 
 Any specific instuctions for common document manager software is welcome.
 
