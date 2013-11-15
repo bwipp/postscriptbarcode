@@ -86,5 +86,5 @@ document manager software then include the %%DocumentNeededResources and
 PostScript output. The document manager software can be configured to
 transparently insert the requested resources as necessary.
 
-Any specific instuctions for common document manager software is welcome.
+Any specific instuctions for common document manager software are welcome.
 
