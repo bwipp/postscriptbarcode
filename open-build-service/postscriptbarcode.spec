@@ -26,7 +26,7 @@ the barcode generation process whenever your language needs change.
 %setup -q -n %{name}-master
 
 %build
-fc-cache -v /usr/share/fonts/default/Type1
+fc-cache -f -v /usr/share/fonts/default/Type1
 make
 make test
 
