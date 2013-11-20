@@ -30,6 +30,7 @@ make
 make test
 
 %install
+fc-cache -v /usr/share/fonts/default/Type1
 mkdir -p %{buildroot}/%{_datadir}/%{name}
 cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 
