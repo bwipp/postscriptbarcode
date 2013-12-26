@@ -57,22 +57,6 @@ begin
     /barcolor barcolor cvlit def
     /backgroundcolor backgroundcolor cvlit def
 
-    % Extend bitmap horizontally to an 8-bit boundary
-    /pixx8 pixx 8 div ceiling cvi 8 mul def
-    /pixs8 [ pixx8 pixy mul {0} repeat ] def
-    0 1 pixy 1 sub {
-        /i exch def
-        pixs8 pixx8 i mul pixs pixx i mul pixx getinterval putinterval
-    } for
-    /pixs pixs8 def
-
-    % Convert bitmap into 8-bit sample string
-    /imgstr pixs length 8 idiv string def
-    0 1 pixs length 1 sub {
-        /i exch def
-        imgstr i 8 idiv 2 copy get 2 7 i 8 mod sub exp cvi pixs i get mul add put
-    } for
-
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
         /anycolor exch def
@@ -87,20 +71,25 @@ begin
     % Draw the image
     gsave
     currentpoint translate
-    72 width mul 72 height mul scale
-    .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
+    width pixx div 72 mul height pixy div 72 mul scale
+    0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
     barcolor (unset) ne { barcolor setanycolor } if
-    <<
-        /ImageType 1
-        /Width pixx
-        /Height pixy
-        /ImageMatrix [pixx 0 0 pixy neg 0 pixy]
-        /DataSource {imgstr}
-        /BitsPerComponent 1
-        /Decode [1 0]
-        /Interpolate false
-    >> imagemask
+    /i 0 def
+    pixs {
+        /x i pixx mod def
+        /y pixy 1 sub i pixx idiv sub def
+        1 eq {
+            newpath
+            x y moveto
+            1 0 rlineto
+            0 1 rlineto
+            -1 0 rlineto
+            0 -1 rlineto
+            closepath fill
+        } if
+        /i i 1 add def
+    } forall
     grestore
 
     end
