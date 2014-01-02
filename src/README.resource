@@ -59,6 +59,27 @@ Specify the location of the Resource files using the -sGenericResourceDir
 parameter. Where this defaults to ./Resource (or equivalent) you can omit this
 parameter when running GhostScript from the location of the Resource files.
 
+A note for Windows users: "The Windows pre-built Ghostscript binary uses a ROM
+file system. If you want to modify the Resources available, then you either
+need to compile the modified resources into the binary, or put all the required
+resources on disk and tell Ghostscript to use the disk-based resources. //
+Either way you will need to download the Ghostscript source (the Resources are
+not currently available separately). You can then either modify the Resources
+directory and rebuild the Windows binary using the modified resources, or you
+can modify the Resources directory and tell Ghostscript to use it by adding one
+of the relevant command line switches (-I, -sGenericResourceDir) or possibly by
+setting the GS_LIB environment variable."
+
+A note for Windows users: "The Windows pre-built Ghostscript binary uses a ROM
+file system. If you want to modify the Resources available, then … put all the
+required resources on disk and tell Ghostscript to use the disk-based
+resources. … You will need to download the Ghostscript source (the Resources
+are not currently available separately) … modify the Resources directory and
+tell Ghostscript to use it by adding one of the relevant command line switches
+(-I, -sGenericResourceDir) or possibly by setting the GS_LIB environment
+variable." Thanks to Ken Sharp,
+http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html
+
 
 Adobe Distiller
 
