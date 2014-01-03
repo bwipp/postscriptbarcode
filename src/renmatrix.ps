@@ -91,7 +91,16 @@ begin
     .0001 .0001 moveto .9999 .0001 lineto .9999 .9999 lineto .0001 .9999 lineto closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
     color (unset) ne { color setanycolor } if
-    pixx pixy true [ pixx 0 0 pixy neg 0 pixy ] {imgstr} imagemask
+    <<
+        /ImageType 1
+        /Width pixx
+        /Height pixy
+        /ImageMatrix [pixx 0 0 pixy neg 0 pixy]
+        /DataSource {imgstr}
+        /BitsPerComponent 1
+        /Decode [1 0]
+        /Interpolate false
+    >> imagemask
     grestore
 
     end
