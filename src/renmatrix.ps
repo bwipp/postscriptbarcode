@@ -75,21 +75,21 @@ begin
     0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
     barcolor (unset) ne { barcolor setanycolor } if
-    /i 0 def
-    pixs {
-        /x i pixx mod def
-        /y pixy 1 sub i pixx idiv sub def
-        1 eq {
-            newpath
-            x y moveto
-            1 0 rlineto
-            0 1 rlineto
-            -1 0 rlineto
-            0 -1 rlineto
-            closepath fill
+    /xyget {pixx mul add get} bind def
+    newpath
+    0 1 pixs length 1 sub {
+        dup pixx mod /x exch def
+        pixx idiv /y exch def
+        pixs x y xyget 1 eq {
+           x pixy y sub 1 sub moveto
+           0 1 rlineto
+           1 0 rlineto
+           0 -1 rlineto
+           -1 0 rlineto
+           closepath
         } if
-        /i i 1 add def
-    } forall
+    } for
+    fill
     grestore
 
     end
