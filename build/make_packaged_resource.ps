@@ -617,17 +617,6 @@ userdict begin
 /Category Category cvn def
 /Key Key cvn def
 
-%/RFile ($RCSfile: infile.ps,v $) RCSfile def
-%/RRevn ($Revision: 0.0 $) RCSrevision def
-%/Qualifier 0 RRevn Major+RCS def
-
-%/NeededResources {
-%  /Category                /uk.co.terryburton.bwipp (0.0 0)
-%  /uk.co.terryburton.bwipp /renmatrix               (0.0 0)
-%} def
-
-%/NeededResources (Category/uk.co.terryburton.bwipp uk.co.terryburton.bwipp/renmatrix) def
-
 NeededResources () ne {
   mark
   NeededResources {  % loop
@@ -682,12 +671,6 @@ OutputFile text \markup
 
 \stop
 
-% Hack alert! Make post-watermark display what is being encoded
-PostWatermark length 3 add string
-dup 0(\n% ) putinterval
-dup 3 PostWatermark putinterval
-/PackagerIdent exch def
-
 %
 % Generate a watermark.
 %
@@ -711,8 +694,8 @@ OutputFile
   << /Type (ASCII) /Count (Lines) >> /DSCDataEncode
   () (%%EndResource\n%%EndProlog\n%%EOF\n)
   
-  Watermark /WSMarkEncode
-  (currentfile /ASCII85Decode filter cvx exec\n) PackagerIdent
+  Watermark /WSMarkEncode (currentfile /ASCII85Decode filter cvx exec\n)
+  { dup (\n% ) writestring //PostWatermark writestring }
 
   << >> /ASCII85Encode () ()
   
