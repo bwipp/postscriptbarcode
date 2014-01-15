@@ -52,7 +52,9 @@ if ($resource eq 'preamble') {
 }
 
 my $vmusage='0 0';  # TODO measure VM impact
-my $qualifier='0.0 0';
+
+(my $yyyy, my $mm, my $dd, $_, my $r)=$version=~/^(\d{4})-(\d{2})-(\d{2})(-(\d{1,2}))?$/ or die 'Malformed version';
+my $qualifier="0.0 $yyyy$mm$dd".sprintf("%02d",$r||0);
 
 print `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$outfile.tmp' -sOutputFilename='$outfile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' -- build/make_packaged_resource.ps`;
 
