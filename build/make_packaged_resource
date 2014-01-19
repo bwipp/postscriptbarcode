@@ -4,9 +4,12 @@
 
 use strict;
 use File::Temp;
+use File::Basename;
 
 my $abspath=`pwd`;
 chomp $abspath;
+
+my $scriptname=basename($0);
 
 my $infile=$ARGV[0];
 my $outfile=$ARGV[1];
@@ -61,7 +64,7 @@ my $vmusagefile=mktemp('/tmp/vmusage.XXXXXX');
 (my $yyyy, my $mm, my $dd, $_, my $rr)=$version=~/^(\d{4})-(\d{2})-(\d{2})(-(\d{1,2}))?$/ or die 'Malformed version';
 my $qualifier="0.0 $yyyy$mm$dd".sprintf("%02d",$rr||0);
 
-print `cd build/packaged_resource/Resource && gs -P -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$abspath/$outfile.tmp' -sOutputFilename='$abspath/$outfile' -sVMusageFilename='$vmusagefile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' -- ../../make_packaged_resource.ps`;
+print `cd build/resource/Resource && gs -P -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$abspath/$outfile.tmp' -sOutputFilename='$abspath/$outfile' -sVMusageFilename='$vmusagefile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' -- ../../$scriptname.ps`;
 die 'GS create resource error' if $?;
 unlink("$outfile.tmp");
 
