@@ -143,10 +143,10 @@ $(PACKAGEMKDIRSTAMP):
 	touch $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(PACKAGEMKDIRSTAMP)
-	$(DSTDIR)/make_packaged_resource $< $@
+	$(DSTDIR)/make_resource $< $@
 
 $(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(PACKAGEMKDIRSTAMP)
-	$(DSTDIR)/make_packaged_resource $< $@
+	$(DSTDIR)/make_resource $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(PACKAGEMKDIRSTAMP)
 	cp $< $@
