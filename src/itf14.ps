@@ -51,12 +51,17 @@ begin
     /barcode exch def  % We are given a barcode string
 
     /dontdraw false def
-    /includetext false def    % Enable/disable text
+    /includetext false def
+    /includecheckintext true def
     /textfont /Courier def
     /textsize 10 def
     /textxoffset 0 def
-    /textyoffset -7 def
-    /height 1 def
+    /textyoffset -10 def
+    /height 0.5 def
+    /showborder true def
+    /borderwidth 4 def
+    /borderleft 15 def
+    /borderright 15 def
  
     % Parse the input options
     options type /stringtype eq {
@@ -74,6 +79,9 @@ begin
     /textxoffset textxoffset cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def 
+    /borderwidth borderwidth cvr def
+    /borderleft borderleft cvr def
+    /borderright borderright cvr def
 
     % Validate the input
     barcode length 13 ne barcode length 14 ne and {
@@ -104,13 +112,13 @@ begin
 
     % Get the result of encoding with interleaved2of5
     options (dontdraw) true put
-    options (showborder) true put
-    options (borderwidth) 4 put
-    options (borderleft) 15 put
-    options (borderright) 15 put
-    options (height) 0.5 put
-    options (includecheckintext) true put
-    options (textyoffset) -10 put
+    options (showborder) showborder put
+    options (borderwidth) borderwidth put
+    options (borderleft) borderleft put
+    options (borderright) borderright put
+    options (height) height put
+    options (textyoffset) textyoffset put
+    options (includecheckintext) includecheckintext put
     /args barcode options //interleaved2of5 exec def
 
     args (opt) options put
