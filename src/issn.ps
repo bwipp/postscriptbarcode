@@ -34,7 +34,7 @@
 % --BEGIN ENCODER issn--
 % --REQUIRES preamble raiseerror renlinear ean2 ean5 ean13--
 % --DESC: ISSN
-% --EXAM: 0317-8129 00 17
+% --EXAM: 0311-175X 00 17
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
@@ -82,7 +82,10 @@ begin
         /issntxt exch def
         pop
         /seqvar exch def
-    } if
+    } { 
+        pop
+        /seqvar () def
+    } ifelse
 
     % Split off the sequence variant and addon
     seqvar ( ) search {
@@ -91,8 +94,43 @@ begin
         /addon exch def
     } {
         pop
-        /addon () def
+        /addon seqvar def
+        /seqvar (00) def
     } ifelse
+
+    % Validate the input
+    issntxt length 8 ne issntxt length 9 ne and {
+        /bwipp.issnBadLength (ISSN must be 8 or 9 characters including dash) //raiseerror exec
+    } if
+    issntxt 0 4 getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+        } if
+    } forall
+    issntxt 4 1 getinterval (-) ne {
+        /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+    } if
+    issntxt 5 3 getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+        } if
+    } forall
+    issntxt length 9 eq {
+        issntxt 8 get dup dup 48 lt exch 57 gt or exch 88 ne and {  % Digits or X
+            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+        } if
+    } if
+    seqvar length 2 ne {
+        /bwipp.issnBadSequenceVariantLength (Sequence variant for ISSN must be 2 digits) //raiseerror exec
+    } if
+    seqvar {
+        dup 48 lt exch 57 gt or {
+           /bwipp.issnSequenceVariantBadCharacter (Sequence variant for ISSN must contain only digits) //raiseerror exec
+        } if
+    } forall
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.issnBadAddOnLength (Add-on for ISSN must be 2 or 5 digits) //raiseerror exec
+    } if
 
     % Read the digits from issntxt and calculate checksums
     /issn 8 string def
@@ -111,14 +149,18 @@ begin
         i issntxt length eq {exit} if
     } loop
     /checksum 11 checksum 11 mod sub 11 mod def
+    /checksum checksum 48 add dup 58 eq {pop 88} if def
+    issntxt length 9 eq {
+        issntxt 8 get checksum ne {
+            /bwipp.issnBadCheckDigit (Incorrect ISSN check digit provided) //raiseerror exec
+        } if
+    } if
 
-    % Add the ISSN header to the issntxt
+    % Add the ISSN header and checksum to the issntxt
     /pad 14 string def
     pad 0 (ISSN ) putinterval
     pad 5 issntxt putinterval  % Add issntxt to the pad
-
-    % Add checksum digit
-    pad 13 checksum 48 add dup 58 eq {pop 88} if put  % Put check digit
+    pad 13 checksum put
     /issntxt pad def
 
     % Convert ISSN digits to EAN-13
