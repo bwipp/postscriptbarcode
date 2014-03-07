@@ -56,6 +56,7 @@ begin
     /encoding (unset) def
     /raw false def
     /parse false def
+    /parsefnc false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -90,6 +91,40 @@ begin
     } if
 
     /barlen barcode length def
+
+    % Convert input into bytes accounting for FNC characters
+    /fn1 -1 def
+    /fncvals <<
+        (FNC1) fn1
+    >> def
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        parsefnc char 94 eq and i barlen 4 sub lt and {
+            barcode i 1 add get 94 ne {
+                /char fncvals barcode i 1 add 4 getinterval get def
+                /i i 4 add def
+            } {
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /i i 1 add def
+        /j j 1 add def
+    } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
+
+    % If FNC1 in first position then escape % as %%
+    /fnc1first false def
+    msglen 0 gt {
+        msg 0 get fn1 eq {
+            /fnc1first true def
+            /msg [ msg 1 msglen 1 sub getinterval { dup 37 eq {dup} if } forall ] def
+            /msglen msg length def
+        } if
+    } if
 
     % Default error correction level
     eclevel (unset) eq {/eclevel format (full) eq {(M)} {(L)} ifelse def} if
@@ -242,18 +277,18 @@ begin
                 i in length eq {exit} if
                 i in length 2 sub lt {
                     (0000000000) 10 string copy
-                    dup in i 3 getinterval cvi
+                    dup in i 3 getinterval 0 exch {exch 10 mul 48 sub add} forall
                     2 10 string cvrs dup length 10 exch sub exch putinterval
                     /i i 3 add def
                 } {
                     i in length 2 sub eq {  % Two final digits
                         (0000000) 7 string copy
-                        dup in i 2 getinterval cvi
+                        dup in i 2 getinterval 0 exch {exch 10 mul 48 sub add} forall
                         2 7 string cvrs dup length 7 exch sub exch putinterval
                         /i i 2 add def
                     } {  % One final digit
                         (0000) 4 string copy
-                        dup in i 1 getinterval cvi
+                        dup in i 1 getinterval 0 exch {exch 10 mul 48 sub add} forall
                         2 4 string cvrs dup length 4 exch sub exch putinterval
                         /i i 1 add def
                     } ifelse
@@ -266,6 +301,9 @@ begin
 
         /encalphanumeric {
             /in exch def
+            fnc1first {  % FNC1 as %
+                /in [ in { dup -1 eq {pop 37} if } forall ] def
+            } if
             /out in length 11 mul 2 idiv 1 add string def
             /i 0 def /j 0 def {
                 i in length eq {exit} if
@@ -274,7 +312,7 @@ begin
                     dup charvals in i get get 45 mul charvals in i 1 add get get add
                     2 11 string cvrs dup length 11 exch sub exch putinterval
                     /i i 2 add def
-                } {
+                } {  % Final character
                     (000000) 6 string copy
                     dup charvals in i get get
                     2 6 string cvrs dup length 6 exch sub exch putinterval
@@ -288,6 +326,9 @@ begin
 
         /encbyte {
             /in exch def
+            fnc1first {  % FNC1 as GS
+                /in [ in { dup -1 eq {pop 29} if } forall ] def
+            } if
             /out in length 8 mul string def
             0 1 in length 1 sub {
                 /i exch def
@@ -321,11 +362,11 @@ begin
             /numericokay true def
             /alphanumericokay true def
             /kanjiokay true def
-            /byteokay true def
-            barlen 2 mod 0 ne {/kanjiokay false def} if
-            0 1 barlen 1 sub {
+            fnc1first {/kanjiokay false def} if
+            msglen 2 mod 0 ne {/kanjiokay false def} if
+            0 1 msglen 1 sub {
                 /i exch def
-                /barchar barcode i get def
+                /barchar msg i get def
                 barchar 48 lt barchar 57 gt or {/numericokay false def} if
                 charvals barchar known not {/alphanumericokay false def} if
                 i 2 mod 0 eq {
@@ -335,14 +376,15 @@ begin
                     } if
                 } if
             } for
-            byteokay         {/encoding (byte) def} if
+            /encoding (byte) def
             kanjiokay        {/encoding (kanji) def} if
             alphanumericokay {/encoding (alphanumeric) def} if
             numericokay      {/encoding (numeric) def} if
         } if
 
         % Determine smallest symbol version to hold given amount of data
-        /numchars barlen encoding (kanji) eq {2 idiv} if def
+        /numchars msglen encoding (kanji) eq {2 idiv} if def
+        fnc1first {/numchars numchars 1 add def} if  % Workaround due to extended mode header
         version (unset) eq {
             /caps format (full) eq {fullcaps} {microcaps} ifelse encoding get eclevel get def
             /i 1 def {
@@ -364,12 +406,13 @@ begin
 
         % Set the control character data for the version
         /mid mids version get encvals encoding get get def
+        fnc1first {/mid (0101    ) 8 string copy dup 4 mid putinterval def} if
         /cclen cclens version get encvals encoding get get def
  
         % Create the bitstream as mode_id character_count encoded_data
-        /enc barcode encs encoding get load exec def
+        /enc msg encs encoding get load exec def
         (0000000000000000) 0 cclen getinterval cclen string copy 
-        dup barlen encoding (kanji) eq {2 idiv} if cvi
+        dup msglen encoding (kanji) eq {2 idiv} if cvi
         2 cclen string cvrs dup length cclen exch sub exch putinterval 
         /cc exch def
         /msgbits mid length cclen add enc length add string def
