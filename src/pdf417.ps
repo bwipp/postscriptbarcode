@@ -55,6 +55,7 @@ begin
     /columns 0 def
     /rows 0 def
     /rowmult 3 def
+    /encoding (auto) def
     /ccc false def
     /raw false def
     /parse false def
@@ -96,8 +97,10 @@ begin
         } loop
     } if
 
+    raw {/encoding (raw) def} if
+
     % Convert input into array of codewords
-    raw {
+    encoding (raw) eq {
         /datcws barcode length array def
         /i 0 def /j 0 def
         { % loop
@@ -108,54 +111,419 @@ begin
             /j j 1 add def
         } loop
         /datcws datcws 0 j getinterval def
-    } {  % Simple autoencoder from input to codewords using byte mode
-        /barlen barcode length def
-        barlen 6 mod 0 eq {
-            /datcws barlen 6 idiv 5 mul 1 add array def
-            datcws 0 924 put
-        } {
-            /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
-            datcws 0 901 put 
-        } ifelse
+    } if
 
-        % Rebase groups of 6 bytes splitting into 3 byte chunks
-        0 1 barlen 6 idiv 1 sub {
-            /i exch def
-            /msbs [ barcode i 6 mul 3 getinterval {} forall ] def
+    /barcode [ barcode {} forall ] def
+    /barlen barcode length def
+
+    ccc {/encoding (ccc) def} if
+
+    /encb {
+        /in exch def
+        /inlen in length def
+        /out inlen 6 idiv 5 mul inlen 6 mod add array def
+        0 1 inlen 6 idiv 1 sub {
+            /k exch def
+            /msbs [ in k 6 mul 3 getinterval aload pop ] def
             /mscs [
-                msbs aload pop exch 256 mul add exch 65536 mul add 
-                3 {dup 900 mod exch 900 idiv} repeat 
+                msbs aload pop exch 256 mul add exch 65536 mul add
+                3 {dup 900 mod exch 900 idiv} repeat
             ] def
-            /lsbs [barcode i 6 mul 3 add 3 getinterval {} forall] def
+            /lsbs [ in k 6 mul 3 add 3 getinterval aload pop ] def
             /lscs [
                 lsbs aload pop exch 256 mul add exch 65536 mul add
                 3 {dup 900 mod exch 900 idiv} repeat
             ] def
-            /cws 5 array def
             lscs 0 get mscs 0 get 316 mul add
-            cws 4 2 index 900 mod put
+            out k 5 mul 4 add 2 index 900 mod put
             900 idiv lscs 1 get add mscs 0 get 641 mul add mscs 1 get 316 mul add
-            cws 3 2 index 900 mod put 
-            900 idiv lscs 2 get add mscs 0 get 20 mul add mscs 1 get 641 mul add mscs 2 get 316 mul add 
-            cws 2 2 index 900 mod put
+            out k 5 mul 3 add 2 index 900 mod put
+            900 idiv lscs 2 get add mscs 0 get 20 mul add mscs 1 get 641 mul add mscs 2 get 316 mul add
+            out k 5 mul 2 add 2 index 900 mod put
             900 idiv lscs 3 get add mscs 1 get 20 mul add mscs 2 get 641 mul add
-            cws 1 2 index 900 mod put
+            out k 5 mul 1 add 2 index 900 mod put
             900 idiv mscs 2 get 20 mul add
-            cws 0 3 -1 roll 900 mod put
-            datcws i 5 mul 1 add cws putinterval 
+            out k 5 mul 3 -1 roll 900 mod put
         } for
-
-        % Add the remaining bytes to the end of the codewords
-        /rem barlen 6 mod def
+        /rem inlen 6 mod def
         rem 0 ne {
-            datcws datcws length rem sub 
-            [ barcode barlen rem sub rem getinterval {} forall ] 
+            out out length rem sub
+            [ in inlen rem sub rem getinterval aload pop ]
             putinterval
         } if
+        out
+    } bind def
+    
+    encoding (byte) eq encoding (ccc) eq or {
+        /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
+        datcws 0 barlen 6 mod 0 eq {924} {901} ifelse put
+        datcws 1 barcode encb putinterval
+        encoding (ccc) eq {/datcws [920 datcws aload pop] def} if
+    } if
 
-        ccc {/datcws [920 datcws aload pop] def} if
+    encoding (auto) eq {
 
-    } ifelse
+        % Modes and text submodes
+        /T 0 def  /N 1 def  /B 2 def
+        /A 0 def  /L 1 def  /M 2 def  /P 3 def
+        
+        % Special function characters for mode switching
+        /tl -1 def  /nl -2 def  /bl -3 def  /bl6 -4 def  /bs -5 def
+        
+        % Special function characters for text mode
+        /al -6 def  /ll -7 def  /ml -8 def  /pl -9 def  /as -10 def  /ps -11 def
+        
+        % Character maps for each state
+        /charmaps [
+          %  A    L    M    P
+          [ (A)  (a)  (0)  (;) ]  % 0
+          [ (B)  (b)  (1)  (<) ]  % 1
+          [ (C)  (c)  (2)  (>) ]  % 2
+          [ (D)  (d)  (3)  (@) ]  % 3
+          [ (E)  (e)  (4)  ([) ]  % 4
+          [ (F)  (f)  (5)   92 ]  % 5
+          [ (G)  (g)  (6)  (]) ]  % 6
+          [ (H)  (h)  (7)  (_) ]  % 7
+          [ (I)  (i)  (8)  (`) ]  % 8
+          [ (J)  (j)  (9)  (~) ]  % 9
+          [ (K)  (k)  (&)  (!) ]  % 10
+          [ (L)  (l)   13   13 ]  % 11
+          [ (M)  (m)    9    9 ]  % 12
+          [ (N)  (n)  (,)  (,) ]  % 13
+          [ (O)  (o)  (:)  (:) ]  % 14
+          [ (P)  (p)  (#)   10 ]  % 15
+          [ (Q)  (q)  (-)  (-) ]  % 16
+          [ (R)  (r)  (.)  (.) ]  % 17
+          [ (S)  (s)  ($)  ($) ]  % 18
+          [ (T)  (t)  (/)  (/) ]  % 19
+          [ (U)  (u)  (+)  (") ]  % 20
+          [ (V)  (v)  (%)  (|) ]  % 21
+          [ (W)  (w)  (*)  (*) ]  % 22
+          [ (X)  (x)  (=)   40 ]  % 23
+          [ (Y)  (y)  (^)   41 ]  % 24
+          [ (Z)  (z)   pl  (?) ]  % 25
+          [ ( )  ( )  ( )  ({) ]  % 26
+          [  ll   as   ll  (}) ]  % 27
+          [  ml   ml   al  (') ]  % 28
+          [  ps   ps   ps   al ]  % 29
+        ] def
+        
+        % Invert charmaps to give character to value maps for each state
+        /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
+        /alltext 104 dict def
+        0 1 charmaps length 1 sub {
+          /i exch def
+          /encs charmaps i get def
+          0 1 3 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            dup charvals j get exch i put
+            alltext exch -1 put
+          } for
+        } for
+        
+        /e 10000 def  % "Empty"
+        
+        /latlen [  % Bit length of latch between submodes
+        % To:  A  L  M  P      From
+            [  0  1  1  2 ]  % A
+            [  2  0  1  2 ]  % L
+            [  1  1  0  1 ]  % M
+            [  1  2  2  0 ]  % P
+        ] def
+        
+        /latseq [  % Latch sequences between submodes
+        % To: A       L       M       P               From
+            [ []      [ll]    [ml]    [ml pl]    ]  % A
+            [ [ml al] []      [ml]    [ml pl]    ]  % L
+            [ [al]    [ll]    []      [pl]       ]  % M
+            [ [al]    [al ll] [al ml] []         ]  % P
+        ] def
+        
+        /shftlen [  % Bit length of shift to submode
+        % To:  A  L  M  P      From
+            [  e  e  e  1 ]  % A
+            [  1  e  e  1 ]  % L
+            [  e  e  e  1 ]  % M
+            [  e  e  e  e ]  % P
+        ] def
+        
+        % Determine runlengths of digits
+        /numdigits [ barlen {0} repeat 0 ] def
+        /numtext   [ barlen {0} repeat 0 ] def
+        /numbytes  [ barlen {0} repeat 0 ] def
+        barlen 1 sub -1 0 {
+            /i exch def
+            barcode i get dup 48 ge exch 57 le and {
+                numdigits i numdigits i 1 add get 1 add put
+            } if
+            alltext barcode i get known numdigits i get 13 lt and {
+                numtext i numtext i 1 add get 1 add put
+            } if
+            numtext i get 5 lt numdigits i get 13 lt and {
+                numbytes i numbytes i 1 add get 1 add put
+            } if
+        } for
+        /numdigits numdigits 0 barlen getinterval def
+        /numtext   numtext   0 barlen getinterval def
+        /numbytes  numbytes  0 barlen getinterval def
+        
+        /seq [] def /seqlen 0 def /state T def /p 0 def {  % loop
+            p barlen eq {exit} if
+            /n numdigits p get def
+            n 13 ge {
+                /seq [
+                    seq aload pop
+                    nl
+                    [ barcode p n getinterval aload pop ]
+                ] def
+                /state N def
+                /p p n add def
+                /seqlen seqlen 1 add n add def
+            } {  % next
+            /t numtext p get def
+            t 5 ge {
+                /seq [
+                    seq aload pop
+                    state T ne {tl} if
+                    [ barcode p t getinterval aload pop ]
+                ] def
+                /state T def
+                /p p t add def
+                /seqlen seqlen 1 add t add def  % ish
+            } {  % next
+            /b numbytes p get def
+            b 1 eq state T eq and {
+                /seq [
+                    seq aload pop
+                    bs
+                    [ barcode p get ]
+                ] def
+                /p p b add def
+                /seqlen seqlen 2 add def
+            } {  % next
+                /seq [
+                    seq aload pop
+                    b 6 mod 0 ne {bl} {bl6} ifelse
+                    [ barcode p b getinterval aload pop ]
+                ] def
+                /state B def
+                /p p b add def
+                /seqlen seqlen 1 add b add def
+            } ifelse } ifelse } ifelse
+        } loop
+        
+        /latchcws <<
+            tl 900  bl 901  bl6 924  nl 902  bs 913
+        >> def
+        
+        % Submode encoding functions
+        /enca {charvals A get exch get} bind def
+        /encl {charvals L get exch get} bind def
+        /encm {charvals M get exch get} bind def
+        /encp {charvals P get exch get} bind def
+        /textencfuncs [ /enca /encl /encm /encp ] def
+        
+        /addtotext {
+            text exch l exch put
+            /l l 1 add def
+        } bind def
+        
+        /enct {
+        
+            /in exch def
+        
+            /curlen [  e  e  e  e ] def
+            curlen submode 0 put
+            /curseq [ [] [] [] [] ] def
+        
+            % Derive the optimal sequences ending in each submode
+            in {
+        
+                /char exch def
+        
+                % Check for optimisations in the current sequences by latching from x to y
+                {  % loop
+                    /imp false def
+                    [ A L M P ] {
+                        /x exch def
+                        [ A L M P ] {
+                            /y exch def
+                            /cost curlen x get latlen x get y get add def
+                            cost curlen y get lt {
+                                curlen y cost put
+                                curseq y [
+                                    curseq x get aload pop
+                                    latseq x get y get aload pop
+                                ] put
+                                /imp true def
+                            } if
+                        } forall
+                    } forall
+                    imp not {exit} if  % Repeat unless no improvement
+                } loop
+        
+                % Determine optimal next sequences for each valid encoding
+                /nxtlen [ e e e e ] def
+                /nxtseq 4 array def
+        
+                [ A L M P ] {
+                    /x exch def
+        
+                    { % loop for common exit
+        
+                        charvals x get char known not {exit} if
+        
+                        % Extend directly
+                        /cost curlen x get 1 add def
+                        cost nxtlen x get lt {
+                            nxtlen x cost put
+                            nxtseq x [ curseq x get aload pop char ] put
+                        } if
+        
+                        % Optimise for direct shifts from y to x
+                        [ A L M P ] {
+                            /y exch def
+                            x y ne {
+                                /cost curlen y get shftlen y get x get add 1 add def
+                                cost nxtlen y get lt {
+                                    nxtlen y cost put
+                                    nxtseq y [
+                                        curseq y get aload pop
+                                        x A eq {as} {ps} ifelse
+                                        char
+                                    ] put
+                                } if
+                            } if
+                        } forall
+        
+                        exit
+                    } loop
+        
+                } forall
+        
+                /curlen nxtlen def
+                /curseq nxtseq def
+        
+            } forall
+        
+            % Select the optimal sequence
+            /minseq e def
+            [ A L M P ] {
+                /k exch def
+                curlen k get minseq lt {
+                    /minseq curlen k get def
+                    /txtseq curseq k get def
+                } if
+            } forall
+        
+            % Encode the sequence
+            /text minseq array def
+            /k 0 def /l 0 def {
+                k txtseq length ge {exit} if
+        
+                /char txtseq k get def
+        
+                % Encode character
+                char textencfuncs submode get load exec addtotext
+                /k k 1 add def
+        
+                % Encode shifted next character
+                char as eq char ps eq or {
+                    txtseq k get char as eq {enca} {encp} ifelse addtotext
+                    /k k 1 add def
+                } if
+        
+                % Latches to new submode
+                char al eq {/submode A def} if
+                char ll eq {/submode L def} if
+                char ml eq {/submode M def} if
+                char pl eq {/submode P def} if
+            } loop
+        
+            text length 2 mod 1 eq {
+                submode P eq {
+                    /pad al encp def
+                    /submode A def
+                } {
+                    /pad ps textencfuncs submode get load exec def
+                } ifelse
+                /text [ text aload pop pad ] def
+            } if
+        
+            /out text length 2 idiv array def
+            0 1 out length 1 sub {
+                /k exch def
+                out k text k 2 mul get 30 mul text k 2 mul 1 add get add put
+            } for
+        
+            out
+        
+        } bind def
+        
+        /encn {
+            /in exch def
+            /out [] def
+            0 44 in length 1 sub {
+                /k exch def
+                /gmod [
+                    1 in k in length k sub dup 44 gt {pop 44} if getinterval
+                    {48 sub} forall
+                ] def
+                /cwn [] def {
+                    /dv 900 def
+                    /gmul [] def /val 0 def {
+                        gmod length 0 eq {exit} if
+                        /val val 10 mul gmod 0 get add def
+                        /gmod gmod 1 gmod length 1 sub getinterval def
+                        val dv lt {
+                            gmul length 0 ne {
+                                /gmul [ gmul aload pop 0 ] def
+                            } if
+                        } {
+                            /gmul [ gmul aload pop val dv idiv ] def
+                        } ifelse
+                        /val val dv mod def
+                    } loop
+                    /dv val def
+                    /cwn [ dv cwn aload pop ] def
+                    /gmod gmul def
+                    gmul length 0 eq {exit} if
+                } loop
+                /out [ out aload pop cwn aload pop ] def
+            } for
+            out
+        } bind def
+       
+        /encfuncs [ /enct /encn /encb ] def
+        
+        /addtocws {
+            dup datcws j 3 -1 roll putinterval
+            length j add /j exch def
+        } bind def
+        
+        % Encode the sequence
+        /state T def /submode A def
+        /datcws seqlen array def
+        /i 0 def /j 0 def {
+            i seq length ge {exit} if
+            /chars seq i get def
+            chars type /arraytype eq {  % Encode data according to mode
+                chars encfuncs state get load exec addtocws
+            } {  % Encode the latch to new state or byte shift
+                [ latchcws chars get ] addtocws
+                chars tl eq {/state T def /submode A def} if
+                chars nl eq {/state N def} if
+                chars bl eq chars bl6 eq or {/state B def} if
+                chars bs eq {
+                    /i i 1 add def
+                    seq i get encb addtocws
+                } if
+            } ifelse
+            /i i 1 add def
+        } loop
+        /datcws datcws 0 j getinterval def
+    } if
 
     % Determine the error correction level if unspecified
     /m datcws length def
