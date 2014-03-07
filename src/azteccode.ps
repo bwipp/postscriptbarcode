@@ -97,30 +97,299 @@ begin
     % Convert from input into message bitstream
     /msgbits () def 
     format (rune) ne raw and {/msgbits barcode def} if 
-    format (rune) ne raw not and {  % Simple autoencoder from input to bitstream using byte mode only
+    format (rune) ne raw not and {
 
-        % Determine the character count
-        /barlen barcode length def
-        barlen 31 le {
-            (00000) 5 string copy dup barlen 2 5 string cvrs
-            dup length 5 exch sub exch putinterval
-            /cc exch def
-        } {
-            (0000000000000000) 16 string copy dup barlen 31 sub 2 16 string cvrs
-            dup length 16 exch sub exch putinterval
-            /cc exch def
-        } ifelse
-        /cclen cc length def
-
-        % Create the bitstream as byte_mode_id character_count data_bytes
-        /msgbits 5 cclen add barlen 8 mul add string def
-        msgbits 0 (11111) putinterval
-        msgbits 5 cc putinterval
-        0 1 barlen 1 sub {
+        % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
+        /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
+        
+        % Special function characters
+        /lu -1 def  /ll -2 def  /lm -3 def
+        /lp -4 def  /ld -5 def  /su -6 def
+        /sp -7 def  /sb -8 def  /fl -9 def
+        /p2 -10 def /p3 -11 def /p4 -12 def /p5 -13 def
+        
+        % Character maps for each state
+        /charmaps [
+            %  U    L    M    P    D
+            [  sp   sp   sp   fl   sp ]  % 0
+            [  32   32   32   13   32 ]  % 1
+            [ (A)  (a)    1   p2  (0) ]  % 2     p2 = CR LF
+            [ (B)  (b)    2   p3  (1) ]  % 3     p3 = ". "
+            [ (C)  (c)    3   p4  (2) ]  % 4     p4 = ", "
+            [ (D)  (d)    4   p5  (3) ]  % 5     p5 = ": "
+            [ (E)  (e)    5  (!)  (4) ]  % 6
+            [ (F)  (f)    6  (")  (5) ]  % 7
+            [ (G)  (g)    7  (#)  (6) ]  % 8
+            [ (H)  (h)    8  ($)  (7) ]  % 9
+            [ (I)  (i)    9  (%)  (8) ]  % 10
+            [ (J)  (j)   10  (&)  (9) ]  % 11
+            [ (K)  (k)   11  (')  (,) ]  % 12
+            [ (L)  (l)   12   40  (.) ]  % 13
+            [ (M)  (m)   13   41   lu ]  % 14
+            [ (N)  (n)   27  (*)   su ]  % 15
+            [ (O)  (o)   28  (+)  -99 ]  % 16
+            [ (P)  (p)   29  (,)  -99 ]  % 17
+            [ (Q)  (q)   30  (-)  -99 ]  % 18
+            [ (R)  (r)   31  (.)  -99 ]  % 19
+            [ (S)  (s)  (@)  (/)  -99 ]  % 20
+            [ (T)  (t)   92  (:)  -99 ]  % 21
+            [ (U)  (u)  (^)  (;)  -99 ]  % 22
+            [ (V)  (v)  (_)  (<)  -99 ]  % 23
+            [ (W)  (w)  (`)  (=)  -99 ]  % 24
+            [ (X)  (x)  (|)  (>)  -99 ]  % 25
+            [ (Y)  (y)  (~)  (?)  -99 ]  % 26
+            [ (Z)  (z)  127  ([)  -99 ]  % 27
+            [  ll   su   ll  (])  -99 ]  % 28
+            [  lm   lm   lu  ({)  -99 ]  % 29
+            [  ld   ld   lp  (})  -99 ]  % 30
+            [  sb   sb   sb   lu  -99 ]  % 31
+        ] def 
+        
+        % Invert charmaps to give character to value maps for each state
+        /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
+        0 1 charmaps length 1 sub {
             /i exch def
-            (00000000) 8 string copy dup barcode i get cvi 2 8 string cvrs dup length 8 exch sub exch putinterval 
-            msgbits 5 cclen add i 8 mul add 3 -1 roll putinterval
+            /encs charmaps i get def
+            0 1 4 {
+                /j exch def
+                encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+                charvals j get exch i put 
+            } for
         } for
+        
+        % Punctuation compression
+        /pcomp <<
+            <0d0a> p2   % CR LF
+            (. )   p3
+            (, )   p4
+            (: )   p5
+        >> def
+        
+        /e 10000 def  % "Empty"
+        
+        /latlen [  % Bit length of latch between states
+        % To:  U  L  M  P  D  B      From
+            [  0  5  5 10  5 10 ]  % U
+            [  9  0  5 10  5 10 ]  % L
+            [  5  5  0  5 10 10 ]  % M
+            [  5 10 10  0 10 15 ]  % P
+            [  4  9  9 14  0 14 ]  % D
+            [  0  0  0  0  0  0 ]  % B
+        ] def
+
+        /latseq [  % Latch sequences between states
+        % To: U       L       M       P          D       B          From
+            [ []      [ll]    [lm]    [lm lp]    [ld]    [sb]    ]  % U
+            [ [ld lu] []      [lm]    [lm lp]    [ld]    [sb]    ]  % L
+            [ [lu]    [ll]    []      [lp]       [lu ld] [sb]    ]  % M
+            [ [lu]    [lu ll] [lu lm] []         [lu ld] [lu sb] ]  % P
+            [ [lu]    [lu ll] [lu lm] [lu lm lp] []      [lu sb] ]  % D
+            [ [lu]    [ll]    [lm]    []         []      []      ]  % B
+        ] def
+
+        /shftlen [  % Bit length of shift to state
+        % To:  U  L  M  P  D      From
+            [  e  e  e  5  e ]  % U
+            [  5  e  e  5  e ]  % L
+            [  e  e  e  5  e ]  % M
+            [  e  e  e  e  e ]  % P
+            [  4  e  e  4  e ]  % D
+        ] def
+        
+        %            U   L   M   P   D   B
+        /charsize [  5   5   5   5   4   8 ] def
+        
+        %          U  L  M  P  D  B
+        /curlen [  0  e  e  e  e  e ] def
+        /curseq [ [] [] [] [] [] [] ] def
+        
+        /backto U def  % U
+        /lastchar () def
+        
+        % Derive the optimal sequences ending in each state
+        barcode {
+        
+            /char exch def
+          
+            % Check for optimisations in the current sequences by latching from x to y
+            {  % loop
+                /imp false def
+                [ U L M P D B ] {
+                    /x exch def
+                    [ U L M P D B ] {
+                        /y exch def
+                        x B ne y backto eq or {  % Only B -> backto
+                            /cost curlen x get latlen x get y get add def
+                            cost curlen y get lt {
+                                curlen y cost put
+                                curseq y [
+                                    curseq x get aload pop
+                                    latseq x get y get aload pop
+                                ] put
+                                y B eq {/backto x def} if  % Set backto to previous state
+                                /imp true def
+                            } if
+                        } if
+                    } forall
+                } forall
+                imp not {exit} if  % Repeat unless no improvement
+            } loop
+
+            % Determine optimal next sequences for each valid encoding 
+            /nxtlen [ e e e e e e ] def 
+            /nxtseq 6 array def
+          
+            [ U L M P D B ] {
+                /x exch def
+            
+                { % loop for common exit
+            
+                    % Skip states that cannot encode character
+                    x B ne {charvals x get char known not {exit} if} if
+              
+                    % Extend directly
+                    /cost curlen x get charsize x get add def
+                    cost nxtlen x get lt {
+                        nxtlen x cost put
+                        nxtseq x [ curseq x get aload pop char ] put
+                    } if
+              
+                    % Optimise for direct shifts from y to x 
+                    x B eq {exit} if  % B is treated as a latch
+                    [ U L M P D ] {
+                        /y exch def
+                        x y ne {
+                            /cost curlen y get shftlen y get x get add charsize x get add def
+                            cost nxtlen y get lt {
+                                nxtlen y cost put
+                                nxtseq y [
+                                    curseq y get aload pop
+                                    x U eq {su} {sp} ifelse
+                                    char
+                                ] put
+                            } if
+                        } if
+                    } forall
+              
+                    exit
+                } loop
+            
+            } forall
+          
+            % Optimise using P compression
+            lastchar () ne {
+                /pchars 2 string dup 0 lastchar put dup 1 char put def
+                pcomp pchars known {
+                    curlen P get nxtlen P get lt {
+                        nxtlen P curlen P get put
+                        nxtseq P [ curseq P get aload pop pop pcomp pchars get ] put
+                    } if
+                } if
+            } if 
+          
+            % Account for binary extension for 32 or more bytes
+            /numbytes 0 def
+            nxtseq B get {
+                sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
+            } forall
+            numbytes 32 eq {nxtlen B nxtlen B get 11 add put} if
+          
+            /curlen nxtlen def
+            /curseq nxtseq def
+            /lastchar char def
+          
+        } forall
+        
+        % Select the optimal sequence
+        /minseq e def
+        [ U L M P D B ] {
+            /i exch def
+            curlen i get minseq lt {
+                /minseq curlen i get def
+                /seq curseq i get def
+            } if
+        } forall
+        
+        % Encoding functions
+        /tobin {
+            string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+            dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+        } bind def
+        /encu {charvals U get exch get 5 tobin} bind def
+        /encl {charvals L get exch get 5 tobin} bind def
+        /encm {charvals M get exch get 5 tobin} bind def
+        /encp {charvals P get exch get 5 tobin} bind def
+        /encd {charvals D get exch get 4 tobin} bind def
+        /encfuncs [ /encu /encl /encm /encp /encd ] def
+        /addtomsgbits {
+            /v exch def
+            msgbits j v putinterval
+            /j j v length add def
+        } bind def
+        
+        % Encode the sequence
+        /state U def
+        /msgbits minseq string def
+        /i 0 def /j 0 def {
+            i seq length ge {exit} if
+          
+            state B ne {
+          
+                /char seq i get def
+            
+                % Encode character
+                char encfuncs state get load exec addtomsgbits
+                /i i 1 add def
+            
+                % Encode shifted next character
+                char su eq char sp eq or {
+                    seq i get char su eq {encu} {encp} ifelse addtomsgbits
+                    /i i 1 add def
+                } if
+            
+                % Latches to new state
+                char lu eq {/state U def} if
+                char ll eq {/state L def} if
+                char lm eq {/state M def} if
+                char lp eq {/state P def} if
+                char ld eq {/state D def} if
+                char sb eq {/state B def} if
+            
+            } {  % Binary
+          
+                % Find number of bytes before latch or end
+                /numbytes 0 def {
+                    i numbytes add seq length ge {exit} if
+                    seq i numbytes add get 0 lt {exit} if 
+                    /numbytes numbytes 1 add def
+                } loop
+            
+                % Encode length
+                numbytes 31 le {
+                    numbytes 5 tobin addtomsgbits
+                } {
+                    0 5 tobin addtomsgbits
+                    numbytes 31 sub 11 tobin addtomsgbits
+                } ifelse
+            
+                % Encode bytes
+                numbytes {
+                    seq i get 8 tobin addtomsgbits 
+                    /i i 1 add def
+                } repeat
+            
+                % Return to previous state as indicated
+                i seq length lt {
+                    /char seq i get def
+                    /i i 1 add def
+                    char lu eq {/state U def} if
+                    char ll eq {/state L def} if
+                    char lm eq {/state M def} if
+                } if
+            
+            } ifelse
+          
+        } loop
 
     } if
 
