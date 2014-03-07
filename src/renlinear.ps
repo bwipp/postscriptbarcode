@@ -43,6 +43,8 @@ begin
 
     /args exch def   % We are given some arguments
 
+    /roguenumber 1e32 def  % TODO style
+
     % Default options
     /sbs [] def
     /bhs [] def
@@ -78,6 +80,8 @@ begin
     /guardrightypos 0 def
     /guardwidth 6 def
     /guardheight 7 def
+    /gridfit false def
+    /griddpi 0 def
     
     % Apply the renderer options and the user options
     args {def} forall
@@ -110,7 +114,40 @@ begin
     /guardrightypos guardrightypos cvr def
     /guardwidth guardwidth cvr def
     /guardheight guardheight cvr def
-    
+    /guardheight guardheight cvr def
+    /griddpi griddpi cvr def
+
+    % Special gridfit processing to make sure it's safe
+    gridfit {
+        % If this is Jaws distiller and "hardware" resolution is 1 point, cancel gridfit since resolution is bogus
+        systemdict /distillerstuff known griddpi 0 eq and {
+            gsave initmatrix 1 0 dtransform 2 copy lt {exch} if pop grestore
+            1 eq {/gridfit false def} if
+        } if
+
+        % Kill gridfit if fractional-x-dimension barcode, e.g. postal bars, pharmacode
+        sbs 0 1 index length 5 2 copy gt {exch} if pop getinterval {  % Analyze first few sbs's (max 5)
+            dup floor sub abs .001 gt {
+                /gridfit false def
+                exit
+            } if
+        } forall
+
+        % Kill gridfit if fractional barratio or spaceratio
+        barratio dup floor ne spaceratio dup floor ne or {
+            /gridfit false def
+        } if
+    } if
+
+    % TODO move into gridfit block above
+    inkspread roguenumber eq {
+        gridfit {0.0} {0.15} ifelse  % TODO Move default to definitions at top
+    } {
+        inkspread
+    } ifelse  % gridfit will zero out default
+    gridfit {.001 add} if  % +.001 to forces bars slightly narrower to avoid stroke grazing & turning on neighboring pixels
+    /inkspread exch def
+
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def
     /x 0.00 def /maxh 0 def
@@ -141,6 +178,43 @@ begin
     % Force symbol to given width
     width 0 ne {
         width 72 mul x div 1 scale
+    } if
+
+    % Translate & rescale to pos'n & width that will gridfit x-dimension
+    gridfit {
+        matrix currentmatrix
+        griddpi 0 ne {
+            % User-specified x-dpi, find scaling of initmatrix's xres vs. griddpi, scale ctm by that
+            gsave initmatrix 72 0 dtransform grestore
+            abs exch abs 2 copy lt{exch}if pop %hardware-reported xres; take highest since hardware often rotates pages
+            griddpi exch div [ exch 0 0 3 index 0 0 ] 1 index concatmatrix
+        } if
+        /gridmatrix exch def
+
+        % Snap basepoint to grid
+        0 0 gridmatrix transform ceiling exch ceiling exch gridmatrix itransform matrix translate
+        dup concat
+        gridmatrix dup concatmatrix pop
+
+        % Bars' basic x-dimension is 1 point. X-scale the ctm to force 1 pt. to an even grid multiple
+        1 0 gridmatrix dtransform
+        2 {
+            exch
+            dup abs .00001 gt {  % Skip 0-valued component
+                dup abs 1 lt {  % Never gridfit non-zero width to < 1 pixel
+                    0 gt {1} {-1} ifelse
+                } {  % Snap to grid
+                    width 0 eq {  % If no width specified, total width can be adjusted at will
+                        round
+                    } {  % width was specified, round down since user probably has limited x-space
+                        dup 0 lt {ceiling} {floor} ifelse
+                    } ifelse
+                } ifelse
+            } if
+        } repeat
+        gridmatrix idtransform pop 1 matrix scale
+        dup concat
+        gridmatrix dup concatmatrix pop
     } if
 
     % Set RGB or CMYK color depending on length of given hex string

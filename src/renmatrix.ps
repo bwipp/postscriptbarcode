@@ -48,6 +48,8 @@ begin
     /height 1 def
     /barcolor (unset) def
     /backgroundcolor (unset) def
+    /gridfit false def
+    /griddpi 0 def
 
     % Apply the renderer options and the user options
     args {def} forall
@@ -57,6 +59,13 @@ begin
     /height height cvr def
     /barcolor barcolor cvlit def
     /backgroundcolor backgroundcolor cvlit def
+    /griddpi griddpi cvr def
+
+    % If this is Jaws distiller and "hardware" resolution is 1 point, cancel gridfit since resolution is bogus
+    gridfit systemdict /distillerstuff known and griddpi 0 eq and {
+        gsave initmatrix 1 0 dtransform 2 copy lt {exch} if pop grestore
+        1 eq {/gridfit false def} if
+    } if
 
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
@@ -72,7 +81,64 @@ begin
     % Draw the image
     gsave
     currentpoint translate
-    width pixx div 72 mul height pixy div 72 mul scale
+
+    gridfit {
+        griddpi 0 eq {
+            % Force lowest square resolution to ensure that squares stay that way
+            72 72 dtransform abs exch abs 2 copy gt {exch} if pop
+            /griddpi exch def
+        } if
+
+        matrix currentmatrix
+
+        % Measure using default transform where 1 = 1pt.
+        gsave initmatrix
+
+        % Determine x & y scales needed to force ctm to scale to griddpi
+        72 0 dtransform abs exch abs 2 copy lt {exch} if pop griddpi exch div  % Hardware-reported xres
+        0 72 dtransform abs exch abs 2 copy lt {exch} if pop griddpi exch div  % Hardware-reported yres
+        grestore
+
+        % Scale ctm by scaling of initmatrix's xres vs. griddpi
+        [ 3 -1 roll 0 0 5 -1 roll 0 0 ] 1 index concatmatrix
+        /gridmatrix exch def
+
+        % Snap basepoint to grid
+        0 0 gridmatrix transform ceiling exch ceiling exch gridmatrix itransform matrix translate
+        dup concat
+        gridmatrix dup concatmatrix pop
+
+        % Scale the ctm to force 1 matrix col & row to an even grid multiple.
+        % Only compute X-dim since we've forced resolution to be square and we don't want to
+        % get into finding least common denominators & most barcodes are square anyway with the
+        % exception of PDF417 (non-square pixels & y-dimensions are much less critical anyway).
+        /pixw width 72 mul pixx div def
+        /pixh height 72 mul pixy div def
+        pixw pixh gridmatrix dtransform
+        2 {
+            exch
+            dup abs .00001 gt {  % Skip 0-valued component
+                dup abs 1 lt {  %  Never gridfit non-zero width to < 1 pixel
+                    0 gt {1}{-1} ifelse
+                } {  % Snap to grid
+                     width 0 eq {  % If no width specified, total width can be adjusted at will
+                         round
+                     } {  % Width was specified, round down since user probably has limited x-space
+                         dup 0 lt {ceiling} {floor} ifelse
+                     } ifelse
+                } ifelse
+            } if
+        } repeat
+        gridmatrix idtransform pixh div exch pixw div exch matrix scale
+        dup concat
+        gridmatrix dup concatmatrix pop
+    } if
+
+    width pixx div 72 mul height pixy div 72 mul
+    gridfit {
+        gridmatrix dtransform round exch round exch gridmatrix idtransform
+    } if
+    scale
     0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if 
     barcolor (unset) ne { barcolor setanycolor } if
