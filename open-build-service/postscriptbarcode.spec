@@ -27,7 +27,7 @@ the barcode generation process whenever your language needs change.
 
 %build
 fc-cache -f -v /usr/share/fonts/default/Type1
-make
+make -j `nproc`
 make test
 
 %install

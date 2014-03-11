@@ -29,7 +29,7 @@ the barcode generation process whenever your language needs change.
 %setup -q -n %{name}-%{commit}
 
 %build
-make
+make -j `nproc`
 make test
 
 %install
