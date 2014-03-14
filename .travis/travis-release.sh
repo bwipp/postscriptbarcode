@@ -62,7 +62,7 @@ for FILE in $RELEASEFILES; do
        -H "Authorization: token $GITHUBTOKEN" \
        -H "Accept: application/vnd.github.manifold-preview" \
        -H "Content-Type: application/zip" \
-       --data-binary "$FILE" \
+       --data-binary "@$FILE" \
        "$UPLOAD_URL"`
   if [ "`echo "$RESULT" | tail -1`" != "201" ]; then
     echo FAILED
