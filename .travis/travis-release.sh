@@ -56,9 +56,9 @@ echo DONE
 
 for FILE in $RELEASEFILES; do
   FILESIZE=`stat -c '%s' "$FILE"`
-  FILE=`basename $FILE`
-  echo -n "Uploading $FILE... "
-  UPLOAD_URL="https://uploads.github.com/repos/$GITUSER/$GITREPO/releases/$ID/assets?name=$FILE&size=$FILESIZE"
+  FILENAME=`basename $FILE`
+  echo -n "Uploading $FILENAME... "
+  UPLOAD_URL="https://uploads.github.com/repos/$GITUSER/$GITREPO/releases/$ID/assets?name=$FILENAME&size=$FILESIZE"
   RESULT=`curl -s -w "\n%{http_code}\n" \
        -H "Authorization: token $GITHUBTOKEN" \
        -H "Accept: application/vnd.github.manifold-preview" \
