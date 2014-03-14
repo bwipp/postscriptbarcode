@@ -6,12 +6,17 @@ TAG=$1  # Debug override of tag
 
 GITUSER=terryburton
 GITREPO=postscriptbarcode
+VERSIONFILE=src/VERSION
 RELEASEFILES=build/release/*
 
 if [[ -z "$TAG" ]]; then
   if ! TAG=`git describe --exact-match 2>/dev/null`; then
     echo "This commit not a tag so not creating a release"
     exit 0
+  fi
+  if [ "`head -1 $VERSIONFILE`" != "$TAG" ]; then
+    echo "Error: The tag does not match the release in $VERSIONFILE"
+    exit 1
   fi
 fi
 
