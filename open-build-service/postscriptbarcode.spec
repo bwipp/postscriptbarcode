@@ -6,7 +6,7 @@ Group:          Development/Libraries/Other
 
 License:        MIT
 URL:            https://code.google.com/p/postscriptbarcode/ 
-# https://github.com/terryburton/%{name}/archive/master.tar.gz
+# https://github.com/bwipp/%{name}/archive/master.tar.gz
 Source0:        postscriptbarcode-master.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript

@@ -9,8 +9,8 @@ Group:          Development/Libraries/Other
 
 License:        MIT
 URL:            https://code.google.com/p/postscriptbarcode/ 
-#Source0:        https://github.com/terryburton/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
-Source0:        https://github.com/terryburton/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
+#Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
