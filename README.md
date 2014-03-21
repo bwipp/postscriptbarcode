@@ -1,4 +1,5 @@
 Barcode Writer in Pure PostScript
+=================================
 
 Homepage: https://www.terryburton.co.uk/barcodewriter/
 Documentation: https://code.google.com/p/postscriptbarcode/wiki/Symbologies
@@ -7,10 +8,9 @@ Source: https://github.com/bwipp/postscriptbarcode.git
 Issue tracker: https://github.com/bwipp/postscriptbarcode/issues
 Mailing list: http://groups.google.co.uk/group/postscriptbarcode
 
-Blog: http://blog.terryburton.co.uk/search/label/bwipp
-
 
 About BWIPP
+-----------
 
 Barcode Writer in Pure Postscript generates all barcode formats entirely within
 PostScript so that the process of converting the input data into the printed
@@ -32,6 +32,7 @@ http://www.terryburton.co.uk/barcodewriter/generator/
 
 
 The Resources
+-------------
 
 BWIPP is essentially a set of generic PostScript Level 2 named resources that
 are provided in four flavours for ease of use. The one to use depends on how
@@ -63,6 +64,7 @@ For BWIPP development:
 
 
 Downloading
+-----------
 
 You can download the prepared packages and the sources from here:
 
@@ -81,6 +83,7 @@ $ sudo apt-get install libpostscriptbarcode
 
 
 Building
+--------
 
 The build requirements are Perl, GNU Make and GhostScript.
 
