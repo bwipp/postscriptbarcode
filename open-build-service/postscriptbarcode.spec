@@ -36,7 +36,7 @@ cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcod
 
 %files
 %defattr(-,root,root)
-%doc CHANGES  LICENSE  README TODO docs/*
+%doc CHANGES  LICENSE  README.md TODO docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
