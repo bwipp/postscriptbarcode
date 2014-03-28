@@ -5,7 +5,7 @@ Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
 
 License:        MIT
-URL:            https://code.google.com/p/postscriptbarcode/ 
+URL:            https://github.com/bwipp/postscriptbarcode 
 # https://github.com/bwipp/%{name}/archive/master.tar.gz
 Source0:        postscriptbarcode-master.tar.gz
 BuildArch:      noarch
