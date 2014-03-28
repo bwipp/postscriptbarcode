@@ -2,7 +2,7 @@ Barcode Writer in Pure PostScript
 =================================
 
   * Homepage: https://www.terryburton.co.uk/barcodewriter/
-  * Documentation: https://code.google.com/p/postscriptbarcode/wiki/Symbologies
+  * Documentation: https://github.com/bwipp/postscriptbarcode/wiki
   * Download: https://github.com/bwipp/postscriptbarcode/releases
   * Source: https://github.com/bwipp/postscriptbarcode.git
   * Issue tracker: https://github.com/bwipp/postscriptbarcode/issues
