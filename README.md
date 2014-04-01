@@ -87,5 +87,5 @@ Building
 
 The build requirements are Perl, GNU Make and GhostScript.
 
-Just run make from the root of the source distribution. The flavours are built
+Just run `make` from the root of the source distribution. The flavours are built
 into subdirectories of the `build/` directory.
