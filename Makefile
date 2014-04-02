@@ -1,5 +1,5 @@
 # Barcode Writer in Pure PostScript
-# http://www.terryburton.co.uk/barcodewriter/
+# http://bwipp.terryburton.co.uk
 #
 # Copyright (c) 2004-2014 Terry Burton
 #

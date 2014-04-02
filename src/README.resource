@@ -1,6 +1,6 @@
 Barcode Writer in Pure PostScript
 
-http://www.terryburton.co.uk/barcodewriter/
+http://bwipp.terryburton.co.uk
 
 
 The contents of the Resource directory provides Barcode Writer in Pure
