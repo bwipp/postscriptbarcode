@@ -8,9 +8,9 @@ Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
 
 License:        MIT
-URL:            https://code.google.com/p/postscriptbarcode/ 
-#Source0:        https://github.com/terryburton/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
-Source0:        https://github.com/terryburton/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
+URL:            https://github.com/bwipp/postscriptbarcode 
+#Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
@@ -38,7 +38,7 @@ cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcod
 
 %files
 %defattr(-,root,root)
-%doc CHANGES  LICENSE  README TODO docs/*
+%doc CHANGES  LICENSE  README.md TODO docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
