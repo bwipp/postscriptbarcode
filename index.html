@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Barcode Writer in Pure PostScript by bwipp</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/bwipp/postscriptbarcode">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/bwipp/postscriptbarcode/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/bwipp/postscriptbarcode/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Barcode Writer in Pure PostScript</h1>
+          <p></p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/bwipp">bwipp</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <p><a href="https://travis-ci.org/bwipp/postscriptbarcode"><img src="https://travis-ci.org/bwipp/postscriptbarcode.png?branch=master" alt="Build Status"></a></p>
+
+<ul>
+<li>Homepage: <a href="https://www.terryburton.co.uk/barcodewriter/">https://www.terryburton.co.uk/barcodewriter/</a>
+</li>
+<li>Documentation: <a href="https://github.com/bwipp/postscriptbarcode/wiki">https://github.com/bwipp/postscriptbarcode/wiki</a>
+</li>
+<li>Download: <a href="https://github.com/bwipp/postscriptbarcode/releases">https://github.com/bwipp/postscriptbarcode/releases</a>
+</li>
+<li>Source: <a href="https://github.com/bwipp/postscriptbarcode.git">https://github.com/bwipp/postscriptbarcode.git</a>
+</li>
+<li>Issue tracker: <a href="https://github.com/bwipp/postscriptbarcode/issues">https://github.com/bwipp/postscriptbarcode/issues</a>
+</li>
+<li>Mailing list: <a href="http://groups.google.co.uk/group/postscriptbarcode">http://groups.google.co.uk/group/postscriptbarcode</a>
+</li>
+</ul><p>Barcode Writer in Pure Postscript generates all barcode formats entirely within
+PostScript so that the process of converting the input data into the printed
+output can be performed by the printer or RIP itself. This is ideal for
+variable data printing (VDP) and avoids the need to re-implement the barcode
+generation process whenever your language needs change.</p>
+
+<p>Since this resource is written in PostScript and interpreted within the
+virtual machine of a printer it is compatible with any operating system and
+hardware platform.</p>
+
+<p>It makes including any barcode within a PostScript document as simple as
+inserting the following directive:</p>
+
+<pre><code>0 0 moveto (978-1-56581-231-4) (includetext)
+/isbn /uk.co.terryburton.bwipp findresource exec
+</code></pre>
+
+<p>There is a web-based demonstration of the project here:</p>
+
+<p><a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
+
+<h2>
+<a name="the-resources" class="anchor" href="#the-resources"><span class="octicon octicon-link"></span></a>The Resources</h2>
+
+<p>BWIPP is essentially a set of generic PostScript Level 2 named resources that
+are provided in four flavours for ease of use. The one to use depends on how
+you intend to deploy the library.</p>
+
+<ul>
+<li><p>"Packaged" or "unpackaged": The named resources have been packaged for DSC
+conformance, portability and ease of distribution. You will most likely want to
+use a packaged flavour in production, however the unpackaged versions of the
+resources are useful for understanding the code, developing the library and
+debugging.</p></li>
+<li><p>"Separate files" or "monolithic": The resource is provided as separate files
+that are formatted for direct use by Adobe Distiller, GhostScript, a printer
+hard disk or a document manager. The monolithic flavours contain all of the
+resources in a single file that is suitable for inclusion in the Prolog section
+of a PostScript document template or installing to a printer's initial job VM.</p></li>
+</ul><p>This leads to the following set of four files.</p>
+
+<p>For production use:</p>
+
+<ul>
+<li>postscriptbarcode-packaged-resource – Packaged; Separate files.</li>
+<li>postscriptbarcode-monolithic-package – Packaged; Monolithic file. </li>
+</ul><p>For BWIPP development:</p>
+
+<ul>
+<li>postscriptbarcode-resource – Unpackaged; Seperate files.</li>
+<li>postscriptbarcode-monolithic – Unpackaged; Monolithic file.</li>
+</ul><h2>
+<a name="downloading" class="anchor" href="#downloading"><span class="octicon octicon-link"></span></a>Downloading</h2>
+
+<p>You can download the prepared packages and the sources from here:</p>
+
+<p><a href="https://github.com/bwipp/postscriptbarcode/releases">https://github.com/bwipp/postscriptbarcode/releases</a></p>
+
+<p>Alternatively you can clone the repository: </p>
+
+<pre><code>git clone https://github.com/bwipp/postscriptbarcode.git
+</code></pre>
+
+<p>If you are using Ubuntu you can download the daily build of the trunk of BWIPP
+from PPA:</p>
+
+<pre><code>sudo add-apt-repository ppa:postscriptbarcode-maintainers/ppa
+sudo apt-get update
+sudo apt-get install libpostscriptbarcode
+</code></pre>
+
+<h2>
+<a name="building" class="anchor" href="#building"><span class="octicon octicon-link"></span></a>Building</h2>
+
+<p>The build requirements are Perl, GNU Make and GhostScript.</p>
+
+<p>Just run <code>make</code> from the root of the source distribution. The flavours are built
+into subdirectories of the <code>build/</code> directory.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-187654-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
