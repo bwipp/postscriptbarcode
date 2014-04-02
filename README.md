@@ -70,7 +70,7 @@ Downloading
 
 You can download the prepared packages and the sources from here:
 
-https://github.com/bwipp/postscriptbarcode/releases
+https://github.com/bwipp/postscriptbarcode/releases/latest
 
 Alternatively you can clone the repository: 
 
