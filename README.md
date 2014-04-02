@@ -5,7 +5,7 @@ Barcode Writer in Pure PostScript
 
   * Homepage: http://bwipp.terryburton.co.uk
   * Documentation: https://github.com/bwipp/postscriptbarcode/wiki
-  * Download: https://github.com/bwipp/postscriptbarcode/releases
+  * Download: https://github.com/bwipp/postscriptbarcode/releases/latest
   * Source: https://github.com/bwipp/postscriptbarcode.git
   * Issue tracker: https://github.com/bwipp/postscriptbarcode/issues
   * Mailing list: http://groups.google.co.uk/group/postscriptbarcode
