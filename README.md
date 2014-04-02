@@ -3,7 +3,7 @@ Barcode Writer in Pure PostScript
 
 [![Build Status](https://travis-ci.org/bwipp/postscriptbarcode.png?branch=master)](https://travis-ci.org/bwipp/postscriptbarcode)
 
-  * Homepage: https://bwipp.terryburton.co.uk
+  * Homepage: http://bwipp.terryburton.co.uk
   * Documentation: https://github.com/bwipp/postscriptbarcode/wiki
   * Download: https://github.com/bwipp/postscriptbarcode/releases
   * Source: https://github.com/bwipp/postscriptbarcode.git
