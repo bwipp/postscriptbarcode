@@ -19,9 +19,9 @@ output can be performed by the printer or RIP itself. This is ideal for
 variable data printing (VDP) and avoids the need to re-implement the barcode
 generation process whenever your language needs change.
 
-Since this resource is written in PostScript and interpretted within the
-virtual machine of a printer it is compatible with any operating system and
-hardware platform.
+Since this resource is written in PostScript and interpreted within the virtual
+machine of a printer it is compatible with any operating system and hardware
+platform.
 
 It makes including any barcode within a PostScript document as simple as
 inserting the following directive:
