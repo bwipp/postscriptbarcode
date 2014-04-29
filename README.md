@@ -68,13 +68,19 @@ For BWIPP development:
 Downloading
 -----------
 
-You can download the prepared packages and the sources from here:
+You can download prepared packages and the sources from here:
 
 https://github.com/bwipp/postscriptbarcode/releases/latest
 
-Alternatively you can clone the repository: 
+Alternatively you can get and build the latest from version control:
 
     git clone https://github.com/bwipp/postscriptbarcode.git
+    cd postscriptbarcode
+    make
+
+The flavours are built into subdirectories of the `build/` directory.
+
+The build requirements are Perl, GNU Make and GhostScript.
 
 If you are using Ubuntu you can download the daily build of the trunk of BWIPP
 from PPA:
@@ -83,11 +89,3 @@ from PPA:
     sudo apt-get update
     sudo apt-get install libpostscriptbarcode
 
-
-Building
---------
-
-The build requirements are Perl, GNU Make and GhostScript.
-
-Just run `make` from the root of the source distribution. The flavours are built
-into subdirectories of the `build/` directory.
