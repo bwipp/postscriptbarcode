@@ -27,11 +27,13 @@ the barcode generation process whenever your language needs change.
 
 %build
 make -j `nproc`
-make test
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
 cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
+
+%check
+make test
 
 %files
 %defattr(-,root,root)
