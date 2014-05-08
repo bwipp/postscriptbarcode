@@ -7,7 +7,7 @@ Group:          Development/Libraries/Other
 License:        MIT
 URL:            https://github.com/bwipp/postscriptbarcode 
 # https://github.com/bwipp/%{name}/archive/master.tar.gz
-Source0:        postscriptbarcode-master.tar.gz
+Source0:        %{name}-%{version}.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
