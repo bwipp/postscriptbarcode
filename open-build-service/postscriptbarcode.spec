@@ -1,5 +1,5 @@
 Name:           postscriptbarcode
-Version:        %(date +%%Y%%m%%d).nightly
+Version:        %(date +%%Y%%m%%d)
 Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
