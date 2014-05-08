@@ -23,7 +23,7 @@ ideal for variable data printing (VDP) and avoids the need to re-implement
 the barcode generation process whenever your language needs change.
 
 %prep
-%setup -q -n %{name}-master
+%setup -q -n %{name}-%{version}
 
 %build
 make -j `nproc`
