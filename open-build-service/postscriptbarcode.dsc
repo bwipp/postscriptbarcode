@@ -6,5 +6,4 @@ Version:
 Maintainer: Terry Burton <tez@terryburton.co.uk>
 Build-Depends: debhelper (>= 9), ghostscript
 Files: 
- 00000000000000000000000000000000 0 libpostscriptbarcode.orig.tar.gz
- 00000000000000000000000000000000 0 libpostscriptbarcode.debian.tar.xz
+ 00000000000000000000000000000000 0 libpostscriptbarcode.tar.gz
