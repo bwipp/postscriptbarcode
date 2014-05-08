@@ -1,4 +1,4 @@
-Format: 3.0 (native)
+Format: 1.0
 Source: libpostscriptbarcode
 Binary: libpostscriptbarcode
 Architecture: all
