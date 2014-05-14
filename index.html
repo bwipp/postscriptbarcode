@@ -31,6 +31,9 @@
 <script type="text/javascript">
 var trackOutboundLink = function(link) {
   if (ga.hasOwnProperty('loaded') && ga.loaded === true) {
+    setTimeout(function() {
+      document.location.href = link.href;
+    }, 1000);
     ga('send', 'event', 'outbound', 'click', link.href, {'hitCallback':
       function () {
       document.location.href = link.href;
