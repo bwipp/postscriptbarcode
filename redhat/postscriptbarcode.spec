@@ -40,7 +40,7 @@ make test
 
 %files
 %defattr(-,root,root)
-%doc CHANGES  LICENSE  README.md TODO docs/*
+%doc CHANGES  LICENSE  README.md docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
