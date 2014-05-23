@@ -187,11 +187,11 @@ var trackOutboundLink = function(link) {
 var a=document.getElementsByTagName('a');
 for (var i=0; i<a.length; i++){
   if (a[i].hostname!=location.hostname) {
-    var calltrack=function(evt){evt.preventDefault(); trackOutboundLink(this);}
-    if (a[i].attachEvent)
-      a[i].attachEvent('onclick', calltrack);
-    else
-      a[i].addEventListener('click', calltrack, false);
+    var calltrack=function(evt){
+      (event.preventDefault) ? event.preventDefault() : event.returnValue = false;
+      trackOutboundLink(this);
+    }}
+    (a[i].attachEvent) ? a[i].attachEvent('onclick', calltrack) : a[i].addEventListener('click', calltrack, false);
   }
 }
 </script>
