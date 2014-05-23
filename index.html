@@ -188,7 +188,7 @@ var trackOutboundLink = function(link) {
 var a=document.getElementsByTagName('a');
 for (var i=0; i<a.length; i++){
   if (a[i].hostname!=location.hostname) {
-    var calltrack=function(){trackOutboundLink(this); return false;}
+    var calltrack=function(evt){evt.preventDefault(); trackOutboundLink(this);}
     if (a[i].attachEvent)
       a[i].attachEvent('onclick', calltrack);
     else
