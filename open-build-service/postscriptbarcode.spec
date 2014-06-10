@@ -5,14 +5,13 @@ Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
 
 License:        MIT
-URL:            https://github.com/bwipp/postscriptbarcode 
-# https://github.com/bwipp/%{name}/archive/master.tar.gz
-Source0:        %{name}-%{version}.tar.gz
+URL:            https://bwipp.terryburton.co.uk
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/master.tar.gz#/%{name}-%{version}.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
 
-# Required for EPEL5 <= 5
+# Required for EPEL <= 5
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %description
@@ -28,16 +27,16 @@ the barcode generation process whenever your language needs change.
 %build
 make -j `nproc`
 
+%check
+make test
+
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
 cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 
-%check
-make test
-
 %files
 %defattr(-,root,root)
-%doc CHANGES  LICENSE  README.md docs/*
+%doc CHANGES LICENSE README.md docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
