@@ -9,7 +9,7 @@ Group:          Development/Libraries/Other
 
 License:        MIT
 URL:            https://github.com/bwipp/postscriptbarcode 
-Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{commit}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  ghostscript
@@ -23,7 +23,7 @@ ideal for variable data printing (VDP) and avoids the need to re-implement
 the barcode generation process whenever your language needs change.
 
 %prep
-%setup -q -n %{name}-%{shortcommit}
+%setup -q -n %{name}-%{commit}
 
 %build
 make -j `nproc`
