@@ -82,8 +82,18 @@ RELEASE=$1 && shift
 RELEASEFILES=$@
 
 if ! TAG=`git describe --exact-match 2>/dev/null`; then
-  echo "This commit is not a tag so not creating a release"
+  echo "This commit is not tagged so not creating a release"
   exit 0
+fi
+
+if [ "$TRAVIS" == "true" ] && [ -z "$TRAVIS_TAG" ]; then
+  echo "This build is not for the tag so not creating a release"
+  exit 0
+fi
+
+if [ "$TRAVIS_TAG" != "$RELEASE" ]; then
+  echo "Error: TRAVIS_TAG ($TRAVIS_TAG) does not match the indicated release ($RELEASE)"
+  exit 1
 fi
 
 if [ "$TAG" != "$RELEASE" ]; then
