@@ -1,22 +1,19 @@
-%global commit 5843dcc374d55db26287f3c23ffdb8d6b6a164ed
+%global commit a36b4fde5da42068ab08f8234d52102c57781b1f
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           postscriptbarcode
-Version:        20131102
-Release:        3%{?dist}
+Version:        20140618
+Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
 
 License:        MIT
 URL:            https://github.com/bwipp/postscriptbarcode 
-#Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
-Source0:        https://github.com/bwipp/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
+
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
-
-# Required for EPEL5 <= 5
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %description
 Barcode Writer in Pure Postscript generates all barcode formats entirely
@@ -26,7 +23,7 @@ ideal for variable data printing (VDP) and avoids the need to re-implement
 the barcode generation process whenever your language needs change.
 
 %prep
-%setup -q -n %{name}-%{commit}
+%setup -q -n %{name}-%{shortcommit}
 
 %build
 make -j `nproc`
@@ -39,15 +36,14 @@ cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcod
 make test
 
 %files
-%defattr(-,root,root)
 %doc CHANGES  LICENSE  README.md docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
 %changelog
-* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20131102-1
+* Thu Jun 19 2014 Terry Burton <tez@terryburton.co.uk> - 20140618-1
+- New upstream version
 - Permanent download link from GitHub
-- Compatibility changes for old EPEL and SuSE
 
 * Thu Oct 31 2013 Mario Blättermann <mariobl@fedoraproject.org> - 20131006-2
 - Add folder ownership for %%{_datadir}/%%{name}/
