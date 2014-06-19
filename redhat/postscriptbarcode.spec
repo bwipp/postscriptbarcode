@@ -44,6 +44,8 @@ make test
 * Thu Jun 19 2014 Terry Burton <tez@terryburton.co.uk> - 20140618-1
 - New upstream version
 - Permanent download link from GitHub
+- Build all flavours of the resource and run tests
+- Install the "monolithic package" flavour of the resource
 
 * Thu Oct 31 2013 Mario Blättermann <mariobl@fedoraproject.org> - 20131006-2
 - Add folder ownership for %%{_datadir}/%%{name}/
