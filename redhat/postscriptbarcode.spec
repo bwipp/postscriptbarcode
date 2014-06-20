@@ -1,8 +1,8 @@
-%global commit a36b4fde5da42068ab08f8234d52102c57781b1f
+%global commit 4f527ecd2841df0ae91dfb4f350f0098b0ccdb9b
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           postscriptbarcode
-Version:        20140618
+Version:        20140620
 Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
@@ -41,7 +41,7 @@ make test
 %{_datadir}/%{name}/barcode.ps
 
 %changelog
-* Thu Jun 19 2014 Terry Burton <tez@terryburton.co.uk> - 20140618-1
+* Thu Jun 20 2014 Terry Burton <tez@terryburton.co.uk> - 20140620-1
 - New upstream version
 - Permanent download link from GitHub
 - Build all flavours of the resource and run tests
