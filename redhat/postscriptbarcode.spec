@@ -1,8 +1,8 @@
-%global commit 4f527ecd2841df0ae91dfb4f350f0098b0ccdb9b
+%global commit [ Git commit in the format: 4f527ecd2841df0ae91dfb4f350f0098b0ccdb9b ]
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           postscriptbarcode
-Version:        20140620
+Version:        [ Version in the format: 20140620 ]
 Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
