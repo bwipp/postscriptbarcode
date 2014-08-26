@@ -52,7 +52,8 @@ debugging.
 that are formatted for direct use by Adobe Distiller, GhostScript, a printer
 hard disk or a document manager. The monolithic flavours contain all of the
 resources in a single file that is suitable for inclusion in the Prolog section
-of a PostScript document template or installing to a printer's initial job VM.
+of a each PostScript document or installing to a printer's initial job VM to
+provide persistence between jobs until the device is reset.
 
 This leads to the following set of four files.
 
@@ -83,11 +84,3 @@ Alternatively you can get and build the latest from version control:
 The flavours are built into subdirectories of the `build/` directory.
 
 The build requirements are Perl, GNU Make and GhostScript.
-
-If you are using Ubuntu you can download the daily build of the trunk of BWIPP
-from PPA:
-
-    sudo add-apt-repository ppa:postscriptbarcode-maintainers/ppa
-    sudo apt-get update
-    sudo apt-get install libpostscriptbarcode
-
