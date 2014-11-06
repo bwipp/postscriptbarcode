@@ -1,0 +1,25 @@
+%!PS
+
+/barcode (00123457) def
+
+/upcacode (00000000000) 11 string copy def
+upcacode 0 barcode 0 get put
+barcode 6 get 48 sub 2 le {
+    upcacode 1 barcode 1 2 getinterval putinterval
+    upcacode 3 barcode 6 1 getinterval putinterval
+    upcacode 8 barcode 3 3 getinterval putinterval
+} if
+barcode 6 get 48 sub 3 eq {
+    upcacode 1 barcode 1 3 getinterval putinterval
+    upcacode 9 barcode 4 2 getinterval putinterval
+} if
+barcode 6 get 48 sub 4 eq {
+    upcacode 1 barcode 1 4 getinterval putinterval
+    upcacode 10 barcode 5 1 getinterval putinterval
+} if
+barcode 6 get 48 sub 5 ge {
+    upcacode 1 barcode 1 5 getinterval putinterval
+    upcacode 10 barcode 6 1 getinterval putinterval
+} if
+
+upcacode asdf
