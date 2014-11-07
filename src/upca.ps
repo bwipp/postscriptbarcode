@@ -63,6 +63,7 @@ begin
     /addontextsize (unset) def
     /addontextxoffset (unset) def
     /addontextyoffset (unset) def
+    /expandupce false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -96,6 +97,54 @@ begin
         /addon () def
     } ifelse
 
+    % Expand a given UPC-E
+    expandupce {
+        % Validate the input
+        barcode length 7 ne barcode length 8 ne and {
+            /bwipp.upcAupcEbadLength (UPC-E must be 7 or 8 digits) //raiseerror exec
+        } if
+        barcode {
+            dup 48 lt exch 57 gt or {
+                /bwipp.upcAupcEbadCharacter (UPC-E must contain only digits) //raiseerror exec
+            } if
+        } forall
+        barcode 0 get dup 48 ne exch 49 ne and {
+            /bwipp.upcAupcEbadNumberSystem (UPC-E must have number system 0 or 1) //raiseerror exec
+        } if
+        1 {  % Common exit
+            /upcacode barcode length 8 eq {12} {11} ifelse string def
+            barcode 6 get 48 sub 2 le {
+                upcacode 0 barcode 0 3 getinterval putinterval
+                upcacode 3 barcode 6 1 getinterval putinterval
+                upcacode 4 (0000) putinterval
+                upcacode 8 barcode 3 3 getinterval putinterval
+                exit
+            } if
+            barcode 6 get 48 sub 3 eq {
+                upcacode 0 barcode 0 4 getinterval putinterval
+                upcacode 4 (00000) putinterval
+                upcacode 9 barcode 4 2 getinterval putinterval
+                exit
+            } if
+            barcode 6 get 48 sub 4 eq {
+                upcacode 0 barcode 0 5 getinterval putinterval
+                upcacode 5 (00000) putinterval
+                upcacode 10 barcode 5 1 getinterval putinterval
+                exit
+            } if
+            barcode 6 get 48 sub 5 ge {
+                upcacode 0 barcode 0 6 getinterval putinterval
+                upcacode 6 (0000) putinterval
+                upcacode 10 barcode 6 1 getinterval putinterval
+                exit
+            } if
+        } repeat
+        barcode length 8 eq {
+            upcacode 11 barcode 7 1 getinterval putinterval
+        } if
+        /barcode upcacode def
+    } if
+
     % Validate the input
     barcode length 11 ne barcode length 12 ne and {
         /bwipp.upcAbadLength (UPC-A must be 11 or 12 digits) //raiseerror exec
@@ -124,7 +173,7 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     barcode length 12 eq {
         barcode 11 get checksum 48 add ne {
-            /bwipp.upcAbadCheckDigit (Incorrect UPC-A check digit provided) //raiseerror exec
+            /bwipp.upcAbadCheckDigit (Incorrect UPC check digit provided) //raiseerror exec
         } if
     } if
     pad 0 barcode putinterval       % Add barcode to the start of the pad
