@@ -63,7 +63,6 @@ begin
     /addontextsize (unset) def
     /addontextxoffset (unset) def
     /addontextyoffset (unset) def
-    /compressupca false def
  
     % Parse the input options
     options type /stringtype eq {
@@ -98,11 +97,8 @@ begin
     } ifelse
 
     % Compress a given UPC-A
-    compressupca {
+    barcode length 11 eq barcode length 12 eq or {
         % Validate the input
-        barcode length 11 ne barcode length 12 ne and {
-            /bwipp.upcEupcAbadLength (UPC-A must be 11 or 12 digits) //raiseerror exec
-        } if
         barcode {
             dup 48 lt exch 57 gt or {
                 /bwipp.upcEupcAbadCharacter (UPC-A must contain only digits) //raiseerror exec

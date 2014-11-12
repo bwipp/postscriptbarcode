@@ -63,7 +63,6 @@ begin
     /addontextsize (unset) def
     /addontextxoffset (unset) def
     /addontextyoffset (unset) def
-    /expandupce false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -98,11 +97,8 @@ begin
     } ifelse
 
     % Expand a given UPC-E
-    expandupce {
+    barcode length 7 eq barcode length 8 eq or {
         % Validate the input
-        barcode length 7 ne barcode length 8 ne and {
-            /bwipp.upcAupcEbadLength (UPC-E must be 7 or 8 digits) //raiseerror exec
-        } if
         barcode {
             dup 48 lt exch 57 gt or {
                 /bwipp.upcAupcEbadCharacter (UPC-E must contain only digits) //raiseerror exec
