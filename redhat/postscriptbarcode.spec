@@ -1,22 +1,19 @@
-%global commit 5843dcc374d55db26287f3c23ffdb8d6b6a164ed
+%global commit [ Git commit in the format: 4f527ecd2841df0ae91dfb4f350f0098b0ccdb9b ]
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name:           postscriptbarcode
-Version:        20131102
-Release:        3%{?dist}
+Version:        [ Version in the format: 20140620 ]
+Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
 
 License:        MIT
-URL:            https://code.google.com/p/postscriptbarcode/ 
-#Source0:        https://github.com/terryburton/postscriptbarcode/archive/%{commit}/%{name}-%{version}-%{shortcommit}.tar.gz
-Source0:        https://github.com/terryburton/postscriptbarcode/archive/5843dcc374d55db26287f3c23ffdb8d6b6a164ed/postscriptbarcode-20131102-5843dcc.tar.gz
+URL:            https://github.com/bwipp/postscriptbarcode 
+Source0:        https://github.com/bwipp/postscriptbarcode/archive/%{commit}/%{name}-%{commit}.tar.gz
+
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
-
-# Required for EPEL5 <= 5
-BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %description
 Barcode Writer in Pure Postscript generates all barcode formats entirely
@@ -30,22 +27,25 @@ the barcode generation process whenever your language needs change.
 
 %build
 make -j `nproc`
-make test
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
 cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcode.ps
 
+%check
+make test
+
 %files
-%defattr(-,root,root)
-%doc CHANGES  LICENSE  README TODO docs/*
+%doc CHANGES  LICENSE  README.md docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
 %changelog
-* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20131102-1
+* Thu Jun 20 2014 Terry Burton <tez@terryburton.co.uk> - 20140620-1
+- New upstream version
 - Permanent download link from GitHub
-- Compatibility changes for old EPEL and SuSE
+- Build all flavours of the resource and run tests
+- Install the "monolithic package" flavour of the resource
 
 * Thu Oct 31 2013 Mario Blättermann <mariobl@fedoraproject.org> - 20131006-2
 - Add folder ownership for %%{_datadir}/%%{name}/
