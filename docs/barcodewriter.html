@@ -49,19 +49,31 @@ flexibility offered by direct PostScript means you can avoid re-implementing
 barcode generator code, or migrating to new libraries, whenever your project
 language needs change.</p>
 
-<p>To make it as easy as possible to incorporate this project into your own
-systems, whether they be freely available or proprietary, it is licensed under
-the permissive MIT/X-Consortium License.</p>
-
 <p>The project homepage is at 
 <a href="http://bwipp.terryburton.co.uk">http://bwipp.terryburton.co.uk</a></p>
 
 <p>This is the main resource for the project providing the latest downloads of
 code and documentation, as well as access to the support and development
 mailing list.</p>
+
+<p>To make it as easy as possible to incorporate this project into your own
+systems, whether they be freely available or proprietary, it is licensed under
+the permissive MIT/X-Consortium License.</p>
+
+<blockquote>
+This documentation is auto-generated from the BWIPP wiki at <a href="https://github.com/bwipp/postscriptbarcode/wiki">https://github.com/bwipp/postscriptbarcode/wiki</a> using the pandoc-based build system in the
+<code>wikidocs/__pandoc</code> directory of the BWIPP repository:
+<a href="https://github.com/bwipp/postscriptbarcode.git">https://github.com/bwipp/postscriptbarcode.git</a>
+</blockquote>
 <div id="TOC">
 <ul>
+<li><a href="#barcode-writer-in-pure-postscript">Barcode Writer in Pure PostScript</a><ul>
+<li><a href="#packaging-flavours-for-the-named-resources">Packaging &quot;Flavours&quot; for the Named Resources</a></li>
+<li><a href="#downloading">Downloading</a></li>
+</ul></li>
 <li><a href="#quick-guide">Quick Guide</a></li>
+<li><a href="#monolithic-flavours">Monolithic Flavours</a></li>
+<li><a href="#named-resource-flavours">Named Resource Flavours</a></li>
 <li><a href="#symbology-reference">Symbology Reference</a><ul>
 <li><a href="#ean-13">EAN-13</a></li>
 <li><a href="#ean-8">EAN-8</a></li>
@@ -214,6 +226,50 @@ mailing list.</p>
 </ul></li>
 </ul>
 </div>
+<h1 id="barcode-writer-in-pure-postscript">Barcode Writer in Pure PostScript</h1>
+<p>Useful links:</p>
+<ul>
+<li>Homepage: <a href="http://bwipp.terryburton.co.uk">http://bwipp.terryburton.co.uk</a><br /></li>
+<li>Documentation: <a href="https://github.com/bwipp/postscriptbarcode/wiki">https://github.com/bwipp/postscriptbarcode/wiki</a><br /></li>
+<li>Download: <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">https://github.com/bwipp/postscriptbarcode/releases/latest</a><br /></li>
+<li>Source: <a href="https://github.com/bwipp/postscriptbarcode.git">https://github.com/bwipp/postscriptbarcode.git</a><br /></li>
+<li>Issue tracker: <a href="https://github.com/bwipp/postscriptbarcode/issues">https://github.com/bwipp/postscriptbarcode/issues</a><br /></li>
+<li>Mailing list: <a href="http://groups.google.co.uk/group/postscriptbarcode">http://groups.google.co.uk/group/postscriptbarcode</a></li>
+</ul>
+<p>Barcode Writer in Pure Postscript generates all barcode formats entirely within PostScript so that the process of converting the input data into the printed output can be performed by the printer or RIP itself. This is ideal for variable data printing (VDP) and avoids the need to re-implement the barcode generation process whenever your language needs change.</p>
+<p>Since this resource is written in PostScript and interpreted within the virtual machine of a printer it is compatible with any operating system and hardware platform.</p>
+<p>It makes including any barcode within a PostScript document as simple as inserting the following directive:</p>
+<pre><code>0 0 moveto (978-1-56581-231-4) (includetext)
+/isbn /uk.co.terryburton.bwipp findresource exec</code></pre>
+<p>There is a web-based demonstration of the project here:</p>
+<p><a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
+<p>This project is dedicated to the memory of Craig K. Harmon. <a href="https://qed.org/ckh">https://qed.org/ckh</a></p>
+<h2 id="packaging-flavours-for-the-named-resources">Packaging &quot;Flavours&quot; for the Named Resources</h2>
+<p>BWIPP is essentially a set of generic PostScript Level 2 named resources that are provided in four flavours for ease of use. The one to use depends on how you intend to deploy the library.</p>
+<ul>
+<li><p>&quot;Packaged&quot; or &quot;unpackaged&quot;: The named resources have been packaged for DSC conformance, portability and ease of distribution. You will most likely want to use a packaged flavour in production, however the unpackaged versions of the resources are useful for understanding the code, developing the library and debugging.</p></li>
+<li><p>&quot;Separate files&quot; or &quot;monolithic&quot;: The resource is provided as separate files that are formatted for direct use by Adobe Distiller, GhostScript, a printer hard disk or a document manager. The monolithic flavours contain all of the resources in a single file that is suitable for inclusion in the Prolog section of a each PostScript document or installing to a printer's initial job VM to provide persistence between jobs until the device is reset.</p></li>
+</ul>
+<p>This leads to the following set of four files.</p>
+<p>For production use:</p>
+<ul>
+<li><code>postscriptbarcode-packaged-resource</code> – Packaged; Separate files.<br /></li>
+<li><code>postscriptbarcode-monolithic-package</code> – Packaged; Monolithic file.</li>
+</ul>
+<p>For BWIPP development:</p>
+<ul>
+<li><code>postscriptbarcode-resource</code> – Unpackaged; Seperate files.<br /></li>
+<li><code>postscriptbarcode-monolithic</code> – Unpackaged; Monolithic file.</li>
+</ul>
+<h2 id="downloading">Downloading</h2>
+<p>You can download prepared packages and the sources from here:</p>
+<p><a href="https://github.com/bwipp/postscriptbarcode/releases/latest">https://github.com/bwipp/postscriptbarcode/releases/latest</a></p>
+<p>Alternatively you can get and build the latest from version control:</p>
+<pre><code>git clone https://github.com/bwipp/postscriptbarcode.git
+cd postscriptbarcode
+make</code></pre>
+<p>The flavours are built into subdirectories of the <code>build/</code> directory.</p>
+<p>The build requirements are Perl, GNU Make and GhostScript.</p>
 <h1 id="quick-guide">Quick Guide</h1>
 <p>Using Barcode Writer in Pure PostScript requires only some basic PostScript knowledge that is easily learned by experimentation. If you do not want to get your hands messy playing with PostScript then you can use one of the project's frontends which hide many of the details.</p>
 <p>The best way to get familiar with using the code is to download the <em>monolithic</em> flavour of the <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">latest release</a> and open the <code>barcode_with_sample.ps</code> file with a text editor.</p>
@@ -222,8 +278,8 @@ mailing list.</p>
 <li>A PostScript indicator, beginning <code>%!PS</code>.<br /></li>
 <li>Comments, with lines beginning <code>%</code>.<br /></li>
 <li>A definition for the <code>uk.co.terryburton.bwipp</code> category for the named resources.<br /></li>
-<li>Named resource definitions for the renderers delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.<br /></li>
-<li>Named resource definitions for the encoders delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.<br /></li>
+<li>A small set of named resource definitions for the renderers which generate the graphical output for the symbols delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.<br /></li>
+<li>A large set of named resource definitions for the encoders which convert the input into a structured symbol definition delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.<br /></li>
 <li>A set of sample barcode invocations delimited by <code>% --BEGIN SAMPLE--</code> and <code>% --END SAMPLE--</code>.</li>
 </ul>
 <p>This is one example from the samples:</p>
@@ -258,6 +314,60 @@ mailing list.</p>
 <li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and any dependencies as specified in the resource file. Examining the contents of the PS files created by the web-based generator at <a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.<br /></li>
 <li>If you intend to create an application whose purpose is to generate documents containing barcodes it is suggested that you use the monolithic <code>barcode.ps</code> file as a template and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version.</li>
 </ul>
+<h1 id="monolithic-flavours">Monolithic Flavours</h1>
+<p>The monolithic <code>barcode.ps</code> file provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources shipped in a single file for ease of inclusion within the Prolog section of a PostScript document template or for installing into a printer's initial job VM.</p>
+<p><strong>Inclusion Within the Prolog Section of a Document</strong></p>
+<p>An application will first include the contents of <code>barcode.ps</code> in the Prolog section of a PostScript file and then generate code like the following.</p>
+<p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
+<pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
+<p>and in the page description where a barcode is needed:</p>
+<pre><code>0 0 moveto (BWIPP) (eclevel=M) qrcode</code></pre>
+<p>If the application needs to import the resource under a different name to avoid a conflict, then the setup could be:</p>
+<pre><code>/foo /qrcode /uk.co.terryburton.bwipp findresource def</code></pre>
+<p>followed by:</p>
+<pre><code>0 0 moveto (BWIPP1) (eclevel=M) foo
+0 0 moveto (BWIPP2) (eclevel=M) foo
+...</code></pre>
+<p>(The above is analogous to <code>from uk.co.terryburton.bwipp import qrcode as foo</code> in other languages.)</p>
+<p>Or, to generate a few barcodes with no setup section or local name at all:</p>
+<pre><code>0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
+<p>This technique also reduces the possibility of namespace collision when using the library's procedures with other code.</p>
+<p><strong>Installing to a Printer Initial Job VM</strong></p>
+<p>Send barcode.ps to the printer with the line <code>true () startjob</code> added at the top where the parentheses contain the printer's <code>startjob</code> password.</p>
+<p>The named resources will remain available between jobs but will not persist accoss power cycles.</p>
+<h1 id="named-resource-flavours">Named Resource Flavours</h1>
+<p>The contents of the <code>Resource</code> directory provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources split into seperate files structured for ease of deployment.</p>
+<p>This standard delivery mechanism allows BWIPP resources to be added to a PostScript virtual machine's resource search path, or pre-downloaded to a printer's memory or permanent storage, or supplied by a document manager, all without any change in the code an application generates to use the resources.</p>
+<p>An application or administrator must first make the BWIPP resources available to the print system as described for a variety of situations below. An application will then generate code like the following.</p>
+<p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
+<pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
+<p>and in the page description where a barcode is needed:</p>
+<pre><code>0 0 moveto (BWIPP) (eclevel=M) qrcode</code></pre>
+<p>If the application needs to import the resource under a different name to avoid a conflict, then the setup could be:</p>
+<pre><code>/foo /qrcode /uk.co.terryburton.bwipp findresource def</code></pre>
+<p>followed by:</p>
+<pre><code>0 0 moveto (BWIPP1) (eclevel=M) foo
+0 0 moveto (BWIPP2) (eclevel=M) foo
+...</code></pre>
+<p>(The above is analogous to <code>from uk.co.terryburton.bwipp import qrcode as foo</code> in other languages.)</p>
+<p>Or, to generate a few barcodes with no setup section or local name at all:</p>
+<pre><code>0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
+<p>This technique also reduces the possibility of namespace collision when using the library's procedures with other code.</p>
+<p>If the definitions for the routines that generate and render the barcode are not already resident in memory then they will be fetched from a standard resource location in a way that is transparent to the user.</p>
+<p><strong>GhostScript</strong></p>
+<p>Unpack the contents of the Resource directory to somewhere accessible to the application.</p>
+<p>Specify the location of the Resource files using the <code>-sGenericResourceDir</code> parameter. Where this defaults to <code>./Resource</code> (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.</p>
+<p>A note for Windows users:</p>
+<blockquote>
+<p>&quot;The Windows pre-built Ghostscript binary uses a ROM file system. If you want to modify the Resources available, then ... put all the required resources on disk and tell Ghostscript to use the disk-based resources. ... You will need to download the Ghostscript source (the Resources are not currently available separately) ... modify the Resources directory and tell Ghostscript to use it by adding one of the relevant command line switches (<code>-I</code>, <code>-sGenericResourceDir</code>) or possibly by setting the <code>GS_LIB</code> environment variable.&quot; Thanks to Ken Sharp, <a href="http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html">http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html</a></p>
+</blockquote>
+<p><strong>Adobe Distiller</strong></p>
+<p>Unpack the contents of the Resource directory to somewhere accessible to the application. Ensure that <code>PSRESOURCEPATH</code> contains the directory containing the <code>.upr</code> file when Distiller is run. The contents should be a list of directories separated by colons, to be searched in order with two consecutive colons to indicate where the default location should fall within the search order.</p>
+<p><strong>Printer Hard Disk</strong></p>
+<p>If a printer with a hard disk option is used, the resources can be downloaded once and remain available across power cycles. Resources can be downloaded with a vendor-specific tool, or by sending them to the printer with a snippet of PostScript at the top that queries the printer for the correct file name and creates the file.</p>
+<p><strong>PostScript Document Manager</strong></p>
+<p>Unpack the contents of the Resource directory to somewhere accessible to your document manager software then include the <code>%%DocumentNeededResources</code> and <code>%%IncludeResource</code> DSC comments at the appropriate locations within your PostScript output. The document manager software can be configured to transparently insert the requested resources as necessary.</p>
+<p>Any specific instuctions for common document manager software are welcome.</p>
 <h1 id="symbology-reference">Symbology Reference</h1>
 <h2 id="ean-13">EAN-13</h2>
 <p><strong>EAN-13</strong> is an extension of the <a href="#upc-a">UPC-A</a> barcode symbology that usually carries a GTIN-13. It was designed by the International Article Numbering Association in 1976 for identification of retail goods at point of sale outside of the US.</p>
