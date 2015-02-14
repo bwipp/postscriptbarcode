@@ -46,7 +46,7 @@ process of generating printed barcodes is performed entirely within the printer
 (or print system) so that it is no longer the responsibility of your
 application or a library. There is no need for any barcode fonts and the
 flexibility offered by direct PostScript means you can avoid re-implementing
-barcode generator code, or migrating to new libraries, whenever your project
+barcode generator code or migrating to new libraries whenever your project
 language needs change.</p>
 
 <p>The project homepage is at 
@@ -65,10 +65,12 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <code>wikidocs/__pandoc</code> directory of the BWIPP repository:
 <a href="https://github.com/bwipp/postscriptbarcode.git">https://github.com/bwipp/postscriptbarcode.git</a>
 </blockquote>
+
+<h1>Contents</h1>
 <div id="TOC">
 <ul>
 <li><a href="#barcode-writer-in-pure-postscript">Barcode Writer in Pure PostScript</a><ul>
-<li><a href="#packaging-flavours-for-the-named-resources">Packaging &quot;Flavours&quot; for the Named Resources</a></li>
+<li><a href="#flavours-of-named-resources">&quot;Flavours&quot; of Named Resources</a></li>
 <li><a href="#downloading">Downloading</a></li>
 </ul></li>
 <li><a href="#quick-guide">Quick Guide</a></li>
@@ -132,13 +134,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#hibc-qr-code">HIBC QR Code</a></li>
 <li><a href="#hibc-data-matrix">HIBC Data Matrix</a></li>
 <li><a href="#hibc-codablock-f">HIBC Codablock F</a></li>
-<li><a href="#hibc-code-39-1">HIBC Code 39</a></li>
-<li><a href="#hibc-code-128-1">HIBC Code 128</a></li>
-<li><a href="#hibc-pdf417-1">HIBC PDF417</a></li>
-<li><a href="#hibc-micropdf417-1">HIBC MicroPDF417</a></li>
-<li><a href="#hibc-qr-code-1">HIBC QR Code</a></li>
-<li><a href="#hibc-data-matrix-1">HIBC Data Matrix</a></li>
-<li><a href="#hibc-codablock-f-1">HIBC Codablock F</a></li>
+<li><a href="#bc412">BC412</a></li>
 <li><a href="#channel-code">Channel Code</a></li>
 <li><a href="#codabar">Codabar</a></li>
 <li><a href="#codablock-f">Codablock F</a></li>
@@ -222,7 +218,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#knowledge-base">Knowledge Base</a><ul>
 <li><a href="#faqs">FAQs</a></li>
 <li><a href="#resizing-symbols">Resizing Symbols</a></li>
-<li><a href="#developer-notes">Developer Notes</a></li>
+<li><a href="#developing-a-frontend-to-bwipp">Developing a Frontend to BWIPP</a></li>
 </ul></li>
 </ul>
 </div>
@@ -236,7 +232,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li>Issue tracker: <a href="https://github.com/bwipp/postscriptbarcode/issues">https://github.com/bwipp/postscriptbarcode/issues</a><br /></li>
 <li>Mailing list: <a href="http://groups.google.co.uk/group/postscriptbarcode">http://groups.google.co.uk/group/postscriptbarcode</a></li>
 </ul>
-<p>Barcode Writer in Pure Postscript generates all barcode formats entirely within PostScript so that the process of converting the input data into the printed output can be performed by the printer or RIP itself. This is ideal for variable data printing (VDP) and avoids the need to re-implement the barcode generation process whenever your language needs change.</p>
+<p>Barcode Writer in Pure Postscript (BWIPP) generates all barcode formats entirely within PostScript so that the process of converting the input data into the printed output can be performed by the printer or RIP itself. This is ideal for variable data printing (VDP) and avoids the need to re-implement the barcode generation process whenever your language needs change.</p>
 <p>Since this resource is written in PostScript and interpreted within the virtual machine of a printer it is compatible with any operating system and hardware platform.</p>
 <p>It makes including any barcode within a PostScript document as simple as inserting the following directive:</p>
 <pre><code>0 0 moveto (978-1-56581-231-4) (includetext)
@@ -244,7 +240,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <p>There is a web-based demonstration of the project here:</p>
 <p><a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
 <p>This project is dedicated to the memory of Craig K. Harmon. <a href="https://qed.org/ckh">https://qed.org/ckh</a></p>
-<h2 id="packaging-flavours-for-the-named-resources">Packaging &quot;Flavours&quot; for the Named Resources</h2>
+<h2 id="flavours-of-named-resources">&quot;Flavours&quot; of Named Resources</h2>
 <p>BWIPP is essentially a set of generic PostScript Level 2 named resources that are provided in four flavours for ease of use. The one to use depends on how you intend to deploy the library.</p>
 <ul>
 <li><p>&quot;Packaged&quot; or &quot;unpackaged&quot;: The named resources have been packaged for DSC conformance, portability and ease of distribution. You will most likely want to use a packaged flavour in production, however the unpackaged versions of the resources are useful for understanding the code, developing the library and debugging.</p></li>
@@ -277,7 +273,7 @@ make</code></pre>
 <ul>
 <li>A PostScript indicator, beginning <code>%!PS</code>.<br /></li>
 <li>Comments, with lines beginning <code>%</code>.<br /></li>
-<li>A definition for the <code>uk.co.terryburton.bwipp</code> category for the named resources.<br /></li>
+<li>A definition for the <code>uk.co.terryburton.bwipp</code> category of named resources.<br /></li>
 <li>A small set of named resource definitions for the renderers which generate the graphical output for the symbols delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.<br /></li>
 <li>A large set of named resource definitions for the encoders which convert the input into a structured symbol definition delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.<br /></li>
 <li>A set of sample barcode invocations delimited by <code>% --BEGIN SAMPLE--</code> and <code>% --END SAMPLE--</code>.</li>
@@ -286,22 +282,23 @@ make</code></pre>
 <pre><code>150 750 moveto (0123456789) (includecheck includetext)
 /interleaved2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>The meaning of each component of the invocation is as follows:</p>
-<pre><code>150 750 moveto             % position on the canvas
-(0123456789)               % data field: information to encode
+<pre><code>150 750 moveto             % position of the symbol on the canvas
+(0123456789)               % data field: information to encode in the barcode
 (includetext height=0.75)  % options field: symbol properties
-/interleaved2of5           % the name of the barcode type
-/uk.co.terryburton.bwipp findresource exec  % plot on the canvas</code></pre>
-<p>The acceptable contents of the data field varies between symbologies as defined in the symbologies reference.</p>
-<p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the options reference, however encoder-specific options do exist in some cases and the default values of omitted options varies across symbologies.</p>
+/interleaved2of5           % the type of barcode
+/uk.co.terryburton.bwipp findresource exec  % plot symbol on the canvas</code></pre>
+<p>The acceptable contents of the data field varies between symbologies as defined in the <a href="#symbology-reference">symbology reference</a>.</p>
+<p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the <a href="#options-reference">options reference</a>, however encoder-specific options do exist in some cases and the default values of permitted options varies across symbologies.</p>
 <p>Using the references mentioned above you should now be able to experiment by carefully amending the sample section of the file.</p>
 <p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript enabled printer. Alternatively you can use the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a> to see the effect of the options on the output.</p>
 <ul>
-<li>GhostScript is a free PostScript interpreter that is available for both Windows and Linux.<br /></li>
-<li>gsview is a viewer for PostScript files on Windows, which requires that GhostScript be installed.<br /></li>
+<li>GhostScript is an open source PostScript interpreter that is available for both Windows and Linux.<br /></li>
+<li>gsview is a viewer for PostScript files on Windows which requires that GhostScript be installed.<br /></li>
 <li>gv is a viewer for PostScript files on Linux, which requires that GhostScript be installed.<br /></li>
+<li>The Preview application on Mac OS X is able to view PostScript files.<br /></li>
 <li>Adobe Distiller is a commercial PostScript interpreter that is available for Windows and MacOS.<br /></li>
 <li>Most reasonable laser printers have native support for PostScript.<br /></li>
-<li>CUPS, the Common Unix Printing System, adds PostScript support to most non-capable printers by filtering via GhostScript.</li>
+<li>CUPS, the Common Unix Printing System, adds PostScript support for non-PostScript printers by filtering PostScript documents through GhostScript.</li>
 </ul>
 <p>To directly print a file to an installed, PostScript-enabled printer in Windows use the following command:</p>
 <pre><code>PRINT [/D:device] barcode_with_sample.ps</code></pre>
@@ -309,14 +306,15 @@ make</code></pre>
 <pre><code>COPY /B barcode_with_sample.ps LPT1:</code></pre>
 <p>To directly print a file to a PostScript-enabled printer in Linux use the following command:</p>
 <pre><code>lpr -Pdevice -o raw barcode_with_sample.ps</code></pre>
-<p>Once you are comfortable with amending the <code>barcode_with_sample.ps</code> file you may want to simplify the file bearing in mind the following points:</p>
+<p>Once you are comfortable with amending the <code>barcode_with_sample.ps</code> file you may want to simplify the file by removing definitions for barcode formats that you do not require bearing in mind the following points:</p>
 <ul>
-<li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and any dependencies as specified in the resource file. Examining the contents of the PS files created by the web-based generator at <a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.<br /></li>
-<li>If you intend to create an application whose purpose is to generate documents containing barcodes it is suggested that you use the monolithic <code>barcode.ps</code> file as a template and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version.</li>
+<li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and must include any dependencies as specified in the resource file by the <code>% --REQUIRES ...</code> metadata. Examining the contents of the PS files created by the web-based generator at <a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.<br /></li>
+<li>If you intend to create an application whose purpose is to generate documents containing a variety of barcodes it is suggested that you start with the monolithic <code>barcode.ps</code> file and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version. More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.</li>
 </ul>
 <h1 id="monolithic-flavours">Monolithic Flavours</h1>
 <p>The monolithic <code>barcode.ps</code> file provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources shipped in a single file for ease of inclusion within the Prolog section of a PostScript document template or for installing into a printer's initial job VM.</p>
-<p><strong>Inclusion Within the Prolog Section of a Document</strong></p>
+<p>Prepared tarballs of BWIPP packages into the monolithic flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-monolithic-2015-01-11.tgz</code> and <code>postscriptbarcode-monolithic-package-2015-01-11.tgz</code>. Alternatively you can build these flavours from source with <code>make monolithic</code> or <code>make monolithic_package</code>.</p>
+<h3 id="inclusion-within-the-prolog-section-of-a-document">Inclusion Within the Prolog Section of a Document</h3>
 <p>An application will first include the contents of <code>barcode.ps</code> in the Prolog section of a PostScript file and then generate code like the following.</p>
 <p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
 <pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
@@ -332,12 +330,14 @@ make</code></pre>
 <p>Or, to generate a few barcodes with no setup section or local name at all:</p>
 <pre><code>0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>This technique also reduces the possibility of namespace collision when using the library's procedures with other code.</p>
-<p><strong>Installing to a Printer Initial Job VM</strong></p>
+<h3 id="installing-to-a-printer-initial-job-vm">Installing to a Printer Initial Job VM</h3>
 <p>Send barcode.ps to the printer with the line <code>true () startjob</code> added at the top where the parentheses contain the printer's <code>startjob</code> password.</p>
 <p>The named resources will remain available between jobs but will not persist accoss power cycles.</p>
 <h1 id="named-resource-flavours">Named Resource Flavours</h1>
 <p>The contents of the <code>Resource</code> directory provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources split into seperate files structured for ease of deployment.</p>
 <p>This standard delivery mechanism allows BWIPP resources to be added to a PostScript virtual machine's resource search path, or pre-downloaded to a printer's memory or permanent storage, or supplied by a document manager, all without any change in the code an application generates to use the resources.</p>
+<p>Prepared tarballs of BWIPP packaged into the named resource flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-resource-2015-01-11.tgz</code> and <code>postscriptbarcode-packaged-resource-2015-01-11.tgz</code>. Alternatively you can build these flavours from source with <code>make resource</code> or <code>make packaged_resource</code>.</p>
+<h3 id="deploying-the-named-resource">Deploying the Named Resource</h3>
 <p>An application or administrator must first make the BWIPP resources available to the print system as described for a variety of situations below. An application will then generate code like the following.</p>
 <p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
 <pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
@@ -354,18 +354,18 @@ make</code></pre>
 <pre><code>0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>This technique also reduces the possibility of namespace collision when using the library's procedures with other code.</p>
 <p>If the definitions for the routines that generate and render the barcode are not already resident in memory then they will be fetched from a standard resource location in a way that is transparent to the user.</p>
-<p><strong>GhostScript</strong></p>
+<h3 id="ghostscript">GhostScript</h3>
 <p>Unpack the contents of the Resource directory to somewhere accessible to the application.</p>
 <p>Specify the location of the Resource files using the <code>-sGenericResourceDir</code> parameter. Where this defaults to <code>./Resource</code> (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.</p>
 <p>A note for Windows users:</p>
 <blockquote>
 <p>&quot;The Windows pre-built Ghostscript binary uses a ROM file system. If you want to modify the Resources available, then ... put all the required resources on disk and tell Ghostscript to use the disk-based resources. ... You will need to download the Ghostscript source (the Resources are not currently available separately) ... modify the Resources directory and tell Ghostscript to use it by adding one of the relevant command line switches (<code>-I</code>, <code>-sGenericResourceDir</code>) or possibly by setting the <code>GS_LIB</code> environment variable.&quot; Thanks to Ken Sharp, <a href="http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html">http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html</a></p>
 </blockquote>
-<p><strong>Adobe Distiller</strong></p>
+<h3 id="adobe-distiller">Adobe Distiller</h3>
 <p>Unpack the contents of the Resource directory to somewhere accessible to the application. Ensure that <code>PSRESOURCEPATH</code> contains the directory containing the <code>.upr</code> file when Distiller is run. The contents should be a list of directories separated by colons, to be searched in order with two consecutive colons to indicate where the default location should fall within the search order.</p>
-<p><strong>Printer Hard Disk</strong></p>
+<h3 id="printer-hard-disk">Printer Hard Disk</h3>
 <p>If a printer with a hard disk option is used, the resources can be downloaded once and remain available across power cycles. Resources can be downloaded with a vendor-specific tool, or by sending them to the printer with a snippet of PostScript at the top that queries the printer for the correct file name and creates the file.</p>
-<p><strong>PostScript Document Manager</strong></p>
+<h3 id="postscript-document-manager">PostScript Document Manager</h3>
 <p>Unpack the contents of the Resource directory to somewhere accessible to your document manager software then include the <code>%%DocumentNeededResources</code> and <code>%%IncludeResource</code> DSC comments at the appropriate locations within your PostScript output. The document manager software can be configured to transparently insert the requested resources as necessary.</p>
 <p>Any specific instuctions for common document manager software are welcome.</p>
 <h1 id="symbology-reference">Symbology Reference</h1>
@@ -666,7 +666,7 @@ make</code></pre>
 <p>Also known as: RSS-14 Stacked Omnidirectional.</p>
 <p>Variants:</p>
 <ul>
-<li><a href="#gs1-composite-symbols">GS1 DataBar Stacked Omnidirectional Composite</a> is a variant of GS1 DataBar Stacked Omnidirectional that should be used when a CC-A or CC-B Gs1Composite GS1 composite 2D component is required.</li>
+<li><a href="#gs1-composite-symbols">GS1 DataBar Stacked Omnidirectional Composite</a> is a variant of GS1 DataBar Stacked Omnidirectional that should be used when a CC-A or CC-B <a href="#gs1-composite-symbols">GS1 composite</a> 2D component is required.</li>
 </ul>
 <p>Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced Space Symbology (RSS), GS1 General Specifications.</p>
 <h3 id="data-and-options-9">Data and Options</h3>
@@ -735,7 +735,7 @@ make</code></pre>
 <h3 id="data-and-options-12">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a>.<br /></li>
-<li><p>For maximum efficiency, if the data contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:</p>
+<li><p>If the data contains a number of application identifiers matching any of the specifications below then they should be provided in this given order for maximum encoding efficiency:</p>
 <ul>
 <li><code>(01)9...(3103)...</code><br /></li>
 <li><code>(01)9...(3202)...</code><br /></li>
@@ -763,7 +763,7 @@ make</code></pre>
 <h3 id="data-and-options-13">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a>.<br /></li>
-<li><p>For maximum efficiency, if the data contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:</p>
+<li><p>If the data contains a number of application identifiers matching any of the specifications below then they should be provided in this given order for maximum encoding efficiency:</p>
 <ul>
 <li><code>(01)9...(3103)...</code><br /></li>
 <li><code>(01)9...(3202)...</code><br /></li>
@@ -857,7 +857,7 @@ make</code></pre>
 <h3 id="data-and-options-17">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.<br /></li>
-<li>If omitted, the mandatory check digit is calculated automatically.</li>
+<li>If thirteen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
 </ul>
 <h3 id="examples-12">Examples</h3>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -911,8 +911,8 @@ make</code></pre>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
 <li>The <strong>eclevel</strong> option is used to specify the percentage of error correction to be applied when expanding the data, by default <code>23</code>.<br /></li>
 <li>The <strong>ecaddchars</strong> option is used to specify how many additional error correction characters to apply the data once expanded by the eclevel percentage, by default <code>3</code>.<br /></li>
-<li>The <strong>layers</strong> option is used to specify a particular number of layers in which to encode the data, between <code>1</code> and <code>32</code>. By default, the encoder will create a symbol with be minimal number of layers to encode the given data.<br /></li>
-<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=compact</code> symbol types. By default, the encoder will choose the most appropriate format to create a symbol of minimal size.<br /></li>
+<li>The <strong>layers</strong> option is used to specify a particular number of layers in which to encode the data, between <code>1</code> and <code>32</code>. By default the encoder will create a symbol with be minimal number of layers to encode the given data.<br /></li>
+<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=compact</code> symbol types. By default the encoder will choose the most appropriate format to create a symbol of minimal size.<br /></li>
 <li><em>Deprecated: Use <a href="#aztec-runes">Aztec Runes</a> instead. The <strong>format</strong> option can also be used to create Aztec Code &quot;runes&quot;, using <code>format=rune</code>. In this case the rune symbol number should be given in the data field.</em><br /></li>
 <li>The <strong>readerinit</strong> option denotes that the symbol is used for programming the barcode reader.<br /></li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as a pre-encoded bitstream suitable for direct low-level encoding.</li>
@@ -995,15 +995,19 @@ make</code></pre>
 <ul>
 <li>The data field can contain any extended ASCII data.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
-<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid values are:<br /></li>
+<li><p>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid values are:</p>
+<ul>
 <li><em>1x11</em>, <em>1x14</em>, <em>1x17</em>, <em>1x20</em>, <em>1x24</em>, <em>1x28</em>, <em>2x8</em>, <em>2x11</em>, <em>2x14</em>, <em>2x17</em>, <em>2x20</em>, <em>2x23</em>, <em>2x26</em>, <em>3x6</em>, <em>3x8</em>, <em>3x10</em>, <em>3x12</em>, <em>3x15</em>, <em>3x20</em>, <em>3x26</em>, <em>3x32</em>, <em>3x38</em>, <em>3x44</em>, <em>4x4</em>, <em>4x6</em>, <em>4x8</em>, <em>4x10</em>, <em>4x12</em>, <em>4x15</em>, <em>4x20</em>, <em>4x26</em>, <em>4x32</em>, <em>4x38</em>, <em>4x44</em><br /></li>
+</ul></li>
 <li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol that is the minimum size to represent the given data.<br /></li>
 <li>The <strong>rowmult</strong> option is used to specify how tall each bar is, with respect to the minimum module width. The default is 3.<br /></li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as a pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.<br /></li>
 <li>The <strong>cca</strong> option identifies this symbol as a <em>CC-A</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.<br /></li>
 <li>The <strong>ccb</strong> option identifies this symbol as a <em>CC-B</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.<br /></li>
-<li>Note: Special size rules apply when the <strong>cca</strong> option is given, in which case the <strong>columns</strong> and <strong>rows</strong> options that are used to specify the size of the symbol must be one of:<br /></li>
+<li><p>Note: Special size rules apply when the <strong>cca</strong> option is given, in which case the <strong>columns</strong> and <strong>rows</strong> options that are used to specify the size of the symbol must be one of:</p>
+<ul>
 <li><em>2x5</em>, <em>2x6</em>, <em>2x7</em>, <em>2x8</em>, <em>2x9</em>, <em>2x10</em>, <em>2x12</em>, <em>3x4</em>, <em>3x5</em>, <em>3x6</em>, <em>3x7</em>, <em>3x8</em>, <em>4x3</em>, <em>4x4</em>, <em>4x5</em>, <em>4x6</em>, <em>4x7</em></li>
+</ul></li>
 </ul>
 <h3 id="examples-17">Examples</h3>
 <pre><code>0 0 moveto (MicroPDF417) ()
@@ -1052,7 +1056,7 @@ make</code></pre>
 <p>Also known as: Truncated PDF417</p>
 <p>Variants:</p>
 <ul>
-<li><a href="#pdf417">PDF417</a> is the more popular, larger variant.<br /></li>
+<li><a href="#pdf417">PDF417</a> is the larger, more popular variant.<br /></li>
 <li><a href="#micropdf417">MicroPDF417</a> is a smaller variant of the PDF417 barcode.<br /></li>
 <li><a href="#hibc-symbols">HIBC PDF417</a> is a variant of PDF417 that should be used when encoding HIBC formatted data.</li>
 </ul>
@@ -1095,7 +1099,7 @@ make</code></pre>
 </ul></li>
 <li>The <strong>version</strong> option is used to specify the size of the symbol, 1 to 40.<br /></li>
 <li>If unspecified the encoder will select the version of the symbol that is the minimum size to represent the given data at the selected error correction level.<br /></li>
-<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=micro</code> symbol types. Alternatively, <code>format=any</code> will select the optimal symbol format for the given data. By default, <em>full</em> format symbols will be generated.<br /></li>
+<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=micro</code> symbol types. Alternatively, <code>format=any</code> will select the optimal symbol format for the given data. By default <em>full</em> format symbols will be generated.<br /></li>
 <li><p>Note: It is recommended that the <a href="#micro-qr-code">Micro QR Code</a> encoder is used for such symbols.</p></li>
 </ul>
 <h3 id="examples-20">Examples</h3>
@@ -1200,11 +1204,11 @@ make</code></pre>
 <p>Standards: ISO/IEC 16388, ANSI/AIM BC1 - USS Code 39, BS EN 800.</p>
 <h3 id="data-and-options-30">Data and Options</h3>
 <ul>
-<li>The data field can consist of any ASCII data<br /></li>
+<li>The data field can consist of any ASCII data.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, etc.<br /></li>
-<li>The <strong>includecheck</strong> option calculates the check digit<br /></li>
-<li>The <strong>includecheckintext</strong> causes the calculated check digit to appear in the human readable text<br /></li>
-<li>The <strong>hidestars</strong> option suppresses the asterisks in the human readable text</li>
+<li>The <strong>includecheck</strong> option calculates the check digit.<br /></li>
+<li>The <strong>includecheckintext</strong> causes the calculated check digit to appear in the human readable text.<br /></li>
+<li>The <strong>hidestars</strong> option suppresses the asterisks in the human readable text.</li>
 </ul>
 <h3 id="examples-23">Examples</h3>
 <pre><code>0 0 moveto (Code39 Ext!) (includetext includecheck)
@@ -1368,18 +1372,18 @@ make</code></pre>
 /japanpost /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAANCAMAAAD15vA5AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABqSURBVEjH7ZTBCsAgDEOT///pwaBb1VTmZfQQ8dAG0/ouARgH9yWiCeHRKDRkGUKmHrQMnptkKhyQfV4GwxnOcP/DYfrdWdXXZLgG/zTcBu6NkaJasuHjg7FSIbCNDBYyhGncaTjDNYS7AEoWCOd071ZoAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIyOjAxOjU1KzAwOjAwGKLPNwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMjowMTo1NSswMDowMGn/d4sAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h2 id="maxicode">MaxiCode</h2>
-<p>The <strong>MaxiCode</strong> barcode symbology is 2D barcode based on a hexagonal matrix surrounding a bulls eye pattern. It can encode a structured carrier message and full 256 character extended-ASCII.</p>
+<p>The <strong>MaxiCode</strong> barcode symbology is a 2D barcode based on a hexagonal matrix surrounding a bulls eye pattern. It can encode a structured carrier message and full 256 character extended-ASCII.</p>
 <p>Also known as: UPS Code, Code 6.</p>
 <p>Standards: ISO/IEC 16023, ANSI/AIM BC10 - ISS MaxiCode.</p>
 <h3 id="data-and-options-38">Data and Options</h3>
 <ul>
-<li><p>The <strong>mode</strong> option is used to specify which how the data is structured in the symbol:</p>
+<li><p>The <strong>mode</strong> option is used to specify how the data is structured in the symbol:</p>
 <ul>
-<li><code>mode=2</code> - Formatted data containing a Structured Carrier Message with a numeric (US domestic) postal code<br /></li>
-<li><code>mode=3</code> - Formatted data containing a Structured Carrier Message with an alphanumeric (international) postal code<br /></li>
-<li><code>mode=4</code> - Unstructured data using standard error correction<br /></li>
-<li><code>mode=5</code> - Unstructured data using enhanced error correction<br /></li>
-<li><code>mode=6</code> - Barcode reader programming<br /></li>
+<li><code>mode=2</code> - Formatted data containing a Structured Carrier Message with a numeric (US domestic) postal code.<br /></li>
+<li><code>mode=3</code> - Formatted data containing a Structured Carrier Message with an alphanumeric (international) postal code.<br /></li>
+<li><code>mode=4</code> - Unstructured data using standard error correction.<br /></li>
+<li><code>mode=5</code> - Unstructured data using enhanced error correction.<br /></li>
+<li><code>mode=6</code> - Barcode reader programming.<br /></li>
 </ul></li>
 <li>If <strong>mode</strong> is unspecified the encoder will default to selecting <code>mode=5</code> if the encoded length of the input data permits enhanced error correction, otherwise it will select <code>mode=4</code> which provides standard error correction.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -1630,56 +1634,11 @@ make</code></pre>
 <h2 id="hibc-codablock-f">HIBC Codablock F</h2>
 <pre><code>0 0 moveto (A123BJC5D6E71) ()
 /hibccodablockf /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAAAiCAMAAABoWMvKAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACMSURBVFjD7ZUxEsAgCASP/386UQS0iqm0WCZjCKBZzgLpQjPZa2qPf3qoOT2hyJqXZkB9MaVvsXp5HCEbp0bUt1m+PdV9iCCCCCKINokOzo1vjSZhqumKpzBaeh5bI1Eilj7jD1oEhwgiiCCC6DfROduZtMv8rLbmgv1oSVq6xlzevTWIIIIIIojuswdF8wgHD5ABBQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMToyMzo0NiswMDowMASz0AYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjE6MjM6NDYrMDA6MDB17mi6AAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /><br />HIBC Symbols<br />------------</p>
-<p><strong>HIBC barcodes</strong> use a number of general symbologies as carrier symbols for data structured according to the LIC and PAS structured data definitions.</p>
-<p>Variants:</p>
-<ul>
-<li><a href="#hibc-code-39">HIBC Code 39</a> is a variant of <a href="#code-39">Code 39</a>.<br /></li>
-<li><a href="#hibc-code-128">HIBC Code 128</a> is a variant of <a href="#code-128">Code 128</a>.<br /></li>
-<li><a href="#hibc-pdf417">HIBC PDF417</a> is a variant of <a href="#pdf417">PDF417</a>.<br /></li>
-<li><a href="#hibc-micropdf417">HIBC MicroPDF417</a> is a variant of <a href="#micropdf417">MicroPDF417</a>.<br /></li>
-<li><a href="#hibc-qr-code">HIBC QR Code</a> is a variant of <a href="#qr-code">QR Code</a>.<br /></li>
-<li><a href="#hibc-data-matrix">HIBC Data Matrix</a> is a variant of <a href="#data-matrix">Data Matrix</a>.<br /></li>
-<li><a href="#hibc-codablock-f">HIBC Codablock F</a> is a variant of <a href="#codablock-f">Codablock F</a>.</li>
-</ul>
-<p>Standards: ANSI/HIBC Provider Applications Standard, ANSI/HIBC Supplier Labelling Standard, ANSI/HIBC Positive Identification for Patient Safety, ANSI/HIBC Syntax Standard.</p>
-<h3 id="data-and-options-50">Data and Options</h3>
-<ul>
-<li>The data should be pre-encoded to describe the intended barcode content.<br /></li>
-<li>The HIBC <em>+</em> character is prefixed automatically.<br /></li>
-<li>The mandatory HIBC check character is automatically appended to the input.</li>
-</ul>
-<h2 id="hibc-code-39-1">HIBC Code 39</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) (includetext)
-/hibccode39 /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQ8AAABQCAMAAAAwXgCaAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACRQTFRFAAAA////7u7u3d3du7u7qqqqzMzMd3d3iIiImZmZREREZmZmCN/8cwAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAH0SURBVHja7dRbcsMgDEBRxJt6//utEOBn85d8pHOZxiVCVswB7JyIOHFufmR+t+s+IveskTPH3OW7u0Tkcoc7InK6+1lTjtzzL7jH3c9nuD/r83mP+u6vbDzwwAMPPPDAAw888MADDzzwwAMPPPDAAw888MADDzzwwAMPPPDAAw888MADDzzwwAMPPPDAAw888MADDzzwwAMPPPDAAw888MADDzzwwAMPPPDAAw888MADDzzw+O8eqz095PJ9Za3YEXWn8SNyzrKet4j3p0ova4ZzBbn9nrx4hvuzPmu7W43LU9wn8a4Wo82+zzumrNdUeqSmlrTfr6GNgdz/5VpbkFI0SePNW6rlxCbyU8q2KmhmDav++9uHPFIpaVepdRfST7GEYn912InXTo2XoZiPvrY2K/RMHZr1v8ZDl3o3yNnWe65oNpaS+0RzmR5pnJ/aajKAFKSlZDltpORZYWbO+l/jEUL2Esq2FT0FMdbdI49l7cvc4z70vT8nbSRjc+heydaPZYVHBc1s/VD1+l/kMZsZtLHnx15Zu7yuYF/zsWlsgvs5auvGnM8ePfNT747Pe2RdfX0V+q1K27YmebwZW3+fRu0X72usOuHUdK9ImfF+ary+ei1ni9PEKuiZssP2nR6vWjht9jE5H+5xeTXrD2qI/AIUoTBaHvvF4AAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMToxODo1MiswMDowMF1UaX0AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjE6MTg6NTIrMDA6MDAsCdHBAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
-<h2 id="hibc-code-128-1">HIBC Code 128</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) (includetext)
-/hibccode128 /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABQCAMAAABrs8qCAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACRQTFRFAAAA////7u7u3d3du7u7qqqqzMzMd3d3iIiImZmZREREZmZmCN/8cwAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAHGSURBVGje7dTresIgDAZgwiEh6/3f75JwsDrdnrnpr4+nIkvTyAt0KSVK5Jd13qd5pXMgRUdpj2n189m0ctMM0v5cYumUR7tYuuTRjKR94/LD58d20fWA94AAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACCCCAAAIIIIAAAggggAACyL9D9txnO0NW4EtL5zvrJyjHV87XUbopPUblbvTOj5z/ujeVn+5912qlNeHa2PomHulNm429LzpusH9x71pIxJIsrjlSI6cq0YfIsSpYZi+r/i/bE5Am0jan902zj0SCxNUHmrINer26VfkytqazgmfarVn/9RBb3D155ljhuYYcHmGfIcuEtHHUuvYWM2+FtLXI0ZHCs8LMnPVfDymFMxU5DrEDU2vfEB4L6Qvr8Vz8mMzZhmVsh+0Ox7jKCo8Klql+/rz+W3ZktJi8juMxdmcdiL6Cvspjm2Jm+8jpepD5DPHMp96Pv0HY1tve03x00uNQ4vHaqr/s1caSc6/dZtrUdodkxv2AZfu/EDlHnZioYMcvzuWbIY9aOZ2LMatcbuP0aLrPMog+AdMAKS+HwA3aAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjIwOjAwKzAwOjAwCB5QxQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMToyMDowMCswMDowMHlD6HkAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
-<h2 id="hibc-pdf417-1">HIBC PDF417</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) ()
-/hibcpdf417 /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGcAAAAhCAMAAADznkW6AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAADQSURBVEjH5ZZBDgJRCEPp/S9tIvRRXelS0WiQAd7k0wGr5qV+S7afhtrx9JQ6UOPuT0VEG+Non6h1gAOqoZPddlSjTGSc5mxyBErhmJT9+XaTFzl74Mi4S0jwUv+bIrfuJMfajbIhca75TrRqF7PiJofzntOnU+VxiuordB0pFznsHvco5+NUGTpqVkXDjnIcUYKT4zMW+jbsZbZ+PK//jBNn7783y46Igv+2sW9yYtvMHA3DYMchcBG4ZW9x9ul2WX/ztLOngTNDvtxzv8p5AJdtBbnhfS+YAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjIwOjUxKzAwOjAw5olVFQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMToyMDo1MSswMDowMJfU7akAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
-<h2 id="hibc-micropdf417-1">HIBC MicroPDF417</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) ()
-/hibcmicropdf417 /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAAcCAMAAADybteBAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAC7SURBVDjLrZRZDoQwDEPt+196RsVOXdD84EFiafCL0iwFAK6b661P8HtBFv0hQ4uGo7hY8nBkw9Y2HMwpFOm4Hhw/ivYfHO8+LFN6eGSn5ZwEkl7CXDomzoS95Bhc7H7S78DJ0HacmysawRW+aqFQQ9txYZXmt4ElN1YXmWO6G8JDwcHcY249Pmry0LbclDqbD7ERVWdrSy4m52g9d13E6QPlLRdTEi3mVOSspbbgnN09pXMQ73GdRFXcBw8qAq+bI2CMAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjIxOjMxKzAwOjAwzyQ3rAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMToyMTozMSswMDowML55jxAAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
-<h2 id="hibc-qr-code-1">HIBC QR Code</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) ()
-/hibcqrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAADiSURBVEjHrZSBDoQgDEPh/3/aSzyl7aqB4pK7KOOZMbq2RtF/cf2Pt/YWk0i/40zj+5kvaxHCqQar4zO4+gUyNtcWfIVwidiWXQSbzBv1KUdYCf73qrEJpJfQCy35ANEiVDLcjP9qgPiD67VywRmihY1B5hanSBWKikUFlCFuVF2R9/FDhGXucPp0gKCdsjGpQKHhywgXwkeuZkIdW0CsgYIq6gQniBlTQVA41i4mEA6Sn1ximcol5MmOHqQfIzrM1aBEpNsIbuQhJ/FvIlpINdoUUSvykodMgLBgWBx28teRA+F7BL0VNg0PAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjIyOjIyKzAwOjAw2VGWrAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMToyMjoyMiswMDowMKgMLhAAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
-<h2 id="hibc-data-matrix-1">HIBC Data Matrix</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) ()
-/hibcdatamatrix /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAMAAADW3miqAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACOSURBVDjLrZJJDsAwCAPN/z/dQ9qAnQUfihSlgilbDCCiPz6EeUeMACE2NEy/P3vLWdAOTP8kW6g2mKB6HGhNzx7AhWriNUw9NZCOz4s8PMsRqmNnySztQpxenqMuoIU4UAHqqYVOApYfDCjpzeiQPTUQi0LlTBNcIR2eF0DabCCVvmYX/gqpOFSILvSTPYumAlX/lLH+AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjIzOjE4KzAwOjAwHGylPwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMToyMzoxOCswMDowMG0xHYMAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
-<h2 id="hibc-codablock-f-1">HIBC Codablock F</h2>
-<pre><code>0 0 moveto (A123BJC5D6E71) ()
-/hibccodablockf /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAAAiCAMAAABoWMvKAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACMSURBVFjD7ZUxEsAgCASP/386UQS0iqm0WCZjCKBZzgLpQjPZa2qPf3qoOT2hyJqXZkB9MaVvsXp5HCEbp0bUt1m+PdV9iCCCCCKINokOzo1vjSZhqumKpzBaeh5bI1Eilj7jD1oEhwgiiCCC6DfROduZtMv8rLbmgv1oSVq6xlzevTWIIIIIIojuswdF8wgHD5ABBQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMToyMzo0NiswMDowMASz0AYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjE6MjM6NDYrMDA6MDB17mi6AAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /><br />BC412<br />-----</p>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAAAiCAMAAABoWMvKAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACMSURBVFjD7ZUxEsAgCASP/386UQS0iqm0WCZjCKBZzgLpQjPZa2qPf3qoOT2hyJqXZkB9MaVvsXp5HCEbp0bUt1m+PdV9iCCCCCKINokOzo1vjSZhqumKpzBaeh5bI1Eilj7jD1oEhwgiiCCC6DfROduZtMv8rLbmgv1oSVq6xlzevTWIIIIIIojuswdF8wgHD5ABBQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMToyMzo0NiswMDowMASz0AYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjE6MjM6NDYrMDA6MDB17mi6AAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
+<h2 id="bc412">BC412</h2>
 <p>The <strong>BC412</strong> barcode symbology is single width, variable length barcode that is used for silicon wafer identification by the semiconductor manufacturing industry.</p>
 <p>Also known as: BC412 SEMI, BC412 IBM.</p>
-<h3 id="data-and-options-51">Data and Options</h3>
+<h3 id="data-and-options-50">Data and Options</h3>
 <ul>
 <li><p>The data field can hold any of the following:</p>
 <ul>
@@ -1705,7 +1664,7 @@ make</code></pre>
 <h2 id="channel-code">Channel Code</h2>
 <p><strong>Channel Code</strong> is a linear, continuous, self-checking, bidirectional barcode symbology that encodes between two and seven digits in a short space.</p>
 <p>Standards: ANSI/AIM BC12 - USS Channel Code.</p>
-<h3 id="data-and-options-52">Data and Options</h3>
+<h3 id="data-and-options-51">Data and Options</h3>
 <ul>
 <li><p>The data field can hold zero prefixed values from any of the following ranges:</p>
 <ul>
@@ -1741,7 +1700,7 @@ make</code></pre>
 <p><strong>Codabar</strong> is a linear, discrete, self-checking, bidirectional barcode symbology that can encode digits, six symbols and four delimiter characters. It is primarily used by libraries and blood banks, photo labs and FedEx airbills.</p>
 <p>Also known as: Rationalized Codabar, Ames Code, NW-7, USD-4, USS-Codabar, ABC Codabar, Monarch, Code 2 of 7.</p>
 <p>Standards: ANSI/AIM BC3 - USS Codabar, BS EN 798.</p>
-<h3 id="data-and-options-53">Data and Options</h3>
+<h3 id="data-and-options-52">Data and Options</h3>
 <ul>
 <li><p>The data field must start and stop with one of the following delimiters</p>
 <ul>
@@ -1770,7 +1729,7 @@ make</code></pre>
 <li><a href="#hibc-symbols">HIBC Codablock F</a> is a variant of Codablock F that should be used when encoding HIBC formatted data.</li>
 </ul>
 <p>Standards: USS Codablock F.</p>
-<h3 id="data-and-options-54">Data and Options</h3>
+<h3 id="data-and-options-53">Data and Options</h3>
 <ul>
 <li>The data field can consist of any ASCII data.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -1799,7 +1758,7 @@ make</code></pre>
 <h2 id="code-11">Code 11</h2>
 <p><strong>Code 11</strong> is a linear, discrete, non-self-checking, bidirectional, numeric barcode symbology that is primarily used for labelling telecommunication equipment.</p>
 <p>Also known as: USD-8.</p>
-<h3 id="data-and-options-55">Data and Options</h3>
+<h3 id="data-and-options-54">Data and Options</h3>
 <ul>
 <li>The data consists of digits and the dash character <em>-</em>.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digits.<br /></li>
@@ -1815,7 +1774,7 @@ make</code></pre>
 <p>The <strong>Code 16K</strong> barcode symbology is 2D stacked-linear barcode that can encode full 256 character extended-ASCII with the use of the <em>FNC4</em> shift character.</p>
 <p>Also known as: USS-16K</p>
 <p>Standards: ANSI/AIM BC7 - USS Code 16K, BS EN 12323.</p>
-<h3 id="data-and-options-56">Data and Options</h3>
+<h3 id="data-and-options-55">Data and Options</h3>
 <ul>
 <li>The input can consist of any ASCII data.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -1830,8 +1789,8 @@ make</code></pre>
 <li><code>mode=5</code> - Starting code set C with implied <em>Shift B</em><br /></li>
 <li><code>mode=6</code> - Starting code set C with implied <em>Double Shift B</em><br /></li>
 </ul></li>
-<li>The <strong>pos</strong> option specifies this symbol to be part of multi-part structured data. For example <code>pos=25</code> specifies this to be the 2nd symbol in a group of 5 symbols.<br /></li>
-<li>The <strong>rows</strong> option specifies the number of rows in the symbol, between 2 and 16.<br /></li>
+<li>The <strong>pos</strong> option specifies this symbol to be part of multi-part structured data. For example <code>pos=25</code> specifies this to be the second symbol in a group of five symbols.<br /></li>
+<li>The <strong>rows</strong> option specifies the number of rows in the symbol, between two and sixteen.<br /></li>
 <li>If <strong>rows</strong> is unspecified the encoder will default to the smallest number of rows that can hold the given data.<br /></li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as a pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.<br /></li>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.<br /></li>
@@ -1859,7 +1818,7 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.<br /></li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-57">Data and Options</h3>
+<h3 id="data-and-options-56">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit.<br /></li>
@@ -1886,7 +1845,7 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.<br /></li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-58">Data and Options</h3>
+<h3 id="data-and-options-57">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1904,7 +1863,7 @@ make</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.<br /></li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-59">Data and Options</h3>
+<h3 id="data-and-options-58">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1918,7 +1877,7 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.<br /></li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-60">Data and Options</h3>
+<h3 id="data-and-options-59">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1932,7 +1891,7 @@ make</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.<br /></li>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-61">Data and Options</h3>
+<h3 id="data-and-options-60">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1941,7 +1900,7 @@ make</code></pre>
 <p>The <strong>Code 49</strong> barcode symbology is 2D stacked-linear barcode that can encode 128 character ASCII.</p>
 <p>Also known as: USS-49.</p>
 <p>Standards: ANSI/AIM BC6 - USS Code 49.</p>
-<h3 id="data-and-options-62">Data and Options</h3>
+<h3 id="data-and-options-61">Data and Options</h3>
 <ul>
 <li>The input can consist of any ASCII data.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -1956,11 +1915,11 @@ make</code></pre>
 <li><code>mode=5</code> - alphanumeric mode starting shift 2<br /></li>
 <li><code>mode=6</code> - reserved<br /></li>
 </ul></li>
-<li>The <strong>pos</strong> option specifies this symbol to be part of multi-part structured data, i.e. selecting <code>mode=3</code>. For example <code>pos=25</code> specifies this to be the 2nd symbol in a group of 5 symbols.<br /></li>
-<li>The <strong>rows</strong> option specifies the number of rows in the symbol, between 2 and 8.<br /></li>
+<li>The <strong>pos</strong> option specifies this symbol to be part of multi-part structured data, i.e. selecting <code>mode=3</code>. For example <code>pos=25</code> specifies this to be the second symbol in a group of five symbols.<br /></li>
+<li>The <strong>rows</strong> option specifies the number of rows in the symbol, between <em>2</em> and <em>8</em>.<br /></li>
 <li>If <strong>rows</strong> is unspecified the encoder will default to the smallest number of rows that can hold the given data.<br /></li>
-<li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.<br /></li>
-<li><p>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is 1.</p></li>
+<li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is <em>10</em>.<br /></li>
+<li><p>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is <em>1</em>.</p></li>
 </ul>
 <h3 id="examples-39">Examples</h3>
 <pre><code>0 0 moveto (MULTIPLE ROWS IN CODE 49) ()
@@ -1977,7 +1936,7 @@ make</code></pre>
 <p><strong>Code One</strong> was the earliest public domain 2D matrix-style barcode. It is used by the health care and recycling industry and can encode full 256 character extended-ASCII.</p>
 <p>Also known as: Code 1, Code 1S.</p>
 <p>Standards: AIM USS - Code One.</p>
-<h3 id="data-and-options-63">Data and Options</h3>
+<h3 id="data-and-options-62">Data and Options</h3>
 <ul>
 <li>The data field can consist of any ASCII data for <em>standard</em> and <em>T-type</em> symbols.<br /></li>
 <li>Note: <em>S-type</em> symbols are special in that they represent a numeric value which must be binary encoded using <code>^NNN</code> notation.<br /></li>
@@ -2010,7 +1969,7 @@ make</code></pre>
 <ul>
 <li><a href="#plessey">Plessey (UK)</a> is the original barcode upon which MSI Modified Plessey was based.</li>
 </ul>
-<h3 id="data-and-options-64">Data and Options</h3>
+<h3 id="data-and-options-63">Data and Options</h3>
 <ul>
 <li>The data can consist of any number of digits.<br /></li>
 <li>The <strong>includecheck</strong> option calculates the check digit or check digits.<br /></li>
@@ -2024,7 +1983,7 @@ make</code></pre>
 <li><code>checktype=mod1110</code><br /></li>
 <li><code>checktype=ncrmod1110</code><br /></li>
 </ul></li>
-<li><p>The <strong>badmod11</strong> option allows a <code>checktype=mod11</code> checksum value of 10 to be encoded with a pair of check digits <em>10</em>. Normally in <code>checktype=mod11</code>, any input whose checksum evaluates to 10 is considered invalid having no correct representation.</p></li>
+<li><p>The <strong>badmod11</strong> option allows a <code>checktype=mod11</code> checksum value of 10 to be encoded with a pair of check digits <em>10</em>. Normally in <code>checktype=mod11</code>, any input whose checksum evaluates to <em>10</em> is considered invalid having no correct representation.</p></li>
 </ul>
 <h3 id="examples-41">Examples</h3>
 <pre><code>0 0 moveto (0123456789) (includecheck includetext)
@@ -2046,7 +2005,7 @@ make</code></pre>
 <ul>
 <li><a href="#msi-plessey">MSI Modified Plessey</a> is a variant of the Plessey (UK) barcode developed by the MSI Data Corporation.</li>
 </ul>
-<h3 id="data-and-options-65">Data and Options</h3>
+<h3 id="data-and-options-64">Data and Options</h3>
 <ul>
 <li><p>The data can contain any of the following:</p>
 <ul>
@@ -2072,7 +2031,7 @@ make</code></pre>
 <h2 id="posicode">PosiCode</h2>
 <p><strong>PosiCode</strong> is a continuous, variable length, non-self-checking, bidirectional barcode symbology that is designed for use within printing processes where it is difficult to precisely control the width of a bar.</p>
 <p>Standards: ITS PosiCode.</p>
-<h3 id="data-and-options-66">Data and Options</h3>
+<h3 id="data-and-options-65">Data and Options</h3>
 <ul>
 <li><p>The data field can hold the following:</p>
 <ul>
@@ -2126,7 +2085,7 @@ make</code></pre>
 <li><a href="#telepen-numeric">Telepen Numeric</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h3 id="data-and-options-67">Data and Options</h3>
+<h3 id="data-and-options-66">Data and Options</h3>
 <ul>
 <li>The data can contain any standard ASCII data, values 0-127.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -2147,7 +2106,7 @@ make</code></pre>
 <li><a href="#telepen">Telepen Alpha</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h3 id="data-and-options-68">Data and Options</h3>
+<h3 id="data-and-options-67">Data and Options</h3>
 <ul>
 <li>The data is provided as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.<br /></li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.<br /></li>
@@ -2181,7 +2140,7 @@ make</code></pre>
 <li><a href="#gs1-128-composite">GS1-128 Composite</a> is a variant of <a href="#gs1-128">GS1-128</a>.</li>
 </ul>
 <p>Standards: ISO/IEC 24723, ITS EAN.UCC Composite Symbology, AIM ISS - EAN.UCC Composite Symbology, GS1 General Specifications.</p>
-<h3 id="data-and-options-69">Data and Options</h3>
+<h3 id="data-and-options-68">Data and Options</h3>
 <ul>
 <li>The data field consists of a primary and secondary component separated by a pipe <code>|</code> character.<br /></li>
 <li>The data for the primary component (preceding the pipe) is entered in a format identical to the corresponding non-composite barcode symbology.<br /></li>
@@ -2291,7 +2250,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJoAAAASCAMAAACUwjeQAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAADCSURBVEjH7ZVRCsMwDEOt+196NLYkp2UwRvPnFkriOdZLp8YRdSFvwJNrsAI5aYEcVxRrWT1XBdUIPBOziFRY1RhwfNDeRJOa5aQBFY3KEI02IREKM9PCfAWDdhZtWy3PEDt/w2Y+i5ca+n5sT5No9zbwoJ1B07lxLyvFoA2hIOltLVqyje02hEH7YNAOoNkQ/XDX8f49APmvzdQCCN26C5j282cwaP+g+c8naF8uADWFm8GU4aaB5jLybM1j0N5C+wDVaATAPNGSzgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMDoyNzozMCswMDowMLnbldoAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjA6Mjc6MzArMDA6MDDIhi1mAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h2 id="daft">DAFT</h2>
 <p><strong>DAFT</strong> is an encoder for directly specifying the descender, ascender, full-height, tracker-bar succession for a custom 4 state barcode symbol.</p>
-<h3 id="data-and-options-70">Data and Options</h3>
+<h3 id="data-and-options-69">Data and Options</h3>
 <ul>
 <li>The data field contains a sequence of the characters <code>D</code>, <code>A</code>, <code>F</code> or <code>T</code> to denote the descender, ascender, full-height and tracker bars of a custom 4 state symbol.</li>
 </ul>
@@ -2301,7 +2260,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAANCAMAAABmbkWbAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAkSURBVBjTY2BgZGQEYTBA4UB4g0QejtBYdJFHOAdOwTi0lgcABSEBP2n6/zEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MDY6MTMrMDA6MDDBYBWIAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjA2OjEzKzAwOjAwsD2tNAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="flattermarken">Flattermarken</h2>
 <p><strong>Flattermarken</strong> are identification marks used in book production that facilitate the proper arrangement of bound sections by a book binder.</p>
-<h3 id="data-and-options-71">Data and Options</h3>
+<h3 id="data-and-options-70">Data and Options</h3>
 <ul>
 <li><p>The data field can holding any sequence of digits corresponds to a 9 module width with the following meaning:</p>
 <ul>
@@ -2317,7 +2276,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAWCAMAAAAPf7fDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAYSURBVCjPY2BghAMkJlyIYVR+VH4QywMAUZUCafPc07gAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjA6MjM6NDErMDA6MDAcgjcNAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIwOjIzOjQxKzAwOjAwbd+PsQAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="raw">Raw</h2>
 <p>The <strong>raw</strong> encoder is used for directly specifying the space/bar succession of a custom barcode symbol.</p>
-<h3 id="data-and-options-72">Data and Options</h3>
+<h3 id="data-and-options-71">Data and Options</h3>
 <ul>
 <li>The data field contains an alternating sequence of widths (1 to 9) for the bars and spaces of a custom symbol.</li>
 </ul>
@@ -2328,7 +2287,7 @@ make</code></pre>
 <h2 id="ean-2">EAN-2</h2>
 <p><strong>EAN-2</strong> is the two-digit add-on code that accompanies a EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Two-Digit Add-On, Two-Digit Supplement, UPC-2</p>
-<h3 id="data-and-options-73">Data and Options</h3>
+<h3 id="data-and-options-72">Data and Options</h3>
 <ul>
 <li>The data field must contain two digits.<br /></li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2340,7 +2299,7 @@ make</code></pre>
 <h2 id="ean-5">EAN-5</h2>
 <p><strong>EAN-5</strong> is the five-digit add-on code that accompanies an EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Five-Digit Add-On, Five-Digit Supplement, UPC-5</p>
-<h3 id="data-and-options-74">Data and Options</h3>
+<h3 id="data-and-options-73">Data and Options</h3>
 <ul>
 <li>The data field must contain five digits.<br /></li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2612,7 +2571,7 @@ grestore</code></pre>
 grestore</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANEAAAB8CAMAAADAZqXtAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAADBQTFRF////AAAAu7u7VVVVERERZmZmzMzMd3d37u7uqqqqREREMzMzmZmZIiIi3d3diIiIqXXUYwAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAPvSURBVHja7ZYLjtggDEQDIYEQCPe/bfkGG0hVVaqqqoN2tUswHh7YmG2bmxDtN7Xyt33v4+1bs+692bJbzb6pYp/FfVIrrjuur3sBEYhABCIQgQhEIAIRiEAEIhCBCEQgAhGIQAQiEIEIRCACEYhABCIQgQhEIAIRiEAEIhCBCEQgAhGIQAQiEIEIRCACEYhABCIQgQhEIAIRiEAEIhCBCEQgAhGIQAQiEIEIRCACEYhABCIQgQhEIAIRiED0PxH9ifZ3fP/zRHJXQh3nYkT0psdebqeQ1KVRojrglpcVQu1yIBp0k9HtmuNDCbE350b7aPl0IaKbLe9AfbuoG52J6zeIDk60iyWRrgqBEQ26R4SOazu2NnbXGRHIx7H40ze962bLxGRe3zKrmkMo8xkZRnmz6gXBiIIY4qlYyrKyOPrQyOC6WqjoSirhylkfpru34n6SpSdCVfcplnGefn3vdVv2d+Nnop0tvPZc2mA6cKqRqFjq6tkS1W3QjQyygO154309Cp1DLG1FOik36YZqGffHNN9tUIr7i+jqsKSnBScytwicqFraaqQTA4loquuq+qNLmNo6w76U71+ma9vS0peXqC6I1wOytq+YI4stSlouY9XppxkwIqp7sE0Lle/I59hWLYWadG1LQ0ZUEu5s/0xEWjiixnqE6Ir7yYn4vBSUkhFR3eTIae1M3YsM4YrNXUWe7t3yG6nSVt++B1Gz4kRPDYFVr3s2Sj2ciFm6PUa/o765brw8fAomVTbhvIWyPl8WPT63kk8ropPeDK7MC+KLiM/+6uXjZ0TMMmXzLalvrptgtExJn6PozNkv/Egkl6vYgsph2nzHQuCtStf/cJIVv1+aU697zlnPiIZ5Uh605G2Dbqs25YpOWx7v67jQ6xeIrni62lDXOhUwTc5048Lus/d6fkS+BCjRYJmpPe8T3Va0Tc2q0nP5LlCdyAy6aUYs6/bjLJavLdPdTL3uWU7vidFyY7fppNuyP6aXJAmTYdp9JleZEI/TL3nSftjV51CLwar3M6Ju2ReyjIKiu7cT9e1CzC2Dtpv96hXzJYpl9xh37ngrelgRWRY8dgilIUPZLr6WDYRHAdcN9QXx5KNtGVdi0L3VSU+6enEOrqSAI+860gzbVzPu8icRtbTve4ceMNeNFegsNjav/TaFwZexq8A+k67nt007WR+uQ0yJnNvFsvkacvubiFrGr9bJWG/I43nSjWVJX+4uNvH96YMMtl5uQaggnSLPCtsvi7f1lTw3KW1j02xf9ZBG30TM8lKlujCgUVdTG1aP2tgx655Loqj4Pj/+UDNRQZ/TZ677BK17CJ2a9tLYuf1a+wH1zD6SdNLupAAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMlQxMzoyMjowMSswMDowMJ9pry4AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTJUMTM6MjI6MDErMDA6MDDuNBeSAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" alt="Truncated barcode" /></p>
 <p>The result should now be of the intended dimensions with properly scaled (not stretched) text.</p>
-<h2 id="developer-notes">Developer Notes</h2>
+<h2 id="developing-a-frontend-to-bwipp">Developing a Frontend to BWIPP</h2>
 <p>There are a number of frontends to BWIPP that vary in terms of the functionality that they expose and the way that they express this through their API or GUI, etc.</p>
 <p>It would be nice to unify some of these projects but in the meantime this document attempts to provide some guidelines to apply when developing something that places BWIPP in the hands of developers and users.</p>
 <p>The author would ideally like any language binding, library or graphical frontend to be representative of the complete functionality of the BWIPP resource and to be maintainable with minimal effort and these guideline help to achieve this goal.</p>
