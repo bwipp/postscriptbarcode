@@ -14,37 +14,27 @@ An application or administrator must first make the BWIPP resources available to
 
 In the file's `Setup` or `PageSetup` section:
 
-````
-/qrcode dup /uk.co.terryburton.bwipp findresource def
-````
+    /qrcode dup /uk.co.terryburton.bwipp findresource def
 
 and in the page description where a barcode is needed:
 
-````
-0 0 moveto (BWIPP) (eclevel=M) qrcode
-````
+    0 0 moveto (BWIPP) (eclevel=M) qrcode
 
 If the application needs to import the resource under a different name to avoid a conflict, then the setup could be:
 
-````
-/foo /qrcode /uk.co.terryburton.bwipp findresource def
-````
+    /foo /qrcode /uk.co.terryburton.bwipp findresource def
 
 followed by:
 
-````
-0 0 moveto (BWIPP1) (eclevel=M) foo
-0 0 moveto (BWIPP2) (eclevel=M) foo
-...
-````
+    0 0 moveto (BWIPP1) (eclevel=M) foo
+    0 0 moveto (BWIPP2) (eclevel=M) foo
+    ...
 
 (The above is analogous to `from uk.co.terryburton.bwipp import qrcode as foo` in other languages.)
 
 Or, to generate a few barcodes with no setup section or local name at all:
 
-````
-0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec
-````
+    0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec
 
 This technique also reduces the possibility of namespace collision when using the library's procedures with other code.
 
