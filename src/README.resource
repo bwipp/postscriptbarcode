@@ -5,7 +5,7 @@ The contents of the `Resource` directory provides Barcode Writer in Pure PostScr
 
 This standard delivery mechanism allows BWIPP resources to be added to a PostScript virtual machine's resource search path, or pre-downloaded to a printer's memory or permanent storage, or supplied by a document manager, all without any change in the code an application generates to use the resources.
 
-Prepared tarballs of BWIPP packaged into the named resource flavours are available from https://github.com/bwipp/postscriptbarcode/releases/latest with filenames such as `postscriptbarcode-resource-2015-01-11.tgz` and `postscriptbarcode-packaged-resource-2015-01-11.tgz`. Alternatively you can build these flavours from source with `make resource` or `make packaged_resource`.
+Prepared tarballs of BWIPP packaged into the named resource flavours are available from https://github.com/bwipp/postscriptbarcode/releases/latest with filenames such as `postscriptbarcode-resource` and `postscriptbarcode-packaged-resource`. Alternatively you can build these flavours from source with `make resource` or `make packaged_resource`.
 
 
 ### Deploying the Named Resource
