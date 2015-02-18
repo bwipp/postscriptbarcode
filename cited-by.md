@@ -1,13 +1,12 @@
-The following is a list of known references to Barcode Writer in Pure
-PostScript project and its derivatives.
+Cited-By
+--------
 
-If you are aware of any noteworthy additions to this list then please inform
-the BWIPP mailing list.
+The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.
 
-----
+If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.
 
-Barcode Writer in Pure PostScript
-(http://bwipp.terryburton.co.uk)
+
+**Barcode Writer in Pure PostScript (http://bwipp.terryburton.co.uk)**
 
 Flack, Chapman. (2006) "Direct Use of the PostScript Language,"
 http://www.anastigmatix.net/postscript/direct.html
@@ -41,13 +40,10 @@ http://www.robotmouth.com/papers_files/TSLOO.pdf
 
 Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Authentication of Documents," Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.
 
-----
 
-Barcode Writer in Pure PostScript Online Generator
-(http://www.terryburton.co.uk/barcodewriter/generator/)
+**Barcode Writer in Pure PostScript Online Generator (http://www.terryburton.co.uk/barcodewriter/generator/)**
 
-Link embedded in the PrintDreams XDR PC-link application for programming the
-Xyron Design Runner label printer,
+Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer,
 http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf
 
 Jowers, Tim. (2006) "The Business Guide to Free Information Technology including Free/Libre Open Source Software," LuLu Press, p. 197. ISBN 978-1-4303-0101-1.
@@ -77,26 +73,18 @@ Hranilovic, S. (2012) "Advanced Optical Wireless Communication Systems: MIMO Tec
 Koamtac. (2013) "Creating Special Bar Codes To Configure Your KDC," Revision 1.0.
 http://www.koamtac.com/documents/manuals/How_To_Create_KOAMTAC_Special_BarCodes.pdf
 
-----
+**pst-barcode (http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/)**
 
-pst-barcode
-(http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/)
+Goossens, M., Mittelbach F., Rahtz, S., Roegel, D. (2007) "The LaTeX Graphics Companion," Addison Wesley. ISBN 978-0-321-50892-8.
 
-Goossens, M., Mittelbach F., Rahtz, S., Roegel, D. (2007) "The LaTeX Graphics
-Companion," Addison Wesley. ISBN 978-0-321-50892-8.
+Robbers, Yuri & Skjold, Annemarie. (2007) "Creating Book Covers using PSTricks," The PracTex Journal, Number 1.
 
-Robbers, Yuri & Skjold, Annemarie. (2007) "Creating Book Covers using
-PSTricks," The PracTex Journal, Number 1.
-
-Thompson, Paul A. (2008) "Clinical trials management on the internet - II.
-Using LATEX, PostScript, and SAS to produce barcode label sheets," The PracTeX
-Journal, Number 3.
+Thompson, Paul A. (2008) "Clinical trials management on the internet - II. Using LATEX, PostScript, and SAS to produce barcode label sheets," The PracTeX Journal, Number 3.
 
 Secondo, Stefano. (2009) "Cover Letter With Style - Part Six,"
 http://stefano.italians.nl/archives/65
 
-Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat
-Journal, Volume 31i, Number 1. p. 36.
+Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat Journal, Volume 31i, Number 1. p. 36.
 
 Brampton, Andrew. (2010) "LaTeX QR Based Business Card,"
 http://bramp.net/blog/latex-qr-based-business-card
@@ -104,21 +92,13 @@ http://bramp.net/blog/latex-qr-based-business-card
 Pascal. (2011) "QR Code with Latex,"
 http://xaphire.de/recipes/?p=344
 
-Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics
-and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
+Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
-----
+**Scribus Barcode Generator Plugin (http://documentation.scribus.net/index.php/Barcode_Generator)**
 
-Scribus Barcode Generator Plugin
-(http://documentation.scribus.net/index.php/Barcode_Generator)
+"Libre Graphics: Scribus. Open Source Desktop Publishing Turns Pro," Linux Format, Issue 80 (June 2006). Future Publishing. p. 54.
 
-"Libre Graphics: Scribus. Open Source Desktop Publishing Turns Pro," Linux
-Format, Issue 80 (June 2006). Future Publishing. p. 54.
+**KBarcode (http://www.kbarcode.net/)**
 
-----
-
-KBarcode
-(http://www.kbarcode.net/)
-
-Willis, Nathan. (2010) "Generating Barcodes with KBarcode," Worldlabel.com Incorporated,
+Willis, Nathan. (2010) "Generating Barcodes with KBarcode," Worldlabel.com Incorporated.
 http://blog.worldlabel.com/2010/generating-barcodes-with-kbarcode.html
