@@ -1,5 +1,5 @@
 Cited-By
---------
+========
 
 The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.
 
