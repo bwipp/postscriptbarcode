@@ -18,6 +18,12 @@ http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/
 Janssen, Mark. (2009) "Webbased (PDF) LTO Barcode Generator,"
 http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/
 
+Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices,"
+http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf
+
+Scarso, Luigi. (2009) "Una estensione di luatex: luatex lunatic,"
+http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&rep=rep1&type=pdf
+
 Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript,"
 http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446
 
@@ -29,6 +35,9 @@ http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html
 
 Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript,"
 http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827
+
+McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast.
+http://www.robotmouth.com/papers_files/TSLOO.pdf
 
 Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Authentication of Documents," Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.
 
@@ -57,6 +66,9 @@ http://papergecko.co.uk/new/wp-content/uploads/2008/12/bookdesigncourse_day4.pdf
 Nagy, Andras M. (2009) "The Public Domain Publishing Bible," Murine Communications, p. 143. ISBN 978-0-9824994-1-2.
 
 Winter, Mick. (2010) "Scan Me. Everybody's Guide to the Magical World of QR Codes," Westsong Publishing, p. 110. ISBN 978-0-9659000-3-4.
+
+Zamberletti A., Gallo I., Carullo M., Binaghi E. (2010) "Neural Image Restoration For Decoding 1-D Barcodes Using Common Camera Phones,"
+http://eprints.pascal-network.org/archive/00007576/01/2010visapp_angers.pdf
 
 Zamberletti A., Gallo I., Carullo M., Binaghi E. (2011) "Decoding 1-D Barcode from Degraded Images Using a Neural Network," Computer Vision, Imaging and Computer Graphics: Theory and Applications, VISIGRAPP 2010, Springer, pp. 45-55.
 
