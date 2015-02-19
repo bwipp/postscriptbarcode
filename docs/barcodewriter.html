@@ -2577,15 +2577,18 @@ grestore</code></pre>
 <p>It would be nice to unify some of these projects but in the meantime this document attempts to provide some guidelines to apply when developing something that places BWIPP in the hands of developers and users.</p>
 <p>The author would ideally like any language binding, library or graphical frontend to be representative of the complete functionality of the BWIPP resource and to be maintainable with minimal effort and these guideline help to achieve this goal.</p>
 <p><strong>Author's commitment:</strong> I will make a best efforts commitment to provide end user support and developer support for any library or application that makes an effort to adopt the principles given here. Such projects should also feel free to adopt the <a href="https://groups.google.com/forum/#!forum/postscriptbarcode">BWIPP mailing list</a> if they are so inclined and to request access to extend this wiki.</p>
-<p><strong>Contact the author of BWIPP whilst you're still experimenting</strong></p>
-<p>I'm <a href="https://github.com/terryburton">Terry Burton</a>. I'm usually friendly and will try not to insist on my own way. It's you that will end up supporting your creation after all so I want you to be happy with it, but it will help everyone if there is some consistency between your code and the next person's.</p>
-<p><strong>Point your users at the online BWIPP symbologies and options references</strong></p>
+<h3 id="make-early-contact-with-the-bwipp-author">Make Early Contact with the BWIPP Author</h3>
+<p>Contact the author of BWIPP whilst you're still experimenting.</p>
+<p>I'm <a href="https://github.com/terryburton">Terry Burton</a>. I will try not to insist on my own way as it's you that will end up supporting your creation so I want you to be happy with it, but it will help everyone if there is some consistency between your code and the next person's.</p>
+<h3 id="refer-users-to-the-bwipp-documentation">Refer Users to the BWIPP Documentation</h3>
+<p>Point your users at the online BWIPP symbologies and options references.</p>
 <p>The reference is written these in a way that is fairly environment agnostic but if you have any idea or want to improve them then please contribute.</p>
 <ul>
 <li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference">https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference</a><br /></li>
 <li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference">https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference</a></li>
 </ul>
-<p><strong>Safely pass your arguments to BWIPP in an injection-proof way</strong></p>
+<h3 id="safe-argument-passing">Safe Argument Passing</h3>
+<p>Safely pass your arguments to BWIPP in an PostScript code injection-proof way.</p>
 <p>Hexify the data, options and encoder string input to BWIPP to prevent PostScript injection by means of un-escaped <code>)</code> or otherwise.</p>
 <p><strong>Not</strong> like this:</p>
 <pre><code>0 0 moveto
@@ -2608,7 +2611,8 @@ grestore</code></pre>
 <pre class="sourceCode perl"><code class="sourceCode perl"><span class="kw">sub </span><span class="fu">hexify</span> {
   <span class="kw">return</span> <span class="kw">'</span><span class="st">&lt;</span><span class="kw">'</span>.(<span class="fu">join</span> <span class="kw">&quot;</span><span class="ch">\n</span><span class="st"> </span><span class="kw">&quot;</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">(A72)*</span><span class="kw">'</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">H*</span><span class="kw">'</span>, <span class="fu">shift</span>).<span class="kw">'</span><span class="st">&gt;</span><span class="kw">'</span>;
 }</code></pre>
-<p><strong>Use the BWIPP metadata rather than embedding a load of static data in your library</strong></p>
+<h3 id="use-the-bwipp-metadata">Use the BWIPP Metadata</h3>
+<p>Use the inline metadata rather than embedding a load of static data in your code.</p>
 <p>Support barcode formats automatically by scanning the barcode.ps metadata for <code>BEGIN/END ENCODER</code> blocks. From these extract descriptions, example data and example options using the <code>DESC</code>, <code>EXAM</code> and <code>EXOP</code> stanzas within the <code>BEGIN/ENCODER ENCODER</code> blocks.</p>
 <p>Example BWIPP metadata for an encoder:</p>
 <pre><code>% --BEGIN ENCODER ean8--
@@ -2621,9 +2625,9 @@ grestore</code></pre>
 % --END ENCODER ean8--</code></pre>
 <p>The aim is that libraries and graphical frontends can be light on compiled-in data and can therefore be enhanced by simply replacing the barcode.ps file.</p>
 <p>To fully meet this objective may require extending the barcode.ps metadata to describe the individual options that are available for each encoder. The BWIPP author is certainly interested in having such a discussion so please make contact regarding your requirements.</p>
-<p><strong>Do not prevent the user from driving BWIPP directly</strong></p>
+<h3 id="let-users-drive-bwipp-directly">Let Users Drive BWIPP Directly</h3>
 <p>Allow advanced users to specify the data, options and encoder directly. This will allow them to access BWIPP functionality that you haven't anticipated or exposed via your API or GUI.</p>
-<p><strong>Interface with BWIPP's error reporting</strong></p>
+<h3 id="use-bwipps-error-reporting">Use BWIPP's Error Reporting</h3>
 <p>Use the BWIPP error reporting mechanism to provide specific error messages to users so that they can understand why a given input is invalid. For example, the following PS procedure can be used to invoke <code>barcode.ps</code> and on error will halt with the descriptive text of the error (e.g. <code>BWIPP ERROR: EAN-13 must be 12 or 13 digits</code>) written to STDERR which can be intercepted and thrown or displayed in whatever manner is most appropriate.</p>
 <pre><code>%!PS
 errordict begin
@@ -2649,7 +2653,7 @@ end
 %
 % Now make the calls to BWIPP
 % 0 0 moveto (ABC) () /code39 /uk.co.terryburton.bwipp findresource exec</code></pre>
-<p><strong>Locating the resource</strong></p>
+<h3 id="locating-the-resource">Locating the Resource</h3>
 <p>Allow the location of the <code>barcode.ps</code> file to be configured by the user so that non-admins users can provide a local version and distributions that deprecate bundled libraries can provide a separately packaged version.</p>
 <p>In any case, use the following search order to locate the <code>barcode.ps</code> resource:</p>
 <ol>
@@ -2659,26 +2663,26 @@ end
 <li><code>/usr/share/postscriptbarcode</code> (Fedora's postscriptbarcode package)<br /></li>
 <li><code>/usr/share/libpostscriptbarcode</code> (Debian's libpostscriptbarcode package)</li>
 </ol>
-<p><strong>Display the list of supported barcodes in a manageable way</strong></p>
+<h3 id="displaying-the-list-of-supported-symbologies">Displaying the List of Supported Symbologies</h3>
 <p>To make the presentation of the list of barcode formats manageable any such list of barcodes should be rendered in the same/similar way as the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a>.</p>
-<p>Should we extend the metadata to help with this?</p>
+<p>Would it be helpful to extend the metadata to help group the supported barcodes into categories?</p>
 <h1 id="cited-by">Cited-By</h1>
 <p>The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.</p>
 <p>If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.</p>
 <h3 id="barcode-writer-in-pure-postscript-1">Barcode Writer in Pure PostScript</h3>
 <p><a href="http://bwipp.terryburton.co.uk">http://bwipp.terryburton.co.uk</a></p>
 <p>Flack, Chapman. (2006) &quot;Direct Use of the PostScript Language,&quot; <a href="http://www.anastigmatix.net/postscript/direct.html">http://www.anastigmatix.net/postscript/direct.html</a></p>
-<p>Janssen, Mark. (2008) &quot;Creating LTO barcodes,&quot; <a href="http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/">http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/</a></p>
-<p>Janssen, Mark. (2009) &quot;Webbased (PDF) LTO Barcode Generator,&quot; <a href="http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/">http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/</a></p>
+<p>Janssen, Mark. (2008) &quot;Creating LTO barcodes,&quot; Foobar's Blog and Linkdump. <a href="http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/">http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/</a></p>
+<p>Janssen, Mark. (2009) &quot;Webbased (PDF) LTO Barcode Generator,&quot; Foobar's Blog and Linkdump. <a href="http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/">http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/</a></p>
 <p>Rocholl, Johann C. (2009) &quot;Robust 1D Barcode Recognition on Mobile Devices,&quot; <a href="http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf">http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf</a></p>
 <p>Scarso, Luigi. (2009) &quot;Una estensione di luatex: luatex lunatic,&quot; <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&amp;rep=rep1&amp;type=pdf</a></p>
 <p>Russell, Robert. (2010) &quot;Barcodes in SAP with the Barcode Writer in Pure Postscript,&quot; <a href="http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446">http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446</a></p>
 <p>Seichter, Dominik. (2010) &quot;KBarcode4 Light Released,&quot; <a href="http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html">http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html</a></p>
-<p>Willis, Nathan. (2010) &quot;Barcode Writer in Pure PostScript,&quot; <a href="http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html">http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html</a></p>
+<p>Willis, Nathan. (2010) &quot;Barcode Writer in Pure PostScript,&quot; Worldlabel.com Incorporated. <a href="http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html">http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html</a></p>
 <p>Russell, Robert. (2011) &quot;More Barcodes with Barcode Writer in Pure Postscript,&quot; <a href="http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827">http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827</a></p>
 <p>McNulty, John. (2011) &quot;The Secret Lives of Objects,&quot; Sonic Arts Research Centre. Queen’s University Belfast. <a href="http://www.robotmouth.com/papers_files/TSLOO.pdf">http://www.robotmouth.com/papers_files/TSLOO.pdf</a></p>
 <p>Ehlenbroker J., Lohweg V. (2014) &quot;microIDENT - A System for Simple Coding and Authentication of Documents,&quot; Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.</p>
-<h3 id="barcode-writer-in-pure-postscript-online-generator">Barcode Writer in Pure PostScript Online Generator</h3>
+<h3 id="online-barcode-generator">Online Barcode Generator</h3>
 <p><a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
 <p>Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer. <a href="http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf">http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf</a></p>
 <p>Jowers, Tim. (2006) &quot;The Business Guide to Free Information Technology including Free/Libre Open Source Software,&quot; LuLu Press, p. 197. ISBN 978-1-4303-0101-1.</p>
@@ -2699,7 +2703,7 @@ end
 <p>Thompson, Paul A. (2008) &quot;Clinical trials management on the internet - II. Using LATEX, PostScript, and SAS to produce barcode label sheets,&quot; The PracTeX Journal, Number 3.</p>
 <p>Secondo, Stefano. (2009) &quot;Cover Letter With Style - Part Six,&quot; <a href="http://stefano.italians.nl/archives/65">http://stefano.italians.nl/archives/65</a></p>
 <p>Voß, Herbert. (2010) &quot;The current state of the PSTricks project,&quot; The TUGboat Journal, Volume 31i, Number 1. p. 36.</p>
-<p>Brampton, Andrew. (2010) &quot;LaTeX QR Based Business Card,&quot; <a href="http://bramp.net/blog/latex-qr-based-business-card">http://bramp.net/blog/latex-qr-based-business-card</a></p>
+<p>Brampton, Andrew. (2010) &quot;LaTeX QR Based Business Card,&quot; The Website of Andrew Brampton. <a href="http://bramp.net/blog/latex-qr-based-business-card">http://bramp.net/blog/latex-qr-based-business-card</a></p>
 <p>Pascal. (2011) &quot;QR Code with Latex,&quot; <a href="http://xaphire.de/recipes/?p=344">http://xaphire.de/recipes/?p=344</a></p>
 <p>Voß, Herbert. (2011) &quot;Ch 26: pst-barcode - Bar codes&quot; in &quot;PSTricks. Graphics and PostScript for TeX and LaTeX,&quot; Cambridge: UIT Cambridge. pp. 497-508.</p>
 <h3 id="scribus-barcode-generator-plugin">Scribus Barcode Generator Plugin</h3>

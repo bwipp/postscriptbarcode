@@ -12,9 +12,9 @@ http://bwipp.terryburton.co.uk
 
 Flack, Chapman. (2006) "Direct Use of the PostScript Language," http://www.anastigmatix.net/postscript/direct.html
 
-Janssen, Mark. (2008) "Creating LTO barcodes," http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/
+Janssen, Mark. (2008) "Creating LTO barcodes," Foobar's Blog and Linkdump. http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/
 
-Janssen, Mark. (2009) "Webbased (PDF) LTO Barcode Generator," http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/
+Janssen, Mark. (2009) "Webbased (PDF) LTO Barcode Generator," Foobar's Blog and Linkdump. http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/
 
 Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices," http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf
 
@@ -24,7 +24,7 @@ Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscr
 
 Seichter, Dominik. (2010) "KBarcode4 Light Released," http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html
 
-Willis, Nathan. (2010) "Barcode Writer in Pure PostScript," http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html
+Willis, Nathan. (2010) "Barcode Writer in Pure PostScript," Worldlabel.com Incorporated. http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html
 
 Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827
 
@@ -33,7 +33,7 @@ McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre.
 Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Authentication of Documents," Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.
 
 
-### Barcode Writer in Pure PostScript Online Generator
+### Online Barcode Generator
 
 http://www.terryburton.co.uk/barcodewriter/generator/
 
@@ -76,7 +76,7 @@ Secondo, Stefano. (2009) "Cover Letter With Style - Part Six," http://stefano.it
 
 Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat Journal, Volume 31i, Number 1. p. 36.
 
-Brampton, Andrew. (2010) "LaTeX QR Based Business Card," http://bramp.net/blog/latex-qr-based-business-card
+Brampton, Andrew. (2010) "LaTeX QR Based Business Card," The Website of Andrew Brampton. http://bramp.net/blog/latex-qr-based-business-card
 
 Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 
