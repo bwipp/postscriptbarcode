@@ -20,17 +20,25 @@ Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices," htt
 
 Scarso, Luigi. (2009) "Una estensione di luatex: luatex lunatic," http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&rep=rep1&type=pdf
 
+Pluimers, Jeroen W. (2009) "Generating EAN-13 barcode EPS files for your article numbers," http://wiert.me/2009/11/30/generating-ean-13-barcode-eps-files-for-your-article-numbers/
+
 Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446
 
 Seichter, Dominik. (2010) "KBarcode4 Light Released," http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html
 
 Willis, Nathan. (2010) "Barcode Writer in Pure PostScript," Worldlabel.com Incorporated. http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html
 
+Russell, Robert. (2010) "How to Print(PDF) QR Codes in standard SAP," http://www.rjruss.info/2010/09/how-to-printpdf-qr-codes-in-standard.html
+
 Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827
 
 McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast. http://www.robotmouth.com/papers_files/TSLOO.pdf
 
+Russell, Robert. (2013) "Add FREE barcodes to the SAP Latin2 HP printer Driver," http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html 
+
 Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Authentication of Documents," Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.
+
+Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript," http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html
 
 
 ### Online Barcode Generator
