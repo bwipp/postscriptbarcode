@@ -34,7 +34,7 @@
 % --BEGIN ENCODER sscc18--
 % --REQUIRES preamble raiseerror renlinear code128--
 % --DESC: SSCC-18
-% --EXAM: (00)006141411234567890
+% --EXAM: (00) 0 0614141 123456789 0
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
@@ -75,6 +75,13 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
+    % Strip spaces from the given data
+    /text barcode def
+    barcode dup length string exch 0 exch
+    {dup 32 ne {3 copy put pop 1 add} {pop} ifelse} forall
+    0 exch getinterval /barcode exch def
+    /hasspace text length barcode length ne def
+
     % Validate the input
     barcode 0 4 getinterval (\(00\)) ne {
         /bwipp.sscc18badAI (SSCC-18 must begin with (00) application identifier) //raiseerror exec
@@ -99,15 +106,20 @@ begin
         barcode 21 get checksum 48 add ne {
             /bwipp.sscc18badCheckDigit (Incorrect SSCC-18 check digit provided) //raiseerror exec
         } if
-    } if
-    22 string
-    dup 0 barcode putinterval
-    dup 21 checksum 48 add put
-    /barcode exch def
+    } {
+        22 string
+        dup 0 barcode putinterval
+        dup 21 checksum 48 add put
+        /barcode exch def
+        text length hasspace {2} {1} ifelse add string
+        dup dup length 2 sub ( ) putinterval
+        dup dup length 1 sub checksum 48 add put
+        dup 0 text putinterval
+        /text exch def
+    } ifelse
     /sscc barcode 4 18 getinterval def
 
     % Compose input to code128
-    /text barcode def
     /barcode 25 string def
     barcode 0 (^FNC100) putinterval
     barcode 7 sscc putinterval

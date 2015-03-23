@@ -34,7 +34,7 @@
 % --BEGIN ENCODER ean14--
 % --REQUIRES preamble raiseerror renlinear code128--
 % --DESC: GS1-14
-% --EXAM: (01)04601234567893
+% --EXAM: (01) 0 46 01234 56789 3
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
@@ -57,7 +57,7 @@ begin
     /textxoffset 0 def
     /textyoffset -7 def
     /height 1 def
- 
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -75,6 +75,13 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def 
 
+    % Strip spaces from the given data
+    /text barcode def
+    barcode dup length string exch 0 exch
+    {dup 32 ne {3 copy put pop 1 add} {pop} ifelse} forall
+    0 exch getinterval /barcode exch def
+    /hasspace text length barcode length ne def
+ 
     % Validate the input
     barcode 0 4 getinterval (\(01\)) ne {
         /bwipp.ean14badAI (GS1-14 must begin with (01) application identifier) //raiseerror exec
@@ -99,15 +106,20 @@ begin
         barcode 17 get checksum 48 add ne {
             /bwipp.ean14badCheckDigit (Incorrect GS1-14 check digit provided) //raiseerror exec
         } if
-    } if
-    18 string
-    dup 0 barcode putinterval
-    dup 17 checksum 48 add put
-    /barcode exch def
+    } {
+        18 string
+        dup 0 barcode putinterval
+        dup 17 checksum 48 add put
+        /barcode exch def
+        text length hasspace {2} {1} ifelse add string
+        dup dup length 2 sub ( ) putinterval
+        dup dup length 1 sub checksum 48 add put
+        dup 0 text putinterval
+        /text exch def
+    } ifelse
     /gtin barcode 4 14 getinterval def
 
     % Compose input to code128
-    /text barcode def
     /barcode 21 string def
     barcode 0 (^FNC101) putinterval
     barcode 7 gtin putinterval
