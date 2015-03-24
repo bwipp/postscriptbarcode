@@ -34,7 +34,7 @@
 % --BEGIN ENCODER itf14--
 % --REQUIRES preamble raiseerror renlinear interleaved2of5--
 % --DESC: ITF-14
-% --EXAM: 04601234567893
+% --EXAM: 0 46 01234 56789 3
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
@@ -56,7 +56,7 @@ begin
     /textfont /Courier def
     /textsize 10 def
     /textxoffset 0 def
-    /textyoffset -10 def
+    /textyoffset 3 def
     /height 0.5 def
     /showborder true def
     /borderwidth 4 def
@@ -83,6 +83,13 @@ begin
     /borderleft borderleft cvr def
     /borderright borderright cvr def
 
+    % Strip spaces from the given data
+    /text barcode def
+    barcode dup length string exch 0 exch
+    {dup 32 ne {3 copy put pop 1 add} {pop} ifelse} forall
+    0 exch getinterval /barcode exch def
+    /hasspace text length barcode length ne def
+
     % Validate the input
     barcode length 13 ne barcode length 14 ne and {
         /bwipp.itf14badLength (ITF-14 must be 13 or 14 digits) //raiseerror exec
@@ -104,11 +111,17 @@ begin
         barcode 13 get checksum 48 add ne {
             /bwipp.itf14badCheckDigit (Incorrect ITF-14 check digit provided) //raiseerror exec
         } if
-    } if
-    14 string
-    dup 0 barcode putinterval
-    dup 13 checksum 48 add put
-    /barcode exch def
+    } {
+        14 string
+        dup 0 barcode putinterval
+        dup 13 checksum 48 add put
+        /barcode exch def
+        text length hasspace {2} {1} ifelse add string
+        dup dup length 2 sub ( ) putinterval
+        dup dup length 1 sub checksum 48 add put
+        dup 0 text putinterval
+        /text exch def
+    } ifelse
 
     % Get the result of encoding with interleaved2of5
     options (dontdraw) true put
@@ -118,9 +131,10 @@ begin
     options (borderright) borderright put
     options (height) height put
     options (textyoffset) textyoffset put
-    options (includecheckintext) includecheckintext put
     /args barcode options //interleaved2of5 exec def
 
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
     args (opt) options put
     args
  
