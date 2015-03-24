@@ -228,6 +228,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <ul>
 <li>Homepage: <a href="http://bwipp.terryburton.co.uk">http://bwipp.terryburton.co.uk</a><br /></li>
 <li>Documentation: <a href="https://github.com/bwipp/postscriptbarcode/wiki">https://github.com/bwipp/postscriptbarcode/wiki</a><br /></li>
+<li>Documentation in PDF format for print: <a href="http://goo.gl/PBFNbv">http://goo.gl/PBFNbv</a><br /></li>
 <li>Download: <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">https://github.com/bwipp/postscriptbarcode/releases/latest</a><br /></li>
 <li>Source: <a href="https://github.com/bwipp/postscriptbarcode.git">https://github.com/bwipp/postscriptbarcode.git</a><br /></li>
 <li>Issue tracker: <a href="https://github.com/bwipp/postscriptbarcode/issues">https://github.com/bwipp/postscriptbarcode/issues</a><br /></li>
@@ -858,6 +859,7 @@ make</code></pre>
 <h3 id="data-and-options-17">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.<br /></li>
+<li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.<br /></li>
 <li>If thirteen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
 </ul>
 <h3 id="examples-12">Examples</h3>
@@ -874,6 +876,7 @@ make</code></pre>
 <h3 id="data-and-options-18">Data and Options</h3>
 <ul>
 <li>The data consists of either thirteen or fourteen digits.<br /></li>
+<li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.<br /></li>
 <li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
 </ul>
 <h3 id="examples-13">Examples</h3>
@@ -890,6 +893,7 @@ make</code></pre>
 <h3 id="data-and-options-19">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (00)</em> with seventeen or eighteen digits of a Serial Shipping Container Code, i.e. <code>(00)0...</code>.<br /></li>
+<li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.<br /></li>
 <li>The mandatory check digit is calculated automatically and any user provided check digit is discarded.</li>
 </ul>
 <h3 id="example-3">Example</h3>
@@ -2645,14 +2649,14 @@ errordict begin
   end //handleerror exec
 } bind def
 end
-%
+
 % If necessary, set up anything else specific to the environment just here.
-%
+
 % Include the BWIPP resource, either directly or from PS
 (barcode.ps) run
-%
+
 % Now make the calls to BWIPP
-% 0 0 moveto (ABC) () /code39 /uk.co.terryburton.bwipp findresource exec</code></pre>
+0 0 moveto (ABC) () /code39 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <h3 id="locating-the-resource">Locating the Resource</h3>
 <p>Allow the location of the <code>barcode.ps</code> file to be configured by the user so that non-admins users can provide a local version and distributions that deprecate bundled libraries can provide a separately packaged version.</p>
 <p>In any case, use the following search order to locate the <code>barcode.ps</code> resource:</p>
@@ -2676,12 +2680,16 @@ end
 <p>Janssen, Mark. (2009) &quot;Webbased (PDF) LTO Barcode Generator,&quot; Foobar's Blog and Linkdump. <a href="http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/">http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/</a></p>
 <p>Rocholl, Johann C. (2009) &quot;Robust 1D Barcode Recognition on Mobile Devices,&quot; <a href="http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf">http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf</a></p>
 <p>Scarso, Luigi. (2009) &quot;Una estensione di luatex: luatex lunatic,&quot; <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&amp;rep=rep1&amp;type=pdf">http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&amp;rep=rep1&amp;type=pdf</a></p>
+<p>Pluimers, Jeroen W. (2009) &quot;Generating EAN-13 barcode EPS files for your article numbers,&quot; <a href="http://wiert.me/2009/11/30/generating-ean-13-barcode-eps-files-for-your-article-numbers/">http://wiert.me/2009/11/30/generating-ean-13-barcode-eps-files-for-your-article-numbers/</a></p>
 <p>Russell, Robert. (2010) &quot;Barcodes in SAP with the Barcode Writer in Pure Postscript,&quot; <a href="http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446">http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446</a></p>
 <p>Seichter, Dominik. (2010) &quot;KBarcode4 Light Released,&quot; <a href="http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html">http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html</a></p>
 <p>Willis, Nathan. (2010) &quot;Barcode Writer in Pure PostScript,&quot; Worldlabel.com Incorporated. <a href="http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html">http://blog.worldlabel.com/2010/barcode-writer-in-pure-postscript.html</a></p>
+<p>Russell, Robert. (2010) &quot;How to Print(PDF) QR Codes in standard SAP,&quot; <a href="http://www.rjruss.info/2010/09/how-to-printpdf-qr-codes-in-standard.html">http://www.rjruss.info/2010/09/how-to-printpdf-qr-codes-in-standard.html</a></p>
 <p>Russell, Robert. (2011) &quot;More Barcodes with Barcode Writer in Pure Postscript,&quot; <a href="http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827">http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827</a></p>
 <p>McNulty, John. (2011) &quot;The Secret Lives of Objects,&quot; Sonic Arts Research Centre. Queen’s University Belfast. <a href="http://www.robotmouth.com/papers_files/TSLOO.pdf">http://www.robotmouth.com/papers_files/TSLOO.pdf</a></p>
+<p>Russell, Robert. (2013) &quot;Add FREE barcodes to the SAP Latin2 HP printer Driver,&quot; <a href="http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html">http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html</a></p>
 <p>Ehlenbroker J., Lohweg V. (2014) &quot;microIDENT - A System for Simple Coding and Authentication of Documents,&quot; Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.</p>
+<p>Russell, Robert. (2014) &quot;Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript,&quot; <a href="http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html">http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html</a></p>
 <h3 id="online-barcode-generator">Online Barcode Generator</h3>
 <p><a href="http://www.terryburton.co.uk/barcodewriter/generator/">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
 <p>Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer. <a href="http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf">http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf</a></p>
