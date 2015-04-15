@@ -91,6 +91,13 @@ Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
 
+### Barcode Writer in Pure JavaScript
+
+https://github.com/metafloor/bwip-js
+
+Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html
+
+
 ### Scribus Barcode Generator Plugin
 
 http://documentation.scribus.net/index.php/Barcode_Generator
