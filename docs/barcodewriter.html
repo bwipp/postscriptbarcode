@@ -1152,7 +1152,7 @@ make</code></pre>
 /microqrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABZSURBVCjPnZFJDgAgCAPL/z/twbAp1IWERB0CpQIpRDxBkVh49Q2KzebtDwFvCCbthLJ4PXOUjSoeCyRbWAlBcVmVEto2yO1ck6FunzCtQLtFNoKg9vNB0ACRFQEx3Ka0PQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxMjoyMDo1NiswMDowMOKFIo4AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTI6MjA6NTYrMDA6MDCT2JoyAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h2 id="code-128">Code 128</h2>
-<p><strong>Code 128</strong> is an arbitrarily long, high-density barcode symbology that can be used to encode 128 character ASCII. Extended ASCII characters can be encoded using the <em>FNC4</em> shift character.</p>
+<p><strong>Code 128</strong> is an arbitrarily long, high-density barcode symbology that can be used to encode full 256 character extended-ASCII.</p>
 <p>Also known as: USD-6, USS-128, Code 128A, Code 128B, Code 128C.</p>
 <p>Variants:</p>
 <ul>
@@ -1162,9 +1162,10 @@ make</code></pre>
 <p>Standards: ISO/IEC 15417, ANSI/AIM BC4 - ISS Code 128, BS EN 799.</p>
 <h3 id="data-and-options-28">Data and Options</h3>
 <ul>
-<li>The input can consist of any ASCII data.<br /></li>
-<li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, etc.<br /></li>
-<li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code> through <code>^FNC4</code>.<br /></li>
+<li>The input can consist of any extended ASCII data.<br /></li>
+<li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII or extended-ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, <code>^209</code> for <em>Ñ</em>, etc.<br /></li>
+<li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.<br /></li>
+<li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code> through <code>^FNC3</code>.<br /></li>
 <li>When the <strong>parsefnc</strong> option is specified, the special pseudo characters <code>^LNKA</code> and <code>^LNKC</code> at the end of the symbol indicate that a GS1-128 symbol includes a <em>CC-A/B</em> or <em>CC-C</em> GS1 composite 2D component.<br /></li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.<br /></li>
 <li>The mandatory check digit is calculated automatically.</li>
