@@ -162,9 +162,9 @@ begin
     
     /fncvals <<
         (FNC1) fn1
-        (FNC2) fn2
+%        (FNC2) fn2      Not permitted for Codablock F
         (FNC3) fn3
-        (FNC4) fn4
+%        (FNC4) fn4      Not user accessible as encoded automatically
     >> def
     /msg barlen array def
     /i 0 def /j 0 def {
@@ -183,6 +183,15 @@ begin
         /j j 1 add def
     } loop
     /msg msg 0 j getinterval def
+    /msglen msg length def
+
+    % FNC4 codeword insertion for extended ASCII
+    /msgtmp [] def
+    msg {
+        /c exch def
+        /msgtmp [ msgtmp aload pop c 128 lt {c} {fn4 c 127 and} ifelse ] def
+    } forall
+    /msg msgtmp def
     /msglen msg length def
 
     % Determine digit runlength and characters from given position
