@@ -9,8 +9,8 @@ SRCDIR = src
 DOCDIR = docs
 DSTDIR = build
 
-VERSION_FILE=$(SRCDIR)/VERSION
-VERSION:=$(shell head -n 1 $(VERSION_FILE))
+CHANGES_FILE=CHANGES
+VERSION:=$(shell head -n 1 $(CHANGES_FILE))
 
 SOURCES:=$(wildcard $(SRCDIR)/*.ps)
 DOCNAMES:=$(notdir $(wildcard $(DOCDIR)/*))
@@ -140,10 +140,10 @@ $(RESMKDIRSTAMP):
 	mkdir -p $(RESMKDIRS)
 	touch $@
 
-$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(RESMKDIRSTAMP)
+$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
 	$(DSTDIR)/make_resource $< $@
 
-$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(RESMKDIRSTAMP)
+$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
 	$(DSTDIR)/make_resource $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(RESMKDIRSTAMP)
@@ -167,10 +167,10 @@ $(PACKAGEMKDIRSTAMP):
 	mkdir -p $(PACKAGEMKDIRS)
 	touch $@
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource $< $@
 
-$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(PACKAGEMKDIRSTAMP)
@@ -194,7 +194,7 @@ $(MONOLITHIC_MKDIRSTAMP):
 	mkdir -p $(MONOLITHIC_MKDIRS)
 	touch $@
 
-$(MONOLITHIC_FILE): $(TARGETS_RES) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE) $(MONOLITHIC_MKDIRSTAMP)
+$(MONOLITHIC_FILE): $(TARGETS_RES) $(SRCDIR)/ps.head $(CHANGES_FILE) $(UPR_FILE) $(MONOLITHIC_MKDIRSTAMP)
 	$(DSTDIR)/make_monolithic $(RESDIR)/Resource >$@
 $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) $(SRCDIR)/sample $(MONOLITHIC_MKDIRSTAMP)
 	cat $(MONOLITHIC_FILE) $(SRCDIR)/sample > $@
@@ -215,7 +215,7 @@ $(MONOLITHIC_PACKAGE_MKDIRSTAMP):
 	mkdir -p $(MONOLITHIC_PACKAGE_MKDIRS)
 	touch $@
 
-$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) $(SRCDIR)/ps.head $(VERSION_FILE) $(UPR_FILE) $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
+$(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) $(SRCDIR)/ps.head $(CHANGES_FILE) $(UPR_FILE) $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
 	$(DSTDIR)/make_monolithic $(PACKAGEDIR)/Resource >$@
 $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
 	cat $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample > $@
@@ -234,7 +234,7 @@ $(STANDALONE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_MKDIRS)
 	touch $@
 
-$(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(STANDALONE_MKDIRSTAMP)
+$(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
 	$(DSTDIR)/make_standalone $< $@
 
 #------------------------------------------------------------
@@ -243,7 +243,7 @@ $(STANDALONE_PACKAGE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_PACKAGE_MKDIRS)
 	touch $@
 
-$(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(VERSION_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
+$(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
 	$(DSTDIR)/make_standalone $< $@
 
 #------------------------------------------------------------
@@ -255,37 +255,37 @@ $(RELEASEMKDIRSTAMP):
 	touch $@
 
 define TARBALL
-  tar --exclude-vcs --exclude=.dirstamp --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^$(DSTDIR)/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
+  tar --exclude-vcs --exclude=.dirstamp --numeric-owner --owner=0 --group=0 --mtime=./$(CHANGES_FILE) --transform='s,^$(DSTDIR)/,postscriptbarcode-$(VERSION)/,' -czf $@ $(1)
 endef
 
 define ZIPFILE
   $(RM) $@; FILE=`readlink -f $@` && cd $(1) && zip -q -X -x '*.dirstamp' -r $$FILE .
 endef
 
-$(RELEASE_RESOURCE_TARBALL): $(TARGETS_RES) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_RESOURCE_TARBALL): $(TARGETS_RES) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call TARBALL,$(RESDIR))
 
-$(RELEASE_RESOURCE_ZIPFILE): $(TARGETS_RES) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_RESOURCE_ZIPFILE): $(TARGETS_RES) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call ZIPFILE,$(RESDIR))
 
-$(RELEASE_PACKAGED_RESOURCE_TARBALL): $(TARGETS_PACKAGE) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_PACKAGED_RESOURCE_TARBALL): $(TARGETS_PACKAGE) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call TARBALL,$(PACKAGEDIR))
 
-$(RELEASE_PACKAGED_RESOURCE_ZIPFILE): $(TARGETS_PACKAGE) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_PACKAGED_RESOURCE_ZIPFILE): $(TARGETS_PACKAGE) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call ZIPFILE,$(PACKAGEDIR))
 
-$(RELEASE_MONOLITHIC_TARBALL): $(TARGETS_MONOLITHIC) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_MONOLITHIC_TARBALL): $(TARGETS_MONOLITHIC) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call TARBALL,$(MONOLITHIC_DIR))
 
-$(RELEASE_MONOLITHIC_ZIPFILE): $(TARGETS_MONOLITHIC) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_MONOLITHIC_ZIPFILE): $(TARGETS_MONOLITHIC) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call ZIPFILE,$(MONOLITHIC_DIR))
 
-$(RELEASE_MONOLITHIC_PACKAGE_TARBALL): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_MONOLITHIC_PACKAGE_TARBALL): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call TARBALL,$(MONOLITHIC_PACKAGE_DIR))
 
-$(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
+$(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 	$(call ZIPFILE,$(MONOLITHIC_PACKAGE_DIR))
 
-#$(RELEASE_SOURCE_TARBALL): $(VERSION_FILE) $(RELEASEMKDIRSTAMP)
-#	tar --exclude-vcs --exclude=$(RELEASEDIR) $(addprefix --exclude=,$(cleanlist)) --numeric-owner --owner=0 --group=0 --mtime=./$(VERSION_FILE) --transform='s,^.,postscriptbarcode-$(VERSION),' -czf $@ .
+#$(RELEASE_SOURCE_TARBALL): $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
+#	tar --exclude-vcs --exclude=$(RELEASEDIR) $(addprefix --exclude=,$(cleanlist)) --numeric-owner --owner=0 --group=0 --mtime=./$(CHANGES_FILE) --transform='s,^.,postscriptbarcode-$(VERSION),' -czf $@ .
 

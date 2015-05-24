@@ -15,8 +15,8 @@ my $outfile=$ARGV[1];
 (my $resdir)=$outfile=~m#^(build/[^/]+)/#;
 my $packager=$resdir eq 'build/packaged_resource' ? 'make_packaged_resource.ps' : 'make_resource.ps';
 
-open(VER,'src/VERSION') || die 'Unable to open VERSION';
-my $version=join('',<VER>);
+open(VER,'CHANGES') || die 'Unable to open CHANGES';
+my $version=<VER>;
 close VER;
 chomp $version;
 
