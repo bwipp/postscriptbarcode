@@ -292,7 +292,9 @@ $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_F
 #------------------------------------------------------------
 
 tag:
-	@echo "git tag -s -m - `head -n1 CHANGES` <<'EOF'"
+	@echo Push a new tag as follows:
+	@echo
+	@echo "git tag -s -m /dev/stdin `head -n1 CHANGES` <<'EOF'"
 	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
 	@echo EOF
-
+	@echo git push --tags
