@@ -114,7 +114,7 @@ cleanlist += $(RELEASEFILES) $(RELEASEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
-.PHONY : all clean test resource packaged_resource monolithic monolithic_package release
+.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag
 
 all: resource packaged_resource monolithic monolithic_package
 
@@ -288,4 +288,11 @@ $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_F
 
 #$(RELEASE_SOURCE_TARBALL): $(CHANGES_FILE) $(RELEASEMKDIRSTAMP)
 #	tar --exclude-vcs --exclude=$(RELEASEDIR) $(addprefix --exclude=,$(cleanlist)) --numeric-owner --owner=0 --group=0 --mtime=./$(CHANGES_FILE) --transform='s,^.,postscriptbarcode-$(VERSION),' -czf $@ .
+
+#------------------------------------------------------------
+
+tag:
+	@echo "git tag -s -m - `head -n1 CHANGES` <<'EOF'"
+	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
+	@echo EOF
 
