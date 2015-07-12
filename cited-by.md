@@ -30,6 +30,8 @@ Willis, Nathan. (2010) "Barcode Writer in Pure PostScript," Worldlabel.com Incor
 
 Russell, Robert. (2010) "How to Print(PDF) QR Codes in standard SAP," http://www.rjruss.info/2010/09/how-to-printpdf-qr-codes-in-standard.html
 
+Zhao, Y., Sun, W. (2010) "Practice of Imposition and Illustrator Variable Data Plate Making with Barcode," Proceedings of 17th IAPRI World Conference on Packaging. ISBN 978-1-935068-36-5.
+
 Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827
 
 McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast. http://www.robotmouth.com/papers_files/TSLOO.pdf
