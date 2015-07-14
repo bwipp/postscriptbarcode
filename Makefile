@@ -297,4 +297,4 @@ tag:
 	@echo "git tag -s -F /dev/stdin `head -n1 CHANGES` <<'EOF'"
 	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
 	@echo EOF
-	@echo git push --tags
+	@echo git push origin `head -n1 CHANGES`
