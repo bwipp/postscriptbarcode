@@ -50,6 +50,7 @@ begin
     /barcode exch def
 
     /dontdraw false def
+    /version (unset) def
     /columns 0 def
     /rows 0 def
     /rowmult 2 def
@@ -69,6 +70,12 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
+
+    version (unset) ne {
+        version (x) search
+        pop /columns exch def
+        pop /rows exch def
+    } if
 
     /columns columns cvi def
     /rows rows cvi def
