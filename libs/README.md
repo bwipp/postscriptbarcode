@@ -7,7 +7,7 @@ resources based on metadata contained within the monolithic barcode.ps file.
 
 It is hoped that these can provide a stable and robust interface to BWIPP that
 avoids the need for frontends to parse and process the PostScript resource file
-directly or embed lots of static data about the resources in the code.
+directly or embed lots of static data about the resources in their code.
 
 
 How to build and use the various bindings
@@ -49,8 +49,9 @@ make
 ```
 cd java
 swig -Wall -java postscriptbarcode.i
-gcc -fPIC -Wall -Wextra -shared postscriptbarcode.c postscriptbarcode_wrap.c         \
-    -o libpostscriptbarcode.so -L../c -lpostscriptbarcode                            \
-    -I/usr/lib/jvm/java-8-oracle/include -I/usr/lib/jvm/java-8-oracle/include/linux
+gcc -fPIC -Wall -Wextra -shared postscriptbarcode.c postscriptbarcode_wrap.c \
+    -o libpostscriptbarcode.so -L../c -lpostscriptbarcode                    \
+    -I/usr/lib/jvm/java-8-oracle/include                                     \
+    -I/usr/lib/jvm/java-8-oracle/include/linux
 LD_LIBRARY_PATH=. java example
 ```
