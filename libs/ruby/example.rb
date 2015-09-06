@@ -2,6 +2,6 @@
 
 require './postscriptbarcode'
 
-c=Postscriptbarcode::BWIPP.new("../barcode.ps")
+c=Postscriptbarcode::BWIPP.new("../../build/monolithic_package/barcode.ps")
 c.get_version()
 
