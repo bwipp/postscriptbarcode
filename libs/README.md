@@ -38,6 +38,8 @@ make
 ```
 cd java
 swig -Wall -java postscriptbarcode.i
-gcc -fPIC -Wall -Wextra -shared postscriptbarcode.c postscriptbarcode_wrap.c -o libpostscriptbarcode.so -L../c -lpostscriptbarcode -I/usr/lib/jvm/java-8-oracle/include -I/usr/lib/jvm/java-8-oracle/include/linux
+gcc -fPIC -Wall -Wextra -shared postscriptbarcode.c postscriptbarcode_wrap.c         \
+    -o libpostscriptbarcode.so -L../c -lpostscriptbarcode                            \
+    -I/usr/lib/jvm/java-8-oracle/include -I/usr/lib/jvm/java-8-oracle/include/linux
 LD_LIBRARY_PATH=. java example
 ```
