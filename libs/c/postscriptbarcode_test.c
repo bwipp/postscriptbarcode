@@ -12,8 +12,8 @@ int main() {
 	char **families;
 	unsigned short num_families, i;
 
-        BWIPP *ctx=bwipp_load_from_file("../barcode.ps");
-        BWIPP *ctx2=bwipp_load_from_file("../barcode1.ps");
+        BWIPP *ctx=bwipp_load_from_file("../../build/monolithic/barcode.ps");
+        BWIPP *ctx2=bwipp_load_from_file("../../build/monolithic_package/barcode.ps");
 
 	printf("Version: %s\n", bwipp_get_version(ctx));
 	printf("Version: %s\n", bwipp_get_version(ctx2));
