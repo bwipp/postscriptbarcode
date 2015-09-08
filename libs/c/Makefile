@@ -1,4 +1,4 @@
-CFLAGS = -g -O2 -fPIC -Wall -Wextra -Wconversion -Wsign-conversion -Wformat -Wformat-security -Werror -pedantic 
+CFLAGS = -g -O2 -fPIC -Wall -Wextra -Wconversion -Wsign-conversion -Wformat -Wformat-security -Werror -pedantic
 CC = gcc
 LIBS = -lc
 LDFLAGS = -shared -Wl,-soname,lib$(NAME).so.$(MAJOR)
