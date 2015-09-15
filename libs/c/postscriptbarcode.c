@@ -247,7 +247,7 @@ char* bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 		strcat(code,get_resource(ctx,req)->code);
 		req=strtok_r(NULL," ",&saveptr);
 	}
-	free(req);
+	free(reqs);
 
 	/* Add code for this resource */
 	strcat(code,resource->code);
