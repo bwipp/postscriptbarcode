@@ -50,6 +50,10 @@ struct BWIPP {
 
 static const char *default_filename="/usr/share/postscriptbarcode/barcode.ps";
 
+void bwipp_free(void *p) {
+	free(p);
+}
+
 BWIPP* bwipp_load(void) {
 	/* TODO search a set of default paths */
 	return bwipp_load_from_file(default_filename);

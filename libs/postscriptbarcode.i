@@ -40,6 +40,9 @@
 struct BWIPP { };
 
 %extend BWIPP {
+
+        %typemap(newfree) char * "bwipp_free($1);";
+
         BWIPP(char* filename) {
                 return bwipp_load_from_file(filename);
         }

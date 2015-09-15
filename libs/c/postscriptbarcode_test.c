@@ -23,32 +23,32 @@ int main() {
 	ps[0]='\0';
 	strcat(ps,"%!PS\n");
         strcat(ps,tmp);
-	free(tmp);
+	bwipp_free(tmp);
 	strcat(ps,"gsave\n");
 	strcat(ps,"50 150 translate\n");
 	tmp=bwipp_emit_exec(ctx,name,data,options);
         strcat(ps,tmp);
-	free(tmp);
+	bwipp_free(tmp);
 	strcat(ps,"grestore\n");
 /*	printf("%s\n",ps); */
-	free(ps);
+	bwipp_free(ps);
 
 	abc=bwipp_emit_all_resources(ctx);
 /*	printf("%s",abc);
 */
-	free(abc);
+	bwipp_free(abc);
 
 	char *families_str=bwipp_list_families_as_string(ctx);
 //	printf("%s\n",families_str);
-	free(families_str);
+	bwipp_free(families_str);
 
 	char *members_str=bwipp_list_family_members_as_string(ctx,"Two-dimensional");
 //	printf("%s\n",members_str);
-	free(members_str);
+	bwipp_free(members_str);
 
 	char *properties_str=bwipp_list_properties_as_string(ctx,"qrcode");
 //	printf("%s\n",properties_str);
-	free(properties_str);
+	bwipp_free(properties_str);
 
 	num_families=bwipp_list_families(ctx,&families);
 	for (i=0; i<num_families; i++) {
@@ -67,11 +67,11 @@ int main() {
 				const char *val=bwipp_get_property(ctx,bcname,properties[k]);
 //				printf("%s: %s\n",properties[k],val);
 			}
-			free(properties);
+			bwipp_free(properties);
 	        }
-       		free(members);
+       		bwipp_free(members);
 	}
-	free(families);
+	bwipp_free(families);
 
 	bwipp_unload(ctx);
 	bwipp_unload(ctx2);
