@@ -3,5 +3,5 @@
 import postscriptbarcode
 
 c=postscriptbarcode.BWIPP("../../build/monolithic_package/barcode.ps")
-c.get_version()
+print c.get_version()
 
