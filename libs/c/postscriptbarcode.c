@@ -266,9 +266,12 @@ char* bwipp_emit_all_resources(BWIPP *ctx) {
 	ResourceList *curr;
 	char *code, *tmp;
 
+	curr=ctx->resourcelist;
+	if (curr==NULL)
+		return NULL;
+
 	code=malloc(MAX_CODE * sizeof(char));
 	code[0]='\0';
-	curr=ctx->resourcelist;
 	while (curr) {
 		strcat(code,curr->entry->code);
 		curr=curr->next;
