@@ -34,7 +34,7 @@
 %module postscriptbarcode
 
 %{
-#include "postscriptbarcode.h"
+#include <postscriptbarcode.h>
 %}
 
 struct BWIPP { };

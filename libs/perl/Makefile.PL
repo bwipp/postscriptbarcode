@@ -3,5 +3,7 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
 	'NAME'    => 'postscriptbarcode',
-	'OBJECT'  => 'postscriptbarcode.o postscriptbarcode_wrap.o'
+	'PM'      => {'postscriptbarcode.pm' => '$(INST_LIB)/postscriptbarcode.pm'},
+	'LIBS'    => '-lpostscriptbarcode',
+	'OBJECT'  => 'postscriptbarcode_wrap.o'
 );

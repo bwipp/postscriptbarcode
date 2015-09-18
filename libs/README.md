@@ -17,7 +17,7 @@ How to build and use the various bindings
 
 ```
 cd python
-swig -Wall -python postscriptbarcode.i
+swig -Wall -python -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
 python setup.py build_ext --inplace
 LD_LIBRARY_PATH=. ./example.py
 ```
@@ -26,7 +26,7 @@ LD_LIBRARY_PATH=. ./example.py
 
 ```
 cd perl
-swig -Wall -perl postscriptbarcode.i
+swig -Wall -perl -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
 ./Makefile.PL
 make
 LD_LIBRARY_PATH=blib/arch/auto/postscriptbarcode ./example.pl
@@ -37,7 +37,7 @@ LD_LIBRARY_PATH=blib/arch/auto/postscriptbarcode ./example.pl
 
 ```
 cd ruby
-swig -Wall -ruby postscriptbarcode.i
+swig -Wall -ruby -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
 ruby extconf.rb
 make
 ./example.rb
@@ -48,11 +48,12 @@ make
 
 ```
 cd java
-swig -Wall -java postscriptbarcode.i
-gcc -fPIC -Wall -Wextra -shared postscriptbarcode.c postscriptbarcode_wrap.c \
-    -o libpostscriptbarcode.so -L../c -lpostscriptbarcode                    \
-    -I/usr/lib/jvm/java-8-oracle/include                                     \
+swig -Wall -java -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
+gcc -fPIC -Wall -Wextra -shared 			\
+    postscriptbarcode_wrap.c				\
+    -o libpostscriptbarcode.so -lpostscriptbarcode      \
+    -I/usr/lib/jvm/java-8-oracle/include                \
     -I/usr/lib/jvm/java-8-oracle/include/linux
 javac example.java
-LD_LIBRARY_PATH=. java example
+java -Djava.library.path=. example
 ```
