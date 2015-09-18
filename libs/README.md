@@ -13,47 +13,38 @@ directly or embed lots of static data about the resources in their code.
 How to build and use the various bindings
 -----------------------------------------
 
-**Python**
+Build and install the C library first:
 
 ```
-cd python
-swig -Wall -python -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
-python setup.py build_ext --inplace
+cd c
+make
+make install
+```
+
+The build the relevant bindings:
+
+```
+cd bindings
+make LANGS="java perl python ruby"
+make install LANGS="java perl python ruby"
+```
+
+How to check these are working without installing:
+
+```
 LD_LIBRARY_PATH=. ./example.py
 ```
 
-**Perl**
-
 ```
-cd perl
-swig -Wall -perl -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
-./Makefile.PL
-make
 LD_LIBRARY_PATH=blib/arch/auto/postscriptbarcode ./example.pl
 ```
 
-
-**Ruby**
-
 ```
-cd ruby
-swig -Wall -ruby -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
-ruby extconf.rb
-make
 ./example.rb
 ```
 
-
-**Java**
-
 ```
-cd java
-swig -Wall -java -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i
-gcc -fPIC -Wall -Wextra -shared 			\
-    postscriptbarcode_wrap.c				\
-    -o libpostscriptbarcode.so -lpostscriptbarcode      \
-    -I/usr/lib/jvm/java-8-oracle/include                \
-    -I/usr/lib/jvm/java-8-oracle/include/linux
 javac example.java
 java -Djava.library.path=. example
 ```
+

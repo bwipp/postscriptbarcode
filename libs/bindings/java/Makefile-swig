@@ -1,0 +1,65 @@
+BASE_NAME = postscriptbarcode
+
+SWIG_INTERFACE = ../$(BASE_NAME).i
+
+SWIG_WRAP  = $(BASE_NAME)_wrap.c
+SWIG_EXTRA = $(BASE_NAME).java $(BASE_NAME)JNI.java BWIPP.java
+
+JAVA_CRUFT = $(wildcard *.class)
+JAVA_OUT = libpostscriptbarcode.so 
+
+cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT)
+
+.PHONY: all swig-perl install uninstall clean
+
+all: swig-java
+
+swig-java: $(JAVA_OUT)
+
+$(JAVA_OUT): $(SWIG_WRAP) $(SWIG_EXTRA)
+	gcc -fPIC -shared -O2 -g				\
+		$<						\
+		-o libpostscriptbarcode.so -l$(BASE_NAME)	\
+		-I$$JAVA_HOME/include				\
+		-I$$JAVA_HOME/include/linux
+
+$(SWIG_WRAP) $(SWIG_EXTRA):
+	swig -Wall -java -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
+
+install: $(JAVA_OUT)
+
+uninstall:
+
+clean:
+	$(RM) $(cleanlist)
+
+
+#  verify_jdk  = $(shell test -d $(1)/include && test -d $(1)/lib && \
+#                        echo inclib1) \
+#                $(shell test -d $(1)/Headers && test -d $(1)/Libraries && \
+#                        echo inclib2) \
+#                $(shell test -x $(1)/bin/javac && echo bin1) \
+#                $(shell test -x $(1)/Commands/javac && echo bin2) \
+#                $(shell test -x $(1)/javac && echo bin3)
+#
+#  get_java_inc = $(if $(findstring inclib1,$(1)),$(2)/include,\
+#                 $(if $(findstring inclib2,$(1)),$(2)/Headers,))
+#  get_java_lib = $(if $(findstring inclib1,$(1)),$(2)/lib,\
+#                 $(if $(findstring inclib2,$(1)),$(2)/Libraries,))
+#  get_java_bin = $(if $(findstring bin1,$(1)),$(2)/bin,\
+#                 $(if $(findstring bin2,$(1)),$(2)/Commands,\
+#                 $(if $(findstring bin3,$(1)),$(2),)))
+#
+#  # Check with 'which javac'
+#  WHICH_JAVAC := $(shell which javac)
+#  ifneq ($(WHICH_JAVAC),)
+#    WHICH_JAVAC := $(dir $(realpath $(WHICH_JAVAC)))
+#    WHICH_JAVAC := $(patsubst %/bin/,%,$(WHICH_JAVAC))
+#    TMP_RES := $(call verify_jdk,$(WHICH_JAVAC))
+#    ifneq ($(findstring inclib,$(TMP_RES)),)
+#      JAVA_HOME := $(WHICH_JAVAC)
+#      JAVA_INC  := $(call get_java_inc,$(TMP_RES),$(JAVA_HOME))
+#      JAVA_LIB  := $(call get_java_lib,$(TMP_RES),$(JAVA_HOME))
+#    endif
+#  endif
+
