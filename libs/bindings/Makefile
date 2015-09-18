@@ -1,3 +1,11 @@
+VERSION := $(shell head -n 1 ../CHANGES)
+VERSION := $(subst ., ,$(VERSION))
+MAJOR   := $(word 1, $(VERSION))
+MINOR   := $(word 2, $(VERSION))
+VERSION := $(MAJOR).$(MINOR)
+
+export NAME VERSION MAJOR MINOR
+
 LANGS = $(patsubst %/,%,$(wildcard */))
 
 .PHONY: all clean install uninstall
