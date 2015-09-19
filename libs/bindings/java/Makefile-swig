@@ -1,12 +1,26 @@
 NAME = postscriptbarcode
 
+VERSION := $(shell head -n 1 ../../CHANGES)
+
+PACKAGE = uk.co.terryburton.bwipp
+PACKAGEDIR = $(subst .,/,$(PACKAGE))
+
 SWIG_INTERFACE = ../$(NAME).i
 
 SWIG_WRAP  = $(NAME)_wrap.c
-SWIG_EXTRA = $(NAME).java $(NAME)JNI.java BWIPP.java
+SWIG_EXTRA = $(PACKAGEDIR)/$(NAME).java $(PACKAGEDIR)/$(NAME)JNI.java $(PACKAGEDIR)/BWIPP.java
+CLASS_FILES = $(SWIG_EXTRA:.java=.class)
 
 JAVA_CRUFT = $(wildcard *.class)
 JAVA_OUT = lib$(NAME).so 
+
+JAR_FILE = lib$(NAME)-$(VERSION).jar
+JAR_LINK = lib$(NAME).jar
+
+PREFIX=/usr/local
+
+JC = javac
+JFLAGS = -g
 
 ifeq ("$(JAVA_HOME)","")
   WHICH_JAVAC := $(shell which javac)
@@ -16,27 +30,47 @@ ifeq ("$(JAVA_HOME)","")
   endif
 endif
 
-cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT)
+cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT) $(JAR_FILE) $(JAR_LINK) $(CLASS_FILES)
 
-.PHONY: all swig-perl install uninstall clean
+.PHONY: all swig-java install uninstall clean
 
 all: swig-java
 
-swig-java: $(JAVA_OUT)
+swig-java: $(JAVA_OUT) $(JAR_FILE) $(JAR_LINK)
 
 $(JAVA_OUT): $(SWIG_WRAP) $(SWIG_EXTRA)
 	gcc -fPIC -shared -O2 -g				\
 		$<						\
-		-o lib$(NAME).so -l$(NAME)	\
+		-o $@				\
+		-L../../c -l$(NAME)				\
+		-I../../c					\
 		-I$(JAVA_HOME)/include				\
 		-I$(JAVA_HOME)/include/linux
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
-	swig -Wall -java -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
+	mkdir -p $(PACKAGEDIR)
+	swig -Wall -java -o $(SWIG_WRAP) -outdir $(PACKAGEDIR) -package uk.co.terryburton.bwipp $(SWIG_INTERFACE)
 
-install: $(JAVA_OUT)
+$(JAR_FILE): $(CLASS_FILES)
+	jar cf $@ $^
+
+$(JAR_LINK): $(JAR_FILE)
+	ln -sf $< $@
+
+%.class: %.java
+	$(JC) $(JFLAGS) $<
+
+install: swig-java
+	install -d $(DESTDIR)$(PREFIX)/share/java
+	install $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
+	ln -srf $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
+	install -d $(DESTDIR)$(PREFIX)/lib/jni
+	install $(JAVA_OUT) $(DESTDIR)$(PREFIX)/lib/jni
 
 uninstall:
+	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE)
+	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
+	$(RM) $(DESTDIR)$(PREFIX)/lib/jni/$(JAVA_OUT)
 
 clean:
 	$(RM) $(cleanlist)

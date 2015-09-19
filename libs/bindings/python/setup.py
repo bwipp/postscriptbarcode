@@ -8,9 +8,10 @@ from distutils.core import setup, Extension
 
 postscriptbarcode_module = Extension(
 	'_postscriptbarcode',
-#	sources=['postscriptbarcode_wrap.c', 'postscriptbarcode.c'],
 	sources=['postscriptbarcode_wrap.c'],
+	include_dirs = ['../../c'],
 	libraries=['postscriptbarcode'],
+	library_dirs=['../../c'],
 )
 
 setup(name = 'postscriptbarcode',

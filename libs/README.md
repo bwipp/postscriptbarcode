@@ -18,7 +18,7 @@ Build and install the C library first:
 ```
 cd c
 make
-make install
+make install  # (Optionally)
 ```
 
 The build the relevant bindings:
@@ -32,19 +32,23 @@ make install LANGS="java perl python ruby"
 How to check these are working without installing:
 
 ```
+cd python
 LD_LIBRARY_PATH=. ./example.py
 ```
 
 ```
+cd perl
 LD_LIBRARY_PATH=blib/arch/auto/postscriptbarcode ./example.pl
 ```
 
 ```
+
 ./example.rb
 ```
 
 ```
+cd java
 javac example.java
-java -Djava.library.path=. example
+java -cp . -Djava.library.path=. example
 ```
 
