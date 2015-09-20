@@ -24,6 +24,7 @@ $(PERL_OUT): $(PERL_MAKEFILE) $(SWIG_WRAP) $(SWIG_EXTRA)
 
 $(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
 	perl $<
+	sed -i 's@^LD_RUN_PATH.*@LD_RUN_PATH=@' $@
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
 	swig -Wall -perl -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
