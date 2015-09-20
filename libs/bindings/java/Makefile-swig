@@ -2,8 +2,10 @@ NAME = postscriptbarcode
 
 VERSION := $(shell head -n 1 ../../CHANGES)
 
+CLASSESDIR = classes
+
 PACKAGE = uk.co.terryburton.bwipp
-PACKAGEDIR = $(subst .,/,$(PACKAGE))
+PACKAGEDIR = $(CLASSESDIR)/$(subst .,/,$(PACKAGE))
 
 SWIG_INTERFACE = ../$(NAME).i
 
@@ -19,7 +21,7 @@ JAR_LINK = lib$(NAME).jar
 
 PREFIX=/usr/local
 
-JC = javac
+JC = javac -cp $(CLASSESDIR)
 JFLAGS = -g
 
 ifeq ("$(JAVA_HOME)","")
@@ -52,7 +54,7 @@ $(SWIG_WRAP) $(SWIG_EXTRA):
 	swig -Wall -java -o $(SWIG_WRAP) -outdir $(PACKAGEDIR) -package uk.co.terryburton.bwipp $(SWIG_INTERFACE)
 
 $(JAR_FILE): $(CLASS_FILES)
-	jar cf $@ $^
+	cd $(CLASSESDIR) && jar cf ../$@ $(CLASS_FILES:classes/%=%)
 
 $(JAR_LINK): $(JAR_FILE)
 	ln -sf $< $@

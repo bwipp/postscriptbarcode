@@ -42,22 +42,22 @@ How to check these are working without installing:
 
 ```
 cd python
-LD_LIBRARY_PATH=. ./example.py
+LD_LIBRARY_PATH=../../c PYTHONPATH=build/lib.*/_postscriptbarcode.so python example.py
 ```
 
 ```
 cd perl
-LD_LIBRARY_PATH=blib/arch/auto/postscriptbarcode ./example.pl
+LD_LIBRARY_PATH=../../c perl -I blib/arch/auto/postscriptbarcode -I blib/lib example.pl
 ```
 
 ```
 
-./example.rb
+LD_LIBRARY_PATH=../../c ruby -I . example.rb
 ```
 
 ```
 cd java
-javac example.java
-java -cp . -Djava.library.path=. example
+javac -cp .:libpostscriptbarcode.jar example.java
+LD_LIBRARY_PATH=../../c java -cp .:libpostscriptbarcode.jar -Djava.library.path=. example
 ```
 
