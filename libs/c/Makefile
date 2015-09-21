@@ -14,7 +14,7 @@ PREFIX = /usr/local
 
 .PHONY: default all clean lib libstatic libshared test install uninstall
 
-default: libstatic lib
+default: lib
 all: default test
 
 lib: libshared libstatic
