@@ -9,6 +9,10 @@ It is hoped that these can provide a stable and robust interface to BWIPP that
 avoids the need for frontends to parse and process the PostScript resource file
 directly or embed lots of static data about the resources in their code.
 
+**PACKAGERS** The interfaces are currently incomplete so please do not package
+the C library or bindings just yet. I'll create Debian and RedHat packaging
+when I think it's ready. Thanks!
+
 
 How to build and use the various bindings
 -----------------------------------------
@@ -25,6 +29,11 @@ The build the relevant bindings:
 
 ```
 cd bindings
+make
+make install
+
+Or selectively:
+
 make LANGS="java perl python ruby"
 make install LANGS="java perl python ruby"
 ```

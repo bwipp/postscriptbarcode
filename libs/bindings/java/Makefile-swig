@@ -64,10 +64,10 @@ $(JAR_LINK): $(JAR_FILE)
 
 install: swig-java
 	install -d $(DESTDIR)$(PREFIX)/share/java
-	install $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
+	install -m 0644 $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
 	ln -srf $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
 	install -d $(DESTDIR)$(PREFIX)/lib/jni
-	install $(JAVA_OUT) $(DESTDIR)$(PREFIX)/lib/jni
+	install -m 0644 $(JAVA_OUT) $(DESTDIR)$(PREFIX)/lib/jni
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE)
