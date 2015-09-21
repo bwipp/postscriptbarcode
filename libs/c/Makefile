@@ -12,12 +12,14 @@ LDFLAGS = -shared -Wl,-soname,lib$(NAME).so.$(MAJOR)
 
 PREFIX = /usr/local
 
-.PHONY: default all clean lib test install uninstall
+.PHONY: default all clean lib libstatic libshared test install uninstall
 
-default: lib
+default: libstatic lib
 all: default test
 
-lib: lib$(NAME).so lib$(NAME).so.$(MAJOR)
+lib: libshared libstatic
+libshared: lib$(NAME).so.$(VERSION) lib$(NAME).so lib$(NAME).so.$(MAJOR)
+libstatic: lib$(NAME).a
 
 lib$(NAME).so: lib$(NAME).so.$(VERSION)
 	ln -sf $< $@ 
@@ -28,6 +30,10 @@ lib$(NAME).so.$(MAJOR): lib$(NAME).so.$(VERSION)
 lib$(NAME).so.$(VERSION): $(NAME).o
 	$(CC) $(LDFLAGS) $(LDLIBS) $^ -o $@
 
+lib$(NAME).a: $(NAME).o
+	$(AR) cr $@ $^
+	ranlib $@
+
 $(NAME).o: $(NAME).c $(NAME).h $(NAME)_private.h
 
 test: $(NAME)_test
@@ -37,17 +43,19 @@ $(NAME)_test: lib$(NAME).so $(NAME)_test.c
 	$(CC) $(NAME)_test.c -o $@ -L. -l$(NAME)
 
 clean:
-	$(RM) $(NAME)_test *.o *.so*
+	$(RM) $(NAME)_test *.o *.so* *.a
 
 install: lib
 	install -d $(DESTDIR)$(PREFIX)/lib
-	install lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib
+	install -m 0644 lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib
 	ln -srf $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so
 	ln -srf $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
+	install -m 0644 lib$(NAME).a $(DESTDIR)$(PREFIX)/lib
 	install -d $(DESTDIR)$(PREFIX)/include
-	install $(NAME).h $(DESTDIR)$(PREFIX)/include
+	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so*
+	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).a
 	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).h
 
