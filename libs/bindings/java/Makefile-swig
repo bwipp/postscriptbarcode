@@ -32,6 +32,11 @@ ifeq ("$(JAVA_HOME)","")
   endif
 endif
 
+INSTDIR=$(DESTDIR)$(PREFIX)
+ifeq ($(PACKAGING),DEB)
+  INSTDIR=$(PACKAGING_ROOT)/debian/libpostscriptbarcode-java
+endif
+
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT) $(JAR_FILE) $(JAR_LINK) $(CLASS_FILES)
 
 .PHONY: all swig-java install uninstall clean
@@ -63,16 +68,16 @@ $(JAR_LINK): $(JAR_FILE)
 	$(JC) $(JFLAGS) $<
 
 install: swig-java
-	install -d $(DESTDIR)$(PREFIX)/share/java
-	install -m 0644 $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
-	ln -srf $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
-	install -d $(DESTDIR)$(PREFIX)/lib/jni
-	install -m 0644 $(JAVA_OUT) $(DESTDIR)$(PREFIX)/lib/jni
+	install -d $(INSTDIR)/share/java
+	install -m 0644 $(JAR_FILE) $(INSTDIR)/share/java
+	ln -srf $(INSTDIR)/share/java/$(JAR_FILE) $(INSTDIR)/share/java/$(JAR_LINK)
+	install -d $(INSTDIR)/lib/jni
+	install -m 0644 $(JAVA_OUT) $(INSTDIR)/lib/jni
 
 uninstall:
-	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE)
-	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
-	$(RM) $(DESTDIR)$(PREFIX)/lib/jni/$(JAVA_OUT)
+	$(RM) $(INSTDIR)/share/java/$(JAR_FILE)
+	$(RM) $(INSTDIR)/share/java/$(JAR_LINK)
+	$(RM) $(INSTDIR)/lib/jni/$(JAVA_OUT)
 
 clean:
 	$(RM) $(cleanlist)

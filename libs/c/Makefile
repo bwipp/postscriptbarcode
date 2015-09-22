@@ -46,16 +46,18 @@ clean:
 	$(RM) $(NAME)_test *.o *.so* *.a
 
 install: lib
+	install -d $(DESTDIR)$(PREFIX)/include
+	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
 	install -d $(DESTDIR)$(PREFIX)/lib
 	install -m 0644 lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib
 	ln -srf $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so
 	ln -srf $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(VERSION) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
 	install -m 0644 lib$(NAME).a $(DESTDIR)$(PREFIX)/lib
-	install -d $(DESTDIR)$(PREFIX)/include
-	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
+	-ldconfig
 
 uninstall:
+	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).h
 	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so*
 	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).a
-	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).h
+	-ldconfig
 

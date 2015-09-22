@@ -1,4 +1,4 @@
 require 'mkmf'
-find_library('postscriptbarcode',nil,'../../c')
-find_header('postscriptbarcode.h',nil,'../../c')
+$LIBS << " -L ../../c -lpostscriptbarcode"
+$CFLAGS << " -I../../c -fPIC"
 create_makefile('postscriptbarcode')

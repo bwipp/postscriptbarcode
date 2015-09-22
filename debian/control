@@ -3,14 +3,20 @@ Section: devel
 Priority: optional
 Maintainer: Terry Burton <tez@terryburton.co.uk>
 Uploaders: Alexander List <alex@debian.org>
-Build-Depends: debhelper (>= 9), ghostscript
+Build-Depends: debhelper (>= 9), ghostscript,
+               swig,
+               default-jdk,
+               perl, libperl-dev,
+               python-all-dev,
+               ruby, ruby-dev
 Standards-Version: 3.9.6
 Homepage: http://bwipp.terryburton.co.uk
 Vcs-Git: git://github.com/bwipp/postscriptbarcode.git
 Vcs-Browser: http://github.com/bwipp/postscriptbarcode
 
-Package: libpostscriptbarcode
+Package: postscriptbarcode
 Architecture: all
+Section: libs
 Depends: ${misc:Depends}
 Description: Barcode Writer in Pure PostScript
  Barcode Writer in Pure Postscript generates all barcode formats entirely
@@ -18,3 +24,97 @@ Description: Barcode Writer in Pure PostScript
  printed output can be performed by the printer or RIP itself. This is ideal
  for variable data printing (VDP) and avoids the need to re-implement the
  barcode generation process whenever your language needs change.
+ .
+ This package provides the PostScript resource file.
+
+Package: libpostscriptbarcode0
+Architecture: any
+Section: libs
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Shared library for Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the shared library.
+
+Package: libpostscriptbarcode-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the shared library.
+
+Package: libpostscriptbarcode0-dbg
+Architecture: any
+Section: debug
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the shared library.
+
+Package: libpostscriptbarcode-java
+Architecture: any
+Section: java
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Java binding for Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the Java binding.
+
+Package: libpostscriptbarcode-perl
+Architecture: any
+Section: perl
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Perl binding for Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the Perl binding.
+
+Package: python-postscriptbarcode
+Architecture: any
+Section: python
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Python binding for Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the Python binding.
+
+Package: ruby-postscriptbarcode
+Architecture: any
+Section: ruby
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version})
+Description: Ruby binding for Barcode Writer in Pure PostScript
+ Barcode Writer in Pure Postscript generates all barcode formats entirely
+ within PostScript so that the process of converting the input data into the
+ printed output can be performed by the printer or RIP itself. This is ideal
+ for variable data printing (VDP) and avoids the need to re-implement the
+ barcode generation process whenever your language needs change.
+ .
+ This package provides the Ruby binding.
+

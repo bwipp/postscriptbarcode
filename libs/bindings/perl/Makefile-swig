@@ -10,6 +10,10 @@ PERL_MAKEFILE     = Makefile
 PERL_CRUFT = Makefile.old
 PERL_OUT = blib/arch/auto/$(NAME)/$(NAME).so blib/lib/$(NAME).pm
 
+ifeq ($(PACKAGING),DEB)
+  INSTALL_OPTS=INSTALLDIRS=vendor DESTDIR=$(PACKAGING_ROOT)/debian/libpostscriptbarcode-perl
+endif
+
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(PERL_CRUFT)
 
 .PHONY: all swig-perl install uninstall clean
@@ -19,18 +23,18 @@ all: swig-perl
 swig-perl: $(PERL_OUT)
 
 $(PERL_OUT): $(PERL_MAKEFILE) $(SWIG_WRAP) $(SWIG_EXTRA)
-	make -f $<
+	make -f $< OPTIMIZE="-O2 -g -Wall"
 	touch $@
 
 $(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
-	perl $<
+	perl $< $(INSTALL_OPTS)
 	sed -i 's@^LD_RUN_PATH.*@LD_RUN_PATH=@' $@
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
 	swig -Wall -perl -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
 
 install: swig-perl 
-	make -f $< install
+	make -f $(PERL_MAKEFILE) install $(INSTALL_OPTS)
 
 uninstall:
 	make -f $< uninstall
