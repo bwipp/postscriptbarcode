@@ -9,7 +9,7 @@ PYTHON_MAKEFILE     = setup.py
 PYTHON_OUT = _$(NAME).so
 
 ifeq ($(PACKAGING),DEB)
-  INSTALL_OPTS=--root $(PACKAGING_ROOT)/debian/python-postscriptbarcode --install-layout=deb
+  INSTALL_OPTS=--root $(PACKAGING_ROOT)/debian/python-postscriptbarcode --install-layout=deb --no-compile
 endif
 
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) *.pyc 
@@ -21,7 +21,7 @@ all: swig-python
 swig-python: $(PYTHON_OUT)
 
 $(PYTHON_OUT): $(PYTHON_MAKEFILE) $(SWIG_WRAP)
-	python $< build_ext
+	python $< build_ext $(BUILD_OPTS)
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
 	swig -Wall -python -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
