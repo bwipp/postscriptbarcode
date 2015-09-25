@@ -1,15 +1,10 @@
 NAME = postscriptbarcode
 
-SWIG_INTERFACE = ../$(NAME).i
-
-SWIG_WRAP  = $(NAME)_wrap.c
-SWIG_EXTRA = 
-
 RUBY_MAKEFILE_IN  = extconf.rb
 RUBY_MAKEFILE     = Makefile
 RUBY_OUT = $(NAME).so
 
-cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(RUBY_MAKEFILE)
+cleanlist += $(RUBY_MAKEFILE)
 
 .PHONY: all swig-ruby install uninstall clean
 
@@ -17,14 +12,11 @@ all: swig-ruby
 
 swig-ruby: $(RUBY_OUT)
 
-$(RUBY_OUT): $(RUBY_MAKEFILE) $(SWIG_WRAP)
+$(RUBY_OUT): $(RUBY_MAKEFILE)
 	make -f $<
 
 $(RUBY_MAKEFILE): $(RUBY_MAKEFILE_IN)
 	ruby $<
-
-$(SWIG_WRAP) $(SWIG_EXTRA):
-	swig -Wall -ruby -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
 
 install: $(RUBY_MAKEFILE) $(RUBY_OUT)
 	make -f $< install

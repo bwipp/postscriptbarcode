@@ -11,6 +11,7 @@ PERL_CRUFT = Makefile.old
 PERL_OUT = blib/arch/auto/$(NAME)/$(NAME).so blib/lib/$(NAME).pm
 
 ifeq ($(PACKAGING),DEB)
+  BUILD_OPTS=OPTIMIZE="$$(dpkg-buildflags --get CFLAGS) $$(dpkg-buildflags --get CPPFLAGS)" LD="$$(perl -V::ld:) $$(dpkg-buildflags --get LDFLAGS)"
   INSTALL_OPTS=INSTALLDIRS=vendor DESTDIR=$(PACKAGING_ROOT)/debian/libpostscriptbarcode-perl
 endif
 
@@ -27,7 +28,7 @@ $(PERL_OUT): $(PERL_MAKEFILE) $(SWIG_WRAP) $(SWIG_EXTRA)
 	touch $@
 
 $(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
-	perl $< $(INSTALL_OPTS)
+	perl $< $(BUILD_OPTS) $(INSTALL_OPTS)
 	sed -i 's@^LD_RUN_PATH.*@LD_RUN_PATH=@' $@
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
