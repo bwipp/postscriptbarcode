@@ -10,30 +10,39 @@ include /usr/share/dpkg/buildflags.mk
 export PYBUILD_NAME = postscriptbarcode
 
 %:
-	dh $@ --parallel --with python2,python3
+	dh $@ --parallel --with python2,python3,ruby
 
 override_dh_auto_configure:
 	dh_auto_configure
 	dh_auto_configure --sourcedirectory=libs/c
+	dh_auto_configure --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_configure --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
 	dh_auto_configure --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	dh_auto_configure --buildsystem=ruby
 
 override_dh_auto_build:
 	dh_auto_build --parallel
 	dh_auto_build --sourcedirectory=libs/c
+	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
 	dh_auto_build --sourcedirectory=libs/bindings/python --buildsystem=pybuild
-	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="perl java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_build --buildsystem=ruby
 
 override_dh_auto_test:
 	dh_auto_test
 	dh_auto_test --sourcedirectory=libs/c
+	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
 	dh_auto_test --sourcedirectory=libs/bindings/python --buildsystem=pybuild
-	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="perl java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_test --buildsystem=ruby
 
 override_dh_auto_install:
 	dh_auto_install
 	dh_auto_install --sourcedirectory=libs/c -- PREFIX=/usr
+	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
 	dh_auto_install --sourcedirectory=libs/bindings/python --buildsystem=pybuild
-	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="perl java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_install --buildsystem=ruby
 
 #override_dh_install:
 #	dh_install --exclude=LICENSE --exclude=CHANGES --exclude=.dirstamp
@@ -41,9 +50,14 @@ override_dh_auto_install:
 override_dh_auto_clean:
 	dh_auto_clean
 	dh_auto_clean --sourcedirectory=libs/c
-	dh_auto_clean --sourcedirectory=libs/bindings/perl
+	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
 	dh_auto_clean --sourcedirectory=libs/bindings/python --buildsystem=pybuild
-	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="perl java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_clean --buildsystem=ruby
+
+override_dh_clean:
+	dh_clean
+	rm -f libs/bindings/python/postscriptbarcode.py libs/bindings/python/postscriptbarcode.pyc libs/bindings/python/postscriptbarcode_wrap.c 
 
 override_dh_strip:
 	dh_strip -p libpostscriptbarcode0 --dbg-package=libpostscriptbarcode0-dbg

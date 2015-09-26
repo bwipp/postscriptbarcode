@@ -9,13 +9,14 @@ Build-Depends: debhelper (>= 9), ghostscript,
                perl, libperl-dev,
                python-all-dev, dh-python,
                python3-all-dev, python3-setuptools,
-               ruby, ruby-dev
+               ruby, ruby-all-dev, gem2deb
 Standards-Version: 3.9.6
 Homepage: http://bwipp.terryburton.co.uk
 Vcs-Git: git://github.com/bwipp/postscriptbarcode.git
 Vcs-Browser: http://github.com/bwipp/postscriptbarcode
 X-Python-Version: >= 2.6
 X-Python3-Version: >= 3.2
+XS-Ruby-Versions: all
 
 Package: postscriptbarcode
 Architecture: all
@@ -86,6 +87,7 @@ Description: Java binding for Barcode Writer in Pure PostScript
 Package: libpostscriptbarcode-perl
 Architecture: any
 Section: perl
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${perl:Depends}, libpostscriptbarcode0 (= ${binary:Version})
 Description: Perl binding for Barcode Writer in Pure PostScript
  Barcode Writer in Pure Postscript generates all barcode formats entirely
@@ -125,7 +127,10 @@ Description: Python 3 binding for Barcode Writer in Pure PostScript
 Package: ruby-postscriptbarcode
 Architecture: any
 Section: ruby
-Depends: ${misc:Depends}, libpostscriptbarcode0 (= ${binary:Version}), ruby | ruby-interpreter
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, libpostscriptbarcode0 (= ${binary:Version}), ruby | ruby-interpreter
+XB-Ruby-Versions: ${ruby:Versions}
+X-DhRuby-Root: libs/bindings/ruby
 Description: Ruby binding for Barcode Writer in Pure PostScript
  Barcode Writer in Pure Postscript generates all barcode formats entirely
  within PostScript so that the process of converting the input data into the
