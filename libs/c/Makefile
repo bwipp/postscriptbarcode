@@ -1,9 +1,7 @@
 NAME = postscriptbarcode
 
-VERSION := $(shell head -n 1 ../CHANGES)
-VERSION := $(subst ., ,$(VERSION))
-MAJOR   := $(word 1, $(VERSION))
-MINOR   := $(word 2, $(VERSION))
+MAJOR   := $(shell head -n 1 ../SOVERSION)
+MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
 VERSION := $(MAJOR).$(MINOR)
 
 CFLAGS = -g -O2 -fPIC -fstack-protector-strong -Wall -Wextra -Wconversion -Wsign-conversion -Wformat -Wformat-security -Werror -pedantic

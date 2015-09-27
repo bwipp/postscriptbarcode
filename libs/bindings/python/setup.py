@@ -6,6 +6,9 @@ setup.py file for postscriptbarcode
 
 from distutils.core import setup, Extension
 
+with open('../../../CHANGES', 'r') as f:
+    ver = f.readline().strip().replace("-", "")
+
 postscriptbarcode_module = Extension(
 	'_postscriptbarcode',
 	sources=['postscriptbarcode.i'],
@@ -15,10 +18,10 @@ postscriptbarcode_module = Extension(
 )
 
 setup(name = 'postscriptbarcode',
-	version = '0.1',
+	version     = ver,
 	author      = "Terry Burton",
 	description = """Python binding for Barcode Writer in Pure PostScript""",
 	ext_modules = [postscriptbarcode_module],
-	py_modules = ["postscriptbarcode"],
+	py_modules  = ["postscriptbarcode"],
 )
 
