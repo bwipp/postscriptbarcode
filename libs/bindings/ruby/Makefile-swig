@@ -4,6 +4,8 @@ RUBY_MAKEFILE_IN  = extconf.rb
 RUBY_MAKEFILE     = Makefile
 RUBY_OUT = $(NAME).so
 
+EXAMPLE = example.rb
+
 cleanlist += $(RUBY_MAKEFILE)
 
 .PHONY: all swig-ruby test install uninstall clean
@@ -19,6 +21,7 @@ $(RUBY_MAKEFILE): $(RUBY_MAKEFILE_IN)
 	ruby $<
 
 test: swig-ruby
+	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) ruby $(EXAMPLE)
 
 install: $(RUBY_MAKEFILE) $(RUBY_OUT)
 	make -f $< install
