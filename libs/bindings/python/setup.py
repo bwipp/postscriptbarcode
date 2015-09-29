@@ -18,10 +18,12 @@ postscriptbarcode_module = Extension(
 )
 
 setup(name = 'postscriptbarcode',
-	version     = ver,
-	author      = "Terry Burton",
-	description = """Python binding for Barcode Writer in Pure PostScript""",
-	ext_modules = [postscriptbarcode_module],
-	py_modules  = ["postscriptbarcode"],
+	version      = ver,
+	author       = "Terry Burton",
+	author_email = "tez@terryburton.co.uk",
+	description  = """Python binding for Barcode Writer in Pure PostScript""",
+	url          = "http://bwipp.terryburton.co.uk",
+	ext_modules  = [postscriptbarcode_module],
+	py_modules   = ["postscriptbarcode"],
 )
 

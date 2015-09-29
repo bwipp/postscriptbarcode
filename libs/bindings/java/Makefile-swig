@@ -19,11 +19,10 @@ JAVA_OUT = lib$(NAME).so
 JAR_FILE = lib$(NAME)-$(VERSION).jar
 JAR_LINK = lib$(NAME).jar
 
+EXAMPLE = example.java
+
 PREFIX=/usr/local
 LIBDIR=$(PREFIX)/lib
-
-JC = javac -cp $(CLASSESDIR)
-JFLAGS = -g
 
 ifeq ("$(JAVA_HOME)","")
   WHICH_JAVAC := $(shell which javac)
@@ -33,6 +32,11 @@ ifeq ("$(JAVA_HOME)","")
   endif
 endif
 
+JAVAC = $(JAVA_HOME)/bin/javac
+JAVA = $(JAVA_HOME)/bin/java
+JCP = -cp .:$(CLASSESDIR)
+JFLAGS = -g
+
 INSTDIR=$(DESTDIR)
 ifeq ($(PACKAGING),DEB)
   PREFIX=/usr
@@ -41,7 +45,7 @@ endif
 
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT) $(JAR_FILE) $(JAR_LINK) $(CLASS_FILES)
 
-.PHONY: all swig-java install uninstall clean
+.PHONY: all swig-java test install uninstall clean
 
 all: swig-java
 
@@ -69,7 +73,11 @@ $(JAR_LINK): $(JAR_FILE)
 	ln -sf $< $@
 
 %.class: %.java
-	$(JC) $(JFLAGS) $<
+	$(JAVAC) $(JCP) $(JFLAGS) $<
+
+test: swig-java
+	$(JAVAC) $(JCP) $(JFLAGS) $(EXAMPLE)
+	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) $(JAVA) $(JCP) -Djava.library.path=. $(EXAMPLE:%.java=%)
 
 install: swig-java
 	install -d $(INSTDIR)$(PREFIX)/share/java

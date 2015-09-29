@@ -8,9 +8,9 @@ export NAME VERSION MAJOR MINOR
 
 LANGS = $(patsubst %/,%,$(wildcard */))
 
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall test
 
-all clean install uninstall:
+all clean install uninstall test:
 	for dir in $(LANGS); do \
 		if $(MAKE) $(MAKE_FLAGS) -C $$dir -f Makefile-swig $@; then \
 		    true; \

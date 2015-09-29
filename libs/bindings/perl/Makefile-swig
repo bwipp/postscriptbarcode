@@ -17,7 +17,7 @@ endif
 
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(PERL_CRUFT)
 
-.PHONY: all swig-perl install uninstall clean
+.PHONY: all swig-perl test install uninstall clean
 
 all: swig-perl
 
@@ -33,6 +33,9 @@ $(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
 	swig -Wall -perl -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
+
+test: swig-perl
+	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) make -f $(PERL_MAKEFILE) test
 
 install: swig-perl 
 	make -f $(PERL_MAKEFILE) install $(INSTALL_OPTS)
