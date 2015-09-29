@@ -34,8 +34,8 @@ override_dh_auto_test:
 	dh_auto_test
 	dh_auto_test --sourcedirectory=libs/c
 	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR) LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH)
-	dh_auto_test --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	PYBUILD_SYSTEM=custom PYBUILD_TEST_ARGS="LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) PYTHON_PATH={build_dir} {interpreter} {dir}/setup.py test" dh_auto_test --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_test --buildsystem=ruby
 
 override_dh_auto_install:
