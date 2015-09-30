@@ -1,5 +1,5 @@
 Name:           postscriptbarcode
-Version:        
+Version:        <empty>
 Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries/Other
