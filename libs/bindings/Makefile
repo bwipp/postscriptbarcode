@@ -1,7 +1,8 @@
-VERSION := $(shell head -n 1 ../CHANGES)
-VERSION := $(subst ., ,$(VERSION))
-MAJOR   := $(word 1, $(VERSION))
-MINOR   := $(word 2, $(VERSION))
+
+MAKEFLAGS := -j 1
+
+MAJOR   := $(shell head -n 1 ../SOVERSION)
+MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
 VERSION := $(MAJOR).$(MINOR)
 
 export NAME VERSION MAJOR MINOR
