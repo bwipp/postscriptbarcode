@@ -4,7 +4,7 @@ MAJOR   := $(shell head -n 1 ../SOVERSION)
 MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
 VERSION := $(MAJOR).$(MINOR)
 
-CFLAGS = -g -O2 -fPIC -fstack-protector-strong -Wall -Wextra -Wconversion -Wsign-conversion -Wformat -Wformat-security -Werror -pedantic
+CFLAGS = -g -O2 -fPIC -Wall -Wextra -Wconversion -Wsign-conversion -Wformat -Wformat-security -Werror -pedantic
 LDLIBS = -lc
 LDFLAGS = -shared -Wl,-soname,lib$(NAME).so.$(MAJOR) -Wl,-Bsymbolic-functions -Wl,-z,relro
 
