@@ -10,6 +10,9 @@ Source0:        https://github.com/bwipp/postscriptbarcode/archive/master.tar.gz
 BuildArch:      noarch
 BuildRequires:  ghostscript
 BuildRequires:  perl
+BuildRequires:  python-devel
+BuildRequires:  perl-devel
+BuildRequires:  ruby-devel
 
 # Required for EPEL <= 5
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -26,9 +29,13 @@ the barcode generation process whenever your language needs change.
 
 %build
 make -j `nproc`
+make -C libs/c
+make -C libs/bindings
 
 %check
 make test
+make -C libs/c test
+make -C libs/bindings test
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}

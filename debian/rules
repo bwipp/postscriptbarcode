@@ -12,45 +12,47 @@ export PYBUILD_NAME = postscriptbarcode
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
-	dh $@ --parallel --with python2,python3,ruby
+	dh $@ --parallel --with javahelper,python2,python3,ruby
 
 override_dh_auto_configure:
 	dh_auto_configure
 	dh_auto_configure --sourcedirectory=libs/c
-	dh_auto_configure --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_configure --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_configure --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java
+	# Defer configuring perl binding due to dependancy on build C library
 	dh_auto_configure --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_configure --buildsystem=ruby
 
 override_dh_auto_build:
 	dh_auto_build --parallel
 	dh_auto_build --sourcedirectory=libs/c
-	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_build --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java 
+	dh_auto_configure --sourcedirectory=libs/bindings/perl  # Configure must run after C library is built
+	dh_auto_build --sourcedirectory=libs/bindings/perl
+	find libs/bindings/perl -name 'postscriptbarcode.so' -exec chrpath -d {} \;
 	dh_auto_build --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_build --buildsystem=ruby
 
 override_dh_auto_test:
 	dh_auto_test
 	dh_auto_test --sourcedirectory=libs/c
-	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_test --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java
+	dh_auto_test --sourcedirectory=libs/bindings/perl -- LD_LIBRARY_PATH="../../c:$(LD_LIBRARY_PATH)"
 	PYBUILD_SYSTEM=custom PYBUILD_TEST_ARGS="LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) PYTHON_PATH={build_dir} {interpreter} {dir}/setup.py test" dh_auto_test --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_test --buildsystem=ruby
 
 override_dh_auto_install:
 	dh_auto_install
 	dh_auto_install --sourcedirectory=libs/c -- PREFIX=/usr LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
-	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH) PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_install --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
+	dh_auto_install --sourcedirectory=libs/bindings/perl --destdir=debian/libpostscriptbarcode-perl
 	dh_auto_install --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	LD_LIBRARY_PATH=libs/c:$(LD_LIBRARY_PATH) dh_auto_install --buildsystem=ruby
 
 override_dh_auto_clean:
 	dh_auto_clean
 	dh_auto_clean --sourcedirectory=libs/c
-	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
-	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="perl" PREFIX=/usr PACKAGING=DEB PACKAGING_ROOT=$(CURDIR)
+	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java
+	dh_auto_clean --sourcedirectory=libs/bindings/perl
 	dh_auto_clean --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_clean --buildsystem=ruby
 
