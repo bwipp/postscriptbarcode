@@ -12,7 +12,7 @@ export PYBUILD_NAME = postscriptbarcode
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
-	dh $@ --parallel --with javahelper,python2,python3,ruby
+	dh $@ --parallel --with python2,python3,ruby
 
 override_dh_auto_configure:
 	dh_auto_configure
@@ -53,12 +53,10 @@ override_dh_auto_clean:
 	dh_auto_clean --sourcedirectory=libs/c
 	dh_auto_clean --sourcedirectory=libs/bindings -- LANGS="java" PREFIX=/usr DESTDIR=$(CURDIR)/debian/libpostscriptbarcode-java
 	dh_auto_clean --sourcedirectory=libs/bindings/perl
+	rm -f libs/bindings/perl/postscriptbarcode.pm libs/bindings/perl/postscriptbarcode_wrap.c
 	dh_auto_clean --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	rm -f libs/bindings/python/postscriptbarcode.py libs/bindings/python/postscriptbarcode.pyc libs/bindings/python/postscriptbarcode_wrap.c
 	dh_auto_clean --buildsystem=ruby
-
-override_dh_clean:
-	dh_clean
-	rm -f libs/bindings/python/postscriptbarcode.py libs/bindings/python/postscriptbarcode.pyc libs/bindings/python/postscriptbarcode_wrap.c 
 
 override_dh_strip:
 	dh_strip -p libpostscriptbarcode0 --dbg-package=libpostscriptbarcode0-dbg

@@ -3,10 +3,6 @@ NAME = postscriptbarcode
 PYTHON_MAKEFILE     = setup.py
 PYTHON_OUT = _$(NAME).so
 
-ifeq ($(PACKAGING),DEB)
-  INSTALL_OPTS=--root $(PACKAGING_ROOT)/debian/python-postscriptbarcode --install-layout=deb --no-compile
-endif
-
 cleanlist += $(NAME).py $(NAME).pyc $(NAME)_wrap.c 
 
 .PHONY: all swig-python install uninstall clean
@@ -16,13 +12,13 @@ all: swig-python
 swig-python: $(PYTHON_OUT)
 
 $(PYTHON_OUT): $(PYTHON_MAKEFILE)
-	python $< build_ext $(BUILD_OPTS)
+	python $< build_ext --inplace
 
 test: swig-python
 	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) python $(PYTHON_MAKEFILE) test
 
 install: $(PYTHON_MAKEFILE) $(PYTHON_OUT)
-	python $< install $(INSTALL_OPTS)
+	python $< install
 
 uninstall: $(PYTHON_MAKEFILE)
 	python $< uninstall

@@ -10,11 +10,6 @@ PERL_MAKEFILE     = Makefile
 PERL_CRUFT = Makefile.old
 PERL_OUT = blib/arch/auto/$(NAME)/$(NAME).so blib/lib/$(NAME).pm
 
-ifeq ($(PACKAGING),DEB)
-  BUILD_OPTS=OPTIMIZE="$$(dpkg-buildflags --get CFLAGS) $$(dpkg-buildflags --get CPPFLAGS)" LD="$$(perl -V::ld:) $$(dpkg-buildflags --get LDFLAGS)"
-  INSTALL_OPTS=INSTALLDIRS=vendor DESTDIR=$(DESTDIR)
-endif
-
 cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(PERL_CRUFT)
 
 .PHONY: all swig-perl test install uninstall clean
@@ -28,7 +23,7 @@ $(PERL_OUT): $(PERL_MAKEFILE) $(SWIG_WRAP) $(SWIG_EXTRA)
 	touch $@
 
 $(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
-	perl $< $(BUILD_OPTS) $(INSTALL_OPTS)
+	perl $<
 	sed -i 's@^LD_RUN_PATH.*@LD_RUN_PATH=@' $@
 
 $(SWIG_WRAP) $(SWIG_EXTRA):
@@ -38,7 +33,7 @@ test: swig-perl
 	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) make -f $(PERL_MAKEFILE) test
 
 install: swig-perl 
-	make -f $(PERL_MAKEFILE) install $(INSTALL_OPTS)
+	make -f $(PERL_MAKEFILE) install
 
 uninstall:
 	make -f $< uninstall
