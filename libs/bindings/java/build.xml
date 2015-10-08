@@ -1,0 +1,69 @@
+<project name="postscriptbarcode" default="all" basedir=".">
+
+  <description>
+    Java binding for Barcode Writer in Pure PostScript.
+  </description>
+
+  <property name="src" location="."/>
+  <property name="build" location="build"/>
+  <property name="classes" location="${build}/classes"/>
+  <property name="jar" location="libpostscriptbarcode.jar"/>
+  <property name="swigout" location="${build}/swigout"/>
+
+  <property name="swig_wrap" location="postscriptbarcode_wrap.c"/>
+  <property name="swig_interface" location="../postscriptbarcode.i"/>
+  <property name="sofile" location="libpostscriptbarcode.so"/>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${swigout}"/>
+    <mkdir dir="${classes}"/>
+  </target>
+
+  <target name="swig" depends="init">
+    <exec executable="swig" failonerror="true">
+      <arg line="-Wall -java -o ${swig_wrap} -outdir ${swigout} -package uk.co.terryburton.bwipp ${swig_interface}" />
+    </exec>
+  </target>
+
+  <target name="jni" depends="swig">
+    <exec executable="gcc" failonerror="true">
+      <arg line="-fPIC -shared -O2 -g
+                 -Wl,-Bsymbolic-functions -Wl,-z,relro
+                 ${swig_wrap}
+                 -o ${sofile}
+                 -L../../c -lpostscriptbarcode
+                 -I../../c
+                 -I${java.home}/../include
+                 -I${java.home}/../include/linux
+		 "/>
+    </exec>
+  </target>
+
+  <target name="compile" depends="jni,init" description="compile the source">
+    <javac srcdir="${swigout}" destdir="${classes}" includeantruntime="false" />
+  </target>
+
+  <target name="jar" depends="compile,jni">
+    <jar destfile="${jar}" basedir="${classes}" />
+  </target>
+
+  <target name="test" depends="jar,jni">
+    <javac includes="example.java" srcdir="." destdir="." includeantruntime="false" classpath=".:${jar}" />
+    <java classname="example" failonerror="true" classpath=".:${jar}" fork="true">
+      <env key="LD_LIBRARY_PATH" value="../../c:$LD_LIBRARY_PATH"/>
+      <sysproperty key="java.library.path" path="."/>
+    </java>
+  </target>
+
+  <target name="clean" description="clean up">
+    <delete dir="${build}"/>
+    <delete file="${jar}"/>
+    <delete file="${sofile}"/>
+    <delete file="${swig_wrap}"/>
+    <delete file="example.class"/>
+  </target>
+
+  <target name="all" depends="jar,jni"/>
+
+</project>

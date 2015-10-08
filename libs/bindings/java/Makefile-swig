@@ -1,89 +1,35 @@
 NAME = postscriptbarcode
 
-VERSION := $(shell head -n 1 ../../../CHANGES | tr -d '-')
-
-CLASSESDIR = classes
-
-PACKAGE = uk.co.terryburton.bwipp
-PACKAGEDIR = $(CLASSESDIR)/$(subst .,/,$(PACKAGE))
-
-SWIG_INTERFACE = ../$(NAME).i
-
-SWIG_WRAP  = $(NAME)_wrap.c
-SWIG_EXTRA = $(PACKAGEDIR)/$(NAME).java $(PACKAGEDIR)/$(NAME)JNI.java $(PACKAGEDIR)/BWIPP.java
-CLASS_FILES = $(SWIG_EXTRA:.java=.class)
-
-JAVA_CRUFT = $(wildcard *.class)
 JAVA_OUT = lib$(NAME).so 
-
-JAR_FILE = lib$(NAME)-$(VERSION).jar
-JAR_LINK = lib$(NAME).jar
-
-EXAMPLE = example.java
+JAR_FILE = lib$(NAME).jar
 
 PREFIX=/usr/local
 LIBDIR=$(PREFIX)/lib
 
-ifeq ("$(JAVA_HOME)","")
-  WHICH_JAVAC := $(shell which javac)
-  ifneq ($(WHICH_JAVAC),)
-    WHICH_JAVAC := $(dir $(realpath $(WHICH_JAVAC)))
-    JAVA_HOME := $(patsubst %/bin/,%,$(WHICH_JAVAC))
-  endif
-endif
-
-JAVAC = $(JAVA_HOME)/bin/javac
-JAVA = $(JAVA_HOME)/bin/java
-JCP = -cp .:$(CLASSESDIR)
-JFLAGS = -g
-
-cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(JAVA_OUT) $(JAVA_CRUFT) $(JAR_FILE) $(JAR_LINK) $(CLASS_FILES)
+ANT := $(shell which ant)
 
 .PHONY: all swig-java test install uninstall clean
 
 all: swig-java
 
-swig-java: $(JAVA_OUT) $(JAR_FILE) $(JAR_LINK)
+swig-java: $(JAVA_OUT) $(JAR_FILE)
 
-$(JAVA_OUT): $(SWIG_WRAP) $(SWIG_EXTRA)
-	gcc -fPIC -shared -O2 -g				\
-		-Wl,-Bsymbolic-functions -Wl,-z,relro		\
-		$<						\
-		-o $@						\
-		-L../../c -l$(NAME)				\
-		-I../../c					\
-		-I$(JAVA_HOME)/include				\
-		-I$(JAVA_HOME)/include/linux
+$(JAVA_OUT) $(JAR_FILE):
+	$(ANT)
 
-$(SWIG_WRAP) $(SWIG_EXTRA):
-	mkdir -p $(PACKAGEDIR)
-	swig -Wall -java -o $(SWIG_WRAP) -outdir $(PACKAGEDIR) -package uk.co.terryburton.bwipp $(SWIG_INTERFACE)
-
-$(JAR_FILE): $(CLASS_FILES)
-	cd $(CLASSESDIR) && jar cf ../$@ $(CLASS_FILES:classes/%=%)
-
-$(JAR_LINK): $(JAR_FILE)
-	ln -sf $< $@
-
-%.class: %.java
-	$(JAVAC) $(JCP) $(JFLAGS) $<
-
-test: swig-java
-	$(JAVAC) $(JCP) $(JFLAGS) $(EXAMPLE)
-	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) $(JAVA) $(JCP) -Djava.library.path=. $(EXAMPLE:%.java=%)
+test:
+	$(ANT) test
 
 install: swig-java
 	install -d $(DESTDIR)$(PREFIX)/share/java
 	install -m 0644 $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
-	ln -srf $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
 	install -d $(DESTDIR)$(LIBDIR)/jni
 	install -m 0644 $(JAVA_OUT) $(DESTDIR)$(LIBDIR)/jni
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE)
-	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_LINK)
 	$(RM) $(DESTDIR)$(LIBDIR)/jni/$(JAVA_OUT)
 
 clean:
-	$(RM) $(cleanlist)
+	$(ANT) clean
 
