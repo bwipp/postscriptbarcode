@@ -11,7 +11,7 @@ LDFLAGS = -shared -Wl,-soname,lib$(NAME).so.$(MAJOR) -Wl,-Bsymbolic-functions -W
 PREFIX = /usr/local
 LIBDIR = $(PREFIX)/lib
 
-.PHONY: default all clean lib libstatic libshared test install uninstall
+.PHONY: default all clean lib libstatic libshared test install install-static install-shared uninstall
 
 default: lib
 all: default test
@@ -44,14 +44,21 @@ $(NAME)_test: lib$(NAME).so $(NAME)_test.c
 clean:
 	$(RM) $(NAME)_test *.o *.so* *.a
 
-install: lib
+install: install-static install-shared
+
+install-headers:
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
+
+install-static: libstatic install-headers
+	install -d $(DESTDIR)$(LIBDIR)
+	install -m 0644 lib$(NAME).a $(DESTDIR)$(LIBDIR)
+
+install-shared: libshared install-headers
 	install -d $(DESTDIR)$(LIBDIR)
 	install -m 0644 lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)
 	ln -srf $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)/lib$(NAME).so
 	ln -srf $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(MAJOR)
-	install -m 0644 lib$(NAME).a $(DESTDIR)$(LIBDIR)
 	-ldconfig
 
 uninstall:
