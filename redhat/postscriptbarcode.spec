@@ -2,7 +2,7 @@ Name:           postscriptbarcode
 Version:        20150810
 Release:        0
 Summary:        Barcode Writer in Pure PostScript
-Group:          Development/Libraries/Other
+Group:          Development/Libraries
 
 License:        MIT
 URL:            http://bwipp.terryburton.co.uk
@@ -115,7 +115,7 @@ pushd libs/bindings/java
 popd
 
 pushd libs/bindings/perl
-%{__perl} Makefile.PL INSTALLDIRS=vendor NO_PACKLIST=1
+%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1
 %{__make} %{_smp_mflags}
 popd
 
@@ -149,7 +149,8 @@ cp -p *.so %{buildroot}/%{_libdir}/java-postscriptbarcode/
 popd
 
 pushd libs/bindings/perl
-%{__make} pure_install DESTDIR=%{buildroot}
+find . -type f -exec chmod 0664 {} \;
+%{__make} pure_install DESTDIR=%{buildroot} OPTIMIZE="%{optflags}"
 popd
 
 pushd libs/bindings/python
