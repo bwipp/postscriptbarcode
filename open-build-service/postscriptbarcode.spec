@@ -2,10 +2,10 @@ Name:           postscriptbarcode
 Version:        <empty>
 Release:        1%{?dist}
 Summary:        Barcode Writer in Pure PostScript
-Group:          Development/Libraries/Other
+Group:          Development/Libraries
 
 License:        MIT
-URL:            https://bwipp.terryburton.co.uk
+URL:            http://bwipp.terryburton.co.uk
 Source0:        https://github.com/bwipp/postscriptbarcode/archive/master.tar.gz#/%{name}-%{version}.tar.gz
 BuildRequires:  ghostscript
 BuildRequires:  swig
@@ -43,7 +43,7 @@ Group: Development/Libraries
 Requires: postscriptbarcode-libs = %{version}-%{release}
 
 %description devel
-This package provides the development files for Barcode Writer in Pure PostScript
+Package providing the development files for Barcode Writer in Pure PostScript
 
 
 %package -n java-postscriptbarcode
@@ -72,7 +72,7 @@ This package provides the Perl binding for Barcode Writer in Pure PostScript
 Summary: Python 2 binding for Barcode Writer in Pure PostScript
 Group: Development/Libraries
 Requires: postscriptbarcode-libs = %{version}-%{release}
-%{?python_provide:%python_provide python2-%{srcname}}
+%{?python_provide:%python_provide python2-postscriptbarcode}
 
 %description -n python2-postscriptbarcode
 This package provides the Python 2 binding for Barcode Writer in Pure PostScript
@@ -82,7 +82,7 @@ This package provides the Python 2 binding for Barcode Writer in Pure PostScript
 Summary: Python 3 binding for Barcode Writer in Pure PostScript
 Group: Development/Libraries
 Requires: postscriptbarcode-libs = %{version}-%{release}
-%{?python_provide:%python_provide python3-%{srcname}}
+%{?python_provide:%python_provide python3-postscriptbarcode}
 
 %description -n python3-postscriptbarcode
 This package provides the Python 3 binding for Barcode Writer in Pure PostScript
@@ -101,7 +101,6 @@ This package provides the Ruby binding for Barcode Writer in Pure PostScript
 
 %prep
 %setup -q -n %{name}-%{version}
-#cp -a libs/bindings/python %{py3dir}
 
 
 %build
@@ -116,7 +115,7 @@ pushd libs/bindings/java
 popd
 
 pushd libs/bindings/perl
-%{__perl} Makefile.PL INSTALLDIRS=vendor
+%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1
 %{__make} %{_smp_mflags}
 popd
 
@@ -150,7 +149,8 @@ cp -p *.so %{buildroot}/%{_libdir}/java-postscriptbarcode/
 popd
 
 pushd libs/bindings/perl
-%{__make} pure_install DESTDIR=%{buildroot}
+find . -type f -exec chmod 0664 {} \;
+%{__make} pure_install DESTDIR=%{buildroot} OPTIMIZE="%{optflags}"
 popd
 
 pushd libs/bindings/python
@@ -197,20 +197,20 @@ popd
 
 
 %files
-%defattr(-,root,root)
 %doc CHANGES LICENSE README.md docs/*
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
 %files -n postscriptbarcode-libs
-%{_libdir}/libpostscriptbarcode.so
 %{_libdir}/libpostscriptbarcode.so.*
 
 %files -n postscriptbarcode-devel
 %{_includedir}/*
+%{_libdir}/libpostscriptbarcode.so
 
 %files -n java-postscriptbarcode
 %{_javadir}/*
+%dir %{_libdir}/java-postscriptbarcode/
 %{_libdir}/java-postscriptbarcode/*
 
 %files -n perl-postscriptbarcode
@@ -226,5 +226,5 @@ popd
 %{ruby_vendorarchdir}/*
 
 %changelog
-* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20131102-1
+* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20150810-0
 - Configure nightly OBS build
