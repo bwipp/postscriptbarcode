@@ -152,6 +152,7 @@ popd
 pushd libs/bindings/perl
 find . -type f -exec chmod 0664 {} \;
 %{__make} pure_install DESTDIR=%{buildroot} OPTIMIZE="%{optflags}"
+find %{buildroot}/%{perl_vendorarch} -name 'postscriptbarcode.so' -type f -exec chmod 0755 {} \;
 popd
 
 pushd libs/bindings/python
