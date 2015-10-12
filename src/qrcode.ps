@@ -64,6 +64,7 @@ begin
     /eclevel (unset) def   % L, M, Q or H
     /parse false def
     /parsefnc false def
+    /mask -1 def
 
     % Parse the input options
     options type /stringtype eq {
@@ -75,6 +76,8 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
+
+    /mask mask cvi def
 
     % Parse ordinals of the form ^NNN to ASCII
     parse {
@@ -821,6 +824,10 @@ begin
             {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
         ] def
     } ifelse
+    mask -1 ne {  % User specifies a mask
+        /maskfuncs [maskfuncs mask 1 sub get] def
+        /bestmaskval mask 1 sub def
+    } if
     /masks maskfuncs length array def
     0 1 masks length 1 sub {
         /m exch def
@@ -973,16 +980,20 @@ begin
             /i exch def
             masksym i pixs i get masks m get i get xor put
         } for
-        format (full) eq {
-            masksym evalfull /score exch def
+        masks length 1 ne {
+            format (full) eq {
+                masksym evalfull /score exch def
+            } {
+                masksym evalmicro /score exch def
+            } ifelse
+            score bestscore lt { 
+                /bestsym masksym def
+                /bestmaskval m def
+                /bestscore score def
+            } if
         } {
-            masksym evalmicro /score exch def
-        } ifelse
-        score bestscore lt { 
             /bestsym masksym def
-            /bestmaskval m def
-            /bestscore score def
-        } if    
+        } ifelse
     } for
     /pixs bestsym def
     
