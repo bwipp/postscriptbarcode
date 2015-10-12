@@ -139,6 +139,7 @@ cp -p build/monolithic_package/barcode.ps %{buildroot}%{_datadir}/%{name}/barcod
 
 pushd libs/c
 %{__make} install-shared DESTDIR=%{buildroot} PREFIX=/usr LIBDIR=%{_libdir}
+find %{buildroot}/%{_libdir} -name 'libpostscriptbarcode.so.*' -type f -exec chmod 0755 {} \;
 popd
 
 pushd libs/bindings/java
@@ -202,27 +203,34 @@ popd
 %{_datadir}/%{name}/barcode.ps
 
 %files -n postscriptbarcode-libs
+%doc CHANGES LICENSE README.md docs/*
 %{_libdir}/libpostscriptbarcode.so.*
 
 %files -n postscriptbarcode-devel
+%doc CHANGES LICENSE README.md docs/*
 %{_includedir}/*
 %{_libdir}/libpostscriptbarcode.so
 
 %files -n java-postscriptbarcode
+%doc CHANGES LICENSE README.md docs/*
 %{_javadir}/*
 %dir %{_libdir}/java-postscriptbarcode/
 %{_libdir}/java-postscriptbarcode/*
 
 %files -n perl-postscriptbarcode
+%doc CHANGES LICENSE README.md docs/*
 %{perl_vendorarch}/*
 
 %files -n python2-postscriptbarcode
+%doc CHANGES LICENSE README.md docs/*
 %{python2_sitearch}/*
 
 %files -n python3-postscriptbarcode
+%doc CHANGES LICENSE README.md docs/*
 %{python3_sitearch}/*
 
 %files -n ruby-postscriptbarcode
+%doc CHANGES LICENSE README.md docs/*
 %{ruby_vendorarchdir}/*
 
 %changelog
