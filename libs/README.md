@@ -42,7 +42,7 @@ How to check these are working without installing:
 
 ```
 cd python
-LD_LIBRARY_PATH=../../c PYTHONPATH=build/lib.*/_postscriptbarcode.so python example.py
+LD_LIBRARY_PATH=../../c PYTHONPATH=. python example.py
 ```
 
 ```
