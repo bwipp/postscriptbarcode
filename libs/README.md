@@ -38,7 +38,7 @@ make LANGS="java perl python ruby"
 make install LANGS="java perl python ruby"
 ```
 
-How to check these are working without installing:
+How to check that the bindings are working without installing either the C library or the binding itself:
 
 ```
 cd python
@@ -51,7 +51,7 @@ LD_LIBRARY_PATH=../../c perl -I blib/arch/auto/postscriptbarcode -I blib/lib exa
 ```
 
 ```
-
+cd ruby
 LD_LIBRARY_PATH=../../c ruby -I . example.rb
 ```
 
