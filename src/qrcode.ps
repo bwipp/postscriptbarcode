@@ -587,6 +587,9 @@ begin
         cws c cw put
     } for 
 
+    % Short final data byte in M1 and M3 symbols has high-order value
+    lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
+
     % Calculate the log and anti-log tables
     /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
     /rslog 256 array def
@@ -676,6 +679,7 @@ begin
  
     % Fixups for the short final data byte in M1 and M3 symbols
     lc4b {
+	cws dcws 1 sub 2 copy get -4 bitshift put
         dcws 1 sub 1 ncws 2 sub {
             /i exch def
             cws i cws i get 15 and 4 bitshift put
