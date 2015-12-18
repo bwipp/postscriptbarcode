@@ -32,6 +32,7 @@ override_dh_auto_build:
 	find libs/bindings/perl -name 'postscriptbarcode.so' -exec chrpath -d {} \;
 	dh_auto_build --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	dh_auto_build --buildsystem=ruby
+	dh_auto_build --sourcedirectory=libs/docs
 
 override_dh_auto_test:
 	dh_auto_test
@@ -58,6 +59,7 @@ override_dh_auto_clean:
 	dh_auto_clean --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	rm -f libs/bindings/python/postscriptbarcode.py libs/bindings/python/postscriptbarcode.pyc libs/bindings/python/postscriptbarcode_wrap.c
 	dh_auto_clean --buildsystem=ruby
+	dh_auto_clean --sourcedirectory=libs/docs
 
 override_dh_strip:
 	dh_strip -p libpostscriptbarcode0 --dbg-package=libpostscriptbarcode0-dbg
@@ -67,6 +69,7 @@ override_dh_shlibdeps:
 	dh_shlibdeps -O--parallel -l libs/c
 
 override_dh_installdocs:
-	dh_installdocs -p postscriptbarcode 
+	dh_installdocs -p postscriptbarcode
+	dh_installdocs -p libpostscriptbarcode0
 	dh_installdocs -a --link-doc=libpostscriptbarcode0
 
