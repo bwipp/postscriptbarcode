@@ -15,6 +15,8 @@ BuildRequires:  perl-devel
 BuildRequires:  python2-devel
 BuildRequires:  python3-devel
 BuildRequires:  ruby-devel
+BuildRequires:  doxygen
+BuildRequires:  graphviz
 
 # Required for EPEL <= 5
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
@@ -132,6 +134,10 @@ CONFIGURE_ARGS="--with-cflags='%{optflags}'" ruby extconf.rb --vendor
 %{__make} %{_smp_mflags}
 popd
 
+pushd libs/docs
+%{__make} %{_smp_mflags}
+popd
+
 
 %install
 mkdir -p %{buildroot}/%{_datadir}/%{name}
@@ -204,35 +210,36 @@ popd
 %{_datadir}/%{name}/barcode.ps
 
 %files -n postscriptbarcode-libs
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{_libdir}/libpostscriptbarcode.so.*
 
 %files -n postscriptbarcode-devel
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{_includedir}/*
 %{_libdir}/libpostscriptbarcode.so
 
 %files -n java-postscriptbarcode
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{_javadir}/*
 %dir %{_libdir}/java-postscriptbarcode/
 %{_libdir}/java-postscriptbarcode/*
 
 %files -n perl-postscriptbarcode
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{perl_vendorarch}/*
 
 %files -n python2-postscriptbarcode
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{python2_sitearch}/*
 
 %files -n python3-postscriptbarcode
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{python3_sitearch}/*
 
 %files -n ruby-postscriptbarcode
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE libs/README.md libs/docs/html/*
 %{ruby_vendorarchdir}/*
+
 
 %changelog
 * Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20150810-0
