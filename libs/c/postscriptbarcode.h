@@ -35,15 +35,6 @@
  *  @brief Public API for libpostscriptbarcode - a C library providing a
  *         functional interface to Barcode Writer in Pure PostScript.
  *
- *  The purpose of this library is to provide helper functions for manipulating
- *  the Barcode Writer in Pure PostScript resources based on metadata contained
- *  within the monolithic barcode.ps file.
- *
- *  It is hoped that this can be used as the basis for bindings in other
- *  languages to provide a stable and robust interface to BWIPP that avoids the
- *  need for frontends to parse and process the PostScript resource file
- *  directly.
- *
  *  The basic workflow is to firstly initialise the library to obtain a
  *  BWIPP context by loading the BWIPP resources using either bwipp_load() or
  *  bwipp_load_from_file(). The context is provided as the first argument to
@@ -63,7 +54,6 @@
  *  to one thread per context until the resources for the context have finished
  *  loading. 
  *
- *  @author Terry Burton
  */
 
 #ifndef BWIPP_H
