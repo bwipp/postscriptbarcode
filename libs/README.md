@@ -28,3 +28,8 @@ Build and install the relevant bindings:
     make test
     make install  # Optional
 
+Build the documentation:
+
+    cd docs
+    make
+    # View by browsing html/index.html
