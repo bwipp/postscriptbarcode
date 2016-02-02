@@ -57,8 +57,9 @@ install-static: libstatic install-headers
 install-shared: libshared install-headers
 	install -d $(DESTDIR)$(LIBDIR)
 	install -m 0644 lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)
-	ln -srf $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)/lib$(NAME).so
-	ln -srf $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)/lib$(NAME).so.$(MAJOR)
+	cd $(DESTDIR)$(LIBDIR)
+	ln -sf lib$(NAME).so.$(VERSION) lib$(NAME).so
+	ln -sf lib$(NAME).so.$(VERSION) lib$(NAME).so.$(MAJOR)
 	-ldconfig
 
 uninstall:
