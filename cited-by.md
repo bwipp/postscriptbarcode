@@ -71,6 +71,8 @@ Hranilovic, S. (2012) "Advanced Optical Wireless Communication Systems: MIMO Tec
 
 Koamtac. (2013) "Creating Special Bar Codes To Configure Your KDC," Revision 1.0. http://www.koamtac.com/documents/manuals/How_To_Create_KOAMTAC_Special_BarCodes.pdf
 
+Thompson, S. (2016) "Q&A: Retail Worlds: Retail Systems chats to Mark Denton, head of retail propositions, BT Expedite," Retail Systems, Perspective Publishing Ltd. http://www.retail-systems.com/rs/RW_Mark_Denton_BT_Expedite.php
+
 
 ### pst-barcode
 
