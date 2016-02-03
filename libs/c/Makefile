@@ -4,7 +4,7 @@ MAJOR   := $(shell head -n 1 ../SOVERSION)
 MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
 VERSION := $(MAJOR).$(MINOR)
 
-CFLAGS = -g -O2 -fPIC -Wall -Wextra -Wconversion -Wformat -Wformat-security -pedantic
+CFLAGS = -g -O2 -Wall -Wextra -Wconversion -Wformat -Wformat-security -pedantic
 LDLIBS = -lc
 LDFLAGS = -shared -Wl,-soname,lib$(NAME).so.$(MAJOR) -Wl,-Bsymbolic-functions -Wl,-z,relro
 
@@ -34,6 +34,7 @@ lib$(NAME).a: $(NAME).o
 	ranlib $@
 
 $(NAME).o: $(NAME).c $(NAME).h $(NAME)_private.h
+	$(CC) -fPIC $(CFLAGS) -c -o $@ $<
 
 test: $(NAME)_test
 	LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./$(NAME)_test
