@@ -11,9 +11,13 @@ BuildRequires:  ghostscript
 BuildRequires:  swig
 BuildRequires:  java-devel
 BuildRequires:  ant
-BuildRequires:  perl-devel
+BuildRequires:  perl
+BuildRequires:  perl(ExtUtils::MakeMaker)
+BuildRequires:  chrpath
 BuildRequires:  python2-devel
 BuildRequires:  python3-devel
+BuildRequires:  ruby(release)
+BuildRequires:  rubypick
 BuildRequires:  ruby-devel
 BuildRequires:  doxygen
 BuildRequires:  graphviz
@@ -33,7 +37,7 @@ the barcode generation process whenever your language needs change.
 %package libs
 Summary: Shared library for Barcode Writer in Pure PostScript
 Group: Development/Libraries
-Requires: postscriptbarcode = %{version}-%{release}
+Requires: postscriptbarcode
 
 %description libs
 This package provides the shared library for Barcode Writer in Pure PostScript.
@@ -62,7 +66,6 @@ This package provides the Java binding for Barcode Writer in Pure PostScript
 %package -n perl-postscriptbarcode
 Summary: Perl binding for Barcode Writer in Pure PostScript
 Group: Development/Libraries
-BuildRequires:  perl, perl(ExtUtils::MakeMaker)
 Requires: postscriptbarcode-libs = %{version}-%{release}
 Requires: perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
@@ -93,9 +96,8 @@ This package provides the Python 3 binding for Barcode Writer in Pure PostScript
 %package -n ruby-postscriptbarcode
 Summary: Ruby binding for Barcode Writer in Pure PostScript
 Group: Development/Libraries
-BuildRequires: ruby
 Requires: postscriptbarcode-libs = %{version}-%{release}
-Requires: ruby
+Requires: ruby(release)
 
 %description -n ruby-postscriptbarcode
 This package provides the Ruby binding for Barcode Writer in Pure PostScript
@@ -109,7 +111,7 @@ This package provides the Ruby binding for Barcode Writer in Pure PostScript
 %{__make} %{_smp_mflags}
 
 pushd libs/c
-%{__make} %{_smp_mflags}
+%{__make} %{_smp_mflags} CFLAGS="%{optflags}"
 popd
 
 pushd libs/bindings/java
@@ -119,6 +121,7 @@ popd
 pushd libs/bindings/perl
 %{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1
 %{__make} %{_smp_mflags}
+find . -name 'postscriptbarcode.so' -exec chrpath -d {} \;
 popd
 
 pushd libs/bindings/python
@@ -167,7 +170,7 @@ pushd libs/bindings/python
 popd
 
 pushd libs/bindings/ruby
-%make_install
+%{__make} install DESTDIR=%{?buildroot}
 popd
 
 
@@ -226,7 +229,9 @@ popd
 
 %files -n perl-postscriptbarcode
 %doc CHANGES LICENSE libs/README.md libs/docs/html/*
-%{perl_vendorarch}/*
+%{perl_vendorarch}/auto/*
+%{perl_vendorarch}/auto/postscriptbarcode/*
+%{perl_vendorarch}/postscriptbarcode.pm
 
 %files -n python2-postscriptbarcode
 %doc CHANGES LICENSE libs/README.md libs/docs/html/*
