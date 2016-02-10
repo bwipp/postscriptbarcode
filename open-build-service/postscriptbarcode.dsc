@@ -16,5 +16,6 @@ Package-List:
  python3-postscriptbarcode deb python optional arch=any
  ruby-postscriptbarcode deb ruby optional arch=any
 Ruby-Versions: all
+Debtransform-Tar: postscriptbarcode-debian.tar.gz
 Files: 
  00000000000000000000000000000000 0 libpostscriptbarcode.tar.gz
