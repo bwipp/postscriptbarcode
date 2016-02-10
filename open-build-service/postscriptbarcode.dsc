@@ -4,6 +4,17 @@ Binary: postscriptbarcode, libpostscriptbarcode0, libpostscriptbarcode-dev, libp
 Architecture: any all
 Version: <empty>
 Maintainer: Terry Burton <tez@terryburton.co.uk>
-Build-Depends: debhelper (>= 9), ghostscript, swig, default-jdk, perl, libperl-dev, python-all-dev, dh-python, python3-all-dev, python3-setuptools, ruby, ruby-all-dev, gem2deb
+Build-Depends: debhelper (>= 9), dh-exec, ghostscript, swig, default-jdk, javahelper, ant, perl, libperl-dev, chrpath, python-all-dev, dh-python, python3-all-dev, python3-setuptools, ruby, ruby-all-dev, gem2deb
+Package-List:
+ libpostscriptbarcode-dev deb libdevel optional arch=any
+ libpostscriptbarcode-java deb java optional arch=any
+ libpostscriptbarcode-perl deb perl optional arch=any
+ libpostscriptbarcode0 deb libs optional arch=any
+ libpostscriptbarcode0-dbg deb debug extra arch=any
+ postscriptbarcode deb libs optional arch=all
+ python-postscriptbarcode deb python optional arch=any
+ python3-postscriptbarcode deb python optional arch=any
+ ruby-postscriptbarcode deb ruby optional arch=any
+Ruby-Versions: all
 Files: 
  00000000000000000000000000000000 0 libpostscriptbarcode.tar.gz
