@@ -17,5 +17,6 @@ Package-List:
  ruby-postscriptbarcode deb ruby optional arch=any
 Ruby-Versions: all
 Debtransform-Tar: postscriptbarcode-debian.tar.gz
+Debtransform-Release: 1
 Files: 
  00000000000000000000000000000000 0 libpostscriptbarcode.tar.gz
