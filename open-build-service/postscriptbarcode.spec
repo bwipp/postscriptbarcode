@@ -31,7 +31,8 @@ Group:          Development/Libraries
 # [   83s] Makefile:152: Commands were specified for file `postscriptbarcode.so' at Makefile:122,
 # [   83s] Makefile:152: but `postscriptbarcode.so' is now considered the same file as `/usr/lib/ruby/1.8/i386-linux/postscriptbarcode.so'.
 # [   83s] Makefile:152: Commands for `/usr/lib/ruby/1.8/i386-linux/postscriptbarcode.so' will be ignored in favor of those for `postscriptbarcode.so'.
-%if 0%{?rhel} != 6
+# Ruby-devel is not available in the base channel for RHEL 7 on OBS
+%if 0%{?rhel} != 6 && 0%{?rhel} != 7
 %global with_ruby 1
 %endif
 
