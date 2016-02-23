@@ -15,11 +15,10 @@ Group:          Development/Libraries
 # Please contribute any improvements back here:
 # https://github.com/bwipp/postscriptbarcode/tree/master/open-build-service
 #
-# Known bugs (any help appreciated):
+# Known issues:
 #
-# * RHEL/CentOS 5 too old due to /usr/bin/ld: unrecognized option '-Bsymbolic-functions'. We could disabled this but probably not worth it.
-# * On RHEL 7 nothing provides ruby-devel, but CentOS/SciLinux 7 succeed?
-# * SLE_12, OpenSUSE Tumbleweed: Need to debug an invalid free() in postscriptbarcode_test
+# * RHEL/CentOS 5 too old due to /usr/bin/ld: unrecognized option '-Bsymbolic-functions'. We could disabled this but probably not worth going back this far.
+# * Re-enabled postscriptbarcode_test which is failing with an invalid_free recent OpenSUSE.
 #
 
 # No Python 3 in RHEL or before SuSE 12
@@ -41,7 +40,6 @@ Group:          Development/Libraries
 %global with_docs 1
 %endif
 
-
 # Fedora-style compat macros for SuSE
 %{!?__python2:          %global __python2 /usr/bin/python2}
 %{!?python2_sitearch:   %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
@@ -57,7 +55,6 @@ Group:          Development/Libraries
 %{!?ruby_vendorarchdir: %global ruby_vendorarchdir %(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorarchdir"]')}
 %{!?ruby_vendorlibdir:  %global ruby_vendorlibdir  %(ruby -rrbconfig -e 'puts RbConfig::CONFIG["vendorlibdir"]')}
 %endif
-
 
 # SuSE naming conventions
 %if 0%{?suse_version}
