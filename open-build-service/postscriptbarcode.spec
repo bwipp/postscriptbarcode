@@ -409,5 +409,3 @@ popd
 %endif
 
 %changelog
-* Fri Nov 08 2013 Terry Burton <tez@terryburton.co.uk> - 20150810-0
-- Configure nightly OBS build
