@@ -260,7 +260,7 @@ popd
 %endif
 
 pushd libs/docs
-mkdir html
+mkdir -p html
 touch html/index.html
 %if 0%{?with_docs}
 %{__make} %{_smp_mflags}
@@ -292,7 +292,9 @@ popd
 pushd libs/bindings/perl
 find . -type f -exec chmod 0664 {} \;
 %{__make} pure_install DESTDIR=%{buildroot} OPTIMIZE="%{optflags}"
-find %{buildroot}/%{perl_vendorarch} -name 'postscriptbarcode.so' -type f -exec chmod 0755 {} \;
+find %{buildroot}/%{perl_vendorarch} -type f -name 'postscriptbarcode.so' -exec chmod 0755 {} \;
+find %{buildroot}/%{perl_vendorarch} -type f -name .packlist -exec rm -f {} \;
+find %{buildroot}/%{perl_vendorarch} -type f -name '*.bs' -empty -exec rm -f {} \;
 popd
 
 %if 0%{?with_python3}
@@ -371,41 +373,42 @@ popd
 
 %files -n %{postscriptbarcode_lib_pkgname}-devel
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{_includedir}/*
 %{_libdir}/libpostscriptbarcode.so
 
 %files -n java-postscriptbarcode
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{_javadir}/*
 %dir %{_libdir}/java-postscriptbarcode/
 %{_libdir}/java-postscriptbarcode/*
 
 %files -n perl-postscriptbarcode
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{perl_vendorarch}/auto/*
 %{perl_vendorarch}/auto/postscriptbarcode/*
 %{perl_vendorarch}/postscriptbarcode.pm
 
 %files -n %{python2_postscriptbarcode_pkgname}
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{python2_sitearch}/*
 
 %if 0%{?with_python3}
 %files -n python3-postscriptbarcode
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{python3_sitearch}/*
 %endif
 
 %if 0%{?with_ruby}
 %files -n ruby-postscriptbarcode
 %defattr(-,root,root)
-%doc CHANGES LICENSE libs/README.md libs/docs/html/*
+%doc CHANGES LICENSE libs/README.md
 %{ruby_vendorarchdir}/*
 %endif
 
 %changelog
+
