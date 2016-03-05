@@ -94,6 +94,8 @@ package_postscriptbarcode() {
   mkdir -p "${pkgdir}/usr/share/doc/${pkgname}/"
   cp README.md "${pkgdir}/usr/share/doc/${pkgname}/README"
   cp CHANGES "${pkgdir}/usr/share/doc/${pkgname}/"
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_libpostscriptbarcode() {
@@ -103,7 +105,10 @@ package_libpostscriptbarcode() {
   cd "${pkgbase}-${pkgver}"
   pushd libs/c
   make install DESTDIR="${pkgdir}" PREFIX=/usr
+  find ${pkgdir}/usr/lib -name 'libpostscriptbarcode.so.*' -type f -exec chmod 0755 {} \;
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_java-postscriptbarcode() {
@@ -117,6 +122,8 @@ package_java-postscriptbarcode() {
   mkdir -p "${pkgdir}/usr/lib/java-postscriptbarcode"
   cp -p *.so "${pkgdir}/usr/lib/java-postscriptbarcode/"
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_perl-postscriptbarcode() {
@@ -127,8 +134,9 @@ package_perl-postscriptbarcode() {
   pushd libs/bindings/perl
   find . -type f -exec chmod 0664 {} \;
   make pure_install DESTDIR="${pkgdir}"
-  # find %{buildroot}/%{perl_vendorarch} -name 'postscriptbarcode.so' -type f -exec chmod 0755 {} \;
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_python-postscriptbarcode() {
@@ -139,6 +147,8 @@ package_python-postscriptbarcode() {
   pushd libs/bindings/python
   python setup.py install -O1 --skip-build --prefix=/usr --root "${pkgdir}"
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_python2-postscriptbarcode() {
@@ -149,6 +159,8 @@ package_python2-postscriptbarcode() {
   pushd libs/bindings/python
   python2 setup.py install -O1 --skip-build --prefix=/usr --root "${pkgdir}"
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
 
 package_ruby-postscriptbarcode() {
@@ -159,4 +171,6 @@ package_ruby-postscriptbarcode() {
   pushd libs/bindings/ruby
   make install DESTDIR="${pkgdir}"
   popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
 }
