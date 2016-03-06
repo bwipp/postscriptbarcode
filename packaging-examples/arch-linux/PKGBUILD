@@ -26,7 +26,8 @@ build() {
 
   pushd libs/bindings/perl
   perl Makefile.PL INSTALLDIRS=vendor NO_PACKLIST=1
-  make LD_RUN_PATH=""
+  sed -i 's|LD_RUN_PATH|DISABLE_LD_RUN_PATH|g' Makefile
+  make
   popd
 
   pushd libs/bindings/python
