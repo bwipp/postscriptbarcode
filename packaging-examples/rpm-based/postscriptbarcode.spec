@@ -6,14 +6,13 @@ Group:          Development/Libraries
 
 
 # 
-# This file is intended to provide a guide to packagers for RPM-based distributions to promote consistency.
+# This file is intended to provide a guide to packagers of RPM-based distributions to promote consistency.
 #
-# The packages have been built but not installed and tested.
-#
-# You will probably want to remove its many compatibility macros.
+# The packages have been built on the OBS but not necessarily installed and tested:
+# https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode
 #
 # Please contribute any improvements back here:
-# https://github.com/bwipp/postscriptbarcode/tree/master/open-build-service
+# https://github.com/bwipp/postscriptbarcode/tree/master/packaging-examples
 #
 # Known issues:
 #
