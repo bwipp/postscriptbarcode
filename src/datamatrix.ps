@@ -52,6 +52,7 @@ begin
     /dontdraw false def
     /columns 0 def
     /rows 0 def
+    /format (square) def    % square or rectangle
     /version (unset) def
     /parse false def
     /parsefnc false def
@@ -181,7 +182,8 @@ begin
         /okay true def
         urows 0 ne urows rows ne and {/okay false def} if
         ucols 0 ne ucols cols ne and {/okay false def} if
-        urows 0 eq ucols 0 eq or rows cols ne and {/okay false def} if
+        format (square) eq rows cols ne and {/okay false def} if
+        format (rectangle) eq rows cols eq and {/okay false def} if
         okay {/fullcws [ fullcws aload pop ncws ] def} if
     } forall
     /numremcws [ 1558 {10000} repeat ] def
@@ -662,6 +664,8 @@ begin
         cws length ncws ne           {/okay false def} if
         urows 0 ne urows rows ne and {/okay false def} if
         ucols 0 ne ucols cols ne and {/okay false def} if
+        format (square) eq rows cols ne and {/okay false def} if
+        format (rectangle) eq rows cols eq and {/okay false def} if
         okay {exit} if
         /i i 1 add def
     } loop
