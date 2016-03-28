@@ -74,7 +74,6 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#downloading">Downloading</a></li>
 </ul></li>
 <li><a href="#quick-guide">Quick Guide</a></li>
-<li><a href="#monolithic-flavours">Monolithic Flavours</a></li>
 <li><a href="#named-resource-flavours">Named Resource Flavours</a></li>
 <li><a href="#symbology-reference">Symbology Reference</a><ul>
 <li><a href="#ean-13">EAN-13</a></li>
@@ -272,36 +271,36 @@ make</code></pre>
 <p>The best way to get familiar with using the code is to download the <em>monolithic</em> flavour of the <a href="https://github.com/bwipp/postscriptbarcode/releases/latest">latest release</a> and open the <code>barcode_with_sample.ps</code> file with a text editor.</p>
 <p>This file consists of the following sections:</p>
 <ul>
-<li>A PostScript indicator, beginning <code>%!PS</code>.</li>
-<li>Comments, with lines beginning <code>%</code>.</li>
+<li>A PostScript language indicator beginning <code>%!PS</code>.</li>
+<li>Comments as lines beginning <code>%</code>.</li>
 <li>A definition for the <code>uk.co.terryburton.bwipp</code> category of named resources.</li>
 <li>A small set of named resource definitions for the renderers which generate the graphical output for the symbols delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.</li>
 <li>A large set of named resource definitions for the encoders which convert the input into a structured symbol definition delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.</li>
 <li>A set of sample barcode invocations delimited by <code>% --BEGIN SAMPLE--</code> and <code>% --END SAMPLE--</code>.</li>
 </ul>
 <p>This is one example from the samples:</p>
-<pre><code>150 750 moveto (0123456789) (includecheck includetext)
+<pre><code>150 750 moveto (0123456789) (includetext height=0.75)
 /interleaved2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>The meaning of each component of the invocation is as follows:</p>
-<pre><code>150 750 moveto             % position of the symbol on the canvas
-(0123456789)               % data field: information to encode in the barcode
-(includetext height=0.75)  % options field: symbol properties
-/interleaved2of5           % the type of barcode
-/uk.co.terryburton.bwipp findresource exec  % plot symbol on the canvas</code></pre>
+<pre><code>150 750 moveto             % The position of the symbol on the canvas
+(0123456789)               % The data field: Contents to encode in the barcode
+(includetext height=0.75)  % The options field: Properties of the symbol
+/interleaved2of5           % The type of barcode, often called the &quot;symbology&quot;
+/uk.co.terryburton.bwipp findresource exec  % Call to plot symbol on the canvas</code></pre>
 <p>The acceptable contents of the data field varies between symbologies as defined in the <a href="#symbology-reference">symbology reference</a>.</p>
 <p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the <a href="#options-reference">options reference</a>, however encoder-specific options do exist in some cases and the default values of permitted options varies across symbologies.</p>
-<p>Using the references mentioned above you should now be able to experiment by carefully amending the sample section of the file.</p>
-<p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript enabled printer. Alternatively you can use the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a> to see the effect of the options on the output.</p>
+<p>Using the references mentioned above you should now be able to experiment by carefully amending the sample section of the file and observing the effect on the graphical output.</p>
+<p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript-enabled printer. Alternatively you can use the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a>.</p>
 <ul>
 <li>GhostScript is an open source PostScript interpreter that is available for both Windows and Linux.</li>
-<li>gsview is a viewer for PostScript files on Windows which requires that GhostScript be installed.</li>
-<li>gv is a viewer for PostScript files on Linux, which requires that GhostScript be installed.</li>
-<li>The Preview application on Mac OS X is able to view PostScript files.</li>
 <li>Adobe Distiller is a commercial PostScript interpreter that is available for Windows and MacOS.</li>
-<li>Most reasonable laser printers have native support for PostScript.</li>
+<li>gsview is a viewer for PostScript files on Windows which requires that GhostScript be installed.</li>
+<li>gv is a viewer for PostScript files on Linux which requires that GhostScript be installed.</li>
+<li>The Preview application on Mac OS X is able to view PostScript files.</li>
+<li>Most laser printers have native support for PostScript. Look for either Adobe PostScript Level 2 or Adobe PostScript 3 compatibility.</li>
 <li>CUPS, the Common Unix Printing System, adds PostScript support for non-PostScript printers by filtering PostScript documents through GhostScript.</li>
 </ul>
-<p>To directly print a file to an installed, PostScript-enabled printer in Windows use the following command:</p>
+<p>To directly print a file to an installed, PostScript-enabled printer in Windows by printer name use the following command:</p>
 <pre><code>PRINT [/D:device] barcode_with_sample.ps</code></pre>
 <p>Alternatively for a printer attached directly to the first parallel port:</p>
 <pre><code>COPY /B barcode_with_sample.ps LPT1:</code></pre>
@@ -310,9 +309,10 @@ make</code></pre>
 <p>Once you are comfortable with amending the <code>barcode_with_sample.ps</code> file you may want to simplify the file by removing definitions for barcode formats that you do not require bearing in mind the following points:</p>
 <ul>
 <li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and must include any dependencies as specified in the resource file by the <code>% --REQUIRES ...</code> metadata. Examining the contents of the PS files created by the web-based generator at <a href="http://www.terryburton.co.uk/barcodewriter/generator/" class="uri">http://www.terryburton.co.uk/barcodewriter/generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.</li>
-<li>If you intend to create an application whose purpose is to generate documents containing a variety of barcodes it is suggested that you start with the monolithic <code>barcode.ps</code> file and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version. More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.</li>
+<li>If you intend to create an application whose purpose is to generate documents containing a variety of barcodes it is suggested that you start with the monolithic <code>barcode.ps</code> file and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version.</li>
+<li>BWIPP includes a C library with bindings for various languages to help with the above.</li>
+<li>More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.<br />Monolithic Flavours<br />===================</li>
 </ul>
-<h1 id="monolithic-flavours">Monolithic Flavours</h1>
 <p>The monolithic <code>barcode.ps</code> file provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources shipped in a single file for ease of inclusion within the Prolog section of a PostScript document template or for installing into a printer's initial job VM.</p>
 <p>Prepared tarballs of BWIPP packages into the monolithic flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest" class="uri">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-monolithic</code> and <code>postscriptbarcode-monolithic-package</code>. Alternatively you can build these flavours from source with <code>make monolithic</code> or <code>make monolithic_package</code>.</p>
 <h3 id="inclusion-within-the-prolog-section-of-a-document">Inclusion Within the Prolog Section of a Document</h3>
@@ -794,12 +794,13 @@ make</code></pre>
 <h3 id="data-and-options-14">Data and Options</h3>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> starting with the mandatory <em>(01)</em> Application Identifier.</li>
-<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol, either square or rectangular, one of:
+<li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
+<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid options are:
 <ul>
-<li>Square: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
-<li>Rectangular: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
+<li><code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
+<li><code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
 </ul></li>
-<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a (non-rectangular) symbol that is the minimum size to represent the given data.</li>
+<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
 </ul>
 <h3 id="example-1">Example</h3>
 <pre><code>0 0 moveto ((01)95012345678903(3103)000123) ()
@@ -974,12 +975,13 @@ make</code></pre>
 <li>The data field can contain any extended ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value. This is useful for specifying unprintable characters.</li>
 <li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^PROG</code>, <code>^MAC5</code>, <code>^MAC6</code>.</li>
+<li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid options are:
 <ul>
-<li>Square: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
-<li>Rectangular: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
+<li><code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
+<li><code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
 </ul></li>
-<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a (non-rectangular) symbol that is the minimum size to represent the given data.</li>
+<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
 </ul>
 <h3 id="examples-16">Examples</h3>
 <pre><code>0 0 moveto (This is Data Matrix) ()
@@ -1109,7 +1111,7 @@ make</code></pre>
 </ul></li>
 <li>The <strong>version</strong> option is used to specify the size of the symbol, 1 to 40.</li>
 <li>If unspecified the encoder will select the version of the symbol that is the minimum size to represent the given data at the selected error correction level.</li>
-<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=micro</code> symbol types. Alternatively, <code>format=any</code> will select the optimal symbol format for the given data. By default <em>full</em> format symbols will be generated.</li>
+<li>The <strong>format</strong> option is used to select between <code>format=full</code> and <code>format=micro</code> (deprecated) symbol types. Alternatively, <code>format=any</code> will select the optimal symbol format for the given data. By default <em>full</em> format symbols will be generated.</li>
 <li>Note: It is recommended that the <a href="#micro-qr-code">Micro QR Code</a> encoder is used for such symbols.</li>
 </ul>
 <h3 id="examples-20">Examples</h3>
@@ -2334,8 +2336,7 @@ make</code></pre>
 <pre><code>(01)0061414199996(17)100101(10)123ABC(21)1234567890</code></pre>
 <p>Encoders for barcode symbologies that expect data in GS1 Application Identifier standard format will take care of parsing the input and inserting any necessary <em>FNC1</em> characters to delimit variable length fields.</p>
 <h2 id="gs1-application-identifier-definitions">GS1 Application Identifier Definitions</h2>
-<p>ISO/IEC 15418 defines the Application Identifiers and limits associated with each AI. The Application Identifier definitions are also provided in the GS1 General Specifications.</p>
-<p>The list of AIs is available here: <a href="http://en.wikipedia.org/wiki/GS1-128#Full_list_of_Application_Identifiers" class="uri">http://en.wikipedia.org/wiki/GS1-128#Full_list_of_Application_Identifiers</a></p>
+<p>The Application Identifier definitions are provided in the <a href="http://www.gs1.org/barcodes-epcrfid-id-keys/gs1-general-specifications">GS1 General Specifications</a>. A summary is available <a href="http://en.wikipedia.org/wiki/GS1-128#Full_list_of_Application_Identifiers">here</a> however this may be out of date.</p>
 <h1 id="options-reference">Options Reference</h1>
 <h2 id="includecheck">includecheck</h2>
 <p>Generate check digit(s) for symbologies where the use of check digits is optional.</p>
@@ -2583,44 +2584,15 @@ grestore</code></pre>
 <p>There are a number of frontends to BWIPP that vary in terms of the functionality that they expose and the way that they express this through their API or GUI, etc.</p>
 <p>It would be nice to unify some of these projects but in the meantime this document attempts to provide some guidelines to apply when developing something that places BWIPP in the hands of developers and users.</p>
 <p>The author would ideally like any language binding, library or graphical frontend to be representative of the complete functionality of the BWIPP resource and to be maintainable with minimal effort and these guideline help to achieve this goal.</p>
-<p><strong>Author's commitment:</strong> I will make a best efforts commitment to provide end user support and developer support for any library or application that makes an effort to adopt the principles given here. Such projects should also feel free to adopt the <a href="https://groups.google.com/forum/#!forum/postscriptbarcode">BWIPP mailing list</a> if they are so inclined and to request access to extend this wiki.</p>
 <h3 id="make-early-contact-with-the-bwipp-author">Make Early Contact with the BWIPP Author</h3>
-<p>Contact the author of BWIPP whilst you're still experimenting.</p>
-<p>I'm <a href="https://github.com/terryburton">Terry Burton</a>. I will try not to insist on my own way as it's you that will end up supporting your creation so I want you to be happy with it, but it will help everyone if there is some consistency between your code and the next person's.</p>
-<h3 id="refer-users-to-the-bwipp-documentation">Refer Users to the BWIPP Documentation</h3>
-<p>Point your users at the online BWIPP symbologies and options references.</p>
-<p>The reference is written these in a way that is fairly environment agnostic but if you have any idea or want to improve them then please contribute.</p>
-<ul>
-<li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference" class="uri">https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference</a></li>
-<li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference" class="uri">https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference</a></li>
-</ul>
-<h3 id="safe-argument-passing">Safe Argument Passing</h3>
-<p>Safely pass your arguments to BWIPP in an PostScript code injection-proof way.</p>
-<p>Hexify the data, options and encoder string input to BWIPP to prevent PostScript injection by means of un-escaped <code>)</code> or otherwise.</p>
-<p><strong>Not</strong> like this:</p>
-<pre><code>0 0 moveto
-(02345673)
-(includetext)
-/ean8
-/uk.co.terryburton.bwipp findresource exec</code></pre>
-<p>But like this (obviously don't include the comments, at least not in production):</p>
-<pre><code>0 0 moveto
-&lt;3032333435363733&gt;                          % (02345673)
-&lt;696e636c75646574657874&gt;                    % (includetext)
-&lt;65616e38&gt; cvn                              % /ean8
-/uk.co.terryburton.bwipp findresource exec</code></pre>
-<p>Example Python:</p>
-<pre class="sourceCode python"><code class="sourceCode python"><span class="ch">import</span> binascii, textwrap
-<span class="kw">def</span> hexify(<span class="dt">input</span>):
-  <span class="kw">return</span> textwrap.TextWrapper(subsequent_indent=<span class="st">' '</span>, width=<span class="dv">72</span>). \
-    fill(<span class="st">'&lt;'</span> + binascii.hexlify(string) + <span class="st">'&gt;'</span>)</code></pre>
-<p>Example Perl:</p>
-<pre class="sourceCode perl"><code class="sourceCode perl"><span class="kw">sub </span><span class="fu">hexify</span> {
-  <span class="kw">return</span> <span class="kw">'</span><span class="st">&lt;</span><span class="kw">'</span>.(<span class="fu">join</span> <span class="kw">&quot;</span><span class="ch">\n</span><span class="st"> </span><span class="kw">&quot;</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">(A72)*</span><span class="kw">'</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">H*</span><span class="kw">'</span>, <span class="fu">shift</span>).<span class="kw">'</span><span class="st">&gt;</span><span class="kw">'</span>;
-}</code></pre>
-<h3 id="use-the-bwipp-metadata">Use the BWIPP Metadata</h3>
-<p>Use the inline metadata rather than embedding a load of static data in your code.</p>
-<p>Support barcode formats automatically by scanning the barcode.ps metadata for <code>BEGIN/END ENCODER</code> blocks. From these extract descriptions, example data and example options using the <code>DESC</code>, <code>EXAM</code> and <code>EXOP</code> stanzas within the <code>BEGIN/ENCODER ENCODER</code> blocks.</p>
+<p>Contact the author of BWIPP whilst you're still experimenting. I will try not to insist on my own way as it's you that will end up supporting your creation so I want you to be happy with it, but it will help everyone if there is some consistency between your code and the next person's.</p>
+<p><strong>Author's commitment:</strong> If I know about your project then I will make a best efforts commitment to assist with end user support and developer support for any library or application that makes a genuine attempt to adopt the principles given here. Such projects should also feel free to adopt the <a href="https://groups.google.com/forum/#!forum/postscriptbarcode">BWIPP mailing list</a> if they are so inclined and to request access to extend this wiki.</p>
+<h3 id="use-the-bwipp-c-helper-library-and-bindings...">Use the BWIPP C helper library and bindings...</h3>
+<p>Be aware that we have produced a C library and language-specific bindings with a common API to help with manipulating the BWIPP resources: <a href="https://github.com/bwipp/postscriptbarcode/tree/master/libs" class="uri">https://github.com/bwipp/postscriptbarcode/tree/master/libs</a></p>
+<p>You should attempt to use these where possible as it takes most of the pain out of working with the PostScript. If the API doesn't support something that you need then we can extend the interface as necessary.</p>
+<h3 id="or-at-least-parse-the-bwipp-metadata">... or at least parse the BWIPP metadata</h3>
+<p>If you choose to work directly with the PostScript then it is better to parse the inline metadata rather than embedding a load of static data in your code.</p>
+<p>You should support new barcode formats automatically by scanning the barcode.ps metadata for <code>BEGIN/END ENCODER</code> blocks. From these extract descriptions, example data, options, etc. by using the <code>DESC</code>, <code>EXAM</code>, <code>EXOP</code>, ... stanzas within the <code>BEGIN/ENCODER ENCODER</code> blocks.</p>
 <p>Example BWIPP metadata for an encoder:</p>
 <pre><code>% --BEGIN ENCODER ean8--
 % --REQUIRES preamble raiseerror renlinear ean5 ean2--
@@ -2630,10 +2602,10 @@ grestore</code></pre>
 % --RNDR: renlinear
 ... PostScript resource definition here ...
 % --END ENCODER ean8--</code></pre>
-<p>The aim is that libraries and graphical frontends can be light on compiled-in data and can therefore be enhanced by simply replacing the barcode.ps file.</p>
+<p>The best strategy is for libraries and graphical frontends to be light on compiled-in data and can therefore be enhanced by simply replacing the barcode.ps file.</p>
 <p>To fully meet this objective may require extending the barcode.ps metadata to describe the individual options that are available for each encoder. The BWIPP author is certainly interested in having such a discussion so please make contact regarding your requirements.</p>
 <h3 id="let-users-drive-bwipp-directly">Let Users Drive BWIPP Directly</h3>
-<p>Allow advanced users to specify the data, options and encoder directly. This will allow them to access BWIPP functionality that you haven't anticipated or exposed via your API or GUI.</p>
+<p>Whether part of your design or as a fall back, allow advanced users to specify the data, options and encoder directly. This will allow them to access BWIPP functionality that you haven't anticipated or chosen to expose via your API or GUI.</p>
 <h3 id="use-bwipps-error-reporting">Use BWIPP's Error Reporting</h3>
 <p>Use the BWIPP error reporting mechanism to provide specific error messages to users so that they can understand why a given input is invalid. For example, the following PS procedure can be used to invoke <code>barcode.ps</code> and on error will halt with the descriptive text of the error (e.g. <code>BWIPP ERROR: EAN-13 must be 12 or 13 digits</code>) written to STDERR which can be intercepted and thrown or displayed in whatever manner is most appropriate.</p>
 <pre><code>%!PS
@@ -2672,7 +2644,30 @@ end
 </ol>
 <h3 id="displaying-the-list-of-supported-symbologies">Displaying the List of Supported Symbologies</h3>
 <p>To make the presentation of the list of barcode formats manageable any such list of barcodes should be rendered in the same/similar way as the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a>.</p>
-<p>Would it be helpful to extend the metadata to help group the supported barcodes into categories?</p>
+<h3 id="refer-users-to-the-bwipp-documentation">Refer Users to the BWIPP Documentation</h3>
+<p>Point your users at the online BWIPP symbologies and options references.</p>
+<p>The reference is written these in a way that is fairly environment agnostic but if you have any idea or want to improve them then please contribute.</p>
+<ul>
+<li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference" class="uri">https://github.com/bwipp/postscriptbarcode/wiki/Symbologies-Reference</a></li>
+<li><a href="https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference" class="uri">https://github.com/bwipp/postscriptbarcode/wiki/Options-Reference</a></li>
+</ul>
+<h3 id="safe-argument-passing">Safe Argument Passing</h3>
+<p>Pass arguments to BWIPP in an injection-proof way that does not allow users to invoke arbitrary PostScript commands by means of un-escaped <code>)</code> or otherwise.</p>
+<p>The best way is to &quot;hexify&quot; the data, options and encoder string data in your output, for example:</p>
+<pre><code>0 0 moveto
+&lt;3032333435363733&gt;                          &lt;-- Instead of (02345673)
+&lt;696e636c75646574657874&gt;                    &lt;-- Instead of (includetext)
+&lt;65616e38&gt; cvn                              &lt;-- Instead of /ean8
+/uk.co.terryburton.bwipp findresource exec</code></pre>
+<p>Example Python:</p>
+<pre class="sourceCode python"><code class="sourceCode python"><span class="ch">import</span> binascii, textwrap
+<span class="kw">def</span> hexify(<span class="dt">input</span>):
+  <span class="kw">return</span> textwrap.TextWrapper(subsequent_indent=<span class="st">' '</span>, width=<span class="dv">72</span>). \
+    fill(<span class="st">'&lt;'</span> + binascii.hexlify(string) + <span class="st">'&gt;'</span>)</code></pre>
+<p>Example Perl:</p>
+<pre class="sourceCode perl"><code class="sourceCode perl"><span class="kw">sub </span><span class="fu">hexify</span> {
+  <span class="kw">return</span> <span class="kw">'</span><span class="st">&lt;</span><span class="kw">'</span>.(<span class="fu">join</span> <span class="kw">&quot;</span><span class="ch">\n</span><span class="st"> </span><span class="kw">&quot;</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">(A72)*</span><span class="kw">'</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">H*</span><span class="kw">'</span>, <span class="fu">shift</span>).<span class="kw">'</span><span class="st">&gt;</span><span class="kw">'</span>;
+}</code></pre>
 <h1 id="cited-by">Cited-By</h1>
 <p>The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.</p>
 <p>If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.</p>
@@ -2708,6 +2703,7 @@ end
 <p>Zamberletti A., Gallo I., Carullo M., Binaghi E. (2011) &quot;Decoding 1-D Barcode from Degraded Images Using a Neural Network,&quot; Computer Vision, Imaging and Computer Graphics: Theory and Applications, VISIGRAPP 2010, Springer, pp. 45-55.</p>
 <p>Hranilovic, S. (2012) &quot;Advanced Optical Wireless Communication Systems: MIMO Techniques for Indoor Optical Wireless Communications,&quot; Cambridge University Press, p. 130. ISBN 978-0-521-19787-8.</p>
 <p>Koamtac. (2013) &quot;Creating Special Bar Codes To Configure Your KDC,&quot; Revision 1.0. <a href="http://www.koamtac.com/documents/manuals/How_To_Create_KOAMTAC_Special_BarCodes.pdf" class="uri">http://www.koamtac.com/documents/manuals/How_To_Create_KOAMTAC_Special_BarCodes.pdf</a></p>
+<p>Thompson, S. (2016) &quot;Q&amp;A: Retail Worlds: Retail Systems chats to Mark Denton, head of retail propositions, BT Expedite,&quot; Retail Systems, Perspective Publishing Ltd. <a href="http://www.retail-systems.com/rs/RW_Mark_Denton_BT_Expedite.php" class="uri">http://www.retail-systems.com/rs/RW_Mark_Denton_BT_Expedite.php</a></p>
 <h3 id="pst-barcode">pst-barcode</h3>
 <p><a href="http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/" class="uri">http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/</a></p>
 <p>Goossens, M., Mittelbach F., Rahtz, S., Roegel, D. (2007) &quot;The LaTeX Graphics Companion,&quot; Addison Wesley. ISBN 978-0-321-50892-8.</p>
