@@ -31,9 +31,9 @@
 % CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 % IN THE SOFTWARE.
 
-% --BEGIN ENCODER gs1datamatrix--
+% --BEGIN ENCODER gs1datamatrixrectangular--
 % --REQUIRES preamble raiseerror renmatrix datamatrix--
-% --DESC: GS1 Data Matrix
+% --DESC: GS1 Data Matrix Rectangular
 % --EXAM: (01)03453120000011(17)120508(10)ABCD1234(410)9501101020917
 % --EXOP:
 % --RNDR: renmatrix
@@ -43,7 +43,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
 begin
-/gs1datamatrix {
+/gs1datamatrixrectangular {
 
     20 dict begin            % Confine variables to local scope
 
@@ -158,6 +158,7 @@ begin
     % Get the result of encoding with datamatrix
     options (dontdraw) true put
     options (parsefnc) true put
+    options (format) (rectangle) put
     /args barcode options //datamatrix exec def
 
     args (opt) options put
@@ -168,7 +169,7 @@ begin
     end
 
 } bind def
-/gs1datamatrix dup load /uk.co.terryburton.bwipp defineresource pop
+/gs1datamatrixrectangular dup load /uk.co.terryburton.bwipp defineresource pop
 end
 /setpacking where {pop setpacking} if
-% --END ENCODER gs1datamatrix--
+% --END ENCODER gs1datamatrixrectangular--
