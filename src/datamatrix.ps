@@ -56,6 +56,7 @@ begin
     /version (unset) def
     /parse false def
     /parsefnc false def
+    /dmre false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -158,10 +159,22 @@ begin
         % Optional rectangular symbols
         [   8    18     1     1     7     1 ]
         [   8    32     1     2    11     1 ]
+ dmre { [   8    48     1     2    15     1 ] } if
+ dmre { [   8    64     1     4    18     1 ] } if
         [  12    26     1     1    14     1 ]
         [  12    36     1     2    18     1 ]
+ dmre { [  12    64     1     4    27     1 ] } if
         [  16    36     1     2    24     1 ]
         [  16    48     1     2    28     1 ]
+ dmre { [  16    64     1     4    36     1 ] } if
+ dmre { [  24    32     1     2    28     1 ] } if
+ dmre { [  24    36     1     2    33     1 ] } if
+ dmre { [  24    48     1     2    41     1 ] } if
+ dmre { [  24    64     1     4    46     1 ] } if
+ dmre { [  26    32     1     2    32     1 ] } if
+ dmre { [  26    40     1     2    38     1 ] } if
+ dmre { [  26    48     1     2    42     1 ] } if
+ dmre { [  26    64     1     4    50     1 ] } if
     ] def
 
     % Create array of codewords remaining to make a full symbol
@@ -762,6 +775,9 @@ begin
             dup 0 lt {
                 mcols add exch
                 4 mcols 4 add 8 mod sub add exch
+            } if
+            1 index mrows ge {
+                exch mrows sub exch
             } if
             exch mcols mul add
             mmat exch 5 -1 roll put
