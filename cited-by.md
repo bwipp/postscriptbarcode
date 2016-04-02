@@ -10,6 +10,8 @@ If you are aware of any noteworthy additions to this list then please inform the
 
 http://bwipp.terryburton.co.uk
 
+Martinez, Juan J. (2004) "A Barcode Generator in Pure PostScript," http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html
+
 Flack, Chapman. (2006) "Direct Use of the PostScript Language," http://www.anastigmatix.net/postscript/direct.html
 
 Janssen, Mark. (2008) "Creating LTO barcodes," Foobar's Blog and Linkdump. http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/
