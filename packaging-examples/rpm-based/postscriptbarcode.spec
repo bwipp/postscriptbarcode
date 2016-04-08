@@ -223,10 +223,10 @@ This package provides the Ruby binding for Barcode Writer in Pure PostScript
 # For debugging
 rpm --showrc
 
-%{__make} %{_smp_mflags}
+%{__make} %{?_smp_mflags}
 
 pushd libs/c
-%{__make} %{_smp_mflags} CFLAGS="%{optflags}"
+%{__make} %{?_smp_mflags} CFLAGS="%{optflags}"
 popd
 
 pushd libs/bindings/java
@@ -235,7 +235,7 @@ popd
 
 pushd libs/bindings/perl
 %{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="%{optflags}" NO_PACKLIST=1
-%{__make} %{_smp_mflags}
+%{__make} %{?_smp_mflags}
 find . -name 'postscriptbarcode.so' -exec chrpath -d {} \;
 popd
 
@@ -254,7 +254,7 @@ popd
 %if 0%{?with_ruby}
 pushd libs/bindings/ruby
 CONFIGURE_ARGS="--with-cflags='%{optflags}'" ruby extconf.rb --vendor
-%{__make} %{_smp_mflags}
+%{__make} %{?_smp_mflags}
 popd
 %endif
 
