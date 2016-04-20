@@ -104,6 +104,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#compact-pdf417">Compact PDF417</a></li>
 <li><a href="#qr-code">QR Code</a></li>
 <li><a href="#micro-qr-code">Micro QR Code</a></li>
+<li><a href="#han-xin-code">Han Xin Code</a></li>
 <li><a href="#code-128">Code 128</a></li>
 <li><a href="#code-39">Code 39</a></li>
 <li><a href="#code-39-extended">Code 39 Extended</a></li>
@@ -795,12 +796,13 @@ make</code></pre>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> starting with the mandatory <em>(01)</em> Application Identifier.</li>
 <li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
-<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid options are:
+<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol.</li>
+<li>The <strong>version</strong> option can also be used to specify the symbol size, as <code>version=RxC</code>. Valid options are:
 <ul>
-<li><code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
-<li><code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
+<li>With <code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
+<li>With <code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
 </ul></li>
-<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
+<li>If <strong>columns</strong>, <strong>rows</strong> and <strong>version</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
 </ul>
 <h3 id="example-1">Example</h3>
 <pre><code>0 0 moveto ((01)95012345678903(3103)000123) ()
@@ -976,12 +978,15 @@ make</code></pre>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value. This is useful for specifying unprintable characters.</li>
 <li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^PROG</code>, <code>^MAC5</code>, <code>^MAC6</code>.</li>
 <li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
-<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. Valid options are:
+<li>The <strong>dmre</strong> option enable Data Matrix Rectangular Extension with increases the number of rectangular symbol sizes available.</li>
+<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol.</li>
+<li>The <strong>version</strong> option can also be used to specify the symbol size, as <code>version=RxC</code>. Valid options are:
 <ul>
-<li><code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
-<li><code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
+<li>With <code>format=square</code>: <em>10x10</em>, <em>12x12</em>, <em>14x14</em>, <em>16x16</em>, <em>18x18</em>, <em>20x20</em>, <em>22x22</em>, <em>24x24</em>, <em>26x26</em>, <em>32x32</em>, <em>36x36</em>, <em>40x40</em>, <em>44x44</em>, <em>48x48</em>, <em>52x52</em>, <em>64x64</em>, <em>72x72</em>, <em>80x80</em>, <em>88x88</em>, <em>96x96</em>, <em>104x104</em>, <em>120x120</em>, <em>132x132</em>, <em>144x144</em></li>
+<li>With <code>format=rectangle</code>: <em>8x18</em>, <em>8x32</em>, <em>12x26</em>, <em>12x36</em>, <em>16x36</em>, <em>16x48</em></li>
+<li>With <code>format=rectangle</code> and <code>dmre</code>: <em>8x18</em>, <em>8x32</em>, <em>8x48</em>, <em>8x64</em>, <em>12x26</em>, <em>12x36</em>, <em>12x64</em>, <em>16x36</em>, <em>16x48</em>, <em>16x64</em>, <em>24x32</em>, <em>24x36</em>, <em>24x48</em>, <em>24x64</em>, <em>26x32</em>, <em>26x40</em>, <em>26x48</em>, <em>26x64</em></li>
 </ul></li>
-<li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
+<li>If <strong>columns</strong>, <strong>rows</strong> and <strong>version</strong> are unspecified the encoder will default to creating a symbol of the specified <strong>format</strong> that is the minimum size to represent the given data.</li>
 </ul>
 <h3 id="examples-16">Examples</h3>
 <pre><code>0 0 moveto (This is Data Matrix) ()
@@ -992,7 +997,7 @@ make</code></pre>
 <pre><code>0 0 moveto (Fixed size) (rows=48 columns=48)
 /datamatrix /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAJvSURBVGje1ZbrrsMwCIO793/pSTvqgu0v6Z8D0irt1iY4GGN2Xdfr1fuaAPh8fK6/m+u6n67fZWPZc3/zXd/bAwDrkW6/f+nmeoR6xBV8RewHqCFqcrSpUpHE+WHhjG0AFNyJq2GSOo2x4k4BUHk0UZepQp7ImwDQNlmU5DelbVdebdwJAC9x0vZU3LomqBkAqCAkTU8535PxaM9GAGoikiMX1dekdPsBvKj5m6wkLSEBBaoRwFPe0bbrUCcrgNoBskBkvtUE2PQqhEu9F8DLpYn6Acj+coXVoBkghaqPqLHSBkkIUeY2gGq6acQ+fFwKTgxYxQCAl4lkqQXW1joZ5gyAJuUFzUKyOaB2xgGorPQHwNefrGUGQMPtJKwyJUlvpnI7gBfRycly74qqkoWZ1gCgYy7D2mnMxHNEhRgGAKjB0x685YDr8qysaQf4/cuL/N+vCYAcF2pfackk6HwPL20CuH94QLcuTJ8HzBVPWgHIYilVJ6jC7s1vAsBvp8FV2nQ9G6UfvRuAC6zp15K7kHWs+ucEACfmzZLADk4jSqbaAEC2DoPlgWhEmUwHAGhkum0831WahKI2AJUgi7USdyotcjIIkDZN1qCi8LaCYTQAwGMzabkk4xpedyjF/QAcgBrH5fl0SR80AmiyVDIai2wdKJF2gLpAQ+5fLkWVsAu2G0BDZhOp+PxubU9qzTkATjONRAHdvr1FC0WNABkwhagizbGvQaENWwE0Yd+qy9P6/A9A0joB4GP6nLI2ko7aFPUEANkxDZBsR1+dUi+t1giQAtTS7QrLxVXDiR5oAXCS0g5o8HNLZtNNAfzw9QZ3YBCB2Y8D8wAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxNDoyNDoyNCswMDowMNbRRRkAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTQ6MjQ6MjQrMDA6MDCnjP2lAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
-<pre><code>0 0 moveto (Rectangular) (rows=16 columns=48)
+<pre><code>0 0 moveto (Rectangular) (format=rectangle version=16x48)
 /datamatrix /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAgCAMAAADaHo1mAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAADnSURBVEjH1ZVRCsMwDEPd+196jK2L9eTQLwUWGKRL4udKdlpV15X9nQC8R/1mfXz+q7pX79n3aN17yuLUGkcAa3kd6DsYag7Xk2r744BdID9GqRSlwnqaWQDts1KztS4Rs6Xp5wBzuWo4FkWXUQtZsFGAGsTy8idNxcSwDjsB8LZnCC1PX6GMEycHYIEtE7U41XI329MbgCHAZJgL9yyJJoG8gwBecVO78cUJnK4K64MgwBuM1k0gb7DNBR8HeBtpQJeI8/mqAT4I6GK4ZZuv63hF8uPUPAgDVCa+Ng/6ToZE0cQBfz5e8q4FXbrlVuoAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MjQ6NTArMDA6MDAoW2gTAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjI0OjUwKzAwOjAwWQbQrwAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="micropdf417">MicroPDF417</h2>
@@ -1152,6 +1157,27 @@ make</code></pre>
 <pre><code>0 0 moveto (01234567) ()
 /microqrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAMAAACelLz8AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABZSURBVCjPnZFJDgAgCAPL/z/twbAp1IWERB0CpQIpRDxBkVh49Q2KzebtDwFvCCbthLJ4PXOUjSoeCyRbWAlBcVmVEto2yO1ck6FunzCtQLtFNoKg9vNB0ACRFQEx3Ka0PQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxMjoyMDo1NiswMDowMOKFIo4AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTI6MjA6NTYrMDA6MDCT2JoyAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
+<h2 id="han-xin-code">Han Xin Code</h2>
+<p>The <strong>Han Xin Code</strong> symbology is a 2D matrix-style barcode symbology that can encode full 256 character extended-ASCII.</p>
+<p>Also known as: Chinese Sensible.</p>
+<h3 id="data-and-options-28">Data and Options</h3>
+<ul>
+<li>The data field can contain any extended ASCII data.</li>
+<li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
+<li>The <strong>eclevel</strong> option is used to specify the error correction level:
+<ul>
+<li><code>eclevel=L1</code> - Lowest</li>
+<li><code>eclevel=L2</code></li>
+<li><code>eclevel=L3</code></li>
+<li><code>eclevel=L4</code> - Highest</li>
+</ul></li>
+<li>The <strong>version</strong> option is used to specify the size of the symbol, 1 to 84.</li>
+<li>If unspecified the encoder will select the version of the symbol that is the minimum size to represent the given data at the selected error correction level.</li>
+</ul>
+<h3 id="examples-22">Examples</h3>
+<pre><code>0 0 moveto (Han Xin Code) (version=10 eclevel=L4)
+/hanxin /uk.co.terryburton.bwipp findresource exec</code></pre>
+<p><img src="data:image/png;base64,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" /></p>
 <h2 id="code-128">Code 128</h2>
 <p><strong>Code 128</strong> is an arbitrarily long, high-density barcode symbology that can be used to encode full 256 character extended-ASCII.</p>
 <p>Also known as: USD-6, USS-128, Code 128A, Code 128B, Code 128C.</p>
@@ -1161,7 +1187,7 @@ make</code></pre>
 <li><a href="#hibc-symbols">HIBC Code 128</a> is a variant of Code 128 that should be used when encoding HIBC formatted data.</li>
 </ul>
 <p>Standards: ISO/IEC 15417, ANSI/AIM BC4 - ISS Code 128, BS EN 799.</p>
-<h3 id="data-and-options-28">Data and Options</h3>
+<h3 id="data-and-options-29">Data and Options</h3>
 <ul>
 <li>The input can consist of any extended ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII or extended-ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, <code>^209</code> for <em>Ñ</em>, etc.</li>
@@ -1185,7 +1211,7 @@ make</code></pre>
 <li>AIM USD-2 is a subset of Code 39 containing the characters A-Z, 0-9, <em>space</em>, <code>-</code> and <code>.</code>.</li>
 </ul>
 <p>Standards: ISO/IEC 16388, ANSI/AIM BC1 - USS Code 39, BS EN 800, MIL STD 1189.</p>
-<h3 id="data-and-options-29">Data and Options</h3>
+<h3 id="data-and-options-30">Data and Options</h3>
 <ul>
 <li>The data field can hold any of the following:
 <ul>
@@ -1197,7 +1223,7 @@ make</code></pre>
 <li>The <strong>includecheckintext</strong> option makes the calculated checksum appear in the human readable text.</li>
 <li>The <strong>hidestars</strong> option suppresses the asterisks in the human readable text.</li>
 </ul>
-<h3 id="examples-22">Examples</h3>
+<h3 id="examples-23">Examples</h3>
 <pre><code>0 0 moveto (CODE39) (includetext)
 /code39 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAH8AAABQCAMAAAAHmVrCAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACRQTFRFAAAA////7u7uu7u7zMzMiIiImZmZ3d3dd3d3qqqqZmZmREREtbepIwAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAEXSURBVGje7dLRcgIxCAVQCAkB+///291VWy5qX/p6MzqzNwOcTVREVUVFHt/ydO3X3efOlV67Sr2UWqzW1in06dOnT58+ffr06dOnT58+ffr06dOnT58+ffr06dOnT58+ffr06dP/r/9c+CSPLLAjb2v1p36M33TtjDqjecejmdY11/Jdc6xZ4nbzgdm89md6wjx3BMATzYhaP5bqspYrGNfnc9aW1/Up7wfecf6A8hw467SH4/DckB07LOp96XFbN3y76onuPSvZht3PErgBNxjWjz/gvJoOGT1pvTrP2aXgtKweKNp9HnlOnLHazP6CcP6+0g1/b/fab1+xEnPc6n14///lGvpxvfo6dst/tL9bG+v7OFzfiQkWDY8xJzoAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTM6NTE6NTYrMDA6MDD56oW2AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDEzOjUxOjU2KzAwOjAwiLc9CgAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -1215,7 +1241,7 @@ make</code></pre>
 <li><a href="#code-39">Code 39</a> is a simpler variant of Code 39 Extended.</li>
 </ul>
 <p>Standards: ISO/IEC 16388, ANSI/AIM BC1 - USS Code 39, BS EN 800.</p>
-<h3 id="data-and-options-30">Data and Options</h3>
+<h3 id="data-and-options-31">Data and Options</h3>
 <ul>
 <li>The data field can consist of any ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, etc.</li>
@@ -1223,7 +1249,7 @@ make</code></pre>
 <li>The <strong>includecheckintext</strong> causes the calculated check digit to appear in the human readable text.</li>
 <li>The <strong>hidestars</strong> option suppresses the asterisks in the human readable text.</li>
 </ul>
-<h3 id="examples-23">Examples</h3>
+<h3 id="examples-24">Examples</h3>
 <pre><code>0 0 moveto (Code39 Ext!) (includetext includecheck)
 /code39ext /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAT8AAABQCAMAAABYrYKiAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAC1QTFRFAAAA////7u7uu7u7zMzMiIiImZmZ3d3dREREqqqqd3d3ZmZmVVVVIiIiMzMz71L09QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAH5SURBVHja7dXbcoQgDIBhQhAWenj/x6119kBQwzrt5Z/ZbV1JAD8RQxCRICHcv93Rdv75X6TLNBlD+71VDrJsvUg/3rN2qN6OuzF39bvxz2fZz+/Vw2HlgYoZLwy94Icffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744Ycffvjhhx9++OGHH3744YcffvgNfo+wR0fzE/P3eH5ykmXrH+djfP3azsS+et+brT9WOB8/dNd4XnmsEvYt66Gq9JGWJRe5EvF2KX2IWnM14+esTnrJqvlK/9NrafpON68wXkFqa/384yKymB5TmvRXmt8+qV+voP+xbB832eRrjK73ohrf95iH9VrXXzPTqeNgTdW/Hq3e+ouzetFmgHOUD9/PLL/YSmoO0L/7Wa8gpaS+//HZSOqvIC3DetjptPbpP0PR+tY8uV/DcMvk9sw85s+HCesVxuZfL+kS0rpY6x/80ht76Qjg7gdt2FHW/dpdXxdX18XY+a23X82Ecq3uDV5qvXkbeq7qPV9r+/D+qK6H3lr76Ez0q6RvbwVpVX9/zpdeR1M/icOKif72MX3BxUlCiZfSL0eZdDi7Pjd+APPEO6ZnZrQrAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDEzOjU1OjEwKzAwOjAwF5seDAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQxMzo1NToxMCswMDowMGbGprAAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
@@ -1238,7 +1264,7 @@ make</code></pre>
 <li><a href="#code-93-extended">Code 93 Extended</a> is a variant of Code 93 that can be used to encode full 128 character ASCII with the use of special shift character combinations.</li>
 </ul>
 <p>Standards: ANSI/AIM BC5 - USS Code 93, ITS 93i.</p>
-<h3 id="data-and-options-31">Data and Options</h3>
+<h3 id="data-and-options-32">Data and Options</h3>
 <ul>
 <li>The data field can hold any of the following:
 <ul>
@@ -1249,7 +1275,7 @@ make</code></pre>
 <li>The <strong>parsefnc</strong> option allows the special shift characters to be supplied as <code>^SFT$</code>, <code>^SFT%</code>, <code>^SFT/</code> and <code>^SFT+</code>.</li>
 <li>The <strong>includecheck</strong> option calculates the two check digits.</li>
 </ul>
-<h3 id="examples-24">Examples</h3>
+<h3 id="examples-25">Examples</h3>
 <pre><code>0 0 moveto (CODE93) (includecheck)
 /code93 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABICAMAAAA3UqArAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABNSURBVFjD7c2JDQAgCAQwb/+lfYjPDKYqiIbQ1jL2WJknycrrVZFTVGP2Z123PD3PkD0ZAoFAIBAIBAKBQCAQCAQCgUAgEAgEAoH8hHTM6Q7pb8ABYwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxNDowMDozNCswMDowMEv8XDwAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTQ6MDA6MzQrMDA6MDA6oeSAAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
@@ -1265,13 +1291,13 @@ make</code></pre>
 <li><a href="#code-93">Code 93</a> is a simpler variant of the Code 93 Extended barcode symbology.</li>
 </ul>
 <p>Standards: ANSI/AIM BC5 - USS Code 93, ITS 93i.</p>
-<h3 id="data-and-options-32">Data and Options</h3>
+<h3 id="data-and-options-33">Data and Options</h3>
 <ul>
 <li>The data field can consist of any ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, etc.</li>
 <li>The <strong>includecheck</strong> option calculates the two check digits.</li>
 </ul>
-<h3 id="examples-25">Examples</h3>
+<h3 id="examples-26">Examples</h3>
 <pre><code>0 0 moveto (Code93Ext!) (includecheck)
 /code93ext /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAL4AAABICAMAAAB/Yb+rAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAB8SURBVGje7c5BDoAgDATA7f8/LQqE6gs8jBhpFtxMUmONp+63qp5vsoc17uTkr2SGcztjPhW9OXPuPSvJOs6uev3eCtplfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8/P/wL+esG5HI5+AOAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDE0OjAyOjEwKzAwOjAw+WOvbwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQxNDowMjoxMCswMDowMIg+F9MAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
@@ -1286,14 +1312,14 @@ make</code></pre>
 <li><a href="#itf-14">ITF-14</a> is a variant of Interleaved 2 of 5 that should be used when encoding a fourteen-digit GTIN.</li>
 </ul>
 <p>Standards: ISO/IEC 16390, ANSI/AIM BC2 - USS Interleaved 2 of 5, BS EN 801.</p>
-<h3 id="data-and-options-33">Data and Options</h3>
+<h3 id="data-and-options-34">Data and Options</h3>
 <ul>
 <li>The data can consist of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
 <li>The <strong>includecheckintext</strong> option makes the calculated checksum appear in the human readable text.</li>
 <li>If the length of the symbol including the possible check digit would be odd then the data is prefixed by <em>0</em>.</li>
 </ul>
-<h3 id="examples-26">Examples</h3>
+<h3 id="examples-27">Examples</h3>
 <pre><code>0 0 moveto (0123456789) ()
 /interleaved2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAABICAMAAADVjrtSAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABJSURBVFjD7c1BCgAgCATA9f+fjiSiQ907DGHookxS89X8s6qn6r7zI91Z8ri47IXBYDAYDAaDwWAwGAwGg8FgMBgMBoPBYHxhDAqCDYF0F6LaAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIxOjU5OjQyKzAwOjAwzuVxXwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMTo1OTo0MiswMDowML+4yeMAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
@@ -1302,7 +1328,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAABICAMAAADVjrtSAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABISURBVFjD7c1BCgAgCARA/f+no5Lq4L3LIIi4ykTkqpg9a8pnvkmerLvfm+6jEgaDwWAwGAwGg8FgMBgMBoPBYDAYDAaD8dsYCoINgcjLUbwAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjI6MDA6MjgrMDA6MDCccszQAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIyOjAwOjI4KzAwOjAw7S90bAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="australia-post-4-state-customer-code">Australia Post 4 State Customer Code</h2>
 <p>The <strong>Australia Post 4 State Customer Code</strong> is a barcode used by the Australian Postal Service to encode the data on letter mail.</p>
-<h3 id="data-and-options-34">Data and Options</h3>
+<h3 id="data-and-options-35">Data and Options</h3>
 <ul>
 <li>The first two characters of the data field are digits used to specify the manditory FCC type of the symbols, either <code>11</code>, <code>45</code>, <code>59</code> or <code>67</code>.</li>
 <li>The next eight characters are digits that specify the manditory DPID.</li>
@@ -1317,7 +1343,7 @@ make</code></pre>
 </ul></li>
 <li>The maditory Reed-Solomon check bars are calculated automatically.</li>
 </ul>
-<h3 id="examples-27">Examples</h3>
+<h3 id="examples-28">Examples</h3>
 <p>FCC 62 symbol with character customer data:</p>
 <pre><code>0 0 moveto (6279438541AaaB 155) (custinfoenc=character)
 /auspost /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1329,7 +1355,7 @@ make</code></pre>
 <h2 id="deutsche-post-identcode">Deutsche Post Identcode</h2>
 <p><strong>Deutsche Post Identcode</strong> is an implementation of the <a href="#interleaved-2-of-5">Interleaved 2 of 5</a> barcode symbology that is used by German Post for mail routing.</p>
 <p>Also known as: DHL Identcode.</p>
-<h3 id="data-and-options-35">Data and Options</h3>
+<h3 id="data-and-options-36">Data and Options</h3>
 <ul>
 <li>The data consists of a consecutive string of eleven or twelve digits consisting of:
 <ul>
@@ -1350,7 +1376,7 @@ make</code></pre>
 <h2 id="deutsche-post-leitcode">Deutsche Post Leitcode</h2>
 <p>The <strong>Deutsche Post Leitcode</strong> barcode symbology is an implementation of the <a href="#interleaved-2-of-5">Interleaved 2 of 5</a> barcode that is used by German Post for mail routing.</p>
 <p>Also known as: DHL Leitcode.</p>
-<h3 id="data-and-options-36">Data and Options</h3>
+<h3 id="data-and-options-37">Data and Options</h3>
 <ul>
 <li>The data consists of a consecutive string of thirteen or fourteen digits consisting of:
 <ul>
@@ -1362,7 +1388,7 @@ make</code></pre>
 </ul></li>
 <li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
 </ul>
-<h3 id="examples-28">Examples</h3>
+<h3 id="examples-29">Examples</h3>
 <p>Identical symbols, input provided with and without a check digit:</p>
 <pre><code>0 0 moveto (21348075016401) (includetext)
 /leitcode /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1371,7 +1397,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABQCAMAAAAEApavAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////7u7uiIiIqqqqmZmZd3d3u7u7VVVVREREZmZmzMzM3d3dUR9rPAAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAFbSURBVGje7ZPbdgMhCEUHRW3G/P/3VmBExrRdzUuejpkVuRzI1iHHQfIhOg6zZL+848rc8jQVe26pf/RWxYvGbXCAAxzgAAc4wAEOcIADHOAABzjAAQ5wgAMc4AAHOMABDnCAAxzgAAc4wAEOcIADHOAAx+c56FImWiulVZ8SuTJtHOT1FPy7d+eIGt2jUFbmwkRc27BZbUpfw+FS2tRwFvtR60lUa93iVjsa8TqPdsihwyragOYa+SrbpRM7NwtWZ9VnrBKCK661rceEhLyKQv9fOYh6c12rXXxxmNlLi+Lab+WSeYtrbWHuq6OEZtU/OToHXdJD6Gl6LztH9mt45Rgn8Lh1eI/DMFyXxcyjBeuj0+o3nNe7i3G7D30sbh3eei/dpq+cpzSyOX2eVedU7MdIzonrcvGV97jVpjHwM351CHNqmr/nI6xn+BPryW7fUfMap75Hbtl9fQM7NBuB7hGlUwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMjowNDo0MyswMDowMFHxMdcAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjI6MDQ6NDMrMDA6MDAgrIlrAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h2 id="japan-post-4-state-barcode">Japan Post 4 State Barcode</h2>
 <p>The <strong>Japan Post 4 state barcode</strong> symbology is used by the Japan Post service to encode the delivery point identifier on letter mail.</p>
-<h3 id="data-and-options-37">Data and Options</h3>
+<h3 id="data-and-options-38">Data and Options</h3>
 <ul>
 <li>The data may contain any of the following characters:
 <ul>
@@ -1388,7 +1414,7 @@ make</code></pre>
 <p>The <strong>MaxiCode</strong> barcode symbology is a 2D barcode based on a hexagonal matrix surrounding a bulls eye pattern. It can encode a structured carrier message and full 256 character extended-ASCII.</p>
 <p>Also known as: UPS Code, Code 6.</p>
 <p>Standards: ISO/IEC 16023, ANSI/AIM BC10 - ISS MaxiCode.</p>
-<h3 id="data-and-options-38">Data and Options</h3>
+<h3 id="data-and-options-39">Data and Options</h3>
 <ul>
 <li>The <strong>mode</strong> option is used to specify how the data is structured in the symbol:
 <ul>
@@ -1405,7 +1431,7 @@ make</code></pre>
 <li>The structured carrier message contains a postal code, three-digit class of service and a three-digit ISO country code separated by <em>GS</em> (ASCII 29) characters. It is formatted in the data field as follows: <code>[postal code]^029[country code]^029[service class]^029</code>. If <code>mode=2</code> the postcode must be numeric, whilst if <code>mode=3</code> the postcode may contain up to six digits, upper case letters and spaces.</li>
 <li>Alternatively, messages may begin with the special application field identifier <code>[)&gt;{RS}01{GS}yy</code> where <code>{RS}</code> represents ASCII value 30, <code>{GS}</code> represents ASCII value 29 and <code>yy</code> is a two-digit year. In parse mode this is represented as <code>[)&gt;^03001^0299</code>. If <code>mode=2</code> or <code>mode=3</code> this must be immediately followed by the structured carrier message.</li>
 </ul>
-<h3 id="examples-29">Examples</h3>
+<h3 id="examples-30">Examples</h3>
 <pre><code>0 0 moveto (This is MaxiCode) ()
 /maxicode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <pre><code>0 0 moveto (This is Maxi^067ode) (parse)
@@ -1429,7 +1455,7 @@ make</code></pre>
 <h2 id="royal-mail-4-state-customer-code">Royal Mail 4 State Customer Code</h2>
 <p>The <strong>Royal Mail 4 State Customer Code</strong> is a barcode symbology used by the British Postal Service to encode the postcode and delivery point identifier on letter mail.</p>
 <p>Also known as: RM4SCC, CBC.</p>
-<h3 id="data-and-options-39">Data and Options</h3>
+<h3 id="data-and-options-40">Data and Options</h3>
 <ul>
 <li>The data may contain any of the following characters from the postcode and DPID:
 <ul>
@@ -1445,7 +1471,7 @@ make</code></pre>
 <h2 id="royal-tnt-post-4-state-barcode">Royal TNT Post 4 state barcode</h2>
 <p>The <strong>Royal TNT Post 4 state barcode</strong> symbology is used by the Dutch Postal Service to encode the delivery point identifier on letter mail.</p>
 <p>Also known as: KIX.</p>
-<h3 id="data-and-options-40">Data and Options</h3>
+<h3 id="data-and-options-41">Data and Options</h3>
 <ul>
 <li>The data may contain any of the following characters from the DPID:
 <ul>
@@ -1461,7 +1487,7 @@ make</code></pre>
 <p>The <strong>USPS Intelligent Mail</strong> barcode is used by the US Postal service to encode the delivery and sender information on letter mail.</p>
 <p>Also known as: USPS OneCode.</p>
 <p>Standards: USPS-STD-11.</p>
-<h3 id="data-and-options-41">Data and Options</h3>
+<h3 id="data-and-options-42">Data and Options</h3>
 <ul>
 <li>The data contains 31 digits representing the following:
 <ul>
@@ -1478,7 +1504,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANUAAAAVCAMAAADmdlsFAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAADBQTFRFAAAA////d3d3MzMzzMzMqqqq7u7uREREmZmZIiIiu7u7ERERVVVViIiI3d3dZmZmE4fqzwAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAJHSURBVFjD7ZTZkqswDESRjdcE+P+/vZJaNkucTM1b7hRUFss+6kayYZqISL567UGfuoymt9wOTYPpN8Av0qcrMLpRm5vuqu6qvqKqE/y70Rcm3VX9R1WdTu0ZoevfOJiuo9HSi83A8+WxuT5ep3fAJ4u7qruq76jqb11/tSrn/UwUnIYxeZ9jSqVKUHTukRIvMpZzSukxawYzkmaMRfxbdyZbpjKqqerUzeAsERbM12yRrTrQFPWDmYmMq6pP4k+awGR2KIujNXGwPWRKhzQnipv8O9IMYXxnEAXLY0ZxZIJRTVWnZgZnjbBgvpA0KbNlzaZuZu2Ox1W5hbvCfQNTuRtljRSe0owE881FckvVRiUZcoarenqNQTSnKHlgGEcmGNVUdWpm5iwRFuBrkshutqzZ1M2s3fGbqphJB4Y7ylHJtD5J5YOri+cZ5zbdS1VNwVf32BmNok+cB0ZwZDZGNKHeqoIzIlsoueHwNVvdTKg3sx+qyse9Ipdwdgtxq4pbMet1nU9c4d4jo7pwYDTihdgY4PLTGdY0dasq971qC8wcbck3HdY09Wb2uaqAB8SYLHu8BbGba/WVb3CpIiwbUGh+4ule/VzllDcGkQudURyZYFRT1XtV5iwRFpRpkvCFrWpCnZrZ56q4Hz50ZvP8upmLS4seZhXhKEvbeM4t6KAPsTh9gYFBtDLpOpMWy1RGNVW9V2XOEmGh+eIEIlttVRPq3eyHqqiu18l4nkJ0mJNh1IbuGXHAHOP4avPiPPK9StLVenT9A7OiIZ8j3PM7AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEyOjM5OjU0KzAwOjAwYUlzXwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMjozOTo1NCswMDowMBAUy+MAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h2 id="usps-postnet">USPS POSTNET</h2>
 <p>The <strong>USPS POSTNET</strong> barcode symbology is used by the US Postal service to encode the ZIP code information on letter mail.</p>
-<h3 id="data-and-options-42">Data and Options</h3>
+<h3 id="data-and-options-43">Data and Options</h3>
 <ul>
 <li>The data field contains the digits from the ZIP code, without dashes.</li>
 <li>The mandatory checksum is calculated automatically and must not be included in the data field.</li>
@@ -1489,7 +1515,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMsAAAAJCAMAAACrBSi+AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABASURBVDjLY2BgRAIMUIzgofPRZREMBjRhYo3EYiKaIQyEHAVVwzDql1G/jPqFNL8wICHSWYNG06hfBqem4eQXAHUABap+DCuxAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEyOjQxOjExKzAwOjAwjdcHdQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMjo0MToxMSswMDowMPyKv8kAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h2 id="usps-planet">USPS PLANET</h2>
 <p>The <strong>USPS PLANET</strong> barcode symbology is used by the US Postal service to encode the ZIP code information on letter mail.</p>
-<h3 id="data-and-options-43">Data and Options</h3>
+<h3 id="data-and-options-44">Data and Options</h3>
 <ul>
 <li>The data field contains eleven or thirteen digits, without dashes.</li>
 <li>The mandatory checksum is calculated automatically and must not be included in the data field.</li>
@@ -1500,7 +1526,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMsAAAAJCAMAAACrBSi+AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABESURBVDjLY2BghAEGMIJSUBaqFFwMRZYBizCKaiTt6GahyxCrHZtSBoZRv4z6ZdQvpPmFAU0JaaxBo2nUL4NT03DyCwA9EQVuZ2G3BQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMlQxMjo0Mjo1MiswMDowMNNCqBEAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTJUMTI6NDI6NTIrMDA6MDCiHxCtAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h2 id="usps-fim-symbols">USPS FIM Symbols</h2>
 <p>The <strong>USPS FIM</strong> encoder is used to generate static predefined barcode symbols.</p>
-<h3 id="data-and-options-44">Data and Options</h3>
+<h3 id="data-and-options-45">Data and Options</h3>
 <ul>
 <li>The data field accepts one of the following values:
 <ul>
@@ -1510,7 +1536,7 @@ make</code></pre>
 <li><code>fimd</code> - US Postal Service FIM-D symbol</li>
 </ul></li>
 </ul>
-<h3 id="examples-30">Examples</h3>
+<h3 id="examples-31">Examples</h3>
 <p>A USPS FIM A symbol:</p>
 <pre><code>0 0 moveto (fima) ()
 /symbol /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1530,12 +1556,12 @@ make</code></pre>
 <h2 id="italian-pharmacode">Italian Pharmacode</h2>
 <p><strong>Italian Pharmacode</strong> is a discrete, fixed length, self-checking barcode symbology used for pharmaceutical products in Italy.</p>
 <p>Also known as: Code 32, IMH, Radix 32.</p>
-<h3 id="data-and-options-45">Data and Options</h3>
+<h3 id="data-and-options-46">Data and Options</h3>
 <ul>
 <li>The data field must contain either eight or nine digits from the code. The leading <em>A</em> which is provided in some applications must be omitted.</li>
 <li>The mandatory check digit is calculated automatically if it is not provided.</li>
 </ul>
-<h3 id="examples-31">Examples</h3>
+<h3 id="examples-32">Examples</h3>
 <p>Identical symbols, input provided with and without a check digit:</p>
 <pre><code>0 0 moveto (012345676) (includetext)
 /code32 /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1549,7 +1575,7 @@ make</code></pre>
 <ul>
 <li><a href="#two-track-pharmacode">Two-track Pharmacode</a> is a variant of the Pharmacode barcode.</li>
 </ul>
-<h3 id="data-and-options-46">Data and Options</h3>
+<h3 id="data-and-options-47">Data and Options</h3>
 <ul>
 <li>The data field must contain a number between <code>3</code> and <code>131070</code> inclusive.</li>
 <li>The <strong>nwidth</strong>, <strong>wwidth</strong> and <strong>swidth</strong> options can be used to specify a custom width (in points) for the narrow bars, wide bars and inter-bar spaces respectively.</li>
@@ -1565,7 +1591,7 @@ make</code></pre>
 <ul>
 <li><a href="#pharmacode">Pharmacode</a> is a variant of the Two-track Pharmacode barcode.</li>
 </ul>
-<h3 id="data-and-options-47">Data and Options</h3>
+<h3 id="data-and-options-48">Data and Options</h3>
 <ul>
 <li>The data field must contain a number between <code>4</code> and <code>64570080</code> inclusive.</li>
 </ul>
@@ -1581,14 +1607,14 @@ make</code></pre>
 <li>PZN-7.</li>
 <li>PZN-8.</li>
 </ul>
-<h3 id="data-and-options-48">Data and Options</h3>
+<h3 id="data-and-options-49">Data and Options</h3>
 <ul>
 <li>For the default PZN7 encoding, the data field must contain six digits or seven digits.</li>
 <li>The <strong>pzn8</strong> option specifies that a PZN8 symbol is required, in which case the data field must contain seven digits or eight digits.</li>
 <li>The mandatory check digit is calculated automatically if not provided.</li>
 <li>Note: by definition, not all six-digit or seven-digit number sequences are valid inputs.</li>
 </ul>
-<h3 id="examples-32">Examples</h3>
+<h3 id="examples-33">Examples</h3>
 <p>Identical PZN7 symbols, input provided with and without a check digit:</p>
 <pre><code>0 0 moveto (1234562) (includetext)
 /pzn /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1614,7 +1640,7 @@ make</code></pre>
 <li><a href="#hibc-codablock-f">HIBC Codablock F</a> is a variant of <a href="#codablock-f">Codablock F</a>.</li>
 </ul>
 <p>Standards: ANSI/HIBC Provider Applications Standard, ANSI/HIBC Supplier Labelling Standard, ANSI/HIBC Positive Identification for Patient Safety, ANSI/HIBC Syntax Standard.</p>
-<h3 id="data-and-options-49">Data and Options</h3>
+<h3 id="data-and-options-50">Data and Options</h3>
 <ul>
 <li>The data should be pre-encoded to describe the intended barcode content.</li>
 <li>The HIBC <em>+</em> character is prefixed automatically.</li>
@@ -1651,7 +1677,7 @@ make</code></pre>
 <h2 id="bc412">BC412</h2>
 <p>The <strong>BC412</strong> barcode symbology is single width, variable length barcode that is used for silicon wafer identification by the semiconductor manufacturing industry.</p>
 <p>Also known as: BC412 SEMI, BC412 IBM.</p>
-<h3 id="data-and-options-50">Data and Options</h3>
+<h3 id="data-and-options-51">Data and Options</h3>
 <ul>
 <li>The data field can hold any of the following:
 <ul>
@@ -1664,7 +1690,7 @@ make</code></pre>
 <li>The <strong>semi</strong> option enables conformance to the SEMI standard by enabling start and stop bars as well as a check character.</li>
 <li>The <strong>inkspread</strong> option can be used to adjust the width of the bars.</li>
 </ul>
-<h3 id="examples-33">Examples</h3>
+<h3 id="examples-34">Examples</h3>
 <pre><code>0 0 moveto (BC412) (includecheck)
 /bc412 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADkAAABQCAMAAACUPS0lAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////3d3dmZmZu7u7qqqqzMzMiIiI7u7uVVVVd3d3REREZmZmXVAA8AAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAChSURBVFjD7dFBDsMgDARAFhtMKf9/b0mxCYdWau9rKYoRO4YoKSEB/qx+vfbKu4R7851OlJSUlJSUlJSUlJSUlJSUlP/KLFoqvKqZ5Fi0h0Zb+m5hRcoa0ecisrOxnTG942eLiyxZe4xuuKvqZ3ntuFQ1F3Jsz4t8kbVg3xZ6DGs7bPJJOkTSZ+890kX2+UAe8RWQMWJKnfkB/x1HtYxf6wXskw4MCU9OjwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxMjozNjo1MiswMDowMNpaqRoAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTI6MzY6NTIrMDA6MDCrBxGmAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
@@ -1677,7 +1703,7 @@ make</code></pre>
 <h2 id="channel-code">Channel Code</h2>
 <p><strong>Channel Code</strong> is a linear, continuous, self-checking, bidirectional barcode symbology that encodes between two and seven digits in a short space.</p>
 <p>Standards: ANSI/AIM BC12 - USS Channel Code.</p>
-<h3 id="data-and-options-51">Data and Options</h3>
+<h3 id="data-and-options-52">Data and Options</h3>
 <ul>
 <li>The data field can hold zero prefixed values from any of the following ranges:
 <ul>
@@ -1692,7 +1718,7 @@ make</code></pre>
 <li>The <strong>shortfinder</strong> option generates a symbol with a shortened finder pattern.</li>
 <li>The <strong>includecheck</strong> option appends an optional check bar suffix.</li>
 </ul>
-<h3 id="examples-34">Examples</h3>
+<h3 id="examples-35">Examples</h3>
 <p>A channel 3 symbol holding the value five:</p>
 <pre><code>0 0 moveto (05) (includetext)
 /channelcode /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -1713,7 +1739,7 @@ make</code></pre>
 <p><strong>Codabar</strong> is a linear, discrete, self-checking, bidirectional barcode symbology that can encode digits, six symbols and four delimiter characters. It is primarily used by libraries and blood banks, photo labs and FedEx airbills.</p>
 <p>Also known as: Rationalized Codabar, Ames Code, NW-7, USD-4, USS-Codabar, ABC Codabar, Monarch, Code 2 of 7.</p>
 <p>Standards: ANSI/AIM BC3 - USS Codabar, BS EN 798.</p>
-<h3 id="data-and-options-52">Data and Options</h3>
+<h3 id="data-and-options-53">Data and Options</h3>
 <ul>
 <li>The data field must start and stop with one of the following delimiters
 <ul>
@@ -1742,7 +1768,7 @@ make</code></pre>
 <li><a href="#hibc-symbols">HIBC Codablock F</a> is a variant of Codablock F that should be used when encoding HIBC formatted data.</li>
 </ul>
 <p>Standards: USS Codablock F.</p>
-<h3 id="data-and-options-53">Data and Options</h3>
+<h3 id="data-and-options-54">Data and Options</h3>
 <ul>
 <li>The data field can consist of any extended-ASCII data.</li>
 <li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.</li>
@@ -1755,7 +1781,7 @@ make</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is 1.</li>
 </ul>
-<h3 id="examples-35">Examples</h3>
+<h3 id="examples-36">Examples</h3>
 <pre><code>0 0 moveto (Codablock F) ()
 /codablockf /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJEAAAAXCAMAAAA8713UAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABvSURBVEjH7ZUxFsAgCEOT+1+6Fgiy1a0O4dnXGiX94CBwYRBcgXfkNKQUQ60H9RrLUhE7y6T2pszOnmmAvKFP/dZEJjKRiUx0RvTjvfHdI3TFmMujOpVGZbTjNteU3Rxu6+752amZyEQmMpGJ7osHi88F1cZvgl0AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTM6Mjc6NDErMDA6MDDUwt5iAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDEzOjI3OjQxKzAwOjAwpZ9m3gAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -1772,7 +1798,7 @@ make</code></pre>
 <h2 id="code-11">Code 11</h2>
 <p><strong>Code 11</strong> is a linear, discrete, non-self-checking, bidirectional, numeric barcode symbology that is primarily used for labelling telecommunication equipment.</p>
 <p>Also known as: USD-8.</p>
-<h3 id="data-and-options-54">Data and Options</h3>
+<h3 id="data-and-options-55">Data and Options</h3>
 <ul>
 <li>The data consists of digits and the dash character <em>-</em>.</li>
 <li>The <strong>includecheck</strong> option calculates the check digits.</li>
@@ -1788,7 +1814,7 @@ make</code></pre>
 <p>The <strong>Code 16K</strong> barcode symbology is 2D stacked-linear barcode that can encode full 256 character extended-ASCII with the use of the <em>FNC4</em> shift character.</p>
 <p>Also known as: USS-16K</p>
 <p>Standards: ANSI/AIM BC7 - USS Code 16K, BS EN 12323.</p>
-<h3 id="data-and-options-55">Data and Options</h3>
+<h3 id="data-and-options-56">Data and Options</h3>
 <ul>
 <li>The input can consist of any 256-bit extended ASCII data.</li>
 <li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.</li>
@@ -1811,7 +1837,7 @@ make</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is 1.</li>
 </ul>
-<h3 id="examples-36">Examples</h3>
+<h3 id="examples-37">Examples</h3>
 <pre><code>0 0 moveto (Abcd-1234567890-wxyZ) ()
 /code16k /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFEAAAAlCAMAAAAN4vXTAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAB7SURBVEjH7ZVLCgAhDEOb+196sJ+ozGogs0tFaIu+plAxQm6gZRC5VpA7Orvc9OtIxmCqsnPBRBNFRMV8X0TKOkqWi9E0wtDKwaABJpqoIv4w4THFLq3YtUvz0QTuvkw0UUeUTzhf2+jtulscTvHshB/R658x0cSPRLk9GmYF4pISzJYAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTM6Mzg6NDgrMDA6MDBx3x/8AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDEzOjM4OjQ4KzAwOjAwAIKnQAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -1833,7 +1859,7 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-56">Data and Options</h3>
+<h3 id="data-and-options-57">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1846,7 +1872,7 @@ make</code></pre>
 <li><code>version=coop</code> - <em>Deprecated: Use <a href="#coop-2-of-5">COOP 2 of 5</a></em></li>
 </ul></li>
 </ul>
-<h3 id="examples-37">Examples</h3>
+<h3 id="examples-38">Examples</h3>
 <pre><code>0 0 moveto (01234567) ()
 /code2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABICAMAAADibLYjAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABVSURBVGje7c4xCgAgDAPA+P9PCzpoqavbUTqkpHBJMtbuOaneTk5p9c7ru3fvZhgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD4YJiFlDKlG/SbGAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDEzOjQ2OjA2KzAwOjAwklhPawAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQxMzo0NjowNiswMDowMOMF99cAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
@@ -1860,12 +1886,12 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-57">Data and Options</h3>
+<h3 id="data-and-options-58">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
 </ul>
-<h3 id="examples-38">Examples</h3>
+<h3 id="examples-39">Examples</h3>
 <pre><code>0 0 moveto (01234567) (includetext includecheck includecheckintext)
 /iata2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABQCAMAAAAEApavAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////7u7u3d3dqqqqiIiImZmZu7u7d3d3VVVVREREZmZmzMzMBVSrXgAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAEZSURBVGje7dPRkoMgDAVQghDoyv9/7zotxXtFdnzbl0tbK5OEHAsNwfor9M/3atM8UNacc1c954bbfkEOOeSQQw455JBDDjnkkEMOOeSQQw455JBDDjnkkEMOOeSQQw455JBDDjnkkEOO/3F8R+jXMO5in39GjGf8zLmv3mzONVptVHy+UvYyIpYqTCwnTxCjmcUXpNZ6KYTMn1p3WIX6nZz8fo9RMOm4r1SCs4ypnFYadzKHMu43HP5ud+8waxSrDSOYmj3DL+ApkQRdl37PHC1RRYQnyVcyxA5vXoSWjr/25cKgzFKyUwy2xmknuMFqX/jc+L6fKzQ+Yc7ndNuhc6VYPA44Pg5u0uqc9n/jk7HFx7G2zpz6/QIY2BTYFyMwwQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQxMzo0Nzo1OCswMDowMGVFUWwAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMTM6NDc6NTgrMDA6MDAUGOnQAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
@@ -1878,7 +1904,7 @@ make</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-58">Data and Options</h3>
+<h3 id="data-and-options-59">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1892,7 +1918,7 @@ make</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-59">Data and Options</h3>
+<h3 id="data-and-options-60">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1906,7 +1932,7 @@ make</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 </ul>
-<h3 id="data-and-options-60">Data and Options</h3>
+<h3 id="data-and-options-61">Data and Options</h3>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -1915,7 +1941,7 @@ make</code></pre>
 <p>The <strong>Code 49</strong> barcode symbology is 2D stacked-linear barcode that can encode 128 character ASCII.</p>
 <p>Also known as: USS-49.</p>
 <p>Standards: ANSI/AIM BC6 - USS Code 49.</p>
-<h3 id="data-and-options-61">Data and Options</h3>
+<h3 id="data-and-options-62">Data and Options</h3>
 <ul>
 <li>The input can consist of any ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
@@ -1936,7 +1962,7 @@ make</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is <em>10</em>.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is <em>1</em>.</li>
 </ul>
-<h3 id="examples-39">Examples</h3>
+<h3 id="examples-40">Examples</h3>
 <pre><code>0 0 moveto (MULTIPLE ROWS IN CODE 49) ()
 /code49 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFEAAAAuCAMAAABnJQUQAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACWSURBVEjH7ZbBDoAgDEO7//9po+sKJHpQx607EBzzUZI1ALRHKBCZOHPXnGNkEXL9SlZlZSJYwi8TTfxP7OnvVSO3qgHcdmhOvfXnWMkFE01sJO7ocFmuvJbSaEP5k/sPp2JxqYkmdhB3dHhI5nJvyGUh0WDhZNbbU5to4lfijg7XxaJ7ZRI/XlolrSZ4PrWJJr4itscBCQ4GvfA37HsAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTM6NTc6MDErMDA6MDB5s8UbAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDEzOjU3OjAxKzAwOjAwCO59pwAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -1951,7 +1977,7 @@ make</code></pre>
 <p><strong>Code One</strong> was the earliest public domain 2D matrix-style barcode. It is used by the health care and recycling industry and can encode full 256 character extended-ASCII.</p>
 <p>Also known as: Code 1, Code 1S.</p>
 <p>Standards: AIM USS - Code One.</p>
-<h3 id="data-and-options-62">Data and Options</h3>
+<h3 id="data-and-options-63">Data and Options</h3>
 <ul>
 <li>The data field can consist of any ASCII data for <em>standard</em> and <em>T-type</em> symbols.</li>
 <li>Note: <em>S-type</em> symbols are special in that they represent a numeric value so may only contain digits.</li>
@@ -1964,7 +1990,7 @@ make</code></pre>
 <li><code>version=S-10</code>, <code>version=S-20</code>, <code>version=S-30</code> - <em>S-type</em> symbols</li>
 </ul></li>
 </ul>
-<h3 id="examples-40">Examples</h3>
+<h3 id="examples-41">Examples</h3>
 <pre><code>0 0 moveto (Code One) ()
 /codeone /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAgCAMAAABNTyq8AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRF////AAAAVcLTfgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAB1SURBVDjLrdPbDoAgDAPQ7v9/2hAx6y7BLmEPouyYIkEAZsC6rtHMR5/FEIHqhVPkU7U5RelhLz/F/aKv6ZEMd0dC/NF5E0odkQmloZslhYnonDNBt9bEkXxI/OfQUH2jgRLKx60B0FBsx7hmvyXEhz/eS+gByfwCIWZ5SzQAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MDM6NDIrMDA6MDDJ3tscAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjAzOjQyKzAwOjAwuINjoAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -1984,7 +2010,7 @@ make</code></pre>
 <ul>
 <li><a href="#plessey">Plessey (UK)</a> is the original barcode upon which MSI Modified Plessey was based.</li>
 </ul>
-<h3 id="data-and-options-63">Data and Options</h3>
+<h3 id="data-and-options-64">Data and Options</h3>
 <ul>
 <li>The data can consist of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit or check digits.</li>
@@ -2000,7 +2026,7 @@ make</code></pre>
 </ul></li>
 <li>The <strong>badmod11</strong> option allows a <code>checktype=mod11</code> checksum value of 10 to be encoded with a pair of check digits <em>10</em>. Normally in <code>checktype=mod11</code>, any input whose checksum evaluates to <em>10</em> is considered invalid having no correct representation.</li>
 </ul>
-<h3 id="examples-41">Examples</h3>
+<h3 id="examples-42">Examples</h3>
 <pre><code>0 0 moveto (0123456789) (includecheck includetext)
 /msi /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIsAAABQCAMAAAAePnYhAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////7u7u3d3dqqqqiIiImZmZu7u7d3d3VVVVREREZmZmzMzMBVSrXgAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAE3SURBVGje7dLRcoUgDARQgiHSyv9/b7lWk0XR6WMflnGcTFjxiKSUJMnsSrfit06zJt7TGE6z8CV/1LTQQgsttNBCCy200EILLbTQQgsttNBCCy200EILLbTQQgsttNBCCy200EILLbTQ8l8s8pnJd4v35egctcQsJs/7ElMw8iWMT/mau0W02Ho2tXopRU29D7XkLw/VOjzgme9aN3/WYv0G9WXslrJfx1gj2qsK2ahLhDCwtmFtg4zHhndNLLa/9m7pXwH92qIboWLF98JUQRMyVfW8ZdlkPt4tTSGa/XvKCPZ+15ZJW0prvkf9h73uy9M/GiiQWddi0Pf9N/gvuKTu1z0/s+DZtW0712t4/gzP7rL5ehX6uR/2+JD4Xf3seqZpyW8WyU/TMJb8h36bZ2D9vDy+4Qeukxx69nP5/gAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMlQxMjo0Nzo1NSswMDowMPDMXdsAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTJUMTI6NDc6NTUrMDA6MDCBkeVnAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
@@ -2020,7 +2046,7 @@ make</code></pre>
 <ul>
 <li><a href="#msi-plessey">MSI Modified Plessey</a> is a variant of the Plessey (UK) barcode developed by the MSI Data Corporation.</li>
 </ul>
-<h3 id="data-and-options-64">Data and Options</h3>
+<h3 id="data-and-options-65">Data and Options</h3>
 <ul>
 <li>The data can contain any of the following:
 <ul>
@@ -2031,7 +2057,7 @@ make</code></pre>
 <li>The <strong>includecheckintext</strong> option makes the calculated check characters appear in the human readable text.</li>
 <li>The <strong>unidirectional</strong> option generates a unidirectional Plessey symbol.</li>
 </ul>
-<h3 id="examples-42">Examples</h3>
+<h3 id="examples-43">Examples</h3>
 <p>Equivalent symbols, the latter displaying the two mandatory check characters:</p>
 <pre><code>0 0 moveto (01234ABCD) (includetext)
 /plessey /uk.co.terryburton.bwipp findresource exec</code></pre>
@@ -2046,7 +2072,7 @@ make</code></pre>
 <h2 id="posicode">PosiCode</h2>
 <p><strong>PosiCode</strong> is a continuous, variable length, non-self-checking, bidirectional barcode symbology that is designed for use within printing processes where it is difficult to precisely control the width of a bar.</p>
 <p>Standards: ITS PosiCode.</p>
-<h3 id="data-and-options-65">Data and Options</h3>
+<h3 id="data-and-options-66">Data and Options</h3>
 <ul>
 <li>The data field can hold the following:
 <ul>
@@ -2101,14 +2127,14 @@ make</code></pre>
 <li><a href="#telepen-numeric">Telepen Numeric</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h3 id="data-and-options-66">Data and Options</h3>
+<h3 id="data-and-options-67">Data and Options</h3>
 <ul>
 <li>The data can contain any standard ASCII data, values 0-127.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 <li><em>Deprecated: Use <a href="#telepen-numeric">Telepen Numeric</a> instead. When the <strong>numeric</strong> option is given, the data is read as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</em></li>
 </ul>
-<h3 id="examples-43">Examples</h3>
+<h3 id="examples-44">Examples</h3>
 <pre><code>0 0 moveto (Telepen) (includetext)
 /telepen /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ8AAABRCAMAAAD7J4QWAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////3d3dqqqqZmZmu7u7zMzM7u7ud3d3iIiIREREVVVVmZmZGDg71wAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAECSURBVGje7dNtr4IwDIbhvbUr4P//vRJzwG3gzDJzPt01IumzdVckOOfPj3Pev67nfdk/vu5Yf/RucldMbfO/ub5YUU6qTq4n4cOHDx8+fPjw4cOHDx8+fPjw4cOHDx8+fPjw4cOHDx8+fPjw4cOHDx8+fPjw4cOHD9+56ih3/rri/tqve76Z4W7393w3u8vmq0LcK/jPFZP4/6uLT4OIatkRrVdI46tzDdrN837AjK89P5vIMpDrGmXJn/O8xWbenE/MbAsDue0G6ef2Q5+GwTzVT/SSz/ok1S/AI4oVz8tbStbLt8eydHJdQ1h779/X/6+tHIZyG90/6xsrNZ0f8q4n8EAgc2d5/n8AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjE6MzE6NTQrMDA6MDCa/c5MAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIxOjMxOjU0KzAwOjAw66B28AAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
@@ -2122,13 +2148,13 @@ make</code></pre>
 <li><a href="#telepen">Telepen Alpha</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h3 id="data-and-options-67">Data and Options</h3>
+<h3 id="data-and-options-68">Data and Options</h3>
 <ul>
 <li>The data is provided as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 </ul>
-<h3 id="examples-44">Examples</h3>
+<h3 id="examples-45">Examples</h3>
 <pre><code>0 0 moveto (123456) ()
 /telepennumeric /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF8AAABICAMAAACnQdnkAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABESURBVFjD7cwxCgAgDAPA9P+fdhCC4u50FEqTwiXTSWaOu7vt+72anc+2Ap/P5/P5fD6fz+fz+Xw+n8/n8/l8Pp//xV/+JgypJ/85HwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMTozMzozOSswMDowMDmwdjYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjE6MzM6MzkrMDA6MDBI7c6KAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
@@ -2156,7 +2182,7 @@ make</code></pre>
 <li><a href="#gs1-128-composite">GS1-128 Composite</a> is a variant of <a href="#gs1-128">GS1-128</a>.</li>
 </ul>
 <p>Standards: ISO/IEC 24723, ITS EAN.UCC Composite Symbology, AIM ISS - EAN.UCC Composite Symbology, GS1 General Specifications.</p>
-<h3 id="data-and-options-68">Data and Options</h3>
+<h3 id="data-and-options-69">Data and Options</h3>
 <ul>
 <li>The data field consists of a primary and secondary component separated by a pipe <code>|</code> character.</li>
 <li>The data for the primary component (preceding the pipe) is entered in a format identical to the corresponding non-composite barcode symbology.</li>
@@ -2266,7 +2292,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJoAAAASCAMAAACUwjeQAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAADCSURBVEjH7ZVRCsMwDEOt+196NLYkp2UwRvPnFkriOdZLp8YRdSFvwJNrsAI5aYEcVxRrWT1XBdUIPBOziFRY1RhwfNDeRJOa5aQBFY3KEI02IREKM9PCfAWDdhZtWy3PEDt/w2Y+i5ca+n5sT5No9zbwoJ1B07lxLyvFoA2hIOltLVqyje02hEH7YNAOoNkQ/XDX8f49APmvzdQCCN26C5j282cwaP+g+c8naF8uADWFm8GU4aaB5jLybM1j0N5C+wDVaATAPNGSzgAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMDoyNzozMCswMDowMLnbldoAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjA6Mjc6MzArMDA6MDDIhi1mAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h2 id="daft">DAFT</h2>
 <p><strong>DAFT</strong> is an encoder for directly specifying the descender, ascender, full-height, tracker-bar succession for a custom 4 state barcode symbol.</p>
-<h3 id="data-and-options-69">Data and Options</h3>
+<h3 id="data-and-options-70">Data and Options</h3>
 <ul>
 <li>The data field contains a sequence of the characters <code>D</code>, <code>A</code>, <code>F</code> or <code>T</code> to denote the descender, ascender, full-height and tracker bars of a custom 4 state symbol.</li>
 </ul>
@@ -2276,7 +2302,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAANCAMAAABmbkWbAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAkSURBVBjTY2BgZGQEYTBA4UB4g0QejtBYdJFHOAdOwTi0lgcABSEBP2n6/zEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MDY6MTMrMDA6MDDBYBWIAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjA2OjEzKzAwOjAwsD2tNAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="flattermarken">Flattermarken</h2>
 <p><strong>Flattermarken</strong> are identification marks used in book production that facilitate the proper arrangement of bound sections by a book binder.</p>
-<h3 id="data-and-options-70">Data and Options</h3>
+<h3 id="data-and-options-71">Data and Options</h3>
 <ul>
 <li>The data field can holding any sequence of digits corresponds to a 9 module width with the following meaning:
 <ul>
@@ -2292,7 +2318,7 @@ make</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAWCAMAAAAPf7fDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAYSURBVCjPY2BghAMkJlyIYVR+VH4QywMAUZUCafPc07gAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjA6MjM6NDErMDA6MDAcgjcNAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIwOjIzOjQxKzAwOjAwbd+PsQAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h2 id="raw">Raw</h2>
 <p>The <strong>raw</strong> encoder is used for directly specifying the space/bar succession of a custom barcode symbol.</p>
-<h3 id="data-and-options-71">Data and Options</h3>
+<h3 id="data-and-options-72">Data and Options</h3>
 <ul>
 <li>The data field contains an alternating sequence of widths (1 to 9) for the bars and spaces of a custom symbol.</li>
 </ul>
@@ -2303,7 +2329,7 @@ make</code></pre>
 <h2 id="ean-2">EAN-2</h2>
 <p><strong>EAN-2</strong> is the two-digit add-on code that accompanies a EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Two-Digit Add-On, Two-Digit Supplement, UPC-2</p>
-<h3 id="data-and-options-72">Data and Options</h3>
+<h3 id="data-and-options-73">Data and Options</h3>
 <ul>
 <li>The data field must contain two digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2315,7 +2341,7 @@ make</code></pre>
 <h2 id="ean-5">EAN-5</h2>
 <p><strong>EAN-5</strong> is the five-digit add-on code that accompanies an EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Five-Digit Add-On, Five-Digit Supplement, UPC-5</p>
-<h3 id="data-and-options-73">Data and Options</h3>
+<h3 id="data-and-options-74">Data and Options</h3>
 <ul>
 <li>The data field must contain five digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2491,7 +2517,7 @@ make</code></pre>
 <h2 id="bordercolor">bordercolor</h2>
 <h2 id="textcolor">textcolor</h2>
 <p>Color of the respective component, either as a hex <code>RRGGBB</code> value or a hex <code>CCMMYYKK</code> value.</p>
-<h3 id="examples-45">Examples</h3>
+<h3 id="examples-46">Examples</h3>
 <p>Colorized Code 11 symbol using the RGB colour space:</p>
 <pre><code>0 0 moveto (0123456789)
 (includetext barcolor=AA0000 textcolor=008888 backgroundcolor=FFFF60 showborder bordercolor=0000FF textyoffset=-8)
@@ -2673,6 +2699,7 @@ end
 <p>If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.</p>
 <h3 id="barcode-writer-in-pure-postscript-1">Barcode Writer in Pure PostScript</h3>
 <p><a href="http://bwipp.terryburton.co.uk" class="uri">http://bwipp.terryburton.co.uk</a></p>
+<p>Martínez, Juan J. (2004) &quot;A Barcode Generator in Pure PostScript,&quot; <a href="http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html" class="uri">http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html</a></p>
 <p>Flack, Chapman. (2006) &quot;Direct Use of the PostScript Language,&quot; <a href="http://www.anastigmatix.net/postscript/direct.html" class="uri">http://www.anastigmatix.net/postscript/direct.html</a></p>
 <p>Janssen, Mark. (2008) &quot;Creating LTO barcodes,&quot; Foobar's Blog and Linkdump. <a href="http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/" class="uri">http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/</a></p>
 <p>Janssen, Mark. (2009) &quot;Webbased (PDF) LTO Barcode Generator,&quot; Foobar's Blog and Linkdump. <a href="http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/" class="uri">http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/</a></p>
