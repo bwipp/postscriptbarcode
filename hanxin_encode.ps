@@ -1,0 +1,173 @@
+%!PS
+
+/barcode <
+5562756e7475efbc88e4b98ce78fade59bbeefbc89e698afe4b880e4b8aae4bb
+a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
+9ce7b3bbe7bb9fefbc8ce585b6e5908de7a7b0e69da5e887aae99d9ee6b4b2e5
+8d97e983a8e7a596e9b281e8afade68896e8b1aae890a8e8afad0a0a> def
+
+/msg [ barcode {} forall ] def
+/msglen msg length def
+
+    /T1vals <<
+        48 1  57 {dup 48 sub} for
+        65 1  90 {dup 55 sub} for
+        97 1 122 {dup 61 sub} for
+    >> def
+
+    /T2vals <<
+          0 1  27 {dup       } for
+         32 1  47 {dup  4 sub} for
+         58 1  64 {dup 14 sub} for
+         91 1  96 {dup 40 sub} for
+        123 1 127 {dup 66 sub} for
+    >> def
+
+    /tobin {
+        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+        dup 3 -1 roll 2 2 index length string cvrs
+        dup length 2 index length exch sub exch putinterval
+    } bind def
+
+    /encN {
+        /in exch def
+        /out in length 2 add 3 idiv 10 mul 14 add string def
+        out 0 (0001) putinterval
+        /k 0 def /m 4 def {
+            k in length eq {exit} if
+            k in length 3 sub lt {
+                in k 3 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                /k k 3 add def
+            } {
+                k in length 3 sub eq {  % Three final digits
+                    in k 3 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                    20 string dup 0 4 -1 roll putinterval
+                    dup 10 (1111111111) putinterval
+                    /k k 3 add def
+                } if
+                k in length 2 sub eq {  % Two final digits
+                    in k 2 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                    20 string dup 0 4 -1 roll putinterval
+                    dup 10 (1111111110) putinterval
+                    /k k 2 add def
+                } if
+                k in length 1 sub eq {  % One final digit
+                    in k 1 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                    20 string dup 0 4 -1 roll putinterval
+                    dup 10 (1111111101) putinterval
+                    /k k 1 add def
+                } if
+            } ifelse
+            dup out exch m exch putinterval
+            length m add /m exch def
+        } loop
+        out
+    } bind def
+
+    /encT {
+        /in exch def
+        /out in length 12 mul 10 add string def
+        out 0 (0010) putinterval
+        /k 0 def /m 4 def /submode 1 def {
+            k in length eq {exit} if
+            submode 1 eq {T1vals} {T2vals} ifelse in k get known not {
+                out m (111110) putinterval
+                /m m 6 add def
+                /submode 3 submode sub def
+            } if
+            submode 1 eq {T1vals} {T2vals} ifelse in k get get 6 tobin
+            /k k 1 add def
+            dup out exch m exch putinterval
+            length m add /m exch def
+        } loop
+        out m (111111) putinterval
+        out 0 m 6 add getinterval
+    } bind def
+
+    /encB {
+        /in exch sef
+        /out 17 in length 8 mul add string def
+        out 0 (0011) putinterval
+        out 4 in length 13 tobin putinterval
+        0 1 in length 1 sub {
+            /k exch def
+            in k get cvi 8 tobin
+            out 17 k 8 mul add 3 -1 roll putinterval
+        } for
+        out
+    } bind def
+
+    /encCN1 {
+        /in exch def
+        /out 16 in length 6 mul add string def
+        out 0 (0100) putinterval
+        0 1 in length 2 idiv 1 sub {
+            /k exch def
+            /b1 in k 2 mul get def
+            /b2 in k 2 mul 1 add get def
+            b1 16#B0 ge {
+                b1 16#B0 sub 16#5E mul b2 16#A1 sub add
+            } if
+            b1 16#A3 le {
+                b1 16#A1 sub 16#5E mul b2 16#A1 sub add 16#0EB0 add
+            } if
+            b1 16#A8 eq {
+                b2 16#A1 sub 16#0FCA add
+            } if
+            12 tobin out exch 4 k 12 mul add exch putinterval
+        } for
+        out out length 12 sub (111111111111) 12 string copy putinterval
+        out
+    } bind def
+
+    /encCN2 {
+        /in exch def
+        /out 16 in length 6 mul add string def
+        out 0 (0101) putinterval
+        0 1 in length 2 idiv 1 sub {
+            /k exch def
+            /b1 in k 2 mul get def
+            /b2 in k 2 mul 1 add get def
+            b1 16#D8 sub 16#5E mul b2 16#A1 sub add
+            12 tobin out exch 4 k 12 mul add exch putinterval
+        } for
+        out out length 12 sub (111111111111) 12 string copy putinterval
+        out
+    } bind def
+
+    /encCNd {
+        /in exch def
+        /out 16 in length 2 idiv 15 mul add string def
+        out 0 (0110) putinterval
+        0 1 in length 2 idiv 1 sub {
+            /k exch def
+            /b1 in k 2 mul get def
+            /b2 in k 2 mul 1 add get def
+            b1 16#81 sub 16#BE mul b2 add 
+            b2 16#80 ge {16#41} {16#40} ifelse sub
+            15 tobin out exch 4 k 15 mul add exch putinterval
+        } for
+        out out length 12 sub (111111111111) 12 string copy putinterval
+        out
+    } bind def
+
+    /encCNq {
+        /in exch def
+        /out 25 string def
+        out 0 (0111) putinterval
+        in 0 get 16#81 sub 16#3138 mul
+        in 1 get 16#30 sub 16#04EC mul add
+        in 2 get 16#81 sub 16#000A mul add
+        in 3 get 16#30 sub add
+        21 tobin out exch 4 exch putinterval
+        out
+    } bind def
+
+
+<c8aba3bba8be> encCN1 ==
+<F3A3> encCN2 ==
+<9D519eaf> encCNd ==
+<8139EF30> encCNq ==
+(1212312893712313) encN ==
+(Test!) encT == asdf
+
