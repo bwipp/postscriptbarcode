@@ -39,24 +39,11 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
                 in k 3 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
                 /k k 3 add def
             } {
-                k in length 3 sub eq {  % Three final digits
-                    in k 3 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
-                    20 string dup 0 4 -1 roll putinterval
-                    dup 10 (1111111111) putinterval
-                    /k k 3 add def
-                } if
-                k in length 2 sub eq {  % Two final digits
-                    in k 2 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
-                    20 string dup 0 4 -1 roll putinterval
-                    dup 10 (1111111110) putinterval
-                    /k k 2 add def
-                } if
-                k in length 1 sub eq {  % One final digit
-                    in k 1 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
-                    20 string dup 0 4 -1 roll putinterval
-                    dup 10 (1111111101) putinterval
-                    /k k 1 add def
-                } if
+                /rem in length k sub def
+                in k rem getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                20 string dup 0 4 -1 roll putinterval
+                dup 10 [ (1111111101) (1111111110) (1111111111) ] rem 1 sub get putinterval
+                /k k rem add def
             } ifelse
             dup out exch m exch putinterval
             length m add /m exch def
