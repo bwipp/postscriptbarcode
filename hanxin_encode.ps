@@ -9,6 +9,9 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
 /msg [ barcode {} forall ] def
 /msglen msg length def
 
+    % Convert from input into message bitstream
+    /N 0 def  /T1 1 def  /T2 2 def  /C1 3 def  /C2 4 def  /CD 5 def  /CQ 6 def  /B 7 def
+
     /T1vals <<
         48 1  57 {dup 48 sub} for
         65 1  90 {dup 55 sub} for
@@ -22,6 +25,49 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
          91 1  96 {dup 40 sub} for
         123 1 127 {dup 66 sub} for
     >> def
+
+    /isNexcl {
+        0 get dup 48 ge exch 57 le and
+    } bind def
+
+    /isT1excl {
+        0 get T1vals exch known
+    } bind def
+
+    /isT2excl {
+        0 get T2vals exch known
+    } bind def
+
+    /isC1excl {
+        {  % common exit
+            dup dup 0 get dup 16#B0 ge exch 16#D7 le and exch 1 get dup 16#A1 ge exch 16#FE le and and {pop true exit} if  % {B0-D7}{A1-FE}
+            dup dup 0 get dup 16#A1 ge exch 16#A3 le and exch 1 get dup 16#A1 ge exch 16#FE le and and {pop true exit} if  % {A1-A3}{A1-FE}
+            dup dup 0 get 16#A8 eq exch                       1 get dup 16#A1 ge exch 16#C0 le and and {pop true exit} if  % {A8}{A1-C0}
+            pop false exit
+        } loop
+    } bind def
+
+    /isC2excl {
+        dup 0 get dup 16#D8 ge exch 16#F7 le and exch 1 get dup 16#A1 ge exch 16#FE le and and  % {D8-F7}{A1-FE}
+    } bind def
+
+    /isCDexcl {
+        {  % common exit
+            dup isC1excl {pop false exit} if
+            dup isC2excl {pop false exit} if
+            dup dup 0 get dup 16#81 ge exch 16#FE le and exch 1 get dup 16#40 ge exch 16#7E le and and {pop true exit} if  % {81-FE}{40-7E}
+            dup dup 0 get dup 16#81 ge exch 16#FE le and exch 1 get dup 16#80 ge exch 16#FE le and and {pop true exit} if  % {81-FE}{80-FE}
+            pop false exit
+        } loop
+    } bind def
+
+    /isCQexcl {
+        dup 0 get dup 16#81 ge exch 16#FE le and exch  % {81-FE}
+        dup 1 get dup 16#30 ge exch 16#39 le and exch  % {30-39}
+        dup 2 get dup 16#81 ge exch 16#FE le and exch  % {81-FE}
+        3 get dup 16#30 ge exch 16#39 le and           % {30-39}
+        and and and
+    } bind def
 
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
@@ -84,7 +130,7 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         out
     } bind def
 
-    /encCN1 {
+    /encC1 {
         /in exch def
         /out 16 in length 6 mul add string def
         out 0 (0100) putinterval
@@ -107,7 +153,7 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         out
     } bind def
 
-    /encCN2 {
+    /encC2 {
         /in exch def
         /out 16 in length 6 mul add string def
         out 0 (0101) putinterval
@@ -122,7 +168,7 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         out
     } bind def
 
-    /encCNd {
+    /encCD {
         /in exch def
         /out 19 in length 2 idiv 15 mul add string def
         out 0 (0110) putinterval
@@ -138,7 +184,7 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         out
     } bind def
 
-    /encCNq {
+    /encCQ {
         /in exch def
         /out 25 string def
         out 0 (0111) putinterval
@@ -150,11 +196,84 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         out
     } bind def
 
+    /numNs  [ msglen {0} repeat 0 ] def
+    /numT1s [ msglen {0} repeat 0 ] def
+    /numT2s [ msglen {0} repeat 0 ] def
+    /numC1s [ msglen {0} repeat -1 ] def  % 2 byte
+    /numC2s [ msglen {0} repeat -1 ] def  % 2 byte
+    /numCDs [ msglen {0} repeat -1 ] def  % 2 byte
+    /numCQs [ msglen {0} repeat -1 ] def  % 4 byte  % TODO fix
+    /numBs  [ msglen {0} repeat 0 ] def
+    /nextNs  [ msglen {0} repeat 9999 ] def
+    /nextT1s [ msglen {0} repeat 9999 ] def
+    /nextT2s [ msglen {0} repeat 9999 ] def
+    /nextC1s [ msglen {0} repeat 9999 ] def
+    /nextC1s [ msglen {0} repeat 9999 ] def
+    /nextC2s [ msglen {0} repeat 9999 ] def
+    /nextCDs [ msglen {0} repeat 9999 ] def
+    /nextCQs [ msglen {0} repeat 9999 ] def
+    /nextBs  [ msglen {0} repeat 9999 ] def
 
-<c8aba3bba8be> encCN1 ==
-<F3A3> encCN2 ==
-<9D519eaf> encCNd ==
-<8139EF30> encCNq ==
+    msglen 1 sub -1 0 {
+        /i exch def
+        msg i 1 getinterval isNexcl {
+            nextNs i 0 put
+            numNs i numNs i 1 add get 1 add put
+        } {
+            nextNs i nextNs i 1 add get 1 add put
+        } ifelse
+        msg i 1 getinterval isT1excl {
+            nextT1s i 0 put
+            numT1s i numT1s i 1 add get 1 add put
+        } {
+            nextT1s i nextT1s i 1 add get 1 add put
+        } ifelse
+        msg i 1 getinterval isT2excl {
+            nextT2s i 0 put
+            numT2s i numT2s i 1 add get 1 add put
+        } {
+            nextT2s i nextT2s i 1 add get 1 add put
+        } ifelse
+    } for
+    msglen 2 sub -1 0 {
+        /i exch def
+        msg i 2 getinterval isC1excl {
+            nextC1s i 0 put
+            numC1s i numC1s i 1 add get 1 add put
+        } {
+            nextC1s i nextC1s i 1 add get 1 add put
+        } ifelse
+        msg i 2 getinterval isC2excl {
+            nextC2s i 0 put
+            numC2s i numC2s i 1 add get 1 add put
+        } {
+            nextC2s i nextC2s i 1 add get 1 add put
+        } ifelse
+        msg i 2 getinterval isCDexcl {
+            nextCDs i 0 put
+            numCDs i numCDs i 1 add get 1 add put
+        } {
+            nextCDs i nextCDs i 1 add get 1 add put
+        } ifelse
+    } for
+    msglen 4 sub -1 0 {
+        /i exch def
+        msg i 4 getinterval isCQexcl {
+            nextCQs i 0 put
+            numCQs i numCQs i 1 add get 1 add put
+        } {
+            nextCQs i nextCQs i 1 add get 1 add put
+        } ifelse
+    } for
+    /numC1s [ numC1s {1 add 2 idiv} forall ] def
+    /numC2s [ numC2s {1 add 2 idiv} forall ] def
+    /numCDs [ numCDs {1 add 2 idiv} forall ] def
+    /numCQs [ numCQs {1 add 4 idiv} forall ] def
+
+<c8aba3bba8be> encC1 ==
+<F3A3> encC2 ==
+<9D519eaf> encCD ==
+<8139EF30> encCQ ==
 (1212312893712313) encN ==
 (Test!) encT == asdf
 
