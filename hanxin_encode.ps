@@ -30,8 +30,13 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
         0 get dup 48 ge exch 57 le and
     } bind def
 
+    /T1excl <<
+        65 1  90 {dup 55 sub} for
+        97 1 122 {dup 61 sub} for
+    >> def
+
     /isT1excl {
-        0 get T1vals exch known
+        0 get T1excl exch known
     } bind def
 
     /isT2excl {
@@ -63,10 +68,18 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
 
     /isCQexcl {
         dup 0 get dup 16#81 ge exch 16#FE le and exch  % {81-FE}
-        dup 1 get dup 16#30 ge exch 16#39 le and exch  % {30-39}
-        dup 2 get dup 16#81 ge exch 16#FE le and exch  % {81-FE}
-        3 get dup 16#30 ge exch 16#39 le and           % {30-39}
+        dup 1 get dup 16#30 ge exch 16#39 le and exch  %        {30-39}
+        dup 2 get dup 16#81 ge exch 16#FE le and exch  %               {81-FE}
+        3 get dup 16#30 ge exch 16#39 le and           %                      {30-39}
         and and and
+    } bind def
+
+    /Bexcl <<
+         [ 28 29 30 128 255 ] {dup} forall
+    >> def
+
+    /isBexcl {
+        0 get Bexcl exch known
     } bind def
 
     /tobin {
@@ -233,6 +246,12 @@ a5e6a18ce99da2e5ba94e794a8e4b8bae4b8bbe79a844c696e7578e6938de4bd
             numT2s i numT2s i 1 add get 1 add put
         } {
             nextT2s i nextT2s i 1 add get 1 add put
+        } ifelse
+        msg i 1 getinterval isBexcl {
+            nextBs i 0 put
+            numBs i numBs i 1 add get 1 add put
+        } {
+            nextBs i nextBs i 1 add get 1 add put
         } ifelse
     } for
     msglen 2 sub -1 0 {
