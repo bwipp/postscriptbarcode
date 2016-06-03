@@ -99,6 +99,19 @@ begin
         } loop
     } if
 
+    % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
+    /mac05comp false def
+    /mac06comp false def
+    barcode length 9 ge {
+        barcode 0 7 getinterval
+        dup  ([\)>\03605\035) eq
+        exch ([\)>\03606\035) eq or
+        barcode barcode length 2 sub 2 getinterval (\036\004) eq and {
+            barcode 5 get 53 eq {/mac05comp} {/mac06comp} ifelse true def
+            /barcode barcode 7 barcode length 9 sub getinterval def
+        } if
+    } if
+
     /barlen barcode length def
 
     % Convert input into bytes accounting for FNC characters
@@ -126,6 +139,11 @@ begin
         /j j 1 add def
     } loop
     /msg msg 0 j getinterval def
+
+    % Prefix the Macro 05/06 compression indicator
+    mac05comp { /msg [ m05 msg aload pop ] def } if
+    mac06comp { /msg [ m06 msg aload pop ] def } if
+
     /msglen msg length def
 
     % Basic metrics for the each symbol
