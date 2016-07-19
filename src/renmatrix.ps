@@ -60,19 +60,6 @@ begin
     /backgroundcolor backgroundcolor cvlit def
     /inkspread inkspread cvr def
 
-    % Pad the bitmap on all sides
-    /pixs [
-        pixx 2 add {0} repeat
-        0 pixx pixs length 1 sub {
-            0 exch
-            pixs exch pixx getinterval aload pop
-            0
-        } for
-        pixx 2 add {0} repeat
-    ] def
-    /pixx pixx 2 add def
-    /pixy pixy 2 add def
-
     /xyget      { pixx mul add pixs exch get                   } bind def
     /xyinvert   { pixx mul add pixs exch 2 copy get 1 xor put  } bind def
     /mxyget     { pixx mul add m exch get 2#001 and            } bind def
@@ -184,6 +171,19 @@ begin
 
     } bind def
 
+    % Pad the bitmap on all sides
+    /pixs [
+        pixx 2 add {0} repeat
+        0 pixx pixs length 1 sub {
+            0 exch
+            pixs exch pixx getinterval aload pop
+            0
+        } for
+        pixx 2 add {0} repeat
+    ] def
+    /pixx pixx 2 add def
+    /pixy pixy 2 add def
+
     % Track inverted regions and working space
     /m [ pixs length {0} repeat ] def
 
@@ -200,6 +200,10 @@ begin
         } for
     ] def
 
+    % Revert the bitmap size
+    /pixx pixx 2 sub def
+    /pixy pixy 2 sub def
+
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
         /anycolor exch def
@@ -212,7 +216,7 @@ begin
     } bind def
 
     % Draw the image
-    /pixx pixx 2 sub def  /pixy pixy 2 sub def
+    /inkspread inkspread 2 div def
     gsave
     currentpoint translate
     width pixx div 72 mul height pixy div 72 mul scale
