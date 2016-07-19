@@ -49,6 +49,8 @@ begin
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /inkspread 0 def
+    /inkspreadh 0 def
+    /inkspreadv 0 def
 
     % Apply the renderer options and the user options
     args {def} forall
@@ -59,6 +61,11 @@ begin
     /barcolor barcolor cvlit def
     /backgroundcolor backgroundcolor cvlit def
     /inkspread inkspread cvr def
+    /inkspreadh inkspreadh cvr def
+    /inkspreadv inkspreadv cvr def
+
+    inkspread 0 ne {/inkspreadh inkspread def} if
+    inkspread 0 ne {/inkspreadv inkspread def} if
 
     /xyget      { pixx mul add pixs exch get                   } bind def
     /xyinvert   { pixx mul add pixs exch 2 copy get 1 xor put  } bind def
@@ -216,7 +223,8 @@ begin
     } bind def
 
     % Draw the image
-    /inkspread inkspread 2 div def
+    /inkspreadh inkspreadh 2 div def
+    /inkspreadv inkspreadv 2 div def
     gsave
     currentpoint translate
     width pixx div 72 mul height pixy div 72 mul scale
@@ -232,10 +240,10 @@ begin
         0 1 len 1 sub {                                % x1 y1 x2 y2
             /i exch def
             p i 1 add len mod get aload pop 6 -2 roll  % x3 y3 x1 y1 x2 y2
-            5 index inkspread
+            5 index inkspreadh
             4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+i : x2-i
             4 1 roll
-            4 index inkspread
+            4 index inkspreadv
             4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+i : y2-i
             4 -1 roll exch pixy exch sub
             i 0 eq {moveto} {lineto} ifelse
