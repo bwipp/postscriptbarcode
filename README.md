@@ -23,7 +23,7 @@ It makes including any barcode within a PostScript document as simple as inserti
 
 There is a web-based demonstration of the project here:
 
-http://www.terryburton.co.uk/barcodewriter/generator/
+http://the-burtons.xyz/barcode-generator/
 
 This project is dedicated to the memory of Craig K. Harmon. https://qed.org/ckh
 
