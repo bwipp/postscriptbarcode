@@ -7,9 +7,9 @@ Many thanks for the technical contributions from:
 * Eric Belshaw
 * Hann-Huei Chiou
 * John Desrosiers
-* Lars Dɪᴇᴄᴋᴏᴡ
+* Lars DIECKOW
 * Chapman Flack
-* Anders Hammarquist 
+* Anders Hammarquist
 * Matthew Harmon
 * Adrian Head
 * Christian Hitz
@@ -20,10 +20,10 @@ Many thanks for the technical contributions from:
 * Ross McFarland
 * Greg Menke
 * Harald Oehlmann
-* Herbert Voss 
+* Herbert Voss
 * Jörg Walter
 
 Apologies to anybody that has been forgotten. Send a pull request or contact
-the author if that is the case. 
+the author if that is the case.
 
 
