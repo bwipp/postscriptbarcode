@@ -7,23 +7,41 @@
   <title></title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
+div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
 table.sourceCode { width: 100%; line-height: 100%; }
 td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
 td.sourceCode { padding-left: 5px; }
-code > span.kw { color: #007020; font-weight: bold; }
-code > span.dt { color: #902000; }
-code > span.dv { color: #40a070; }
-code > span.bn { color: #40a070; }
-code > span.fl { color: #40a070; }
-code > span.ch { color: #4070a0; }
-code > span.st { color: #4070a0; }
-code > span.co { color: #60a0b0; font-style: italic; }
-code > span.ot { color: #007020; }
-code > span.al { color: #ff0000; font-weight: bold; }
-code > span.fu { color: #06287e; }
-code > span.er { color: #ff0000; font-weight: bold; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
   </style>
 </head>
 <body>
@@ -74,6 +92,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#downloading">Downloading</a></li>
 </ul></li>
 <li><a href="#quick-guide">Quick Guide</a></li>
+<li><a href="#monolithic-flavours">Monolithic Flavours</a></li>
 <li><a href="#named-resource-flavours">Named Resource Flavours</a></li>
 <li><a href="#symbology-reference">Symbology Reference</a><ul>
 <li><a href="#ean-13">EAN-13</a></li>
@@ -239,7 +258,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <pre><code>0 0 moveto (978-1-56581-231-4) (includetext)
 /isbn /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>There is a web-based demonstration of the project here:</p>
-<p><a href="http://www.terryburton.co.uk/barcodewriter/generator/" class="uri">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
+<p><a href="http://the-burtons.xyz/barcode-generator/" class="uri">http://the-burtons.xyz/barcode-generator/</a></p>
 <p>This project is dedicated to the memory of Craig K. Harmon. <a href="https://qed.org/ckh" class="uri">https://qed.org/ckh</a></p>
 <h2 id="flavours-of-named-resources">&quot;Flavours&quot; of Named Resources</h2>
 <p>BWIPP is essentially a set of generic PostScript Level 2 named resources that are provided in four flavours for ease of use. The one to use depends on how you intend to deploy the library.</p>
@@ -291,7 +310,7 @@ make</code></pre>
 <p>The acceptable contents of the data field varies between symbologies as defined in the <a href="#symbology-reference">symbology reference</a>.</p>
 <p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the <a href="#options-reference">options reference</a>, however encoder-specific options do exist in some cases and the default values of permitted options varies across symbologies.</p>
 <p>Using the references mentioned above you should now be able to experiment by carefully amending the sample section of the file and observing the effect on the graphical output.</p>
-<p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript-enabled printer. Alternatively you can use the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a>.</p>
+<p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript-enabled printer. Alternatively you can use the <a href="http://the-burtons.xyz/barcode-generator/">web-based generator</a>.</p>
 <ul>
 <li>GhostScript is an open source PostScript interpreter that is available for both Windows and Linux.</li>
 <li>Adobe Distiller is a commercial PostScript interpreter that is available for Windows and MacOS.</li>
@@ -309,11 +328,12 @@ make</code></pre>
 <pre><code>lpr -Pdevice -o raw barcode_with_sample.ps</code></pre>
 <p>Once you are comfortable with amending the <code>barcode_with_sample.ps</code> file you may want to simplify the file by removing definitions for barcode formats that you do not require bearing in mind the following points:</p>
 <ul>
-<li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and must include any dependencies as specified in the resource file by the <code>% --REQUIRES ...</code> metadata. Examining the contents of the PS files created by the web-based generator at <a href="http://www.terryburton.co.uk/barcodewriter/generator/" class="uri">http://www.terryburton.co.uk/barcodewriter/generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.</li>
+<li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and must include any dependencies as specified in the resource file by the <code>% --REQUIRES ...</code> metadata. Examining the contents of the PS files created by the web-based generator at <a href="http://the-burtons.xyz/barcode-generator/" class="uri">http://the-burtons.xyz/barcode-generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.</li>
 <li>If you intend to create an application whose purpose is to generate documents containing a variety of barcodes it is suggested that you start with the monolithic <code>barcode.ps</code> file and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version.</li>
 <li>BWIPP includes a C library with bindings for various languages to help with the above.</li>
-<li>More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.<br />Monolithic Flavours<br />===================</li>
+<li>More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.</li>
 </ul>
+<h1 id="monolithic-flavours">Monolithic Flavours</h1>
 <p>The monolithic <code>barcode.ps</code> file provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources shipped in a single file for ease of inclusion within the Prolog section of a PostScript document template or for installing into a printer's initial job VM.</p>
 <p>Prepared tarballs of BWIPP packages into the monolithic flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest" class="uri">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-monolithic</code> and <code>postscriptbarcode-monolithic-package</code>. Alternatively you can build these flavours from source with <code>make monolithic</code> or <code>make monolithic_package</code>.</p>
 <h3 id="inclusion-within-the-prolog-section-of-a-document">Inclusion Within the Prolog Section of a Document</h3>
@@ -1160,6 +1180,7 @@ make</code></pre>
 <h2 id="han-xin-code">Han Xin Code</h2>
 <p>The <strong>Han Xin Code</strong> symbology is a 2D matrix-style barcode symbology that can encode full 256 character extended-ASCII.</p>
 <p>Also known as: Chinese Sensible.</p>
+<p>Standards: GB/T 21049-2007.</p>
 <h3 id="data-and-options-28">Data and Options</h3>
 <ul>
 <li>The data field can contain any extended ASCII data.</li>
@@ -2581,8 +2602,7 @@ make</code></pre>
 <p><strong>Scanning ISBNs</strong></p>
 <p>When an ISBN symbol is read by a barcode scanner that echos digits to a PC, the data string that is returned is most likely going to be the plain contents of the EAN-13 encoded symbol, i.e. 9781565924796, not 1-56592-479-7. Whether the scanner returns the former string or the latter they nevertheless represent the one same value despite appearing somewhat different.</p>
 <p><strong>How do I integrate barcodes into my website or application?</strong></p>
-<p>Why not instead help to improve BWIPP and give attribution by referring people to this project's <a href="http://www.terryburton.co.uk/barcodewriter/generator/">online demonstration</a>.</p>
-<p>Remember, BWIPP is essentially a versatile library and is not necessarily a &quot;turn key&quot; solution by itself. <a href="https://groups.google.com/d/topic/postscriptbarcode/UOmONFc6cGQ/discussion" class="uri">https://groups.google.com/d/topic/postscriptbarcode/UOmONFc6cGQ/discussion</a></p>
+<p>BWIPP is essentially a versatile library and is not necessarily a &quot;turn key&quot; solution by itself. <a href="https://groups.google.com/d/topic/postscriptbarcode/UOmONFc6cGQ/discussion" class="uri">https://groups.google.com/d/topic/postscriptbarcode/UOmONFc6cGQ/discussion</a></p>
 <p>If you are a programmer then there are several language bindings that allow you to work with BWIPP without direct knowledge of PostScript. If you are not a programmer then there are a number of frontends that may be useful.</p>
 <h2 id="resizing-symbols">Resizing Symbols</h2>
 <p>To create a barcode of some required width and height (without stretching the text) perform the following steps, in order.</p>
@@ -2669,7 +2689,7 @@ end
 <li><code>/usr/share/libpostscriptbarcode</code> (Debian's libpostscriptbarcode package)</li>
 </ol>
 <h3 id="displaying-the-list-of-supported-symbologies">Displaying the List of Supported Symbologies</h3>
-<p>To make the presentation of the list of barcode formats manageable any such list of barcodes should be rendered in the same/similar way as the <a href="http://www.terryburton.co.uk/barcodewriter/generator/">web-based generator</a>.</p>
+<p>To make the presentation of the list of barcode formats manageable any such list of barcodes should be rendered in the same/similar way as the <a href="http://the-burtons.xyz/barcode-generator/">web-based generator</a>.</p>
 <h3 id="refer-users-to-the-bwipp-documentation">Refer Users to the BWIPP Documentation</h3>
 <p>Point your users at the online BWIPP symbologies and options references.</p>
 <p>The reference is written these in a way that is fairly environment agnostic but if you have any idea or want to improve them then please contribute.</p>
@@ -2686,14 +2706,14 @@ end
 &lt;65616e38&gt; cvn                              &lt;-- Instead of /ean8
 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>Example Python:</p>
-<pre class="sourceCode python"><code class="sourceCode python"><span class="ch">import</span> binascii, textwrap
-<span class="kw">def</span> hexify(<span class="dt">input</span>):
-  <span class="kw">return</span> textwrap.TextWrapper(subsequent_indent=<span class="st">' '</span>, width=<span class="dv">72</span>). \
-    fill(<span class="st">'&lt;'</span> + binascii.hexlify(string) + <span class="st">'&gt;'</span>)</code></pre>
+<div class="sourceCode"><pre class="sourceCode python"><code class="sourceCode python"><span class="im">import</span> binascii, textwrap
+<span class="kw">def</span> hexify(<span class="bu">input</span>):
+  <span class="cf">return</span> textwrap.TextWrapper(subsequent_indent<span class="op">=</span><span class="st">' '</span>, width<span class="op">=</span><span class="dv">72</span>). <span class="op">\</span>
+    fill(<span class="st">'&lt;'</span> <span class="op">+</span> binascii.hexlify(string) <span class="op">+</span> <span class="st">'&gt;'</span>)</code></pre></div>
 <p>Example Perl:</p>
-<pre class="sourceCode perl"><code class="sourceCode perl"><span class="kw">sub </span><span class="fu">hexify</span> {
+<div class="sourceCode"><pre class="sourceCode perl"><code class="sourceCode perl"><span class="kw">sub </span><span class="fu">hexify</span> {
   <span class="kw">return</span> <span class="kw">'</span><span class="st">&lt;</span><span class="kw">'</span>.(<span class="fu">join</span> <span class="kw">&quot;</span><span class="ch">\n</span><span class="st"> </span><span class="kw">&quot;</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">(A72)*</span><span class="kw">'</span>, <span class="fu">unpack</span> <span class="kw">'</span><span class="st">H*</span><span class="kw">'</span>, <span class="fu">shift</span>).<span class="kw">'</span><span class="st">&gt;</span><span class="kw">'</span>;
-}</code></pre>
+}</code></pre></div>
 <h1 id="cited-by">Cited-By</h1>
 <p>The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.</p>
 <p>If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.</p>
@@ -2717,7 +2737,7 @@ end
 <p>Ehlenbroker J., Lohweg V. (2014) &quot;microIDENT - A System for Simple Coding and Authentication of Documents,&quot; Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.</p>
 <p>Russell, Robert. (2014) &quot;Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript,&quot; <a href="http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html" class="uri">http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html</a></p>
 <h3 id="online-barcode-generator">Online Barcode Generator</h3>
-<p><a href="http://www.terryburton.co.uk/barcodewriter/generator/" class="uri">http://www.terryburton.co.uk/barcodewriter/generator/</a></p>
+<p><a href="http://the-burtons.xyz/barcode-generator/" class="uri">http://the-burtons.xyz/barcode-generator/</a></p>
 <p>Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer. <a href="http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf" class="uri">http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf</a></p>
 <p>Jowers, Tim. (2006) &quot;The Business Guide to Free Information Technology including Free/Libre Open Source Software,&quot; LuLu Press, p. 197. ISBN 978-1-4303-0101-1.</p>
 <p>&quot;Finding the Start of Another Tether,&quot; Rupture, Random Artists, January 2007. <a href="http://www.randomartists.org/rupture/rupture-jan07-screen.pdf" class="uri">http://www.randomartists.org/rupture/rupture-jan07-screen.pdf</a></p>
