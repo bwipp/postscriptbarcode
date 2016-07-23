@@ -47,7 +47,7 @@ Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Wr
 
 ### Online Barcode Generator
 
-http://www.terryburton.co.uk/barcodewriter/generator/
+http://the-burtons.xyz/barcode-generator/
 
 Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer. http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf
 
