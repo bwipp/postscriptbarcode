@@ -4,8 +4,72 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-%:
-	dh $@ --parallel
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
 
-override_dh_install:
-	dh_install --exclude=LICENSE --exclude=CHANGES --exclude=.dirstamp
+export PYBUILD_NAME = postscriptbarcode
+export JAVA_HOME = /usr/lib/jvm/default-java
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+%:
+	dh $@ --parallel --with javahelper,python2,python3,ruby
+
+override_dh_auto_configure:
+	dh_auto_configure
+	dh_auto_configure --sourcedirectory=libs/c
+	dh_auto_configure --sourcedirectory=libs/bindings/java
+	# Defer configuring perl binding due to dependancy on build C library
+	dh_auto_configure --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	dh_auto_configure --buildsystem=ruby
+
+override_dh_auto_build:
+	dh_auto_build --parallel
+	dh_auto_build --sourcedirectory=libs/c
+	dh_auto_build --sourcedirectory=libs/bindings/java
+	dh_auto_configure --sourcedirectory=libs/bindings/perl  # Configure must run after C library is built
+	dh_auto_build --sourcedirectory=libs/bindings/perl
+	find libs/bindings/perl -name 'postscriptbarcode.so' -exec chrpath -d {} \;
+	dh_auto_build --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	dh_auto_build --buildsystem=ruby
+	dh_auto_build --sourcedirectory=libs/docs
+
+override_dh_auto_test:
+	dh_auto_test
+	dh_auto_test --sourcedirectory=libs/c
+	( cd libs/bindings/java && ant test )  # dh_auto_test does nothing for java
+	dh_auto_test --sourcedirectory=libs/bindings/perl -- LD_LIBRARY_PATH="../../c:$(LD_LIBRARY_PATH)"
+	PYBUILD_SYSTEM=custom PYBUILD_TEST_ARGS="LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) PYTHON_PATH={build_dir} {interpreter} {dir}/setup.py test" dh_auto_test --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	dh_auto_test --buildsystem=ruby
+
+override_dh_auto_install:
+	dh_auto_install
+	dh_auto_install --sourcedirectory=libs/c -- PREFIX=/usr LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
+	dh_auto_install --sourcedirectory=libs/bindings/java
+	dh_auto_install --sourcedirectory=libs/bindings/perl --destdir=debian/libpostscriptbarcode-perl
+	dh_auto_install --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	LD_LIBRARY_PATH=libs/c:$(LD_LIBRARY_PATH) dh_auto_install --buildsystem=ruby
+
+override_dh_auto_clean:
+	dh_auto_clean
+	dh_auto_clean --sourcedirectory=libs/c
+	dh_auto_clean --sourcedirectory=libs/bindings/java
+	dh_auto_clean --sourcedirectory=libs/bindings/perl
+	rm -f libs/bindings/perl/postscriptbarcode.pm libs/bindings/perl/postscriptbarcode_wrap.c
+	dh_auto_clean --sourcedirectory=libs/bindings/python --buildsystem=pybuild
+	rm -f libs/bindings/python/postscriptbarcode.py libs/bindings/python/postscriptbarcode.pyc libs/bindings/python/postscriptbarcode_wrap.c
+	dh_auto_clean --buildsystem=ruby
+	dh_auto_clean --sourcedirectory=libs/docs
+
+override_dh_strip:
+	dh_strip -p libpostscriptbarcode0 --dbg-package=libpostscriptbarcode0-dbg
+	dh_strip
+
+override_dh_shlibdeps:
+	dh_shlibdeps -O--parallel -l libs/c
+
+override_dh_installdocs:
+	dh_installdocs -p postscriptbarcode
+	dh_installdocs -p libpostscriptbarcode0
+	dh_installdocs -a --link-doc=libpostscriptbarcode0
+

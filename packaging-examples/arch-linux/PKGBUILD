@@ -1,0 +1,184 @@
+# Maintainer: Terry Burton <tez at terryburton dot co dot uk>
+# 
+# This file is intended to provide a guide to packagers of PKGBUILD-based distributions to promote consistency.
+#
+# The packages have been built on the OBS but not necessarily installed and tested:
+# https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode
+#
+# Please contribute any improvements back here:
+# https://github.com/bwipp/postscriptbarcode/tree/master/packaging-examples
+
+pkgname=('postscriptbarcode' 'libpostscriptbarcode' 'perl-postscriptbarcode' 'java-postscriptbarcode' 'python-postscriptbarcode' 'python2-postscriptbarcode' 'ruby-postscriptbarcode')
+pkgver=
+pkgrel=1
+arch=('i686' 'x86_64')
+url='https://github.com/bwipp/postscriptbarcode'
+license=('MIT')
+makedepends=('ghostscript' 'swig' 'java-environment' 'apache-ant' 'perl' 'python' 'python2' 'ruby' 'doxygen' 'graphviz')
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+
+  cd "${pkgname}-${pkgver}"
+  
+  make -j `nproc`
+  
+  pushd libs/c
+  make
+  popd
+
+  pushd libs/bindings/java
+  ant
+  popd
+
+  pushd libs/bindings/perl
+  perl Makefile.PL INSTALLDIRS=vendor NO_PACKLIST=1
+  sed -i 's|LD_RUN_PATH|DISABLE_LD_RUN_PATH|g' Makefile
+  make
+  popd
+
+  pushd libs/bindings/python
+  python setup.py build --executable="/usr/bin/python -s"
+  popd
+
+  pushd libs/bindings/python
+  python2 setup.py build --executable="/usr/bin/python2 -s"
+  popd
+
+  pushd libs/bindings/ruby
+  ruby extconf.rb --vendor
+  make
+  popd
+
+  pushd libs/docs
+  mkdir -p html
+  touch html/index.html
+  make
+  popd
+
+}
+
+check() {
+
+  cd "${pkgname}-${pkgver}"
+
+  make test
+  
+  pushd libs/c
+  make test
+  popd
+
+  pushd libs/bindings/java
+  ant test
+  popd
+
+  pushd libs/bindings/perl
+  LD_LIBRARY_PATH="../../c:$LD_LIBRARY_PATH" make test
+  popd
+
+  pushd libs/bindings/python
+  LD_LIBRARY_PATH="../../c:$LD_LIBRARY_PATH" PYTHONPATH="`dirname build/lib.*-3.?/postscriptbarcode.py`" python setup.py test
+  popd
+
+  pushd libs/bindings/python
+  LD_LIBRARY_PATH="../../c:$LD_LIBRARY_PATH" PYTHONPATH="`dirname build/lib.*-2.?/postscriptbarcode.py`" python2 setup.py test
+  popd
+
+  pushd libs/bindings/ruby
+  LD_LIBRARY_PATH="../../c:$LD_LIBRARY_PATH" ruby -I. example.rb
+  popd
+  
+}
+
+package_postscriptbarcode() {
+  pkgdesc='Barcode Writer in Pure PostScript'
+  depends=()
+
+  cd "${pkgbase}-${pkgver}"
+  mkdir -p "${pkgdir}/usr/share/${pkgname}/"
+  cp build/monolithic_package/barcode.ps "${pkgdir}/usr/share/${pkgname}/"
+  cp build/monolithic_package/README "${pkgdir}/usr/share/${pkgname}/"
+  mkdir -p "${pkgdir}/usr/share/doc/${pkgname}/"
+  cp README.md "${pkgdir}/usr/share/doc/${pkgname}/README"
+  cp CHANGES "${pkgdir}/usr/share/doc/${pkgname}/"
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_libpostscriptbarcode() {
+  pkgdesc='Shared library for Barcode Writer in Pure PostScript'
+  depends=(postscriptbarcode)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/c
+  make install DESTDIR="${pkgdir}" PREFIX=/usr
+  find ${pkgdir}/usr/lib -name 'libpostscriptbarcode.so.*' -type f -exec chmod 0755 {} \;
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_java-postscriptbarcode() {
+  pkgdesc='Java binding for Barcode Writer in Pure PostScript'
+  depends=(libpostscriptbarcode java-runtime)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/bindings/java
+  mkdir -p "${pkgdir}/usr/share/java"
+  cp -p *.jar "${pkgdir}/usr/share/java/"
+  mkdir -p "${pkgdir}/usr/lib/java-postscriptbarcode"
+  cp -p *.so "${pkgdir}/usr/lib/java-postscriptbarcode/"
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_perl-postscriptbarcode() {
+  pkgdesc='Perl binding for Barcode Writer in Pure PostScript'
+  depends=(libpostscriptbarcode perl)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/bindings/perl
+  find . -type f -exec chmod 0664 {} \;
+  make pure_install DESTDIR="${pkgdir}"
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_python-postscriptbarcode() {
+  pkgdesc='Python 3 binding for Barcode Writer in Pure PostScript'
+  depends=(libpostscriptbarcode python)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/bindings/python
+  python setup.py install -O1 --skip-build --prefix=/usr --root "${pkgdir}"
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_python2-postscriptbarcode() {
+  pkgdesc='Python 2 binding for Barcode Writer in Pure PostScript'
+  depends=(libpostscriptbarcode python2)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/bindings/python
+  python2 setup.py install -O1 --skip-build --prefix=/usr --root "${pkgdir}"
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}
+
+package_ruby-postscriptbarcode() {
+  pkgdesc='Ruby binding for Barcode Writer in Pure PostScript'
+  depends=(libpostscriptbarcode ruby)
+
+  cd "${pkgbase}-${pkgver}"
+  pushd libs/bindings/ruby
+  make install DESTDIR="${pkgdir}"
+  popd
+  mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
+  cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"
+}

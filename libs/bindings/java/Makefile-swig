@@ -1,0 +1,35 @@
+NAME = postscriptbarcode
+
+JAVA_OUT = lib$(NAME).so 
+JAR_FILE = lib$(NAME).jar
+
+PREFIX=/usr/local
+LIBDIR=$(PREFIX)/lib
+
+ANT := $(shell which ant)
+
+.PHONY: all swig-java test install uninstall clean
+
+all: swig-java
+
+swig-java: $(JAVA_OUT) $(JAR_FILE)
+
+$(JAVA_OUT) $(JAR_FILE):
+	$(ANT)
+
+test:
+	$(ANT) test
+
+install: swig-java
+	install -d $(DESTDIR)$(PREFIX)/share/java
+	install -m 0644 $(JAR_FILE) $(DESTDIR)$(PREFIX)/share/java
+	install -d $(DESTDIR)$(LIBDIR)/jni
+	install -m 0644 $(JAVA_OUT) $(DESTDIR)$(LIBDIR)/jni
+
+uninstall:
+	$(RM) $(DESTDIR)$(PREFIX)/share/java/$(JAR_FILE)
+	$(RM) $(DESTDIR)$(LIBDIR)/jni/$(JAVA_OUT)
+
+clean:
+	$(ANT) clean
+

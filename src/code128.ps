@@ -34,8 +34,8 @@
 % --BEGIN ENCODER code128--
 % --REQUIRES preamble raiseerror renlinear--
 % --DESC: Code 128
-% --EXAM: Count01234567^FNC2!
-% --EXOP: includetext parsefnc
+% --EXAM: Count01234567!
+% --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
@@ -191,7 +191,7 @@ begin
             (FNC1) fn1
             (FNC2) fn2
             (FNC3) fn3
-            (FNC4) fn4
+%            (FNC4) fn4    Not user accessible as encoded automatically
             (LNKA) lka
             (LNKC) lkc
         >> def
@@ -219,6 +219,40 @@ begin
         /msg msg 0 j getinterval def
         /msglen msg length def
         /text text 0 j getinterval def
+
+        % Standard and extended ASCII runlength at position
+        /numSA [ msglen {0} repeat 0 ] def
+        /numEA [ msglen {0} repeat 0 ] def
+        msglen 1 sub -1 0 {
+            /i exch def
+            msg i get 0 ge {
+                msg i get 128 ge {
+                    numEA i numEA i 1 add get 1 add put
+                } {
+                    numSA i numSA i 1 add get 1 add put
+                } ifelse
+            } if
+        } for
+
+        % FNC4 codeword insertion for extended ASCII
+        /ea false def /msgtmp [] def
+        0 1 msglen 1 sub {
+            /i exch def
+            /c msg i get def
+            ea c 128 lt xor not c 0 ge and {  % Other mode required
+                ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
+                i add msglen eq {3} {5} ifelse       % Does run terminate symbol
+                lt {  % Shift
+                    /msgtmp [ msgtmp aload pop fn4 ] def
+                } {   % Latch
+                    /msgtmp [ msgtmp aload pop fn4 fn4 ] def
+                    /ea ea not def
+                } ifelse
+            } if
+            /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
+        } for
+        /msg msgtmp def
+        /msglen msg length def
 
         % Determine digit runlength and characters from given position
         /numsscr {

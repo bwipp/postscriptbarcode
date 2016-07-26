@@ -1,0 +1,125 @@
+/*! \page bindings Bindings Reference
+
+\tableofcontents
+
+\section api BWIPP Common Bindings API
+
+Public API for the libpostscriptbarcode bindings that provide an object oriented interface to
+Barcode Writer in Pure PostScript.
+
+Bindings are available for [Java](@ref java), [Perl](@ref perl), [Python](@ref python) and [Ruby](@ref ruby).
+
+The methods of each binding relate to an equivalent C library function as follows:
+
+Binding method                  | Related C library function
+------------------------------- | --------------------------
+`BWIPP(...)`  _constructor_     | bwipp_load_from_file()
+`%BWIPP()`    _constructor_     | bwipp_load()
+`~BWIPP()`    _destructor_      | bwipp_unload()
+`get_version()`                 | bwipp_get_version()
+`emit_required_resources(...)`  | bwipp_emit_required_resources()
+`emit_all_resources()`          | bwipp_emit_all_resources()
+`emit_exec(...)`                | bwipp_emit_exec()
+`list_families()`               | bwipp_list_families_as_string()
+`list_family_members(...)`      | bwipp_list_family_members_as_string()
+`list_properties(...)`          | bwipp_list_properties_as_string()
+`get_property(...)`             | bwipp_get_property()
+
+
+The basic workflow is to firstly initialise the library to load the PostScript
+resources by creating a new `BWIPP` object either with or without a filename. All
+subsequent methods are invoked on this object. You can then query the available
+barcode families with `list_families()` and list each family's members using
+`list_family_members()` to obtain the list of all supported barcode symbologies.
+The available properties of each barcode symbology can be enumerated using
+`list_properties()` and read with `get_property()`. To create a PostScript document
+concatenate together your own PostScript prolog with the output of either
+`emit_required_resources()` (minimal set of resources for a specific barcode
+symbology) or `emit_all_resources()` and you own PostScript code interspersed
+with calls to `emit_exec()` to render a barcode. The resources will be
+automatically released from the `BWIPP` object is garbage collected.
+
+The bindings should be thread-safe provided that the calling code is limited to
+one thread per BWIPP object until the resources for the context have finished
+loading.
+
+
+\section examples Examples
+
+These example should make clear how the common API is manifest by each language.
+
+
+\subsection java Java
+
+example.java:
+
+    import uk.co.terryburton.bwipp.*;
+    
+    public class example {
+      static {
+        System.loadLibrary("postscriptbarcode");
+      }
+    
+      public static void main(String args[]) {
+            BWIPP bwipp = new BWIPP();
+            if (bwipp.get_version() == null) {
+                    System.err.println("Failed to load resource");
+                    System.exit(1);
+            }
+            System.out.println("Packaged version: "+bwipp.get_version());
+            String ps=bwipp.emit_all_resources();
+            System.out.println("Packaged lines: "+ps.split("\r\n|\r|\n").length);
+      }
+    
+    }
+
+
+\subsection perl Perl
+
+example.pl:
+
+    #!/usr/bin/perl -w
+
+    use strict;
+    use postscriptbarcode;
+
+    my $bwipp=new postscriptbarcode::BWIPP() || die 'Failed to load resource\n';
+
+    my $ver=$bwipp->get_version() || die 'Failed to get version\n';
+    print "Packaged version: $ver\n";
+
+    my $ps=$bwipp->emit_all_resources();
+    my $lines=$ps=~tr/\n//;
+    print "Packaged lines: $lines\n";
+
+
+\subsection python Python
+
+example.py:
+
+    #!/usr/bin/env python
+    
+    import postscriptbarcode
+    
+    bwipp=postscriptbarcode.BWIPP()
+    print("Packaged version: " + bwipp.get_version())
+
+    ps=bwipp.emit_all_resources()
+    print("Packaged lines: " + str(len(ps.split('\n'))))
+
+
+\subsection ruby Ruby
+
+example.rb:
+
+    #!/usr/bin/env ruby
+    
+    require 'postscriptbarcode'
+    
+    bwipp=Postscriptbarcode::BWIPP.new()
+    
+    puts "Packaged version: " + bwipp.get_version()
+    puts "Packaged lines: " + bwipp.emit_all_resources().lines.count.to_s
+
+
+*/

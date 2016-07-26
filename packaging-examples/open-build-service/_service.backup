@@ -1,0 +1,59 @@
+<services>
+ 
+  <!--
+       This is the _service file for the OBS packaging [1] of Barcode Writer in Pure PostScript [2].
+
+       The BWIPP repository contains upstream examples of packaging for RPM, DEB and PKGBUILD distributions 
+       which aim to be compatible with the Open Build Service and provide guidance to packagers in
+       the hope of providing consistency across distributions.
+       
+       [1] https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode
+       [2] https://github.com/bwipp/postscriptbarcode
+  -->
+  
+  <!-- Checkout directly from GitHub master which provides versioning. -->
+  <service name="tar_scm">
+    <param name="scm">git</param>
+    <param name="url">https://github.com/bwipp/postscriptbarcode.git</param>
+    <param name="versionformat">@PARENT_TAG@.@TAG_OFFSET@~nightly</param>
+  </service>
+
+  <!-- RPM-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/open-build-service/postscriptbarcode.spec</param>
+    <param name="outfilename">postscriptbarcode.spec</param>
+  </service>
+
+  <!-- PKGBUILD-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/arch-linux/PKGBUILD</param>
+    <param name="outfilename">PKGBUILD</param>
+  </service>
+
+  <!-- DEB-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/open-build-service/postscriptbarcode.dsc</param>
+    <param name="outfilename">postscriptbarcode.dsc</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/open-build-service/debian.debtransform</param>
+    <param name="outfilename">debian.debtransform</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/debian/changelog</param>
+    <param name="outfilename">debian.changelog</param>
+  </service>
+
+  <service name="recompress">
+    <param name="compression">gz</param>
+    <param name="file">*.tar</param>
+  </service>
+
+  <service name="set_version" />
+
+</services> 

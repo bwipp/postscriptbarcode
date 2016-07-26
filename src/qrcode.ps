@@ -34,7 +34,7 @@
 % --BEGIN ENCODER qrcode--
 % --REQUIRES preamble raiseerror renmatrix--
 % --DESC: QR Code
-% --EXAM: http://bwipp.terryburton.co.uk
+% --EXAM: http://goo.gl/0bis
 % --EXOP: eclevel=M
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
@@ -50,13 +50,12 @@ begin
     /barcode exch def
 
     /dontdraw false def
-    /format (full) def     % full or micro
-    /version (unset) def
+    /format (full) def     % full or micro or any
+    /version (unset) def   % 1-40 or M1-M4
     /eclevel (unset) def   % L, M, Q or H
-    /encoding (unset) def
-    /raw false def
     /parse false def
     /parsefnc false def
+    /mask -1 def
 
     % Parse the input options
     options type /stringtype eq {
@@ -68,6 +67,8 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
+
+    /mask mask cvi def
 
     % Parse ordinals of the form ^NNN to ASCII
     parse {
@@ -130,357 +131,382 @@ begin
     eclevel (unset) eq {/eclevel format (full) eq {(M)} {(L)} ifelse def} if
 
     % Convert from input into message bitstream
-    raw {/encoding (raw) def} if
-    encoding (raw) eq {
-        /msgbits barcode def 
-    } {
+    /N 0 def  /A 1 def  /B 2 def  /K 3 def
+   
+    /Nexcl <<
+       [
+           16#30 1 16#39 {} for
+       ] {-1} forall
+    >> def
+    
+    /Aexcl <<
+        [
+            16#20 16#24 16#25 16#2A 16#2B 16#2D 16#2E 16#2F 16#3A
+            16#41 1 16#5A {} for
+        ] {-1} forall
+    >> def
+    
+    /Bexcl <<
+        [
+            16#00 1 16#1F {} for
+            16#21 16#22 16#23 16#26 16#27 16#28 16#29 16#2C
+            16#3B 1 16#40 {} for
+            16#5B 1 16#7F {} for
+            16#A0 1 16#DF {} for
+        ] {-1} forall
+    >> def
+    
+    /Kexcl <<
+        [
+            16#81 1 16#9F {} for
+            16#E0 1 16#EB {} for
+        ] {-1} forall
+    >> def
+    
+    /mids [  % N  A  B  K
+      [ (0001) (0010) (0100) (1000) ]  %  1-9
+      [ (0001) (0010) (0100) (1000) ]  % 10-26
+      [ (0001) (0010) (0100) (1000) ]  % 27-40
+      [     ()   -1     -1     -1   ]  % M1
+      [    (0)    (1)   -1     -1   ]  % M2
+      [   (00)   (01)   (10)   (11) ]  % M3
+      [  (000)  (001)  (010)  (011) ]  % M4
+    ] def
+    
+    /cclens [  % N  A  B  K
+      [ 10  9  8  8 ]  %  1-9
+      [ 12 11 16 10 ]  % 10-26
+      [ 14 13 16 12 ]  % 27-40
+      [  3 -1 -1 -1 ]  % M1
+      [  4  3 -1 -1 ]  % M2
+      [  5  4  4  3 ]  % M3
+      [  6  5  5  4 ]  % M4
+    ] def
+    
+    /termlens [ 4 4 4 3 5 7 9 ] def
+    
+    % Encoding functions
+    /tobin {
+        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
+    } bind def
 
-        % Symbol capacities
-        /fullcaps <<
-            /numeric <<
-                /L [   41    77   127   187   255   322   370   461   552   652    %  1-L - 10-L
-                      772   883  1022  1101  1250  1408  1548  1725  1903  2061    % 11-L - 20-L
-                     2232  2409  2620  2812  3057  3283  3517  3669  3909  4158    % 21-L - 30-L
-                     4417  4686  4965  5253  5529  5836  6153  6479  6743  7089 ]  % 31-L - 40-L
-                /M [   34    63   101   149   202   255   293   365   432   513    %  1-M - 10-M
-                      604   691   796   871   991  1082  1212  1346  1500  1600    % 11-M - 20-M
-                     1708  1872  2059  2188  2395  2544  2701  2857  3035  3289    % 21-M - 30-M
-                     3486  3693  3909  4134  4343  4588  4775  5039  5313  5596 ]  % 31-M - 40-M
-                /Q [   27    48    77   111   144   178   207   259   312   364    %  1-Q - 10-Q
-                      427   489   580   621   703   775   876   948  1063  1159    % 11-Q - 20-Q
-                     1224  1358  1468  1588  1718  1804  1933  2085  2181  2358    % 21-Q - 30-Q
-                     2473  2670  2805  2949  3081  3244  3417  3599  3791  3993 ]  % 31-Q - 40-Q
-                /H [   17    34    58    82   106   139   154   202   235   288    %  1-H - 10-H
-                      331   374   427   468   530   602   674   746   813   919    % 11-H - 20-H
-                      969  1056  1108  1228  1286  1425  1501  1581  1677  1782    % 21-H - 30-H
-                     1897  2022  2157  2301  2361  2524  2625  2735  2927  3057 ]  % 31-H - 40-H
-            >>
-            /alphanumeric <<
-                /L [   25    47    77   114   154   195   224   279   335   395    %  1-L - 10-L
-                      468   535   619   667   758   854   938  1046  1153  1249    % 11-L - 20-L
-                     1352  1460  1588  1704  1853  1990  2132  2223  2369  2520    % 21-L - 30-L
-                     2677  2840  3009  3183  3351  3537  3729  3927  4087  4296 ]  % 31-L - 40-L
-                /M [   20    38    61    90   122   154   178   221   262   311    %  1-M - 10-M
-                      366   419   483   528   600   656   734   816   909   970    % 11-M - 20-M
-                     1035  1134  1248  1326  1451  1542  1637  1732  1839  1994    % 21-M - 30-M
-                     2113  2238  2369  2506  2632  2780  2894  3054  3220  3391 ]  % 31-M - 40-M
-                /Q [   16    29    47    67    87   108   125   157   189   221    %  1-Q - 10-Q
-                      259   296   352   376   426   470   531   574   644   702    % 11-Q - 20-Q
-                      742   823   890   963  1041  1094  1172  1263  1322  1429    % 21-Q - 30-Q
-                     1499  1618  1700  1787  1867  1966  2071  2181  2298  2420 ]  % 31-Q - 40-Q
-                /H [   10    20    35    50    64    84    93   122   143   174    %  1-H - 10-H
-                      200   227   259   283   321   365   408   452   493   557    % 11-H - 20-H
-                      587   640   672   744   779   864   910   958  1016  1080    % 21-H - 30-H
-                     1150  1226  1307  1394  1431  1530  1591  1658  1774  1852 ]  % 31-H - 40-H
-            >>
-            /byte <<
-                /L [   17    32    53    78   106   134   154   192   230   271    %  1-L - 10-L
-                      321   367   425   458   520   586   644   718   792   858    % 11-L - 20-L
-                      929  1003  1091  1171  1273  1367  1465  1528  1628  1732    % 21-L - 30-L
-                     1840  1952  2068  2188  2303  2431  2563  2699  2809  2953 ]  % 31-L - 40-L
-                /M [   14    26    42    62    84   106   122   152   180   213    %  1-M - 10-M
-                      251   287   331   362   412   450   504   560   624   666    % 11-M - 20-M
-                      711   779   857   911   997  1059  1125  1190  1264  1370    % 21-M - 30-M
-                     1452  1538  1628  1722  1809  1911  1989  2099  2213  2331 ]  % 31-M - 40-M
-                /Q [   11    20    32    46    60    74    86   108   130   151    %  1-Q - 10-Q
-                      177   203   241   258   292   322   364   394   442   482    % 11-Q - 20-Q
-                      509   565   611   661   715   751   805   868   908   982    % 21-Q - 30-Q
-                     1030  1112  1168  1228  1283  1351  1423  1499  1579  1663 ]  % 31-Q - 40-Q
-                /H [    7    14    24    34    44    58    64    84    98   119    %  1-H - 10-H
-                      137   155   177   194   220   250   280   310   338   382    % 11-H - 20-H
-                      403   439   461   511   535   593   625   658   698   742    % 21-H - 30-H
-                      790   842   898   958   983  1051  1093  1139  1219  1273 ]  % 31-H - 40-H
-            >>
-            /kanji <<
-                /L [   10    20    32    48    65    82    95   118   141   167    %  1-L - 10-L
-                      198   226   262   282   320   361   397   442   488   528    % 11-L - 20-L
-                      572   618   672   721   784   842   902   940  1002  1066    % 21-L - 30-L
-                     1132  1201  1273  1347  1417  1496  1577  1661  1729  1817 ]  % 31-L - 40-L
-                /M [    8    16    26    38    52    65    75    93   111   131    %  1-M - 10-M
-                      155   177   204   223   254   277   310   345   384   410    % 11-M - 20-M
-                      438   480   528   561   614   652   692   732   778   843    % 21-M - 30-M
-                      894   947  1002  1060  1113  1176  1224  1292  1362  1435 ]  % 31-M - 40-M
-                /Q [    7    12    20    28    37    45    53    66    80    93    %  1-Q - 10-Q
-                      109   125   149   159   180   198   224   243   272   297    % 11-Q - 20-Q
-                      314   348   376   407   440   462   496   534   559   604    % 21-Q - 30-Q
-                      634   684   719   756   790   832   876   923   972  1024 ]  % 31-Q - 40-Q
-                /H [    4     8    15    21    27    36    39    52    60    74    %  1-H - 10-H
-                       85    96   109   120   136   154   173   191   208   235    % 11-H - 20-H
-                      248   270   284   315   330   365   385   405   430   457    % 21-H - 30-H
-                      486   518   553   590   605   647   673   701   750   784 ]  % 31-H - 40-H 
-            >> 
-        >> def 
+    % Alphanumeric character to value map
+    /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
+    /charvals 44 dict def
+    0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
 
-        %            M1 M2 M3 M4         M1 M2 M3 M4         M1 M2 M3 M4         M1 M2 M3 M4
-        /microcaps <<
-            /numeric <<
-                /L [  5 10 23 35 ]  /M [ -1  8 18 30 ]  /Q [ -1 -1 -1 21 ]  /H [ -1 -1 -1 -1 ]
-            >>
-            /alphanumeric <<
-                /L [ -1  6 14 21 ]  /M [ -1  5 11 18 ]  /Q [ -1 -1 -1 13 ]  /H [ -1 -1 -1 -1 ]
-            >>
-            /byte <<
-                /L [ -1 -1  9 15 ]  /M [ -1 -1  7 13 ]  /Q [ -1 -1 -1  9 ]  /H [ -1 -1 -1 -1 ]
-            >> 
-            /kanji <<
-                /L [ -1 -1  6  9 ]  /M [ -1 -1  4  8 ]  /Q [ -1 -1 -1  5 ]  /H [ -1 -1 -1 -1 ]
-            >>
-        >> def
-
-        /encvals <<
-            /numeric      0
-            /alphanumeric 1
-            /byte         2
-            /kanji        3
-        >> def
-
-        /encs <<
-            /numeric      /encnumeric
-            /alphanumeric /encalphanumeric
-            /byte         /encbyte
-            /kanji        /enckanji
-        >> def
-
-        %           N      A      B      K
-        /mids  [ (0001) (0010) (0100) (1000) ] def
-        /mids <<
-           /M1 [     ()     -1     -1     -1 ]
-           /M2 [    (0)    (1)     -1     -1 ]
-           /M3 [   (00)   (01)   (10)   (11) ]
-           /M4 [  (000)  (001)  (010)  (011) ]
-           1 1 40 {2 string 10 exch cvrs mids} for
-        >> def
-
-        %            N  A  B  K
-        /cc1to9   [ 10  9  8  8 ] def
-        /cc10to26 [ 12 11 16 10 ] def
-        /cc27to40 [ 14 13 16 12 ] def
-        /cclens <<
-            /M1   [  3 -1 -1 -1 ]
-            /M2   [  4  3 -1 -1 ]
-            /M3   [  5  4  4  3 ]
-            /M4   [  6  5  5  4 ]
-             1 1  9 { 2 string 10 exch cvrs cc1to9 } for
-            10 1 26 { 2 string 10 exch cvrs cc10to26 } for            
-            27 1 40 { 2 string 10 exch cvrs cc27to40 } for
-        >> def
-
-        % Alphanumeric character to value map
-        /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
-        /charvals 44 dict def
-        0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
-
-        /encnumeric {
-            /in exch def
-            /out in length 10 mul 3 idiv 1 add string def
-            /i 0 def /j 0 def {
-                i in length eq {exit} if
-                i in length 2 sub lt {
-                    (0000000000) 10 string copy
-                    dup in i 3 getinterval 0 exch {exch 10 mul 48 sub add} forall
-                    2 10 string cvrs dup length 10 exch sub exch putinterval
-                    /i i 3 add def
-                } {
-                    i in length 2 sub eq {  % Two final digits
-                        (0000000) 7 string copy
-                        dup in i 2 getinterval 0 exch {exch 10 mul 48 sub add} forall
-                        2 7 string cvrs dup length 7 exch sub exch putinterval
-                        /i i 2 add def
-                    } {  % One final digit
-                        (0000) 4 string copy
-                        dup in i 1 getinterval 0 exch {exch 10 mul 48 sub add} forall
-                        2 4 string cvrs dup length 4 exch sub exch putinterval
-                        /i i 1 add def
-                    } ifelse
+    /encA {
+        /in exch def
+        fnc1first {  % FNC1 as %
+            /in [ in { dup -1 eq {pop 37} if } forall ] def
+        } if
+        /out in length 11 mul 2 idiv 1 add string def
+        /k 0 def /m 0 def {
+            k in length eq {exit} if
+            k in length 1 sub lt {
+                charvals in k get get 45 mul charvals in k 1 add get get add 11 tobin
+                /k k 2 add def
+            } {  % Final character
+                charvals in k get get 6 tobin
+                /k k 1 add def
+            } ifelse
+            dup out exch m exch putinterval
+            length m add /m exch def
+        } loop
+        out 0 m getinterval
+    } bind def
+    
+    /encN {
+        /in exch def
+        /out in length 10 mul 3 idiv 1 add string def
+        /k 0 def /m 0 def {
+            k in length eq {exit} if
+            k in length 2 sub lt {
+                in k 3 getinterval 0 exch {exch 10 mul 48 sub add} forall 10 tobin
+                /k k 3 add def
+            } {
+                k in length 2 sub eq {  % Two final digits
+                    in k 2 getinterval 0 exch {exch 10 mul 48 sub add} forall 7 tobin
+                    /k k 2 add def
+                } {  % One final digit
+                    in k 1 getinterval 0 exch {exch 10 mul 48 sub add} forall 4 tobin
+                    /k k 1 add def
                 } ifelse
-                dup out exch j exch putinterval
-                length j add /j exch def
-            } loop
-            out 0 j getinterval
-        } bind def
+            } ifelse
+            dup out exch m exch putinterval
+            length m add /m exch def
+        } loop
+        out 0 m getinterval
+    } bind def
+    
+    /encB {
+        /in exch def
+        fnc1first {  % FNC1 as GS
+            /in [ in { dup -1 eq {pop 29} if } forall ] def
+        } if
+        /out in length 8 mul string def
+        0 1 in length 1 sub {
+            /k exch def
+            in k get cvi 8 tobin
+            out k 8 mul 3 -1 roll putinterval
+        } for
+        out
+    } bind def
+    
+    /encK {
+        /in exch def
+        /out in length 2 idiv 13 mul string def
+        /k 0 def /m 0 def {
+            k in length eq {exit} if
+            in k get 256 mul in k 1 add get add
+            dup 16#E040 lt {16#8140} {16#C140} ifelse sub
+            dup -8 bitshift 16#C0 mul exch 16#00FF and add
+            13 tobin dup out exch m exch putinterval
+            length m add /m exch def
+            /k k 2 add def
+        } loop
+        out
+    } bind def
+    
+    /encfuncs [ /encN /encA /encB /encK ] def
+    
+    /addtobits {
+        dup bits j 3 -1 roll putinterval
+        length j add /j exch def
+    } bind def
+    
+    /numNs [ msglen {0} repeat 0 ] def
+    /numAs [ msglen {0} repeat 0 ] def
+    /numBs [ msglen {0} repeat 0 ] def
+    /numKs [ msglen {0} repeat -1 ] def
+    /nextNs [ msglen {0} repeat 9999 ] def
+    /nextBs [ msglen {0} repeat 9999 ] def
+    /nextAs [ msglen {0} repeat 9999 ] def
+    /nextKs [ msglen {0} repeat 9999 ] def
+    msglen 1 sub -1 0 {
+        /i exch def
+        /barchar msg i get def
+        Kexcl barchar known {
+            nextKs i 0 put
+            numKs i numKs i 1 add get 1 add put
+        } {
+            nextKs i nextKs i 1 add get 1 add put
+        } ifelse
+        Nexcl barchar known {
+            nextNs i 0 put
+            numNs i numNs i 1 add get 1 add put
+        } {
+            nextNs i nextNs i 1 add get 1 add put
+        } ifelse
+        Bexcl barchar known {
+            nextBs i 0 put
+            numBs i numBs i 1 add get 1 add put
+        } {
+            nextBs i nextBs i 1 add get 1 add put
+        } ifelse
+        Aexcl barchar known {
+            nextAs i 0 put
+            numAs i numAs i 1 add get 1 add put
+        } {
+            nextAs i nextAs i 1 add get 1 add put
+        } ifelse
+    } for
+    /numKs [ numKs {1 add 2 idiv} forall ] def
+    
+    /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} bind def
+    /KbeforeA {numK exch ver get ge nextAs numK 2 mul i add get 0 eq and} bind def
+    /KbeforeN {numK exch ver get ge nextNs numK 2 mul i add get 0 eq and} bind def
+    /KbeforeE {numK exch ver get ge numK 2 mul i add msglen eq and} bind def
+    /AbeforeK {numA exch ver get ge nextKs numA i add get 0 eq and} bind def
+    /AbeforeB {numA exch ver get ge nextBs numA i add get 0 eq and} bind def
+    /AbeforeN {numA exch ver get ge nextNs numA i add get 0 eq and} bind def
+    /AbeforeE {numA exch ver get ge numA i add msglen eq and} bind def
+    /NbeforeK {numN exch ver get ge nextKs numN i add get 0 eq and} bind def
+    /NbeforeB {numN exch ver get ge nextBs numN i add get 0 eq and} bind def
+    /NbeforeA {numN exch ver get ge nextAs numN i add get 0 eq and} bind def
+    /NbeforeE {numN exch ver get ge numN i add msglen eq and} bind def
 
-        /encalphanumeric {
-            /in exch def
-            fnc1first {  % FNC1 as %
-                /in [ in { dup -1 eq {pop 37} if } forall ] def
-            } if
-            /out in length 11 mul 2 idiv 1 add string def
-            /i 0 def /j 0 def {
-                i in length eq {exit} if
-                i in length 1 sub lt {
-                    (00000000000) 11 string copy
-                    dup charvals in i get get 45 mul charvals in i 1 add get get add
-                    2 11 string cvrs dup length 11 exch sub exch putinterval
-                    /i i 2 add def
-                } {  % Final character
-                    (000000) 6 string copy
-                    dup charvals in i get get
-                    2 6 string cvrs dup length 6 exch sub exch putinterval
-                    /i i 1 add def
-                } ifelse
-                dup out exch j exch putinterval
-                length j add /j exch def
-            } loop
-            out 0 j getinterval
-        } bind def
-
-        /encbyte {
-            /in exch def
-            fnc1first {  % FNC1 as GS
-                /in [ in { dup -1 eq {pop 29} if } forall ] def
-            } if
-            /out in length 8 mul string def
-            0 1 in length 1 sub {
-                /i exch def
-                (00000000) 8 string copy
-                dup in i get cvi
-                2 8 string cvrs dup length 8 exch sub exch putinterval 
-                out i 8 mul 3 -1 roll putinterval
-            } for
-            out
-        } bind def
-
-        /enckanji {
-            /in exch def
-            /out in length 2 idiv 13 mul string def
-            /i 0 def /j 0 def {
-                i in length eq {exit} if
-                in i get 256 mul in i 1 add get add
-                dup 16#E040 lt {16#8140} {16#C140} ifelse sub
-                dup -8 bitshift 16#C0 mul exch 16#00FF and add
-                (0000000000000) 13 string copy
-                dup 3 -1 roll 2 13 string cvrs dup length 13 exch sub exch putinterval
-                dup out exch j exch putinterval
-                length j add /j exch def
-                /i i 2 add def
-            } loop
-            out
-        } bind def
-
-        % Determine a compact encoding for the data
-        encoding (unset) eq {
-            /numericokay true def
-            /alphanumericokay true def
-            /kanjiokay true def
-            fnc1first {/kanjiokay false def} if
-            msglen 2 mod 0 ne {/kanjiokay false def} if
-            0 1 msglen 1 sub {
-                /i exch def
-                /barchar msg i get def
-                barchar 48 lt barchar 57 gt or {/numericokay false def} if
-                charvals barchar known not {/alphanumericokay false def} if
-                i 2 mod 0 eq {
-                    barchar 16#81 lt barchar 16#9F gt or
-                    barchar 16#E0 lt barchar 16#EB gt or and {
-                        /kanjiokay false def
+    % Encode unterminated bitsream for each version group separately
+    /msgbits [-1 -1 -1 -1 -1 -1 -1] def
+    /v1to9 0 def  /v10to26 1 def  /v27to40 2 def  /vM1 3 def  /vM2 4 def  /vM3 5 def  /vM4 6 def
+    /e 10000 def
+    [v1to9 v10to26 v27to40 vM1 vM2 vM3 vM4] {
+        /ver exch def
+    
+        % Derive optimal sequence
+        /mode -1 def /seq [] def /i 0 def {
+            i msglen ge {exit} if
+            /numK numKs i get def
+            /numB numBs i get def
+            /numA numAs i get def
+            /numN numNs i get def
+            ver vM1 eq numA 1 ge and {/seq -1 def exit} if
+            ver vM1 eq numB 1 ge and {/seq -1 def exit} if
+            ver vM1 eq numK 1 ge and {/seq -1 def exit} if
+            ver vM2 eq numB 1 ge and {/seq -1 def exit} if
+            ver vM2 eq numK 1 ge and {/seq -1 def exit} if
+            {  % common exit
+                mode -1 eq {  % Set initial mode
+                    [ 1  1  1  e  e  1  1] KbeforeA {K exit} if
+                    [ 1  1  1  e  e  1  1] KbeforeN {K exit} if
+                    [ 5  5  6  e  e  2  3] KbeforeB {K exit} if
+                    [ 1  1  1  e  e  1  1] KbeforeE {K exit} if
+                    numK 1 ge {B exit} if
+                    [ 6  7  8  e  e  3  4] AbeforeB {A exit} if
+                    [ 1  1  1  e  1  1  1] AbeforeE {A exit} if
+                    numA 1 ge {
+                        ver vM1 ne ver vM2 ne and {B} {A} ifelse exit
                     } if
+                    [ 4  4  5  e  e  2  3] NbeforeB {N exit} if
+                    [ 1  1  1  e  e  1  1] NbeforeB {B exit} if
+                    [ 7  8  9  e  3  4  5] NbeforeA {N exit} if
+                    [ 1  1  1  e  1  1  1] NbeforeA {A exit} if
+                    numN 1 ge {N exit} if
+                    B exit
                 } if
-            } for
-            /encoding (byte) def
-            kanjiokay        {/encoding (kanji) def} if
-            alphanumericokay {/encoding (alphanumeric) def} if
-            numericokay      {/encoding (numeric) def} if
-        } if
-
-        % Determine smallest symbol version to hold given amount of data
-        /numchars msglen encoding (kanji) eq {2 idiv} if def
-        fnc1first {/numchars numchars 1 add def} if  % Workaround due to extended mode header
-        version (unset) eq {
-            /caps format (full) eq {fullcaps} {microcaps} ifelse encoding get eclevel get def
-            /i 1 def {
-                numchars caps i 1 sub get le {exit} if
-                /i i 1 add def
+                mode B eq {
+                    [ 9 12 13  e  e  4  5] KbeforeB {K exit} if
+                    [ 9 10 12  e  e  4  5] KbeforeA {K exit} if
+                    [ 9 10 11  e  e  5  6] KbeforeN {K exit} if
+                    [ 4  5  6  e  e  2  3] KbeforeE {K exit} if
+                    [11 12 14  e  e  5  7] AbeforeK {A exit} if
+                    [11 15 16  e  e  6  7] AbeforeB {A exit} if
+                    [12 13 15  e  e  6  8] AbeforeN {A exit} if
+                    [ 6  7  8  e  e  3  4] AbeforeE {A exit} if
+                    [ 6  7  8  e  e  3  4] NbeforeK {N exit} if
+                    [ 6  8  9  e  e  3  4] NbeforeB {N exit} if
+                    [ 6  7  8  e  e  3  4] NbeforeA {N exit} if
+                    [ 3  4  5  e  e  2  3] NbeforeE {N exit} if
+                    B exit
+                } if
+                mode A eq {
+                    numK 1 ge {K exit} if
+                    numB 1 ge {B exit} if
+                    [13 15 17  e  5  7  9] NbeforeA {N exit} if
+                    [13 17 18  e  e  7  9] NbeforeB {N exit} if
+                    [ 7  8  9  e  3  4  5] NbeforeE {N exit} if
+                    A exit
+                } if
+                mode N eq {
+                    numK 1 ge {K exit} if
+                    numB 1 ge {B exit} if
+                    numA 1 ge {A exit} if
+                    N exit
+                } if
+                mode K eq {
+                    numB 1 ge {B exit} if
+                    numA 1 ge {A exit} if
+                    numN 1 ge {N exit} if
+                    K exit
+                } if
             } loop
-            /version i 10 2 string cvrs def
-            format (micro) eq {
-                /version (M ) 2 string copy dup version 1 exch putinterval def
-            } if
-        } if
+            dup K eq fnc1first and {pop B} if  % No kanji with fnc1first
+            dup mode eq {  % Same mode encode directly
+                pop
+                /dat msg i mode K eq {2} {1} ifelse getinterval def
+                /seq [
+                    seq aload pop
+                    [ exch aload pop dat aload pop ]
+                ] def
+            } {  % Change mode
+                /mode exch def
+                mode K eq {K msg i numK 2 mul getinterval} if
+                mode B eq {B msg i numB getinterval} if
+                mode A eq {A msg i numA getinterval} if
+                mode N eq {N msg i numN getinterval} if
+                /dat exch def /sw exch def
+                /seq [ seq aload pop sw dat ] def
+            } ifelse
+            /i i dat length add def
+        } loop
 
-        % Opportunistically raise the error correction level for a fit to the same symbol
-        /caps format (full) eq {fullcaps} {microcaps} ifelse encoding get def
-        /verval format (full) eq {version cvi 1 sub} {version 1 get 49 sub} ifelse def
-        eclevel (L) eq {numchars caps /M get verval get le {/eclevel (M) def} if} if
-        eclevel (M) eq {numchars caps /Q get verval get le {/eclevel (Q) def} if} if
-        eclevel (Q) eq {numchars caps /H get verval get le {/eclevel (H) def} if} if
-
-        % Set the control character data for the version
-        /mid mids version get encvals encoding get get def
-        fnc1first {/mid (0101    ) 8 string copy dup 4 mid putinterval def} if
-        /cclen cclens version get encvals encoding get get def
- 
-        % Create the bitstream as mode_id character_count encoded_data
-        /enc msg encs encoding get load exec def
-        (0000000000000000) 0 cclen getinterval cclen string copy 
-        dup msglen encoding (kanji) eq {2 idiv} if cvi
-        2 cclen string cvrs dup length cclen exch sub exch putinterval 
-        /cc exch def
-        /msgbits mid length cclen add enc length add string def
-        msgbits 0 mid putinterval
-        msgbits mid length cc putinterval
-        msgbits mid length cclen add enc putinterval
-
-    } ifelse
+        % Encode the sequence
+        {  % common exit
+            seq -1 eq {exit} if  % Sequence not available
+            /bits 23648 string def
+            /j 0 def
+            fnc1first {(0101) addtobits} if
+            /abort false def
+            0 2 seq length 1 sub {
+                /i exch def
+                /mode seq i get def
+                mids ver get mode get addtobits
+                /cclen cclens ver get mode get def
+                /chars seq i 1 add get def
+                chars length 2 cclen exp cvi ge {  % Too many characters for cc indicator
+                    /abort true def exit
+                } if
+                chars length mode K eq {2 idiv} if cclen tobin addtobits
+                chars encfuncs mode get load exec addtobits
+            } for
+            abort {exit} if
+            /bits bits 0 j getinterval def
+            msgbits ver bits put
+            exit
+        } loop
+    } forall
 
     % Lookup the most appropriate symbol specification
     /metrics [
-        % format   vers  size align modules    error codewords        error correction blocks 
-        %                                      L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
-        [ (micro)  (M1)   11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
-        [ (micro)  (M2)   13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
-        [ (micro)  (M3)   15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
-        [ (micro)  (M4)   17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 -1 -1 ] ]
-        [ (full)   (1)    21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
-        [ (full)   (2)    25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
-        [ (full)   (3)    29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
-        [ (full)   (4)    33  26 99    807  [  20   36   52   64 ]  [  1  0  2  0  2  0  4  0 ] ]
-        [ (full)   (5)    37  30 99   1079  [  26   48   72   88 ]  [  1  0  2  0  2  2  2  2 ] ]
-        [ (full)   (6)    41  34 99   1383  [  36   64   96  112 ]  [  2  0  4  0  4  0  4  0 ] ]
-        [ (full)   (7)    45  22 38   1568  [  40   72  108  130 ]  [  2  0  4  0  2  4  4  1 ] ]
-        [ (full)   (8)    49  24 42   1936  [  48   88  132  156 ]  [  2  0  2  2  4  2  4  2 ] ]
-        [ (full)   (9)    53  26 46   2336  [  60  110  160  192 ]  [  2  0  3  2  4  4  4  4 ] ]
-        [ (full)   (10)   57  28 50   2768  [  72  130  192  224 ]  [  2  2  4  1  6  2  6  2 ] ]
-        [ (full)   (11)   61  30 54   3232  [  80  150  224  264 ]  [  4  0  1  4  4  4  3  8 ] ]
-        [ (full)   (12)   65  32 58   3728  [  96  176  260  308 ]  [  2  2  6  2  4  6  7  4 ] ]
-        [ (full)   (13)   69  34 62   4256  [ 104  198  288  352 ]  [  4  0  8  1  8  4 12  4 ] ]
-        [ (full)   (14)   73  26 46   4651  [ 120  216  320  384 ]  [  3  1  4  5 11  5 11  5 ] ]
-        [ (full)   (15)   77  26 48   5243  [ 132  240  360  432 ]  [  5  1  5  5  5  7 11  7 ] ]
-        [ (full)   (16)   81  26 50   5867  [ 144  280  408  480 ]  [  5  1  7  3 15  2  3 13 ] ]
-        [ (full)   (17)   85  30 54   6523  [ 168  308  448  532 ]  [  1  5 10  1  1 15  2 17 ] ]
-        [ (full)   (18)   89  30 56   7211  [ 180  338  504  588 ]  [  5  1  9  4 17  1  2 19 ] ]
-        [ (full)   (19)   93  30 58   7931  [ 196  364  546  650 ]  [  3  4  3 11 17  4  9 16 ] ]
-        [ (full)   (20)   97  34 62   8683  [ 224  416  600  700 ]  [  3  5  3 13 15  5 15 10 ] ]
-        [ (full)   (21)  101  28 50   9252  [ 224  442  644  750 ]  [  4  4 17  0 17  6 19  6 ] ]
-        [ (full)   (22)  105  26 50  10068  [ 252  476  690  816 ]  [  2  7 17  0  7 16 34  0 ] ]
-        [ (full)   (23)  109  30 54  10916  [ 270  504  750  900 ]  [  4  5  4 14 11 14 16 14 ] ]
-        [ (full)   (24)  113  28 54  11796  [ 300  560  810  960 ]  [  6  4  6 14 11 16 30  2 ] ]
-        [ (full)   (25)  117  32 58  12708  [ 312  588  870 1050 ]  [  8  4  8 13  7 22 22 13 ] ]
-        [ (full)   (26)  121  30 58  13652  [ 336  644  952 1110 ]  [ 10  2 19  4 28  6 33  4 ] ]
-        [ (full)   (27)  125  34 62  14628  [ 360  700 1020 1200 ]  [  8  4 22  3  8 26 12 28 ] ]
-        [ (full)   (28)  129  26 50  15371  [ 390  728 1050 1260 ]  [  3 10  3 23  4 31 11 31 ] ]
-        [ (full)   (29)  133  30 54  16411  [ 420  784 1140 1350 ]  [  7  7 21  7  1 37 19 26 ] ]
-        [ (full)   (30)  137  26 52  17483  [ 450  812 1200 1440 ]  [  5 10 19 10 15 25 23 25 ] ]
-        [ (full)   (31)  141  30 56  18587  [ 480  868 1290 1530 ]  [ 13  3  2 29 42  1 23 28 ] ]
-        [ (full)   (32)  145  34 60  19723  [ 510  924 1350 1620 ]  [ 17  0 10 23 10 35 19 35 ] ]
-        [ (full)   (33)  149  30 58  20891  [ 540  980 1440 1710 ]  [ 17  1 14 21 29 19 11 46 ] ]
-        [ (full)   (34)  153  34 62  22091  [ 570 1036 1530 1800 ]  [ 13  6 14 23 44  7 59  1 ] ]
-        [ (full)   (35)  157  30 54  23008  [ 570 1064 1590 1890 ]  [ 12  7 12 26 39 14 22 41 ] ]
-        [ (full)   (36)  161  24 50  24272  [ 600 1120 1680 1980 ]  [  6 14  6 34 46 10  2 64 ] ]
-        [ (full)   (37)  165  28 54  25568  [ 630 1204 1770 2100 ]  [ 17  4 29 14 49 10 24 46 ] ]
-        [ (full)   (38)  169  32 58  26896  [ 660 1260 1860 2220 ]  [  4 18 13 32 48 14 42 32 ] ]
-        [ (full)   (39)  173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
-        [ (full)   (40)  177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
+        % format   vers  vergrp  size align modules    error codewords        error correction blocks 
+        %                                              L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
+        [ (micro)  (M1)  vM1       11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
+        [ (micro)  (M2)  vM2       13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+        [ (micro)  (M3)  vM3       15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+        [ (micro)  (M4)  vM4       17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 -1 -1 ] ]
+        [ (full)   (1)   v1to9     21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
+        [ (full)   (2)   v1to9     25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
+        [ (full)   (3)   v1to9     29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
+        [ (full)   (4)   v1to9     33  26 99    807  [  20   36   52   64 ]  [  1  0  2  0  2  0  4  0 ] ]
+        [ (full)   (5)   v1to9     37  30 99   1079  [  26   48   72   88 ]  [  1  0  2  0  2  2  2  2 ] ]
+        [ (full)   (6)   v1to9     41  34 99   1383  [  36   64   96  112 ]  [  2  0  4  0  4  0  4  0 ] ]
+        [ (full)   (7)   v1to9     45  22 38   1568  [  40   72  108  130 ]  [  2  0  4  0  2  4  4  1 ] ]
+        [ (full)   (8)   v1to9     49  24 42   1936  [  48   88  132  156 ]  [  2  0  2  2  4  2  4  2 ] ]
+        [ (full)   (9)   v1to9     53  26 46   2336  [  60  110  160  192 ]  [  2  0  3  2  4  4  4  4 ] ]
+        [ (full)   (10)  v10to26   57  28 50   2768  [  72  130  192  224 ]  [  2  2  4  1  6  2  6  2 ] ]
+        [ (full)   (11)  v10to26   61  30 54   3232  [  80  150  224  264 ]  [  4  0  1  4  4  4  3  8 ] ]
+        [ (full)   (12)  v10to26   65  32 58   3728  [  96  176  260  308 ]  [  2  2  6  2  4  6  7  4 ] ]
+        [ (full)   (13)  v10to26   69  34 62   4256  [ 104  198  288  352 ]  [  4  0  8  1  8  4 12  4 ] ]
+        [ (full)   (14)  v10to26   73  26 46   4651  [ 120  216  320  384 ]  [  3  1  4  5 11  5 11  5 ] ]
+        [ (full)   (15)  v10to26   77  26 48   5243  [ 132  240  360  432 ]  [  5  1  5  5  5  7 11  7 ] ]
+        [ (full)   (16)  v10to26   81  26 50   5867  [ 144  280  408  480 ]  [  5  1  7  3 15  2  3 13 ] ]
+        [ (full)   (17)  v10to26   85  30 54   6523  [ 168  308  448  532 ]  [  1  5 10  1  1 15  2 17 ] ]
+        [ (full)   (18)  v10to26   89  30 56   7211  [ 180  338  504  588 ]  [  5  1  9  4 17  1  2 19 ] ]
+        [ (full)   (19)  v10to26   93  30 58   7931  [ 196  364  546  650 ]  [  3  4  3 11 17  4  9 16 ] ]
+        [ (full)   (20)  v10to26   97  34 62   8683  [ 224  416  600  700 ]  [  3  5  3 13 15  5 15 10 ] ]
+        [ (full)   (21)  v10to26  101  28 50   9252  [ 224  442  644  750 ]  [  4  4 17  0 17  6 19  6 ] ]
+        [ (full)   (22)  v10to26  105  26 50  10068  [ 252  476  690  816 ]  [  2  7 17  0  7 16 34  0 ] ]
+        [ (full)   (23)  v10to26  109  30 54  10916  [ 270  504  750  900 ]  [  4  5  4 14 11 14 16 14 ] ]
+        [ (full)   (24)  v10to26  113  28 54  11796  [ 300  560  810  960 ]  [  6  4  6 14 11 16 30  2 ] ]
+        [ (full)   (25)  v10to26  117  32 58  12708  [ 312  588  870 1050 ]  [  8  4  8 13  7 22 22 13 ] ]
+        [ (full)   (26)  v10to26  121  30 58  13652  [ 336  644  952 1110 ]  [ 10  2 19  4 28  6 33  4 ] ]
+        [ (full)   (27)  v27to40  125  34 62  14628  [ 360  700 1020 1200 ]  [  8  4 22  3  8 26 12 28 ] ]
+        [ (full)   (28)  v27to40  129  26 50  15371  [ 390  728 1050 1260 ]  [  3 10  3 23  4 31 11 31 ] ]
+        [ (full)   (29)  v27to40  133  30 54  16411  [ 420  784 1140 1350 ]  [  7  7 21  7  1 37 19 26 ] ]
+        [ (full)   (30)  v27to40  137  26 52  17483  [ 450  812 1200 1440 ]  [  5 10 19 10 15 25 23 25 ] ]
+        [ (full)   (31)  v27to40  141  30 56  18587  [ 480  868 1290 1530 ]  [ 13  3  2 29 42  1 23 28 ] ]
+        [ (full)   (32)  v27to40  145  34 60  19723  [ 510  924 1350 1620 ]  [ 17  0 10 23 10 35 19 35 ] ]
+        [ (full)   (33)  v27to40  149  30 58  20891  [ 540  980 1440 1710 ]  [ 17  1 14 21 29 19 11 46 ] ]
+        [ (full)   (34)  v27to40  153  34 62  22091  [ 570 1036 1530 1800 ]  [ 13  6 14 23 44  7 59  1 ] ]
+        [ (full)   (35)  v27to40  157  30 54  23008  [ 570 1064 1590 1890 ]  [ 12  7 12 26 39 14 22 41 ] ]
+        [ (full)   (36)  v27to40  161  24 50  24272  [ 600 1120 1680 1980 ]  [  6 14  6 34 46 10  2 64 ] ]
+        [ (full)   (37)  v27to40  165  28 54  25568  [ 630 1204 1770 2100 ]  [ 17  4 29 14 49 10 24 46 ] ]
+        [ (full)   (38)  v27to40  169  32 58  26896  [ 660 1260 1860 2220 ]  [  4 18 13 32 48 14 42 32 ] ]
+        [ (full)   (39)  v27to40  173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
+        [ (full)   (40)  v27to40  177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
     ] def
     /eclval (LMQH) eclevel search pop length exch pop exch pop def
-    /i 0 def
-    { % loop
+    0 1 43 {
+        /i exch def
         /m metrics i get def
         /frmt m 0 get def                             % Format of the symbol
         /vers m 1 get def                             % Version of symbol
-        /size m 2 get def                             % Length of side
-        /asp2 m 3 get def                             % Position of second alignment symbol
-        /asp3 m 4 get def                             % Position of third alignment symbol
-        /nmod m 5 get def                             % Number of modules
+        /vergrp m 2 get def                           % Version group
+        /size m 3 get def                             % Length of side
+        /asp2 m 4 get def                             % Position of second alignment symbol
+        /asp3 m 5 get def                             % Position of third alignment symbol
+        /nmod m 6 get def                             % Number of modules
         /ncws nmod 8 idiv def                         % Total number of codewords
         /rbit nmod 8 mod def                          % Number of remainder bits
         /lc4b false def                               % Last data codeword is 4 bits long
@@ -489,39 +515,43 @@ begin
             /rbit 0 def
             /lc4b true def
         } if
-        /ecws m 6 get eclval get def                  % Number of error correction codewords
+        /ecws m 7 get eclval get def                  % Number of error correction codewords
         /dcws ncws ecws sub def                       % Number of data codewords
         /dmod dcws 8 mul lc4b {4} {0} ifelse sub def  % Number of data modules
-        /ecb1 m 7 get eclval 2 mul get def            % First error correction blocks
-        /ecb2 m 7 get eclval 2 mul 1 add get def      % Second error correction blocks
+        /ecb1 m 8 get eclval 2 mul get def            % First error correction blocks
+        /ecb2 m 8 get eclval 2 mul 1 add get def      % Second error correction blocks
         /okay true def
-        format frmt ne {/okay false def} if           % The format must match that supplied
+        format (any) ne format frmt ne and {/okay false def} if  % The format must match that supplied
+        frmt (micro) eq fnc1first and {/okay false def} if
         version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
-        msgbits length dmod gt {/okay false def} if   % Bitstream must fit into data modules
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
+        /verbits msgbits vergrp get def
+        verbits -1 eq {                               % Bitstream must be available
+            /okay false def
+        } {
+            verbits length dmod gt {/okay false def} if  % and fit into data modules
+        } ifelse
+        /term (000000000) 0 termlens vergrp get getinterval def
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } for
+
+    okay not {
+        /bwipp.qrcodeNoValidSymbol (No valid symbol available) //raiseerror exec
+    } if
 
     /format frmt def
     /version vers def
+    /msgbits verbits def
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
     % Complete the message bits by adding the terminator, truncated if neccessary
-    /terms <<
-        /M1 (000)
-        /M2 (00000)
-        /M3 (0000000)
-        /M4 (000000000)
-    >> def
-    /term terms version known {terms version get} {(0000)} ifelse def
     /term term 0 dmod msgbits length sub term length 2 copy gt {exch} if pop getinterval def
     msgbits length term length add string
     dup 0 msgbits putinterval
     dup msgbits length term putinterval
     /msgbits exch def
-    
+
     % Expand the message bits by adding padding as necessary
     /pad dmod string def
     0 1 pad length 1 sub {pad exch 48 put} for
@@ -547,6 +577,9 @@ begin
         } for 
         cws c cw put
     } for 
+
+    % Short final data byte in M1 and M3 symbols has high-order value
+    lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
 
     % Calculate the log and anti-log tables
     /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
@@ -637,6 +670,7 @@ begin
  
     % Fixups for the short final data byte in M1 and M3 symbols
     lc4b {
+	cws dcws 1 sub 2 copy get -4 bitshift put
         dcws 1 sub 1 ncws 2 sub {
             /i exch def
             cws i cws i get 15 and 4 bitshift put
@@ -785,6 +819,10 @@ begin
             {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
         ] def
     } ifelse
+    mask -1 ne {  % User specifies a mask
+        /maskfuncs [maskfuncs mask 1 sub get] def
+        /bestmaskval mask 1 sub def
+    } if
     /masks maskfuncs length array def
     0 1 masks length 1 sub {
         /m exch def
@@ -937,16 +975,20 @@ begin
             /i exch def
             masksym i pixs i get masks m get i get xor put
         } for
-        format (full) eq {
-            masksym evalfull /score exch def
+        masks length 1 ne {
+            format (full) eq {
+                masksym evalfull /score exch def
+            } {
+                masksym evalmicro /score exch def
+            } ifelse
+            score bestscore lt { 
+                /bestsym masksym def
+                /bestmaskval m def
+                /bestscore score def
+            } if
         } {
-            masksym evalmicro /score exch def
-        } ifelse
-        score bestscore lt { 
             /bestsym masksym def
-            /bestmaskval m def
-            /bestscore score def
-        } if    
+        } ifelse
     } for
     /pixs bestsym def
     

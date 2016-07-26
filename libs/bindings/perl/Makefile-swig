@@ -1,0 +1,44 @@
+NAME = postscriptbarcode
+
+SWIG_INTERFACE = ../$(NAME).i
+
+SWIG_WRAP  = $(NAME)_wrap.c
+SWIG_EXTRA = $(NAME).pm
+
+PERL_MAKEFILE_IN  = Makefile.PL
+PERL_MAKEFILE     = Makefile
+PERL_CRUFT = Makefile.old
+PERL_OUT = blib/arch/auto/$(NAME)/$(NAME).so blib/lib/$(NAME).pm
+
+cleanlist += $(SWIG_WRAP) $(SWIG_EXTRA) $(PERL_CRUFT)
+
+.PHONY: all swig-perl test install uninstall clean
+
+all: swig-perl
+
+swig-perl: $(PERL_OUT)
+
+$(PERL_OUT): $(PERL_MAKEFILE) $(SWIG_WRAP) $(SWIG_EXTRA)
+	make -f $< OPTIMIZE="-O2 -g -Wall"
+	touch $@
+
+$(PERL_MAKEFILE): $(PERL_MAKEFILE_IN)
+	perl $<
+	sed -i 's@^LD_RUN_PATH.*@LD_RUN_PATH=@' $@
+
+$(SWIG_WRAP) $(SWIG_EXTRA):
+	swig -Wall -perl -o $(SWIG_WRAP) -outdir . $(SWIG_INTERFACE)
+
+test: swig-perl
+	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) make -f $(PERL_MAKEFILE) test
+
+install: swig-perl 
+	make -f $(PERL_MAKEFILE) install
+
+uninstall:
+	make -f $< uninstall
+
+clean:
+	-make -f $(PERL_MAKEFILE) clean
+	$(RM) $(cleanlist)
+
