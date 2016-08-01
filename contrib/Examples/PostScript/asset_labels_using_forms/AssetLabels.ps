@@ -1,8 +1,29 @@
 %!PS
 
-% Demonstrating Variable Data Printing Using PostScript Forms
+% Variable Data Printing Using PostScript Forms
 %
 % Based on earlier work (C) 2008 by Adrian Head
+%
+% This is a demonstration of Variable Data Printing using data supplied at the
+% end of the file/stream. It shows how to generate a print run such that you
+% can insert lightweight barcodes symbols into an otherwise expensive to RIP
+% document, amortising the cost of RIPing the complex static elements by using
+% PostScript forms to cache the results.
+%
+% It generates any number of pages containing sample barcode labels. The static
+% template for each page is generated in PageForm which creates a grid of
+% labels. Each label is generated in LabelForm which includes a logo generated
+% in LogoForm. This logo is a purposefully compute-intensive fractal fern.
+% PageForm also includes this fern logo as a watermark. Within each page
+% variable barcode data is read from the end of the file and overlayed onto the
+% static template.
+%
+% This example works with Distiller and most hardware RIPs.
+%
+% Ghostscript (as of 9.19) does not cache form data when rendering to the
+% display. The pdfwrite driver has basic support for forms but does not support
+% nested forms used in this example. See
+% http://bugs.ghostscript.com/show_bug.cgi?id=696986
 
 % ----------------------8<---------------------------8<-------------------
 % Start of packaged BWIPP resources for Code 128
@@ -259,9 +280,15 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 } bind def
 
 /padstr { % Zero-pad a number
-   (00000000) 8 string copy dup
-   3 2 roll 10 8 string cvrs dup length
-   8 exch sub exch putinterval
+    (00000000) 8 string copy dup
+    3 2 roll 10 8 string cvrs dup length
+    8 exch sub exch putinterval
+} bind def
+
+/spadstr { % Pad a number
+    (        ) 8 string copy dup
+    3 2 roll 10 8 string cvrs dup length
+    8 exch sub exch putinterval
 } bind def
 
 % ----------------------8<---------------------------8<-------------------
@@ -270,11 +297,11 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 % Form for an expensive to compute logo
 /LogoForm
-<< /FormType 1
-   /BBox [0 0 612 792]
-   /Matrix matrix
-   /PaintProc
-     { pop
+<<  /FormType 1
+    /BBox [0 0 612 792]
+    /Matrix matrix
+    /PaintProc
+      { pop
 
         % Eric Wicklund's fractal fern
         /m1 [ 0.00 0.00 0.00 0.16 0.00 0.00 ] def
@@ -288,17 +315,18 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
         1 setlinecap
         0.005 setlinewidth
         0 0
-        15000 {  % Amend the number of interations to control the expense
-           /r rand 100 mod def
-           r 1 lt { /m m1 def }
-         { r 86 lt { /m m2 def }
-         { r 93 lt { /m m3 def }
-                   { /m m4 def } ifelse } ifelse } ifelse
-           m transform 2 copy moveto
-           len len rlineto
-           stroke
+        2000 {  % Number of points - limit to control rendering expense
+            /r rand 100 mod def
+            r 1 lt { /m m1 def }
+          { r 86 lt { /m m2 def }
+          { r 93 lt { /m m3 def }
+                    { /m m4 def } ifelse } ifelse } ifelse
+            m transform 2 copy moveto
+            len len rlineto
+            stroke
+            10000 {} repeat  % Add some cost to the construction
         } repeat
-	pop pop
+        pop pop
         grestore
 
      } bind
@@ -306,70 +334,71 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 % Form for an individual label which includes the logo
 /LabelForm
-<< /FormType 1
-   /BBox [0 0 612 792]
-   /Matrix matrix
-   /PaintProc
-     { pop
+<<  /FormType 1
+    /BBox [0 0 612 792]
+    /Matrix matrix
+    /PaintProc
+      { pop
 
-          % Label outline
-          gsave
-          0.1 setlinewidth
-          0 setlinecap
-          0 setlinejoin
-          [] 0 setdash
-          40 788.673 translate
-          5.66929 0 moveto
-          5.66929 0 122.331 0 122.331 0 curveto
-          125.462 0 128 -3.13106 128 -5.66929 curveto
-          128 -5.66929 128 -65.8307 128 -65.8307 curveto
-          128 -68.9618 125.462 -71.5 122.331 -71.5 curveto
-          122.331 -71.5 5.66929 -71.5 5.66929 -71.5 curveto
-          3.13106 -71.5 0 -68.9618 0 -65.8307 curveto
-          0 -65.8307 0 -5.66929 0 -5.66929 curveto
-          0 -3.13106 3.13106 0 5.66929 0 curveto
-          closepath
-          stroke
-          grestore
+        % Label outline
+        gsave
+        0.1 setlinewidth
+        0 setlinecap
+        0 setlinejoin
+        [] 0 setdash
+        40 758.673 translate
+        5.66929 0 moveto
+        5.66929 0 122.331 0 122.331 0 curveto
+        125.462 0 128 -3.13106 128 -5.66929 curveto
+        128 -5.66929 128 -65.8307 128 -65.8307 curveto
+        128 -68.9618 125.462 -71.5 122.331 -71.5 curveto
+        122.331 -71.5 5.66929 -71.5 5.66929 -71.5 curveto
+        3.13106 -71.5 0 -68.9618 0 -65.8307 curveto
+        0 -65.8307 0 -5.66929 0 -5.66929 curveto
+        0 -3.13106 3.13106 0 5.66929 0 curveto
+        closepath
+        stroke
+        grestore
 
-          % Text
-          /Helvetica 15 selectfont
-          78.5 771 moveto (Asset Label) show
-          /Helvetica 9.6 selectfont
-          79 759.5 moveto (Company. Co. Ltd.) show
+        % Text
+        /Helvetica 15 selectfont
+        78.5 741 moveto (Asset Label) show
+        /Helvetica 9.6 selectfont
+        79 729.5 moveto (Company. Co. Ltd.) show
 
-          gsave
-          0.25 setgray
-          40 758 translate
-          0.05 dup scale
-          -20 rotate
-          LogoForm execform
-          grestore
+        % Fern logo
+        gsave
+        0.25 setgray
+        40 728 translate
+        0.05 dup scale
+        -20 rotate
+        LogoForm execform
+        grestore
 
      } bind
 >> def
 
 % Form for a page of labels including a logo watermark
 /PageForm
-<< /FormType 1
-   /BBox [0 0 612 792]
-   /Matrix matrix
-   /PaintProc
-     { pop
+<<  /FormType 1
+    /BBox [0 0 612 792]
+    /Matrix matrix
+    /PaintProc
+      { pop
 
         % Logo watermark
         gsave
-        0.3 setgray
-	LogoForm execform
+        0.1 setgray
+        LogoForm execform
         grestore
 
         % Grid of labels
-        10 {	% rows
-           4 {	% columns
-              LabelForm execform
-              129 0 translate		% Move to next label
-           } repeat
-           -516 -72.5 translate		% Move to next row
+        10 {     % rows
+            4 {  % columns
+                LabelForm execform
+                129 0 translate   % Move to next label
+            } repeat
+            -516 -72.5 translate  % Move to next row
         } repeat
 
      } bind
@@ -379,53 +408,185 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 % Main markup starts here
 
-/numpage 5 def
-
 /starttime realtime def
 
+/Helvetica 10 selectfont
+
 /page 1 def
-numpage {	% Iterate through pages
+/label 1 def
+/buf 50 string def
+/EOD false def
 
-   % Variable page header
-   /runtime realtime starttime sub def
-   /Helvetica 10 selectfont
-   40 800 moveto (Runtime is now ) runtime padstr mergestr show
+/__PROCESS_LABELS__ {
+    buf readline {
+        {  % Process each line
 
-   % Static page data from forms. Cached after first run.
-   PageForm execform
+            /barcodetxt exch def
 
-   % Variable barcode data overlay
-   gsave
-   10 {		% rows
-      4 {	% columns
+            % Before first label on page
+            label 1 eq {
+                40 772 moveto (About to start plotting static page data at runtime ) realtime starttime sub padstr mergestr show
+                /checkpoint realtime def
 
-         /runtime realtime starttime sub def
+                % Static page data from forms. Cached after first run.
+                PageForm execform
 
-         gsave
-         48 732 translate
-         0.6 0.6 scale
-         /barcodetxt (Runtime: ) runtime padstr mergestr def
-         0 0 moveto barcodetxt (includetext height=0.5 textsize=16
-                             textxalign=center textfont=Helvetica
-                             textxoffset=-1 textyoffset=2)
-                             /code128 /uk.co.terryburton.bwipp findresource exec
-         grestore
+                340 772 moveto (Took ) realtime checkpoint sub spadstr (ms) mergestr mergestr show
+                40 762 moveto (About to start plotting variable data at runtime ) realtime starttime sub padstr mergestr show
+                /checkpoint realtime def
+            } if
 
-         129 0 translate		% Move to next label
+            % Barcode symbol from variable data read from end of file
+            gsave
+            55 702 translate
+            label 1 sub 4 mod 129 mul label 1 sub 4 idiv 72.5 mul neg translate
+            0.6 0.6 scale
+            0 0 moveto barcodetxt (includetext height=0.5 textsize=16
+                                   textxalign=center textfont=Helvetica
+                                   textxoffset=-1 textyoffset=2)
+                                   /code128 /uk.co.terryburton.bwipp findresource exec
+            grestore
 
-      } repeat
-      -516 -72.5 translate		% Move to next row
-   } repeat
-   grestore
+            /label label 1 add def
+            currentfile cvlit buf readline not {/EOD true def} if
 
-   % Variable page footer
-   /runtime realtime starttime sub def
-   40 20 moveto (Runtime is now ) runtime padstr mergestr show
-   490 20 moveto (Page ) page 3 string cvs ( of ) numpage 3 string cvs mergestr mergestr mergestr show
+            % After last label on page
+            label 41 eq EOD or {
+                340 762 moveto (Took ) realtime checkpoint sub spadstr (ms) mergestr mergestr show
+                490 20 moveto (Page ) page 3 string cvs mergestr show
+                showpage
+                /page page 1 add def
+                /label 1 def
+            } if
 
-   showpage
+            EOD {pop exit} if
 
-   /page page 1 add def
+        } loop
+    } if
+} bind def
 
-} repeat
+currentfile cvlit
 
+% Every line after to following __PROCESS_LABELS__ is data
+
+__PROCESS_LABELS__
+mwDGEDIWcbRT
+RtwILmvVkDug
+kEdUQWFHxVFH
+eyFWpmyXkpqK
+KjZabhimpPaP
+yUPzWUKBowXc
+kwZrNvZpRMtz
+GDXVQYohrZhG
+ojhhAnxZvprn
+BUAqUvuGxKPg
+MrpOSmxlOqXZ
+cRoNMBSpfLBS
+ULOErdDHLEZg
+qiqVcLfPtCbH
+ZZCGflpryHwW
+bqTAkrLJQWKn
+GflRccAVXQDB
+lLvqrjZkRsqs
+eekPdUsVRzWW
+UHaOotpAugHu
+dVIjkiFUvbek
+FgNuokzsAMNI
+PibBIGxMZJqI
+tfQnLyIcSyWE
+FFigVeSHtErS
+hlOSwoKCaaGD
+wagGKJHSTKMv
+zXluBVUTJwua
+VrbybOJtTndE
+QWFToyatvgig
+xRfLFUwOUcJZ
+cMYqqywVvsda
+yglSWRZeGnnO
+ibJlsjqettlC
+GIJmbmrBecuL
+uygjmSgZdGdr
+ZdYpBgvBYFEe
+BbKleQYdhtpY
+SIFfKEEagHMk
+hoqEjoaueTsb
+jDaWXnpPVBxB
+zxMpuBmxHZcH
+frBRzrHWZOMY
+AJPwLHdyTksl
+eqQmiAKTHTSL
+BuqVypRExrGQ
+ZOFuAPSShNEl
+nueFKomtBChg
+cFUerlnldPSN
+XTTWZfWYOdtX
+XwGlYyClQHLo
+mKIwGKHtJwvM
+WygUKnWQyTIz
+rDCTFHPZjzvM
+ZcWKGBsEwtrB
+hMmDezNudfLq
+mDxisrfDhWwT
+URvzVhJzZhCi
+MVMcKsCmsEtT
+fSdTaiaRgAyw
+qGIGgVfTzKFP
+bfKNHhONHczI
+NosVdHxYALOZ
+dqVwChXxHwKw
+GgSCCMDMqzNK
+GjCllkwWlPVT
+RKvKoMGJIxWU
+cUpQIGZtlxNp
+LwWXCfXPTqSE
+IRdhQWTwfVpV
+FYmkNVhipqXR
+RVcjUgBgmKkn
+LDoaiCgYlcqG
+FSjRreatzqAO
+soZVlcjilWOg
+PfKSOwItyeSe
+mvvvNHkZPXac
+GwwwtemKbdmz
+ynXqiJPzQthJ
+FjNoXBfRFyvr
+ULgUzZpAndnl
+iGpUJIqFXpgl
+vdrWNwrVaEAv
+mWoUXgQsoCtp
+eHDhEuKVjPyn
+SWnDXrAIChen
+ljDVYCylHNZG
+ylafheytpdgx
+FCtBkmpYKHYo
+NIyoKLXvKoaI
+pgBCjDkqbkJe
+RCodqlSkuWlw
+uXBNPmQPQwgm
+czApVvBGNjbY
+ycDNaOwwtdRt
+LCeHZVRBpSFg
+cvLYRgZUCdSi
+fccOvsUnoqXx
+VIkLjTrdMZUX
+UVtkojsxAAWd
+zqwkcYuogAjW
+vcYDhgKZfGEr
+uyKaeNhPOxmD
+UBpqXcLXFVtD
+FbSkUriOhiiX
+CSBwiQBKZyaD
+RNZYeIwrWuvu
+XNRBjRerWhLd
+IWFMnlsporJJ
+GuAjFdJDGCfI
+ilMjjYIuqDOU
+zuxNUfWjEquG
+YazswFNsPnSA
+wwzgfLHjSxJK
+YUvpUsasxCiZ
+dkhYJTSWuiOJ
+ixmPZiLhlJUF
+yVHOBTIlverN
+yPEuwgwFgkVG
+CHEcbYeaAfho
