@@ -288,7 +288,7 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
         1 setlinecap
         0.005 setlinewidth
         0 0
-        15000 {  % Amend the number of interations to control the expense
+        1500 {  % Number of points - limit to control rendering expense
            /r rand 100 mod def
            r 1 lt { /m m1 def }
          { r 86 lt { /m m2 def }
@@ -297,6 +297,7 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
            m transform 2 copy moveto
            len len rlineto
            stroke
+           10000 {} repeat  % Add some cost to the construction
         } repeat
 	pop pop
         grestore
@@ -318,7 +319,7 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
           0 setlinecap
           0 setlinejoin
           [] 0 setdash
-          40 788.673 translate
+          40 758.673 translate
           5.66929 0 moveto
           5.66929 0 122.331 0 122.331 0 curveto
           125.462 0 128 -3.13106 128 -5.66929 curveto
@@ -334,13 +335,13 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
           % Text
           /Helvetica 15 selectfont
-          78.5 771 moveto (Asset Label) show
+          78.5 741 moveto (Asset Label) show
           /Helvetica 9.6 selectfont
-          79 759.5 moveto (Company. Co. Ltd.) show
+          79 729.5 moveto (Company. Co. Ltd.) show
 
           gsave
           0.25 setgray
-          40 758 translate
+          40 728 translate
           0.05 dup scale
           -20 rotate
           LogoForm execform
@@ -383,44 +384,35 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 /starttime realtime def
 
+/Helvetica 10 selectfont
+
 /page 1 def
 numpage {	% Iterate through pages
 
-   % Variable page header
-   /runtime realtime starttime sub def
-   /Helvetica 10 selectfont
-   40 800 moveto (Runtime is now ) runtime padstr mergestr show
-
    % Static page data from forms. Cached after first run.
+   40 772 moveto (About to start plotting static page data at runtime ) realtime starttime sub padstr mergestr show
    PageForm execform
 
    % Variable barcode data overlay
+   40 762 moveto (About to start plotting variable data at runtime ) realtime starttime sub padstr mergestr show
    gsave
    10 {		% rows
       4 {	% columns
-
-         /runtime realtime starttime sub def
-
          gsave
-         48 732 translate
+         48 702 translate
          0.6 0.6 scale
-         /barcodetxt (Runtime: ) runtime padstr mergestr def
+         /barcodetxt (Runtime: ) realtime starttime sub padstr mergestr def
          0 0 moveto barcodetxt (includetext height=0.5 textsize=16
                              textxalign=center textfont=Helvetica
                              textxoffset=-1 textyoffset=2)
                              /code128 /uk.co.terryburton.bwipp findresource exec
          grestore
-
          129 0 translate		% Move to next label
-
       } repeat
       -516 -72.5 translate		% Move to next row
    } repeat
    grestore
-
-   % Variable page footer
-   /runtime realtime starttime sub def
-   40 20 moveto (Runtime is now ) runtime padstr mergestr show
+   40 20 moveto (Finished plotting variable data at runtime ) realtime starttime sub padstr mergestr show
    490 20 moveto (Page ) page 3 string cvs ( of ) numpage 3 string cvs mergestr mergestr mergestr show
 
    showpage
