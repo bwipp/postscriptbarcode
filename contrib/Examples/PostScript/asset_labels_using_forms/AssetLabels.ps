@@ -1,614 +1,431 @@
-%!PS-Adobe-2.0
-%%Title: This script prints consecutive pages of auto-incrementing asset labels
-%%Creator: Adrian Head - adrianhead1977 [at] { gogglemail.com, yahoo.co.uk}
+%!PS
 
-% This script prints consecutive pages of auto-incrementing asset labels
-% Features of this script are:
-%    * Completely self contained script - nothing else needed
-%    * Prints aset label including text, logo and barcode
-%    * Can toggle label outline (may be used for proofing/debugging)
-%    * Prints Labels in 4x10 grid suitable for Avery sheets listed below
-%    * Prints multi-pages at once and includes page numbering
-%    * Asset numbers are auto-incrementing - across pages
-%    * Barcode is made up of 4 char prefix + 10 digit auto-inc number
-%    * The barcode is Code 128 B allowing alpha-numeric values or hybrid
-%    * Can toggle hybrid Code 128 B & C to improve barcode resiliency & scan dist
-%    * When barcode num part is Code 128 B can print assetnum as dec or hex
-%    * Script version stamped on labels and page for version control
-
-% Howto Use:
-% Modify assetnum and numpage below to suit requirments.
-% Note: make sure the assetnum is one greater than last label number from
-%  previous printjob or doesn't overlap with previous numbers! 
-% Then pipe the modified script to the printer:
-%  On  Unix-like  system you can use 
-%   lpr -S computer_name -P queuename AssetLabelPageScript.ps
-%  On  Windows  can send the file to a printer as: 
-%   copy /b AssetLabelPageScript.ps lpr1
-
-% Currently this script is written to support the following labels only:
-%   Avery     L7654     White Mini Labels     40/sheet     45.7x21.2mm
-%   Avery     L6140     Triple Bond           40/sheet     45.7x21.2mm
-%   Avery     L6145     No Peel-Tamper Proof  40/sheet     45.7x21.2mm
-% If label size needs to change - then exchange LabelOutlineForm to suit as 
-% well as look for "Specific to label size/type" comments and change the 
-% preceding command values.  Trial and error will be required.
-
-% Barcode types supported:
-% Code 128 B - encodes alpha-numeric values; therefore, supports dec & hex
-% Code 128 C - only encodes numeric values; therefore, supports only dec
-%    assetnum supports 10 digits - should be enough for most things
-%    Dec max num = 9,999,999,999; Hex max num = 1,099,511,627,775
-% Code 128 C - encodes numeric digits in less symbols; when barcode is fit
-%   to the same size as Code 128 B - bar widths are wider improving scan
-%   distance and barcode resiliency to damage, age and wear-n-tear.
-
-% This asset label script: AssetLabelPageScript.ps:
+% Demonstrating Variable Data Printing Using PostScript Forms
 %
-% Copyright (C) 2008  Adrian Head
-%
-% This program is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-%
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
-%
-% You should have received a copy of the GNU General Public License
-% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+% Based on earlier work (C) 2008 by Adrian Head
 
-% This asset label script includes:
-% Barcode Writer in Pure PostScript - Version 2008-03-08
-% http://bwipp.terryburton.co.uk
-%
-% Copyright (c) 2008 Terry Burton - tez@terryburton.co.uk
-%
-% Permission is hereby granted, free of charge, to any
-% person obtaining a copy of this software and associated
-% documentation files (the "Software"), to deal in the
-% Software without restriction, including without
-% limitation the rights to use, copy, modify, merge,
-% publish, distribute, sublicense, and/or sell copies of
-% the Software, and to permit persons to whom the Software
-% is furnished to do so, subject to the following
-% conditions:
-%
-% The above copyright notice and this permission notice
-% shall be included in all copies or substantial portions
-% of the Software.
-%
-% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-% IN THE SOFTWARE.
+% ----------------------8<---------------------------8<-------------------
+% Start of packaged BWIPP resources for Code 128
 
-%%Pages:
-%%DocumentPaperSizes: a4
-%%BoundingBox: 0 0 595 842
-%%HiResBoundingBox: 0 0 595.276 841.89
-%%LanguageLevel: 2
-%%EndComments
-%%BeginProlog
-%%EndProlog
-%%BeginSetup
-%%EndSetup
+%%BeginResource: Category uk.co.terryburton.bwipp 0.0 2016072000 35063 31440
+%%BeginData:          7 ASCII Lines
+currentfile /ASCII85Decode filter cvx exec
+P1OerF_-`n01TSk      ATDKp  010/i  AS5q%  H'  6mE      30Ia,!      KmJH23J
+i?3%mj@F*(i.@qA        VbE  +L\DA  TVm"@  r#  drB         9Ki         QP'&
+Es@:O(aA79M!@<l  s?E+O  HE  04AmA   @<ls  ?E  +OH  \<K_S  [F_  `U>D_  ?-CE
+cQG7F`MSBDD#CBB  lJ$S4  tf9  3FC    f*'E  d8  d<A  S,XoAT  D@  'Dfp)1  AWh
+2!hZ~>
+% Category/uk.co.terryburton.bwipp 0.0 2016072000
+%%EndData
+%%EndResource
 
-% ===== To edit initial asset num, total pages or label text edit here =====
+%%BeginResource: uk.co.terryburton.bwipp raiseerror 0.0 2016072000 40357 43235
+%%BeginData:          9 ASCII Lines
+currentfile /ASCII85Decode filter cvx exec
+06:]HE+*6lBl7RH      \pKT_  @s)g4  ASuU/  @:  O(e      DJ()6E      ckq9F(K
+H4@:O(eDJ+B\</:        R<2  3JD%E  a`['A  S#  n&D         fU1         I,\;
+":DfV")04f0EDfT  Q0AoE  hr  P'A6`   EcQ)  =P  !1O  1EcQ)  =DI  IBnP!  5%R,
+\;":DfRL@Df'?"D  IeoMP  'A6  `Ec    Q)=0  5b  ?FA  TDg0EZ  fI  EF_-_\  BOP
+dhCh70uEc5t@EHP  u;I?G  )'1  G<c  W Bld  isE  cQ)  =OuSV8  06  M%_@rE  uAA
+TDg:@Wc^5Df.1:G  A2#8+  Co%  qBl 7L  &A  TMd  4Ea  r[DFcn  a<  F(KH4@  :O(
+eDJ,-DH]iMmATVm        "@r#  drB 75  qB  ~>
+% uk.co.terryburton.bwipp/raiseerror 0.0 2016072000
+%%EndData
+%%EndResource
 
-/assetnum 0000000101 def	% starting asset num - for initial label
-/numpage 5 def			% total consecutive pages to print
-/numprefix (abcd) def		% barcode value prefix printed before assetnum
-/scriptver (0.3e) def		% label and/or script ver printed on label
-/labeloutline true def		% true for proof; change to false to print
-/hybridcode true def		% true for Code 128 B & C; false for B only
+%%BeginResource: uk.co.terryburton.bwipp renlinear 0.0 2016072000 83976 83521
+%%BeginData:         84 ASCII Lines
+currentfile /ASCII85Decode filter cvx exec
+06:]HE+*6lBl7RH      \pKT_  @s)g4  ASuU/  @:  O(e      DJ()6E      ckq9F(K
+H4@:O(eDJ+B\</:        R<2  3KpPE  a`['A  S#  n&D         fV"         #06M
+ %_@rEuAATDg:@W  c^5Df  .1  :GA2#   8P1l  (D  Ops  'bASu  <uD  Im6sH  \`B!
+23JD%@<-"%P!5$b  061uD  F_,  H5D    .7's  MK  GE.  Y*(RoF  (0  25>9I4  71G
+<3NF!+[0?'6us@U  aC$>9  I47  1G<  i pF<  Fd1  ?'6  us@UX:  eD  es?4NW  jQC
+F(KHV1G<H[@r-9u  ATVL.  F<G  1(C ia  0N  1G<  i]G  ][G6Ci  =?  S"a+^(  ATX
+(k06CcMFEh51BkM        =D"a  +^( AT  X(  k06  CcM         FEq         ;2Bk
+M=D"a+^(ATX(k06         CcMF  C  oH  /F  H-S  nDf        p)7A        TEqi0
+6CcMFE;/BAV^\V1  G<i]G]  \1K  A  nH* qF GKp[  1G<  i]G]\4LAnH  *qFGKp[1G<i
+]G][S,E-$g8Ou"b  "Cijc1  G]\  r GOu"    b#Df  TB"  Eas$(DfUjA  F`)83FHSF5@
+UWb^B6%p5DId6qC  i=?S"a  +^(    ATX(    k055  <>F  )Z/2@:Y6Z)  4?qV1G<rdA9
+;L@!0T,k@UX:t@<  ?4%L]   NYp0   6;)@@   qB[h  FD5  ZL!Ko5lF(f  K9@W-9tATAo
+*@;L!rOu"b#DfTB         "Ebo<   !FGL9  e1G<3  UEb  &a%EbT0"FG  L9e1G<3UEb&
+a%FDl,S!Ko5l@W-       9tATD6u  FEDG<L  ]NYp0  4Jj  ?A7]e*Bk2=  !ME_(@!0T,k
+B6@X'A9V^$FCfN4@:NjkAmoLsAWei&B6@X'A8GghFDu/>L]ESo05#E9Eb&utAor<;Df^^7Ou"b
+(F^]<$EbT0"FDu/>L]ESo05#E9Eb'3)B4uC4E,TfR!0T,kB6@X'A9V`uFD-I7Ou"b(F^]<$BOt
+mjBQT%8Ou"b(EbT&rBlkJ0@;L!rOu"b(EbT&pE+t+.Ou$NeB6/E_1OYEXDfBfFOu%NL8M=O]Ea
+s$(DfQt0@<,jrCi=?W/WqnCFCf]=@rH1%EZfI8G][G6Ci=?W/WqnCFCf]=G[YE&B5Si6AU&<A@
+;KXjDNZT71G<i]G]\4>Ch[O"+EV1>FEq;2BkM=H/WqnCFCf]=AoDR/+EV1>FCoH/FHS5=1G<i]
+G]\"@H=\4@AU&<<BmO?R09S+EFCf]=G].2+F(KG9FCf]=G].2+F(KHV09S+EFCf]=H#I;,F(KG
+9FCf]=H#I;,F(KHV09S+EFCf]=B45b#+EV1>FD#$$F-82>1G<0QFED)=F<G".FED)=FHS5=1G<
+3UEb&a%@rH1%EZeh0Eb&a%@rH1%Efr#;1G<3G@r#^tDfor.@rH1%EZeh"@r#^tDfor.@rH1%Ef
+r#;1G<H[CNFH8ART*lBl7^-E,oMuA<JU/1G<rdA9;K-GA1T0BTb$31G<3GEcPT1Bl>,'@<-BsF
+D5ZV09S+EF)YPtATD4$Bl>,8E+*6fEaa'(Diuc:1G<3UEb&a%Ch74#+C]80A7]dtAS-%I09S+E
+@W-9tATDg*B4uB0@W-9tATDg*B4uCM09S+E@W-9tATDm2E$/V.Eb&a%FDl,]09S+E@W-9tATD6
+uFEDG<+C]80A7]djDfg)>D3?Q81G<3UEb&a%GA1T0BHUc&Eb&a%GA1T0BTb$31G<B`@<,mpAS-
+ %'Df[%6F^]<$Ch74#E,Tf\09S+EB6@X'A8GghFEqhDF!,+<@<,mpAS-%0E,Tf\09S+EB6@X'A
+9)BsBQS33F!,+<@<,n!BkM+$E,Tf\09S+EB6@X'A9)BsBQSN=Df[%6F^]<$EbT0"FEqhDF-82>
+1G<B`@<,n&Bk2=!+D5h*Eb'B.A9;LJ09S+EB6@X'A8#OgB4uB0B6@X'A8#OgB4uCM09S+EB6@X
+'A8#OgB4uB0B6@X'A8#OgB4uCM09S+EB6%]sA8l6*B6%]sA8l7G09S,(EbT&rBln]bW\7msF*)
+,4Ch7X.FEM2-P$hpCBk1anBnubP4d#qpP"o_/Bln3#FE2)?L]N;3OuJ0uOr9EpH]gR@P#RTeP"
+g`5P!+.FB6%]sAnc?0AmoLsAWeitP#Qjm<-)MiL]E53P$!lVL]rS9Or9EZH]gR@P#RTeP"^4c3
+0H^nWKI7=3eJ&`P#-KYB6%]sAnc?0AmoLsAWej45^eepI?I02@<-BsFD5ZV30H^nD0'Z)@qB[h
+FD5ZV30H^nD3Apd05#<>A7fOt+D,%uF(LLjI?IQXP#Q.5CNFH8ART*lEc5T5ASuX-@V'SC4aUg
+^Bk1giFF/lF!!!"IH\t!)R@8Pe<IK4.DJO<4Eb/ZiI?ITCEbT&rBln]Z3eJ&`Oo]uo<%hs'CNF
+H8ART,45*@]T@UX:u+EM"5P%'4JOo^@?P#@GLOu"b9M?!VV!0T,kD..[&L]ESoL]E53F(03R@Y
+b&J!Jgf?;MYC;Ckr.UWI$:4P!5$bBnuhRC5;kQ4aShm+EM"5+DI!3@UX:t@<?4%P&+T9EcPT1B
+lB06L]NY>Ou%/gF!,1[98ES2D0mpL+C]#*+DHW5P#@H9Le*\FOu"b$+Cp90Ou@QJ!Ko5lGp$R*
+F!,1Q!g6HE98H-%Cm$S-G9CE=Bl7^-E,oMuA<NpT1Lad5F!,1Q!g6Gc+D;m-+F,)R+C1.TBHVS
+`!Gu7iBTc2=05Y-BBHUt2H'/2k1OYEcI=#F3EcW@;L]W`;M#WW_I?ITYHS8nPF(025Bp),1E+*
+6fEaa'(Dj"pXE+*6fEaa'(Dj%)U!KmJH1OYEd06eUa+CpW9Ou%NL8<Q`2.$C]VBk2=!L]ETTHZ
+s17FD-J$P&,B+2M_BsMg^afB6%]sAnc@6P%^"+B6%]sA8l7=!0V2GP"o_/Bln3#FE2)?Le*=%O
+uJOuOoUY/OoU:>Or9EpH]gR@P#RTeB6%]sA8l7G5*@g.P!4[%L]E55P$!M?L]C_:!KpQJ(k%QH
+05#<>A8PasEbTc]5*@^X!/LVfEbT'$@<?O(G`o.k&<]5?&<]4iEbT'$@<?O(G`lEsBTfK\30G(
+jEbT'$@<?O(G`k%L(m9#t!Jg_gEbT'$@<?O(G`k"A!dg(oOuSU)MDlp%XHHD,OuSU)L]NZNH\_
+Zb:j\!!I=$eMI?ITYHZs17FD-I1P!+/TM1'`63/@QtAp][PI=%,GI?ITYP#Zpn<IL$0I?K4qEb
+T'$@<?O(G`l!gFbg']BTe::30G(jEbT'$@<?O(G`k%L(m9#iP#O)UATV?uH"1c/DfU1X@;^@#D
+es?4P!5$b@;^@#Des?4P%'4OP!+/P#Ws4P+<VdL5)9K-V32^Z3/@TDDL#`1Ci=?WH'0qG5C8+b
+s,o9gP"Ch-I?IQ<DL#`1Ci=?W@Yb;Q4aW1r4<Pah+<VdL+?kSgP,4<ZOuS6u@;^@#Des?4P'N3
+GP!=;J!<83?I?I0bPC8TnI?G)'1QlZcDfTB"Ebo<!FHUNNDfTB"Eais/FDl#ZDN\d[+C]80A7]
+dtAS-%I!FftfA7]e%BkM+$Oo^@=P(e\lD..[&+C]80A7]djDfg)>D3=p/DfTB"Ecc5=Oo^`"GT
+^I6Eb&a%Ch74#Oo]$1Eb&a%EbT0"FHQZfDMS:UKno_G@<cH.@W-9tATD6uFEDG<Oo]$1Eb&a%F
+Dl,]!Kq>`Kp!3\@:O(cEc6)<A7KOoDfUjAF`)83FHUKfP"oIp@r#^tDfor.@rH1%EZfF7FCB'4
+@rH1%EfrbP9mr1(F(fK9@W-9tATE-\:1A-^A7]dkDes?4NWjQCF(KHVD0o`1Eb&a%@rH1%EZfF
+7FCB'4@rH1%Eda*M@W-9tATE!/A9;LJS!'\49mr1(P"pf5P*ocfEas$(DfUjAF`)83FHUKf@UX
+:eDes?4+EM+9@;^@#Des?4I?IQ=@<-F9OuS9tP&5Q/!g7\hDj$TQCPVtR5*CV_VgWoTFa]EQI?
+I0b9lsrkFCT6*DfUjAF`)83FHUKfFCf]=@rH1%EZfF7FCB'4@rH1%Eda*MBl7EsF_#'*AU&<D+
+EV1>FEh51BkM=D"a+^(ATX(uFCf]=H!tN'B5W_5F`)83FHSeM"CZ+gFCf]=NW>5*Op$+bF,0gZ
+1G<?XNW>4uFEhnSH[V&KL]W_WF-:C'5%\\qD3ApdL]W_W06<:?Ou"b'DN[2H1QmcHH]iN7Fa]E
+QP&$5RI?I0MHZWhDFCoH/F<G[:G]\"@H=`8"@;L%-AU&<W!0TKl06DG\+Bot1G]\:g!0U!%I?I
+0MP"ArB1G<ikFE/LGG]]*XP,4<tL]E53FEhnj@Yb&JWI'dfFEhnj5*AQ\F*)GY",Hu@LQZn1P"
+:"J06D8WEZee,FED)=FHSG.P#ZUFFE3ORL]ET$H\_ZMH]h-eDhnCL!0V,X!AJ+oCia0N&X%3k"
+Gd)ALQZeCFcpm19p-VP:gn'UFB!O)AWgGJOruDS@;0V$<-`FoP"UT4P!+5?AmoLsAUT_AOruDV
+FE2;8AQNSVFD-hFOp$,p+>6Z8Ec5`)=(u2eBTc#E!g5Ht!0TO/+>63&DKJT]FE2)?P"UrsOuSV
+@P!5$gP&-9^F)c5BOo]uo<.0p006CcMFCB6#ASuUQ5*@]TFCf]=GA1T0BHVD<FE3PAP'(kfFE3
+ORL]N[<FCf]=B45b#P&-9^Ou"b5AU&<AE,Te?FCf]=G].2+F(KG9GT_*>G]\.DA9;LJWJCV=2N
+e*(1N[2QFEh51BkM=D"DhX]FHSe606CcMFEhbCF!,R9G]\1KAnH*qFHSG.P#QO7G]\1=Ch[O"N
+WjH;B4uCM4aSi(AU&<AE,Te?GT_*>G]\1KAnH*qFHWVFAU&<@Bk2=!P,XU#I?IQOAU&<A@;KXj
+DN4s?AnGjjAos2!HS9JPG]\1LDf[%CAU&<@Bk2=!+EV1>FEh_9AohO*Oo^_`Ou%NL<-2\rFEh5
+1BkM=D#]F<eEbT0"FHSe606CcMFEhbCF!,]MFCf]=G].2+F(KHV!Ko6eP#QO7G]\1=Ch[O"NX'
+<AF*),.H'1=4AU&<@Bk2=!+F'&]Op$+bFCf]=G]7SBL]ESo06CcMFD#$$F!,]MFCf]=GA1T0BT
+f?:F*)Gc@Yb&JWKK0&1OYEc06CcMFEqhDF!,R9G]\4LAnH*qF<G[:G][A8@qBP"Oo^@>Oo^_`O
+u%2kG]\4>Ch[O"NWij#Dg#]T4aSi(AU&<BE,Te?FCf]=H#I;,F(KG9D..[&Oo^@>Oo^_%I?IQO
+AU&<B@;KXjDN4p2ASuU$EfrS406CcMFEqhDF!,R9G]\4LAnH*qF<GF/G\A4AAU&<*F(8d!FHWV
+Z!g5I)!Ko6eP#QO7G]\1LDf[%CAU&<BE,Tf\CNO-4FD#$$F,0g<F*)Gc$@S(;I?IQBF^]<$GA(
+]4ATMg!@qC"E5<o2KP+-*,@<,mpAS-%'Df^^7P&5Q/DeF3$Eb&utAor!1F-:ERF^]<$GA1T0BT
+`C/F^]<$Ch74#H#R\C+D5h*Eb'B.A9;L@!g5I)!Kq52F^]<$GA1T0BTd7GF^]<$BOtmjBQT(0O
+uAJWB6@X'A9V`uFD)e0F^]<$BOtmjBQT(0OuAJWP,E_k<+g>^Eb'3)B4uC+Df^^7P&5Q/DeF3$
+Eb'3)B4uC+Df[%GOo]3<@<,n&Bk2=!P,W):@<,n!BkM+$H#R\C+D5h*Eb&ipBkM+$L]W_tOo^_
+]B6@X'A9V`uFD)e0F^]<$BOtmjBQT(0OuAJWB6@X'A9V`uFD-hTB6@X'A8#OgB4uCCrfT1&Kp&
+?^P#Qjm<0Bt=3IR&#Ou"b3ASu<uDIm6sOuSV806M%_@rEuAATDg:@Wc^5Df.1:GA2#8+Co%qBl
+7L&ATMd4Ear[DFcna<F(KH4@:O(eDJ,-DH]iMmATVm"@r#drB75qB~>
+% uk.co.terryburton.bwipp/renlinear 0.0 2016072000
+%%EndData
+%%EndResource
 
-/LabelTextForm
+%%BeginResource: uk.co.terryburton.bwipp code128 0.0 2016072000 117321 123795
+%%BeginData:        120 ASCII Lines
+currentfile /ASCII85Decode filter cvx exec
+06:]HE+*6lBl7RH      \pKT_  @s)g4  ASuU/  @:  O(e      DJ()6E      ckq9F(K
+H4@:O(eDJ+B\</:        R<2  3KpPE  a`['A  S#  n&D         fV"         #06M
+ %_@rEuAATDg:@W  c^5Df  .1  :GA2#   8P1l  (D  OuP  +8ASu  <uD  Im6sO  uP+;
+CG'+8/p(ZFEd;,:  Ecc5;  /n0  $=E    ,^uo  P'  E-!  04Sp2A  MG  r"H\`B  !23
+JD%DfBf4Df0WZ5*  @]T@U  X:e  De*  F B5*  @]T  A8c  @-A9)+  &+  D,%uF(  LLj
+055<6Cis9"FCf]=  +D,%u  F(L  Lj0 6C  cM  FCo  H/F  HOV,1G  <i  ]G]\"@  H=_
+m>Ou"b5AU&<ADe<        U&AT  W_. Ou  "b  5AU  &<B         De<         U&AT
+Wb(Ou"b)ASGdjFG         Ks\1  G  <<  W@  rGm  lDJ        +t4@        <H[1O
+u"b3@<Wi+@;L!rO  u"b1@<  -F#  +  D,% uF (LLj  05t  ??F(Js$@j#  AlCia0N1N.5
+SBl@m1P-6N[FE2)  5B68E<  AWf  3 'L]N    YrOp  u>K  FD5Z2F*j(N  AmoLsAWf3'P
+!FGY<0B5(@ZmRN0  oc8tP)  XR(    F_-_    !H]f  tD5  *C&O5*@^MH  ]ft&EckrV1O
+YEdI?J0)*g/N:Df  Bf4Df   0WZ5   *@^MP   #Q@=  FD5  Z2F*j'+I?I  /TFCf]=AoDR
+/+EV1>FCoH/FHS5         =1G<i   ]G]\"  @H=\4  @AU  &<<BmO?R09  S+EFCf]=G].
+2+F(KG9FCf]=G].       2+F(KHV  09S+EF  Cf]=H  #I;  ,F(KG9FCf]  =H#I;,F(KHV
+09S+EBOtmjBQPA1ASGdjFHS;?1N6cCF(K\OD0'>4@UX:eDe*FB@ZmRN1G<L!!0T-I@<,jrA7^+
+J!FCqKH]g@*F(^Y"C6CcDH'2WOOo^@>Oo[4NP!5$bP')pIL]E55P"_#iD0'?Q5&,lSP,XU.P'E
+-LP%'4LP,X6>P!5%&I=%,:D0'?Q5&-6EP'N4"C6ATNC6CcD1G<3GEas#uAKYi2B8?P&P"_#pP!
+FGY<IL$AI?IP_@UX:nASrW"@<,jrA7^p5Ou"b4FCC"*Ou"b4FCL(*Ou"b4FCU.*Ou"b4G@?=*O
+u"b4G@HC*Ou"b4G@QI*Ou"b'DD?tCOu"b'DDI%COu"b'DDR+COu"b'DD[1COu"b4Aork%Ou"b4
+FE!'.Ou"b-CLN%jOu"b-CL`1kOu"b$BOPpu@;p91>9I.++G_/#!\c<6+Bsj,+cZRHNWLmh>p*@
+3!@!O),)u^Y10l#,NWCAb!@*U+0JcuW>E/_0NWCDc!\cH:+Bsj,-&r!PNWLml>p*@3!@Eg--B8
+-]2I.G0NWCMf!@Nm/0K38[>DO\`.#n?_3*dY2Lae-/NWLmp>p*@3!@j*1.ZOQb0O5f*NWCYj!@
+s030elrV>E/_8NWC\k!\lH9+Bsj,/WKi`NWLpk>p*@3!A9B5/rfuf1gM5.NWCen!ABH70f<5Z>
+E/_<NWCho!\lT=+Bsj,0oc8hNWLpo>p*@3!A]Z916)Dj3*dY2NWCqr!Af`;0f`M^>E/_@NWCts
+!\uH8+Bsj,23%\pNWLsj>p*@3!B,r=2N@ho10l#,NWD)!!B6#?1,E2Y>E/_DNWD,"!\uT<+Bsj
+,3K=,#NWLsn>p*@3!BQ5A3fX7s2I.G0NWD5%!BZ;C1,iJ]>E/_HNWD8&!\u`@+Bsj,4cTP+NWL
+sr>p*@3!BuME5)o\#0O5f*NWDA)!C)SG1GN/X>E/_LNWDD*!])T;+Bsj,6&kt3NWM!m>p*@3!C
+DeI6B2+'1gM5.NWDM-!CMkK1GrG\>E/_PNWDP.!])`?+Bsj,7?.C;NWM!q>p*@3!Ci(M7ZIO+3
+*dY2NWDY1!Cr.O1HA_`>E/_TNWD\2!]2T:+Bsj,8WEgCNWM$l>p*@3!D8@Q8r`s010l#,NWDe5
+!DAFS1c&D[>E/_XNWDh6!]2`>+Bsj,9o]6KNWM$p>p*@3!D\XU:6#B42I.G0NWDq9!De^W1cJ\
+_>E/_\NWDt:!]2lB+Bsj,;2tZSNWM$t>p*@3!E+pY;N:f90O5f*NWE(=!E5![2)/AZ>E/_`NWE
++>!];`=+Bsj,<K7)[NWM'o>p*@3!EP3]<fR5=1gM5.NWE4A!EY9_2)SY^>E/_dNWE7B!];lA+B
+sj,=cNMcNWM's>p*@3!EtKa>)iYA3*dY2NWE@E!F(Qc2*"qb>DQO?>`JkD0O5f*NWEFG!F:]e2
+DJJ[>E/_jNWEIH!]Df>+Bsj,?]G.oNWM*p>p*@-!0.(fNWM*q>p*@-!KI1hNWM*r>p*@-!fd:j
+NWM*s>p*@-"-*ClNWM*t>p*@-"HELnNWM*u>p*@-"c`UpNWM+!>p*@-#*&^rNWM-n>p*@-#EAg
+tNWM-o>p*@-#`\q!NWM-p>p*@-$'#%#NWM-q>p*@-$B>.%NWM-r>p*@-$]Y7'NWM-s>p*@-%#t
+@)NWM-t>p*@-%?:I+NWM-u>p*@-%ZUR-NWM.!>p*@-%up[/NWM.">p*@-&<6d1NWM0o>p*@-&W
+Qm3NWM0p>p*@-&rm!5NWM0q>p*@-'93*7NWM0r>p*@-'TN39NWM0s>p*@-'oi<;NWM0t>p*@-(
+6/E=NWM0u>p*@-(QJN?NWM1!>p*@-(leWANWM1">p*@-)3+`CNWM1#>p*@-)NFiENWM3p>p*@-
+)iarGNWM3q>p*@-*0(&INWM3r>p*@-*KC/KNWM3s>p*@-*f^8MNWM3t>p*@-+,GE,!]`,D+Bot
+#DDNDIDDR:S3At.c>9INq1*C1H16)Dr2dIP1+EM.:+EM.:NWM4#>p*>oF*D+:F*D,S!]`8H+Bo
+t0G@D\,DDWJWG@D\#+Bot#DDWJWG@;V8G@;V"+Bot#DD<8GDD<8GDD<8>+Bot0FC?;5FC?;5FC
+?:t+Bot0FCHA6FCHA6FCH@u+Bot0FCQG7FCQG7FCQG!+Bot0FDr@DFDr@DFDr@.+C1-d04S[(E
+ctl-F!+\CD3?c4D3?c4D3?b^Ou%moL]M"!@<-3nE-%1OL]N[<HS9)r5*@]TASu"!+Cf(nEc#6(
+F!,1[99M)e!/LZ3!dcS8P!5$bASu"!+DR'4OuSW.06;5UBl7R*H#R>X4aVtbP"U4d<+BTMEctl
+-F!,4\99MJQP'DD<8:?Xl06:]H@3B&n@<-O"CibC4P"Uro06:]H@N]/o@<-O"CibC5P"Uro06:
+]H@j#8p@<-O"CibC6P"UroF(KH%+Dbh%+EM+9@3BW8@ZjBIG]RG<@3BB%@j#i(FC?;5G@Qe/P'
+D%ZFCHA/CLJ?,ATVB(F*D,W99OO@ATVB(ChmN'F(KH&+EMa8P"Us_F(KH'+Dbh%+EM+9@j#i:@
+?O9HG]RG<@j#T'@j#i(FCQG7G@H_.P'D"UGC(uSDI[TqBl7RD"*.goOu%NL<+TrWDe*R"B9!(7
+@<[ktHS8lQF!+q#Ebo<)OpR:-0564BOu"b+L]ESoHYFU3@<-0qDN[/0P!FGY<%ha*+C\c"@rGm
+h+DHW4Oo^@@P"_#iOu$TlF!,3?@s=)\052PCL]ikAOu"b++DQ]5Oo^_%I?J.p@s;u:@s<!M!,@
+ZjOu"b5AU&<W!0T-dP#Q"1@rGmlDJ+t4@<H[1P!+.FAo;+%@;L!-4?SW,7SZ<*Ao9>`"@c-R11
+kDZNW_gH6Si=l1QDT3:.mlhCLN5+9MS5JChmN'5!G,c05YcC+C\c"Ch7LI$'I(tFCf]=+C\c"C
+h7LIV33VfBnubP1G<L!!0T-bBcpknEbo<)P!+/T5^eep04S[(EZeh"Eas#uAKY]M99M)QAU&;>
+C*7#"@<.NUE+*d.AS,gi+Cf(nEen%b4d#q^+C\c"Ch7L?"HoaIAs*:D@UX:eDe*E%BnueQ!Kp*
+3?BT/P04S[(EZet3@s29sF!+q#Eas#uAKY]C!KmJ>"HlHA99M)QAU&;>C5r<;P'J]p+DHW7Oo^
+_%I=!V]+DHW4Oo^_%I?ITYP#Q:>B-:q3@q]:kP'AWo+DHW4Oo^_%05;VEL]NY>Ou%NLAM7nAB-
+;&4B8?P&P"_#p05YcCCh7K,D0'?Q@ZiN#FCf]=+EV1>FGKp3P"_#p05boL;aDO1+Dl14Ch7L2L
+]DjdK89M5Ou"b/F_sQ5+Bot*F(]<#DL70>I?K5=!*taDD0'?+AT!;)P,X9;L]DcTBp(ZC1Mq2G
++DI!3L]ET1HYmh:+DI!3L&cae8pbGuD+-`5Bcq;9D+-`5BnueQ!Kp*3!KmJHG^XpVF_t&C+DDs
+9F_t&C+DHW4Oo^_=L]NY>P'DD<<IL$0I?I,SARQ]n@;L!rOu"b.F(]T3E$/@-?'7""!/LYmF(]
+<#DMS=VWI$:4P!5$b04Q,AF(ZV0P"UroARQ]kL&caeAs0unE+=\(P"Ll?HY$W4+Du==;aGhY+D
+u==76u?b<G@UhOuR0=!GumjCh7LI4aVteI=$bRI?ITnApZ1JF(]T3E$/@-D0'?3D/bX>P'(AS1
+a$(e1OXU'D0'?3D/^V%+Dl14FDYu[!g7\<DDWJJDDWJAOu"b&@3B,iP&QR?I?ITYP#O)OF(]T3
+E$/@-D0'?3D/bX>P'(8j!0Ts$@u,Vt"FYW,I?IT9Ou%NL82"h$B-;&4B68!0Ou"b.F(]<#DBNe
+;B9H_e1G<WgD0'c.EdKHWL]ESo06;pLOu"b1P!5$bHZ1*EF(]<#DN[V=P!FGY<,H\h+E3K:OuR
+MoFCUItP$jGlH]iN75^eepAo9>d4aV7+!g7;S!0TKl0687WL]NY>Ou%N5P!FGY<IL$005_nML]
+NY>Ou"b4+EN>>Oo^_%05r%QL]NY>Ou%NLASrW3I?G)'1G<<W@ps^,F(KH%P!5%%@s<!W5&-6EP
+'AWp+DQ]5Oo^_%I?G)'1G<<W@q'd-F(KH&P!5%%@s<!W5&-6EP'AWp+DQ]5Oo^_%I?G)'1G<<W
+@q0kK30LHu@<-BsH$"=NAWgnWF(KH'P!5%%I=%+YP')R7P,XU.LbP!kL^K;]Oo]uo<F^5oP!3W
+D5*C.DC*78I!KmJH1OYDrOu"b"DJsW+H]g@0ATV@D5*B<:5'(:W@Zip<@$5Jl"FZFCOu"b#DJs
+W*H]g@0ATVCE5*B<:5'(:W@?Ng;@$5Jl"FZFCOu"b/AU&<*DJsW++Bot*F(^YFH\_ZMP(SK:%p
+b>S05b?GFCK-+FC?:r+Dl14P%&co!.C#_L*mL;Ou$rrB9H_[!KsF<s+gZ%056S5Ou$rrB-:oO9
+4;^VFCKS>DIn'7@;^"*@N]B@!0VSTHZ!D>FCB'*FCHA,+Dtb8FCB'*FCHA,L]NY>P"UT3Oo^_j
+I?ITIF(ZV0P"T8%DffE7+Dtb8FCK-+FC?;+L]ET_I=#jCG][D4DffD1Bcq;)G][D4DffD1Bnue
+Q!Kp*3!KmJHG^Y`TI?I,S@:Ee[DfTDuH]g@+AU&<*DJsW+P!5%%P!3bpG][D4DffEN5*AR%Apo
+gPOu"b#@V'.iEb/[+OuR>jG][D4DffEN5*AR%5&OqVFCB'*FCLCsP"UsMI?G)'1G<6^F!+q#Ea
+s#uAWgMY!g7AU"-N\J$'I(tC5;kQ1Mq2GCh7L?!0U0*L]D=8D0'c.Ed`:js+p]'P#X/QF_u2_5
+*@]TDI[?gEc[C-Ou%H%F(]<#DMS:U4aV6l@N]6"@pq$#F(KHR"ES-r@ZiO15^eepD0'?+AT!;*
+P!*]*D0(L7P!+s2HZO:=+D#G#@4u,3ATWq8F(KH'Ou&7dI?IQIF_u2U"HlB(F*(n7ASu!d04T'
+7FH-KFATVFF1Qk"OP#R5;@:Ee[DfTDuHQ[BO@3B-!@pq$#F(KHR"ES-r@?NF05^eepF*(k6ASu
+!d04T'7FH-KFATVCE1Qk"OP%?:\L]ESoHYFU>F(]<#DN[/0P!FGY<,!ImF_u2@@ra5?F_u2_5*
+@]TDI[?gEc[C-Ou%GpF(KHR"ES-r@?Nc`F(KHR"ES-r@Zim;Ec-#:F,0s^8s0<oF(ZV0P"TD)0
+p6C:"FG$/D0(L7P%odQP!+/5G@Mb*F(KHR"ES-r@?Nd#ASu!dI=!)JDI[.(P#X/FF(KHR"ES-r
+A!/X25^durF(ZV0P"T;+ATWq8F(KH%P!+/'DI[+'HQZm;@q'kL<A/&/BnueQ!Ko6[G@Mb*F(KH
+R"ES-r@?Nd#ASu!dI=!)JDI[.(P#X/FF(KHR"ES-rA!/X25^eeqI?IQ>F(KHR"ES-r@ZilkF(Z
+V0P"T5$DffHO"FFi*D0'?+AT!;)P,XUVHYJ9:Oo]$$AS,k$ARTp.F(TM:ASu!e+Dl14+DI!3AS
+u!d052PCL]NY>Ou&7dI?IQXP#QLH@3B-!@q%*$F(KHR"ES-r@?NF05^eep@rl4'NWaE7FCC=qD
+0'>4Bp)+uDJsW*Op$,G+Dl14Ch7L?!KsFFAp\6J!KmIl@V'.iEb/^,+EM.:+D#G#@3BE.B-:oO
+94`!N@P;F<BnueQ!Ko7%5^eepI?IQNG@D\+DI[*.@rl4'NWaE7FCLChP!FGY<+Bu\FH-KFATVF
+F4`5CZF,0m\As*:DBcphnAS,k$AR^!/F*D%8ASu!f04T'7FH-KFATV@D1Qk"OP#QLH@N]6"@q.
+0%F(KHR"ES-r@ZiO15^eep@rl4'NWaE7FCC=qHYmh:+DI!3ASu!d052PCL]NY>Ou&7dI?IQ>F(
+KHR"ES-r@Zim$D0'>4Bp),#DI[-/Bcq,G!KmJH1Qk"OP#Pq4ATWq8F(KH'P!+//F(ZV0P"TD)0
+p4\HAo9=GASu!f052PCL]NY>Ou%N5D0'>4BnuhR9P&*O@kVO=BnuhR!Ko6eP#[Z1I?IQm5^ef,
+I?J.p@s;u:@s<!M!,@ZjOu%NL<%ha*F!,4R!g3SI$'I9(!+U4oP'N3H04T'GD'3>4F,0gZ99M)
+e!JgbkL]N[<HS9)r5*@]T@rld0+CfJ8D'3>4F!,1[950Q*Oo^_%I?I,S@rld0+CfJ8D2;hfC6C
+A_GB4mA+CfJ8D3B-RGB4mAL]NY>F(KH%+EMXDP"Us_04f$2F!+\I"u7ng1,:VF"u7qh0etME"u
+7qh1,:SE"u.kf1,:YG"u.kf1GU_G"u.ng1,:VF"u.kg1,1SF"u.kg1GLYF"u.nh1,1PE"u7qg1
+,1SF"u7qg1GLYF"u7th1,1PE"u.hf1,C\G"u.kg0f(SF"u.kg1,CYF"u.hg1,:VF"u.kh0etME
+"u.kh1,:SE"u7qi1,1MD"u7qg0f(SF"u7qg1,CYF"u7nh1,1PE"u7qi0ekGD"u@th0f(PE"u@t
+g1,:VF"uA"h0etME"uA"h1,:SE"u@th1,1PE"uA"i0ekGD"uA"i1,1MD"u7ng0etPF"u7ng1GU
+\F"u7ti0etJD"u.he1GUbH"u.ng0etPF"u.ng1GU\F"u.hf1GL\G"u.nh0ekJE"u.nh1GLVE"u
+7nf1GL\G"u7th0ekJE"u7th1GLVE"u.hf0f(VG"u.hf1G^bG"u.nh0f(PE"u.hg0etPF"u.hg1
+GU\F"u.ni0etJD"u@ti0etJD"u7nf1G^bG"u7th0f(PE"u7nh0ekJE"u7nh1GLVE"u7nh0f(PE
+"u@tg0etPF"u@tg1GU\F"uA%i0etJD"u@th0ekJE"u@th1GLVE"uA%j0ekDC"u@tj0ekDC"u7q
+g1bg_F"uJ+j0ekDC"u.he1,:\H"u.he1bphH"u.kf0etSG"u.kf1bpeG"u.qh0etME"u.qh1,:
+SE"u.hf1,1VG"u.hf1bgbG"u.kg0ekMF"u.kg1bg_F"u.qi0ekGD"u.qi1,1MD"u8"i1,1MD"u
+7qg0ekMF"uJ%j0ekDC"u8"i0ekGD"u.nj0ekDC"u.he1,LbH"u.kf0f1YG"u.kf1,L_G"u.hh1
+,1PE"u.ki0ekGD"u.ki1,1MD"uJ%h1,1PE"uJ(i0ekGD"uJ(i1,1MD"u7ng0f1VF"u7ni0etJD
+"uJ%i0etJD"u.he0f1\H"u.he1GghH"u.ng0f1VF"u.hh0ekJE"u.hh1GLVE"uJ%h0ekJE"uJ%
+h1GLVE"u.hg0f1VF"u.hh0f(PE"u@tg0f1VF"uJ%h0f(PE"u7nf1bgbG"u7nf1,1VG"u7nf1,C
+\G#;S(k0ekC<?'6usF(025@s<!W@Yb5OCkr+T!Ks:B1Pc$e!Fp=pP%'4JP,Wd]Bp(ZC1NR#H+D
+HW9P&+]I@ric&GB4m@P"Us2P'MJ=83B!fEb0,A061WACh[cu@<+#B@WNYr+EM"5H\aA=WI9q$>
+q]Z#F!+[0F(03R@Yb&J!Jgf?;L<(gBkM+$I?K4g04JC3+Bot0@WR]AL]NY>L]W`;H\_ZMP(R$n
+FEhmM>9I,mFCf]=+EV1>FEh_9AohO*+EV1>FEqe:AohO*+EV1>FCoH/F<G[:G]\"@H=\4)+C-X
+BAU&<A@;KXjDN4p2ASuU$E\D?MF<GL@FD5Z2F!*Y1+CoD.FC]E#GEQnu061WACh[cu@<.N1Ou[
+rR%[&V$@rGmh0et_O30If*F_`U>D_?-CEcQG7F`MSBDD#CBBlJ#6A7]@eDImj"F)Q2A@qCgGOu
+Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
+% uk.co.terryburton.bwipp/code128 0.0 2016072000
+%%EndData
+%%EndResource
+
+% End of packaged BWIPP resources for Code 128
+% ----------------------8<---------------------------8<-------------------
+
+% Trivial helper functions
+
+/mergestr {  % Concat strings
+    2 copy length exch length add string dup dup
+    4 3 roll 4 index length exch putinterval 3 1 roll exch
+    0 exch putinterval
+} bind def
+
+/padstr { % Zero-pad a number
+   (00000000) 8 string copy dup
+   3 2 roll 10 8 string cvrs dup length
+   8 exch sub exch putinterval
+} bind def
+
+% ----------------------8<---------------------------8<-------------------
+
+% Form definitions
+
+% Form for an expensive to compute logo
+/LogoForm
 << /FormType 1
-   /BBox [0 0 612 792]			% No idea - seems to work
-   /Matrix [1 0 0 1 0 0]
+   /BBox [0 0 612 792]
+   /Matrix matrix
    /PaintProc
      { pop
-       % Draw Text on Label
-       gsave
-       /Helvetica findfont 15 scalefont setfont
-       78.5 771 moveto (Asset Label) show	% Specific to label size
-       /Helvetica findfont 9.6 scalefont setfont
-       79 759.5 moveto (Company. Co. Ltd.) show %Specific to label size
-       /Helvetica findfont 4.5 scalefont setfont
-       152.5 719.5 moveto scriptver show	% Specific to label size
-       grestore
-     } bind
->> def
 
-% ======= No need to edit below this line (except if page changes) =========
-
-% ================= Code 128 Barcode Generation Code Begin =================
-% Routines from http://postscriptbarcode.googlecode.com/svn/trunk/barcode.ps
-
-% --BEGIN ENCODER code128--
-% --DESC: Code 128
-% --EXAM: ^104^102Count^0990123456789^101!
-% --EXOP: includetext
-% --RNDR: renlinear
-/code128 {
-
-    0 begin                  % Confine variables to local scope
-
-    /options exch def        % We are given an option string
-    /useropts options def
-    /barcode exch def        % We are given a barcode string
-
-    /includetext false def    % Enable/disable text
-    /textfont /Courier def
-    /textsize 10 def
-    /textyoffset -7 def
-    /height 1 def
-    
-    % Parse the input options
-    options {
-        token false eq {exit} if dup length string cvs (=) search
-        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-    } loop
-    
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
-    
-    % Create an array containing the character mappings
-    /encs
-    [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
-      (122312) (132212) (221213) (221312) (231212) (112232) (122132)
-      (122231) (113222) (123122) (123221) (223211) (221132) (221231)
-      (213212) (223112) (312131) (311222) (321122) (321221) (312212)
-      (322112) (322211) (212123) (212321) (232121) (111323) (131123)
-      (131321) (112313) (132113) (132311) (211313) (231113) (231311)
-      (112133) (112331) (132131) (113123) (113321) (133121) (313121)
-      (211331) (231131) (213113) (213311) (213131) (311123) (311321)
-      (331121) (312113) (312311) (332111) (314111) (221411) (431111)
-      (111224) (111422) (121124) (121421) (141122) (141221) (112214)
-      (112412) (122114) (122411) (142112) (142211) (241211) (221114)
-      (413111) (241112) (134111) (111242) (121142) (121241) (114212)
-      (124112) (124211) (411212) (421112) (421211) (212141) (214121)
-      (412121) (111143) (111341) (131141) (114113) (114311) (411113)
-      (411311) (113141) (114131) (311141) (411131) (211412) (211214)
-      (211232) (2331112)
-    ] def
-
-    % Create a string of the available characters for alphabets A and B
-    /barchars ( !"#$%&'\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~) def
-    /barlen barcode length def    % Length of the code
-    /sbs barlen 6 mul string def  % sbs is 6 times length of barcode
-    /txt barlen array def
-
-    /mode -1 def         % A=0, B=1, C=2
-    /checksum barcode 1 3 getinterval cvi def  % Initialise the checksum
-
-    /i 0 def /j 0 def
-    { % loop
-        i barlen eq {exit} if
-        barcode i 1 getinterval (^) eq {
-            % indx is given by the next three characters
-            /indx barcode i 1 add 3 getinterval cvi def
-            txt j [( ) j 11 mul textyoffset textfont textsize] put
-            /i i 4 add def
-        } {
-            % indx depends on the mode
-            mode 2 eq {
-                /indx barcode i 2 getinterval cvi def
-                txt j [barcode i 2 getinterval j 11 mul textyoffset textfont textsize] put
-                /i i 2 add def
-            } {
-                barchars barcode i 1 getinterval search
-                pop                    % Discard true leaving pre
-                length /indx exch def  % indx is the length of pre
-                pop pop                % Discard seek and post
-                txt j [barchars indx 1 getinterval j 11 mul textyoffset textfont textsize] put
-                /i i 1 add def
-            } ifelse
-        } ifelse
-        /enc encs indx get def         % Get the indxth encoding
-        sbs j 6 mul enc putinterval    % Put encoded digit into sbs
-
-        % Update the mode
-        indx 101 eq indx 103 eq or {/mode 0 def} if
-        indx 100 eq indx 104 eq or {/mode 1 def} if
-        indx 99 eq indx 105 eq or {/mode 2 def} if
-
-        /checksum indx j mul checksum add def  % checksum+=indx*j
-        /j j 1 add def
-    } loop
-
-    % Put the checksum character
-    /checksum checksum 103 mod def
-    sbs j 6 mul encs checksum get putinterval
-
-    % Put the end character
-    sbs j 6 mul 6 add encs 106 get putinterval
-
-    % Shrink sbs and txt to fit exactly
-    /sbs sbs 0 j 6 mul 13 add getinterval def
-    /txt txt 0 j getinterval def
-
-    % Return the arguments
-    /retval 8 dict def
-    retval (ren) (renlinear) put
-    retval (sbs) [sbs {48 sub} forall] put
-    retval (bhs) [sbs length 1 add 2 idiv {height} repeat] put
-    retval (bbs) [sbs length 1 add 2 idiv {0} repeat] put
-    includetext {
-        retval (txt) txt put
-    } if
-    retval (opt) useropts put
-    retval
-
-    end
-
-} bind def
-/code128 load 0 1 dict put
-% --END ENCODER code128--
-
-% --BEGIN RENDERER renlinear--
-/renlinear {
-
-    0 begin          % Confine variables to local scope
-
-    /args exch def   % We are given some arguments
-
-    % Default options
-    /sbs [] def
-    /bhs [] def
-    /bbs [] def
-    /txt [] def
-    /barcolor (unset) def
-    /includetext false def
-    /textcolor (unset) def
-    /textxalign (unset) def
-    /textyalign (unset) def
-    /textfont (Courier) def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset 0 def
-    /bordercolor (unset) def
-    /backgroundcolor (unset) def
-    /inkspread 0.15 def
-    /width 0 def
-    /barratio 1 def
-    /spaceratio 1 def
-    /showborder false def
-    /borderleft 10 def
-    /borderright 10 def
-    /bordertop 1 def
-    /borderbottom 1 def
-    /borderwidth 0.5 def
-    /guardwhitespace false def
-    /guardleftpos 0 def
-    /guardleftypos 0 def
-    /guardrightpos 0 def
-    /guardrightypos 0 def
-    /guardwidth 6 def
-    /guardheight 7 def
-    
-    % Apply the renderer options
-    args {exch cvlit exch def} forall
- 
-    % Parse the user options   
-    opt {
-        token false eq {exit} if dup length string cvs (=) search
-        true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-    } loop
-
-    /barcolor barcolor cvlit def
-    /textcolor textcolor cvlit def
-    /textxalign textxalign cvlit def
-    /textyalign textyalign cvlit def
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /bordercolor bordercolor cvlit def
-    /backgroundcolor backgroundcolor cvlit def
-    /inkspread inkspread cvr def
-    /width width cvr def
-    /barratio barratio cvr def
-    /spaceratio spaceratio cvr def
-    /borderleft borderleft cvr def
-    /borderright borderright cvr def
-    /bordertop bordertop cvr def
-    /borderbottom borderbottom cvr def
-    /borderwidth borderwidth cvr def
-    /guardleftpos guardleftpos cvr def
-    /guardleftypos guardleftypos cvr def
-    /guardrightpos guardrightpos cvr def
-    /guardrightypos guardrightypos cvr def
-    /guardwidth guardwidth cvr def
-    /guardheight guardheight cvr def
-    
-    % Create bar elements and put them into the bars array
-    /bars sbs length 1 add 2 idiv array def
-    /x 0.00 def /maxh 0 def
-    0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
-        /i exch def
-        i 2 mod 0 eq {           % i is even
-            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1 
-            /h bhs i 2 idiv get 72 mul def  % Height from bhs
-            /c d 2 div x add def            % Centre of the bar = x + d/2
-            /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
-            /w d inkspread sub def          % bar width = digit - inkspread
-            bars i 2 idiv [h c y w] put     % Add the bar entry
-            h maxh gt {/maxh h def} if
-        } {
-            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
-        } ifelse
-        /x x d add def  % x+=d
-    } for
-
-    gsave
-
-    currentpoint translate
-
-    % Force symbol to given width
-    width 0 ne {
-        width 72 mul x div 1 scale
-    } if
-
-    % Set RGB or CMYK color depending on length of given hex string
-    /setanycolor {
-        /anycolor exch def
-        anycolor length 6 eq {
-            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
-        } if
-        anycolor length 8 eq {
-            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
-        } if
-    } bind def
-
-    % Display the border and background
-    newpath
-    borderleft neg borderbottom neg moveto
-    x borderleft add borderright add 0 rlineto
-    0 maxh borderbottom add bordertop add rlineto
-    x borderleft add borderright add neg 0 rlineto
-    0 maxh borderbottom add bordertop add neg rlineto    
-    closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
-    showborder {
+        % Eric Wicklund's fractal fern
+        /m1 [ 0.00 0.00 0.00 0.16 0.00 0.00 ] def
+        /m2 [ 0.85 -0.04 0.04 0.85 0.00 1.60 ] def
+        /m3 [ 0.20 0.23 -0.26 0.22 0.00 1.60 ] def
+        /m4 [ -0.15 0.26 0.28 0.24 0.00 0.44 ] def
+        /len 0.001 def
         gsave
-        bordercolor (unset) ne { bordercolor setanycolor } if
-        borderwidth setlinewidth stroke
+        4.25 72 mul 1.5 72 mul translate
+        0.8 72 mul dup scale
+        1 setlinecap
+        0.005 setlinewidth
+        0 0
+        15000 {  % Amend the number of interations to control the expense
+           /r rand 100 mod def
+           r 1 lt { /m m1 def }
+         { r 86 lt { /m m2 def }
+         { r 93 lt { /m m3 def }
+                   { /m m4 def } ifelse } ifelse } ifelse
+           m transform 2 copy moveto
+           len len rlineto
+           stroke
+        } repeat
+	pop pop
         grestore
-    } if    
-   
-    % Display the bars for elements in the bars array
-    gsave
-    barcolor (unset) ne { barcolor setanycolor } if
-    bars {
-        {} forall
-        newpath setlinewidth moveto 0 exch rlineto stroke
-    } forall
-    grestore
-    
-    % Display the text for elements in the text array
-    textcolor (unset) ne { textcolor setanycolor } if
-    includetext {
-    textxalign (unset) eq textyalign (unset) eq and {
-        /s 0 def /f () def
-        txt {
-            {} forall
-            2 copy s ne exch f ne or {
-                2 copy /s exch def /f exch def            
-                exch findfont exch scalefont setfont          
-            } {
-                pop pop
-            } ifelse
-            moveto show
-        } forall
-    } {
-        textfont findfont textsize scalefont setfont
-        /txt [ txt { 0 get {} forall } forall ] def
-        /tstr txt length string def
-        0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
-        /textxpos textxoffset x tstr stringwidth pop sub 2 div add def
-        textxalign (left) eq { /textxpos textxoffset def } if
-        textxalign (right) eq { /textxpos x textxoffset sub tstr stringwidth pop sub def } if
-        textxalign (offleft) eq { /textxpos tstr stringwidth pop textxoffset add neg def } if
-        textxalign (offright) eq { /textxpos x textxoffset add def } if
-        /textypos textyoffset textsize add 3 sub neg def
-        textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
-        textyalign (center) eq { /textypos textyoffset maxh textsize 4 sub sub 2 div add def } if
-        textxpos textypos moveto tstr show
-    } ifelse
-    } if    
 
-    % Display the guard elements
-    guardwhitespace {
-        0.75 setlinewidth
-        guardleftpos 0 ne {
-            newpath
-            guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
-            guardwidth neg guardheight -2 div rlineto
-            guardwidth guardheight -2 div rlineto
-            stroke            
-        } if
-        guardrightpos 0 ne {
-            newpath
-            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
-            guardwidth guardheight -2 div rlineto
-            guardwidth neg guardheight -2 div rlineto
-            stroke            
-        } if
-    } if
-    
-    grestore
-    
-    end
-
-} bind def
-/renlinear load 0 1 dict put
-% --END RENDERER renlinear--
-
-% --BEGIN DISPATCHER--
-/barcode {
-    0 begin
-    dup (ren) get cvx exec 
-    end
-} bind def
-/barcode load 0 1 dict put
-% --END DISPATCHER--
-
-% ================== Code 128 Barcode Generation Code End ==================
-
-/LabelOutlineForm
-<< /FormType 1
-   /BBox [0 0 612 792]			% No idea - seems to work
-   /Matrix [1 0 0 1 0 0]
-   /PaintProc
-     { pop
-       % Draw label outline for proofing and debugging - toggled by labeloutline
-       % Drawn in Scribus -> export EPS -> manual edit
-       % Label specific to label size and type: Avery L7654, L6140, L6145
-       gsave
-       0.1 setlinewidth
-       0 setlinecap
-       0 setlinejoin
-       [] 0 setdash
-       40 788.673 translate		% Specific to label size
-       5.66929 0 moveto
-       5.66929 0 122.331 0 122.331 0 curveto
-       125.462 0 128 -3.13106 128 -5.66929 curveto
-       128 -5.66929 128 -65.8307 128 -65.8307 curveto
-       128 -68.9618 125.462 -71.5 122.331 -71.5 curveto
-       122.331 -71.5 5.66929 -71.5 5.66929 -71.5 curveto
-       3.13106 -71.5 0 -68.9618 0 -65.8307 curveto
-       0 -65.8307 0 -5.66929 0 -5.66929 curveto
-       0 -3.13106 3.13106 0 5.66929 0 curveto
-       closepath
-       stroke
-       grestore
      } bind
 >> def
 
-/LabelLogoForm
+% Form for an individual label which includes the logo
+/LabelForm
 << /FormType 1
-   /BBox [0 0 612 792]			% No idea - seems to work
-   /Matrix [1 0 0 1 0 0]
+   /BBox [0 0 612 792]
+   /Matrix matrix
    /PaintProc
      { pop
-       % Draw the Logo - might be very messy but it works 
-       % Possible conversion path : PDF -> PS -> EPSI -> EPS -> manual edit
-       gsave
-       1 setlinewidth
-       0 setlinecap
-       0 setlinejoin
-       [2] 0 setdash
-       50 782 translate
-       0.85 0.85 scale
-       26.5 -14 moveto
-       26.5 -21.7323 20.568 -28 13.25 -28 curveto
-       5.93223 -28 0 -21.7323 0 -14 curveto
-       0 -6.26801 5.93223 0 13.25 0 curveto
-       20.568 0 26.5 -6.26801 26.5 -14 curveto
-       closepath fill
-       grestore
+
+          % Label outline
+          gsave
+          0.1 setlinewidth
+          0 setlinecap
+          0 setlinejoin
+          [] 0 setdash
+          40 788.673 translate
+          5.66929 0 moveto
+          5.66929 0 122.331 0 122.331 0 curveto
+          125.462 0 128 -3.13106 128 -5.66929 curveto
+          128 -5.66929 128 -65.8307 128 -65.8307 curveto
+          128 -68.9618 125.462 -71.5 122.331 -71.5 curveto
+          122.331 -71.5 5.66929 -71.5 5.66929 -71.5 curveto
+          3.13106 -71.5 0 -68.9618 0 -65.8307 curveto
+          0 -65.8307 0 -5.66929 0 -5.66929 curveto
+          0 -3.13106 3.13106 0 5.66929 0 curveto
+          closepath
+          stroke
+          grestore
+
+          % Text
+          /Helvetica 15 selectfont
+          78.5 771 moveto (Asset Label) show
+          /Helvetica 9.6 selectfont
+          79 759.5 moveto (Company. Co. Ltd.) show
+
+          gsave
+          0.25 setgray
+          40 758 translate
+          0.05 dup scale
+          -20 rotate
+          LogoForm execform
+          grestore
+
      } bind
 >> def
-% Routine from http://www.tinaja.com/glib/strconv.pdf
-% Concatinate two strings:  (xx) (yy) mergestr -> (xxyy)
-/mergestr {
-   2 copy length exch length add string dup dup
-   4 3 roll 4 index length exch putinterval 3 1 roll exch
-   0 exch putinterval
-   } 
-def
 
-% Routine from http://groups.google.com/group/postscriptbarcode/
-% Convert num to str and pad leading zeros: num num2padstr -> (0000num)
-% Note: must change (00..00) & 10 for different str length
-/num2padstr {
-   /numbase 10 def			% numbase:  10 for dec; 16 for hex
-   (0000000000) 10 string copy dup 
-   3 2 roll numbase 10 string cvrs dup length 
-   10 exch sub exch putinterval
-   }
-def
-
-/LabelPageForm
+% Form for a page of labels including a logo watermark
+/PageForm
 << /FormType 1
-   /BBox [0 0 612 792]			% No idea - seems to work
-   /Matrix [1 0 0 1 0 0]
+   /BBox [0 0 612 792]
+   /Matrix matrix
    /PaintProc
      { pop
-       % Draw the matrix of labels on the canvas - auto-incrementing assetnum
+
+        % Logo watermark
         gsave
+        0.3 setgray
+	LogoForm execform
+        grestore
 
-        10 {			% 10 rows - Specific to label size/type
-           4 {			% 4 columns - Specific to lavel size/type
-              1 1 scale
-              labeloutline { LabelOutlineForm execform } if  % Print outline if true
-              LabelTextForm execform	% Print Label Text
-              LabelLogoForm execform	% Print Label Logo
-
-              gsave
-              47 732 translate		% Position barcode - Specific to label size
-              hybridcode {
-
-                 0.785 0.785 scale	% Scale barcode - Specific to label size
-                 % Convert assetnum into string - pad zeros and concatinate with prefix
-                 % ^104 required to set Code 128 B; ^099 to set Code 128 C
-                 /barcodetxt (^104) numprefix (^099) assetnum num2padstr mergestr mergestr mergestr def
-                 0 0 moveto barcodetxt (includetext height=0.382  textsize=12.2
-                                     textxalign=center textfont=Helvetica 
-                                     textxoffset=-2.5 textyoffset=2.28) code128 barcode
-              }{
-                 0.6 0.6 scale		% Scale barcode - Specific to label size
-                 % Convert assetnum into string - pad zeros and concatinate with prefix
-                 /barcodetxt (^104) numprefix assetnum num2padstr mergestr mergestr def
-                 0 0 moveto barcodetxt (includetext height=0.5  textsize=16
-                                     textxalign=center textfont=Helvetica 
-                                     textxoffset=-1 textyoffset=2) code128 barcode
-                 % Barcode text positioning parameters - Specific to label size
-                 % textxalign={left,right,center,offleft,offright} 
-                 % textyalign={above,below,center}
-                 % textxoffset - horiz offset of text from default position, in points.
-                 % textyoffset - vert offset of text from default position, in points.
-              } ifelse
-              grestore
-
-              /assetnum assetnum 1 add def
-              129 0 translate		% Move to next label - Specific to label size
+        % Grid of labels
+        10 {	% rows
+           4 {	% columns
+              LabelForm execform
+              129 0 translate		% Move to next label
            } repeat
-           -516 -72.5 translate		% Move to next row - Specific to label size
+           -516 -72.5 translate		% Move to next row
         } repeat
 
-        grestore
      } bind
 >> def
 
-% main()
-save
+% ----------------------8<---------------------------8<-------------------
+
+% Main markup starts here
+
+/numpage 5 def
+
+/starttime realtime def
+
 /page 1 def
-numpage {				% Iterate through pages
-   LabelPageForm execform
-   % Print script name and verison at the bottom of the canvas - Specific to page size
-   /Helvetica findfont 10 scalefont setfont
-   40 20 moveto (Printed by AssetLabelPageScript.ps : version ) scriptver mergestr show
-   % Print "page x of y" at the bottom of the canvas - Specific to page size
-   /Helvetica findfont 10 scalefont setfont
+numpage {	% Iterate through pages
+
+   % Variable page header
+   /runtime realtime starttime sub def
+   /Helvetica 10 selectfont
+   40 800 moveto (Runtime is now ) runtime padstr mergestr show
+
+   % Static page data from forms. Cached after first run.
+   PageForm execform
+
+   % Variable barcode data overlay
+   gsave
+   10 {		% rows
+      4 {	% columns
+
+         /runtime realtime starttime sub def
+
+         gsave
+         48 732 translate
+         0.6 0.6 scale
+         /barcodetxt (Runtime: ) runtime padstr mergestr def
+         0 0 moveto barcodetxt (includetext height=0.5 textsize=16
+                             textxalign=center textfont=Helvetica
+                             textxoffset=-1 textyoffset=2)
+                             /code128 /uk.co.terryburton.bwipp findresource exec
+         grestore
+
+         129 0 translate		% Move to next label
+
+      } repeat
+      -516 -72.5 translate		% Move to next row
+   } repeat
+   grestore
+
+   % Variable page footer
+   /runtime realtime starttime sub def
+   40 20 moveto (Runtime is now ) runtime padstr mergestr show
    490 20 moveto (Page ) page 3 string cvs ( of ) numpage 3 string cvs mergestr mergestr mergestr show
 
    showpage
-   /page page 1 add def
-} repeat
-restore
 
-%%PageTrailer
-%%Trailer
-%%EOF
+   /page page 1 add def
+
+} repeat
+
