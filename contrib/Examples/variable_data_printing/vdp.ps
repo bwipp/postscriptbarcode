@@ -323,9 +323,11 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
         0.8 72 mul dup scale
         1 setlinecap
         0.005 setlinewidth
+        /lfsr 16#ACE1 def  % For LFSR with period of 65535
         0 0
         2000 {  % Number of points - limit to control rendering expense
-            /r rand 100 mod def
+            /lfsr lfsr dup 1 and neg 16#B400 and exch -1 bitshift xor def
+            /r lfsr 100 mod def
             r 1 lt { /m m1 def }
           { r 86 lt { /m m2 def }
           { r 93 lt { /m m3 def }
