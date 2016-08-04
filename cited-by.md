@@ -45,37 +45,6 @@ Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Au
 Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript," http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html
 
 
-### Online Barcode Generator
-
-http://the-burtons.xyz/barcode-generator/
-
-Link embedded in the PrintDreams XDR PC-link application for programming the Xyron Design Runner label printer. http://www.printdreams.co.uk/XDR_PC-link_User_Guide.pdf
-
-Jowers, Tim. (2006) "The Business Guide to Free Information Technology including Free/Libre Open Source Software," LuLu Press, p. 197. ISBN 978-1-4303-0101-1.
-
-"Finding the Start of Another Tether," Rupture, Random Artists, January 2007. http://www.randomartists.org/rupture/rupture-jan07-screen.pdf
-
-Tyree, Alan L. (2007) "Self-publishing with LyX," Sage Tutorial Systems Pty Ltd, p. 57. ISBN 0-9803324-2-7.
-
-Misbach, Matt. (2008) "How to self publish the easy and FREE way," http://www.uvpafug.org/presentations/Howtoselfpublish_2008_Syllabus.pdf
-
-"Designing Books (with InDesign)," papergeko: Handbuilt Websites & Artists' Books. http://papergecko.co.uk/new/wp-content/uploads/2008/12/bookdesigncourse_day4.pdf
-
-Nagy, Andras M. (2009) "The Public Domain Publishing Bible," Murine Communications, p. 143. ISBN 978-0-9824994-1-2.
-
-Winter, Mick. (2010) "Scan Me. Everybody's Guide to the Magical World of QR Codes," Westsong Publishing, p. 110. ISBN 978-0-9659000-3-4.
-
-Zamberletti A., Gallo I., Carullo M., Binaghi E. (2010) "Neural Image Restoration For Decoding 1-D Barcodes Using Common Camera Phones," http://eprints.pascal-network.org/archive/00007576/01/2010visapp_angers.pdf
-
-Zamberletti A., Gallo I., Carullo M., Binaghi E. (2011) "Decoding 1-D Barcode from Degraded Images Using a Neural Network," Computer Vision, Imaging and Computer Graphics: Theory and Applications, VISIGRAPP 2010, Springer, pp. 45-55.
-
-Hranilovic, S. (2012) "Advanced Optical Wireless Communication Systems: MIMO Techniques for Indoor Optical Wireless Communications," Cambridge University Press, p. 130. ISBN 978-0-521-19787-8.
-
-Koamtac. (2013) "Creating Special Bar Codes To Configure Your KDC," Revision 1.0. http://www.koamtac.com/documents/manuals/How_To_Create_KOAMTAC_Special_BarCodes.pdf
-
-Thompson, S. (2016) "Q&A: Retail Worlds: Retail Systems chats to Mark Denton, head of retail propositions, BT Expedite," Retail Systems, Perspective Publishing Ltd. http://www.retail-systems.com/rs/RW_Mark_Denton_BT_Expedite.php
-
-
 ### pst-barcode
 
 http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/
