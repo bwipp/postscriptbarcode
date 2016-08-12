@@ -462,10 +462,10 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
                                    /code128 /uk.co.terryburton.bwipp findresource exec
             grestore
 
-            /label label 1 add def
-            currentfile cvlit buf readline not {/EOD true def} if
+            currentfile cvlit buf readline not 1 index () eq or {/EOD true def} if
 
             % After last label on page
+            /label label 1 add def
             label 41 eq EOD or {
                 320 762 moveto (Took ) realtime checkpoint sub spadstr (ms) mergestr mergestr show
                 490 20 moveto (Page ) page 3 string cvs mergestr show
@@ -482,7 +482,7 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 currentfile cvlit
 
-% Every line after the following __PROCESS_LABELS__ is data:
+% Every line after the following __PROCESS_LABELS__ until the first blank line is data:
 
 __PROCESS_LABELS__
 mwDGEDIWcbRT
