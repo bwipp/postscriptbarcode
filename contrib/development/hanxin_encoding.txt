@@ -1,0 +1,55 @@
+Han-Xin Encoding
+----------------
+
+1. numeric
+
+(0001) {3bytes->10bits} (1111111101)/(1111111110)/(1111111111)
+
+
+2. text1, text2
+
+(0010) {1byte->6bits} (111111)
+
+(111110) -> submode switch
+
+
+3. binary
+
+(0011) count {1byte->8bits}
+
+
+4. cnreg1
+
+(0100) {2byte->12bits} (111111111111)
+
+{B0-D7}{A1-FE}
+{A1-A3}{A1-FE}
+{A8}{A1-C0}
+
+(111111111110) -> cnreg2
+
+
+5. cnreg2
+
+(0101) {2bytes->12bits} (111111111111)
+
+{D8-F7}{A1-FE}
+
+(111111111110) -> cnreg1
+
+
+6. gb18030b2
+
+(0110) {2bytes->15bits} (111111111111111)
+
+{81-FE}{40-7E,80-FE}
+
+
+7. gb18030b4
+
+(0111) 4bytes->21bits
+
+{81-FE}{30-39}{81-FE}{30-39}
+
+One 4-byte character only
+
