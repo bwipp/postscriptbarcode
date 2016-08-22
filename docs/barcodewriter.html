@@ -97,11 +97,12 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#installing-to-a-printer-initial-job-vm">Installing to a Printer Initial Job VM</a></li>
 </ul></li>
 <li><a href="#named-resource-flavours">Named Resource Flavours</a><ul>
-<li><a href="#deploying-the-named-resource">Deploying the Named Resource</a></li>
+<li><a href="#deploying-the-named-resource">Deploying the Named Resource</a><ul>
 <li><a href="#ghostscript">GhostScript</a></li>
 <li><a href="#adobe-distiller">Adobe Distiller</a></li>
 <li><a href="#printer-hard-disk">Printer Hard Disk</a></li>
 <li><a href="#postscript-document-manager">PostScript Document Manager</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#symbology-reference">Symbology Reference</a><ul>
 <li><a href="#point-of-sale">Point of Sale</a><ul>
@@ -388,7 +389,7 @@ make</code></pre>
 <h1 id="monolithic-flavours">Monolithic Flavours</h1>
 <p>The monolithic <code>barcode.ps</code> file provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources shipped in a single file for ease of inclusion within the Prolog section of a PostScript document template or for installing into a printer's initial job VM.</p>
 <p>Prepared tarballs of BWIPP packages into the monolithic flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest" class="uri">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-monolithic</code> and <code>postscriptbarcode-monolithic-package</code>. Alternatively you can build these flavours from source with <code>make monolithic</code> or <code>make monolithic_package</code>.</p>
-<h3 id="inclusion-within-the-prolog-section-of-a-document">Inclusion Within the Prolog Section of a Document</h3>
+<h2 id="inclusion-within-the-prolog-section-of-a-document">Inclusion Within the Prolog Section of a Document</h2>
 <p>An application will first include the contents of <code>barcode.ps</code> in the Prolog section of a PostScript file and then generate code like the following.</p>
 <p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
 <pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
@@ -404,14 +405,14 @@ make</code></pre>
 <p>Or, to generate a few barcodes with no setup section or local name at all:</p>
 <pre><code>0 0 moveto (BWIPP) (eclevel=M) /qrcode /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>This technique also reduces the possibility of namespace collision when using the library's procedures with other code.</p>
-<h3 id="installing-to-a-printer-initial-job-vm">Installing to a Printer Initial Job VM</h3>
+<h2 id="installing-to-a-printer-initial-job-vm">Installing to a Printer Initial Job VM</h2>
 <p>Send barcode.ps to the printer with the line <code>true () startjob</code> added at the top where the parentheses contain the printer's <code>startjob</code> password.</p>
 <p>The named resources will remain available between jobs but will not persist accoss power cycles.</p>
 <h1 id="named-resource-flavours">Named Resource Flavours</h1>
 <p>The contents of the <code>Resource</code> directory provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources split into seperate files structured for ease of deployment.</p>
 <p>This standard delivery mechanism allows BWIPP resources to be added to a PostScript virtual machine's resource search path, or pre-downloaded to a printer's memory or permanent storage, or supplied by a document manager, all without any change in the code an application generates to use the resources.</p>
 <p>Prepared tarballs of BWIPP packaged into the named resource flavours are available from <a href="https://github.com/bwipp/postscriptbarcode/releases/latest" class="uri">https://github.com/bwipp/postscriptbarcode/releases/latest</a> with filenames such as <code>postscriptbarcode-resource</code> and <code>postscriptbarcode-packaged-resource</code>. Alternatively you can build these flavours from source with <code>make resource</code> or <code>make packaged_resource</code>.</p>
-<h3 id="deploying-the-named-resource">Deploying the Named Resource</h3>
+<h2 id="deploying-the-named-resource">Deploying the Named Resource</h2>
 <p>An application or administrator must first make the BWIPP resources available to the print system as described for a variety of situations below. An application will then generate code like the following.</p>
 <p>In the file's <code>Setup</code> or <code>PageSetup</code> section:</p>
 <pre><code>/qrcode dup /uk.co.terryburton.bwipp findresource def</code></pre>
