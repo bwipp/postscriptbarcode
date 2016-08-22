@@ -6,7 +6,7 @@ The following is a list of known references to Barcode Writer in Pure PostScript
 If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.
 
 
-### Barcode Writer in Pure PostScript
+#### Barcode Writer in Pure PostScript
 
 http://bwipp.terryburton.co.uk
 
@@ -45,7 +45,7 @@ Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Au
 Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript," http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html
 
 
-### pst-barcode
+#### pst-barcode
 
 http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/
 
@@ -66,21 +66,21 @@ Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
 
-### Barcode Writer in Pure JavaScript
+#### Barcode Writer in Pure JavaScript
 
 https://github.com/metafloor/bwip-js
 
 Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html
 
 
-### Scribus Barcode Generator Plugin
+#### Scribus Barcode Generator Plugin
 
 http://documentation.scribus.net/index.php/Barcode_Generator
 
 "Libre Graphics: Scribus. Open Source Desktop Publishing Turns Pro," Linux Format, Issue 80 (June 2006). Future Publishing. p. 54.
 
 
-### KBarcode
+#### KBarcode
 
 http://www.kbarcode.net/
 
