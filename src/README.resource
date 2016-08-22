@@ -8,7 +8,8 @@ This standard delivery mechanism allows BWIPP resources to be added to a PostScr
 Prepared tarballs of BWIPP packaged into the named resource flavours are available from https://github.com/bwipp/postscriptbarcode/releases/latest with filenames such as `postscriptbarcode-resource` and `postscriptbarcode-packaged-resource`. Alternatively you can build these flavours from source with `make resource` or `make packaged_resource`.
 
 
-### Deploying the Named Resource
+Deploying the Named Resource
+----------------------------
 
 An application or administrator must first make the BWIPP resources available to the print system as described for a variety of situations below. An application will then generate code like the following.
 
