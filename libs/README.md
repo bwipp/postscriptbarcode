@@ -9,6 +9,10 @@ It is hoped that these can provide a stable and robust interface to BWIPP that
 avoids the need for frontends to parse and process the PostScript resource file
 directly or embed lots of static data about the resources in their code.
 
+The library implements parsing of the Metadata Specification provided here:
+
+https://github.com/bwipp/postscriptbarcode/wiki/Metadata-Specification
+
 
 Building
 --------
