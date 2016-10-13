@@ -26,7 +26,7 @@ There is a web-based demonstration of the project here:
 
 http://the-burtons.xyz/barcode-generator/
 
-This project is dedicated to the memory of Craig K. Harmon. https://qed.org/ckh
+This project is dedicated to the memory of Craig K. Harmon.
 
 
 "Flavours" of Named Resources
