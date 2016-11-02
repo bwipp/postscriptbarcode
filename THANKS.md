@@ -20,6 +20,7 @@ Many thanks for the technical contributions from:
 * Gerd Knops
 * Michael Landers
 * Ross McFarland
+* Rudolf Meier
 * Greg Menke
 * Matthew Newton
 * Harald Oehlmann
