@@ -797,12 +797,12 @@ begin
     versionmap {
         { {} forall qmv pixs exch 0 put } forall
     } forall
-    
-    % Solitary dark module in full symbols
+
+    % Reserve the solitary dark module in full symbols
     format (full) eq {
-        pixs 8 size 8 sub qmv 1 put
+        pixs 8 size 8 sub qmv 0 put
     } if
-    
+
     % Calculate the mask patterns
     format (full) eq {
         /maskfuncs [ 
@@ -995,7 +995,12 @@ begin
         } ifelse
     } for
     /pixs bestsym def
-    
+
+    % Set the solitary dark module in full symbols
+    format (full) eq {
+        pixs 8 size 8 sub qmv 1 put
+    } if
+
     % Add the format information
     format (full) eq {
         /fmtvals [
