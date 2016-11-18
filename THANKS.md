@@ -3,6 +3,7 @@ Acknowledgements
 
 Many thanks for the technical contributions from:
 
+* Martin Bailey
 * Jean-François Barbeau
 * Eric Belshaw
 * Tim Brunson
