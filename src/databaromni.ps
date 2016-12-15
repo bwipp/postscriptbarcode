@@ -54,6 +54,7 @@ begin
     /height 33 72 div def
     /linkage false def
     /format (omni) def
+    /barxmult 33 def
     
     % Parse the input options
     options type /stringtype eq {
@@ -68,6 +69,7 @@ begin
   
     format (truncated) eq {/height 13 72 div def} if
     /height height cvr def
+    /barxmult barxmult cvi def
 
     % Validate the input
     barcode 0 4 getinterval (\(01\)) ne {
@@ -425,11 +427,11 @@ begin
                 sep3 19 [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
             } if
             /pixs [
-                33 {top aload pop} repeat
+                barxmult {top aload pop} repeat
                 sep1 aload pop
                 sep2 aload pop
                 sep3 aload pop
-                33 {bot aload pop} repeat
+                barxmult {bot aload pop} repeat
             ] def
             /pixy pixs length 50 idiv def
         } if
