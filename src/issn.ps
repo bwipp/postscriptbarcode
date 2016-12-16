@@ -76,15 +76,15 @@ begin
     issntextyoffset (unset) ne {/issntextyoffset issntextyoffset cvr def} if
     /height height cvr def
     /addongap addongap cvr def
-   
+
     % Split off the ISSN
     issntxt ( ) search {
         /issntxt exch def
         pop
         /seqvar exch def
-    } { 
+    } {
         pop
-        /seqvar () def
+        /seqvar (00) def
     } ifelse
 
     % Split off the sequence variant and addon
@@ -94,8 +94,7 @@ begin
         /addon exch def
     } {
         pop
-        /addon seqvar def
-        /seqvar (00) def
+        /addon () def
     } ifelse
 
     % Validate the input
@@ -209,7 +208,7 @@ begin
     dontdraw not //renlinear if
 
     end
- 
+
 } bind def
 /issn dup load /uk.co.terryburton.bwipp defineresource pop
 end
