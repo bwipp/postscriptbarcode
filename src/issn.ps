@@ -99,24 +99,24 @@ begin
 
     % Validate the input
     issntxt length 8 ne issntxt length 9 ne and {
-        /bwipp.issnBadLength (ISSN must be 8 or 9 characters including dash) //raiseerror exec
+        /bwipp.issnBadLength (ISSN must be 8 or 9 characters including dash, in the format XXXX-XXXX) //raiseerror exec
     } if
     issntxt 0 4 getinterval {
         dup 48 lt exch 57 gt or {
-            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+            /bwipp.issnFirstThroughFourthNotNumeric (ISSN first four characters must be numeral characters) //raiseerror exec
         } if
     } forall
     issntxt 4 1 getinterval (-) ne {
-        /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+        /bwipp.issnNeedsDash (ISSN fifth character must be a dash) //raiseerror exec
     } if
     issntxt 5 3 getinterval {
         dup 48 lt exch 57 gt or {
-            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+            /bwipp.issnSixthThroughEighthNotNumeric (ISSN sixth through eighth characters must be numerals) //raiseerror exec
         } if
     } forall
     issntxt length 9 eq {
         issntxt 8 get dup dup 48 lt exch 57 gt or exch 88 ne and {  % Digits or X
-            /bwipp.issnBadFormat (ISSN must have the format XXXX-XXXX) //raiseerror exec
+            /bwipp.issnNinthCharacterBadFormat (ISSN ninth character must be a number or the character X) //raiseerror exec
         } if
     } if
     seqvar length 2 ne {
