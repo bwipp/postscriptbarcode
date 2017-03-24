@@ -80,25 +80,26 @@ begin
                 dup out exch j exch putinterval
                 length j add /j exch def
                 out 0 j getinterval exit
-            } ifelse 
+            } ifelse
         } loop
     } bind def
-    
+
     % Parse out AIs
-    /ais [] def
-    /aival 2 dict def
+    /ais  [] def
+    /vals [] def
     barcode dup length 1 sub 1 exch getinterval
     {  % loop
         dup () eq {exit} if
         (\)) search pop
         exch pop
         exch (\() search {
-            exch pop exch 3 1 roll 
-        } { 
+            exch pop exch 3 1 roll
+        } {
             () 3 1 roll
         } ifelse
-        [ ais aload pop counttomark 2 add index ] /ais exch def
-        aival 3 1 roll expand put
+        [ ais  aload pop counttomark 2 add index ] /ais exch def
+        [ vals aload pop counttomark 1 add index expand ] /vals exch def
+        pop pop
     } loop
     pop
 
@@ -126,7 +127,7 @@ begin
     0 1 ais length 1 sub {
         /i exch def
         /ai ais i get def
-        /val aival ai get def
+        /val vals i get def
         dmtx length ai length add val length add array
         dup 0 dmtx putinterval
         dup dmtx length ai [ exch {} forall ] putinterval

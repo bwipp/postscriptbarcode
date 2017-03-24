@@ -93,36 +93,37 @@ begin
                 dup out exch j exch putinterval
                 length j add /j exch def
                 out 0 j getinterval exit
-            } ifelse 
+            } ifelse
         } loop
     } bind def
-    
+
     % Parse out AIs
-    /ais [] def
-    /aival 2 dict def
+    /ais  [] def
+    /vals [] def
     barcode dup length 1 sub 1 exch getinterval
     {  % loop
         dup () eq {exit} if
         (\)) search pop
         exch pop
         exch (\() search {
-            exch pop exch 3 1 roll 
-        } { 
+            exch pop exch 3 1 roll
+        } {
             () 3 1 roll
-        }  ifelse
-        [ ais aload pop counttomark 2 add index ] /ais exch def
-        aival 3 1 roll expand put
+        } ifelse
+        [ ais  aload pop counttomark 2 add index ] /ais exch def
+        [ vals aload pop counttomark 1 add index expand ] /vals exch def
+        pop pop
     } loop
     pop
-    
+
     % Method selection
     {  % common exit
-    
+
         % (01)9...(3103)...
         ais length 2 eq {
-            ais 0 get (01) eq ais 1 get (3103) eq and { 
-                aival (01) get 0 1 getinterval (9) eq aival (3103) get cvi 32767 le and {
-                   (0100) false exit 
+            ais 0 get (01) eq ais 1 get (3103) eq and {
+                vals 0 get 0 1 getinterval (9) eq vals 1 get cvi 32767 le and {
+                   (0100) false exit
                 } if
             } if
         } if
@@ -130,7 +131,7 @@ begin
         % (01)9...(3202)...
         ais length 2 eq {
             ais 0 get (01) eq ais 1 get (3202) eq and {
-                aival (01) get 0 1 getinterval (9) eq aival (3202) get cvi 9999 le and {
+                vals 0 get 0 1 getinterval (9) eq vals 1 get cvi 9999 le and {
                     (0101) false exit
                 } if
             } if
@@ -139,7 +140,7 @@ begin
         % (01)9...(3203)...
         ais length 2 eq {
             ais 0 get (01) eq ais 1 get (3203) eq and {
-                aival (01) get 0 1 getinterval (9) eq aival (3203) get cvi 22767 le and {
+                vals 0 get 0 1 getinterval (9) eq vals 1 get cvi 22767 le and {
                     (0101) false exit
                 } if
             } if
@@ -156,9 +157,9 @@ begin
            } ifelse
            ais 0 get (01) eq ai310x ai320x or and aibad not and {
                ais length 3 eq {
-                   aival (01) get 0 1 getinterval (9) eq 
-                   aival ais 1 get get cvi 99999 le and 
-                   aival ais 2 get get cvi 999999 le and {
+                   vals 0 get 0 1 getinterval (9) eq
+                   vals 1 get cvi 99999 le and
+                   vals 2 cvi 999999 le and {
                        ai310x ais 2 get (11) eq and { (0111000) false exit } if
                        ai320x ais 2 get (11) eq and { (0111001) false exit } if
                        ai310x ais 2 get (13) eq and { (0111010) false exit } if
@@ -169,8 +170,8 @@ begin
                        ai320x ais 2 get (17) eq and { (0111111) false exit } if
                    } if
                } {
-                   aival (01) get 0 1 getinterval (9) eq 
-                   aival ais 1 get get cvi 99999 le and {
+                   vals 0 get 0 1 getinterval (9) eq
+                   vals 1 get cvi 99999 le and {
                        ai310x { (0111000) false exit } if
                        ai320x { (0111001) false exit } if
                    } if
@@ -182,7 +183,7 @@ begin
         ais length 2 ge {
             /ai392x false 3920 1 3923 {10 4 string cvrs ais 1 get eq or} for def
             ais 0 get (01) eq ai392x and {
-                aival (01) get 0 1 getinterval (9) eq { (01100) true exit } if
+                vals 0 get 0 1 getinterval (9) eq { (01100) true exit } if
             } if
         } if
     
@@ -190,7 +191,7 @@ begin
         ais length 2 ge {
             /ai393x false 3930 1 3933 {10 4 string cvrs ais 1 get eq or} for def
             ais 0 get (01) eq ai393x and {
-                aival (01) get 0 1 getinterval (9) eq { (01101) true exit } if
+                vals 0 get 0 1 getinterval (9) eq { (01101) true exit } if
             } if
         } if
     
@@ -230,46 +231,49 @@ begin
     } if
     
     method (1) eq {
-        /cdf aival (01) get 0 13 getinterval conv13to44 def
+        /cdf vals 0 get 0 13 getinterval conv13to44 def
         /cdf [ cdf {48 sub} forall ] def
         /gpf [] def
-        /ais ais 1 ais length 1 sub getinterval def
+        /ais  ais  1 ais  length 1 sub getinterval def
+        /vals vals 1 vals length 1 sub getinterval def
     } if
     
     method (0100) eq {
         /cdf 55 string def
-        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
-        cdf 40 aival (3103) get cvi 15 tobin putinterval
+        cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
+        cdf 40 vals 1 get cvi 15 tobin putinterval
         /cdf [ cdf {48 sub} forall ] def
         /gpf [] def
         /ais [] def
+        /vals [] def
     } if
     
     method (0101) eq {
         /cdf 55 string def
-        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        cdf 0 vals 0 get 1 12 getinterval conv12to40 putinterval
         ais 1 get (3202) eq {
-            aival (3202) get cvi 15 tobin
+            vals 1 get cvi 15 tobin
         } {
-            aival (3203) get cvi 10000 add 15 tobin
+            vals 1 get cvi 10000 add 15 tobin
         } ifelse
         cdf exch 40 exch putinterval
         /cdf [ cdf {48 sub} forall ] def
         /gpf [] def
         /ais [] def
+        /vals [] def
     } if
     
     method length 7 eq {
         /cdf 76 string def
-        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
+        cdf 0 vals 0 get 1 12 getinterval conv12to40 putinterval
         6 string dup 0 ais 1 get 3 1 getinterval putinterval
-        dup aival ais 1 get get 1 5 getinterval 1 exch putinterval cvi 20 tobin
+        dup vals 1 get 1 5 getinterval 1 exch putinterval cvi 20 tobin
         cdf exch 40 exch putinterval
         ais length 3 eq {
-            aival ais 2 get get
+            vals 2 get
             dup 0 2 getinterval cvi 384 mul exch
             dup 2 2 getinterval cvi 1 sub 32 mul exch
-            4 2 getinterval cvi add add 
+            4 2 getinterval cvi add add
         } {
             38400
         } ifelse
@@ -277,25 +281,28 @@ begin
         /cdf [ cdf {48 sub} forall ] def
         /gpf [] def
         /ais [] def
+        /vals [] def
     } if
     
     method (01100) eq {
         /cdf 42 string def
-        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
-        cdf 40 ais 1 get 3 1 getinterval cvi 2 tobin putinterval
+        cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
+        cdf 40 ais  1 get 3  1 getinterval cvi 2 tobin putinterval
         /cdf [ cdf {48 sub} forall ] def
-        /gpf [ aival ais 1 get get {} forall ] def
-        /ais ais 2 ais length 2 sub getinterval def
+        /gpf [ vals 1 get {} forall ] def
+        /ais  ais  2 ais  length 2 sub getinterval def
+        /vals vals 2 vals length 2 sub getinterval def
     } if
     
     method (01101) eq {
         /cdf 52 string def
-        cdf 0 aival (01) get 1 12 getinterval conv12to40 putinterval
-        cdf 40 ais 1 get 3 1 getinterval cvi 2 tobin putinterval
-        cdf 42 aival ais 1 get get 0 3 getinterval cvi 10 tobin putinterval
+        cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
+        cdf 40 ais  1 get 3  1 getinterval cvi 2 tobin putinterval
+        cdf 42 vals 1 get 0  3 getinterval cvi 10 tobin putinterval
         /cdf [ cdf {48 sub} forall ] def
-        /gpf [ aival ais 1 get get dup length 3 sub 3 exch getinterval {} forall ] def
-        /ais ais 2 ais length 2 sub getinterval def
+        /gpf [ vals 1 get dup length 3 sub 3 exch getinterval {} forall ] def
+        /ais  ais  2 ais  length 2 sub getinterval def
+        /vals vals 2 vals length 2 sub getinterval def
     } if
     
     % Variable length symbol field
@@ -367,7 +374,7 @@ begin
     0 1 ais length 1 sub {
         /i exch def
         /ai ais i get def
-        /val aival ai get def
+        /val vals i get def
         gpf length ai length add val length add array
         dup 0 gpf putinterval
         dup gpf length ai [ exch {} forall ] putinterval

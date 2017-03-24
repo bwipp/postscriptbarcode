@@ -110,25 +110,26 @@ begin
             } ifelse 
         } loop
     } bind def
- 
+
     % Parse out AIs
-    /ais [] def
-    /aival 2 dict def
+    /ais  [] def
+    /vals [] def
     barcode dup length 1 sub 1 exch getinterval
     {  % loop
         dup () eq {exit} if
         (\)) search pop
         exch pop
         exch (\() search {
-            exch pop exch 3 1 roll 
-        } { 
+            exch pop exch 3 1 roll
+        } {
             () 3 1 roll
-        }  ifelse
-        [ ais aload pop counttomark 2 add index ] /ais exch def
-        aival 3 1 roll expand put
+        } ifelse
+        [ ais  aload pop counttomark 2 add index ] /ais exch def
+        [ vals aload pop counttomark 1 add index expand ] /vals exch def
+        pop pop
     } loop
     pop
-    
+
     % Method selection
     /isupper {dup 65 ge exch 90 le and} bind def  % A-Z
     /isnum0  {dup 48 ge exch 57 le and} bind def  % 0-9
@@ -145,7 +146,7 @@ begin
         % (90){0-3 digits not starting 0}{upper alpha}...
         ais length 1 ge {
             ais 0 get (90) eq {
-                /v aival (90) get def
+                /v vals 0 get def
                 v length 1 ge {
                    v 0 get isupper {
                        0 (11) exit
@@ -235,25 +236,27 @@ begin
 
     method (10) eq {  % TODO: fixme
         ais 0 get (11) eq ais 0 get (17) eq or {
-            aival ais 0 get get
+            vals 0 get
             dup 0 2 getinterval cvi 384 mul exch
             dup 2 2 getinterval cvi 1 sub 32 mul exch
-            4 2 getinterval cvi add add 
+            4 2 getinterval cvi add add
             (0000000000000000) 16 string copy dup 3 -1 roll 2 16 string cvrs
             dup length 16 exch sub exch putinterval
             [ 1 0
               4 -1 roll {48 sub} forall
               ais 0 get (11) eq {0} {1} ifelse
             ] /cdf exch def
-            /ais ais 1 ais length 1 sub getinterval def
+            /ais  ais  1 ais  length 1 sub getinterval def
+            /vals vals 1 vals length 1 sub getinterval def
         } {
             /cdf [ 1 0  1 1 ] def
         } ifelse
         ais length 0 ne {
             ais 0 get (10) eq {
-                /gpf [ aival (10) get {} forall ] def
+                /gpf [ vals 0 get {} forall ] def
                 ais length 1 gt {/gpf [ gpf aload pop fnc1 ] def} if  % TODO: check
-                /ais ais 1 ais length 1 sub getinterval def
+                /ais  ais  1 ais  length 1 sub getinterval def
+                /vals vals 1 vals length 1 sub getinterval def
             } {
                 /gpf [fnc1] def  % TODO: check
             } ifelse
@@ -266,7 +269,7 @@ begin
 
     method (11) eq {
         /cdf [ 1 1 ] def
-        /ai90 aival (90) get def
+        /ai90 vals 0 get def
         npre 1 add ai90 length ne {
             ai90 npre 1 add ai90 length npre sub 1 sub getinterval
         } {
@@ -279,12 +282,13 @@ begin
         nalpha nnums add ai90rem length ne {/mode (alphanumeric) def} if
         /cdf [
             cdf aload pop
-            mode (alphanumeric) eq {0} if   
-            mode (numeric) eq {1 0} if   
-            mode (alpha) eq {1 1} if   
+            mode (alphanumeric) eq {0} if
+            mode (numeric) eq {1 0} if
+            mode (alpha) eq {1 1} if
         ] def
-        /ais1 ais length 1 gt {ais 1 get} {-1} ifelse def
-        ais1 (21) eq ais1 (8004) eq or { 
+        /ais1  ais  length 1 gt {ais  1 get} {-1} ifelse def
+        /vals1 vals length 1 gt {vals 1 get} {-1} ifelse def
+        ais1 (21) eq ais1 (8004) eq or {
             /cdf [ cdf aload pop ais1 (21) eq {1 0} {1 1} ifelse ] def
         } {
             /cdf [ cdf aload pop 0 ] def
@@ -295,7 +299,7 @@ begin
             /aval exch def
         } {
             pop /aval -1 def
-        } ifelse 
+        } ifelse
         nval 31 lt aval -1 ne and {
             (00000) 5 string copy dup nval 2 5 string cvrs
             dup length 5 exch sub exch putinterval
@@ -304,7 +308,7 @@ begin
             dup length 4 exch sub exch putinterval
             [ exch {48 sub} forall ] /abits exch def
             /cdf [
-                cdf aload pop 
+                cdf aload pop
                 nbits aload pop
                 abits aload pop
             ] def
@@ -330,25 +334,27 @@ begin
             /out in length 6 mul array def
             /j 0 def
             0 1 in length 1 sub {
-                in exch get encs exch get 
+                in exch get encs exch get
                 dup [ exch {48 sub} forall ] out exch j exch putinterval
                 length j add /j exch def
             } for
             /cdf [
-                cdf aload pop 
+                cdf aload pop
                 out 0 j getinterval aload pop
             ] def
             /gpf [] def
             ais length 1 gt mode (alpha) ne or {/mode (numeric) def} if
         } ifelse
-        /ais ais 1 ais length 1 sub getinterval def
+        /ais  ais  1 ais  length 1 sub getinterval def
+        /vals vals 1 vals length 1 sub getinterval def
         ais length 0 ne {
             ais1 (21) eq ais1 (8004) eq or {
                 /gpf [
                     gpf aload pop
-                    aival ais1 get {} forall
+                    vals1 {} forall
                 ] def
-                /ais ais 1 ais length 1 sub getinterval def
+                /ais  ais  1 ais  length 1 sub getinterval def
+                /vals vals 1 vals length 1 sub getinterval def
                 ais length 0 ne {/gpf [gpf aload pop fnc1] def} if
             } if
         } if
@@ -382,7 +388,7 @@ begin
     0 1 ais length 1 sub {
         /i exch def
         /ai ais i get def
-        /val aival ai get def
+        /val vals i get def
         gpf length ai length add val length add array
         dup 0 gpf putinterval
         dup gpf length ai [ exch {} forall ] putinterval
