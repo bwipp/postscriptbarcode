@@ -65,6 +65,8 @@ Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
+Voß, Herbert. (2016) "Ch 25: pst-barcode: Barcodes" in "PSTricks. Grafik mit PostScript für TeX und LaTeX," Lehmanns Media. pp. 535-548.
+
 
 #### Barcode Writer in Pure JavaScript
 
