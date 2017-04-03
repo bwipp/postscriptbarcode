@@ -46,11 +46,11 @@ If the definitions for the routines that generate and render the barcode are not
 
 Unpack the contents of the Resource directory to somewhere accessible to the application.
 
-Specify the location of the Resource files using the `-sGenericResourceDir` parameter. Where this defaults to `./Resource` (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.
+Specify the location of the Resource files using the `-I` or `-sGenericResourceDir` parameters. Where the resource search path defaults to `./Resource` (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.
 
-A note for Windows users:
+Example for Windows users:
 
-> "The Windows pre-built Ghostscript binary uses a ROM file system. If you want to modify the Resources available, then ... put all the required resources on disk and tell Ghostscript to use the disk-based resources. ... You will need to download the Ghostscript source (the Resources are not currently available separately) ... modify the Resources directory and tell Ghostscript to use it by adding one of the relevant command line switches (`-I`, `-sGenericResourceDir`) or possibly by setting the `GS_LIB` environment variable." Thanks to Ken Sharp, http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html
+    gswin64c.exe -dSAFER -I%rom%Resource/;C:/bwipp/Resource/ "C:/create-barcode.ps"
 
 
 ### Adobe Distiller
