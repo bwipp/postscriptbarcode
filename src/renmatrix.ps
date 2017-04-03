@@ -51,6 +51,17 @@ begin
     /inkspread 0 def
     /inkspreadh 0 def
     /inkspreadv 0 def
+    /includetext false def
+    /txt [] def
+    /textcolor (unset) def
+    /textxalign (unset) def
+    /textyalign (unset) def
+    /textfont (Courier) def
+    /textsize 10 def
+    /textxoffset 0 def
+    /textyoffset 0 def
+    /textgaps 0 def
+    /alttext () def
 
     % Apply the renderer options and the user options
     args {def} forall
@@ -63,6 +74,15 @@ begin
     /inkspread inkspread cvr def
     /inkspreadh inkspreadh cvr def
     /inkspreadv inkspreadv cvr def
+    /textcolor textcolor cvlit def
+    /textxalign textxalign cvlit def
+    /textyalign textyalign cvlit def
+    /textfont textfont cvlit def
+    /textsize textsize cvr def
+    /textxoffset textxoffset cvr def
+    /textyoffset textyoffset cvr def
+    /textgaps textgaps cvr def
+    /alttext alttext cvlit def
 
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if
@@ -222,10 +242,11 @@ begin
         } if
     } bind def
 
+    gsave
+
     % Draw the image
     /inkspreadh inkspreadh 2 div def
     /inkspreadv inkspreadv 2 div def
-    gsave
     currentpoint translate
     width pixx div 72 mul height pixy div 72 mul scale
     0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
@@ -252,6 +273,67 @@ begin
         pop pop pop pop
     } forall
     fill
+
+    % Display the text for elements in the text array
+    textcolor (unset) ne { textcolor setanycolor } if
+    includetext {
+        textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
+            /s 0 def /fn () def
+            txt {
+                {} forall
+                2 copy s ne exch fn ne or {
+                    2 copy /s exch def /fn exch def
+                    selectfont
+                } {
+                    pop pop
+                } ifelse
+                moveto show
+            } forall
+        } {
+            textfont textsize selectfont
+            alttext () eq {
+                /txt [ txt { 0 get {} forall } forall ] def
+                /tstr txt length string def
+                0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
+            } {
+                /tstr alttext def
+            } ifelse
+
+            % Find true ascent of font
+            tstr length 0 eq {
+                0
+            } {
+                gsave
+                newpath 0 0 moveto (0) false charpath pathbbox
+                4 1 roll pop pop pop
+                grestore
+                currentfont /PaintType known {currentfont /PaintType get 2 eq} {false} ifelse
+                currentfont /StrokeWidth known and {
+                    currentfont /StrokeWidth get 2 div 0 exch
+                    currentfont /FontMatrix get dtransform
+                    dup mul exch dup mul add sqrt
+                    add
+                } if
+            } ifelse
+            /textascent exch def
+            /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
+
+            /textxpos textxoffset x textwidth sub 2 div add def
+            textxalign (left) eq { /textxpos textxoffset def } if
+            textxalign (right) eq { /textxpos x textxoffset sub textwidth sub def } if
+            textxalign (offleft) eq { /textxpos textwidth textxoffset add neg def } if
+            textxalign (offright) eq { /textxpos x textxoffset add def } if
+            textxalign (justify) eq textwidth x lt and {
+                /textxpos 0 def
+                /textgaps x textwidth sub tstr length 1 sub div def
+            } if
+            /textypos textyoffset textascent add 1 add neg def
+            textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
+            textyalign (center) eq { /textypos textyoffset maxh textascent sub 2 div add def } if
+            textxpos textypos moveto textgaps 0 tstr ashow
+        } ifelse
+    } if
+
     grestore
 
     end
