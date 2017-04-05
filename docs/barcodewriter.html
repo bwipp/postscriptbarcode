@@ -314,7 +314,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 /isbn /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>There is a web-based demonstration of the project here:</p>
 <p><a href="http://the-burtons.xyz/barcode-generator/" class="uri">http://the-burtons.xyz/barcode-generator/</a></p>
-<p>This project is dedicated to the memory of Craig K. Harmon. <a href="https://qed.org/ckh" class="uri">https://qed.org/ckh</a></p>
+<p>This project is dedicated to the memory of Craig K. Harmon.</p>
 <h2 id="flavours-of-named-resources">&quot;Flavours&quot; of Named Resources</h2>
 <p>BWIPP is essentially a set of generic PostScript Level 2 named resources that are provided in four flavours for ease of use. The one to use depends on how you intend to deploy the library.</p>
 <ul>
@@ -433,11 +433,9 @@ make</code></pre>
 <p>If the definitions for the routines that generate and render the barcode are not already resident in memory then they will be fetched from a standard resource location in a way that is transparent to the user.</p>
 <h3 id="ghostscript">GhostScript</h3>
 <p>Unpack the contents of the Resource directory to somewhere accessible to the application.</p>
-<p>Specify the location of the Resource files using the <code>-sGenericResourceDir</code> parameter. Where this defaults to <code>./Resource</code> (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.</p>
-<p>A note for Windows users:</p>
-<blockquote>
-<p>&quot;The Windows pre-built Ghostscript binary uses a ROM file system. If you want to modify the Resources available, then ... put all the required resources on disk and tell Ghostscript to use the disk-based resources. ... You will need to download the Ghostscript source (the Resources are not currently available separately) ... modify the Resources directory and tell Ghostscript to use it by adding one of the relevant command line switches (<code>-I</code>, <code>-sGenericResourceDir</code>) or possibly by setting the <code>GS_LIB</code> environment variable.&quot; Thanks to Ken Sharp, <a href="http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html" class="uri">http://ghostscript.com/pipermail/gs-devel/2013-December/009544.html</a></p>
-</blockquote>
+<p>Specify the location of the Resource files using the <code>-I</code> or <code>-sGenericResourceDir</code> parameters. Where the resource search path defaults to <code>./Resource</code> (or equivalent) you can omit this parameter when running GhostScript from the location of the Resource files.</p>
+<p>Example for Windows users:</p>
+<pre><code>gswin64c.exe -dSAFER -I%rom%Resource/;C:/bwipp/Resource/ &quot;C:/create-barcode.ps&quot;</code></pre>
 <h3 id="adobe-distiller">Adobe Distiller</h3>
 <p>Unpack the contents of the Resource directory to somewhere accessible to the application. Ensure that <code>PSRESOURCEPATH</code> contains the directory containing the <code>.upr</code> file when Distiller is run. The contents should be a list of directories separated by colons, to be searched in order with two consecutive colons to indicate where the default location should fall within the search order.</p>
 <h3 id="printer-hard-disk">Printer Hard Disk</h3>
@@ -455,7 +453,7 @@ make</code></pre>
 <li>EAN-13+2 is an extension of EAN-13 that includes a <a href="#ean-2">two-digit add-on</a>.</li>
 <li>EAN-13+5 is an extension of EAN-13 that includes a <a href="#ean-5">five-digit add-on</a>.</li>
 <li>EAN-99 is a special form of EAN-13 starting with <code>99</code> that is used as an in-store coupon.</li>
-<li><a href="#ean-8">EAN-8</a> is a barcode symbology derived from EAN-13 that is designed for small packaging.</li>
+<li><a href="#ean-8">EAN-8</a> is a barcode symbology derived from EAN-13 that is designed for small packaging. It uses a distinct numbering system based on GTIN-8.</li>
 <li><a href="#isbn">ISBN</a> is a variant of EAN-13 used to identify books.</li>
 <li><a href="#ismn">ISMN</a> is a variant of EAN-13 used to identify printed music.</li>
 <li><a href="#issn">ISSN</a> is a variant of EAN-13 used to identify periodicals.</li>
@@ -484,14 +482,14 @@ Options: includetext guardwhitespace
 Encoder: ean13</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAK4AAABNCAMAAAAIAq/wAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAADBQTFRF////AAAAmZmZd3d37u7u3d3dREREMzMzVVVVERERqqqqu7u7iIiIIiIizMzMZmZmbw03CgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAJ9SURBVGje7ZrLkuMgDEWFxSMYg///bwcJgXE6s+gqxpmF6EohBFd1jJX05gKMYejP0IdiXlNk2mJKcmqcbkLekpNm1vZ6BhaPp3E3RNwkRrgFdkN3D76P6y9c7LstsOGFcZ8D+Kl/GvfKJG9uweEB9jAHQvBFXJs3uVwbnLkFWFvCmjn4cMEP4yaDR+BWfe2y24MtWzjMHHy44KdvtwDwZR6nXNwIAGNuXTyCr+OO9+upoklTQKNEeAu+2wz0NUr5nYQDSuM5B//BV80Hn8tHXHgFH+wt+OoPWVuUZKXQDMTr0iuWv/43fBTXmHGw1zcAvXQ/MSgUV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EVV3EV95/hDgMybSek4WSqyV3MyQh9jwRFALq2IDsXeaNqpGDTXqdXjMuAPHCNk4lMts1BSTZPSdpwkoBOdy0GzAeArE6PkVRNW5MZ1+FeBuReEo8xoRg+h325JrcqqB86LVoXLZST/ZW7h1JX26trU2Db6zLcy4AsJV0zT8vEuMO+TElXL/148WnRbt4mC0xdN+gZ2nHG3fjIMtzLgCwlfXv9MjHusC+3ZAnZ8WnRog8+bnSfOTp+Bhi4/IwLm+EyILeSqd1q6gb1NLmWe9KdrRlEi5W6REixVPIfuNS6C3FhNiDXL8o2T3BzLXMypY7TtdTN0hp1qu0rBRnXn3Yd6N2ATCO6eeovtPFxsrZndzWL1tXbTZGbtnJSC7eCpOVHWTkuA3IngNllPeG2pA3B5/2mxUwZKy185LM9LGmR38xK3pJ++0KSfdO6liltcmnp+5/HHx4jIRGaJQGPAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDExOjMyOjE3KzAwOjAwuAlE8wAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQxMTozMjoxNyswMDowMMlU/E8AAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="ean-8">EAN-8</h3>
-<p><strong>EAN-8</strong> is a shortened form of the <a href="#ean-13">EAN-13</a> barcode symbology holding less data that usually carries a GTIN-8.</p>
+<p><strong>EAN-8</strong> is derived from the <a href="#ean-13">EAN-13</a> barcode symbology and is designed for small packaging. It usually carries a GTIN-8.</p>
 <p>Also known as: UCC-8, JAN-8.</p>
 <p>Variants:</p>
 <ul>
 <li>EAN-8+2 is an extension of EAN-8 that includes a <a href="#ean-2">two-digit add-on</a>.</li>
 <li>EAN-8+5 is an extension of EAN-8 that includes a <a href="#ean-5">five-digit add-on</a>.</li>
 <li>EAN-Velocity is a special form of EAN-8 starting with <code>0</code> that is used for in-store coupons.</li>
-<li><a href="#ean-13">EAN-13</a> is a longer variant of EAN-8.</li>
+<li><a href="#ean-13">EAN-13</a> is a longer variant of EAN-8 which has a distinct number system based on GTIN-13.</li>
 <li><a href="#gs1-composite-symbols">EAN-8 Composite</a> is a variant of EAN-8 that should be used when a CC-A or CC-B GS1 composite 2D component is required.</li>
 </ul>
 <p>Standards: ISO/IEC 15420, BS EN 797, GS1 General Specifications.</p>
@@ -525,6 +523,7 @@ Encoder: ean8</code></pre>
 <li>UPC-A+5 is an extension of UPC-A that includes a <a href="#ean-5">five-digit add-on</a>.</li>
 <li><a href="#upc-e">UPC-E</a> is a barcode symbology derived from UPC-A that is designed for small packaging.</li>
 <li><a href="#gs1-composite-symbols">UPC-A Composite</a> is a variant of UPC-A that should be used when a CC-A or CC-B <a href="#gs1-composite-symbols">GS1 composite</a> 2D component is required.</li>
+<li>A UPC-A symbol can be converted to an <a href="#ean-13">EAN-13</a> symbol by prefixing the GTIN-12 with 0 to make the equivalent GTIN-13.</li>
 </ul>
 <p>Standards: ISO/IEC 15420, BS EN 797, GS1 General Specifications.</p>
 <h4 id="data-and-options-2">Data and Options</h4>
@@ -2894,7 +2893,25 @@ grestore</code></pre>
 <h4 id="let-users-drive-bwipp-directly">Let Users Drive BWIPP Directly</h4>
 <p>Whether part of your design or as a fall back, allow advanced users to specify the data, options and encoder directly. This will allow them to access BWIPP functionality that you haven't anticipated or chosen to expose via your API or GUI.</p>
 <h4 id="use-bwipps-error-reporting">Use BWIPP's Error Reporting</h4>
-<p>Use the BWIPP error reporting mechanism to provide specific error messages to users so that they can understand why a given input is invalid. For example, the following PS procedure can be used to invoke <code>barcode.ps</code> and on error will halt with the descriptive text of the error (e.g. <code>BWIPP ERROR: EAN-13 must be 12 or 13 digits</code>) written to STDERR which can be intercepted and thrown or displayed in whatever manner is most appropriate.</p>
+<p>Use the BWIPP error reporting mechanism to provide specific error messages to users so that they can understand why a given input is invalid.</p>
+<p>The preferred way to do this is to wrap the BWIPP invocation in a &quot;stopped context&quot; which allows you to handle BWIPP-specific exceptions. For example, the following will invoke BWIPP and on error will emit formatted, descriptive text of the error (e.g. <code>BWIPP ERROR: EAN-13 must be 12 or 13 digits</code>) to STDERR which the calling program can recognise as an error and prompt the user:</p>
+<pre><code>{  % &quot;try&quot; BWIPP invocation
+  0 0 moveto (ABC) () /code39 /uk.co.terryburton.bwipp findresource exec
+  showpage
+} stopped {  % &quot;catch&quot; all exceptions
+  $error /errorname get dup length string cvs 0 6 getinterval (bwipp.) ne {
+    stop  % Rethrow non-BWIPP exceptions
+  } if
+  % Handle BWIPP exceptions, e.g. emit formatted error to stderr
+  (%stderr) (w) file
+  dup (\nBWIPP ERROR: ) writestring
+  dup $error /errorname get dup length string cvs writestring
+  dup ( ) writestring
+  dup $error /errorinfo get dup length string cvs writestring
+  dup (\n) writestring
+  dup flushfile
+} if</code></pre>
+<p>Less advised, but which may be useful in some circumstances, it is possible to override the PostScript VM's default handleerror procedure to recognise and take some special action when handling BWIPP-specific exceptions. For example, the following will invoke <code>barcode.ps</code> and on error will emit formatted, descriptive text of the error (e.g. <code>BWIPP ERROR: EAN-13 must be 12 or 13 digits</code>) to STDERR which the calling program can recognise as an error and prompt the user:</p>
 <pre><code>%!PS
 errordict begin
 /handleerror {
@@ -2958,6 +2975,7 @@ end
 <h1 id="acknowledgements">Acknowledgements</h1>
 <p>Many thanks for the technical contributions from:</p>
 <ul>
+<li>Martin Bailey</li>
 <li>Jean-François Barbeau</li>
 <li>Eric Belshaw</li>
 <li>Tim Brunson</li>
@@ -2975,6 +2993,7 @@ end
 <li>Gerd Knops</li>
 <li>Michael Landers</li>
 <li>Ross McFarland</li>
+<li>Rudolf Meier</li>
 <li>Greg Menke</li>
 <li>Matthew Newton</li>
 <li>Harald Oehlmann</li>
@@ -3015,6 +3034,7 @@ the author if that is the case.</p>
 <p>Brampton, Andrew. (2010) &quot;LaTeX QR Based Business Card,&quot; The Website of Andrew Brampton. <a href="http://bramp.net/blog/latex-qr-based-business-card" class="uri">http://bramp.net/blog/latex-qr-based-business-card</a></p>
 <p>Pascal. (2011) &quot;QR Code with Latex,&quot; <a href="http://xaphire.de/recipes/?p=344" class="uri">http://xaphire.de/recipes/?p=344</a></p>
 <p>Voß, Herbert. (2011) &quot;Ch 26: pst-barcode - Bar codes&quot; in &quot;PSTricks. Graphics and PostScript for TeX and LaTeX,&quot; Cambridge: UIT Cambridge. pp. 497-508.</p>
+<p>Voß, Herbert. (2016) &quot;Ch 25: pst-barcode: Barcodes&quot; in &quot;PSTricks. Grafik mit PostScript für TeX und LaTeX,&quot; Lehmanns Media. pp. 535-548.</p>
 <h4 id="barcode-writer-in-pure-javascript">Barcode Writer in Pure JavaScript</h4>
 <p><a href="https://github.com/metafloor/bwip-js" class="uri">https://github.com/metafloor/bwip-js</a></p>
 <p>Russell, Robert. (2015) &quot;Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript,&quot; <a href="http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html" class="uri">http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html</a></p>
