@@ -1,7 +1,7 @@
 # Barcode Writer in Pure PostScript
 # http://bwipp.terryburton.co.uk
 #
-# Copyright (c) 2004-2014 Terry Burton
+# Copyright (c) 2004-2017 Terry Burton
 #
 # $Id$
 
@@ -114,7 +114,7 @@ cleanlist += $(RELEASEFILES) $(RELEASEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
-.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag
+.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag copyright
 
 all: resource packaged_resource monolithic monolithic_package
 
@@ -298,3 +298,9 @@ tag:
 	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
 	@echo EOF
 	@echo git push origin `head -n1 CHANGES`
+
+YEAR:=$(shell date +%Y)
+
+copyright:
+	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile
+
