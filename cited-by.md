@@ -81,6 +81,8 @@ http://documentation.scribus.net/index.php/Barcode_Generator
 
 "Libre Graphics: Scribus. Open Source Desktop Publishing Turns Pro," Linux Format, Issue 80 (June 2006). Future Publishing. p. 54.
 
+Byfield, Bruce. (2011) "Four Hidden Tools in Scribus," Linux Journal, November 2011. Belltown Media Inc. http://www.linuxjournal.com/content/four-hidden-tools-scribus
+
 
 #### KBarcode
 
