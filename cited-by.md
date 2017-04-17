@@ -83,6 +83,8 @@ http://documentation.scribus.net/index.php/Barcode_Generator
 
 Byfield, Bruce. (2011) "Four Hidden Tools in Scribus," Linux Journal, November 2011. Belltown Media Inc. http://www.linuxjournal.com/content/four-hidden-tools-scribus
 
+Willis, Nathan. (2013) "Scribus 1.4.3 adds color models and more," LWN.net. Eklektix, Inc. https://lwn.net/Articles/563035/
+
 
 #### KBarcode
 
