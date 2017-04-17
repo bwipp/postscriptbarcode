@@ -85,7 +85,7 @@ Byfield, Bruce. (2011) "Four Hidden Tools in Scribus," Linux Journal, November 2
 
 Willis, Nathan. (2013) "Scribus 1.4.3 adds color models and more," LWN.net. Eklektix, Inc. https://lwn.net/Articles/563035/
 
-White, Robert. (2015) "Beginning Scribus," Apress Media, LLC. pp 300-301. ISBN 9781484207222.
+White, Robert. (2015) "Beginning Scribus," Apress Media, LLC. pp 300-301. ISBN 978-1-4842-0722-2.
 
 
 #### KBarcode
