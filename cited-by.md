@@ -67,6 +67,8 @@ Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics an
 
 Molnar, Peter. (2013) "Processing class assignments on paper (Part I)," Blog: I'd rather be programming... http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html
 
+Voß, Herbert. (2013) "QR-Codes im Rand ausgeben [QR Codes in the Margin]," Die TEXnische Komödie 4/2013. pp. 34–37. http://archiv.dante.de/DTK/PDF/komoedie_2013_4.pdf
+
 Fischer, Ulrike. (2014) "biblatex variations," The TUGboat Journal, Volume 35, Number 3. pp. 256-260.
 
 Voß, Herbert. (2016) "Ch 25: pst-barcode: Barcodes" in "PSTricks. Grafik mit PostScript für TeX und LaTeX," Lehmanns Media. pp. 535-548.
