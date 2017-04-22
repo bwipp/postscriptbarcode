@@ -44,6 +44,8 @@ Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Au
 
 Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript," http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html
 
+Ehlenbroker J., Lohweg V. (2016) "System for simple coding, authentication and copy detection of printed documents," U.S. Patent Application 15/114,422, published December 2016.
+
 
 #### pst-barcode
 
