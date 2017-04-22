@@ -3,7 +3,7 @@ Cited-By
 
 The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.
 
-If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.
+If you are aware of any noteworthy additions to this list then please send a patch.
 
 
 #### Barcode Writer in Pure PostScript
