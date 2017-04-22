@@ -65,6 +65,8 @@ Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
+Molnar, Peter. (2013) "Processing class assignments on paper (Part I)," Blog: I'd rather be programming... http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html
+
 Voß, Herbert. (2016) "Ch 25: pst-barcode: Barcodes" in "PSTricks. Grafik mit PostScript für TeX und LaTeX," Lehmanns Media. pp. 535-548.
 
 Tibi, Daniel. (2016) "Easy Codes: Generating Barcodes and QR Codes With LaTeX." Ubuntu User, Issue 28 (Spring 2016). Linux New Media USA LLC. pp. 45-47.
