@@ -1,0 +1,130 @@
+%!PS
+%
+%      This PostScript routine forms the GEM alignment barcode
+%       Reduce the printed output by a factor of 7 to form the final mask
+%       --  Joe Paradiso, 27-Aug-93 --
+%
+%
+% First define the arrays
+%
+[ [] [0] [1] [0 0] [1 0] [0 1] [1 1] 
+  [0 0 0] [1 0 0] [0 1 0] [1 1 0] [0 0 1] [1 0 1] [0 1 1] [1 1 1] ]
+/bars exch def      % The basic bar codes are defined in this array
+%
+[0 12 1 10 2 13 3 14 4 9 5 7 6 11 8 0 0]
+/sqnce exch def     % The sequence of bar codes are defined here
+%
+/ntrail 8 def    % No. of thin bars before and after main code
+/scfac 2.84375 def      % The scale factor
+/maxl 72 6.43 mul scfac div def   % Maximum line length 
+/endl  10 def   % End-clip length 
+/ofstx 80 scfac div def   % Initial offsets
+/ofsty 80 scfac div def
+%
+/prtprc      % Procedure to print out barcode
+{/ninx exch def
+ 0.75 0 rmoveto
+ 2.5 setlinewidth
+ 0 maxl rlineto   % Draw thick guidebar
+ dodraw
+ 0.75 maxl neg rmoveto
+ 2 0 rmoveto
+ 1 setlinewidth
+ bars ninx get  % get the current barcode description
+ /cdex exch def
+  cdex {prtbars} forall   % Print out the relevant bars
+  dodraw } def
+%
+/prtbars    % Procedure to print out barcode bars
+{0 ne 
+  {0 maxl rlineto     % Draw the line if the  code is nonzero
+  0 maxl neg rmoveto } if
+ 2 0 rmoveto   % Insert space
+ } def
+%
+/headtrl   % Procedure to print out header/trailer bars
+{0 maxl rlineto
+  2 maxl neg rmoveto} def
+%
+/dodraw   % Procedure to print the current path and preserve coordinates
+{ currentpoint
+ stroke
+ moveto } def
+%
+% Draw a Barcode with header and trailer
+%
+/bardraw
+ {1 setlinewidth   % select thin line
+ ntrail {headtrl} repeat    % Draw the header bars
+ dodraw
+ sqnce {prtprc} forall     % Draw the main barcode
+ ntrail {headtrl} repeat    % Draw the trailer bars
+ dodraw } def
+%
+%    Routine to draw a crosshair at the current origin
+%
+/crosshair
+{gsave        % save graphics state
+.2625 .2625  scale       % Scale coordinates so crosshair is appropriately small
+10 0 moveto 
+0 0 10 0 360 arc 
+1 setgray 
+fill
+0 setgray 
+8 0 moveto 
+0 0 8 0 360 arc
+-10 0 moveto 
+10 0 lineto 
+0 -10 moveto 
+0 10 lineto 
+stroke
+4 0 moveto 
+0 0 4 0 360 arc 
+fill
+-4 0 moveto 
+4 0 lineto 
+0 -4 moveto 
+0 4 lineto 
+1 setgray 
+stroke 
+grestore        % Restore graphics state
+ }  def
+%
+%    Program Execution
+%
+scfac scfac scale   % Scale x and y coordinates appropriately
+gsave
+ofstx ofsty moveto  % Initialize coordinates
+0.0 setgray   % Color the vertical bars black
+bardraw    % Print the vertical barcode
+currentpoint
+pop
+ofstx sub
+/xww exch def    % Get x maximum
+90 rotate    % Flip the x and y coordinates
+1 1 neg scale   % Flip the y coordinate to compensate the rotation
+ofstx 1.5 add ofsty 0.5 sub moveto  % Initialize coordinates
+1.0 setgray   % Color the horizontal bars white
+bardraw    % Print the horizontal barcode
+-0.5 0 rmoveto   % Correct final positioning       
+0 maxl rlineto    % Clip excess lines with white rectangle
+endl 0 rlineto
+0 maxl neg rlineto
+endl neg 0 rlineto
+fill
+%
+grestore
+ofstx ofsty translate  % Initialize coordinates for crosshair drawing
+-10 -9.5 translate
+crosshair  % Lower Left
+xww 18 add
+0 translate
+crosshair % Lower Right
+xww 16.5 add 
+4 add    % Compensate for wider y-width
+0 exch translate
+crosshair  % Upper Right
+xww 18 add
+neg 0 translate
+crosshair  % Upper Left
+ 
