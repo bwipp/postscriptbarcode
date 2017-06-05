@@ -1,0 +1,461 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% http://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2017 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER dotcode--
+% --REQUIRES preamble raiseerror renmatrix--
+% --DESC: DotCode
+% --EXAM: This is DotCode
+% --EXOP: fast
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/dotcode {
+
+    20 dict begin
+
+    /options exch def
+    /barcode exch def
+
+    /dontdraw false def
+    /rows -1 def
+    /columns -1 def
+    /ratio -1 def
+    /parse false def
+    /parsefnc false def
+    /raw false def
+    /fast false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /rows rows cvi def
+    /columns columns cvi def
+    /ratio ratio cvr def
+
+    % Set the ratio to 3:2 if no size is specified
+    ratio -1 eq rows -1 eq and columns -1 eq and {
+        /ratio 3 2 div def
+    } if
+
+    % Parse ordinals of the form ^NNN to ASCII
+    parse {
+        /msg barcode length string def
+        /j 0 def
+        barcode
+        { % loop
+            (^) search {
+                dup msg exch j exch putinterval
+                length j add 1 add /j exch def
+                pop
+                dup 0 3 getinterval cvi msg exch j 1 sub exch put
+                dup length 3 sub 3 exch getinterval
+            } {
+                dup msg exch j exch putinterval
+                length j add /j exch def
+                /barcode msg 0 j getinterval def
+                exit
+            } ifelse
+        } loop
+    } if
+
+    % Convert input into array of codewords
+    raw {
+        /cws barcode length array def
+        /i 0 def /j 0 def
+        { % loop
+            i barcode length eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            cws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /cws cws 0 j getinterval def
+        /mode (notbin) def  % Dummy
+    } {  % Simple autoencoder from input to codewords using byte mode
+        /barlen barcode length def
+
+        % Base 259 to one more in base 103
+        /base259to103 {
+            dup length exch
+            0 exch {add 259 mul} forall 259 idiv
+            exch [ 3 1 roll 1 add {dup 103 mod exch 103 idiv} repeat pop ]
+            [ exch dup length 1 sub -1 0 {1 index exch get exch} for pop ]
+        } bind def
+
+        barlen 5 idiv 6 mul
+        barlen 5 mod dup 0 eq {pop} {add 1 add} ifelse 1 add
+        /cws exch array def
+        cws 0 112 put
+        0 1 barlen 5 idiv 1 sub {
+            /i exch def
+            barcode i 5 mul 5 getinterval base259to103
+            cws exch i 6 mul 1 add exch putinterval
+        } for
+        /rem barlen 5 mod def
+        rem 0 ne {
+            barcode barlen rem sub rem getinterval base259to103
+            cws exch cws length rem sub 1 sub exch putinterval
+        } if
+
+        /mode (bin) def
+    } ifelse
+
+    % Determine the symbol size
+    /nd cws length def
+    /minarea nd 3 add nd 2 idiv add 9 mul 2 add 2 mul def
+    ratio -1 ne {        % Fixed ratio
+        /hgt minarea ratio div sqrt def
+        /wid minarea ratio mul sqrt def
+        /h hgt cvi def  /w wid cvi def
+        h w add 2 mod 1 eq {
+            h w mul minarea lt {/h h 1 add def  /w w 1 add def} if
+        } {
+            hgt w mul wid h mul lt {
+                /w w 1 add def
+                h w mul minarea lt {
+                    /w w 1 sub def  /h h 1 add def
+                    h w mul minarea lt {/w w 2 add def} if
+                } if
+            } {
+                /h h 1 add def
+                h w mul minarea lt {
+                    /h h 1 sub def  /w w 1 add def
+                    h w mul minarea lt {/h h 2 add def} if
+                } if
+            } ifelse
+        } ifelse
+        /rows h def  /columns w def
+    } {
+        columns -1 eq {  % Fixed height
+            /columns minarea rows add 1 sub rows idiv dup rows add 2 mod 0 eq {1 add} if def
+        } if
+        rows -1 eq {     % Fixed width
+            /rows minarea columns add 1 sub columns idiv dup columns add 2 mod 0 eq {1 add} if def
+        } if
+    } ifelse
+
+    % Extend the codewords with padding
+    /ndots rows columns mul 2 idiv def
+    {
+        nd 1 add dup 2 idiv 3 add add 9 mul 2 add ndots gt {exit} if
+        /nd nd 1 add def
+    } loop
+    /nc nd 2 idiv 3 add def
+    /nw nd nc add def
+    /rembits ndots nw 9 mul 2 add sub def
+    nd cws length gt {
+        /cws [
+            cws aload pop
+            mode (bin) eq {109} {106} ifelse
+            nd cws length sub 1 sub {106} repeat
+        ] def
+    } if
+
+    % Create an array containing the character mappings
+    /encs [
+        (101010101) (010101011) (010101101) (010110101) (011010101)
+        (101010110) (101011010) (101101010) (110101010) (010101110)
+        (010110110) (010111010) (011010110) (011011010) (011101010)
+        (100101011) (100101101) (100110101) (101001011) (101001101)
+        (101010011) (101011001) (101100101) (101101001) (110010101)
+        (110100101) (110101001) (001010111) (001011011) (001011101)
+        (001101011) (001101101) (001110101) (010010111) (010011011)
+        (010011101) (010100111) (010110011) (010111001) (011001011)
+        (011001101) (011010011) (011011001) (011100101) (011101001)
+        (100101110) (100110110) (100111010) (101001110) (101011100)
+        (101100110) (101101100) (101110010) (101110100) (110010110)
+        (110011010) (110100110) (110101100) (110110010) (110110100)
+        (111001010) (111010010) (111010100) (001011110) (001101110)
+        (001110110) (001111010) (010011110) (010111100) (011001110)
+        (011011100) (011100110) (011101100) (011110010) (011110100)
+        (100010111) (100011011) (100011101) (100100111) (100110011)
+        (100111001) (101000111) (101100011) (101110001) (110001011)
+        (110001101) (110010011) (110011001) (110100011) (110110001)
+        (111000101) (111001001) (111010001) (000101111) (000110111)
+        (000111011) (000111101) (001001111) (001100111) (001110011)
+        (001111001) (010001111) (011000111) (011100011) (011110001)
+        (100011110) (100111100) (101111000) (110001110) (110011100)
+        (110111000) (111000110) (111001100)
+    ] def
+
+    % Final six dots arranged at edges
+    rows 2 mod 0 eq {
+        /sixedges [
+            [ columns 1 sub  rows 2 sub ]
+            [ 0              rows 2 sub ]
+            [ columns 2 sub  rows 1 sub ]
+            [ 1              rows 1 sub ]
+            [ columns 1 sub  0          ]
+            [ 0              0          ]
+        ] def
+    } {
+        /sixedges [
+            [ columns 2 sub  0          ]
+            [ columns 2 sub  rows 1 sub ]
+            [ columns 1 sub  1          ]
+            [ columns 1 sub  rows 2 sub ]
+            [ 0              0          ]
+            [ 0              rows 1 sub ]
+        ] def
+    } ifelse
+
+    /dmv {columns mul add} bind def
+
+    % Construct the template
+    /outline rows columns mul array def
+    0 1 rows 1 sub {
+        /y exch def
+        0 1 columns 1 sub {
+            /x exch def
+            outline x y dmv x y add 2 mod 1 sub put
+        } for
+    } for
+    sixedges {
+        outline exch aload pop dmv 1 put
+    } forall
+
+    % Evaluate the symbol
+    /evalsymbol {
+        /sym exch def
+
+        /pen 0 def  /p 0 def
+        rows 2 mod 1 eq {
+            /xy /x def  /rc /rows def     /cr /columns def
+        } {
+            /xy /y def  /rc /columns def  /cr /rows def
+        } ifelse
+        rc load 12 lt {
+            /sum 0 def
+            1 1 cr load 2 sub {
+                xy exch def
+                false
+                xy load 1 and 2 rc load 1 sub {
+                    xy load xy /x eq {exch} if
+                    sym 3 1 roll
+                    dmv get 1 eq {pop true exit} if
+                } for
+                {  % Column/Row not empty
+                    /sum 0 def
+                    /pen pen p add def
+                    /p 0 def
+                } {
+                    /sum sum 1 add def
+                    /p sum 1 eq {rc load} {p rc load mul} ifelse def
+                } ifelse
+            } for
+        } if
+        /pen pen p add def
+
+        /worst 9999999 def
+        [ [ /x 0 ] [ /x 1 ] [ /y 0 ] [ /y 1 ] ] {  % Top Bottom Left Right
+            aload pop  /fl exch def  /dir exch def
+            /sum 0 def  /first -1 def  /last -1 def
+            0 1 dir /x eq {columns} {rows} ifelse 1 sub {
+                dir exch def
+                sym
+                dir load
+                dir /x eq {rows} {columns} ifelse 1 sub fl mul
+                dir /y eq {exch} if
+                dmv get 1 eq {
+                    first -1 eq {/first dir load def} if
+                    /last dir load def
+                    /sum sum 1 add def
+                } if
+            } for
+            sum last add first sub
+            dir /x eq {rows} {columns} ifelse mul
+            dup worst lt {/worst exch def} {pop} ifelse
+        } forall
+
+        % Pad twice on all sides
+        /symp [
+            columns 4 add 2 mul {0} repeat
+            0 columns sym length 1 sub {
+                0 exch 0 exch
+                sym exch columns getinterval aload pop
+                0 0
+            } for
+            columns 4 add 2 mul {0} repeat
+        ] def
+
+        % Count voids and isolated dots
+        /columns columns 4 add def
+        /rows    rows    4 add def
+        /sum 0 def
+        2 1 rows 3 sub {
+            /y exch def
+            y 1 and 2 add 2 columns 3 sub {
+                /x exch def
+                1 {  % Common exit
+                    symp x 1 sub y 1 sub dmv get 1 eq {exit} if
+                    symp x 1 add y 1 sub dmv get 1 eq {exit} if
+                    symp x 1 sub y 1 add dmv get 1 eq {exit} if
+                    symp x 1 add y 1 add dmv get 1 eq {exit} if
+                    symp x y dmv get 0 eq {/sum sum 1 add def exit} if
+                    symp x 2 sub y       dmv get 1 eq {exit} if
+                    symp x       y 2 sub dmv get 1 eq {exit} if
+                    symp x 2 add y       dmv get 1 eq {exit} if
+                    symp x       y 2 add dmv get 1 eq {exit} if
+                    /sum sum 1 add def
+                } repeat
+            } for
+        } for
+        /columns columns 4 sub def
+        /rows    rows    4 sub def
+
+        worst sum sum mul sub pen sub
+
+    } bind def
+
+    % Reed Solomon antilog table
+    /rsalog [ 1 112 { dup 3 mul 113 mod } repeat ] def
+    /step nw 112 idiv 1 add def
+    /offset {step mul start add} bind def
+
+    /bestscore -1 def
+    [ 2#00 2#01 2#10 2#11 ] {  % For each mask pattern
+
+        /mask exch def
+
+        % Calculate the error correction codewords for each block
+        /rscws [
+             mask
+             [ 0 3 7 17 ] mask get 0 cws {1 index add 113 mod exch 2 index add exch 3 1 roll} forall pop pop
+             nc {0} repeat
+        ] def
+        0 1 step 1 sub {
+            /start exch def
+            /ND nd 1 add start sub step add 1 sub step idiv def
+            /NW nw 1 add start sub step add 1 sub step idiv def
+            /NC NW ND sub def
+            /coeffs [ 1 NC {0} repeat ] def
+            1 1 NC {
+                /i exch def
+                NC -1 1 {
+                    /j exch def
+                    coeffs j coeffs j get 113 add rsalog i get coeffs j 1 sub get mul 113 mod sub 113 mod put
+                } for
+            } for
+            0 1 ND 1 sub {
+                /t exch rscws exch offset get rscws ND offset get add 113 mod def
+                0 1 NC 2 sub {
+                    /j exch def
+                    rscws ND j add offset rscws ND j add 1 add offset get 113 add t coeffs j 1 add get mul 113 mod sub 113 mod put
+                } for
+                rscws ND NC add 1 sub offset 113 t coeffs NC get mul 113 mod sub 113 mod put
+            } for
+            ND 1 NW 1 sub { dup rscws exch offset 113 rscws 5 -1 roll offset get sub 113 mod put } for
+        } for
+
+        % Create the bitstream
+        /bits ndots string def
+        bits 0 [ (00) (01) (10) (11) ] mask get putinterval
+        1 1 nw {
+            /i exch def
+            bits i 1 sub 9 mul 2 add encs rscws i get get putinterval
+        } for
+        rembits 0 gt {
+            bits nw 9 mul 2 add (11111111111111111) 0 rembits getinterval putinterval
+        } if
+
+        % Walk the symbol placing the bitstream
+        /pixs outline dup length array copy def
+        /posx 0 def
+        /posy rows 2 mod 0 eq {0} {rows 1 sub} ifelse def
+        bits 0 bits length 6 sub getinterval {
+            {  % Move to next vacant position
+                pixs posx posy dmv get -1 eq {exit} if
+                rows 2 mod 0 eq {
+                    /posy posy 1 add def
+                    posy rows eq {
+                        /posy 0 def
+                        /posx posx 1 add def
+                    } if
+                } {
+                    /posx posx 1 add def
+                    posx columns eq {
+                        /posx 0 def
+                        /posy posy 1 sub def
+                    } if
+                } ifelse
+            } loop
+            pixs posx posy dmv 3 -1 roll 48 sub put
+        } forall
+        0 1 5 {  % Last six edge dots
+            /i exch def
+            pixs sixedges i get aload pop dmv
+            bits bits length 6 sub i add get 48 sub put
+        } for
+
+        % Evaluate the symbol to find the most suitable mask
+        /score pixs evalsymbol def
+        score bestscore gt {
+            /bestsym pixs def
+            /bestscore score def
+            fast bestscore rows columns mul 2 idiv gt and {exit} if
+        } if
+
+    } forall
+    /pixs bestsym def
+
+    % Return the arguments
+    <<
+    /ren //renmatrix
+    /pixs pixs
+    /pixx columns
+    /pixy rows
+    /height rows 72 div
+    /width columns 72 div
+    /opt options
+    >>
+
+    dontdraw not //renmatrix if
+
+    end
+
+} bind def
+/dotcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER dotcode--
