@@ -117,10 +117,33 @@ begin
 
         % Base 259 to one more in base 103
         /base259to103 {
-            dup length exch
-            0 exch {add 259 mul} forall 259 idiv
-            exch [ 3 1 roll 1 add {dup 103 mod exch 103 idiv} repeat pop ]
-            [ exch dup length 1 sub -1 0 {1 index exch get exch} for pop ]
+            /in exch def
+            /inlen in length def
+            /in [ 5 inlen sub {0} repeat in aload pop ] def
+            /out 6 array def
+            /msbs [ in 0 2 getinterval aload pop ] def
+            /mscs [
+                msbs aload pop exch 259 mul add
+                2 {dup 103 mod exch 103 idiv} repeat
+            ] def
+            /lsbs [ in 2 3 getinterval aload pop ] def
+            /lscs [
+                lsbs aload pop exch 259 mul add exch 67081 mul add
+                3 {dup 103 mod exch 103 idiv} repeat
+            ] def
+            lscs 0 get mscs 0 get 42 mul add
+            out 5 2 index 103 mod put
+            103 idiv lscs 1 get add mscs 0 get 68 mul add mscs 1 get 42 mul add
+            out 4 2 index 103 mod put
+            103 idiv lscs 2 get add mscs 0 get 92 mul add mscs 1 get 68 mul add mscs 2 get 42 mul add
+            out 3 2 index 103 mod put
+            103 idiv lscs 3 get add mscs 0 get 15 mul add mscs 1 get 92 mul add mscs 2 get 68 mul add
+            out 2 2 index 103 mod put
+            103 idiv mscs 1 get 15 mul add mscs 2 get 92 mul add
+            out 1 2 index 103 mod put
+            103 idiv mscs 2 get 15 mul add
+            out 0 3 -1 roll 103 mod put
+            out 6 inlen sub 1 sub inlen 1 add getinterval
         } bind def
 
         barlen 5 idiv 6 mul
