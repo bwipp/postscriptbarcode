@@ -608,7 +608,7 @@ begin
         % Unlatch and pad with zeros until boundary
         mode A ne {
             /remcws numremcws j p 4 idiv 3 mul add 1 sub get 1 sub def
-            remcws 0 ne {  % Unlatch if we haven't filled symbol
+            p 4 mod 0 ne remcws 0 ne or i msglen ne or {  % Unlatch unless we have filled the symbol
                 Evals unl get
                 dup edifactvals exch p exch putinterval
                 /p exch length p add def
