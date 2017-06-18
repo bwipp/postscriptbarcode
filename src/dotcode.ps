@@ -99,70 +99,560 @@ begin
         } loop
     } if
 
-    % Convert input into array of codewords
-    raw {
-        /cws barcode length array def
-        /i 0 def /j 0 def
-        { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
-            cws j cw put
-            /i i 4 add def
-            /j j 1 add def
-        } loop
-        /cws cws 0 j getinterval def
-        /mode (notbin) def  % Dummy
-    } {  % Simple autoencoder from input to codewords using byte mode
-        /barlen barcode length def
+    /barlen barcode length def
 
-        % Base 259 to one more in base 103
-        /base259to103 {
-            /in exch def
-            /inlen in length def
-            /in [ 5 inlen sub {0} repeat in {} forall ] def
-            /out 6 array def
-            /msbs [ in 0 2 getinterval aload pop ] def
-            /mscs [
-                msbs aload pop exch 259 mul add
-                2 {dup 103 mod exch 103 idiv} repeat
-            ] def
-            /lsbs [ in 2 3 getinterval aload pop ] def
-            /lscs [
-                lsbs aload pop exch 259 mul add exch 67081 mul add
-                3 {dup 103 mod exch 103 idiv} repeat
-            ] def
-            lscs 0 get mscs 0 get 42 mul add
-            out 5 2 index 103 mod put
-            103 idiv lscs 1 get add mscs 0 get 68 mul add mscs 1 get 42 mul add
-            out 4 2 index 103 mod put
-            103 idiv lscs 2 get add mscs 0 get 92 mul add mscs 1 get 68 mul add mscs 2 get 42 mul add
-            out 3 2 index 103 mod put
-            103 idiv lscs 3 get add mscs 0 get 15 mul add mscs 1 get 92 mul add mscs 2 get 68 mul add
-            out 2 2 index 103 mod put
-            103 idiv mscs 1 get 15 mul add mscs 2 get 92 mul add
-            out 1 2 index 103 mod put
-            103 idiv mscs 2 get 15 mul add
-            out 0 3 -1 roll 103 mod put
-            out 6 inlen sub 1 sub inlen 1 add getinterval
-        } bind def
+    % Convert input into bytes accounting for FNC characters
+    /laa  -1 def  /lab  -2 def  /lac  -3 def  /bin  -4 def
+    /sfa  -5 def  /sfb  -6 def  /sb2  -7 def  /sb3  -8 def
+    /sb4  -9 def  /sb5 -10 def  /sb6 -11 def  /sfc -12 def
+    /sc2 -13 def  /sc3 -14 def  /sc4 -15 def  /sc5 -16 def
+    /sc6 -17 def  /sc7 -18 def  /bsa -19 def  /bsb -20 def
+    /tma -21 def  /tmb -22 def  /tmc -23 def  /tms -24 def
+    /fn1 -25 def  /fn2 -26 def  /fn3 -27 def  /crl -28 def
+    /aim -29 def  /m05 -30 def  /m06 -31 def  /m12 -32 def
+    /mac -33 def
 
-        barlen 5 idiv 6 mul
-        barlen 5 mod dup 0 eq {pop} {add 1 add} ifelse 1 add
-        /cws exch array def
-        cws 0 112 put
-        0 1 barlen 5 idiv 1 sub {
-            /i exch def
-            barcode i 5 mul 5 getinterval base259to103
-            cws exch i 6 mul 1 add exch putinterval
+    % Character maps for each state
+    /charmaps [
+      %  A    B    C         A    B    C         A    B    C
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
+      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
+      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
+      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
+      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
+      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
+      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
+      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
+      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
+      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
+      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
+      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
+      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
+      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
+      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
+      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
+      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
+      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
+      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
+      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
+      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
+      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
+      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
+      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
+      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
+      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
+      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
+      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
+      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
+      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
+      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
+      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
+      [ sfb  crl  (96) ]  [ sb2    9  (97) ]  [ sb3   28  (98) ]  % 96-98
+      [ sb4   29  (99) ]  [ sb5   30  aim  ]  [ sb6  sfa  laa  ]  % 99-101
+      [ lab  laa  sfb  ]  [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]  % 102-104
+      [ sc4  sc4  sb4  ]  [ lac  lac  lab  ]  [ fn1  fn1  fn1  ]  % 105-107
+      [ fn2  fn2  fn2  ]  [ fn3  fn3  fn3  ]  [ bsa  bsa  bsa  ]  % 108-110
+      [ bsb  bsb  bsb  ]  [ bin  bin  bin  ]                      % 111-112
+    ] def
+
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 113 dict 117 dict 113 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 2 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put
         } for
-        /rem barlen 5 mod def
-        rem 0 ne {
-            barcode barlen rem sub rem getinterval base259to103
-            cws exch cws length rem sub 1 sub exch putinterval
-        } if
+    } for
+    /Avals charvals 0 get def
+    /Bvals charvals 1 get def
+    Bvals m05  97 put
+    Bvals m06  98 put
+    Bvals m12  99 put
+    Bvals mac 100 put
+    /Cvals charvals 2 get def
+    /BINvals <<
+        102 [ sc2 sc3 sc4 sc5 sc6 sc7 tma tmb tmc tms ] {exch 1 add dup} forall pop
+    >> def
 
-        /mode (bin) def
-    } ifelse
+    /fncvals <<
+        (FNC1) fn1
+        (FNC2) fn2
+        (FNC3) fn3
+    >> def
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        parsefnc char 94 eq and i barlen 4 sub lt and {
+            barcode i 1 add get 94 ne {
+                /char fncvals barcode i 1 add 4 getinterval get def
+                /i i 4 add def
+            } {
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /i i 1 add def
+        /j j 1 add def
+    } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
+
+    % Pre-compute properties of the input at each point
+    /nDigits      [ msglen 1 add {0} repeat     ] def
+    /SeventeenTen [ msglen 1 add {false} repeat ] def
+    /ECI          [ msglen 1 add {false} repeat ] def
+    /DatumA       [ msglen 1 add {false} repeat ] def
+    /DatumB       [ msglen 1 add {false} repeat ] def
+    /DatumC       [ msglen 1 add {false} repeat ] def
+    /Binary       [ msglen 8 add {false} repeat ] def
+    /AheadC       [ msglen 1 add {0} repeat     ] def
+    /TryC         [ msglen 1 add {0} repeat     ] def
+    /AheadA       [ msglen 1 add {0} repeat     ] def
+    /AheadB       [ msglen 1 add {0} repeat     ] def
+    /UntilEndSeg  [ msglen 1 add {0} repeat     ] def
+    msglen 1 sub -1 0 {
+        /i exch def
+        /barchar msg i get def
+        barchar 48 ge barchar 57 le and {
+            nDigits i nDigits i 1 add get 1 add put
+        } if
+        barchar 48 ge barchar 57 le and {
+            nDigits i nDigits i 1 add get 1 add put
+        } if
+        Avals barchar known {DatumA i true put} if
+        Bvals barchar known {DatumB i true put} if
+        nDigits i get 2 ge  {DatumC i true put} if
+        barchar 0 lt        {DatumC i true put} if  % FNCx
+        barchar 128 ge      {Binary i true put} if
+        nDigits i get 10 ge {  % 17xxxxxx10
+            mark
+            msg i 10 getinterval aload pop
+            1 {  % common exit
+                48 ne {false exit} if
+                49 ne {false exit} if
+                pop pop pop pop pop pop
+                55 ne {false exit} if
+                49 ne {false exit} if
+                true
+            } repeat
+            SeventeenTen i 3 -1 roll put
+            cleartomark
+        } if
+        nDigits i 1 add get 6 ge msg i get fn2 eq and {  % ^FNC2xxxxxx
+            ECI i true put
+        } if
+        AheadC i nDigits i get 2 idiv put  % TODO Account for FNC1 in odd/even
+        nDigits i get 0 gt AheadC i get AheadC i 1 add get gt and {
+            TryC i AheadC i get put
+        } if
+        DatumA i get TryC i get 2 lt and {
+            AheadA i AheadA i 1 add get 1 add put
+        } if
+        DatumB i get TryC i get 2 lt and {
+            AheadB i AheadB i 1 add get 1 add put
+        } if
+        barchar fn3 ne {
+            UntilEndSeg i UntilEndSeg i 1 add get 1 add put
+        } if
+    } for
+
+    /A 0 def  /B 1 def  /C 2 def  /BIN 3 def
+
+    /addtocws {
+        dup cws exch j exch putinterval
+        /j exch length j add def
+    } bind def
+
+    % Base 259 to one more in base 103
+    /base259to103 {
+        /in exch def
+        /inlen in length def
+        /in [ 5 inlen sub {0} repeat in aload pop ] def
+        /out 6 array def
+        /msbs [ in 0 2 getinterval aload pop ] def
+        /mscs [
+            msbs aload pop exch 259 mul add
+            2 {dup 103 mod exch 103 idiv} repeat
+        ] def
+        /lsbs [ in 2 3 getinterval aload pop ] def
+        /lscs [
+            lsbs aload pop exch 259 mul add exch 67081 mul add
+            3 {dup 103 mod exch 103 idiv} repeat
+        ] def
+        lscs 0 get mscs 0 get 42 mul add
+        out 5 2 index 103 mod put
+        103 idiv lscs 1 get add mscs 0 get 68 mul add mscs 1 get 42 mul add
+        out 4 2 index 103 mod put
+        103 idiv lscs 2 get add mscs 0 get 92 mul add mscs 1 get 68 mul add mscs 2 get 42 mul add
+        out 3 2 index 103 mod put
+        103 idiv lscs 3 get add mscs 0 get 15 mul add mscs 1 get 92 mul add mscs 2 get 68 mul add
+        out 2 2 index 103 mod put
+        103 idiv mscs 1 get 15 mul add mscs 2 get 92 mul add
+        out 1 2 index 103 mod put
+        103 idiv mscs 2 get 15 mul add
+        out 0 3 -1 roll 103 mod put
+        out 6 inlen sub 1 sub inlen 1 add getinterval
+    } bind def
+
+    /finaliseBIN {
+        bpos 0 ne {
+            bvals 0 bpos getinterval base259to103 aload pop
+            /bpos 0 def
+        } if
+    } bind def
+
+    /addtobin {
+        bvals exch bpos exch put
+        /bpos bpos 1 add def
+        bpos 5 eq { finaliseBIN } if
+    } bind def
+
+    /ECIabc {  % ECI encoding for modes A, B and C
+        msg i 1 add 6 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
+        dup 40 ge {
+            40 sub
+            dup 12769 idiv 40 add exch 12769 mod
+            dup   113 idiv        exch   113 mod
+        } if
+    } bind def
+
+    /ECIbin {  % ECI encoding for binary mode
+        [
+            msg i 1 add 6 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
+            dup 65536 ge {
+                258 exch dup 65536 idiv exch 65536 mod dup 256 idiv exch 256 mod
+            } {
+                dup 256 ge {
+                    257 exch dup 256 idiv exch 256 mod
+                } {
+                    256 exch
+                } ifelse
+            } ifelse
+        ] {
+            addtobin
+        } forall
+    } bind def
+
+    /encC {
+        1 {  % Common exit
+            i segstart eq {  % Structured data macros
+                1 {  % common exit
+                    i segend 7 sub gt {0 exit} if
+                    msg segstart       get 91 ne {0 exit} if                    % [
+                    msg segstart 1 add get 41 ne {0 exit} if                    % )
+                    msg segstart 2 add get 62 ne {0 exit} if                    % >
+                    msg segstart 3 add get 30 ne {0 exit} if                    % {RS}
+                    msg segstart 4 add get dup 48 lt exch 57 gt or {0 exit} if  % digit
+                    msg segstart 5 add get dup 48 lt exch 57 gt or {0 exit} if  % digit
+                    msg segend   1 sub get  4 ne {0 exit} if                    % End: {EOT}
+                    msg segstart 4 add get 48 sub 10 mul msg segstart 5 add get 48 sub add
+                    dup dup 05 ne exch dup 06 ne exch 12 ne and and {pop mac exit} if
+                    msg segstart 6 add get 29 ne {pop 0 exit} if                % {GS}
+                    msg segend   2 sub get 30 ne {pop 0 exit} if                % End: {RS}
+                    dup 05 eq {pop m05 exit} if
+                        06 eq {    m06 exit} if
+                                   m12 exit
+                } repeat
+                /inmac exch def
+                inmac 0 ne {
+                    /mode B def
+                    [ Bvals inmac get ] addtocws
+                    /i i inmac mac ne {7} {6} ifelse add def
+                    exit
+                } if
+            } if
+            SeventeenTen i get {
+                [  % 17xxxxxx10 macro
+                    Cvals aim get
+                    msg i 2 add get 10 mul msg i 3 add get add
+                    msg i 4 add get 10 mul msg i 5 add get add
+                    msg i 6 add get 10 mul msg i 7 add get add
+                ] addtocws
+                /i i 10 add def
+                exit
+            } if
+            DatumC i get {
+                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                    [ Cvals msg i get get ] addtocws
+                    ECI i get {  % FNC2 then 6 digits
+                        [ ECIabc ] addtocws
+                        /i i 7 add def
+                        exit
+                    } if
+                    msg i get fn3 eq segstart i ne and {  % FNC3
+                        /i i 1 add def
+                        /inmac 0 def
+                        /segstart i def
+                        /segend i UntilEndSeg i get add def
+                        exit
+                    } if
+                    /i i 1 add def
+                    exit
+                } if
+                [ msg i get 48 sub 10 mul msg i 1 add get 48 sub add ] addtocws
+                /i i 2 add def
+                exit
+            } if
+            Binary i get {  % Binary
+                nDigits i 1 add get 0 gt {
+                    msg i get 160 lt {
+                        [ Cvals bsa get Avals msg i get 128 sub get ] addtocws
+                    } {
+                        [ Cvals bsb get Bvals msg i get 128 sub get ] addtocws
+                    } ifelse
+                    /i i 1 add def
+                    exit
+                } if
+                [ Cvals bin get ] addtocws
+                /mode BIN def
+                exit
+            } if
+            /m AheadA i get def  /n AheadB i get def
+            m n gt {
+                [ Cvals laa get ] addtocws
+                /mode A def
+                exit
+            } if
+            n 4 gt {
+                [ Cvals lab get ] addtocws
+                /mode B def
+                exit
+            } if
+            [ Cvals [ sfb sb2 sb3 sb4 ] n 1 sub get get ] addtocws
+            n {
+                [ Bvals msg i get get ] addtocws
+                /i i 1 add def
+            } repeat
+            exit
+        } repeat
+    } bind def  % encC
+
+    /encB {
+        1 {  % Common exit
+            /n TryC i get def
+            n 2 ge {
+                n 4 gt {
+                    [ Bvals lac get ] addtocws
+                    /mode C def
+                    exit
+                } if
+                [ Bvals [ sfc sc2 sc3 sc4 ] n 1 sub get get ] addtocws
+                n {
+                    msg i get 0 lt {
+                        [ Cvals msg i get get ] addtocws
+                        /i i 1 add def
+                    } {
+                        [ msg i get 48 sub 10 mul msg i 1 add get 48 sub add ] addtocws
+                        /i i 2 add def
+                    } ifelse
+                } repeat
+                exit
+            } if
+            DatumB i get {
+                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                    [ Bvals msg i get get ] addtocws
+                    ECI i get {  % FNC2 then 6 digits
+                        [ ECIabc ] addtocws
+                        /i i 7 add def
+                        exit
+                    } if
+                    msg i get fn3 eq i segstart ne and {  % FNC3
+                        /i i 1 add def
+                        /mode C def
+                        /inmac 0 def
+                        /segstart i def
+                        /segend i UntilEndSeg i get add def
+                        exit
+                    } if
+                    /i i 1 add def
+                    exit
+                } if
+                [ Bvals msg i get get ] addtocws
+                /i i 1 add def
+                exit
+            } if
+            Binary i get {  % Binary
+                DatumB i 1 add get {
+                    msg i get 160 lt {
+                        [ Bvals bsa get Avals msg i get 128 sub get ] addtocws
+                    } {
+                        [ Bvals bsb get Bvals msg i get 128 sub get ] addtocws
+                    } ifelse
+                    /i i 1 add def
+                    exit
+                } if
+                [ Bvals bin get ] addtocws
+                /mode BIN def
+                exit
+            } if
+            AheadA i get 1 eq {
+                [ Bvals sfa get Avals msg i get get ] addtocws
+                /i i 1 add def
+                exit
+            } if
+            [ Bvals laa get ] addtocws
+            /mode A def
+            exit
+        } repeat
+    } bind def
+
+    /encA {
+        1 {  % Common exit
+            /n TryC i get def
+            n 2 ge {
+                n 4 gt {
+                    [ Avals lac get ] addtocws
+                    /mode C def
+                    exit
+                } if
+                [ Avals [ sfc sc2 sc3 sc4 ] n 1 sub get get ] addtocws
+                n {
+                    msg i get 0 lt {
+                        [ Cvals msg i get get ] addtocws
+                        /i i 1 add def
+                    } {
+                        [ msg i get 48 sub 10 mul msg i 1 add get 48 sub add ] addtocws
+                        /i i 2 add def
+                    } ifelse
+                } repeat
+                exit
+            } if
+            DatumA i get {
+                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                    [ Avals msg i get get ] addtocws
+                    ECI i get {  % FNC2 then 6 digits
+                        [ ECIabc ] addtocws
+                        /i i 7 add def
+                        exit
+                    } if
+                    msg i get fn3 eq i segstart ne and {  % FNC3
+                        /i i 1 add def
+                        /mode C def
+                        /inmac 0 def
+                        /segstart i def
+                        /segend i UntilEndSeg i get add def
+                    } if
+                    /i i 1 add def
+                    exit
+                } if
+                [ Avals msg i get get ] addtocws
+                /i i 1 add def
+                exit
+            } if
+            Binary i get {  % Binary
+                DatumA i 1 add get {
+                    msg i get 160 lt {
+                        [ Avals bsa get Avals msg i get 128 sub get ] addtocws
+                    } {
+                        [ Avals bsb get Bvals msg i get 128 sub get ] addtocws
+                    } ifelse
+                    /i i 1 add def
+                    exit
+                } if
+                [ Avals bin get ] addtocws
+                /mode BIN def
+                exit
+            } if
+            /n AheadB i get def
+            n 6 gt {
+                [ Bvals lab get ] addtocws
+                /mode B def
+                exit
+            } if
+            [ Avals [ sfb sb2 sb3 sb4 sb5 sb6 ] n 1 sub get get ] addtocws
+            n {
+                [ Bvals msg i get get ] addtocws
+                /i i 1 add def
+            } repeat
+            exit
+        } repeat
+    } bind def
+
+    /encBIN {
+        1 {  % Common exit
+            /n TryC i get def
+            n 2 ge {
+                [ finaliseBIN ] addtocws
+                n 7 gt {  % Terminate to C
+                    [ BINvals tmc get ] add
+                    /mode C def
+                    exit
+                } if
+                [ BINvals [ sc2 sc3 sc4 sc5 sc6 sc7 ] n 2 sub get get ] addtocws
+                n {
+                    msg i get 0 lt {
+                        [ Cvals msg i get get ] addtocws
+                        /i i 1 add def
+                    } {
+                        [ msg i get 48 sub 10 mul msg i 1 add get 48 sub add ] addtocws
+                        /i i 2 add def
+                    } ifelse
+                } repeat
+                exit
+            } if
+            ECI i get Binary i 7 add get and {  % ECI then binary
+                [ ECIbin ] addtocws
+                /i i 7 add def
+                i msglen eq { [ finaliseBIN ] addtocws } if
+                exit
+            } if
+            msg i get 0 ge {  % Not FNCx
+                Binary i       get    Binary i 1 add get or
+                Binary i 2 add get or Binary i 3 add get or
+                ECI i 1 add get       Binary i 8 add get and or {
+                    [ msg i get addtobin ] addtocws
+                    /i i 1 add def
+                    i msglen eq { [ finaliseBIN ] addtocws } if
+                    exit
+                } if
+            } if
+            [ finaliseBIN ] addtocws
+            i msglen 1 sub ne {  % Not last character
+                msg i get fn3 eq i segstart ne and {  % FNC3
+                    [ BINvals tms get ] addtocws
+                    /i i 1 add def
+                    /mode C def
+                    /inmac 0 def
+                    /segstart i def
+                    /segend i UntilEndSeg i get add def
+                    exit
+                } if
+                AheadA i get AheadB i get gt {
+                    [ BINvals tma get ] addtocws
+                    /mode A def
+                } {
+                    [ BINvals tmb get ] addtocws
+                    /mode B def
+                } ifelse
+                exit
+            } if
+            exit
+        } repeat
+    } bind def
+
+    /cws barlen 2 mul 1 add array def
+    /mode C def
+    /bvals 5 array def  /bpos 0 def
+    /inmac 0 def  /segstart 0 def  /segend UntilEndSeg 0 get def
+    /i 0 def  /j 0 def  {
+        i msglen ge {exit} if
+        inmac 0 ne {  % Jump over macro trailers
+            inmac mac ne i segend 2 sub eq and {  % {RS}{EOT}
+                /i i 2 add def
+                i msglen ge {exit} if
+            } if
+            inmac mac eq i segend 1 sub eq and {  % {EOT}
+                /i i 1 add def
+                i msglen ge {exit} if
+            } if
+        } if
+        [ /encA /encB /encC /encBIN ] mode get load exec
+    } loop
+    /cws cws 0 j getinterval def
 
     % Determine the symbol size
     /nd cws length def
@@ -210,7 +700,7 @@ begin
     nd cws length gt {
         /cws [
             cws aload pop
-            mode (bin) eq {109} {106} ifelse
+            mode BIN eq {109} {106} ifelse
             nd cws length sub 1 sub {106} repeat
         ] def
     } if
