@@ -417,6 +417,13 @@ begin
                 /mode A def
                 exit
             } if
+            i segstart eq {
+                msg i get dup 9 eq exch dup 28 eq exch dup 29 eq exch 30 eq or or or {
+                    [ Cvals laa get ] addtocws
+                    /mode A def
+                    exit
+                } if
+            } if
             n 4 gt {
                 [ Cvals lab get ] addtocws
                 /mode B def
@@ -559,7 +566,7 @@ begin
             } if
             /n AheadB i get def
             n 6 gt {
-                [ Bvals lab get ] addtocws
+                [ Avals lab get ] addtocws
                 /mode B def
                 exit
             } if
