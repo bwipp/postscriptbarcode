@@ -186,6 +186,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#code-11">Code 11</a></li>
 <li><a href="#code-16k">Code 16K</a></li>
 <li><a href="#code-25">Code 25</a></li>
+<li><a href="#dotcode">DotCode</a></li>
 <li><a href="#iata-2-of-5">IATA 2 of 5</a></li>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a></li>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a></li>
@@ -349,8 +350,8 @@ make</code></pre>
 <li>A PostScript language indicator beginning <code>%!PS</code>.</li>
 <li>Comments as lines beginning <code>%</code>.</li>
 <li>A definition for the <code>uk.co.terryburton.bwipp</code> category of named resources.</li>
-<li>A small set of named resource definitions for the renderers which generate the graphical output for the symbols delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.</li>
-<li>A large set of named resource definitions for the encoders which convert the input into a structured symbol definition delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.</li>
+<li>A small set of named resource definitions for the renderers which generate the graphical output for the symbols, delimited by <code>% --BEGIN RENDERER ...--</code> and <code>% --END RENDERER ...--</code>.</li>
+<li>A large set of named resource definitions for the encoders which convert the input into a data structure suitable for printing using a PostScript renderer or importing into a frontend application, delimited by <code>% --BEGIN ENCODER ...--</code> and <code>% --END ENCODER ...--</code>.</li>
 <li>A set of sample barcode invocations delimited by <code>% --BEGIN SAMPLE--</code> and <code>% --END SAMPLE--</code>.</li>
 </ul>
 <p>This is one example from the samples:</p>
@@ -358,12 +359,12 @@ make</code></pre>
 /interleaved2of5 /uk.co.terryburton.bwipp findresource exec</code></pre>
 <p>The meaning of each component of the invocation is as follows:</p>
 <pre><code>150 750 moveto             % The position of the symbol on the canvas
-(0123456789)               % The data field: Contents to encode in the barcode
+(0123456789)               % The data field: Data content represented by the symbol
 (includetext height=0.75)  % The options field: Properties of the symbol
 /interleaved2of5           % The type of barcode, often called the &quot;symbology&quot;
-/uk.co.terryburton.bwipp findresource exec  % Call to plot symbol on the canvas</code></pre>
-<p>The acceptable contents of the data field varies between symbologies as defined in the <a href="#symbology-reference">symbology reference</a>.</p>
-<p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the <a href="#options-reference">options reference</a>, however encoder-specific options do exist in some cases and the default values of permitted options varies across symbologies.</p>
+/uk.co.terryburton.bwipp findresource exec  % A call to plot the symbol on the canvas</code></pre>
+<p>The acceptable contents of the data field varies between symbologies as defined in the <a href="#symbologies-reference">symbology reference</a>.</p>
+<p>The acceptable contents of the options field is for the most part common across all of the symbologies as defined in the <a href="#options-reference">options reference</a>, however encoder-specific options do exist in many cases and the default values of options vary across symbologies.</p>
 <p>Using the references mentioned above you should now be able to experiment by carefully amending the sample section of the file and observing the effect on the graphical output.</p>
 <p>You will want to view the result of your changes regularly (since bugs may be hard to track down once introduced) either by using a software PostScript interpreter alongside a viewer or by sending the file to a PostScript-enabled printer. Alternatively you can use the <a href="http://the-burtons.xyz/barcode-generator/">web-based generator</a>.</p>
 <ul>
@@ -385,7 +386,7 @@ make</code></pre>
 <ul>
 <li>You need only include the named resource definitions for the symbologies of the symbols that you are actually intending to create and must include any dependencies as specified in the resource file by the <code>% --REQUIRES ...</code> metadata. Examining the contents of the PS files created by the web-based generator at <a href="http://the-burtons.xyz/barcode-generator/" class="uri">http://the-burtons.xyz/barcode-generator/</a> illustrates this point. If you have downloaded the source distribution of BWIPP you can create a standalone file containing only the resources required for a particular symbology by running something like <code>make build/standalone/code39.ps</code> or <code>make build/standalone_package/code39.ps</code>.</li>
 <li>If you intend to create an application whose purpose is to generate documents containing a variety of barcodes it is suggested that you start with the monolithic <code>barcode.ps</code> file and use the <code>% --BEGIN/END ENCODER ...--</code> and <code>% --BEGIN/END RENDERER ...--</code> delimiters to extract the relevant named resource definitions into your documents. This will allow you to simply update your project to the latest version of the BWIPP resource by just replacing your <code>barcode.ps</code> with the latest version.</li>
-<li>BWIPP includes a C library with bindings for various languages to help with the above.</li>
+<li>BWIPP includes a <a href="https://github.com/bwipp/postscriptbarcode/tree/master/libs">C library</a> with bindings for various languages specifically for this purpose.</li>
 <li>More information is available in the <a href="#developing-a-frontend-to-bwipp">Developer Notes</a>.</li>
 </ul>
 <h1 id="monolithic-flavours">Monolithic Flavours</h1>
@@ -447,7 +448,7 @@ make</code></pre>
 <h2 id="point-of-sale">Point of Sale</h2>
 <h3 id="ean-13">EAN-13</h3>
 <p><strong>EAN-13</strong> is an extension of the <a href="#upc-a">UPC-A</a> barcode symbology that usually carries a GTIN-13. It was designed by the International Article Numbering Association in 1976 for identification of retail goods at point of sale outside of the US.</p>
-<p>Also known as: EAN, UCC-13, European Article Number, International Article Number, JAN, JAN-13.</p>
+<p>Also known as: EAN, UCC-13, European Article Number, International Article Number, JAN, JAN-13, IAN, WPC, SAAN, UCCET, ABAC, BCCI, ICA, MANA, KANC, ANA, ANC.</p>
 <p>Variants:</p>
 <ul>
 <li>EAN-13+2 is an extension of EAN-13 that includes a <a href="#ean-2">two-digit add-on</a>.</li>
@@ -1578,7 +1579,7 @@ Encoder: japanpost</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANwAAAANCAMAAAD15vA5AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABqSURBVEjH7ZTBCsAgDEOT///pwaBb1VTmZfQQ8dAG0/ouARgH9yWiCeHRKDRkGUKmHrQMnptkKhyQfV4GwxnOcP/DYfrdWdXXZLgG/zTcBu6NkaJasuHjg7FSIbCNDBYyhGncaTjDNYS7AEoWCOd071ZoAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDIyOjAxOjU1KzAwOjAwGKLPNwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQyMjowMTo1NSswMDowMGn/d4sAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="maxicode">MaxiCode</h3>
 <p>The <strong>MaxiCode</strong> barcode symbology is a 2D barcode based on a hexagonal matrix surrounding a bulls eye pattern. It can encode a structured carrier message and full 256 character extended-ASCII.</p>
-<p>Also known as: UPS Code, Code 6.</p>
+<p>Also known as: UPS Code, Code 6, Dense Code.</p>
 <p>Standards: ISO/IEC 16023, ANSI/AIM BC10 - ISS MaxiCode.</p>
 <h4 id="data-and-options-39">Data and Options</h4>
 <ul>
@@ -1616,7 +1617,7 @@ Encoder: maxicode</code></pre>
 <pre><code>Data:    [\)&gt;^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
 Options: mode=2 parse
 Encoder: maxicode</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEsAAABICAMAAACJBPh2AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAK0SURBVFjDrVhZlqQwDLPvf+l5jwqxFjtQPZUPGkKieJFsqiPWyIz341osF339K6wvoGALYeUaeA9jzdLaso7X7akD1jY6ryXBWGVi1ME5jSFAaGWZs12/7uCSn7nAS/rjsjjA+yFf5zmMxf9jXQ58sDZcQoRhrpYkLEGPCDcZK3Eu63EkBxFu3xUoYnl+ChgZM2ecA5vNhBgbj0MiUNvgyClPr7Bm1r4Z+TibqJwhaKCQkPPTsCAdg+cFIK4Yb2uZZEZi04cKdjRYEgbBqrmgS2AF07DRGVocO6EWm3F1HLGihVoiTd7TBlLA9l70G/MtpVKwSEB3xDusRAZLnW0OSBMiHKY1H3CRSV3RASO7SHxs0xBrB0JiKJZq1bIgOTJtV5odK+ReCQzsMCwZbFMGbbWgFVYMUJOWCJnyOGFhW6/UayL3MYAF9Lr/rIUFJp8TDZZWDzAL+AiPygwUhmCFYa0vBsOqjIJCrGXBfsDl0G3fVLh80hlLW2blUqJJ/vU+JkOVj2+w9NGrAXqvYj5zotVjJwiyxLgqnxMqJmIUYDUaItJwaIJxmzJhUNpDSXB4iNUZqTkw61qyF5gbmAPZNWmkjHnIrUZz6WAX2GiVhvUOrnvW8IK+cxSL1b/VtTOmZ3DvgBxNH6lhA97l/VNFikUwVhywqhZKgihM3E3rcPwSh46kWPmAld0Srlt+Cb4LmSNGsbC/vRixi3bzpcGKBgu59s3o9hU7/+Sh2/UjLGgLlCdZGzQnNN0R33d0CCvtKB1p0oIFJuxk9malf7R4URsaKQcIZbHfATiz94gVExbKQYvDEpoEiu/uYsN1TbCqFp6w6MDESsnFVHbDfwBA+eTaURoW7CZLTVdgH4sLlR1OA3dV6auGpeYIVxtzoMxyXeO+zjlg4ko55ALSRORJUb/E+geQJAi4RSjaqwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMjowNzo0OCswMDowMLjB3i4AAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjI6MDc6NDgrMDA6MDDJnGaSAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
+<p><img src="data:image/png;base64,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" /></p>
 <h3 id="royal-mail-4-state-customer-code">Royal Mail 4 State Customer Code</h3>
 <p>The <strong>Royal Mail 4 State Customer Code</strong> is a barcode symbology used by the British Postal Service to encode the postcode and delivery point identifier on letter mail.</p>
 <p>Also known as: RM4SCC, CBC.</p>
@@ -2074,6 +2075,23 @@ Encoder: code16k</code></pre>
 Options: 
 Encoder: code2of5</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABICAMAAADibLYjAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABVSURBVGje7c4xCgAgDAPA+P9PCzpoqavbUTqkpHBJMtbuOaneTk5p9c7ru3fvZhgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGD4YJiFlDKlG/SbGAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTExVDEzOjQ2OjA2KzAwOjAwklhPawAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMVQxMzo0NjowNiswMDowMOMF99cAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
+<h3 id="dotcode">DotCode</h3>
+<p>The <strong>DotCode</strong> symbology is 2D matrix-style barcode that can encode full 256 character extended-ASCII.</p>
+<p>Standards: AIM - ISS DotCode.</p>
+<h4 id="data-and-options-58">Data and Options</h4>
+<ul>
+<li>The data field can contain any extended ASCII data.</li>
+<li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value. This is useful for specifying unprintable characters.</li>
+<li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^FNC2</code>, <code>^FNC3</code>.</li>
+<li>The <strong>fast</strong> option is used to enable the optional high-speed symbol masking algorithm.</li>
+<li>The <strong>ratio</strong> is used to specify the aspect ratio of the symbol. The default is 1.5.</li>
+<li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. When these are not specified a symbol is generated that maintains the selected aspect ratio.</li>
+</ul>
+<h4 id="examples-39">Examples</h4>
+<pre><code>Data:    This is DotCode
+Options: fast inkspread=0.3
+Encoder: dotcode</code></pre>
+<p><img src="data:image/png;base64,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h2/u2aK6JX/LxFanrce3EbbFb/stzyCvNO/d9oDt3fkK+Vvzx3c47WgpECsQFIzstNxZ+xPqp9ifBnat3FW560thROGtIoOi8qKFYn7xrZ8Nf674eXF31O6BEtOSQ3swe5L2PNhrs/d4qURpTun4Pvd9HWXMssKyd/vX779Zblxee4BwIOOAsMKtoqtSrXJP5UJVTNVwtV11W418za6auYMRB4cO2R5qrVWoLar9dDj28MM6p7qOeo368iOYI5lHXjT4N/QdZR9tapRtLGr8fCzpmPC49/HeJrOmpmb55pIWuCWjZfpEyIm7J+1PdrXqtta1MdqKToFTGade/hL6y4PTrqd7zrDPtJ5VP1vTTmsv7IA6NnSIOmM6hV1BXYPnXM71dFt2t/+q9+ux88rnqy9IXii5SLiYf3HxUs6l2cspl2euRF8Z71nf8+Rq4NX7vV69A9dcr9247nj9ah+n79INqxvnb1rcPHeLfavztuntjn6T/vbfTH5rHzAd6Lhjdqfrrvnd7sFVgxeHbIau3LO/d/0+7/7t4dXDgw/8HjwcCRkRPox4OPUo4dGbx5mP559sHUWPFj4Vf1r+TP5Z/e9av7cJTYUXxuzH+p/7PH8yzh9/9UfaHwsT+S/IL8onlSabpoymzk87Tt99ueblxKuUV/MzBX9K/FnzWvP12b9s/+oXBYom3gjeLP5d/Fbm7bF3xu96Zj1nn71PfD8/V/hB5sPxj+yPfZ8CPk3OZy1gFyo+a33u/uL6ZXQxcXHxPy6ikLxyKdSVAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURQAAAP///6XZn90AAAABYktHRAH/Ai3eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QYZFiwt19hnKwAAAJdJREFUSMellAsOgDAIQ/H+lzYxmQ5GCxYTsx8PK91mZtfzrHb161cF/TCie0o/p4MRi3iU/q2pIA9B7RREpcnK8o4HIAvLEOhjG6zlRXyrqgRiOXmKOdiz41gbgN3j5NPrYHV14F9RQV6aw/Zsr/4G2XHFaSYgk4WvEB3s2Q2+KYG55bVcHWThTK4OYql82+tgJzSfF8Eb5G4F8YZqKnsAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTctMDYtMjVUMjM6NDQ6NDUrMDE6MDCnQRruAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE3LTA2LTI1VDIzOjQ0OjQ1KzAxOjAw1hyiUgAAAC10RVh0aWNjOmNvcHlyaWdodABDb3B5cmlnaHQgQXJ0aWZleCBTb2Z0d2FyZSAyMDExCLrFtAAAADF0RVh0aWNjOmRlc2NyaXB0aW9uAEFydGlmZXggU29mdHdhcmUgc1JHQiBJQ0MgUHJvZmlsZRMMAYYAAAAydEVYdGljYzptYW51ZmFjdHVyZXIAQXJ0aWZleCBTb2Z0d2FyZSBzUkdCIElDQyBQcm9maWxlXH49nwAAACt0RVh0aWNjOm1vZGVsAEFydGlmZXggU29mdHdhcmUgc1JHQiBJQ0MgUHJvZmlsZTEogqEAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNy0wNi0yNeIKnkYAAAAwdEVYdFNvdXJjZQBodHRwOi8vdGhlLWJ1cnRvbnMueHl6L2JhcmNvZGUtZ2VuZXJhdG9yL80jT40AAAAASUVORK5CYII=" /></p>
 <h3 id="iata-2-of-5">IATA 2 of 5</h3>
 <p><strong>IATA 2 of 5</strong> is a variant of the <a href="#code-25">Code 2 of 5</a> barcode symbology.</p>
 <p>Also known as: Computer Identics 2 of 5.</p>
@@ -2084,12 +2102,12 @@ Encoder: code2of5</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-58">Data and Options</h4>
+<h4 id="data-and-options-59">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
 </ul>
-<h4 id="examples-39">Examples</h4>
+<h4 id="examples-40">Examples</h4>
 <pre><code>Data:    01234567
 Options: includetext includecheck includecheckintext
 Encoder: iata2of5</code></pre>
@@ -2103,7 +2121,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-59">Data and Options</h4>
+<h4 id="data-and-options-60">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2117,7 +2135,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-60">Data and Options</h4>
+<h4 id="data-and-options-61">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2131,7 +2149,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-61">Data and Options</h4>
+<h4 id="data-and-options-62">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2140,7 +2158,7 @@ Encoder: iata2of5</code></pre>
 <p>The <strong>Code 49</strong> barcode symbology is 2D stacked-linear barcode that can encode 128 character ASCII.</p>
 <p>Also known as: USS-49.</p>
 <p>Standards: ANSI/AIM BC6 - USS Code 49.</p>
-<h4 id="data-and-options-62">Data and Options</h4>
+<h4 id="data-and-options-63">Data and Options</h4>
 <ul>
 <li>The input can consist of any ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
@@ -2161,7 +2179,7 @@ Encoder: iata2of5</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is <em>10</em>.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is <em>1</em>.</li>
 </ul>
-<h4 id="examples-40">Examples</h4>
+<h4 id="examples-41">Examples</h4>
 <pre><code>Data:    MULTIPLE ROWS IN CODE 49
 Options: 
 Encoder: code49</code></pre>
@@ -2178,7 +2196,7 @@ Encoder: code49</code></pre>
 <p><strong>Code One</strong> was the earliest public domain 2D matrix-style barcode. It is used by the health care and recycling industry and can encode full 256 character extended-ASCII.</p>
 <p>Also known as: Code 1, Code 1S.</p>
 <p>Standards: AIM USS - Code One.</p>
-<h4 id="data-and-options-63">Data and Options</h4>
+<h4 id="data-and-options-64">Data and Options</h4>
 <ul>
 <li>The data field can consist of any ASCII data for <em>standard</em> and <em>T-type</em> symbols.</li>
 <li>Note: <em>S-type</em> symbols are special in that they represent a numeric value so may only contain digits.</li>
@@ -2191,7 +2209,7 @@ Encoder: code49</code></pre>
 <li><code>version=S-10</code>, <code>version=S-20</code>, <code>version=S-30</code> - <em>S-type</em> symbols</li>
 </ul></li>
 </ul>
-<h4 id="examples-41">Examples</h4>
+<h4 id="examples-42">Examples</h4>
 <pre><code>Data:    Code One
 Options: 
 Encoder: codeone</code></pre>
@@ -2215,7 +2233,7 @@ Encoder: codeone</code></pre>
 <ul>
 <li><a href="#plessey">Plessey (UK)</a> is the original barcode upon which MSI Modified Plessey was based.</li>
 </ul>
-<h4 id="data-and-options-64">Data and Options</h4>
+<h4 id="data-and-options-65">Data and Options</h4>
 <ul>
 <li>The data can consist of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit or check digits.</li>
@@ -2231,7 +2249,7 @@ Encoder: codeone</code></pre>
 </ul></li>
 <li>The <strong>badmod11</strong> option allows a <code>checktype=mod11</code> checksum value of 10 to be encoded with a pair of check digits <em>10</em>. Normally in <code>checktype=mod11</code>, any input whose checksum evaluates to <em>10</em> is considered invalid having no correct representation.</li>
 </ul>
-<h4 id="examples-42">Examples</h4>
+<h4 id="examples-43">Examples</h4>
 <pre><code>Data:    0123456789
 Options: includecheck includetext
 Encoder: msi</code></pre>
@@ -2251,7 +2269,7 @@ Encoder: msi</code></pre>
 <ul>
 <li><a href="#msi-plessey">MSI Modified Plessey</a> is a variant of the Plessey (UK) barcode developed by the MSI Data Corporation.</li>
 </ul>
-<h4 id="data-and-options-65">Data and Options</h4>
+<h4 id="data-and-options-66">Data and Options</h4>
 <ul>
 <li>The data can contain any of the following:
 <ul>
@@ -2262,7 +2280,7 @@ Encoder: msi</code></pre>
 <li>The <strong>includecheckintext</strong> option makes the calculated check characters appear in the human readable text.</li>
 <li>The <strong>unidirectional</strong> option generates a unidirectional Plessey symbol.</li>
 </ul>
-<h4 id="examples-43">Examples</h4>
+<h4 id="examples-44">Examples</h4>
 <p>Equivalent symbols, the latter displaying the two mandatory check characters:</p>
 <pre><code>Data:    01234ABCD
 Options: includetext
@@ -2280,7 +2298,7 @@ Encoder: plessey</code></pre>
 <h3 id="posicode">PosiCode</h3>
 <p><strong>PosiCode</strong> is a continuous, variable length, non-self-checking, bidirectional barcode symbology that is designed for use within printing processes where it is difficult to precisely control the width of a bar.</p>
 <p>Standards: ITS PosiCode.</p>
-<h4 id="data-and-options-66">Data and Options</h4>
+<h4 id="data-and-options-67">Data and Options</h4>
 <ul>
 <li>The data field can hold the following:
 <ul>
@@ -2342,14 +2360,14 @@ Encoder: posicode</code></pre>
 <li><a href="#telepen-numeric">Telepen Numeric</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h4 id="data-and-options-67">Data and Options</h4>
+<h4 id="data-and-options-68">Data and Options</h4>
 <ul>
 <li>The data can contain any standard ASCII data, values 0-127.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 <li><em>Deprecated: Use <a href="#telepen-numeric">Telepen Numeric</a> instead. When the <strong>numeric</strong> option is given, the data is read as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</em></li>
 </ul>
-<h4 id="examples-44">Examples</h4>
+<h4 id="examples-45">Examples</h4>
 <pre><code>Data:    Telepen
 Options: includetext
 Encoder: telepen</code></pre>
@@ -2365,13 +2383,13 @@ Encoder: telepen</code></pre>
 <li><a href="#telepen">Telepen Alpha</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h4 id="data-and-options-68">Data and Options</h4>
+<h4 id="data-and-options-69">Data and Options</h4>
 <ul>
 <li>The data is provided as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 </ul>
-<h4 id="examples-45">Examples</h4>
+<h4 id="examples-46">Examples</h4>
 <pre><code>Data:    123456
 Options: 
 Encoder: telepennumeric</code></pre>
@@ -2402,7 +2420,7 @@ Encoder: telepennumeric</code></pre>
 <li><a href="#gs1-128-composite">GS1-128 Composite</a> is a variant of <a href="#gs1-128">GS1-128</a>.</li>
 </ul>
 <p>Standards: ISO/IEC 24723, ITS EAN.UCC Composite Symbology, AIM ISS - EAN.UCC Composite Symbology, GS1 General Specifications.</p>
-<h4 id="data-and-options-69">Data and Options</h4>
+<h4 id="data-and-options-70">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component separated by a pipe <code>|</code> character.</li>
 <li>The data for the primary component (preceding the pipe) is entered in a format identical to the corresponding non-composite barcode symbology.</li>
@@ -2508,7 +2526,7 @@ Encoder: gs1-cc</code></pre>
 <h2 id="raw-symbols">Raw Symbols</h2>
 <h3 id="daft">DAFT</h3>
 <p><strong>DAFT</strong> is an encoder for directly specifying the descender, ascender, full-height, tracker-bar succession for a custom 4 state barcode symbol.</p>
-<h4 id="data-and-options-70">Data and Options</h4>
+<h4 id="data-and-options-71">Data and Options</h4>
 <ul>
 <li>The data field contains a sequence of the characters <code>D</code>, <code>A</code>, <code>F</code> or <code>T</code> to denote the descender, ascender, full-height and tracker bars of a custom 4 state symbol.</li>
 </ul>
@@ -2519,7 +2537,7 @@ Encoder: daft</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAANCAMAAABmbkWbAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAkSURBVBjTY2BgZGQEYTBA4UB4g0QejtBYdJFHOAdOwTi0lgcABSEBP2n6/zEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MDY6MTMrMDA6MDDBYBWIAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjA2OjEzKzAwOjAwsD2tNAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h3 id="flattermarken">Flattermarken</h3>
 <p><strong>Flattermarken</strong> are identification marks used in book production that facilitate the proper arrangement of bound sections by a book binder.</p>
-<h4 id="data-and-options-71">Data and Options</h4>
+<h4 id="data-and-options-72">Data and Options</h4>
 <ul>
 <li>The data field can holding any sequence of digits corresponds to a 9 module width with the following meaning:
 <ul>
@@ -2536,7 +2554,7 @@ Encoder: flattermarken</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAWCAMAAAAPf7fDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAYSURBVCjPY2BghAMkJlyIYVR+VH4QywMAUZUCafPc07gAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjA6MjM6NDErMDA6MDAcgjcNAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIwOjIzOjQxKzAwOjAwbd+PsQAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h3 id="raw">Raw</h3>
 <p>The <strong>raw</strong> encoder is used for directly specifying the space/bar succession of a custom barcode symbol.</p>
-<h4 id="data-and-options-72">Data and Options</h4>
+<h4 id="data-and-options-73">Data and Options</h4>
 <ul>
 <li>The data field contains an alternating sequence of widths (1 to 9) for the bars and spaces of a custom symbol.</li>
 </ul>
@@ -2549,7 +2567,7 @@ Encoder: raw</code></pre>
 <h3 id="ean-2">EAN-2</h3>
 <p><strong>EAN-2</strong> is the two-digit add-on code that accompanies a EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Two-Digit Add-On, Two-Digit Supplement, UPC-2</p>
-<h4 id="data-and-options-73">Data and Options</h4>
+<h4 id="data-and-options-74">Data and Options</h4>
 <ul>
 <li>The data field must contain two digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2562,7 +2580,7 @@ Encoder: ean2</code></pre>
 <h3 id="ean-5">EAN-5</h3>
 <p><strong>EAN-5</strong> is the five-digit add-on code that accompanies an EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Five-Digit Add-On, Five-Digit Supplement, UPC-5</p>
-<h4 id="data-and-options-74">Data and Options</h4>
+<h4 id="data-and-options-75">Data and Options</h4>
 <ul>
 <li>The data field must contain five digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2692,7 +2710,7 @@ Encoder: code39</code></pre>
 <h4 id="example-29">Example</h4>
 <p>Customise the human readable text of this USPS POSTNET symbol</p>
 <pre><code>Data:    64501
-Options: includetext textfont=Times textsize=9
+Options: includetext textfont=Times-Roman textsize=9
 Encoder: postnet</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAAAQCAMAAADNs8o/AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAC1QTFRFAAAA////3d3d7u7uzMzMd3d3iIiIu7u7REREqqqqVVVVZmZmmZmZIiIiMzMz7i0rqQAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACjSURBVDjL7ZLRDsMgCEVBvUWt2/9/7jb3sF66ROfbkhISwQAHUBHtIl0/It6iQ9SFU6J8KSFygf4DJAf93ZoLvUDroPdzBR1IHAWMpIMSPGgzcpFBfkDZOMHqBCicghKDwu4agWl2M+YJENC44diMQe3WfFXwzFOgbFrT8bKouTKx+qoroGcOCATsp2X51dWF1QUY3DVPhFaokddncBnlPvi4D120B6Szs3gQAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEzOjQzOjAxKzAwOjAwmB4OUwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMzo0MzowMSswMDowMOlDtu8AAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="textsize">textsize</h3>
@@ -2704,7 +2722,7 @@ Encoder: postnet</code></pre>
 <h4 id="example-30">Example</h4>
 <p>Customise the human readable text of this USPS POSTNET symbol</p>
 <pre><code>Data:    64501
-Options: includetext textfont=Times textsize=9
+Options: includetext textfont=Times-Roman textsize=9
 Encoder: postnet</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAAAQCAMAAADNs8o/AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAC1QTFRFAAAA////3d3d7u7uzMzMd3d3iIiIu7u7REREqqqqVVVVZmZmmZmZIiIiMzMz7i0rqQAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACjSURBVDjL7ZLRDsMgCEVBvUWt2/9/7jb3sF66ROfbkhISwQAHUBHtIl0/It6iQ9SFU6J8KSFygf4DJAf93ZoLvUDroPdzBR1IHAWMpIMSPGgzcpFBfkDZOMHqBCicghKDwu4agWl2M+YJENC44diMQe3WfFXwzFOgbFrT8bKouTKx+qoroGcOCATsp2X51dWF1QUY3DVPhFaokddncBnlPvi4D120B6Szs3gQAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEzOjQzOjAxKzAwOjAwmB4OUwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMzo0MzowMSswMDowMOlDtu8AAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="textgaps">textgaps</h3>
@@ -2773,7 +2791,7 @@ Encoder: rationalizedCodabar</code></pre>
 <p>Color of the border, either as a hex <code>RRGGBB</code> value or a hex <code>CCMMYYKK</code> value.</p>
 <h3 id="textcolor">textcolor</h3>
 <p>Color of the respective component, either as a hex <code>RRGGBB</code> value or a hex <code>CCMMYYKK</code> value.</p>
-<h4 id="examples-46">Examples</h4>
+<h4 id="examples-47">Examples</h4>
 <p>Colorized Code 11 symbol using the RGB colour space:</p>
 <pre><code>Data:    0123456789
 Options: includetext barcolor=AA0000 textcolor=008888 backgroundcolor=FFFF60 showborder bordercolor=0000FF textyoffset=-8
@@ -2801,7 +2819,7 @@ Encoder: code11</code></pre>
 <h4 id="example-32">Example</h4>
 <p>Customise the human readable text of this USPS POSTNET symbol</p>
 <pre><code>Data:    64501
-Options: includetext textfont=Times textsize=9
+Options: includetext textfont=Times-Roman textsize=9
 Encoder: postnet</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGgAAAAQCAMAAADNs8o/AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAC1QTFRFAAAA////3d3d7u7uzMzMd3d3iIiIu7u7REREqqqqVVVVZmZmmZmZIiIiMzMz7i0rqQAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAACjSURBVDjL7ZLRDsMgCEVBvUWt2/9/7jb3sF66ROfbkhISwQAHUBHtIl0/It6iQ9SFU6J8KSFygf4DJAf93ZoLvUDroPdzBR1IHAWMpIMSPGgzcpFBfkDZOMHqBCicghKDwu4agWl2M+YJENC44diMQe3WfFXwzFOgbFrT8bKouTKx+qoroGcOCATsp2X51dWF1QUY3DVPhFaokddncBnlPvi4D120B6Szs3gQAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEzOjQzOjAxKzAwOjAwmB4OUwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMzo0MzowMSswMDowMOlDtu8AAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="addontextxoffset">addontextxoffset</h3>
@@ -3004,7 +3022,7 @@ end
 the author if that is the case.</p>
 <h1 id="cited-by">Cited-By</h1>
 <p>The following is a list of known references to Barcode Writer in Pure PostScript project and its derivatives.</p>
-<p>If you are aware of any noteworthy additions to this list then please inform the BWIPP mailing list.</p>
+<p>If you are aware of any noteworthy additions to this list then please send a patch.</p>
 <h4 id="barcode-writer-in-pure-postscript-1">Barcode Writer in Pure PostScript</h4>
 <p><a href="http://bwipp.terryburton.co.uk" class="uri">http://bwipp.terryburton.co.uk</a></p>
 <p>Martínez, Juan J. (2004) &quot;A Barcode Generator in Pure PostScript,&quot; <a href="http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html" class="uri">http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html</a></p>
@@ -3024,6 +3042,7 @@ the author if that is the case.</p>
 <p>Russell, Robert. (2013) &quot;Add FREE barcodes to the SAP Latin2 HP printer Driver,&quot; <a href="http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html" class="uri">http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html</a></p>
 <p>Ehlenbroker J., Lohweg V. (2014) &quot;microIDENT - A System for Simple Coding and Authentication of Documents,&quot; Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.</p>
 <p>Russell, Robert. (2014) &quot;Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript,&quot; <a href="http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html" class="uri">http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html</a></p>
+<p>Ehlenbroker J., Lohweg V. (2016) &quot;System for simple coding, authentication and copy detection of printed documents,&quot; U.S. Patent Application 15/114,422, published December 2016.</p>
 <h4 id="pst-barcode">pst-barcode</h4>
 <p><a href="http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/" class="uri">http://www.ctan.org/tex-archive/graphics/pstricks/contrib/pst-barcode/</a></p>
 <p>Goossens, M., Mittelbach F., Rahtz, S., Roegel, D. (2007) &quot;The LaTeX Graphics Companion,&quot; Addison Wesley. ISBN 978-0-321-50892-8.</p>
@@ -3034,13 +3053,20 @@ the author if that is the case.</p>
 <p>Brampton, Andrew. (2010) &quot;LaTeX QR Based Business Card,&quot; The Website of Andrew Brampton. <a href="http://bramp.net/blog/latex-qr-based-business-card" class="uri">http://bramp.net/blog/latex-qr-based-business-card</a></p>
 <p>Pascal. (2011) &quot;QR Code with Latex,&quot; <a href="http://xaphire.de/recipes/?p=344" class="uri">http://xaphire.de/recipes/?p=344</a></p>
 <p>Voß, Herbert. (2011) &quot;Ch 26: pst-barcode - Bar codes&quot; in &quot;PSTricks. Graphics and PostScript for TeX and LaTeX,&quot; Cambridge: UIT Cambridge. pp. 497-508.</p>
+<p>Molnar, Peter. (2013) &quot;Processing class assignments on paper (Part I),&quot; Blog: I'd rather be programming... <a href="http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html" class="uri">http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html</a></p>
+<p>Voß, Herbert. (2013) &quot;QR-Codes im Rand ausgeben [QR Codes in the Margin],&quot; Die TEXnische Komödie 4/2013. pp. 34–37. <a href="http://archiv.dante.de/DTK/PDF/komoedie_2013_4.pdf" class="uri">http://archiv.dante.de/DTK/PDF/komoedie_2013_4.pdf</a></p>
+<p>Fischer, Ulrike. (2014) &quot;biblatex variations,&quot; The TUGboat Journal, Volume 35, Number 3. pp. 256-260.</p>
 <p>Voß, Herbert. (2016) &quot;Ch 25: pst-barcode: Barcodes&quot; in &quot;PSTricks. Grafik mit PostScript für TeX und LaTeX,&quot; Lehmanns Media. pp. 535-548.</p>
+<p>Tibi, Daniel. (2016) &quot;Easy Codes: Generating Barcodes and QR Codes With LaTeX.&quot; Ubuntu User, Issue 28 (Spring 2016). Linux New Media USA LLC. pp. 45-47.</p>
 <h4 id="barcode-writer-in-pure-javascript">Barcode Writer in Pure JavaScript</h4>
 <p><a href="https://github.com/metafloor/bwip-js" class="uri">https://github.com/metafloor/bwip-js</a></p>
 <p>Russell, Robert. (2015) &quot;Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript,&quot; <a href="http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html" class="uri">http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html</a></p>
 <h4 id="scribus-barcode-generator-plugin">Scribus Barcode Generator Plugin</h4>
 <p><a href="http://documentation.scribus.net/index.php/Barcode_Generator" class="uri">http://documentation.scribus.net/index.php/Barcode_Generator</a></p>
 <p>&quot;Libre Graphics: Scribus. Open Source Desktop Publishing Turns Pro,&quot; Linux Format, Issue 80 (June 2006). Future Publishing. p. 54.</p>
+<p>Byfield, Bruce. (2011) &quot;Four Hidden Tools in Scribus,&quot; Linux Journal, November 2011. Belltown Media Inc. <a href="http://www.linuxjournal.com/content/four-hidden-tools-scribus" class="uri">http://www.linuxjournal.com/content/four-hidden-tools-scribus</a></p>
+<p>Willis, Nathan. (2013) &quot;Scribus 1.4.3 adds color models and more,&quot; LWN.net. Eklektix, Inc. <a href="https://lwn.net/Articles/563035/" class="uri">https://lwn.net/Articles/563035/</a></p>
+<p>White, Robert. (2015) &quot;Beginning Scribus,&quot; Apress Media, LLC. pp 300-301. ISBN 978-1-4842-0722-2.</p>
 <h4 id="kbarcode">KBarcode</h4>
 <p><a href="http://www.kbarcode.net/" class="uri">http://www.kbarcode.net/</a></p>
 <p>Willis, Nathan. (2010) &quot;Generating Barcodes with KBarcode,&quot; Worldlabel.com Incorporated. <a href="http://blog.worldlabel.com/2010/generating-barcodes-with-kbarcode.html" class="uri">http://blog.worldlabel.com/2010/generating-barcodes-with-kbarcode.html</a></p>
