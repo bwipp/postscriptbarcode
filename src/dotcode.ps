@@ -220,11 +220,13 @@ begin
         barchar 48 ge barchar 57 le and {
             nDigits i nDigits i 1 add get 1 add put
         } if
-        barchar 48 ge barchar 57 le and {
-            nDigits i nDigits i 1 add get 1 add put
-        } if
         Avals barchar known {DatumA i true put} if
         Bvals barchar known {DatumB i true put} if
+        /CRLF false def
+        barchar 13 eq i msglen 1 sub lt and {
+            msg i 1 add get 10 eq {/CRLF true def} if
+        } if
+        CRLF {DatumB i true put} if
         nDigits i get 2 ge  {DatumC i true put} if
         barchar 0 lt        {DatumC i true put} if  % FNCx
         barchar 128 ge      {Binary i true put} if
@@ -245,7 +247,15 @@ begin
         nDigits i 1 add get 6 ge msg i get fn2 eq and {  % ^FNC2xxxxxx
             ECI i true put
         } if
-        AheadC i nDigits i get 2 idiv put  % TODO Account for FNC1 in odd/even
+        barchar 0 lt {  % FNCx
+            AheadC i AheadC i 1 add get 1 add put
+        } {
+            nDigits i get 1 le {
+                AheadC i 0 put
+            } {
+                AheadC i AheadC i 2 add get 1 add put
+            } ifelse
+        } ifelse
         nDigits i get 0 gt AheadC i get AheadC i 1 add get gt and {
             TryC i AheadC i get put
         } if
@@ -253,7 +263,7 @@ begin
             AheadA i AheadA i 1 add get 1 add put
         } if
         DatumB i get TryC i get 2 lt and {
-            AheadB i AheadB i 1 add get 1 add put
+            AheadB i AheadB i 1 add CRLF {1 add} if get 1 add put
         } if
         barchar fn3 ne {
             UntilEndSeg i UntilEndSeg i 1 add get 1 add put
@@ -477,6 +487,13 @@ begin
                     } if
                     /i i 1 add def
                     exit
+                } if
+                msg i get 13 eq i msglen 1 sub lt and {
+                    msg i 1 add get 10 eq {  % CRLF
+                        [ Bvals crl get ] addtocws
+                        /i i 2 add def
+                        exit
+                    } if
                 } if
                 [ Bvals msg i get get ] addtocws
                 /i i 1 add def
