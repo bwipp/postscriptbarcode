@@ -57,6 +57,7 @@ begin
     /parsefnc false def
     /raw false def
     /fast false def
+    /mask -1 def
 
     % Parse the input options
     options type /stringtype eq {
@@ -72,6 +73,7 @@ begin
     /rows rows cvi def
     /columns columns cvi def
     /ratio ratio cvr def
+    /mask mask cvi def
 
     % Set the ratio to 3:2 if no size is specified
     ratio -1 eq rows -1 eq and columns -1 eq and {
@@ -891,6 +893,7 @@ begin
     /offset {step mul start add} bind def
 
     /bestscore -99999999 def
+    mask -1 ne { [ mask ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
     [ 2#00 2#01 2#10 2#11 ] {  % For each mask pattern
 
         /mask exch def
