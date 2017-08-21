@@ -422,17 +422,18 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
 
 % Main markup starts here
 
-/starttime realtime def
-
-/Helvetica 10 selectfont
-
-/page 1 def
-/label 1 def
-/buf 50 string def
-/EOD false def
-
 /__PROCESS_LABELS__ {
-    buf readline {
+
+    /starttime realtime def
+
+    /Helvetica 10 selectfont
+
+    /page 1 def
+    /label 1 def
+    /buf 50 string def
+    /EOD false def
+
+    currentfile cvlit buf readline {
         {  % Process each line
 
             /barcodetxt exch def
@@ -479,7 +480,7 @@ Y1:ATVm"@r#drB9KiQP'(hWFDtYuCM@[!I?IP~>
     } if
 } bind def
 
-currentfile cvlit
+% ----------------------8<---------------------------8<-------------------
 
 % Every line after the following __PROCESS_LABELS__ until the first blank line is data:
 
