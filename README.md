@@ -24,7 +24,7 @@ It makes including any barcode within a PostScript document as simple as inserti
 
 There is a web-based demonstration of the project here:
 
-http://the-burtons.xyz/barcode-generator/
+https://the-burtons.xyz/barcode-generator/
 
 This project is dedicated to the memory of Craig K. Harmon.
 
