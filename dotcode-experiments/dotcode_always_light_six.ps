@@ -1240,6 +1240,9 @@ worst sum sum mul sub pen sub epen sub 10 10 string cvrs print (,) print
     /step nw 112 idiv 1 add def
     /offset {step mul start add} bind def
 
+% TEST: Lit-corner masks
+/litmasks 4 array def
+
     /bestscore -99999999 def
     mask -1 ne { [ mask ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
     {  % For each mask pattern
@@ -1313,9 +1316,17 @@ worst sum sum mul sub pen sub epen sub 10 10 string cvrs print (,) print
         0 1 5 {  % Last six edge dots
             /i exch def
             pixs sixedges i get aload pop dmv
-%            bits bits length 6 sub i add get 48 sub put
-            1 put   % TEST: Always light the last six dots
+            bits bits length 6 sub i add get 48 sub put
         } for
+
+% TEST: Make a copy with lit edges for later evaluation
+/litmask pixs dup length array copy def
+0 1 5 {  % Light last six edge dots
+    /i exch def
+    litmask sixedges i get aload pop dmv
+    1 put
+} for
+litmasks mask litmask put
 
         % Evaluate the symbol to find the most suitable mask
         /score pixs evalsymbol def
@@ -1327,6 +1338,22 @@ worst sum sum mul sub pen sub epen sub 10 10 string cvrs print (,) print
 
     } forall
     /pixs bestsym def
+
+% TEST: Recalculate with lit corner masks
+%bestscore rows columns mul 2 idiv lt {
+true {
+    /bestscore -99999999 def
+    0 1 3 {
+        /i exch def
+        /litmask litmasks i get def
+        /score litmask evalsymbol def
+        score bestscore gt {
+            /bestsym litmask def
+            /bestscore score def
+            fast bestscore rows columns mul 2 idiv gt and {exit} if
+        } if
+    } for
+} if
 
 (\n) print
 
