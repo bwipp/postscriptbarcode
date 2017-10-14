@@ -48,6 +48,7 @@ begin
     /height 1 def
     /barcolor (unset) def
     /backgroundcolor (unset) def
+    /colormap (unset) def
     /inkspread 0 def
     /inkspreadh 0 def
     /inkspreadv 0 def
@@ -198,39 +199,6 @@ begin
 
     } bind def
 
-    % Pad the bitmap on all sides
-    /pixs [
-        pixx 2 add {0} repeat
-        0 pixx pixs length 1 sub {
-            0 exch
-            pixs exch pixx getinterval aload pop
-            0
-        } for
-        pixx 2 add {0} repeat
-    ] def
-    /pixx pixx 2 add def
-    /pixy pixy 2 add def
-
-    % Track inverted regions and working space
-    /m [ pixs length {0} repeat ] def
-
-    % Construct paths by tracing and inverting each dark region
-    /paths [
-        0 1 pixy 1 sub {
-            /j exch def
-            0 1 pixx 1 sub {
-                /i exch def
-                i j xyget 1 eq {
-                    i 1 sub j 1 sub trace
-                } if
-            } for
-        } for
-    ] def
-
-    % Revert the bitmap size
-    /pixx pixx 2 sub def
-    /pixy pixy 2 sub def
-
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
         /anycolor exch def
@@ -242,6 +210,72 @@ begin
         } if
     } bind def
 
+    % Plot a layer of single colour
+    /drawlayer {
+
+        /pixsorig pixs def
+        /pixs exch def
+
+        % Pad the bitmap on all sides
+        /pixs [
+            pixx 2 add {0} repeat
+            0 pixx pixs length 1 sub {
+                0 exch
+                pixs exch pixx getinterval aload pop
+                0
+            } for
+            pixx 2 add {0} repeat
+        ] def
+        /pixx pixx 2 add def
+        /pixy pixy 2 add def
+
+        % Track inverted regions and working space
+        /m [ pixs length {0} repeat ] def
+
+        % Construct paths by tracing and inverting each dark region
+        /paths [
+            0 1 pixy 1 sub {
+                /j exch def
+                0 1 pixx 1 sub {
+                    /i exch def
+                    i j xyget 1 eq {
+                        i 1 sub j 1 sub trace
+                    } if
+                } for
+            } for
+        ] def
+
+        % Revert the bitmap size
+        /pixx pixx 2 sub def
+        /pixy pixy 2 sub def
+
+        % Draw the image
+        newpath
+        paths {
+            /p exch def
+            /len p length def
+            p len 1 sub get aload pop
+            p 0 get aload pop
+            0 1 len 1 sub {                                % x1 y1 x2 y2
+                /i exch def
+                p i 1 add len mod get aload pop 6 -2 roll  % x3 y3 x1 y1 x2 y2
+                5 index inkspreadh
+                4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+i : x2-i
+                4 1 roll
+                4 index inkspreadv
+                4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+i : y2-i
+                4 -1 roll exch pixy exch sub
+                i 0 eq {moveto} {lineto} ifelse
+            } for                                          % x2 y2 x3 y3
+            closepath
+            pop pop pop pop
+        } forall
+        fill
+
+        /pixs pixsorig def
+
+    } bind def
+
     gsave
 
     % Draw the image
@@ -251,28 +285,18 @@ begin
     width pixx div 72 mul height pixy div 72 mul scale
     0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
-    barcolor (unset) ne { barcolor setanycolor } if
-    newpath
-    paths {
-        /p exch def
-        /len p length def
-        p len 1 sub get aload pop
-        p 0 get aload pop
-        0 1 len 1 sub {                                % x1 y1 x2 y2
-            /i exch def
-            p i 1 add len mod get aload pop 6 -2 roll  % x3 y3 x1 y1 x2 y2
-            5 index inkspreadh
-            4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+i : x2-i
-            4 1 roll
-            4 index inkspreadv
-            4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+i : y2-i
-            4 -1 roll exch pixy exch sub
-            i 0 eq {moveto} {lineto} ifelse
-        } for                                          % x2 y2 x3 y3
-        closepath
-        pop pop pop pop
+
+    colormap (unset) eq {
+        /colormap << 1 barcolor >> def
+    } if
+
+    colormap {
+        setanycolor
+        /key exch def
+        [
+            pixs { key eq {1} {0} ifelse } forall
+        ] drawlayer
     } forall
-    fill
 
     % Display the text for elements in the text array
     textcolor (unset) ne { textcolor setanycolor } if
