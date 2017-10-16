@@ -989,7 +989,7 @@ begin
         score bestscore gt {
             /bestsym pixs def
             /bestscore score def
-            fast bestscore rows columns mul 2 idiv ge and {exit} if
+            fast bestscore rows columns mul 2 idiv gt and {exit} if
         } if
 
         % Make a copy with lit edges for possible later evaluation
@@ -1007,7 +1007,7 @@ begin
             score bestscore gt {
                 /bestsym litmask def
                 /bestscore score def
-                bestscore rows columns mul 2 idiv ge {exit} if
+                bestscore rows columns mul 2 idiv gt {exit} if
             } if
         } if
 
@@ -1015,7 +1015,7 @@ begin
     /pixs bestsym def
 
     % For default mode, if best mask fails threshold then recalculate with lit corners and pick best
-    fast not bestscore rows columns mul 2 idiv lt and {
+    fast not bestscore rows columns mul 2 idiv le and {
         /bestscore -99999999 def
         masks {
             litmasks exch get /litmask exch def
