@@ -883,7 +883,16 @@ begin
         /columns columns 4 sub def
         /rows    rows    4 sub def
 
-        worst sum sum mul sub pen sub
+        % Harsh penalties for edges that are unlit
+        /epen 0 def
+        worst 0 eq {
+            0 sym 0 columns getinterval {add} forall 0 eq                         {/epen epen 100000 add def} if
+            0 sym sym length columns sub columns getinterval {add} forall 0 eq    {/epen epen 200000 add def} if
+            0  0 columns sym length 1 sub {sym exch get add} for 0 eq             {/epen epen 400000 add def} if
+            0  columns 1 sub columns sym length 1 sub {sym exch get add} for 0 eq {/epen epen 800000 add def} if
+        } if
+
+        worst sum sum mul sub pen sub epen sub
 
     } bind def
 
@@ -892,9 +901,16 @@ begin
     /step nw 112 idiv 1 add def
     /offset {step mul start add} bind def
 
+    % Evaluate the symbols in the following order:
+    % fast mode: m3 -> m3' -> m2 -> m2' -> m1 -> m1' -> m0 -> m0'
+    % dflt mode: (m3 m2 m1 m0) -> (m3' m2' m1' m0')
+    % -> : Test if we have met the HxW/2 threshold
+    % m' : Symbols with six edge dots forcibly lit
+    % () : Best of
     /bestscore -99999999 def
-    mask -1 ne { [ mask ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
-    {  % For each mask pattern
+    /masks mask -1 ne { [ mask ] } { [ 2#11 2#10 2#01 2#00 ] } ifelse def
+    /litmasks 4 array def
+    masks {  % For each mask pattern
 
         /mask exch def
 
@@ -973,11 +989,44 @@ begin
         score bestscore gt {
             /bestsym pixs def
             /bestscore score def
-            fast bestscore rows columns mul 2 idiv gt and {exit} if
+            fast bestscore rows columns mul 2 idiv ge and {exit} if
+        } if
+
+        % Make a copy with lit edges for possible later evaluation
+        /litmask pixs dup length array copy def
+        0 1 5 {  % Light last six edge dots
+            /i exch def
+            litmask sixedges i get aload pop dmv
+            1 put
+        } for
+        litmasks mask litmask put
+
+        % In fast mode immediately score the lit symbol
+        fast {
+            /score litmask evalsymbol def
+            score bestscore gt {
+                /bestsym litmask def
+                /bestscore score def
+                bestscore rows columns mul 2 idiv ge {exit} if
+            } if
         } if
 
     } forall
     /pixs bestsym def
+
+    % For default mode, if best mask fails threshold then recalculate with lit corners and pick best
+    fast not bestscore rows columns mul 2 idiv lt and {
+        /bestscore -99999999 def
+        masks {
+            litmasks exch get /litmask exch def
+            /score litmask evalsymbol def
+            score bestscore gt {
+                /bestsym litmask def
+                /bestscore score def
+            } if
+        } forall
+        /pixs bestsym def
+    } if
 
     % Return the arguments
     <<
