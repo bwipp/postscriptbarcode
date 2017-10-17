@@ -95,7 +95,7 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
@@ -155,7 +155,7 @@ begin
         [  14    14     1     1    10     1 ]
         [  16    16     1     1    12     1 ]
         [  18    18     1     1    14     1 ]
-        [  20    20     1     1    18     1 ] 
+        [  20    20     1     1    18     1 ]
         [  22    22     1     1    20     1 ]
         [  24    24     1     1    24     1 ]
         [  26    26     1     1    28     1 ]
@@ -230,7 +230,7 @@ begin
     /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lE    -9 def  /unl -10 def
     /sapp -11 def  /usft -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def
     /unlcw 254 def
-  
+
     /Avals <<
         0 1 128 {dup 1 add} for
         pad 129
@@ -243,7 +243,7 @@ begin
     /Avals <<
         Avals {[exch]} forall
     >> def
-    
+
     /CNvals <<
         sft1 0
         sft2 1
@@ -267,7 +267,7 @@ begin
         C2vals {[exch CNvals sft2 get exch]} forall
         C3vals {[exch CNvals sft3 get exch]} forall
     >> def
-    
+
     /TNvals <<
         sft1 0
         sft2 1
@@ -295,7 +295,7 @@ begin
         T2vals {[exch TNvals sft2 get exch]} forall
         T3vals {[exch TNvals sft3 get exch]} forall
     >> def
-    
+
     % Extended ASCII mappings
     128 1 255 {
         /i exch def
@@ -303,7 +303,7 @@ begin
         Cvals i [ Cvals usft get aload pop Cvals i 128 sub get aload pop ] put
         Tvals i [ Tvals usft get aload pop Tvals i 128 sub get aload pop ] put
     } for
-    
+
     /Xvals <<
         13 0
         42 1
@@ -315,7 +315,7 @@ begin
     /Xvals <<
         Xvals {[exch]} forall
     >> def
-    
+
     /Evals <<
         64 1 94 {dup 64 sub} for
         unl 31
@@ -324,16 +324,16 @@ begin
     /Evals <<
         Evals {[exch]} forall
     >> def
-    
+
     /Bvals <<
         0 1 255 {dup} for
     >> def
     /Bvals <<
         Bvals {[exch]} forall
     >> def
-    
+
     /encvals [ Avals Cvals Tvals Xvals Evals Bvals ] def
-    
+
     /numD [ msglen {0} repeat 0 ] def
     /nextXterm [ msglen {0} repeat 9999 ] def
     /nextNonX  [ msglen {0} repeat 9999 ] def
@@ -356,7 +356,7 @@ begin
     } for
     /nextXterm [nextXterm {dup 10000 gt {pop 10000} if} forall] def
     /nextNonX  [nextNonX  {dup 10000 gt {pop 10000} if} forall] def
-    
+
     /isD  {char 48 ge char 57 le and} bind def
     /isC  {CNvals char known} bind def
     /isT  {TNvals char known} bind def
@@ -365,7 +365,7 @@ begin
     /isEA {char 127 gt} bind def
     /isFN {char 0 lt} bind def
     /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} bind def
-    
+
     /A 0 def  /C 1 def  /T 2 def  /X 3 def  /E 4 def  /B 5 def
 
     /lookup {
@@ -410,12 +410,12 @@ begin
             } loop
         } repeat
     } bind def
-    
+
     /addtocws {
         dup cws exch j exch putinterval
         /j exch length j add def
     } bind def
-    
+
     /encA {
         1 {  % Common exit
             numD i get 2 ge {
@@ -434,7 +434,7 @@ begin
             exit
         } repeat
     } bind def
-    
+
     /CTXvalstocws {
         /in exch def
         mark
@@ -444,11 +444,11 @@ begin
         } for
         counttomark array astore exch pop
     } bind def
-    
+
     /encCTX {
         /p 0 def
         /ctxvals 2500 array def
-    
+
         % Lookup the values for each character
         {
             i msglen eq {exit} if
@@ -540,9 +540,9 @@ begin
                 } ifelse
             } if
         } if
-    
+
     } bind def
-    
+
     /Evalstocws {
         /in exch def
         /inlen in length def
@@ -558,57 +558,44 @@ begin
         counttomark array astore exch pop
         0 outlen getinterval
     } bind def
-    
+
     /encE {
         /p 0 def
         /edifactvals 2100 array def
-    
+
         % Lookup the values for each character
         {
             i msglen eq {exit} if
             Evals msg i get known not {exit} if
             p 4 mod 0 eq {
-                lookup mode ne {exit} if
-                msglen i sub 2 le {  % Check end of data conditions
+                msglen i sub 2 le {  % Check end of data condition
                     /remcws numremcws j p 4 idiv 3 mul add get def
                     /remvals [
                         msg i msglen i sub getinterval {
-                            dup Evals exch known {
-                                Evals exch get aload pop
-                            } {  % Unencodable EDIFACT characters
-                                pop -1 -1 -1 -1 -1
-                            } ifelse
+                            Avals exch get aload pop
                         } forall
                     ] def
-                    remcws 2 eq remvals length 2 eq and {
+                    remcws 1 eq remcws 2 eq or remvals length remcws le and {
                         % Implied unlatch to ASCII
                         edifactvals 0 p getinterval Evalstocws addtocws
-                        Avals msg i get get addtocws
-                        Avals msg i 1 add get get addtocws
-                        /mode A def
-                        /i msglen def
-                        exit
-                    } if
-                    remcws 2 eq remcws 1 eq or remvals length 1 eq and {
-                        % Implied unlatch to ASCII
-                        edifactvals 0 p getinterval Evalstocws addtocws
-                        Avals msg i get get addtocws
+                        remvals addtocws
                         /mode A def
                         /i msglen def
                         exit
                     } if
                 } if
+                lookup mode ne {exit} if
             } if
             Evals msg i get get
             dup edifactvals exch p exch putinterval
             /p exch length p add def
             /i i 1 add def
         } loop
-    
+
         % Unlatch and pad with zeros until boundary
         mode A ne {
             /remcws numremcws j p 4 idiv 3 mul add 1 sub get 1 sub def
-            p 4 mod 0 ne remcws 0 ne or i msglen ne or {  % Unlatch unless we have filled the symbol
+            p 4 mod 0 ne i msglen ne or remcws 3 ge or {  % Unlatch unless less than 3 codewords remain
                 Evals unl get
                 dup edifactvals exch p exch putinterval
                 /p exch length p add def
@@ -628,7 +615,7 @@ begin
         } if
 
     } bind def
-    
+
     /encB {
         /p 0 def /bvals 1558 array def {
             i msglen eq {exit} if
@@ -655,7 +642,7 @@ begin
         bvals addtocws
         /mode A def
     } bind def
-    
+
     % Derive the codewords
     /cws 1558 array def
     /mode A def /i 0 def /j 0 def {
@@ -711,11 +698,11 @@ begin
         } {
             i 7 le {/cwbsize 156 def} {/cwbsize 155 def} ifelse
         } ifelse
-        /cwb cwbsize array def 
+        /cwb cwbsize array def
         0 1 cwbsize 1 sub {
             /j exch def
             cwb j cws j rsbl mul i add get put
-        } for 
+        } for
         cwbs i cwb put
         ecbs i [ rscw rsbl idiv {0} repeat ] put
     } for
@@ -727,7 +714,7 @@ begin
 
     % Function to calculate the product in the field
     /rsprod {
-        2 copy 0 ne exch 0 ne and { 
+        2 copy 0 ne exch 0 ne and {
             rslog exch get exch rslog exch get add 255 mod rsalog exch get
         } {
             pop pop 0
@@ -737,12 +724,12 @@ begin
     % Generate the coefficients
     /coeffs [ 1 rscw rsbl idiv {0} repeat ] def
     1 1 rscw rsbl idiv {
-        /i exch def 
+        /i exch def
         coeffs i coeffs i 1 sub get put
         i 1 sub -1 1 {
             /j exch def
             coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
-        } for 
+        } for
         coeffs 0 coeffs 0 get rsalog i get rsprod put
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
@@ -753,13 +740,13 @@ begin
         /cwb cwbs i get def
         /ecb ecbs i get def
         0 1 cwb length 1 sub {
-            /t exch cwb exch get ecb 0 get xor def 
+            /t exch cwb exch get ecb 0 get xor def
             ecb length 1 sub -1 0 {
                 /j exch def
                 /p ecb length j sub 1 sub def
                 ecb p t coeffs j get rsprod put
                 j 0 gt { ecb p ecb p 1 add get ecb p get xor put } if
-            } for 
+            } for
         } for
     } for
 
@@ -778,9 +765,9 @@ begin
     % Place the codewords into the matrix
     /module {
         % cw row col shape
-        4 -1 roll 
-        (00000000) 8 string copy dup 3 -1 roll 2 8 string cvrs 
-        dup length 8 exch sub exch putinterval 
+        4 -1 roll
+        (00000000) 8 string copy dup 3 -1 roll 2 8 string cvrs
+        dup length 8 exch sub exch putinterval
         7 -1 0 {1 index exch get 48 sub exch} for pop
         11 -3 roll
         % 1 2 4 8 16 32 64 128 row col shape
@@ -809,28 +796,28 @@ begin
         { 2 copy exch 1 sub exch } bind        { 2 copy 2 sub } bind
         { 2 copy 1 sub } bind                  { 2 copy } bind
     ] def
-    
+
     /dmc1 [
         { mrows 1 sub 0 } bind  { mrows 1 sub 1 } bind
         { mrows 1 sub 2 } bind  { 0 mcols 2 sub } bind
         { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
         { 2 mcols 1 sub } bind  { 3 mcols 1 sub } bind
     ] def
-    
+
     /dmc2 [
         { mrows 3 sub 0 } bind  { mrows 2 sub 0 } bind
         { mrows 1 sub 0 } bind  { 0 mcols 4 sub } bind
         { 0 mcols 3 sub } bind  { 0 mcols 2 sub } bind
         { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
     ] def
-    
+
     /dmc3 [
         { mrows 3 sub 0 } bind  { mrows 2 sub 0 } bind
         { mrows 1 sub 0 } bind  { 0 mcols 2 sub } bind
         { 0 mcols 1 sub } bind  { 1 mcols 1 sub } bind
         { 2 mcols 1 sub } bind  { 3 mcols 1 sub } bind
     ] def
-    
+
     /dmc4 [
         { mrows 1 sub 0 } bind  { mrows 1 sub mcols 1 sub } bind
         { 0 mcols 3 sub } bind  { 0 mcols 2 sub } bind
@@ -892,8 +879,8 @@ begin
     /cwpos 0 def
     0 1 rows 1 sub {
         /i exch def
-        i rrows 2 add mod 0 eq { pixs i cols mul [ cols 2 idiv {1 0} repeat ] putinterval } if  
-        i rrows 2 add mod rrows 1 add eq { pixs i cols mul [ cols {1} repeat ] putinterval } if 
+        i rrows 2 add mod 0 eq { pixs i cols mul [ cols 2 idiv {1 0} repeat ] putinterval } if
+        i rrows 2 add mod rrows 1 add eq { pixs i cols mul [ cols {1} repeat ] putinterval } if
         i rrows 2 add mod 0 ne i rrows 2 add mod rrows 1 add ne and {
             0 1 cols 1 sub {
                 /j exch def
