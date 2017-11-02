@@ -908,7 +908,11 @@ begin
     % m' : Symbols with six edge dots forcibly lit
     % () : Best of
     /bestscore -99999999 def
-    /masks mask -1 ne { [ mask ] } { [ 2#11 2#10 2#01 2#00 ] } ifelse def
+    /masks mask -1 ne {
+        [ mask ]
+    } {
+        fast { [ 2#11 2#10 2#01 2#00 ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
+    } ifelse def
     /litmasks 4 array def
     masks {  % For each mask pattern
 
