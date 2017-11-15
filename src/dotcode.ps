@@ -794,38 +794,27 @@ begin
         outline exch aload pop dmv 1 put
     } forall
 
+    /clearcol {
+        /x exch def
+        true
+        x 1 and 2 rows 1 sub {
+            x exch dmv sym exch get 1 eq {pop false exit} if
+        } for
+    } bind def
+
+    /clearrow {
+        /y exch def
+        true
+        y 1 and 2 columns 1 sub {
+            y dmv sym exch get 1 eq {pop false exit} if
+        } for
+    } bind def
+
     % Evaluate the symbol
     /evalsymbol {
         /sym exch def
 
-        /pen 0 def  /p 0 def
-        rows 2 mod 1 eq {
-            /xy /x def  /rc /rows def     /cr /columns def
-        } {
-            /xy /y def  /rc /columns def  /cr /rows def
-        } ifelse
-        rc load 12 lt {
-            /sum 0 def
-            1 1 cr load 2 sub {
-                xy exch def
-                false
-                xy load 1 and 2 rc load 1 sub {
-                    xy load xy /x eq {exch} if
-                    sym 3 1 roll
-                    dmv get 1 eq {pop true exit} if
-                } for
-                {  % Column/Row not empty
-                    /sum 0 def
-                    /pen pen p add def
-                    /p 0 def
-                } {
-                    /sum sum 1 add def
-                    /p sum 1 eq {rc load} {p rc load mul} ifelse def
-                } ifelse
-            } for
-        } if
-        /pen pen p add def
-
+        % Identify the worst side
         /worst 9999999 def
         [ [ /x 0 ] [ /x 1 ] [ /y 0 ] [ /y 1 ] ] {  % Top Bottom Left Right
             aload pop  /fl exch def  /dir exch def
@@ -846,6 +835,44 @@ begin
             dir /x eq {rows} {columns} ifelse mul
             dup worst lt {/worst exch def} {pop} ifelse
         } forall
+
+        /pen 0 def
+
+        % Check for groups of blank columns unless data is encoded vertically
+        % in a symbol of sufficient height to overcome up to six consecutive 0s
+        % in two neighbouring 5 of 9 dot patterns
+        rows 2 mod 1 eq rows 12 le or {
+            /sum 0 def  /p 0 def
+            1 1 columns 2 sub {
+                clearcol {
+                    /sum sum 1 add def
+                    /p sum 1 eq {rows} {p rows mul} ifelse def
+                } {
+                    /sum 0 def
+                    /pen pen p add def
+                    /p 0 def
+                } ifelse
+            } for
+            /pen pen p add def
+        } if
+
+        % Check for groups of blank rows unless data is encoded horizontally
+        % in a symbol of sufficent width to overcome up to six consecutive 0s
+        % in two neighbouring 5 of 9 dot patterns
+        rows 2 mod 0 eq columns 12 le or {
+            /sum 0 def  /p 0 def
+            1 1 rows 2 sub {
+                clearrow {
+                    /sum sum 1 add def
+                    /p sum 1 eq {columns} {p columns mul} ifelse def
+                } {
+                    /sum 0 def
+                    /pen pen p add def
+                    /p 0 def
+                } ifelse
+            } for
+            /pen pen p add def
+        } if
 
         % Pad twice on all sides
         /symp [
