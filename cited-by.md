@@ -38,11 +38,13 @@ Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," 
 
 McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast. http://www.robotmouth.com/papers_files/TSLOO.pdf
 
-Russell, Robert. (2013) "Add FREE barcodes to the SAP Latin2 HP printer Driver," http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html 
+Russell, Robert. (2013) "Add FREE barcodes to the SAP Latin2 HP printer Driver," http://www.rjruss.info/2013/02/add-free-barcodes-to-sap-latin2-hp.html
 
 Ehlenbroker J., Lohweg V. (2014) "microIDENT - A System for Simple Coding and Authentication of Documents," Optical Document Security - The Conference on Optical Security and Counterfeit Detection IV.
 
 Russell, Robert. (2014) "Example SAP Smartform with QRcodes using the Barcode Writer in Pure Postscript," http://www.rjruss.info/2014/09/example-sap-smartform-with-qrcodes.html
+
+Scarso, Luigi. (2015) "Two applications of SWIGLIB: GraphicsMagick and Ghostscript," The TUGboat Journal, Volume 36, Number 3. p. 237.
 
 Ehlenbroker J., Lohweg V. (2016) "System for simple coding, authentication and copy detection of printed documents," U.S. Patent Application 15/114,422, published December 2016.
 
