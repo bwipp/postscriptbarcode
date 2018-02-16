@@ -66,7 +66,7 @@ Group:          Development/Libraries
 
 
 License:        MIT
-URL:            http://bwipp.terryburton.co.uk
+URL:            https://bwipp.terryburton.co.uk
 Source0:        https://github.com/bwipp/postscriptbarcode/archive/master/%{name}-%{version}.tar.gz
 BuildRequires:  ghostscript
 BuildRequires:  swig

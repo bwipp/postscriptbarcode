@@ -23,7 +23,7 @@
 ;;;
 ;;;
 ;;; Uses the Pure Postscript Barcode Generator:
-;;;   http://bwipp.terryburton.co.uk
+;;;   https://bwipp.terryburton.co.uk
 ;;;
 ;;;
 ;;;

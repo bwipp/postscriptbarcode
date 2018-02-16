@@ -8,7 +8,7 @@ If you are aware of any noteworthy additions to this list then please send a pat
 
 #### Barcode Writer in Pure PostScript
 
-http://bwipp.terryburton.co.uk
+https://bwipp.terryburton.co.uk
 
 Martínez, Juan J. (2004) "A Barcode Generator in Pure PostScript," http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html
 
