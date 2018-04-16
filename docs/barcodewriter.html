@@ -149,6 +149,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#gs1-databar-truncated">GS1 DataBar Truncated</a></li>
 <li><a href="#gs1-databar-stacked">GS1 DataBar Stacked</a></li>
 <li><a href="#gs1-databar-limited">GS1 DataBar Limited</a></li>
+<li><a href="#gs1-north-american-coupon-code">GS1 North American Coupon Code</a></li>
 </ul></li>
 <li><a href="#postal-symbols">Postal Symbols</a><ul>
 <li><a href="#australia-post-4-state-customer-code">Australia Post 4 State Customer Code</a></li>
@@ -251,8 +252,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#textfont">textfont</a></li>
 <li><a href="#textsize">textsize</a></li>
 <li><a href="#textgaps">textgaps</a></li>
-</ul></li>
-<li><a href="#text-positioning">Text Positioning</a><ul>
+<li><a href="#alttext">alttext</a></li>
 <li><a href="#textxalign">textxalign</a></li>
 <li><a href="#textyalign">textyalign</a></li>
 <li><a href="#textxoffset">textxoffset</a></li>
@@ -466,7 +466,7 @@ make</code></pre>
 <h4 id="data-and-options">Data and Options</h4>
 <ul>
 <li>The data field for a EAN-13 may contain twelve or thirteen digits, optionally followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
-<li>If twelve digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If twelve digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 <li>The <strong>guardwhitespace</strong> option enables the display of whitespace guard marks.</li>
 </ul>
@@ -499,7 +499,7 @@ Encoder: ean13</code></pre>
 <h4 id="data-and-options-1">Data and Options</h4>
 <ul>
 <li>The data field takes either seven or eight digits, optionally followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
-<li>If seven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If seven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 <li>The <strong>guardwhitespace</strong> option enables the display of white space guard marks.</li>
 </ul>
@@ -533,7 +533,7 @@ Encoder: ean8</code></pre>
 <ul>
 <li>The data field for a UPC-A may contain eleven or twelve digits, optionally followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
 <li>Alternatively, the data field may contain seven or eight digits of a <a href="#upc-e">UPC-E</a> to produce the equivalent UPC-A symbol.</li>
-<li>If eleven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If eleven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 </ul>
 <h4 id="examples-2">Examples</h4>
@@ -566,7 +566,7 @@ Encoder: upca</code></pre>
 <ul>
 <li>The data field takes either seven or eight digits, optionally followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
 <li>Alternatively, the data field may contain eleven or twelve digits of a <a href="#upc-a">UPC-A</a> to produce the equivalent UPC-E symbol, provided that the input can be zero suppressed.</li>
-<li>If seven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If seven digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 </ul>
 <h4 id="examples-3">Examples</h4>
@@ -595,8 +595,8 @@ Encoder: upce</code></pre>
 <ul>
 <li>The data should contain twelve or thirteen digits separated appropriately by dash characters <em>-</em>.</li>
 <li>The data can also be provided in legacy ISBN-10 format as nine or ten digits separated appropriately by dash characters <em>-</em>. This will be automatically upgraded to the ISBN-13 format.</li>
-<li>If the last digit of the primary data is not given then the ISBN check digit is calculated automatically.</li>
-<li>The <strong>legacy</strong> option prevents ISBN-10 input from being upgraded to ISBN-13 and will result in a symbol that is obsolete and should not be used at point of sale.</li>
+<li>If the last digit of the primary data is not given then the ISBN check digit is calculated automatically, otherwise it will be verified.</li>
+<li><em>Deprecated.</em> The <strong>legacy</strong> option prevents ISBN-10 input from being upgraded to ISBN-13 and will result in a symbol that is obsolete and should not be used at point of sale.</li>
 <li>The primary data can optionally be followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 <li>The <strong>guardwhitespace</strong> option enables the display of white space guard marks.</li>
@@ -652,8 +652,8 @@ Encoder: isbn</code></pre>
 <ul>
 <li>The data should contain twelve or thirteen digits separated appropriately by dash characters <em>-</em>.</li>
 <li>The data can also be provided in legacy ISMN-10 format start <em>M-</em> then eight or nine digits separated appropriately by dash characters <em>-</em>. This will be automatically upgraded to the ISMN-13 format.</li>
-<li>The <strong>legacy</strong> option prevents ISMN-10 input from being upgraded to ISMN-13 and will result in a symbol that is obsolete and should not be used at point of sale.</li>
-<li>If the last digit of the primary data is not given then the ISMN check digit is calculated automatically.</li>
+<li><em>Deprecated.</em> The <strong>legacy</strong> option prevents ISMN-10 input from being upgraded to ISMN-13 and will result in a symbol that is obsolete and should not be used at point of sale.</li>
+<li>If the last digit of the primary data is not given then the ISMN check digit is calculated automatically, otherwise it will be verified.</li>
 <li>The primary data can optionally be followed by a space then two or five digits if an <a href="#ean-2">EAN-2</a> or <a href="#ean-5">EAN-5</a> add-on is required.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 <li>The <strong>guardwhitespace</strong> option enables the display of white space guard marks.</li>
@@ -699,7 +699,7 @@ Encoder: ismn</code></pre>
 <h4 id="data-and-options-6">Data and Options</h4>
 <ul>
 <li>The data should contain the seven or eight digits ISSN separated by a dash characters <em>-</em>, followed by a two-digit sequence variant, optionally followed by two or five digits if a <a href="#ean-2">two-digit add-on</a> or <a href="#ean-5">five-digit add-on</a> is required.</li>
-<li>If the last digit of the ISSN data is not given then the ISSN check digit is calculated automatically.</li>
+<li>If the last digit of the ISSN data is not given then the ISSN check digit is calculated automatically, otherwise it will be verified.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
 <li>The <strong>guardwhitespace</strong> option enables the display of white space guard marks.</li>
 <li>The following options are also relevant to this barcode symbology:
@@ -796,7 +796,9 @@ Encoder: aztecrune</code></pre>
 <ul>
 <li>The data field can contain any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value. This is useful for specifying unprintable characters.</li>
-<li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^PROG</code>, <code>^MAC5</code>, <code>^MAC6</code>.</li>
+<li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^PROG</code>.</li>
+<li><em>Deprecated: For internal use.</em> When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^MAC5</code>, <code>^MAC6</code>.</li>
+<li>Whenever the data field contains suitable input, the encoder will compress ISO/IEC 15434 structured data (internally using the 05 Macro and 06 Macro codewords.)</li>
 <li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
 <li>The <strong>dmre</strong> option enable Data Matrix Rectangular Extension with increases the number of rectangular symbol sizes available.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol.</li>
@@ -866,8 +868,8 @@ Encoder: hanxin</code></pre>
 <li>If the <strong>columns</strong> and <strong>rows</strong> are unspecified the encoder will default to creating a symbol that is the minimum size to represent the given data.</li>
 <li>The <strong>rowmult</strong> option is used to specify how tall each bar is, with respect to the minimum module width. The default is 3.</li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as a pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.</li>
-<li>The <strong>cca</strong> option identifies this symbol as a <em>CC-A</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
-<li>The <strong>ccb</strong> option identifies this symbol as a <em>CC-B</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
+<li><em>Deprecated: Internal use.</em> The <strong>cca</strong> option identifies this symbol as a <em>CC-A</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
+<li><em>Deprecated: Internal use.</em> The <strong>ccb</strong> option identifies this symbol as a <em>CC-B</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
 <li>Note: Special size rules apply when the <strong>cca</strong> option is given, in which case the <strong>columns</strong> and <strong>rows</strong> options that are used to specify the size of the symbol must be one of:
 <ul>
 <li><em>2x5</em>, <em>2x6</em>, <em>2x7</em>, <em>2x8</em>, <em>2x9</em>, <em>2x10</em>, <em>2x12</em>, <em>3x4</em>, <em>3x5</em>, <em>3x6</em>, <em>3x7</em>, <em>3x8</em>, <em>4x3</em>, <em>4x4</em>, <em>4x5</em>, <em>4x6</em>, <em>4x7</em></li>
@@ -902,7 +904,7 @@ Encoder: micropdf417</code></pre>
 <li>The <strong>rowmult</strong> option is used to specify how tall each bar is, with respect to the minimum module width. The default is 3.</li>
 <li><em>Deprecated: Use <a href="#compact-pdf417">Compact PDF417</a> instead. The <strong>compact</strong> option is used to create a compact/truncated PDF417 symbol that has fewer bars per row that a standard symbol and hence is more narrow.</em></li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as a pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.</li>
-<li>The <strong>ccc</strong> option identifies this symbol as a <em>CC-C</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
+<li><em>Deprecated: Internal use.</em> The <strong>ccc</strong> option identifies this symbol as a <em>CC-C</em> 2D component of a <a href="#gs1-composite-symbols">GS1 Composite</a> symbol.</li>
 </ul>
 <h4 id="examples-9">Examples</h4>
 <pre><code>Data:    PDF417
@@ -1028,13 +1030,13 @@ Encoder: microqrcode</code></pre>
 <p>Standards: ISO/IEC 15417, ANSI/AIM BC4 - ISS Code 128, BS EN 799.</p>
 <h4 id="data-and-options-16">Data and Options</h4>
 <ul>
-<li>The input can consist of any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
+<li>The data field input can consist of any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
+<li>The mandatory check digit is calculated automatically.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII or extended-ASCII value, useful for specifying unprintable characters, e.g. <code>^029</code> for <em>GS</em>, <code>^209</code> for <em>Ñ</em>, etc.</li>
 <li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.</li>
 <li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code> through <code>^FNC3</code>.</li>
-<li>When the <strong>parsefnc</strong> option is specified, the special pseudo characters <code>^LNKA</code> and <code>^LNKC</code> at the end of the symbol indicate that a GS1-128 symbol includes a <em>CC-A/B</em> or <em>CC-C</em> GS1 composite 2D component.</li>
+<li><em>Deprecated: For internal use.</em> When the <strong>parsefnc</strong> option is specified, the special pseudo characters <code>^LNKA</code> and <code>^LNKC</code> at the end of the symbol indicate that a GS1-128 symbol includes a <em>CC-A/B</em> or <em>CC-C</em> GS1 composite 2D component.</li>
 <li>The <strong>raw</strong> option denotes that the data field is providing the input as pre-encoded codewords in <code>^NNN</code> format, suitable for direct low-level encoding.</li>
-<li>The mandatory check digit is calculated automatically.</li>
 </ul>
 <h4 id="example-1">Example</h4>
 <pre><code>Data:    Count0123456789!
@@ -1117,7 +1119,7 @@ Encoder: code39ext</code></pre>
 <li>Capital letters A-Z</li>
 <li>Symbols <code>-.$/+%*</code> and <em>space</em></li>
 </ul></li>
-<li>The <strong>parsefnc</strong> option allows the special shift characters to be supplied as <code>^SFT$</code>, <code>^SFT%</code>, <code>^SFT/</code> and <code>^SFT+</code>.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>parsefnc</strong> option allows the special shift characters to be supplied as <code>^SFT$</code>, <code>^SFT%</code>, <code>^SFT/</code> and <code>^SFT+</code>.</li>
 <li>The <strong>includecheck</strong> option calculates the two check digits.</li>
 </ul>
 <h4 id="examples-15">Examples</h4>
@@ -1164,9 +1166,9 @@ Encoder: code93ext</code></pre>
 <h4 id="data-and-options-21">Data and Options</h4>
 <ul>
 <li>The data can consist of any number of digits.</li>
+<li>If the length of the symbol including the possible check digit would be odd then the data is prefixed by <em>0</em>.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
 <li>The <strong>includecheckintext</strong> option makes the calculated checksum appear in the human readable text.</li>
-<li>If the length of the symbol including the possible check digit would be odd then the data is prefixed by <em>0</em>.</li>
 </ul>
 <h4 id="examples-17">Examples</h4>
 <pre><code>Data:    0123456789
@@ -1236,8 +1238,8 @@ Encoder: gs1qrcode</code></pre>
 <h4 id="data-and-options-24">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a>.</li>
-<li>The <strong>linkagea</strong> option specifies that the symbol includes a <em>CC-A</em> or <em>CC-B</em> GS1 composite 2D component.</li>
-<li>The <strong>linkagec</strong> option specifies that the symbol includes a <em>CC-C</em> GS1 composite 2D component.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkagea</strong> option specifies that the symbol includes a <em>CC-A</em> or <em>CC-B</em> GS1 composite 2D component.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkagec</strong> option specifies that the symbol includes a <em>CC-C</em> GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-18">Examples</h4>
 <p>GTIN <em>95012345678903</em>; Weight <em>0.123kg</em>:</p>
@@ -1258,7 +1260,7 @@ Encoder: gs1-128</code></pre>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.</li>
 <li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.</li>
-<li>If thirteen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If thirteen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 </ul>
 <h4 id="examples-19">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1277,7 +1279,7 @@ Encoder: ean14</code></pre>
 <ul>
 <li>The data consists of either thirteen or fourteen digits.</li>
 <li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.</li>
-<li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 </ul>
 <h4 id="examples-20">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1296,7 +1298,7 @@ Encoder: itf14</code></pre>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (00)</em> with seventeen or eighteen digits of a Serial Shipping Container Code, i.e. <code>(00)...</code>.</li>
 <li>Arbitrary spacing may be placed between the digits to format the human readable text without interfering with the encoded data.</li>
-<li>If seventeen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If seventeen digits of primary data are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 </ul>
 <h4 id="example-4">Example</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1320,8 +1322,8 @@ Encoder: sscc18</code></pre>
 <h4 id="data-and-options-28">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.</li>
-<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the digits are encoded as supplied.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the provided check digit will be verified.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-21">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1344,8 +1346,8 @@ Encoder: databaromni</code></pre>
 <h4 id="data-and-options-29">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.</li>
-<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the digits are encoded as supplied.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the provided check digit will be verified.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-22">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1379,7 +1381,7 @@ Encoder: databarstackedomni</code></pre>
 <li><code>(01)9...(393x)...</code></li>
 <li><code>(01)...</code></li>
 </ul></li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-23">Examples</h4>
 <pre><code>Data:    (01)95012345678903(3103)000123
@@ -1410,7 +1412,7 @@ Encoder: databarexpanded</code></pre>
 <li><code>(01)...</code></li>
 </ul></li>
 <li>The <strong>segments</strong> option is used to specify the maximum number of segments per row which must be an even number. The default is <em>4</em>.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-24">Examples</h4>
 <pre><code>Data:    (01)95012345678903(3103)000123
@@ -1429,8 +1431,8 @@ Encoder: databarexpandedstacked</code></pre>
 <h4 id="data-and-options-32">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with 13 or 14 digits of a GTIN, i.e. <code>(01)...</code>.</li>
-<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the digits are encoded as supplied.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the provided check digit will be verified.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-25">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1453,8 +1455,8 @@ Encoder: databartruncated</code></pre>
 <h4 id="data-and-options-33">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN, i.e. <code>(01)...</code>.</li>
-<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the digits are encoded as supplied.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the provided check digit will be verified.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-26">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1476,8 +1478,8 @@ Encoder: databarstacked</code></pre>
 <h4 id="data-and-options-34">Data and Options</h4>
 <ul>
 <li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary <em>AI (01)</em> with thirteen or fourteen digits of a GTIN starting with <em>0</em> or <em>1</em>, i.e. <code>(01)0...</code> or <code>(01)1...</code>.</li>
-<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the digits are encoded as supplied.</li>
-<li>The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
+<li>If thirteen digits of <em>AI (01)</em> data are supplied then the check digit is calculated automatically, otherwise the provided check digit will be verified.</li>
+<li><em>Deprecated: For internal use.</em> The <strong>linkage</strong> option signifies the presence of a GS1 composite 2D component.</li>
 </ul>
 <h4 id="examples-27">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
@@ -1488,10 +1490,24 @@ Encoder: databarlimited</code></pre>
 Options: 
 Encoder: databarlimited</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEkAAAAKCAMAAADPYYMsAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAtSURBVCjPY2BgZGRkYIBgEAFCjGA+hGKECsFIRogAVC0DXDMDw6hJoyYNSpMADNgBaVdngJ4AAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6NTE6NTArMDA6MDDnSbbUAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjUxOjUwKzAwOjAwlhQOaAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
+<h3 id="gs1-north-american-coupon-code">GS1 North American Coupon Code</h3>
+<p><strong>GS1 North American Coupon Code</strong> is an implementation of the <a href="#gs1-databar-expanded">GS1 DataBar Expanded</a> barcode symbology with AI (8110) that is used as a paperless coupon system at point of sale.</p>
+<p>Also known as: GS1 DataBar Coupon, U.S. Coupon Code.</p>
+<p>Standards: North American Coupon Application Guideline Using GS1 DataBar Expanded Symbols, ISO/IEC 24724, GS1 General Specifications.</p>
+<h4 id="data-and-options-35">Data and Options</h4>
+<ul>
+<li>The data field input is provided in <a href="#gs1-application-identifier-standard-format">GS1 Application Identifier standard format</a> and must be a solitary AI (8110).</li>
+<li>The <strong>segments</strong> option is used to specify the maximum number of segments per row which must be an even number. The default is <em>4</em>.</li>
+</ul>
+<h4 id="examples-28">Examples</h4>
+<pre><code>Data:    (8110)106141416543213500110000310123196000
+Options: includetext segments=8
+Encoder: gs1northamericancoupon</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABRCAMAAACg7xknAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAALVBMVEX////d3d2ZmZnu7u7MzMy7u7uqqqp2dnZDQ0MyMjJUVFSIiIghISFlZWUAAABYNcCEAAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+IEEBc4J5k9XRMAAAHUSURBVGje7ZTrbsMgDIUNBEySlvd/3JmLgbBJ034l1Y5bIcc52P7ALZGxhsjZjYi8eEThB68KmNnU8JY3mWnT/WaijcbFED353UuAI33zqAhMLCAS9offjbyKQQX3Gwey52nJGeKX9LTl9hePqAg8e1fDchUcZPGsgvuN5SaYYzykR7kVd5C0f/WyKgvOnfethd+76N3hVXC/VRBLgUtP79Pv2+LJTTSBLC1MfJItDE8BkaE57RkUxDK/7OJlVRYEI0sJc/bCuyR4CoiLHJ2ToTHa0xio4RWBF6kp4ZAfjz1G+xwQ+WPqy28q11XuMd3DnmtJv5SSfJOu2SmvU5V1h6pA9TWk8hat+XqgrCNfas9LhZ64pO1la7rR04+VEkAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEA+FqSHEvWMzRqoJlBMSr3EtSh1gJpvKj1gUtetFXriy+G00qOn6RTaZqK540/+zCBJZ2B6M2nHyfbb0cMbV6InNg9j6kHd3K9y7mSa6LmxP5lOQ+tU86Z0HRid9dFiYxlzMP90Ou6gX0otx7gcH0AAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCED+CcgX3jFJvzm94wUAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDQtMTZUMjM6NTY6MzkrMDE6MDB9I4e5AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTA0LTE2VDIzOjU2OjM5KzAxOjAwDH4/BQAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE4LTAyLTA03hEr7AAAADF0RVh0U291cmNlAGh0dHBzOi8vdGhlLWJ1cnRvbnMueHl6L2JhcmNvZGUtZ2VuZXJhdG9yL0v1MBUAAAAASUVORK5CYII=" /></p>
 <h2 id="postal-symbols">Postal Symbols</h2>
 <h3 id="australia-post-4-state-customer-code">Australia Post 4 State Customer Code</h3>
 <p>The <strong>Australia Post 4 State Customer Code</strong> is a barcode used by the Australian Postal Service to encode the data on letter mail.</p>
-<h4 id="data-and-options-35">Data and Options</h4>
+<h4 id="data-and-options-36">Data and Options</h4>
 <ul>
 <li>The first two characters of the data field are digits used to specify the manditory FCC type of the symbols, either <code>11</code>, <code>45</code>, <code>59</code> or <code>67</code>.</li>
 <li>The next eight characters are digits that specify the manditory DPID.</li>
@@ -1504,9 +1520,8 @@ Encoder: databarlimited</code></pre>
 <li>Digits <code>0-9</code></li>
 <li>Symbols <code>space</code> and <code>#</code></li>
 </ul></li>
-<li>The maditory Reed-Solomon check bars are calculated automatically.</li>
 </ul>
-<h4 id="examples-28">Examples</h4>
+<h4 id="examples-29">Examples</h4>
 <p>FCC 62 symbol with character customer data:</p>
 <pre><code>Data:    6279438541AaaB 155
 Options: custinfoenc=character
@@ -1520,7 +1535,7 @@ Encoder: auspost</code></pre>
 <h3 id="deutsche-post-identcode">Deutsche Post Identcode</h3>
 <p><strong>Deutsche Post Identcode</strong> is an implementation of the <a href="#interleaved-2-of-5">Interleaved 2 of 5</a> barcode symbology that is used by German Post for mail routing.</p>
 <p>Also known as: DHL Identcode.</p>
-<h4 id="data-and-options-36">Data and Options</h4>
+<h4 id="data-and-options-37">Data and Options</h4>
 <ul>
 <li>The data consists of a consecutive string of eleven or twelve digits consisting of:
 <ul>
@@ -1529,7 +1544,7 @@ Encoder: auspost</code></pre>
 <li>Six-digit mail piece identifier</li>
 <li>One-digit check digit (may be omitted)</li>
 </ul></li>
-<li>If eleven digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If eleven digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 </ul>
 <h4 id="example-5">Example</h4>
 <p>Identical symbols, input provided with an without a check digit:</p>
@@ -1543,7 +1558,7 @@ Encoder: identcode</code></pre>
 <h3 id="deutsche-post-leitcode">Deutsche Post Leitcode</h3>
 <p>The <strong>Deutsche Post Leitcode</strong> barcode symbology is an implementation of the <a href="#interleaved-2-of-5">Interleaved 2 of 5</a> barcode that is used by German Post for mail routing.</p>
 <p>Also known as: DHL Leitcode.</p>
-<h4 id="data-and-options-37">Data and Options</h4>
+<h4 id="data-and-options-38">Data and Options</h4>
 <ul>
 <li>The data consists of a consecutive string of thirteen or fourteen digits consisting of:
 <ul>
@@ -1553,9 +1568,9 @@ Encoder: identcode</code></pre>
 <li>Two-digit product code</li>
 <li>One-digit check digit (may be omitted)</li>
 </ul></li>
-<li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit must be correct.</li>
+<li>If thirteen digits are supplied then the check digit is calculated automatically. Otherwise the provided check digit will be verified.</li>
 </ul>
-<h4 id="examples-29">Examples</h4>
+<h4 id="examples-30">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
 <pre><code>Data:    21348075016401
 Options: includetext
@@ -1566,7 +1581,7 @@ Encoder: leitcode</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIcAAABQCAMAAAAEApavAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACdQTFRFAAAA////7u7uiIiIqqqqmZmZd3d3u7u7VVVVREREZmZmzMzM3d3dUR9rPAAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAFbSURBVGje7ZPbdgMhCEUHRW3G/P/3VmBExrRdzUuejpkVuRzI1iHHQfIhOg6zZL+848rc8jQVe26pf/RWxYvGbXCAAxzgAAc4wAEOcIADHOAABzjAAQ5wgAMc4AAHOMABDnCAAxzgAAc4wAEOcIADHOAAx+c56FImWiulVZ8SuTJtHOT1FPy7d+eIGt2jUFbmwkRc27BZbUpfw+FS2tRwFvtR60lUa93iVjsa8TqPdsihwyragOYa+SrbpRM7NwtWZ9VnrBKCK661rceEhLyKQv9fOYh6c12rXXxxmNlLi+Lab+WSeYtrbWHuq6OEZtU/OToHXdJD6Gl6LztH9mt45Rgn8Lh1eI/DMFyXxcyjBeuj0+o3nNe7i3G7D30sbh3eei/dpq+cpzSyOX2eVedU7MdIzonrcvGV97jVpjHwM351CHNqmr/nI6xn+BPryW7fUfMap75Hbtl9fQM7NBuB7hGlUwAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMVQyMjowNDo0MyswMDowMFHxMdcAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTFUMjI6MDQ6NDMrMDA6MDAgrIlrAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h3 id="japan-post-4-state-barcode">Japan Post 4 State Barcode</h3>
 <p>The <strong>Japan Post 4 state barcode</strong> symbology is used by the Japan Post service to encode the delivery point identifier on letter mail.</p>
-<h4 id="data-and-options-38">Data and Options</h4>
+<h4 id="data-and-options-39">Data and Options</h4>
 <ul>
 <li>The data may contain any of the following characters:
 <ul>
@@ -1584,7 +1599,7 @@ Encoder: japanpost</code></pre>
 <p>The <strong>MaxiCode</strong> barcode symbology is a 2D barcode based on a hexagonal matrix surrounding a bulls eye pattern. It can encode a structured carrier message and full 256 character extended-ASCII.</p>
 <p>Also known as: UPS Code, Code 6, Dense Code.</p>
 <p>Standards: ISO/IEC 16023, ANSI/AIM BC10 - ISS MaxiCode.</p>
-<h4 id="data-and-options-39">Data and Options</h4>
+<h4 id="data-and-options-40">Data and Options</h4>
 <ul>
 <li>The <strong>mode</strong> option is used to specify how the data is structured in the symbol:
 <ul>
@@ -1602,7 +1617,7 @@ Encoder: japanpost</code></pre>
 <li>The structured carrier message contains a postal code, three-digit class of service and a three-digit ISO country code separated by <em>GS</em> (ASCII 29) characters. It is formatted in the data field as follows: <code>[postal code]^029[country code]^029[service class]^029</code>. If <code>mode=2</code> the postcode must be numeric, whilst if <code>mode=3</code> the postcode may contain up to six digits, upper case letters and spaces.</li>
 <li>Alternatively, messages may begin with the special application field identifier <code>[)&gt;{RS}01{GS}yy</code> where <code>{RS}</code> represents ASCII value 30, <code>{GS}</code> represents ASCII value 29 and <code>yy</code> is a two-digit year. In parse mode this is represented as <code>[)&gt;^03001^0299</code>. If <code>mode=2</code> or <code>mode=3</code> this must be immediately followed by the structured carrier message.</li>
 </ul>
-<h4 id="examples-30">Examples</h4>
+<h4 id="examples-31">Examples</h4>
 <pre><code>Data:    This is MaxiCode
 Options: 
 Encoder: maxicode</code></pre>
@@ -1625,7 +1640,7 @@ Encoder: maxicode</code></pre>
 <h3 id="royal-mail-4-state-customer-code">Royal Mail 4 State Customer Code</h3>
 <p>The <strong>Royal Mail 4 State Customer Code</strong> is a barcode symbology used by the British Postal Service to encode the postcode and delivery point identifier on letter mail.</p>
 <p>Also known as: RM4SCC, CBC.</p>
-<h4 id="data-and-options-40">Data and Options</h4>
+<h4 id="data-and-options-41">Data and Options</h4>
 <ul>
 <li>The data may contain any of the following characters from the postcode and DPID:
 <ul>
@@ -1641,8 +1656,8 @@ Encoder: royalmail</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHwAAAAVCAMAAACzO3oeAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAACRQTFRFAAAA////7u7uqqqq3d3dmZmZu7u7iIiIzMzMd3d3ZmZmRERE/zY2hgAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAD9SURBVEjH7VPRFoMgCEURxPr//125hdC0rb30sDhUgheuIAGEENanCuhHXTsH9HHO/QaAXa7XG+Am/1tysMhzq9+DbvJryN2g9AbOTwyMQbvp6w6cY7rJLyQ/kuiM+AneixrKSh4RU/MkYia1MhKqgUSs6SklahxScsOJwQVmxtAXeO5bV6m6hVqjDI1AVbcTV9UMcoqcrCltExHZwCx5FhOydGRqNxBzGIiStw4WNkndsbMIGZjHkTkykiHMwwFQctdP0Tpcy7Bqt3KXIVgDxe/syNM0laIAnkuZtu7KapiC2vTJLDKbS0BsxQqaapcM81HlX8vBrxZTf30kDw3MDC4DmiREAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEyOjM4OjQ3KzAwOjAwc8kCYgAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMjozODo0NyswMDowMAKUut4AAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="royal-tnt-post-4-state-barcode">Royal TNT Post 4 state barcode</h3>
 <p>The <strong>Royal TNT Post 4 state barcode</strong> symbology is used by the Dutch Postal Service to encode the delivery point identifier on letter mail.</p>
-<p>Also known as: KIX.</p>
-<h4 id="data-and-options-41">Data and Options</h4>
+<p>Also known as: KIX, Klant IndeX.</p>
+<h4 id="data-and-options-42">Data and Options</h4>
 <ul>
 <li>The data may contain any of the following characters from the DPID:
 <ul>
@@ -1659,7 +1674,7 @@ Encoder: kix</code></pre>
 <p>The <strong>USPS Intelligent Mail</strong> barcode is used by the US Postal service to encode the delivery and sender information on letter mail.</p>
 <p>Also known as: USPS OneCode.</p>
 <p>Standards: USPS-STD-11.</p>
-<h4 id="data-and-options-42">Data and Options</h4>
+<h4 id="data-and-options-43">Data and Options</h4>
 <ul>
 <li>The data contains 31 digits representing the following:
 <ul>
@@ -1677,7 +1692,7 @@ Encoder: onecode</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANUAAAAVCAMAAADmdlsFAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAADBQTFRFAAAA////d3d3MzMzzMzMqqqq7u7uREREmZmZIiIiu7u7ERERVVVViIiI3d3dZmZmE4fqzwAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAJHSURBVFjD7ZTZkqswDESRjdcE+P+/vZJaNkucTM1b7hRUFss+6kayYZqISL567UGfuoymt9wOTYPpN8Av0qcrMLpRm5vuqu6qvqKqE/y70Rcm3VX9R1WdTu0ZoevfOJiuo9HSi83A8+WxuT5ep3fAJ4u7qruq76jqb11/tSrn/UwUnIYxeZ9jSqVKUHTukRIvMpZzSukxawYzkmaMRfxbdyZbpjKqqerUzeAsERbM12yRrTrQFPWDmYmMq6pP4k+awGR2KIujNXGwPWRKhzQnipv8O9IMYXxnEAXLY0ZxZIJRTVWnZgZnjbBgvpA0KbNlzaZuZu2Ox1W5hbvCfQNTuRtljRSe0owE881FckvVRiUZcoarenqNQTSnKHlgGEcmGNVUdWpm5iwRFuBrkshutqzZ1M2s3fGbqphJB4Y7ylHJtD5J5YOri+cZ5zbdS1VNwVf32BmNok+cB0ZwZDZGNKHeqoIzIlsoueHwNVvdTKg3sx+qyse9Ipdwdgtxq4pbMet1nU9c4d4jo7pwYDTihdgY4PLTGdY0dasq971qC8wcbck3HdY09Wb2uaqAB8SYLHu8BbGba/WVb3CpIiwbUGh+4ule/VzllDcGkQudURyZYFRT1XtV5iwRFpRpkvCFrWpCnZrZ56q4Hz50ZvP8upmLS4seZhXhKEvbeM4t6KAPsTh9gYFBtDLpOpMWy1RGNVW9V2XOEmGh+eIEIlttVRPq3eyHqqiu18l4nkJ0mJNh1IbuGXHAHOP4avPiPPK9StLVenT9A7OiIZ8j3PM7AAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEyOjM5OjU0KzAwOjAwYUlzXwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMjozOTo1NCswMDowMBAUy+MAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="usps-postnet">USPS POSTNET</h3>
 <p>The <strong>USPS POSTNET</strong> barcode symbology is used by the US Postal service to encode the ZIP code information on letter mail.</p>
-<h4 id="data-and-options-43">Data and Options</h4>
+<h4 id="data-and-options-44">Data and Options</h4>
 <ul>
 <li>The data field contains the digits from the ZIP code, without dashes.</li>
 <li>The mandatory checksum is calculated automatically and must not be included in the data field.</li>
@@ -1689,7 +1704,7 @@ Encoder: postnet</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMsAAAAJCAMAAACrBSi+AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABASURBVDjLY2BgRAIMUIzgofPRZREMBjRhYo3EYiKaIQyEHAVVwzDql1G/jPqFNL8wICHSWYNG06hfBqem4eQXAHUABap+DCuxAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE1LTAyLTEyVDEyOjQxOjExKzAwOjAwjdcHdQAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxNS0wMi0xMlQxMjo0MToxMSswMDowMPyKv8kAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNS0wMS0xMcQCIAwAAAA8dEVYdFNvdXJjZQBodHRwOi8vd3d3LnRlcnJ5YnVydG9uLmNvLnVrL2JhcmNvZGV3cml0ZXIvZ2VuZXJhdG9yL39acHEAAAAASUVORK5CYII=" /></p>
 <h3 id="usps-planet">USPS PLANET</h3>
 <p>The <strong>USPS PLANET</strong> barcode symbology is used by the US Postal service to encode the ZIP code information on letter mail.</p>
-<h4 id="data-and-options-44">Data and Options</h4>
+<h4 id="data-and-options-45">Data and Options</h4>
 <ul>
 <li>The data field contains eleven or thirteen digits, without dashes.</li>
 <li>The mandatory checksum is calculated automatically and must not be included in the data field.</li>
@@ -1701,7 +1716,7 @@ Encoder: planet</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMsAAAAJCAMAAACrBSi+AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAABESURBVDjLY2BghAEGMIJSUBaqFFwMRZYBizCKaiTt6GahyxCrHZtSBoZRv4z6ZdQvpPmFAU0JaaxBo2nUL4NT03DyCwA9EQVuZ2G3BQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxNS0wMi0xMlQxMjo0Mjo1MiswMDowMNNCqBEAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTUtMDItMTJUMTI6NDI6NTIrMDA6MDCiHxCtAAAAP3RFWHRTb2Z0d2FyZQBCYXJjb2RlIFdyaXRlciBpbiBQdXJlIFBvc3RTY3JpcHQgLSBWZXJzaW9uIDIwMTUtMDEtMTHEAiAMAAAAPHRFWHRTb3VyY2UAaHR0cDovL3d3dy50ZXJyeWJ1cnRvbi5jby51ay9iYXJjb2Rld3JpdGVyL2dlbmVyYXRvci9/WnBxAAAAAElFTkSuQmCC" /></p>
 <h3 id="usps-fim-symbols">USPS FIM Symbols</h3>
 <p>The <strong>USPS FIM</strong> encoder is used to generate static predefined barcode symbols.</p>
-<h4 id="data-and-options-45">Data and Options</h4>
+<h4 id="data-and-options-46">Data and Options</h4>
 <ul>
 <li>The data field accepts one of the following values:
 <ul>
@@ -1711,7 +1726,7 @@ Encoder: planet</code></pre>
 <li><code>fimd</code> - US Postal Service FIM-D symbol</li>
 </ul></li>
 </ul>
-<h4 id="examples-31">Examples</h4>
+<h4 id="examples-32">Examples</h4>
 <p>A USPS FIM A symbol:</p>
 <pre><code>Data:    fima
 Options: 
@@ -1736,12 +1751,12 @@ Encoder: symbol</code></pre>
 <h3 id="italian-pharmacode">Italian Pharmacode</h3>
 <p><strong>Italian Pharmacode</strong> is a discrete, fixed length, self-checking barcode symbology used for pharmaceutical products in Italy.</p>
 <p>Also known as: Code 32, IMH, Radix 32.</p>
-<h4 id="data-and-options-46">Data and Options</h4>
+<h4 id="data-and-options-47">Data and Options</h4>
 <ul>
 <li>The data field must contain either eight or nine digits from the code. The leading <em>A</em> which is provided in some applications must be omitted.</li>
-<li>The mandatory check digit is calculated automatically if it is not provided.</li>
+<li>The mandatory check digit is calculated automatically if it is not provided, otherwise the provided check digit is verified.</li>
 </ul>
-<h4 id="examples-32">Examples</h4>
+<h4 id="examples-33">Examples</h4>
 <p>Identical symbols, input provided with and without a check digit:</p>
 <pre><code>Data:    012345676
 Options: includetext
@@ -1757,7 +1772,7 @@ Encoder: code32</code></pre>
 <ul>
 <li><a href="#two-track-pharmacode">Two-track Pharmacode</a> is a variant of the Pharmacode barcode.</li>
 </ul>
-<h4 id="data-and-options-47">Data and Options</h4>
+<h4 id="data-and-options-48">Data and Options</h4>
 <ul>
 <li>The data field must contain a number between <code>3</code> and <code>131070</code> inclusive.</li>
 <li>The <strong>nwidth</strong>, <strong>wwidth</strong> and <strong>swidth</strong> options can be used to specify a custom width (in points) for the narrow bars, wide bars and inter-bar spaces respectively.</li>
@@ -1774,7 +1789,7 @@ Encoder: pharmacode</code></pre>
 <ul>
 <li><a href="#pharmacode">Pharmacode</a> is a variant of the Two-track Pharmacode barcode.</li>
 </ul>
-<h4 id="data-and-options-48">Data and Options</h4>
+<h4 id="data-and-options-49">Data and Options</h4>
 <ul>
 <li>The data field must contain a number between <code>4</code> and <code>64570080</code> inclusive.</li>
 </ul>
@@ -1788,17 +1803,17 @@ Encoder: pharmacode2</code></pre>
 <p>Also known as: Pharmazentralnummer.</p>
 <p>Variants:</p>
 <ul>
-<li>PZN-7.</li>
-<li>PZN-8.</li>
+<li>PZN7 is the seven-digit format.</li>
+<li>PZN8 is the eight-digit format.</li>
 </ul>
-<h4 id="data-and-options-49">Data and Options</h4>
+<h4 id="data-and-options-50">Data and Options</h4>
 <ul>
 <li>For the default PZN7 encoding, the data field must contain six digits or seven digits.</li>
 <li>The <strong>pzn8</strong> option specifies that a PZN8 symbol is required, in which case the data field must contain seven digits or eight digits.</li>
-<li>The mandatory check digit is calculated automatically if not provided.</li>
+<li>The mandatory check digit is calculated automatically if not provided, otherwise the provided check digit is verified.</li>
 <li>Note: by definition, not all six-digit or seven-digit number sequences are valid inputs.</li>
 </ul>
-<h4 id="examples-33">Examples</h4>
+<h4 id="examples-34">Examples</h4>
 <p>Identical PZN7 symbols, input provided with and without a check digit:</p>
 <pre><code>Data:    1234562
 Options: includetext
@@ -1828,7 +1843,7 @@ Encoder: pzn</code></pre>
 <li><a href="#hibc-codablock-f">HIBC Codablock F</a> is a variant of <a href="#codablock-f">Codablock F</a>.</li>
 </ul>
 <p>Standards: ANSI/HIBC Provider Applications Standard, ANSI/HIBC Supplier Labelling Standard, ANSI/HIBC Positive Identification for Patient Safety, ANSI/HIBC Syntax Standard.</p>
-<h4 id="data-and-options-50">Data and Options</h4>
+<h4 id="data-and-options-51">Data and Options</h4>
 <ul>
 <li>The data should be pre-encoded to describe the intended barcode content.</li>
 <li>The HIBC <em>+</em> character is prefixed automatically.</li>
@@ -1873,7 +1888,7 @@ Encoder: hibccodablockf</code></pre>
 <h3 id="bc412">BC412</h3>
 <p>The <strong>BC412</strong> barcode symbology is single width, variable length barcode that is used for silicon wafer identification by the semiconductor manufacturing industry.</p>
 <p>Also known as: BC412 SEMI, BC412 IBM.</p>
-<h4 id="data-and-options-51">Data and Options</h4>
+<h4 id="data-and-options-52">Data and Options</h4>
 <ul>
 <li>The data field can hold any of the following:
 <ul>
@@ -1886,7 +1901,7 @@ Encoder: hibccodablockf</code></pre>
 <li>The <strong>semi</strong> option enables conformance to the SEMI standard by enabling start and stop bars as well as a check character.</li>
 <li>The <strong>inkspread</strong> option can be used to adjust the width of the bars.</li>
 </ul>
-<h4 id="examples-34">Examples</h4>
+<h4 id="examples-35">Examples</h4>
 <pre><code>Data:    BC412
 Options: includecheck
 Encoder: bc412</code></pre>
@@ -1902,7 +1917,7 @@ Encoder: bc412</code></pre>
 <h3 id="channel-code">Channel Code</h3>
 <p><strong>Channel Code</strong> is a linear, continuous, self-checking, bidirectional barcode symbology that encodes between two and seven digits in a short space.</p>
 <p>Standards: ANSI/AIM BC12 - USS Channel Code.</p>
-<h4 id="data-and-options-52">Data and Options</h4>
+<h4 id="data-and-options-53">Data and Options</h4>
 <ul>
 <li>The data field can hold zero prefixed values from any of the following ranges:
 <ul>
@@ -1917,7 +1932,7 @@ Encoder: bc412</code></pre>
 <li>The <strong>shortfinder</strong> option generates a symbol with a shortened finder pattern.</li>
 <li>The <strong>includecheck</strong> option appends an optional check bar suffix.</li>
 </ul>
-<h4 id="examples-35">Examples</h4>
+<h4 id="examples-36">Examples</h4>
 <p>A channel 3 symbol holding the value five:</p>
 <pre><code>Data:    05
 Options: includetext
@@ -1942,7 +1957,7 @@ Encoder: channelcode</code></pre>
 <p><strong>Codabar</strong> is a linear, discrete, self-checking, bidirectional barcode symbology that can encode digits, six symbols and four delimiter characters. It is primarily used by libraries and blood banks, photo labs and FedEx airbills.</p>
 <p>Also known as: Rationalized Codabar, Ames Code, NW-7, USD-4, USS-Codabar, ABC Codabar, Monarch, Code 2 of 7.</p>
 <p>Standards: ANSI/AIM BC3 - USS Codabar, BS EN 798.</p>
-<h4 id="data-and-options-53">Data and Options</h4>
+<h4 id="data-and-options-54">Data and Options</h4>
 <ul>
 <li>The data field must start and stop with one of the following delimiters
 <ul>
@@ -1970,7 +1985,7 @@ Encoder: rationalizedCodabar</code></pre>
 <li><a href="#hibc-symbols">HIBC Codablock F</a> is a variant of Codablock F that should be used when encoding HIBC formatted data.</li>
 </ul>
 <p>Standards: USS Codablock F.</p>
-<h4 id="data-and-options-54">Data and Options</h4>
+<h4 id="data-and-options-55">Data and Options</h4>
 <ul>
 <li>The data field can consist of any extended-ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
 <li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.</li>
@@ -1983,7 +1998,7 @@ Encoder: rationalizedCodabar</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is 1.</li>
 </ul>
-<h4 id="examples-36">Examples</h4>
+<h4 id="examples-37">Examples</h4>
 <pre><code>Data:    Codablock F
 Options: 
 Encoder: codablockf</code></pre>
@@ -1999,7 +2014,7 @@ Encoder: codablockf</code></pre>
 <h3 id="code-11">Code 11</h3>
 <p><strong>Code 11</strong> is a linear, discrete, non-self-checking, bidirectional, numeric barcode symbology that is primarily used for labelling telecommunication equipment.</p>
 <p>Also known as: USD-8.</p>
-<h4 id="data-and-options-55">Data and Options</h4>
+<h4 id="data-and-options-56">Data and Options</h4>
 <ul>
 <li>The data consists of digits and the dash character <em>-</em>.</li>
 <li>The <strong>includecheck</strong> option calculates the check digits.</li>
@@ -2015,7 +2030,7 @@ Encoder: code11</code></pre>
 <p>The <strong>Code 16K</strong> barcode symbology is 2D stacked-linear barcode that can encode full 256 character extended-ASCII with the use of the <em>FNC4</em> shift character.</p>
 <p>Also known as: USS-16K</p>
 <p>Standards: ANSI/AIM BC7 - USS Code 16K, BS EN 12323.</p>
-<h4 id="data-and-options-56">Data and Options</h4>
+<h4 id="data-and-options-57">Data and Options</h4>
 <ul>
 <li>The data field can consist of any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
 <li><em>FNC4</em> function characters will be inserted automatically to allow the encoding of extended ASCII characters.</li>
@@ -2038,7 +2053,7 @@ Encoder: code11</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is 10.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is 1.</li>
 </ul>
-<h4 id="examples-37">Examples</h4>
+<h4 id="examples-38">Examples</h4>
 <pre><code>Data:    Abcd-1234567890-wxyZ
 Options: 
 Encoder: code16k</code></pre>
@@ -2061,7 +2076,7 @@ Encoder: code16k</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-57">Data and Options</h4>
+<h4 id="data-and-options-58">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2074,7 +2089,7 @@ Encoder: code16k</code></pre>
 <li><code>version=coop</code> - <em>Deprecated: Use <a href="#coop-2-of-5">COOP 2 of 5</a></em></li>
 </ul></li>
 </ul>
-<h4 id="examples-38">Examples</h4>
+<h4 id="examples-39">Examples</h4>
 <pre><code>Data:    01234567
 Options: 
 Encoder: code2of5</code></pre>
@@ -2082,16 +2097,16 @@ Encoder: code2of5</code></pre>
 <h3 id="dotcode">DotCode</h3>
 <p>The <strong>DotCode</strong> symbology is 2D matrix-style barcode that can encode full 256 character extended-ASCII.</p>
 <p>Standards: AIM - ISS DotCode.</p>
-<h4 id="data-and-options-58">Data and Options</h4>
+<h4 id="data-and-options-59">Data and Options</h4>
 <ul>
 <li>The data field can contain any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value. This is useful for specifying unprintable characters.</li>
 <li>When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^FNC1</code>, <code>^FNC2</code>, <code>^FNC3</code>.</li>
-<li>The <strong>fast</strong> option is used to enable the optional high-speed symbol masking algorithm.</li>
+<li><em>Deprecated: Use only if performance is a concern.</em> The <strong>fast</strong> option is used to enable the optional high-speed symbol masking algorithm.</li>
 <li>The <strong>ratio</strong> is used to specify the aspect ratio of the symbol. The default is 1.5.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol. When these are not specified a symbol is generated that maintains the selected aspect ratio.</li>
 </ul>
-<h4 id="examples-39">Examples</h4>
+<h4 id="examples-40">Examples</h4>
 <pre><code>Data:    This is DotCode
 Options: fast inkspread=0.3
 Encoder: dotcode</code></pre>
@@ -2099,7 +2114,7 @@ Encoder: dotcode</code></pre>
 <h3 id="ultracode">Ultracode</h3>
 <p>The <strong>Ultracode</strong> symbology is a colour, 2D matrix-style barcode symbology that can encode full 256 character extended-ASCII.</p>
 <p>Standards: AIM ISS - Ultracode.</p>
-<h4 id="data-and-options-59">Data and Options</h4>
+<h4 id="data-and-options-60">Data and Options</h4>
 <ul>
 <li>The data field can contain any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
@@ -2114,7 +2129,7 @@ Encoder: dotcode</code></pre>
 <li><code>eclevel=EC5</code> - Highest</li>
 </ul></li>
 </ul>
-<h4 id="examples-40">Examples</h4>
+<h4 id="examples-41">Examples</h4>
 <pre><code>Data:    Nice colours!
 Options: eclevel=EC3
 Encoder: ultracode</code></pre>
@@ -2129,12 +2144,12 @@ Encoder: ultracode</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-60">Data and Options</h4>
+<h4 id="data-and-options-61">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
 </ul>
-<h4 id="examples-41">Examples</h4>
+<h4 id="examples-42">Examples</h4>
 <pre><code>Data:    01234567
 Options: includetext includecheck includecheckintext
 Encoder: iata2of5</code></pre>
@@ -2148,7 +2163,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-61">Data and Options</h4>
+<h4 id="data-and-options-62">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2162,7 +2177,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 <li><a href="#coop-2-of-5">COOP 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-62">Data and Options</h4>
+<h4 id="data-and-options-63">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2176,7 +2191,7 @@ Encoder: iata2of5</code></pre>
 <li><a href="#datalogic-2-of-5">Datalogic 2 of 5</a>.</li>
 <li><a href="#matrix-2-of-5">Matrix 2 of 5</a>.</li>
 </ul>
-<h4 id="data-and-options-63">Data and Options</h4>
+<h4 id="data-and-options-64">Data and Options</h4>
 <ul>
 <li>The data consists of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit.</li>
@@ -2185,7 +2200,7 @@ Encoder: iata2of5</code></pre>
 <p>The <strong>Code 49</strong> barcode symbology is 2D stacked-linear barcode that can encode 128 character ASCII.</p>
 <p>Also known as: USS-49.</p>
 <p>Standards: ANSI/AIM BC6 - USS Code 49.</p>
-<h4 id="data-and-options-64">Data and Options</h4>
+<h4 id="data-and-options-65">Data and Options</h4>
 <ul>
 <li>The input can consist of any ASCII data.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
@@ -2206,7 +2221,7 @@ Encoder: iata2of5</code></pre>
 <li>The <strong>rowheight</strong> option specifies the height of the bars in each row in points. The default is <em>10</em>.</li>
 <li>The <strong>sepheight</strong> option specifies the height of the separator bars enclosing the rows in points. The default is <em>1</em>.</li>
 </ul>
-<h4 id="examples-42">Examples</h4>
+<h4 id="examples-43">Examples</h4>
 <pre><code>Data:    MULTIPLE ROWS IN CODE 49
 Options: 
 Encoder: code49</code></pre>
@@ -2223,7 +2238,7 @@ Encoder: code49</code></pre>
 <p><strong>Code One</strong> was the earliest public domain 2D matrix-style barcode. It is used by the health care and recycling industry and can encode full 256 character extended-ASCII.</p>
 <p>Also known as: Code 1, Code 1S.</p>
 <p>Standards: AIM USS - Code One.</p>
-<h4 id="data-and-options-65">Data and Options</h4>
+<h4 id="data-and-options-66">Data and Options</h4>
 <ul>
 <li>The data field can consist of any ASCII data for <em>standard</em> and <em>T-type</em> symbols.</li>
 <li>Note: <em>S-type</em> symbols are special in that they represent a numeric value so may only contain digits.</li>
@@ -2236,7 +2251,7 @@ Encoder: code49</code></pre>
 <li><code>version=S-10</code>, <code>version=S-20</code>, <code>version=S-30</code> - <em>S-type</em> symbols</li>
 </ul></li>
 </ul>
-<h4 id="examples-43">Examples</h4>
+<h4 id="examples-44">Examples</h4>
 <pre><code>Data:    Code One
 Options: 
 Encoder: codeone</code></pre>
@@ -2260,7 +2275,7 @@ Encoder: codeone</code></pre>
 <ul>
 <li><a href="#plessey">Plessey (UK)</a> is the original barcode upon which MSI Modified Plessey was based.</li>
 </ul>
-<h4 id="data-and-options-66">Data and Options</h4>
+<h4 id="data-and-options-67">Data and Options</h4>
 <ul>
 <li>The data can consist of any number of digits.</li>
 <li>The <strong>includecheck</strong> option calculates the check digit or check digits.</li>
@@ -2276,7 +2291,7 @@ Encoder: codeone</code></pre>
 </ul></li>
 <li>The <strong>badmod11</strong> option allows a <code>checktype=mod11</code> checksum value of 10 to be encoded with a pair of check digits <em>10</em>. Normally in <code>checktype=mod11</code>, any input whose checksum evaluates to <em>10</em> is considered invalid having no correct representation.</li>
 </ul>
-<h4 id="examples-44">Examples</h4>
+<h4 id="examples-45">Examples</h4>
 <pre><code>Data:    0123456789
 Options: includecheck includetext
 Encoder: msi</code></pre>
@@ -2296,7 +2311,7 @@ Encoder: msi</code></pre>
 <ul>
 <li><a href="#msi-plessey">MSI Modified Plessey</a> is a variant of the Plessey (UK) barcode developed by the MSI Data Corporation.</li>
 </ul>
-<h4 id="data-and-options-67">Data and Options</h4>
+<h4 id="data-and-options-68">Data and Options</h4>
 <ul>
 <li>The data can contain any of the following:
 <ul>
@@ -2307,7 +2322,7 @@ Encoder: msi</code></pre>
 <li>The <strong>includecheckintext</strong> option makes the calculated check characters appear in the human readable text.</li>
 <li>The <strong>unidirectional</strong> option generates a unidirectional Plessey symbol.</li>
 </ul>
-<h4 id="examples-45">Examples</h4>
+<h4 id="examples-46">Examples</h4>
 <p>Equivalent symbols, the latter displaying the two mandatory check characters:</p>
 <pre><code>Data:    01234ABCD
 Options: includetext
@@ -2325,7 +2340,7 @@ Encoder: plessey</code></pre>
 <h3 id="posicode">PosiCode</h3>
 <p><strong>PosiCode</strong> is a continuous, variable length, non-self-checking, bidirectional barcode symbology that is designed for use within printing processes where it is difficult to precisely control the width of a bar.</p>
 <p>Standards: ITS PosiCode.</p>
-<h4 id="data-and-options-68">Data and Options</h4>
+<h4 id="data-and-options-69">Data and Options</h4>
 <ul>
 <li>The data field can hold the following:
 <ul>
@@ -2387,14 +2402,14 @@ Encoder: posicode</code></pre>
 <li><a href="#telepen-numeric">Telepen Numeric</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h4 id="data-and-options-69">Data and Options</h4>
+<h4 id="data-and-options-70">Data and Options</h4>
 <ul>
 <li>The data can contain any standard ASCII data, values 0-127.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 <li><em>Deprecated: Use <a href="#telepen-numeric">Telepen Numeric</a> instead. When the <strong>numeric</strong> option is given, the data is read as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</em></li>
 </ul>
-<h4 id="examples-46">Examples</h4>
+<h4 id="examples-47">Examples</h4>
 <pre><code>Data:    Telepen
 Options: includetext
 Encoder: telepen</code></pre>
@@ -2410,13 +2425,13 @@ Encoder: telepen</code></pre>
 <li><a href="#telepen">Telepen Alpha</a>.</li>
 </ul>
 <p>Standards: USS Telepen.</p>
-<h4 id="data-and-options-70">Data and Options</h4>
+<h4 id="data-and-options-71">Data and Options</h4>
 <ul>
 <li>The data is provided as either pairs of digits or <code>0X</code>, <code>1X</code>, etc. The singular values <code>^000</code> to <code>^016</code> can also be encoded using the <em>parse</em> option.</li>
 <li>When the <strong>parse</strong> option is specified, any instances of <code>^NNN</code> in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.</li>
 <li>The mandatory check digit is automatically included.</li>
 </ul>
-<h4 id="examples-47">Examples</h4>
+<h4 id="examples-48">Examples</h4>
 <pre><code>Data:    123456
 Options: 
 Encoder: telepennumeric</code></pre>
@@ -2447,7 +2462,7 @@ Encoder: telepennumeric</code></pre>
 <li><a href="#gs1-128-composite">GS1-128 Composite</a> is a variant of <a href="#gs1-128">GS1-128</a>.</li>
 </ul>
 <p>Standards: ISO/IEC 24723, ITS EAN.UCC Composite Symbology, AIM ISS - EAN.UCC Composite Symbology, GS1 General Specifications.</p>
-<h4 id="data-and-options-71">Data and Options</h4>
+<h4 id="data-and-options-72">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component separated by a pipe <code>|</code> character.</li>
 <li>The data for the primary component (preceding the pipe) is entered in a format identical to the corresponding non-composite barcode symbology.</li>
@@ -2458,7 +2473,7 @@ Encoder: telepennumeric</code></pre>
 <li><code>(17)...(10)...</code></li>
 <li><code>(90){0-3 digits not starting 0}{upper alpha}...</code></li>
 </ul></li>
-<li>The <strong>ccversion</strong> option is used to select a specific 2D component:
+<li><em>Deprecated: Default is best unless your application dictates otherwise.</em> The <strong>ccversion</strong> option is used to select a specific 2D component:
 <ul>
 <li><code>ccversion=a</code> - <a href="#cc-a">CC-A</a></li>
 <li><code>ccversion=b</code> - <a href="#cc-b">CC-B</a></li>
@@ -2553,7 +2568,7 @@ Encoder: gs1-cc</code></pre>
 <h2 id="raw-symbols">Raw Symbols</h2>
 <h3 id="daft">DAFT</h3>
 <p><strong>DAFT</strong> is an encoder for directly specifying the descender, ascender, full-height, tracker-bar succession for a custom 4 state barcode symbol.</p>
-<h4 id="data-and-options-72">Data and Options</h4>
+<h4 id="data-and-options-73">Data and Options</h4>
 <ul>
 <li>The data field contains a sequence of the characters <code>D</code>, <code>A</code>, <code>F</code> or <code>T</code> to denote the descender, ascender, full-height and tracker bars of a custom 4 state symbol.</li>
 </ul>
@@ -2564,7 +2579,7 @@ Encoder: daft</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAANCAMAAABmbkWbAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAkSURBVBjTY2BgZGQEYTBA4UB4g0QejtBYdJFHOAdOwTi0lgcABSEBP2n6/zEAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMTQ6MDY6MTMrMDA6MDDBYBWIAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDE0OjA2OjEzKzAwOjAwsD2tNAAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h3 id="flattermarken">Flattermarken</h3>
 <p><strong>Flattermarken</strong> are identification marks used in book production that facilitate the proper arrangement of bound sections by a book binder.</p>
-<h4 id="data-and-options-73">Data and Options</h4>
+<h4 id="data-and-options-74">Data and Options</h4>
 <ul>
 <li>The data field can holding any sequence of digits corresponds to a 9 module width with the following meaning:
 <ul>
@@ -2581,7 +2596,7 @@ Encoder: flattermarken</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAWCAMAAAAPf7fDAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZQTFRFAAAA////pdmf3QAAAAFiS0dEAf8CLd4AAAAJcEhZcwAACxMAAAsTAQCanBgAAAAYSURBVCjPY2BghAMkJlyIYVR+VH4QywMAUZUCafPc07gAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTUtMDItMTFUMjA6MjM6NDErMDA6MDAcgjcNAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE1LTAyLTExVDIwOjIzOjQxKzAwOjAwbd+PsQAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE1LTAxLTExxAIgDAAAADx0RVh0U291cmNlAGh0dHA6Ly93d3cudGVycnlidXJ0b24uY28udWsvYmFyY29kZXdyaXRlci9nZW5lcmF0b3Ivf1pwcQAAAABJRU5ErkJggg==" /></p>
 <h3 id="raw">Raw</h3>
 <p>The <strong>raw</strong> encoder is used for directly specifying the space/bar succession of a custom barcode symbol.</p>
-<h4 id="data-and-options-74">Data and Options</h4>
+<h4 id="data-and-options-75">Data and Options</h4>
 <ul>
 <li>The data field contains an alternating sequence of widths (1 to 9) for the bars and spaces of a custom symbol.</li>
 </ul>
@@ -2594,7 +2609,7 @@ Encoder: raw</code></pre>
 <h3 id="ean-2">EAN-2</h3>
 <p><strong>EAN-2</strong> is the two-digit add-on code that accompanies a EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Two-Digit Add-On, Two-Digit Supplement, UPC-2</p>
-<h4 id="data-and-options-75">Data and Options</h4>
+<h4 id="data-and-options-76">Data and Options</h4>
 <ul>
 <li>The data field must contain two digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2607,7 +2622,7 @@ Encoder: ean2</code></pre>
 <h3 id="ean-5">EAN-5</h3>
 <p><strong>EAN-5</strong> is the five-digit add-on code that accompanies an EAN or UPC type barcode symbol such as an <a href="#isbn">ISBN</a> or <a href="#issn">ISSN</a>.</p>
 <p>Also known as: Five-Digit Add-On, Five-Digit Supplement, UPC-5</p>
-<h4 id="data-and-options-76">Data and Options</h4>
+<h4 id="data-and-options-77">Data and Options</h4>
 <ul>
 <li>The data field must contain five digits.</li>
 <li>The <strong>includetext</strong> option should normally be supplied.</li>
@@ -2758,7 +2773,13 @@ Encoder: postnet</code></pre>
 <ul>
 <li>This option should be used in combination with the <strong>textxalign</strong> option.</li>
 </ul>
-<h2 id="text-positioning">Text Positioning</h2>
+<h3 id="alttext">alttext</h3>
+<p>Specify text to display other than what is provided in the data field.</p>
+<h4 id="note-2">Note</h4>
+<ul>
+<li><p>This option should be used in combination with the includetext option.</p>
+<h2 id="text-positioning">Text Positioning</h2></li>
+</ul>
 <h3 id="textxalign">textxalign</h3>
 <p>The <strong>textxalign</strong> option is used to specify where to horizontally position the text.</p>
 <ul>
@@ -2818,7 +2839,7 @@ Encoder: rationalizedCodabar</code></pre>
 <p>Color of the border, either as a hex <code>RRGGBB</code> value or a hex <code>CCMMYYKK</code> value.</p>
 <h3 id="textcolor">textcolor</h3>
 <p>Color of the respective component, either as a hex <code>RRGGBB</code> value or a hex <code>CCMMYYKK</code> value.</p>
-<h4 id="examples-48">Examples</h4>
+<h4 id="examples-49">Examples</h4>
 <p>Colorized Code 11 symbol using the RGB colour space:</p>
 <pre><code>Data:    0123456789
 Options: includetext barcolor=AA0000 textcolor=008888 backgroundcolor=FFFF60 showborder bordercolor=0000FF textyoffset=-8
