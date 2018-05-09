@@ -49,6 +49,7 @@ begin
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /colormap (unset) def
+    /dotty false def
     /inkspread 0 def
     /inkspreadh 0 def
     /inkspreadv 0 def
@@ -276,9 +277,30 @@ begin
 
     } bind def
 
+    /drawlayerdots {
+
+        /pixsorig pixs def
+        /pixs exch def
+
+        newpath
+        0 1 pixs length 1 sub {
+            dup pixx mod /x exch def
+            pixx idiv /y exch def
+            x y xyget 1 eq {
+               x 0.5 add pixy y sub 0.5 sub moveto
+               x 0.5 add pixy y sub 0.5 sub 0.5 inkspread sub 0 360 arc
+            } if
+        } for
+        fill
+
+        /pixs pixsorig def
+
+    } bind def
+
     gsave
 
     % Draw the image
+    /inkspread  inkspread  2 div def
     /inkspreadh inkspreadh 2 div def
     /inkspreadv inkspreadv 2 div def
     currentpoint translate
@@ -295,7 +317,7 @@ begin
         /key exch def
         [
             pixs { key eq {1} {0} ifelse } forall
-        ] drawlayer
+        ] dotty {drawlayerdots} {drawlayer} ifelse
     } forall
 
     % Display the text for elements in the text array
