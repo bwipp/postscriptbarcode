@@ -249,7 +249,7 @@ begin
         nDigits i 1 add get 6 ge msg i get fn2 eq and {  % ^FNC2xxxxxx
             ECI i true put
         } if
-        barchar 0 lt {  % FNCx
+        barchar 0 lt barchar fn3 ne and {  % FNCx, except FNC3
             AheadC i AheadC i 1 add get 1 add put
         } {
             nDigits i get 1 le {
@@ -261,10 +261,10 @@ begin
         nDigits i get 0 gt AheadC i get AheadC i 1 add get gt and {
             TryC i AheadC i get put
         } if
-        DatumA i get TryC i get 2 lt and {
+        DatumA i get TryC i get 2 lt and barchar fn3 ne and {
             AheadA i AheadA i 1 add get 1 add put
         } if
-        DatumB i get TryC i get 2 lt and {
+        DatumB i get TryC i get 2 lt and barchar fn3 ne and {
             AheadB i AheadB i 1 add CRLF {1 add} if get 1 add put
         } if
         barchar fn3 ne {
@@ -375,6 +375,17 @@ begin
                     [ Bvals inmac get ] addtocws
                     /i i inmac mac ne {7} {6} ifelse add def
                     exit
+                } if
+            } if
+            % Special treatment of FNC1 in First for Dotcode
+            i segstart eq {
+                % Encode an FNC1 if two digits start a segment
+                nDigits i get 2 ge {
+                    [ Cvals fn1 get ] addtocws
+                } if
+                % Skip an FNC1 if followed by two digits at start of segment
+                msg i get fn1 eq nDigits i 1 add get 2 ge and {
+                    /i i 1 add def
                 } if
             } if
             SeventeenTen i get {
@@ -561,6 +572,7 @@ begin
                         /inmac 0 def
                         /segstart i def
                         /segend i UntilEndSeg i get add def
+                        exit
                     } if
                     /i i 1 add def
                     exit
