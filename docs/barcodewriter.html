@@ -246,6 +246,7 @@ This documentation is auto-generated from the BWIPP wiki at <a href="https://git
 <li><a href="#inkspread">inkspread</a></li>
 <li><a href="#inkspreadh">inkspreadh</a></li>
 <li><a href="#inkspreadv">inkspreadv</a></li>
+<li><a href="#dotty">dotty</a></li>
 </ul></li>
 <li><a href="#text-properties">Text Properties</a><ul>
 <li><a href="#includetext">includetext</a></li>
@@ -800,6 +801,7 @@ Encoder: aztecrune</code></pre>
 <li><em>Deprecated: For internal use.</em> When the <strong>parsefnc</strong> option is specified, non-data function characters can be specified by <code>^MAC5</code>, <code>^MAC6</code>.</li>
 <li>Whenever the data field contains suitable input, the encoder will compress ISO/IEC 15434 structured data (internally using the 05 Macro and 06 Macro codewords.)</li>
 <li>The <strong>format</strong> option is used to specify the shape of the symbol, either <code>square</code> (default) or <code>rectangle</code>.</li>
+<li>When the <strong>dotty</strong> option is specified the modules are rendered as dots rather than squares. The dot radius can be adjusted using the <strong>inkspread</strong> option.</li>
 <li>The <strong>dmre</strong> option enable Data Matrix Rectangular Extension with increases the number of rectangular symbol sizes available.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are used to specify the size of the symbol.</li>
 <li>The <strong>version</strong> option can also be used to specify the symbol size, as <code>version=RxC</code>. Valid options are:
@@ -1365,6 +1367,7 @@ Encoder: databarstackedomni</code></pre>
 <ul>
 <li><a href="#gs1-databar-expanded-stacked">GS1 DataBar Expanded Stacked</a> is a variant of GS1 DataBar Expanded for use where a taller, narrower symbol is required.</li>
 <li><a href="#gs1-composite-symbols">GS1 DataBar Expanded Composite</a> is a variant of GS1 DataBar Expanded that should be used when a CC-A or CC-B GS1 composite 2D component is required.</li>
+<li><a href="#gs1-north-american-coupon-code">GS1 North American Coupon Code</a> is an applicaiton of GS1 DataBar Expanded for use with a paperless coupon system.</li>
 </ul>
 <p>Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced Space Symbology (RSS), GS1 General Specifications.</p>
 <h4 id="data-and-options-30">Data and Options</h4>
@@ -1395,6 +1398,7 @@ Encoder: databarexpanded</code></pre>
 <ul>
 <li><a href="#gs1-databar-expanded">GS1 DataBar Expanded</a> is a variant of GS1 DataBar Expanded Stacked for use where a shorter, wider symbol is required.</li>
 <li><a href="#gs1-composite-symbols">GS1 DataBar Expanded Stacked Composite</a> is a variant of GS1 DataBar Expanded Stacked that should be used when a CC-A or CC-B GS1 composite 2D component is required.</li>
+<li><a href="#gs1-north-american-coupon-code">GS1 North American Coupon Code</a> is an applicaiton of GS1 DataBar Expanded for use with a paperless coupon system.</li>
 </ul>
 <p>Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced Space Symbology (RSS), GS1 General Specifications.</p>
 <h4 id="data-and-options-31">Data and Options</h4>
@@ -2110,7 +2114,7 @@ Encoder: code2of5</code></pre>
 <pre><code>Data:    This is DotCode
 Options: fast inkspread=0.3
 Encoder: dotcode</code></pre>
-<p><img src="data:image/png;base64,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h2/u2aK6JX/LxFanrce3EbbFb/stzyCvNO/d9oDt3fkK+Vvzx3c47WgpECsQFIzstNxZ+xPqp9ifBnat3FW560thROGtIoOi8qKFYn7xrZ8Nf674eXF31O6BEtOSQ3swe5L2PNhrs/d4qURpTun4Pvd9HWXMssKyd/vX779Zblxee4BwIOOAsMKtoqtSrXJP5UJVTNVwtV11W418za6auYMRB4cO2R5qrVWoLar9dDj28MM6p7qOeo368iOYI5lHXjT4N/QdZR9tapRtLGr8fCzpmPC49/HeJrOmpmb55pIWuCWjZfpEyIm7J+1PdrXqtta1MdqKToFTGade/hL6y4PTrqd7zrDPtJ5VP1vTTmsv7IA6NnSIOmM6hV1BXYPnXM71dFt2t/+q9+ux88rnqy9IXii5SLiYf3HxUs6l2cspl2euRF8Z71nf8+Rq4NX7vV69A9dcr9247nj9ah+n79INqxvnb1rcPHeLfavztuntjn6T/vbfTH5rHzAd6Lhjdqfrrvnd7sFVgxeHbIau3LO/d/0+7/7t4dXDgw/8HjwcCRkRPox4OPUo4dGbx5mP559sHUWPFj4Vf1r+TP5Z/e9av7cJTYUXxuzH+p/7PH8yzh9/9UfaHwsT+S/IL8onlSabpoymzk87Tt99ueblxKuUV/MzBX9K/FnzWvP12b9s/+oXBYom3gjeLP5d/Fbm7bF3xu96Zj1nn71PfD8/V/hB5sPxj+yPfZ8CPk3OZy1gFyo+a33u/uL6ZXQxcXHxPy6ikLxyKdSVAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGUExURQAAAP///6XZn90AAAABYktHRAH/Ai3eAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4QYZFiwt19hnKwAAAJdJREFUSMellAsOgDAIQ/H+lzYxmQ5GCxYTsx8PK91mZtfzrHb161cF/TCie0o/p4MRi3iU/q2pIA9B7RREpcnK8o4HIAvLEOhjG6zlRXyrqgRiOXmKOdiz41gbgN3j5NPrYHV14F9RQV6aw/Zsr/4G2XHFaSYgk4WvEB3s2Q2+KYG55bVcHWThTK4OYql82+tgJzSfF8Eb5G4F8YZqKnsAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTctMDYtMjVUMjM6NDQ6NDUrMDE6MDCnQRruAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE3LTA2LTI1VDIzOjQ0OjQ1KzAxOjAw1hyiUgAAAC10RVh0aWNjOmNvcHlyaWdodABDb3B5cmlnaHQgQXJ0aWZleCBTb2Z0d2FyZSAyMDExCLrFtAAAADF0RVh0aWNjOmRlc2NyaXB0aW9uAEFydGlmZXggU29mdHdhcmUgc1JHQiBJQ0MgUHJvZmlsZRMMAYYAAAAydEVYdGljYzptYW51ZmFjdHVyZXIAQXJ0aWZleCBTb2Z0d2FyZSBzUkdCIElDQyBQcm9maWxlXH49nwAAACt0RVh0aWNjOm1vZGVsAEFydGlmZXggU29mdHdhcmUgc1JHQiBJQ0MgUHJvZmlsZTEogqEAAAA/dEVYdFNvZnR3YXJlAEJhcmNvZGUgV3JpdGVyIGluIFB1cmUgUG9zdFNjcmlwdCAtIFZlcnNpb24gMjAxNy0wNi0yNeIKnkYAAAAwdEVYdFNvdXJjZQBodHRwOi8vdGhlLWJ1cnRvbnMueHl6L2JhcmNvZGUtZ2VuZXJhdG9yL80jT40AAAAASUVORK5CYII=" /></p>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABMCAMAAACChsOvAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABlBMVEX///8AAABVwtN+AAAAAWJLR0QAiAUdSAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+IFFg4XAsvZX6oAAAFZSURBVGjexZdBEsMgDAOT/3+6M+nkUKgiySaCCw0RFt2Ca47jPI+r3f3YxvFR7/ffT3c/+/2Oj3q3zxvGkUrBUXNN5uf/+LCfihHEixtmkKqbgi1Cnadue4ZZnhc3jCN9FLOkgOZznbe9GU6myxvGkUpBupuItXq68jDvM3wXqXv43fnzuJfeED6Gs5xP24ZxpKXg1U3EMCB81WOyzzCLVK9HPHO8WA3TsuMTN8wiXXeuBDMDJ8bzrJvexw3jSAFnz8Rd7Pi1XYzuz7HPMIuUidWguu4Zh4pNxhs3zCJ1L5ndS6p7ja6W+7Aufd0wi7RbNCEdWky3LEQ6GD9uGEfaClLfRDVM5bIkbphFWk3i7qLQ168+q+N5wzhS/tLQ6Uncu26pZSScFzeMI7WCMp36p61iYzq1LNlnmEFaLXrVRbK6tFsO0vdxwyzSdfcFVb+mfG/n0dcM00g/gpIHLdggqFIAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTgtMDUtMjJUMTQ6MjM6MDIrMDE6MDBv4r6/AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE4LTA1LTIyVDE0OjIzOjAyKzAxOjAwHr8GAwAAAD90RVh0U29mdHdhcmUAQmFyY29kZSBXcml0ZXIgaW4gUHVyZSBQb3N0U2NyaXB0IC0gVmVyc2lvbiAyMDE4LTA1LTIwdp21zgAAADF0RVh0U291cmNlAGh0dHBzOi8vdGhlLWJ1cnRvbnMueHl6L2JhcmNvZGUtZ2VuZXJhdG9yL0v1MBUAAAAASUVORK5CYII=" /></p>
 <h3 id="ultracode">Ultracode</h3>
 <p>The <strong>Ultracode</strong> symbology is a colour, 2D matrix-style barcode symbology that can encode full 256 character extended-ASCII.</p>
 <p>Standards: AIM ISS - Ultracode.</p>
@@ -2729,6 +2733,8 @@ Encoder: code39</code></pre>
 <p>Note: inkspreadh is most useful for stacked-linear type barcodes such as PDF417 and Codablock F.</p>
 <h3 id="inkspreadv">inkspreadv</h3>
 <p>For matrix barcodes, the amount by which the reduce the height of dark modules to compensate for inkspread, in points.</p>
+<h3 id="dotty">dotty</h3>
+<p>For matrix barcodes, render the modules as dots rather than squares. The dot radius can be adjusted using the <strong>inkspread</strong> option.</p>
 <h2 id="text-properties">Text Properties</h2>
 <h3 id="includetext">includetext</h3>
 <p>Show human readable text for data in symbol.</p>
