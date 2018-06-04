@@ -48,6 +48,8 @@ Scarso, Luigi. (2015) "Two applications of SWIGLIB: GraphicsMagick and Ghostscri
 
 Ehlenbroker J., Lohweg V. (2016) "System for simple coding, authentication and copy detection of printed documents," U.S. Patent Application 15/114,422, published December 2016.
 
+Berisso, K. (2018) "DotCode Damage Testing," Journal of Computer Sciences and Applications, Volume 6, Number 1. pp. 43-47.
+
 
 #### pst-barcode
 
