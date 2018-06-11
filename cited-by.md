@@ -77,8 +77,6 @@ Voß, Herbert. (2013) "QR-Codes im Rand ausgeben [QR Codes in the Margin]," Die 
 
 Fischer, Ulrike. (2014) "biblatex variations," The TUGboat Journal, Volume 35, Number 3. pp. 256-260.
 
-"An automatic generator and corrector of multiple choice tests with random answer keys"
-
 de Assis Zampirolli, F., Batista, V.R., Quilici-Gonzalez, J.A. (2016) "An automatic generator and corrector of multiple choice tests with random answer keys," Frontiers in Education Conference (FIE), 2016. IEEE. pp. 1-8.
 
 Voß, Herbert. (2016) "Ch 25: pst-barcode: Barcodes" in "PSTricks. Grafik mit PostScript für TeX und LaTeX," Lehmanns Media. pp. 535-548.
