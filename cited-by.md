@@ -81,6 +81,8 @@ Voß, Herbert. (2016) "Ch 25: pst-barcode: Barcodes" in "PSTricks. Grafik mit Po
 
 Tibi, Daniel. (2016) "Easy Codes: Generating Barcodes and QR Codes With LaTeX." Ubuntu User, Issue 28 (Spring 2016). Linux New Media USA LLC. pp. 45-47.
 
+Voß, Herbert. (2017) "The current state of the PSTricks project," The TUGboat Journal, Volume 38, Number 3. p. 329.
+
 
 #### Barcode Writer in Pure JavaScript
 
