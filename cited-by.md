@@ -14,17 +14,13 @@ Martínez, Juan J. (2004) "A Barcode Generator in Pure PostScript," http://black
 
 Flack, Chapman. (2006) "Direct Use of the PostScript Language," http://www.anastigmatix.net/postscript/direct.html
 
-Janssen, Mark. (2008) "Creating LTO barcodes," Foobar's Blog and Linkdump. http://blog.maniac.nl/2008/05/28/creating-lto-barcodes/
-
-Janssen, Mark. (2009) "Webbased (PDF) LTO Barcode Generator," Foobar's Blog and Linkdump. http://blog.maniac.nl/webbased-pdf-lto-barcode-generator/
-
-Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices," http://www.vis.uni-stuttgart.de/uploads/tx_vispublications/thesis.pdf
+Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices," https://ieeexplore.ieee.org/document/5597018/
 
 Scarso, Luigi. (2009) "Una estensione di luatex: luatex lunatic," http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&rep=rep1&type=pdf
 
 Pluimers, Jeroen W. (2009) "Generating EAN-13 barcode EPS files for your article numbers," http://wiert.me/2009/11/30/generating-ean-13-barcode-eps-files-for-your-article-numbers/
 
-Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/21446
+Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript," https://blogs.sap.com/2010/10/25/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript/
 
 Seichter, Dominik. (2010) "KBarcode4 Light Released," http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html
 
@@ -34,7 +30,7 @@ Russell, Robert. (2010) "How to Print(PDF) QR Codes in standard SAP," http://www
 
 Zhao, Y., Sun, W. (2010) "Practice of Imposition and Illustrator Variable Data Plate Making with Barcode," Proceedings of 17th IAPRI World Conference on Packaging. ISBN 978-1-935068-36-5.
 
-Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," http://www.sdn.sap.com/irj/scn/weblogs?blog=/pub/wlg/22827
+Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," https://blogs.sap.com/2011/01/31/more-barcodes-with-barcode-writer-in-pure-postscript/
 
 McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast. http://www.robotmouth.com/papers_files/TSLOO.pdf
 
@@ -90,7 +86,7 @@ Voß, Herbert. (2017) "The current state of the PSTricks project," The TUGboat J
 
 https://github.com/metafloor/bwip-js
 
-Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," http://www.rjruss.info/2015/04/barcodes-in-sap-with-barcode-writer-in.html
+Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," https://blogs.sap.com/2015/02/01/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript-updated-and-also-available-in-javascript/
 
 
 #### Scribus Barcode Generator Plugin
