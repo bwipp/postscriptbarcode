@@ -57,13 +57,7 @@ Robbers, Yuri & Skjold, Annemarie. (2007) "Creating Book Covers using PSTricks,"
 
 Thompson, Paul A. (2008) "Clinical trials management on the internet - II. Using LATEX, PostScript, and SAS to produce barcode label sheets," The PracTeX Journal, Number 3.
 
-Secondo, Stefano. (2009) "Cover Letter With Style - Part Six," http://stefano.italians.nl/archives/65
-
 Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat Journal, Volume 31i, Number 1. p. 36.
-
-Brampton, Andrew. (2010) "LaTeX QR Based Business Card," The Website of Andrew Brampton. http://bramp.net/blog/latex-qr-based-business-card
-
-Pascal. (2011) "QR Code with Latex," http://xaphire.de/recipes/?p=344
 
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
