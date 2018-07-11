@@ -1,0 +1,94 @@
+%!PS
+
+% Implement source of pseudorandom numbers by tempering the output of an LCG:
+%
+%  Xn+1 = (6364136223846793005 * Xn + 1) mod 2^64
+
+% uint32_t temper(uint32_t x) {
+%   x ^= x>>11;
+%   x ^= x<<7 & 0x9D2C5680;
+%   x ^= x<<15 & 0xEFC60000;
+%   x ^= x>>18;
+%   return x;
+% }
+%
+% uint32_t lcg64_temper(uint64_t* seed) {
+%   *seed = 6364136223846793005ULL * *seed + 1;
+%   return temper(*seed >> 32);
+% }
+
+/bitshift2 {
+    % bitshift across two 16-bit numbers (x0,x1)
+    2 index 1 index bitshift                % y0 =    x0 >> n
+    2 index 16 3 index sub neg bitshift or  %      || x1 << 16-n
+    16#ffff and                             %      && 10xFFFF
+    4 1 roll
+    1 index 1 index bitshift                % y1 =    x1 >> n
+    3 index 16 3 index add     bitshift or  %      || x0 >> 16+n
+    16#ffff and                             %      && 10xFFFF
+    4 1 roll
+    pop pop pop
+} bind def
+/and2 {3 -1 roll and 3 1 roll and exch} bind def
+/xor2 {3 -1 roll xor 3 1 roll xor exch} bind def
+
+/lcg64_temper {
+
+    % Multiply seed by 6364136223846793005 then add 1
+
+    /p00 m0 s0 mul def  /p01 m0 s1 mul def  /p02 m0 s2 mul def  /p03 m0 s3 mul def
+    /p10 m1 s0 mul def  /p11 m1 s1 mul def  /p12 m1 s2 mul def  /p13 m1 s3 mul def
+    /p20 m2 s0 mul def  /p21 m2 s1 mul def  /p22 m2 s2 mul def  /p23 m2 s3 mul def
+    /p30 m3 s0 mul def  /p31 m3 s1 mul def  /p32 m3 s2 mul def  /p33 m3 s3 mul def
+    
+    /s3 p33 16#10000 mod                     1 add def  % 1 added here
+    /s2 p32 16#10000 mod p33 16#10000 idiv add
+        p23 16#10000 mod                       add def
+    /s1 p31 16#10000 mod p32 16#10000 idiv add
+        p22 16#10000 mod p23 16#10000 idiv add add
+        p13 16#10000 mod                       add def
+    /s0 p30 16#10000 mod p31 16#10000 idiv add
+        p21 16#10000 mod p22 16#10000 idiv add add
+        p12 16#10000 mod p13 16#10000 idiv add add
+        p03 16#10000 mod                       add def
+    
+    % Make each digit positive by borrowing from the more significant digit
+    /s3 s3 16#10000 add def
+    /s2 s2 16#ffff  add def
+    /s1 s1 16#ffff  add def
+    /s0 s0 16#ffff  add def
+    
+    % Carry
+    /s2 s3 16#10000 idiv s2 add def  /s3 s3 16#10000 mod def
+    /s1 s2 16#10000 idiv s1 add def  /s2 s2 16#10000 mod def
+    /s0 s1 16#10000 idiv s0 add def  /s1 s1 16#10000 mod def
+                                     /s0 s0 16#10000 mod def
+    
+    % Temper most significant 32 bits
+    s0 s1
+    2 copy -11 bitshift2 xor2
+    2 copy   7 bitshift2 16#9D2C 16#5680 and2 xor2
+    2 copy  15 bitshift2 16#EFC6 16#0000 and2 xor2
+    2 copy -18 bitshift2 xor2
+
+} bind def
+
+
+% Avoid 15-bit overflow when multiplying the digits by stealing from the second digit
+% m = 6364136223846793005 = 0x 5851 f42d 4c95 7f2d
+% s = 226759              = 0x 0000 0000 0003 75C7
+
+/m0 16#5851 16#1 add def  /m1 16#f42d 16#10000 sub def  /m2 16#4c95 def  /m3 16#7f2d def
+/s0 16#0000 def           /s1 16#0000 def               /s2 16#0003 def  /s3 16#75C7 def
+
+{
+
+    /in [ lcg64_temper ] def
+
+    /out (00000000) 8 string copy def
+    in 0 get 16 4 string cvrs dup length 4 exch sub out 3 1 roll exch putinterval
+    in 1 get 16 4 string cvrs dup length 8 exch sub out 3 1 roll exch putinterval
+    out ==
+
+} loop
+
