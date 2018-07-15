@@ -17,21 +17,6 @@
 %   return temper(*seed >> 32);
 % }
 
-/bitshift2 {
-    % bitshift across two 16-bit numbers (x0,x1)
-    2 index 1 index bitshift                % y0 =    x0 >> n
-    2 index 16 3 index sub neg bitshift or  %      || x1 << 16-n
-    16#ffff and                             %      && 10xFFFF
-    4 1 roll
-    1 index 1 index bitshift                % y1 =    x1 >> n
-    3 index 16 3 index add     bitshift or  %      || x0 >> 16+n
-    16#ffff and                             %      && 10xFFFF
-    4 1 roll
-    pop pop pop
-} bind def
-/and2 {3 -1 roll and 3 1 roll and exch} bind def
-/xor2 {3 -1 roll xor 3 1 roll xor exch} bind def
-
 /lcg64_temper {
 
     % Multiply seed by 6364136223846793005 then add 1
@@ -65,11 +50,16 @@
                                      /s0 s0 16#10000 mod def
     
     % Temper most significant 32 bits
-    s0 s1
-    2 copy -11 bitshift2 xor2
-    2 copy   7 bitshift2 16#9D2C 16#5680 and2 xor2
-    2 copy  15 bitshift2 16#EFC6 16#0000 and2 xor2
-    2 copy -18 bitshift2 xor2
+    s0 16#8000 sub 16#10000 mul s1 add 16#80000000 xor
+    16#ffffffff and
+    dup -11 bitshift xor
+    dup   7 bitshift 16#62d3a980 neg and xor  % 0x9D2C5680 - 0x100000000
+    dup  15 bitshift 16#103a0000 neg and xor  % 0xEFC60000 - 0x100000000
+    16#ffffffff and
+    dup -18 bitshift xor
+    -1 16#ffffffff ne {  % On 64-bit ensure unsigned, 32-bit representation
+        dup 16#80000000 ge {16#80000000 sub 16#80000000 sub} if
+    } if
 
 } bind def
 
@@ -83,12 +73,14 @@
 
 {
 
-    /in [ lcg64_temper ] def
+    lcg64_temper ==
 
-    /out (00000000) 8 string copy def
-    in 0 get 16 4 string cvrs dup length 4 exch sub out 3 1 roll exch putinterval
-    in 1 get 16 4 string cvrs dup length 8 exch sub out 3 1 roll exch putinterval
-    out ==
+%    /in [ lcg64_temper ] def
+%
+%    /out (00000000) 8 string copy def
+%    in 0 get 16 4 string cvrs dup length 4 exch sub out 3 1 roll exch putinterval
+%    in 1 get 16 4 string cvrs dup length 8 exch sub out 3 1 roll exch putinterval
+%    out ==
 
 } loop
 
