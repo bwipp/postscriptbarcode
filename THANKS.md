@@ -25,6 +25,7 @@ Many thanks for the technical contributions from:
 * Greg Menke
 * Matthew Newton
 * Harald Oehlmann
+* John Reiser
 * Herbert Voss
 * Jörg Walter
 
