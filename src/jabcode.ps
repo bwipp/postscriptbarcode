@@ -130,19 +130,13 @@ begin
     % Wide array support, as needed
     {65536 array} stopped {
         pop
-        /arrayw { [
-            exch dup 65535 idiv {65535 array exch} repeat
-            65535 mod dup 0 gt {array} {pop} ifelse
-        ] } bind def
-        /getw {exch 1 index 65535 idiv get exch 65535 mod get} bind def
-        /putw {3 1 roll exch 1 index 65535 idiv get exch 65535 mod 3 -1 roll put} bind def
-        /copyw {
-            mark 3 1 roll exch aload pop
-            counttomark 1 sub {
-                dup length array copy counttomark 1 sub index exch counttomark 3 sub exch put
-            } repeat
-            exch pop
+        /arrayw {
+            dup 65535 idiv 1 add dup array exch 0 exch 1 sub {2 copy 65535 array put 1 add} repeat
+            1 index 4 1 roll 3 -1 roll 65535 mod array put
         } bind def
+        /getw  {exch 1 index 65535 idiv get exch 65535 mod get} bind def
+        /putw  {3 1 roll exch 1 index 65535 idiv get exch 65535 mod 3 -1 roll put} bind def
+        /copyw {exch 0 exch {dup length array copy 3 copy put pop 1 add} forall pop} bind def
     } {
         pop
         /arrayw {array} bind def
