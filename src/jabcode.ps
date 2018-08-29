@@ -127,6 +127,30 @@ begin
     /msg msg 0 j getinterval def
     /msglen msg length def
 
+    % Wide array support, as needed
+    {65536 array} stopped {
+        pop
+        /arrayw { [
+            exch dup 65535 idiv {65535 array exch} repeat
+            65535 mod dup 0 gt {array} {pop} ifelse
+        ] } bind def
+        /getw {exch 1 index 65535 idiv get exch 65535 mod get} bind def
+        /putw {3 1 roll exch 1 index 65535 idiv get exch 65535 mod 3 -1 roll put} bind def
+        /copyw {
+            mark 3 1 roll exch aload pop
+            counttomark 1 sub {
+                dup length array copy counttomark 1 sub index exch counttomark 3 sub exch put
+            } repeat
+            exch pop
+        } bind def
+    } {
+        pop
+        /arrayw {array} bind def
+        /getw   {get}   bind def
+        /putw   {put}   bind def
+        /copyw  {copy}  bind def
+    } ifelse
+
     /addtobits {
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
@@ -323,8 +347,8 @@ begin
         /nb_pcb wr 4 lt {Pg_sub_block 2 idiv} {Pg_sub_block wr idiv wc mul} ifelse def
         /offset Pg_sub_block 32 div ceiling cvi def
         /effwidth offset 32 mul def
-        /matrixA offset nb_pcb mul array def
-        0 1 offset nb_pcb mul 1 sub {matrixA exch 0 put} for
+        /matrixA offset nb_pcb mul arrayw def
+        0 1 offset nb_pcb mul 1 sub {matrixA exch 0 putw} for
         /permutation Pg_sub_block array def
         0 1 Pg_sub_block 1 sub {permutation exch dup put} for
 
@@ -333,7 +357,7 @@ begin
             0 1 wr 1 sub {
                 /j exch def
                 matrixA i effwidth wr add mul j add 32 idiv
-                2 copy get 1 31 i effwidth wr add mul j add 32 mod sub bitshift or put
+                2 copy getw 1 31 i effwidth wr add mul j add 32 mod sub bitshift or putw
             } for
         } for
 
@@ -351,11 +375,11 @@ begin
                 0 1 Pg_sub_block wr idiv 1 sub {
                     /k exch def
                     matrixA off_index k add offset mul j 32 idiv add
-                    2 copy get
-                        matrixA permutation pos get 32 idiv k offset mul add get
+                    2 copy getw
+                        matrixA permutation pos get 32 idiv k offset mul add getw
                         31      permutation pos get 32 mod  sub neg bitshift 1 and
                         31 j                        32 mod  sub bitshift
-                    or put
+                    or putw
                 } for
                 permutation pos permutation Pg_sub_block 1 sub j sub 2 copy get permutation pos get
                 exch 4 1 roll   % p b p a p[a] p[b] -> p b p[a] p a p[b]
@@ -369,8 +393,8 @@ begin
 
         /nb_pcb Pg_sub_block 2 idiv def
         /offset Pg_sub_block 32 div ceiling cvi def
-        /matrixA offset nb_pcb mul array def
-        0 1 offset nb_pcb mul 1 sub {matrixA exch 0 put} for
+        /matrixA offset nb_pcb mul arrayw def
+        0 1 offset nb_pcb mul 1 sub {matrixA exch 0 putw} for
         /permutation Pg_sub_block array def
         0 1 Pg_sub_block 1 sub {permutation exch dup put} for
 
@@ -386,7 +410,7 @@ begin
                 4294967296.0 div Pg_sub_block j sub mul cvi  % (float)UINT32_MAX = 65536.0 * 65536
                 /pos exch def
                 matrixA i offset mul permutation pos get 32 idiv add
-                2 copy get 1 31 permutation pos get 32 mod sub bitshift or put
+                2 copy getw 1 31 permutation pos get 32 mod sub bitshift or putw
                 permutation pos permutation Pg_sub_block 1 sub j sub 2 copy get permutation pos get
                 exch 4 1 roll   % p b p a p[a] p[b] -> p b p[a] p a p[b]
                 put put
@@ -399,7 +423,7 @@ begin
 
         /nb_pcb wr 4 lt {Pg_sub_block 2 idiv} {Pg_sub_block wr idiv wc mul} ifelse def
         /offset Pg_sub_block 32 div ceiling cvi def
-        /matrixH matrixA dup length array copy def
+        /matrixH matrixA dup length array copyw def
         /column_arrangement [ Pg_sub_block       {0}     repeat ] def
         /processed_column   [ Pg_sub_block       {false} repeat ] def
         /zero_lines_nb      [ nb_pcb             {0}     repeat ] def
@@ -412,7 +436,7 @@ begin
             /pivot_column Pg_sub_block 1 add def
             0 1 Pg_sub_block 1 sub {
                 /j exch def
-                matrixH offset 32 mul i mul j add 32 idiv get
+                matrixH offset 32 mul i mul j add 32 idiv getw
                 31 offset 32 mul i mul j add 32 mod sub neg bitshift 1 and 1 eq {
                     /pivot_column j def
                     exit
@@ -430,12 +454,12 @@ begin
                 0 1 nb_pcb 1 sub {
                     /j exch def
                     i j ne {
-                        matrixH off_index j offset mul add get
+                        matrixH off_index j offset mul add getw
                         31 off_index1 sub neg bitshift 1 and 1 eq {
                             0 1 offset 1 sub {
                                 /k exch def
                                 matrixH offset j mul k add
-                                2 copy get matrixH offset i mul k add get xor put
+                                2 copy getw matrixH offset i mul k add getw xor putw
                             } for
                         } if
                     } if
@@ -491,8 +515,11 @@ begin
 
         0 1 nb_pcb 1 sub {
             /i exch def
-            matrixH column_arrangement i get offset mul offset getinterval
-            matrixA exch i offset mul exch putinterval
+            0 1 offset 1 sub {
+                /j exch def
+                matrixH column_arrangement i get offset mul j add getw
+                matrixA exch i offset mul j add exch putw
+            } for
         } for
 
         /tmp 0 def
@@ -500,22 +527,22 @@ begin
             /i exch def
             0 1 nb_pcb 1 sub {
                 /j exch def
-                matrixA swap_col i 2 mul get 32 idiv j offset mul add get
+                matrixA swap_col i 2 mul get 32 idiv j offset mul add getw
                 31 swap_col i 2 mul get 32 mod sub neg bitshift 1 and neg tmp xor 1 and
                 tmp xor /tmp exch def
                 matrixA     swap_col i 2 mul       get 32 idiv j offset mul add
-                2 copy get
-                    matrixA swap_col i 2 mul 1 add get 32 idiv j offset mul add get
+                2 copy getw
+                    matrixA swap_col i 2 mul 1 add get 32 idiv j offset mul add getw
                     31      swap_col i 2 mul 1 add get 32 mod  sub neg bitshift 1 and neg
-                    matrixA swap_col i 2 mul       get 32 idiv j offset mul add get xor
+                    matrixA swap_col i 2 mul       get 32 idiv j offset mul add getw xor
                     1 31    swap_col i 2 mul       get 32 mod  sub     bitshift and
-                xor put
+                xor putw
                 matrixA swap_col i 2 mul 1 add get 32 idiv j offset mul add
-                2 copy get
+                2 copy getw
                     tmp 1 and neg
-                    matrixA swap_col i 2 mul 1 add get 32 idiv j offset mul add get xor
+                    matrixA swap_col i 2 mul 1 add get 32 idiv j offset mul add getw xor
                     1 31    swap_col i 2 mul 1 add get 32 mod  sub     bitshift and
-                xor put
+                xor putw
             } for
         } for
 
@@ -527,11 +554,14 @@ begin
         /offset pn 32 div ceiling cvi def
         /effwidth offset 32 mul def
         /offset_cap Pg_sub_block 32 div ceiling cvi def
-        /G [ offset Pg_sub_block mul {0} repeat ] def
+        /G offset Pg_sub_block mul arrayw def
+        0 1 offset Pg_sub_block mul 1 sub {
+            G exch 0 putw
+        } for
         0 1 pn 1 sub {
             /i exch def
             G Pg_sub_block pn sub i add offset mul i 32 idiv add
-            2 copy get 1 31 i 32 mod sub bitshift or put
+            2 copy getw 1 31 i 32 mod sub bitshift or putw
         } for
         /matrix_index Pg_sub_block pn sub def
         /loop0 0 def
@@ -543,12 +573,12 @@ begin
             } if
             i effwidth mod pn lt {
                 G i 32 idiv
-                2 copy get
-                    matrixA matrix_index 32 idiv offset_cap loop0 mul add get
+                2 copy getw
+                    matrixA matrix_index 32 idiv offset_cap loop0 mul add getw
                     31      matrix_index 32 mod sub neg bitshift 1 and neg
-                    G       i            32 idiv get xor
+                    G       i            32 idiv getw xor
                     1 31    i            32 mod sub     bitshift and
-                xor put
+                xor putw
                 /matrix_index matrix_index 1 add def
             } if
         } for
@@ -593,7 +623,7 @@ begin
                 /offset_index offset i mul def
                 iter Pn_sub_block mul 1 iter 1 add Pn_sub_block mul 1 sub {
                     data exch get
-                    G offset_index loop0 32 idiv add get 31 loop0 32 mod sub neg bitshift 1 and and
+                    G offset_index loop0 32 idiv add getw 31 loop0 32 mod sub neg bitshift 1 and and
                     /temp exch temp xor def
                     /loop0 loop0 1 add def
                 } for
@@ -617,7 +647,7 @@ begin
                 /offset_index offset i mul def
                 start 1 Pn 1 sub {
                     data exch get
-                    G offset_index loop0 32 idiv add get 31 loop0 32 mod sub neg bitshift 1 and and
+                    G offset_index loop0 32 idiv add getw 31 loop0 32 mod sub neg bitshift 1 and and
                     /temp exch temp xor def
                     /loop0 loop0 1 add def
                 } for
