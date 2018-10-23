@@ -46,6 +46,8 @@ Ehlenbroker J., Lohweg V. (2016) "System for simple coding, authentication and c
 
 Berisso, K. (2018) "DotCode Damage Testing," Journal of Computer Sciences and Applications, Volume 6, Number 1. pp. 43-47. http://pubs.sciepub.com/jcsa/6/1/6
 
+West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," DEF CON 26. https://www.youtube.com/watch?v=Wy79TLkqArg
+
 
 #### pst-barcode
 
