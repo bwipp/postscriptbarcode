@@ -466,6 +466,7 @@ begin
         /encCTX {
             /p 0 def
             /ctxvals 2500 array def
+            /done false def
 
             % Lookup the values for each character
             {
@@ -480,6 +481,7 @@ begin
                             Avals [-1 lC lT lX lE lB] newmode get get addtocws
                         } if
                         /mode newmode def
+                        /done true def
                         exit
                     } if
                     msglen i sub 3 le {  % Check end of data conditions
@@ -501,6 +503,7 @@ begin
                             ] CTXvalstocws addtocws
                             /mode A def
                             /i msglen def
+                            /done true def
                             exit
                         } if
                         remcws 2 eq remvals length 2 eq and mode X ne and {
@@ -512,6 +515,7 @@ begin
                             ] CTXvalstocws addtocws
                             /mode A def
                             /i msglen def
+                            /done true def
                             exit
                         } if
                         remcws 2 eq remvals length 1 eq and {
@@ -521,6 +525,7 @@ begin
                             Avals msg i get get addtocws
                             /mode A def
                             /i msglen def
+                            /done true def
                             exit
                         } if
                         remcws 1 eq remvals length 1 eq and {
@@ -529,6 +534,7 @@ begin
                             Avals msg i get get addtocws
                             /mode A def
                             /i msglen def
+                            /done true def
                             exit
                         } if
                     } if
@@ -540,7 +546,7 @@ begin
             } loop
 
             % Backtrack to a boundary and return to ASCII
-            mode A ne {
+            done not {
                 {
                     p 3 mod 0 eq {exit} if
                     /i i 1 sub def
