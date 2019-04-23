@@ -1,7 +1,7 @@
 # Barcode Writer in Pure PostScript
 # https://bwipp.terryburton.co.uk
 #
-# Copyright (c) 2004-2018 Terry Burton
+# Copyright (c) 2004-2019 Terry Burton
 #
 # $Id$
 
