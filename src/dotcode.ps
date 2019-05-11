@@ -922,16 +922,11 @@ begin
         /columns columns 4 sub def
         /rows    rows    4 sub def
 
-        % Harsh penalties for edges that are unlit
-        /epen 0 def
-        worst 0 eq {
-            0 sym 0 columns getinterval {add} forall 0 eq                         {/epen epen 100000 add def} if
-            0 sym sym length columns sub columns getinterval {add} forall 0 eq    {/epen epen 200000 add def} if
-            0  0 columns sym length 1 sub {sym exch get add} for 0 eq             {/epen epen 400000 add def} if
-            0  columns 1 sub columns sym length 1 sub {sym exch get add} for 0 eq {/epen epen 800000 add def} if
-        } if
-
-        worst sum sum mul sub pen sub epen sub
+        worst 0 eq {  % Fixed penalty to disqualify a symbol with an unlit edge
+            -99999
+        } {
+            worst sum sum mul sub pen sub
+        } ifelse
 
     } bind def
 
