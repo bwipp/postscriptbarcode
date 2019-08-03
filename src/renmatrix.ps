@@ -89,114 +89,50 @@ begin
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if
 
-    /xyget      { pixx mul add pixs exch get                   } bind def
-    /xyinvert   { pixx mul add pixs exch 2 copy get 1 xor put  } bind def
-    /mxyget     { pixx mul add m exch get 2#001 and            } bind def
-    /mxyset     { pixx mul add m exch 3 -1 roll put            } bind def
-    /msetborder { pixx mul add m exch 2 copy get 2#010 or put  } bind def
-    /mborderoff { pixx mul add m exch 2 copy get 2#100 or put  } bind def
-    /misborder  { pixx mul add m exch get 2#110 and 2#010 eq   } bind def
-    /mclear     { pixx mul add m exch 2 copy get 2#001 and put } bind def
-    /mclear4 {
-        2 copy                       mclear
-        2 copy 1 add                 mclear
-        2 copy exch 1 add exch       mclear
-        2 copy exch 1 add exch       mclear
-               1 add exch 1 add exch mclear
+    /xyget { pixx mul add pixs exch get} bind def
+    /cget { pixx mul add cache exch get and} bind def
+    /cput { pixx mul add cache exch 2 copy get 4 -1 roll or put } bind def
+
+    /abcd {
+        4 string 0 [
+            5 -2 roll
+            2 copy xyget 3 1 roll                   % A
+            2 copy exch 1 add exch xyget 3 1 roll   % B
+            2 copy 1 add xyget 3 1 roll             % C
+            1 add exch 1 add exch xyget             % D
+        ] {3 copy 48 add put pop 1 add} forall pop
     } bind def
+
+    /right {dir 1 ne {dir x y cput [x y]} if  /x x 1 add def  /dir 1 def} bind def
+    /down  {dir 2 ne {dir x y cput [x y]} if  /y y 1 add def  /dir 2 def} bind def
+    /left  {dir 4 ne {dir x y cput [x y]} if  /x x 1 sub def  /dir 4 def} bind def
+    /up    {dir 8 ne {dir x y cput [x y]} if  /y y 1 sub def  /dir 8 def} bind def
 
     /trace {
         % Walk the outline of a region emitting edge coordinates of the path
         /y exch def  /x exch def
-        % dir 0:right 1:down 2:left 3:up
-        % hug 0:right 1:left
-        /dir x 1 add y 1 add mxyget def  /hug dir def
+        % dir 1:right 2:down 4:left 8:up
+        /dir x 1 add y 1 add xyget 1 eq {8} {4} ifelse def
         /sx x def  /sy y def  /sdir dir def
-        mark [x y] {
-            x 1 add y
-            x 1 add y 1 add
-            x       y 1 add
-            x       y
-            8 dir 2 mul neg roll
-            /Dy exch def  /Dx exch def  /D Dx Dy xyget def
-            /Cy exch def  /Cx exch def  /C Cx Cy xyget def
-            /By exch def  /Bx exch def  /B Bx By xyget def
-            /Ay exch def  /Ax exch def  /A Ax Ay xyget def
-            A B eq {
-                A C eq {/L} {/R} ifelse
-            } {
-                A C eq B D eq and {
-                    A 0 eq hug 0 eq xor {/R} {/F} ifelse
-                } {
-                    /F
+
+        % A B
+        % C D
+        mark {
+            x y abcd
+            1 {  % Common exit
+                dup dup (0001) eq exch dup (0011) eq exch (1011) eq or or {pop right exit} if
+                dup dup (0010) eq exch dup (1010) eq exch (1110) eq or or {pop down  exit} if
+                dup dup (1000) eq exch dup (1100) eq exch (1101) eq or or {pop left  exit} if
+                dup dup (0100) eq exch dup (0101) eq exch (0111) eq or or {pop up    exit} if
+                dup (1001) eq {
+                    dir 2 eq {pop left exit} {pop right exit} ifelse
+                } {  % 0110
+                    dir 1 eq {pop down exit} {pop up exit} ifelse
                 } ifelse
-            } ifelse
-            dup /F eq {
-                pop
-                dir 0 eq {/x x 1 add def} if
-                dir 1 eq {/y y 1 add def} if
-                dir 2 eq {/x x 1 sub def} if
-                dir 3 eq {/y y 1 sub def} if
-                hug 0 eq {
-                    Ax Ay msetborder
-                } {
-                    Bx By msetborder
-                } ifelse
-            } {
-                /L eq {
-                    /dir dir 3 add 4 mod def
-                    hug 1 eq {
-                         Bx By msetborder
-                         Dx Dy mborderoff
-                    } if
-                } {  % R
-                    /dir dir 1 add 4 mod def
-                    hug 0 eq {
-                         Ax Ay msetborder
-                         Cx Cy mborderoff
-                    } if
-                } ifelse
-                [x y]
-            } ifelse
+            } repeat
             x sx eq y sy eq and dir sdir eq and {exit} if
         } loop
         counttomark array astore exch pop
-
-        % Invert the interior of the path
-        /x x 1 add def /y y 1 add def
-        /t x y mxyget 1 xor def
-        mark x y {
-            counttomark 0 eq {exit} if
-            /y exch def /x exch def
-            x y mxyget t ne {
-                0          x 1 sub -1 0          {dup y misborder {exch pop exit} if pop} for
-                pixx 1 sub x 1 add  1 pixx 1 sub {dup y misborder {exch pop exit} if pop} for
-                1 exch {  % From left to right border
-                    /i exch def
-                    i y misborder not {
-                        t i y mxyset
-                        i y xyinvert
-                    } if
-                    i y 1 sub mxyget t ne i y 1 sub misborder not and {i y 1 sub} if
-                    i y 1 add mxyget t ne i y 1 add misborder not and {i y 1 add} if
-                } for
-            } if
-        } loop
-        pop
-
-        % Walk the path to clear the border information
-        dup 0 get aload pop /y1 exch def /x1 exch def
-        dup dup length 1 sub 1 exch getinterval {
-            aload pop /y2 exch def /x2 exch def
-            x2 x1 gt { x1  2 x2 1 sub {y1      mclear4} for } if
-            y2 y1 gt { y1  2 y2 1 sub {x1 exch mclear4} for } if
-            x2 x1 lt { x1 -2 x2 1 add {y1      mclear4} for } if
-            y2 y1 lt { y1 -2 y2 1 add {x1 exch mclear4} for } if
-            /x1 x2 def /y1 y2 def
-        } forall
-
-        % Discard duplicate final point
-        dup length 1 sub 0 exch getinterval
 
     } bind def
 
@@ -230,17 +166,25 @@ begin
         /pixx pixx 2 add def
         /pixy pixy 2 add def
 
-        % Track inverted regions and working space
-        /m [ pixs length {0} repeat ] def
+        % Cache of visited corners for each direction
+        /cache [ pixs length {0} repeat ] def
 
-        % Construct paths by tracing and inverting each dark region
+        % Construct paths by tracing regions avoiding duplication by using the cache
         /paths [
-            0 1 pixy 1 sub {
+            0 1 pixy 2 sub {
                 /j exch def
-                0 1 pixx 1 sub {
+                0 1 pixx 2 sub {
                     /i exch def
-                    i j xyget 1 eq {
-                        i 1 sub j 1 sub trace
+                    /k i j abcd def
+                    k (0001) eq k (1001) eq or {
+                        8 i j cget 0 eq {
+                            i j trace
+                        } if
+                    } if
+                    k (1110) eq {
+                        4 i j cget 0 eq {
+                            i j trace
+                        } if
                     } if
                 } for
             } for
