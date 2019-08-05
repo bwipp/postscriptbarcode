@@ -91,7 +91,13 @@ begin
 
     /xyget { pixx mul add pixs exch get} bind def
     /cget { pixx mul add cache exch get and} bind def
-    /cput { pixx mul add cache exch 2 copy get 4 -1 roll or put } bind def
+    /cput {  % Optimise by only storing "stem" corners
+        dup 4 mod 0 eq { % dir is up or left
+            3 1 roll pixx mul add cache exch 2 copy get 4 -1 roll or put
+        } {
+            pop pop pop
+        } ifelse
+    } bind def
 
     /abcd {
         4 string 0 [
@@ -103,10 +109,10 @@ begin
         ] {3 copy 48 add put pop 1 add} forall pop
     } bind def
 
-    /right {dir 1 ne {dir x y cput [x y]} if  /x x 1 add def  /dir 1 def} bind def
-    /down  {dir 2 ne {dir x y cput [x y]} if  /y y 1 add def  /dir 2 def} bind def
-    /left  {dir 4 ne {dir x y cput [x y]} if  /x x 1 sub def  /dir 4 def} bind def
-    /up    {dir 8 ne {dir x y cput [x y]} if  /y y 1 sub def  /dir 8 def} bind def
+    /right {dir 1 ne {x y dir cput [x y]} if  /x x 1 add def  /dir 1 def} bind def
+    /down  {dir 2 ne {x y dir cput [x y]} if  /y y 1 add def  /dir 2 def} bind def
+    /left  {dir 4 ne {x y dir cput [x y]} if  /x x 1 sub def  /dir 4 def} bind def
+    /up    {dir 8 ne {x y dir cput [x y]} if  /y y 1 sub def  /dir 8 def} bind def
 
     /trace {
         % Walk the outline of a region emitting edge coordinates of the path
@@ -176,12 +182,12 @@ begin
                 0 1 pixx 2 sub {
                     /i exch def
                     /k i j abcd def
-                    k (0001) eq k (1001) eq or {
+                    k (0001) eq k (1001) eq or {  % Black region stem corners
                         8 i j cget 0 eq {
                             i j trace
                         } if
                     } if
-                    k (1110) eq {
+                    k (1110) eq {  % White region stem corner
                         4 i j cget 0 eq {
                             i j trace
                         } if
