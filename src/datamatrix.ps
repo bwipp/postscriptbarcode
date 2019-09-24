@@ -57,6 +57,7 @@ begin
     /parse false def
     /parsefnc false def
     /encoding (auto) def
+    /mailmark false def
     /raw false def
     /dmre false def
 
@@ -395,6 +396,7 @@ begin
             mode E eq {/ec 0 def} if
             mode B eq {/bc 0 def} if
             1 {  % common exit
+                mailmark i 45 lt and {C exit} if  % Mailmark is C40 only for 45 characters
                 /k 0 def {  % loop
                     i k add msglen eq {
                         [/ac /cc /tc /xc /ec /bc] {dup load ceiling def} forall
