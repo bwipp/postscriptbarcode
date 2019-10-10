@@ -95,23 +95,23 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     /barlen barcode length def
 
     % Special function characters
-    /sta  -1 def  /stb  -2 def  /stc  -3 def 
-    /swa  -4 def  /swb  -5 def  /swc  -6 def 
-    /fn1  -7 def  /fn2  -8 def  /fn3  -9 def 
+    /sta  -1 def  /stb  -2 def  /stc  -3 def
+    /swa  -4 def  /swb  -5 def  /swc  -6 def
+    /fn1  -7 def  /fn2  -8 def  /fn3  -9 def
     /fn4 -10 def  /sft -11 def  /stp -12 def
     /lka -13 def  /lkc -14 def  % CC-A/B and CC-C linkage
 
     % Character maps for each state
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2 
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
       [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
       [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
       [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
@@ -147,8 +147,8 @@ begin
       [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
       [ fn1  fn1  fn1  ]  [ sta  sta  sta  ]  [ stb  stb  stb  ]  % 102-104
       [ stc  stc  stc  ]  [ stp  stp  stp  ]                      % 105-106
-    ] def 
-    
+    ] def
+
     % Invert charmaps to give character to value maps for each state
     /charvals [ 109 dict 109 dict 109 dict ] def
     0 1 charmaps length 1 sub {
@@ -157,7 +157,7 @@ begin
         0 1 2 {
             /j exch def
             encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put 
+            charvals j get exch i put
         } for
     } for
     /seta charvals 0 get def
@@ -185,7 +185,7 @@ begin
         /text () def
     } if
 
-    encoding (auto) eq { 
+    encoding (auto) eq {
 
         /fncvals <<
             (FNC1) fn1
@@ -196,7 +196,7 @@ begin
             (LNKC) lkc
         >> def
 
-        % Convert input into bytes accounting for FNC and LNK characters 
+        % Convert input into bytes accounting for FNC and LNK characters
         /msg barlen array def
         /text barlen string def
         /i 0 def /j 0 def {
@@ -315,7 +315,7 @@ begin
         % Does a-only come before b-only after given position and vice versa
         /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
         /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
-        
+
         /cws barcode length 2 mul 3 add array def
 
         % Select start character
@@ -337,30 +337,25 @@ begin
                 /cset (setc) def
                 exit
             } if
-            0 abeforeb { 
+            0 abeforeb {
                 sta enca
                 /cset (seta) def
-                exit 
-            } if 
+                exit
+            } if
             stb enca
             /cset (setb) def
             exit
         } loop
 
         % Main encoding loop
-        /i 0 def {  
+        /i 0 def {
             i msglen eq {exit} if
-        
+
             i numsscr /nums exch def /nchars exch def
-        
+
             % Determine switches and shifts
             {  % common exit
-                i msglen 1 sub eq msg i get lka eq and msg i get lkc eq or {
-                    msg i get cset (seta) eq {enca} {cset (setb) eq {encb} {encc} ifelse} ifelse
-                    /i i 1 add def
-                    exit
-                } if
-                cset (seta) eq cset (setb) eq or nums 4 ge and 
+                cset (seta) eq cset (setb) eq or nums 4 ge and
                 msg i get fn1 ne and {
                     nums 2 mod 0 eq {
                         swc cset (seta) eq {enca} {encb} ifelse
@@ -374,9 +369,9 @@ begin
                         exit
                     } ifelse
                 } if
-                cset (setb) eq msg i get anotb and { 
+                cset (setb) eq msg i get anotb and {
                     i msglen 1 sub lt {
-                        i 1 add bbeforea { 
+                        i 1 add bbeforea {
                             sft encb
                             msg i get enca
                             /i i 1 add def
@@ -400,7 +395,7 @@ begin
                     /cset (setb) def
                     exit
                 } if
-                cset (setc) eq nums 2 lt and {
+                cset (setc) eq nums 2 lt and msg i get -1 gt and {
                     i abeforeb {
                         swa encc
                         /cset (seta) def
@@ -410,7 +405,7 @@ begin
                     /cset (setb) def
                     exit
                 } if
-        
+
                 % No switches or latches so encode
                 cset (seta) eq {
                     msg i get enca
@@ -423,19 +418,19 @@ begin
                     exit
                 } if
                 cset (setc) eq {
-                    msg i get fn1 eq {
-                        fn1 encc
+                    msg i get -1 le {
+                        msg i get encc
                         /i i 1 add def
                     } {
                         msg i 2 getinterval encc
-                        /i i 2 add def 
+                        /i i 2 add def
                     } ifelse
                     exit
                 } if
-         
+
                 exit
             } loop
-        
+
         } loop
         /cws cws 0 j getinterval def
     } if  % auto encoding
