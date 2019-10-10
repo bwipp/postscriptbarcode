@@ -355,6 +355,11 @@ begin
         
             % Determine switches and shifts
             {  % common exit
+                i msglen 1 sub eq msg i get lka eq and msg i get lkc eq or {
+                    msg i get cset (seta) eq {enca} {cset (setb) eq {encb} {encc} ifelse} ifelse
+                    /i i 1 add def
+                    exit
+                } if
                 cset (seta) eq cset (setb) eq or nums 4 ge and 
                 msg i get fn1 ne and {
                     nums 2 mod 0 eq {
