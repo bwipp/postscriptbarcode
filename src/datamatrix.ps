@@ -59,7 +59,9 @@ begin
     /encoding (auto) def
     /mailmark false def
     /raw false def
-    /dmre false def
+    /dmre false def      % Alias for isodmre
+    /dindmre false def
+    /isodmre false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -102,53 +104,64 @@ begin
         } loop
     } if
 
+    /isodmre dmre def
+
     % Basic metrics for the each symbol
-    %    rows  cols  regh  regv  rscw  rsbl
+    %                         rows  cols  regh  regv  rscw  rsbl
     /metrics [
         % Standard square symbols
-        [  10    10     1     1     5     1 ]
-        [  12    12     1     1     7     1 ]
-        [  14    14     1     1    10     1 ]
-        [  16    16     1     1    12     1 ]
-        [  18    18     1     1    14     1 ]
-        [  20    20     1     1    18     1 ]
-        [  22    22     1     1    20     1 ]
-        [  24    24     1     1    24     1 ]
-        [  26    26     1     1    28     1 ]
-        [  32    32     2     2    36     1 ]
-        [  36    36     2     2    42     1 ]
-        [  40    40     2     2    48     1 ]
-        [  44    44     2     2    56     1 ]
-        [  48    48     2     2    68     1 ]
-        [  52    52     2     2    84     2 ]
-        [  64    64     4     4   112     2 ]
-        [  72    72     4     4   144     4 ]
-        [  80    80     4     4   192     4 ]
-        [  88    88     4     4   224     4 ]
-        [  96    96     4     4   272     4 ]
-        [ 104   104     4     4   336     6 ]
-        [ 120   120     6     6   408     6 ]
-        [ 132   132     6     6   496     8 ]
-        [ 144   144     6     6   620    10 ]
+                             [  10    10     1     1     5     1 ]
+                             [  12    12     1     1     7     1 ]
+                             [  14    14     1     1    10     1 ]
+                             [  16    16     1     1    12     1 ]
+                             [  18    18     1     1    14     1 ]
+                             [  20    20     1     1    18     1 ]
+                             [  22    22     1     1    20     1 ]
+                             [  24    24     1     1    24     1 ]
+                             [  26    26     1     1    28     1 ]
+                             [  32    32     2     2    36     1 ]
+                             [  36    36     2     2    42     1 ]
+                             [  40    40     2     2    48     1 ]
+                             [  44    44     2     2    56     1 ]
+                             [  48    48     2     2    68     1 ]
+                             [  52    52     2     2    84     2 ]
+                             [  64    64     4     4   112     2 ]
+                             [  72    72     4     4   144     4 ]
+                             [  80    80     4     4   192     4 ]
+                             [  88    88     4     4   224     4 ]
+                             [  96    96     4     4   272     4 ]
+                             [ 104   104     4     4   336     6 ]
+                             [ 120   120     6     6   408     6 ]
+                             [ 132   132     6     6   496     8 ]
+                             [ 144   144     6     6   620    10 ]
         % Optional rectangular symbols
-        [   8    18     1     1     7     1 ]
-        [   8    32     1     2    11     1 ]
- dmre { [   8    48     1     2    15     1 ] } if
- dmre { [   8    64     1     4    18     1 ] } if
-        [  12    26     1     1    14     1 ]
-        [  12    36     1     2    18     1 ]
- dmre { [  12    64     1     4    27     1 ] } if
-        [  16    36     1     2    24     1 ]
-        [  16    48     1     2    28     1 ]
- dmre { [  16    64     1     4    36     1 ] } if
- dmre { [  24    32     1     2    28     1 ] } if
- dmre { [  24    36     1     2    33     1 ] } if
- dmre { [  24    48     1     2    41     1 ] } if
- dmre { [  24    64     1     4    46     1 ] } if
- dmre { [  26    32     1     2    32     1 ] } if
- dmre { [  26    40     1     2    38     1 ] } if
- dmre { [  26    48     1     2    42     1 ] } if
- dmre { [  26    64     1     4    50     1 ] } if
+                             [   8    18     1     1     7     1 ]
+                             [   8    32     1     2    11     1 ]
+        dindmre isodmre or { [   8    48     1     2    15     1 ] } if
+        dindmre isodmre or { [   8    64     1     4    18     1 ] } if
+                isodmre    { [   8    80     1     4    22     1 ] } if
+                isodmre    { [   8    96     1     4    28     1 ] } if
+                isodmre    { [   8   120     1     6    32     1 ] } if
+                isodmre    { [   8   144     1     6    36     1 ] } if
+                             [  12    26     1     1    14     1 ]
+                             [  12    36     1     2    18     1 ]
+        dindmre isodmre or { [  12    64     1     4    27     1 ] } if
+                isodmre    { [  12    88     1     4    36     1 ] } if
+                             [  16    36     1     2    24     1 ]
+                             [  16    48     1     2    28     1 ]
+        dindmre isodmre or { [  16    64     1     4    36     1 ] } if
+                isodmre    { [  20    36     1     2    28     1 ] } if
+                isodmre    { [  20    44     1     2    34     1 ] } if
+                isodmre    { [  20    64     1     4    42     1 ] } if
+                isodmre    { [  22    48     1     2    38     1 ] } if
+        dindmre            { [  24    32     1     2    28     1 ] } if
+        dindmre            { [  24    36     1     2    33     1 ] } if
+        dindmre isodmre or { [  24    48     1     2    41     1 ] } if
+        dindmre isodmre or { [  24    64     1     4    46     1 ] } if
+        dindmre            { [  26    32     1     2    32     1 ] } if
+        dindmre isodmre or { [  26    40     1     2    38     1 ] } if
+        dindmre isodmre or { [  26    48     1     2    42     1 ] } if
+        dindmre isodmre or { [  26    64     1     4    50     1 ] } if
     ] def
 
     % Create array of codewords remaining to make a full symbol
