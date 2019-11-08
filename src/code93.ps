@@ -56,8 +56,8 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 1 def
-    /parsefnc false def   
- 
+    /parsefnc false def
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -68,12 +68,12 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
     /encs
     [ (131112) (111213) (111312) (111411) (121113)
       (121212) (121311) (111114) (131211) (141111)
@@ -101,7 +101,7 @@ begin
         (SFT+) sft4
     >> def
 
-    % Convert input into bytes accounting for shift characters 
+    % Convert input into bytes accounting for shift characters
     /msg barlen array def
     /i 0 def /j 0 def {
         i barlen eq {exit} if
@@ -130,12 +130,12 @@ begin
 
     % Put the start character
     sbs 0 encs 47 get putinterval
-    
+
     /checksum1 0 def /checksum2 0 def
     0 1 msglen 1 sub {
         /i exch def
         % Lookup the encoding for the each barcode character
-        msg i get dup 0 lt { 
+        msg i get dup 0 lt {
             42 exch sub /indx exch def
             /char ( ) def
         } {
@@ -162,7 +162,7 @@ begin
         sbs msglen 6 mul 18 add encs 48 get putinterval
     } {
         % Put the end character
-        sbs msglen 6 mul 6 add encs 48 get putinterval      
+        sbs msglen 6 mul 6 add encs 48 get putinterval
     } ifelse
 
     % Return the arguments

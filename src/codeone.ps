@@ -82,7 +82,7 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
@@ -212,7 +212,7 @@ begin
             [ (T-32)  16  33   32   24   16    1  99 99 99 ]
             [ (T-48)  16  49   48   38   22    1  99 99 99 ]
         ] def
-    
+
         % Select metrics of an appropriate symbol
         /fullcws [] def
         metrics {
@@ -235,12 +235,12 @@ begin
                 numremcws i numremcws i 1 add get 1 add put
             } if
         } for
-   
+
         % Special characters
         /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
         /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
         /unlcw 255 def
-      
+
         /Avals <<
             0 1 128 {dup 1 add} for
             pad 129
@@ -256,7 +256,7 @@ begin
         /Avals <<
             Avals {[exch]} forall
         >> def
-        
+
         /CNvals <<
             sft1 0
             sft2 1
@@ -283,7 +283,7 @@ begin
             C2vals {[exch CNvals sft2 get exch]} forall
             C3vals {[exch CNvals sft3 get exch]} forall
         >> def
-        
+
         /TNvals <<
             sft1 0
             sft2 1
@@ -314,7 +314,7 @@ begin
             T2vals {[exch TNvals sft2 get exch]} forall
             T3vals {[exch TNvals sft3 get exch]} forall
         >> def
-        
+
         % Extended ASCII mappings
         128 1 255 {
             /i exch def
@@ -322,7 +322,7 @@ begin
             Cvals i [ Cvals fnc4 get aload pop Cvals i 128 sub get aload pop ] put
             Tvals i [ Tvals fnc4 get aload pop Tvals i 128 sub get aload pop ] put
         } for
-        
+
         /Xvals <<
             13 0
             42 1
@@ -334,16 +334,16 @@ begin
         /Xvals <<
             Xvals {[exch]} forall
         >> def
-        
+
         /Bvals <<
             0 1 255 {dup} for
         >> def
         /Bvals <<
             Bvals {[exch]} forall
         >> def
- 
+
         /encvals [ Avals Cvals Tvals Xvals -1 Bvals ] def
- 
+
         /numD [ msglen {0} repeat 0 ] def
         /nextXterm [ msglen {0} repeat 9999 ] def
         /nextNonX  [ msglen {0} repeat 9999 ] def
@@ -366,7 +366,7 @@ begin
         } for
         /nextXterm [nextXterm {dup 10000 gt {pop 10000} if} forall] def
         /nextNonX  [nextNonX  {dup 10000 gt {pop 10000} if} forall] def
- 
+
         /isD  {char 48 ge char 57 le and} bind def
         /isC  {CNvals char known} bind def
         /isT  {TNvals char known} bind def
@@ -374,9 +374,9 @@ begin
         /isEA {char 127 gt} bind def
         /isFN {char 0 lt} bind def
         /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} bind def
-        
+
         /A 0 def  /C 1 def  /T 2 def  /X 3 def  /D 4 def  /B 5 def
-    
+
         /lookup {
             /ac 1 def /cc 2 def /tc 2 def /xc 2 def /bc 3 def
             mode A eq {/ac 0 def /cc 1 def /tc 1 def /xc 1 def /bc 2 def} if
@@ -413,18 +413,18 @@ begin
                 } loop
             } repeat
         } bind def
-        
+
         /addtocws {
             dup cws exch j exch putinterval
             /j exch length j add def
         } bind def
-        
+
         /tobin {
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
             dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
             [ exch {48 sub} forall ]
         } bind def
-    
+
         /encA {
             1 {  % Common exit
                 numD i get 21 ge {
@@ -469,7 +469,7 @@ begin
                 exit
             } repeat
         } bind def
-        
+
         /CTXvalstocws {
             /in exch def
             mark
@@ -479,11 +479,11 @@ begin
             } for
             counttomark array astore exch pop
         } bind def
-        
+
         /encCTX {
             /p 0 def
             /ctxvals 2220 array def
-        
+
             % Lookup the values for each character
             {
                 i msglen eq {exit} if
@@ -561,7 +561,7 @@ begin
                 /p exch length p add def
                 /i i 1 add def
             } loop
-    
+
             % Backtrack to a boundary and return to ASCII
             mode A ne {
                 {
@@ -585,11 +585,11 @@ begin
                     } ifelse
                 } if
             } if
-        
+
         } bind def
-    
+
         /encD {
-    
+
             {  % loop
 
                 numD i get 3 lt {
@@ -600,11 +600,11 @@ begin
                     % Final codeword with no data
                     numremcws j Dbits length 8 idiv add 1 sub get 1 sub 0 eq
                     i msglen eq and {exit} if
-    
+
                     % Final digit into final codeword as ASCII
                     i msglen 1 sub eq numD i get 1 eq and
                     remcws 1 eq and Drem 0 eq and {exit} if
-     
+
                     % Latch to ASCII unless 4 or 6 bits remain in final codeword
                     i msglen 1 sub eq numD i get 1 eq and
                     remcws 1 eq and Drem 4 eq Drem 6 eq or and not {
@@ -628,9 +628,9 @@ begin
                     } if
 
                     exit
-    
+
                 } if
-    
+
                 % Three digit value plus one to ten bits
                 /Dbits [
                     Dbits aload pop
@@ -638,7 +638,7 @@ begin
                     1 add 10 tobin aload pop
                 ] def
                 /i i 3 add def
-    
+
             } loop
 
             mark
@@ -649,7 +649,7 @@ begin
             /mode A def
 
         } bind def
-    
+
         /encB {
             /p 0 def /bvals 1480 array def {
                 i msglen eq {exit} if
@@ -679,7 +679,7 @@ begin
             [ /encA /encCTX /encCTX /encCTX /encD /encB ] mode get load exec
         } loop
         /cws cws 0 j getinterval def
-    
+
     } ifelse
 
     % Select metrics of an appropriate symbol
@@ -691,7 +691,7 @@ begin
         /cols m 2 get def           % Columns in symbol
         /dcol m 3 get def           % Data columns in symbol
         /dcws m 4 get def           % Data codewords in symbol
-        /rscw m 5 get def           % Error correction codewords 
+        /rscw m 5 get def           % Error correction codewords
         /rsbl m 6 get def           % Error correction blocks
         /riso m 7 get def           % Riser offset
         /risi m 8 get def           % Riser interval
@@ -717,11 +717,11 @@ begin
     /ecbs rsbl array def  % Array of error correction blocks
     0 1 rsbl 1 sub {
         /i exch def
-        /cwb dcpb array def 
+        /cwb dcpb array def
         0 1 dcpb 1 sub {
             /j exch def
             cwb j cws j rsbl mul i add get put
-        } for 
+        } for
         cwbs i cwb put
     } for
 
@@ -733,7 +733,7 @@ begin
     /rslog gf array def
     1 1 gf-1 {dup rsalog exch get exch rslog 3 1 roll put} for
     /rsprod {
-        2 copy 0 ne exch 0 ne and { 
+        2 copy 0 ne exch 0 ne and {
             rslog exch get exch rslog exch get add gf-1 mod rsalog exch get
         } {
             pop pop 0
@@ -743,12 +743,12 @@ begin
     % Generate the coefficients for the Reed-Solomon algorithm
     /coeffs [ 1 ecpb {0} repeat ] def
     0 1 ecpb 1 sub {
-        /i exch def 
+        /i exch def
         coeffs i 1 add coeffs i get put
         i -1 1 {
             /j exch def
             coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
-        } for 
+        } for
         coeffs 0 coeffs 0 get rsalog i get rsprod put
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
@@ -807,14 +807,14 @@ begin
 
     % Centre pattern
     /artifact [
-        {cols {0} repeat} bind 
-        {cols {1} repeat} bind 
-        {0   cols 2 sub {1} repeat   0} bind 
-        {0 1 cols 4 sub {0} repeat 1 0} bind 
-        {cols 1 sub 2 idiv {-1} repeat 1 cols 1 sub 2 idiv {-1} repeat} bind 
-        {cols 1 sub 2 idiv {-1} repeat 0 cols 1 sub 2 idiv {-1} repeat} bind 
-        {1   cols 2 sub {0} repeat   1} bind 
-        {1 0 cols 4 sub {1} repeat 0 1} bind 
+        {cols {0} repeat} bind
+        {cols {1} repeat} bind
+        {0   cols 2 sub {1} repeat   0} bind
+        {0 1 cols 4 sub {0} repeat 1 0} bind
+        {cols 1 sub 2 idiv {-1} repeat 1 cols 1 sub 2 idiv {-1} repeat} bind
+        {cols 1 sub 2 idiv {-1} repeat 0 cols 1 sub 2 idiv {-1} repeat} bind
+        {1   cols 2 sub {0} repeat   1} bind
+        {1 0 cols 4 sub {1} repeat 0 1} bind
     ] def
     /cpat <<
         /A (121343)
@@ -828,7 +828,7 @@ begin
         /S (56661278)
         /T (5666666666127878)
     >> vers 0 1 getinterval get def
-    pixs 0 rows cpat length sub 2 idiv mmv 
+    pixs 0 rows cpat length sub 2 idiv mmv
     [ cpat {artifact exch 49 sub get exec} forall ] putinterval
 
     % Risers
@@ -840,7 +840,7 @@ begin
             pixs j i mmv
             3 -1 roll putinterval
             i risl 1 sub ne {
-                pixs cols j sub 2 sub rows i sub 1 sub mmv 
+                pixs cols j sub 2 sub rows i sub 1 sub mmv
                 3 -1 roll putinterval
             } {pop} ifelse
         } for

@@ -78,10 +78,10 @@ begin
     /guardrightypos 0 def
     /guardwidth 6 def
     /guardheight 7 def
-    
+
     % Apply the renderer options and the user options
     args {def} forall
-    opt {def} forall 
+    opt {def} forall
 
     /barcolor barcolor cvlit def
     /textcolor textcolor cvlit def
@@ -110,7 +110,7 @@ begin
     /guardrightypos guardrightypos cvr def
     /guardwidth guardwidth cvr def
     /guardheight guardheight cvr def
-    
+
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def
     /x 0.00 def /maxh 0 def
@@ -129,7 +129,7 @@ begin
                 bars i 2 idiv -1 put            % Dummy entry
             } ifelse
         } {
-            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1 
+            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1
         } ifelse
         /x x d add def  % x+=d
     } for
@@ -160,16 +160,16 @@ begin
     x borderleft add borderright add 0 rlineto
     0 maxh borderbottom add bordertop add rlineto
     x borderleft add borderright add neg 0 rlineto
-    0 maxh borderbottom add bordertop add neg rlineto    
+    0 maxh borderbottom add bordertop add neg rlineto
     closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if     
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
     showborder {
         gsave
         bordercolor (unset) ne { bordercolor setanycolor } if
         borderwidth setlinewidth stroke
         grestore
-    } if    
-   
+    } if
+
     % Display the bars for elements in the bars array
     gsave
     0 setlinecap
@@ -182,7 +182,7 @@ begin
         } ifelse
     } forall
     grestore
-    
+
     % Display the text for elements in the text array
     textcolor (unset) ne { textcolor setanycolor } if
     includetext {
@@ -241,7 +241,7 @@ begin
             textyalign (center) eq { /textypos textyoffset maxh textascent sub 2 div add def } if
             textxpos textypos moveto textgaps 0 tstr ashow
         } ifelse
-    } if    
+    } if
 
     % Display the guard elements
     guardwhitespace {
@@ -251,19 +251,19 @@ begin
             guardleftpos neg guardwidth add guardleftypos guardwidth 2 div add moveto
             guardwidth neg guardheight -2 div rlineto
             guardwidth guardheight -2 div rlineto
-            stroke            
+            stroke
         } if
         guardrightpos 0 ne {
             newpath
             guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
             guardwidth guardheight -2 div rlineto
             guardwidth neg guardheight -2 div rlineto
-            stroke            
+            stroke
         } if
     } if
-    
+
     grestore
-    
+
     end
 
 } bind def

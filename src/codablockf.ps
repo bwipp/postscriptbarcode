@@ -73,7 +73,7 @@ begin
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
 
-    columns 4 ge columns 62 le and 
+    columns 4 ge columns 62 le and
     rows 2 ge rows 44 le and rows -1 eq or and {/c columns def} if
 
     % Parse ordinals of the form ^NNN to ASCII
@@ -93,13 +93,13 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     /barlen barcode length def
 
-    % Convert input into bytes accounting for FNC characters 
+    % Convert input into bytes accounting for FNC characters
     /swa -1 def  /swb -2 def  /swc -3 def  /sft -4 def
     /fn1 -5 def  /fn2 -6 def  /fn3 -7 def  /fn4 -8 def
     /sta -9 def  /stp -10 def
@@ -107,7 +107,7 @@ begin
     % Character maps for each state
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2 
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
       [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
       [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
       [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
@@ -143,7 +143,7 @@ begin
       [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
       [ fn1  fn1  fn1  ]  [ sta  sta  sta  ]  [ stp  stp  stp  ]  % 102-104
     ] def
-    
+
     % Invert charmaps to give character to value maps for each state
     /charvals [ 105 dict 105 dict 105 dict ] def
     0 1 charmaps length 1 sub {
@@ -152,13 +152,13 @@ begin
         0 1 2 {
             /j exch def
             encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put 
+            charvals j get exch i put
         } for
     } for
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
-    
+
     /fncvals <<
         (FNC1) fn1
 %        (FNC2) fn2      Not permitted for Codablock F
@@ -271,7 +271,7 @@ begin
 
     /i 0 def /j 0 def /r 1 def
     /lastrow false def {
-        
+
         lastrow {exit} if
 
         % Add start character and code subset selector
@@ -288,11 +288,11 @@ begin
                 /cset (setc) def
                 exit
             } if
-            i abeforeb { 
+            i abeforeb {
                 sft enca
                 /cset (seta) def
-                exit 
-            } if 
+                exit
+            } if
             swb enca
             /cset (setb) def
             exit
@@ -304,12 +304,12 @@ begin
             /rem c 3 add j c 5 add mod sub def  % Codewords to end of row
 
             i msglen eq endofrow or {exit} if
-        
+
             i numsscr /nums exch def /nchars exch def
 
             % Determine switches and shifts
             {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and 
+                cset (seta) eq cset (setb) eq or nums 4 ge and
                 msg i get fn1 ne and {
                     nums 2 mod 0 eq
                     rem 3 ge and {
@@ -344,10 +344,10 @@ begin
                         exit
                     } if
                 } if
-                cset (setb) eq msg i get anotb and 
-                rem 2 ge and { 
+                cset (setb) eq msg i get anotb and
+                rem 2 ge and {
                     i msglen 1 sub lt {
-                        i 1 add bbeforea { 
+                        i 1 add bbeforea {
                             sft encb
                             msg i get enca
                             /i i 1 add def
@@ -391,7 +391,7 @@ begin
                     /i i 1 add def
                     exit
                 } if
-        
+
                 % No switches or latches so try to encode
                 cset (seta) eq seta msg i get known and
                 rem 1 ge and {
@@ -412,7 +412,7 @@ begin
                         /i i 1 add def
                     } {
                         msg i 2 getinterval encc
-                        /i i 2 add def 
+                        /i i 2 add def
                     } ifelse
                     exit
                 } if
@@ -448,7 +448,7 @@ begin
         26 1 63 {} for
     ] def
     /cmap [ 0 1 85 {} for ] def
-    
+
     % Add symbol check characters to last row
     /chkmsg msglen array def
     /j 0 def
@@ -513,7 +513,7 @@ begin
         /sbs [
             cws i c 5 add mul c 5 add getinterval {
                 encs exch get {48 sub} forall
-            } forall 
+            } forall
         ] def
         mark
         0 sbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
@@ -537,7 +537,7 @@ begin
         rowheight {rowbits r 1 sub get aload pop} repeat
         symwid sepheight mul {1} repeat
     ] def
-    
+
     % Return the arguments
     <<
     /ren //renmatrix

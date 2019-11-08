@@ -92,13 +92,13 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     /barlen barcode length def
 
-    % Convert input into bytes accounting for FNC characters 
+    % Convert input into bytes accounting for FNC characters
     /s1 -1 def /s2 -2 def /fn1 -3 def /fn2 -4 def /fn3 -5 def /ns -6 def
     /fncvals <<
         (FNC1) fn1
@@ -137,9 +137,9 @@ begin
     /charvals 49 dict def
     0 1 48 {
         /i exch def
-        charmap i get 
+        charmap i get
         dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-        charvals exch i put 
+        charvals exch i put
     } for
 
     % Shifted character encodings
@@ -222,17 +222,17 @@ begin
     /method (alpha) def /i -1 def /j -1 def
 
     % Handle start for each mode
-    mode 0 eq mode 1 eq or {/method (alpha) def /i 0 def /j 0 def} if 
+    mode 0 eq mode 1 eq or {/method (alpha) def /i 0 def /j 0 def} if
     mode 2 eq {/method (numeric) def /i 0 def /j 0 def} if
     mode 3 eq {
-        /posval [ 
+        /posval [
             12 22
             13 23 33
             14 24 34 44
             15 25 35 45 55
             16 26 36 46 56 66
-            17 27 37 47 57 67 77 
-            18 28 38 48 58 68 78 88 
+            17 27 37 47 57 67 77
+            18 28 38 48 58 68 78 88
             19 29 39 49 59 69 79 89 99
         ] def
         cws 0 0 1 43 {dup posval exch get pos ne {pop} if} for 1 add put
@@ -272,7 +272,7 @@ begin
     /cws cws 0 j getinterval def
 
     % Basic metrics for the each symbol
-    %     r dcws 
+    %     r dcws
     /metrics [
         [ 2    9 ]
         [ 3   16 ]
@@ -306,7 +306,7 @@ begin
     0 1 r 2 sub {
         /i exch def
         /cc cws j 7 getinterval def
-        ccs i 8 mul cc putinterval       
+        ccs i 8 mul cc putinterval
         ccs i 8 mul 7 add 0 cc {add} forall 49 mod put
         /j j 7 add def
     } for
@@ -329,7 +329,7 @@ begin
         /score 0 def
         0 1 r 1 sub 8 mul 2 idiv 1 sub {
             /i exch def
-            ccs i 2 mul get 49 mul ccs i 2 mul 1 add get add 
+            ccs i 2 mul get 49 mul ccs i 2 mul 1 add get add
             weights i 1 add get mul /score exch score add def
         } for
         score
@@ -345,10 +345,10 @@ begin
     /wr1 lastrow 0 get 49 mul lastrow 1 get add def
 
     % wr2 check character
-    cr7 weighty 0 get mul weighty calccheck add 
+    cr7 weighty 0 get mul weighty calccheck add
     wr1 weighty r 4 mul 3 sub get mul add
     2401 mod dup /wr2 exch def
-    dup 49 idiv exch 49 mod 2 array astore        
+    dup 49 idiv exch 49 mod 2 array astore
     lastrow 2 3 -1 roll putinterval
 
     % wr3 check character
@@ -356,7 +356,7 @@ begin
     wr1 weightx r 4 mul 3 sub get mul add
     wr2 weightx r 4 mul 2 sub get mul add
     2401 mod
-    dup 49 idiv exch 49 mod 2 array astore        
+    dup 49 idiv exch 49 mod 2 array astore
     lastrow 4 3 -1 roll putinterval
 
     % Place last row check character

@@ -55,7 +55,7 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 0.175 def
-    
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -66,20 +66,20 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
     % Create an array containing the character mappings
     /encs
     [ (0033) (0123) (0132) (1023) (1032) (1122)
-      (0213) (0303) (0312) (1203) (1212) (1302) 
+      (0213) (0303) (0312) (1203) (1212) (1302)
       (0231) (0321) (0330) (1221) (1230) (1320)
       (2013) (2103) (2112) (3003) (3012) (3102)
-      (2031) (2121) (2130) (3021) (3030) (3120) 
-      (2211) (2301) (2310) (3201) (3210) (3300) 
+      (2031) (2121) (2130) (3021) (3030) (3120)
+      (2211) (2301) (2310) (3201) (3210) (3300)
     ] def
 
     % Create a string of the available characters
@@ -97,7 +97,7 @@ begin
     /barlen barcode length def
     /encstr barlen 4 mul string def
     /txt barlen array def
-    
+
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
@@ -105,7 +105,7 @@ begin
         txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
     } for
 
-    /bbs encstr length array def    
+    /bbs encstr length array def
     /bhs encstr length array def
     0 1 encstr length 1 sub {
         /i exch def
@@ -127,7 +127,7 @@ begin
             bhs i 8 height mul 8 div put
         } if
     } for
-    
+
     % Return the arguments
     <<
     /ren //renlinear

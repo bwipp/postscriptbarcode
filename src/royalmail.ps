@@ -57,7 +57,7 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 0.175 def
-    
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -68,7 +68,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
@@ -94,7 +94,7 @@ begin
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         /checksumrow checksumrow indx 6 idiv add def
-        /checksumcol checksumcol indx 6 mod add def 
+        /checksumcol checksumcol indx 6 mod add def
     } for
     /checksum checksumrow 6 mod 6 mul checksumcol 6 mod add def
     validatecheck {
@@ -106,12 +106,12 @@ begin
 
     % Create an array containing the character mappings
     /encs
-    [ (3300) (2211) (2301) (2310) (3201) (3210) 
-      (1122) (0033) (0123) (0132) (1023) (1032) 
-      (1302) (0213) (0303) (0312) (1203) (1212) 
-      (1320) (0231) (0321) (0330) (1221) (1230) 
-      (3102) (2013) (2103) (2112) (3003) (3012) 
-      (3120) (2031) (2121) (2130) (3021) (3030) 
+    [ (3300) (2211) (2301) (2310) (3201) (3210)
+      (1122) (0033) (0123) (0132) (1023) (1032)
+      (1302) (0213) (0303) (0312) (1203) (1212)
+      (1320) (0231) (0321) (0330) (1221) (1230)
+      (3102) (2013) (2103) (2112) (3003) (3012)
+      (3120) (2031) (2121) (2130) (3021) (3030)
       (2) (3)
     ] def
 
@@ -120,7 +120,7 @@ begin
 
     % Put start character
     encstr 0 encs 36 get putinterval
-    
+
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
@@ -135,11 +135,11 @@ begin
     } {
         txt barlen [( ) barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } ifelse
-    
-    % Put end character
-    encstr barlen 4 mul 5 add encs 37 get putinterval  
 
-    /bbs encstr length array def    
+    % Put end character
+    encstr barlen 4 mul 5 add encs 37 get putinterval
+
+    /bbs encstr length array def
     /bhs encstr length array def
     0 1 encstr length 1 sub {
         /i exch def
@@ -161,7 +161,7 @@ begin
             bhs i 8 height mul 8 div put
         } if
     } for
-    
+
     % Return the arguments
     <<
     /ren //renlinear

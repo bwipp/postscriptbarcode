@@ -98,7 +98,7 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
@@ -172,13 +172,13 @@ begin
         % Modes and text submodes
         /T 0 def  /N 1 def  /B 2 def
         /A 0 def  /L 1 def  /M 2 def  /P 3 def
-        
+
         % Special function characters for mode switching
         /tl -1 def  /nl -2 def  /bl -3 def  /bl6 -4 def  /bs -5 def
-        
+
         % Special function characters for text mode
         /al -6 def  /ll -7 def  /ml -8 def  /pl -9 def  /as -10 def  /ps -11 def
-        
+
         % Character maps for each state
         /charmaps [
           %  A    L    M    P
@@ -213,7 +213,7 @@ begin
           [  ml   ml   al  (') ]  % 28
           [  ps   ps   ps   al ]  % 29
         ] def
-        
+
         % Invert charmaps to give character to value maps for each state
         /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
         /alltext 104 dict def
@@ -227,9 +227,9 @@ begin
             alltext exch -1 put
           } for
         } for
-        
+
         /e 10000 def  % "Empty"
-        
+
         /latlen [  % Bit length of latch between submodes
         % To:  A  L  M  P      From
             [  0  1  1  2 ]  % A
@@ -237,7 +237,7 @@ begin
             [  1  1  0  1 ]  % M
             [  1  2  2  0 ]  % P
         ] def
-        
+
         /latseq [  % Latch sequences between submodes
         % To: A       L       M       P               From
             [ []      [ll]    [ml]    [ml pl]    ]  % A
@@ -245,7 +245,7 @@ begin
             [ [al]    [ll]    []      [pl]       ]  % M
             [ [al]    [al ll] [al ml] []         ]  % P
         ] def
-        
+
         /shftlen [  % Bit length of shift to submode
         % To:  A  L  M  P      From
             [  e  e  e  1 ]  % A
@@ -253,7 +253,7 @@ begin
             [  e  e  e  1 ]  % M
             [  e  e  e  e ]  % P
         ] def
-        
+
         % Determine runlengths of digits
         /numdigits [ barlen {0} repeat 0 ] def
         /numtext   [ barlen {0} repeat 0 ] def
@@ -273,7 +273,7 @@ begin
         /numdigits numdigits 0 barlen getinterval def
         /numtext   numtext   0 barlen getinterval def
         /numbytes  numbytes  0 barlen getinterval def
-        
+
         /seq [] def /seqlen 0 def /state B def /p 0 def {  % loop
             p barlen eq {exit} if
             /n numdigits p get def
@@ -318,36 +318,36 @@ begin
                 /seqlen seqlen 1 add b add def
             } ifelse } ifelse } ifelse
         } loop
-        
+
         /latchcws <<
             tl 900  bl 901  bl6 924  nl 902  bs 913
         >> def
-        
+
         % Submode encoding functions
         /enca {charvals A get exch get} bind def
         /encl {charvals L get exch get} bind def
         /encm {charvals M get exch get} bind def
         /encp {charvals P get exch get} bind def
         /textencfuncs [ /enca /encl /encm /encp ] def
-        
+
         /addtotext {
             text exch l exch put
             /l l 1 add def
         } bind def
-        
+
         /enct {
-        
+
             /in exch def
-        
+
             /curlen [  e  e  e  e ] def
             curlen submode 0 put
             /curseq [ [] [] [] [] ] def
-        
+
             % Derive the optimal sequences ending in each submode
             in {
-        
+
                 /char exch def
-        
+
                 % Check for optimisations in the current sequences by latching from x to y
                 {  % loop
                     /imp false def
@@ -368,25 +368,25 @@ begin
                     } forall
                     imp not {exit} if  % Repeat unless no improvement
                 } loop
-        
+
                 % Determine optimal next sequences for each valid encoding
                 /nxtlen [ e e e e ] def
                 /nxtseq 4 array def
-        
+
                 [ A L M P ] {
                     /x exch def
-        
+
                     { % loop for common exit
-        
+
                         charvals x get char known not {exit} if
-        
+
                         % Extend directly
                         /cost curlen x get 1 add def
                         cost nxtlen x get lt {
                             nxtlen x cost put
                             nxtseq x [ curseq x get aload pop char ] put
                         } if
-        
+
                         % Optimise for direct shifts from y to x
                         [ A L M P ] {
                             /y exch def
@@ -402,17 +402,17 @@ begin
                                 } if
                             } if
                         } forall
-        
+
                         exit
                     } loop
-        
+
                 } forall
-        
+
                 /curlen nxtlen def
                 /curseq nxtseq def
-        
+
             } forall
-        
+
             % Select the optimal sequence
             /minseq e def
             [ A L M P ] {
@@ -422,31 +422,31 @@ begin
                     /txtseq curseq k get def
                 } if
             } forall
-        
+
             % Encode the sequence
             /text minseq array def
             /k 0 def /l 0 def {
                 k txtseq length ge {exit} if
-        
+
                 /char txtseq k get def
-        
+
                 % Encode character
                 char textencfuncs submode get load exec addtotext
                 /k k 1 add def
-        
+
                 % Encode shifted next character
                 char as eq char ps eq or {
                     txtseq k get char as eq {enca} {encp} ifelse addtotext
                     /k k 1 add def
                 } if
-        
+
                 % Latches to new submode
                 char al eq {/submode A def} if
                 char ll eq {/submode L def} if
                 char ml eq {/submode M def} if
                 char pl eq {/submode P def} if
             } loop
-        
+
             text length 2 mod 1 eq {
                 submode P eq {
                     /pad al encp def
@@ -456,17 +456,17 @@ begin
                 } ifelse
                 /text [ text aload pop pad ] def
             } if
-        
+
             /out text length 2 idiv array def
             0 1 out length 1 sub {
                 /k exch def
                 out k text k 2 mul get 30 mul text k 2 mul 1 add get add put
             } for
-        
+
             out
-        
+
         } bind def
-        
+
         /encn {
             /in exch def
             /out [] def
@@ -500,14 +500,14 @@ begin
             } for
             out
         } bind def
-       
+
         /encfuncs [ /enct /encn /encb ] def
-        
+
         /addtocws {
             dup datcws j 3 -1 roll putinterval
             length j add /j exch def
         } bind def
-        
+
         % Encode the sequence
         /state T def /submode A def
         /datcws seqlen array def
@@ -639,12 +639,12 @@ begin
     % Generate the coefficients
     /coeffs [ 1 k {0} repeat ] def
     1 1 k {
-        /i exch def 
+        /i exch def
         coeffs i coeffs i 1 sub get put
         i 1 sub -1 1 {
             /j exch def
             coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod add 929 mod put
-        } for 
+        } for
         coeffs 0 coeffs 0 get rsalog i get rsprod put
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def

@@ -46,10 +46,10 @@ begin
 /pzn {
 
     20 dict begin
- 
+
     /options exch def      % We are given an options string
     /barcode exch def      % We are given a barcode string
- 
+
     /dontdraw false def
     /includetext false def  % Enable/disable code32 text
     /textfont /Courier def
@@ -58,7 +58,7 @@ begin
     /textxoffset 0 def
     /height 1 def
     /pzn8 false def
- 
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -69,7 +69,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
@@ -98,8 +98,8 @@ begin
     0 1 msglen 3 sub {
         /i exch def
         barcode i get 48 sub i pzn8 {1} {2} ifelse add mul
-        checksum add /checksum exch def 
-    } for 
+        checksum add /checksum exch def
+    } for
     /checksum checksum 11 mod def
     checksum 10 eq {
         /bwipp.pznBadInputSequence (Incorrect PZN input sequence provided) //raiseerror exec
@@ -110,29 +110,29 @@ begin
         } if
     } if
     msglen string
-    dup 0 45 put 
+    dup 0 45 put
     dup 1 barcode putinterval
     dup msglen 1 sub checksum 48 add put
     /msg exch def
- 
+
     % Get the result of encoding with code39
     options (dontdraw) true put
     /args msg options //code39 exec def
- 
+
     % format HRI
     /text msglen 5 add string def
     text 0 (PZN - ) putinterval
     text 6 msg 1 msglen 1 sub getinterval putinterval
- 
+
     args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
     args (textxalign) (center) put
     args (opt) options put
     args
- 
+
     dontdraw not //renlinear if
- 
+
     end
- 
+
 } bind def
 /pzn dup load /uk.co.terryburton.bwipp defineresource pop
 end

@@ -100,15 +100,15 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     /barlen barcode length def
 
     % Special function characters
-    /la0  -1 def  /la1  -2 def  /la2  -3 def 
-    /sf0  -4 def  /sf1  -5 def  /sf2  -6 def 
+    /la0  -1 def  /la1  -2 def  /la2  -3 def
+    /sf0  -4 def  /sf1  -5 def  /sf2  -6 def
     /fn1  -7 def  /fn2  -8 def  /fn3  -9 def  /fn4 -10 def
 
     % Character maps for each state
@@ -116,7 +116,7 @@ begin
     /normal
       [
           %  0    1    2        0    1    2        0    1    2
-          [ (0)  (^)  (') ]  [ (1)  (;)   27 ]  [ (2)  (<)   28 ]  % 0-2 
+          [ (0)  (^)  (') ]  [ (1)  (;)   27 ]  [ (2)  (<)   28 ]  % 0-2
           [ (3)  (=)   29 ]  [ (4)  (>)   30 ]  [ (5)  (?)   31 ]  % 3-5
           [ (6)  (@)  (!) ]  [ (7)  ([)  (") ]  [ (8)   92  (#) ]  % 6-8
           [ (9)  (])  (&) ]  [ (A)  (a)    1 ]  [ (B)  (b)    2 ]  % 9-11
@@ -149,8 +149,8 @@ begin
           [ (X)  -98  -98 ]  [ (Y)  -98   -98 ]  [ (Z)  -98  -98 ]  % 33-35
           [ (-)  -98  -98 ]  [ (.)  -98   -98 ]                     % 36-37
       ]
-    >> 
-    version (a) eq version (b) eq or {/normal} {/limited} ifelse get 
+    >>
+    version (a) eq version (b) eq or {/normal} {/limited} ifelse get
     /charmaps exch def
 
     % Invert charmaps to give character to value maps for each state
@@ -163,7 +163,7 @@ begin
         0 1 2 {
             /j exch def
             encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put 
+            charvals j get exch i put
         } for
     } for
     /set0 charvals 0 get def
@@ -186,7 +186,7 @@ begin
         /text () def
     } if
 
-    encoding (auto) eq { 
+    encoding (auto) eq {
 
         /fncvals <<
             (FNC1) fn1
@@ -195,7 +195,7 @@ begin
 %            (FNC4) fn4        Not user accessible as encoded automatically
         >> def
 
-        % Convert input into bytes accounting for FNC characters 
+        % Convert input into bytes accounting for FNC characters
         /msg barlen array def
         /text barlen string def
         /i 0 def /j 0 def {
@@ -263,7 +263,7 @@ begin
         /i 0 def /j 0 def /cset (set0) def
         {
             i msglen eq {exit} if
-       
+
             {  % common exit
 
                 % Read next two characters
@@ -271,7 +271,7 @@ begin
                 /char2 i 1 add msglen lt {msg i 1 add get} {-99} ifelse def
 
                 % If current mode is sufficient then directly encode
-                cset load char1 known { 
+                cset load char1 known {
                     char1 cset load enc
                     /i i 1 add def
                     exit
@@ -283,7 +283,7 @@ begin
                     char1 set2 enc
                     /i i 1 add def
                     exit
-                } if 
+                } if
 
                 % If char2 is also not in this set then latch else shift encode
                 cset load char2 known not {
@@ -295,21 +295,21 @@ begin
                        /cset (set0) def
                     } ifelse
                     exit
-                } { 
+                } {
                     cset (set0) eq {
                         sf1 cset load enc
                         char1 set1 enc
                     } {
                         sf0 cset load enc
                         char1 set0 enc
-                    } ifelse 
+                    } ifelse
                     /i i 1 add def
                     exit
                 } ifelse
 
                 exit
             } loop
-        
+
         } loop
         /cws cws 0 j getinterval def
     } if  % auto encoding
@@ -366,7 +366,7 @@ begin
     /c2w [
         [ 495 330 210 126  70  35  15   5 ]
         [ 165 120  84  56  35  20  10   4 ]
-        [  45  36  28  21  15  10   6   3 ] 
+        [  45  36  28  21  15  10   6   3 ]
         [   9   8   7   6   5   4   3   2 ]
         [   1   1   1   1   1   1   1   1 ]
     ] def
@@ -379,7 +379,7 @@ begin
             } if
             /v v -1 bitshift def
             /cw cw -1 bitshift def
-        } repeat 
+        } repeat
     } forall
     /v v checkoffset add def
 
@@ -387,7 +387,7 @@ begin
         /v v 1023 and def
         v 824 gt v 853 lt and {
             /v v 292 add def
-        } if 
+        } if
     } {
         /v v 1023 and 45 add def
     } ifelse
@@ -415,7 +415,7 @@ begin
     } loop
     20 0 1 4 {d exch get sub} for
     d exch 5 exch put
-    version (b) eq version (limitedb) eq or {  
+    version (b) eq version (limitedb) eq or {
         /d [ d {1 add} forall ] def
     } if
     /cbs (111111111111) 12 string copy def
@@ -426,8 +426,8 @@ begin
 
     % Concatenate the space bar successions
     /sbs cws length 6 mul 31 add string def
-    encs encs length 2 sub get dup 
-    sbs exch 0 exch putinterval 
+    encs encs length 2 sub get dup
+    sbs exch 0 exch putinterval
     length /j exch def
     0 1 cws length 1 sub {
         /i exch def

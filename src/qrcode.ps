@@ -87,7 +87,7 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
@@ -132,13 +132,13 @@ begin
 
     % Convert from input into message bitstream
     /N 0 def  /A 1 def  /B 2 def  /K 3 def
-   
+
     /Nexcl <<
        [
            16#30 1 16#39 {} for
        ] {-1} forall
     >> def
-    
+
     /Aexcl <<
         [
             16#20 16#24 16#25 16#2A 16#2B 16#2D 16#2E 16#2F 16#3A
@@ -146,7 +146,7 @@ begin
             fn1
         ] {-1} forall
     >> def
-    
+
     /Bexcl <<
         [
             16#00 1 16#1F {} for
@@ -156,14 +156,14 @@ begin
             16#A0 1 16#DF {} for
         ] {-1} forall
     >> def
-    
+
     /Kexcl <<
         [
             16#81 1 16#9F {} for
             16#E0 1 16#EB {} for
         ] {-1} forall
     >> def
-    
+
     /mids [  % N  A  B  K
       [ (0001) (0010) (0100) (1000) ]  %  1-9
       [ (0001) (0010) (0100) (1000) ]  % 10-26
@@ -173,7 +173,7 @@ begin
       [   (00)   (01)   (10)   (11) ]  % M3
       [  (000)  (001)  (010)  (011) ]  % M4
     ] def
-    
+
     /cclens [  % N  A  B  K
       [ 10  9  8  8 ]  %  1-9
       [ 12 11 16 10 ]  % 10-26
@@ -183,9 +183,9 @@ begin
       [  5  4  4  3 ]  % M3
       [  6  5  5  4 ]  % M4
     ] def
-    
+
     /termlens [ 4 4 4 3 5 7 9 ] def
-    
+
     % Encoding functions
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
@@ -217,7 +217,7 @@ begin
         } loop
         out 0 m getinterval
     } bind def
-    
+
     /encN {
         /in exch def
         /out in length 10 mul 3 idiv 1 add string def
@@ -240,7 +240,7 @@ begin
         } loop
         out 0 m getinterval
     } bind def
-    
+
     /encB {
         /in exch def
         fnc1first {  % FNC1 as GS
@@ -254,7 +254,7 @@ begin
         } for
         out
     } bind def
-    
+
     /encK {
         /in exch def
         /out in length 2 idiv 13 mul string def
@@ -269,14 +269,14 @@ begin
         } loop
         out
     } bind def
-    
+
     /encfuncs [ /encN /encA /encB /encK ] def
-    
+
     /addtobits {
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
     } bind def
-    
+
     /numNs [ msglen {0} repeat 0 ] def
     /numAs [ msglen {0} repeat 0 ] def
     /numBs [ msglen {0} repeat 0 ] def
@@ -314,7 +314,7 @@ begin
         } ifelse
     } for
     /numKs [ numKs {1 add 2 idiv} forall ] def
-    
+
     /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} bind def
     /KbeforeA {numK exch ver get ge nextAs numK 2 mul i add get 0 eq and} bind def
     /KbeforeN {numK exch ver get ge nextNs numK 2 mul i add get 0 eq and} bind def
@@ -334,7 +334,7 @@ begin
     /e 10000 def
     [v1to9 v10to26 v27to40 vM1 vM2 vM3 vM4] {
         /ver exch def
-    
+
         % Derive optimal sequence
         /mode -1 def /seq [] def /i 0 def {
             i msglen ge {exit} if
@@ -453,7 +453,7 @@ begin
 
     % Lookup the most appropriate symbol specification
     /metrics [
-        % format   vers  vergrp  size align modules    error codewords        error correction blocks 
+        % format   vers  vergrp  size align modules    error codewords        error correction blocks
         %                                              L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
         [ (micro)  (M1)  vM1       11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
         [ (micro)  (M2)  vM2       13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
@@ -563,12 +563,12 @@ begin
     /padstrs [ (11101100) (00010001) ] def
     /padnum 0 def
     msgbits length 8 div ceiling 8 mul cvi 8 dmod lc4b {5} {1} ifelse sub {
-        pad exch padstrs padnum get putinterval 
+        pad exch padstrs padnum get putinterval
         /padnum padnum 1 add 2 mod def
     } for
 
     % Evaluate the padded message into codewords
-    /cws dcws array def 
+    /cws dcws array def
     0 1 cws length 1 sub {
         /c exch def
         /bpcw 8 def
@@ -578,9 +578,9 @@ begin
         0 1 bpcw 1 sub {
             /i exch def
             /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
-        } for 
+        } for
         cws c cw put
-    } for 
+    } for
 
     % Short final data byte in M1 and M3 symbols has high-order value
     lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
@@ -592,7 +592,7 @@ begin
 
     % Function to calculate the product in the field
     /rsprod {
-        2 copy 0 ne exch 0 ne and { 
+        2 copy 0 ne exch 0 ne and {
             rslog exch get exch rslog exch get add 255 mod rsalog exch get
         } {
             pop pop 0
@@ -602,12 +602,12 @@ begin
     % Generate the coefficients for the Reed-Solomon algorithm
     /coeffs [ 1 ecpb {0} repeat ] def
     0 1 ecpb 1 sub {
-        /i exch def 
+        /i exch def
         coeffs i 1 add coeffs i get put
         i -1 1 {
             /j exch def
             coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
-        } for 
+        } for
         coeffs 0 coeffs 0 get rsalog i get rsprod put
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
@@ -641,7 +641,7 @@ begin
         dcwsb ecb1 i add cws ecb1 dcpb mul i dcpb 1 add mul add dcpb 1 add getinterval put
         ecwsb ecb1 i add dcwsb ecb1 i add get rscodes put
     } for
-    
+
     % Reassemble the codewords
     /cws ncws array def
     /cw 0 def
@@ -663,7 +663,7 @@ begin
             /cw cw 1 add def
         } for
     } for
-    
+
     % Extend codewords by one if there are remainder bits
     rbit 0 gt {
         /pad cws length 1 add array def
@@ -671,7 +671,7 @@ begin
         pad pad length 1 sub 0 put
         /cws pad def
     } if
- 
+
     % Fixups for the short final data byte in M1 and M3 symbols
     lc4b {
 	cws dcws 1 sub 2 copy get -4 bitshift put
@@ -686,7 +686,7 @@ begin
     % Create the bitmap
     /pixs [ size size mul {-1} repeat ] def
     /qmv {size mul add} bind def
-    
+
     % Finder patterns
     /fpat [
         [ 1 1 1 1 1 1 1 0 ]
@@ -710,7 +710,7 @@ begin
         } if
       } for
     } for
-    
+
     % Alignment patterns
     /algnpat [
         [ 1 1 1 1 1 ]
@@ -735,14 +735,14 @@ begin
         i 4 putalgnpat
         4 i putalgnpat
     } for
-    asp2 2 sub asp3 asp2 sub size 9 sub { 
+    asp2 2 sub asp3 asp2 sub size 9 sub {
         /x exch def
         asp2 2 sub asp3 asp2 sub size 9 sub {
             /y exch def
             x y putalgnpat
         } for
     } for
-    
+
     % Timing patterns
     format (full) eq {
         8 1 size 9 sub {
@@ -757,7 +757,7 @@ begin
             pixs 0 i qmv i 1 add 2 mod put
         } for
     } ifelse
-    
+
     % Format information modules
     format (full) eq {
         /formatmap [
@@ -777,7 +777,7 @@ begin
     formatmap {
         { {} forall qmv pixs exch 0 put } forall
     } forall
-    
+
     % Version information modules
     size 45 ge {
         /versionmap [
@@ -805,7 +805,7 @@ begin
 
     % Calculate the mask patterns
     format (full) eq {
-        /maskfuncs [ 
+        /maskfuncs [
             {add 2 mod} bind
             {exch pop 2 mod} bind
             {pop 3 mod} bind
@@ -816,7 +816,7 @@ begin
             {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
         ] def
     } {
-        /maskfuncs [ 
+        /maskfuncs [
             {exch pop 2 mod} bind
             {2 idiv exch 3 idiv add 2 mod} bind
             {mul dup 2 mod exch 3 mod add 2 mod} bind
@@ -835,14 +835,14 @@ begin
             /j exch def
             0 1 size 1 sub {
                 /i exch def
-                i j maskfuncs m get exec 0 eq 
+                i j maskfuncs m get exec 0 eq
                 pixs i j qmv get -1 eq and {1} {0} ifelse
                 mask i j qmv 3 -1 roll put
             } for
         } for
         masks m mask put
     } for
-    
+
     % Walk the symbol placing the bitstream
     /posx size 1 sub def
     /posy size 1 sub def
@@ -861,7 +861,7 @@ begin
             /posx posx 1 sub def
         } {
             /col 1 def
-            /posx posx 1 add def 
+            /posx posx 1 add def
             /posy posy dir add def
             posy 0 lt posy size ge or {  % Turn around at top and bottom
                 /dir dir -1 mul def
@@ -897,7 +897,7 @@ begin
         } for
         scr1 scr3
     } bind def
-    
+
     % Evaluation algorithm for full symbols
     /evalfull {
         /sym exch def
@@ -907,7 +907,7 @@ begin
         /lastpairs size array def
         /thispairs size array def
         /sizeadd1 size 1 add def
-        0 1 size 1 sub {  
+        0 1 size 1 sub {
             /i exch def
 
             % Runlength encode (light, dark, light, ...) and evaluate each column
@@ -922,10 +922,10 @@ begin
 
             % Runlength encode (light, dark, light, ...) and evaluate each row
             /symrow sym i size mul size getinterval def
-            mark 0 0 
-            symrow { 
+            mark 0 0
+            symrow {
                 exch 1 index eq {exch 1 add exch} {1 exch} ifelse
-            } forall 
+            } forall
             pop
             rle 0 counttomark 2 sub getinterval astore
             evalfulln1n3 n3 add /n3 exch def n1 add /n1 exch def
@@ -946,14 +946,14 @@ begin
             } if
 
         } for
- 
-        % Score dark/light imbalance 
+
+        % Score dark/light imbalance
         /dark 0 sym {add} forall def
         /n4 dark 100 mul size dup mul div 50 sub abs 5 div cvi 10 mul def
 
         n1 n2 add n3 add n4 add
     } bind def
- 
+
     % Evaluation algorithm for micro symbols
     /evalmicro {
         /sym exch def
@@ -969,7 +969,7 @@ begin
             dkbot 16 mul dkrhs add neg
         } ifelse
     } bind def
-    
+
     % Evaluate the masked symbols to find the most suitable
     /bestscore 999999999 def
     0 1 masks length 1 sub {
@@ -985,7 +985,7 @@ begin
             } {
                 masksym evalmicro /score exch def
             } ifelse
-            score bestscore lt { 
+            score bestscore lt {
                 /bestsym masksym def
                 /bestmaskval m def
                 /bestscore score def
@@ -1004,9 +1004,9 @@ begin
     % Add the format information
     format (full) eq {
         /fmtvals [
-            16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0 
+            16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
             16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
-            16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b 
+            16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
             16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
         ] def
         /ecid (MLHQ) eclevel search pop length exch pop exch pop def
@@ -1027,14 +1027,14 @@ begin
             pixs exch {} forall qmv fmtval 14 i sub neg bitshift 1 and put
         } forall
     } for
-    
+
     % Add the version information
     size 45 ge {
         /vervals [
-            16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847 
-            16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6 
-            16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e 
-            16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216fd 16#228ba 
+            16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
+            16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
+            16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
+            16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216fd 16#228ba
             16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
         ] def
         /verval vervals size 17 sub 4 idiv 7 sub get def

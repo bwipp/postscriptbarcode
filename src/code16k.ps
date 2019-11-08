@@ -96,23 +96,23 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     /barlen barcode length def
 
-    % Convert input into bytes accounting for FNC characters 
-    /swa  -1 def  /swb  -2 def  /swc  -3 def 
-    /sa1  -4 def  /sb1  -5 def  /sc1  -6 def 
-    /sa2  -7 def  /sb2  -8 def  /sc2  -9 def 
+    % Convert input into bytes accounting for FNC characters
+    /swa  -1 def  /swb  -2 def  /swc  -3 def
+    /sa1  -4 def  /sb1  -5 def  /sc1  -6 def
+    /sa2  -7 def  /sb2  -8 def  /sc2  -9 def
     /pad -10 def  /sb3 -11 def  /sc3 -12 def
     /fn1 -13 def  /fn2 -14 def  /fn3 -15 def  /fn4 -16 def
 
     % Character maps for each state
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2 
+      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
       [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
       [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
       [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
@@ -148,8 +148,8 @@ begin
       [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
       [ fn1  fn1  fn1  ]  [ pad  pad  pad  ]  [ sb2  sa2  sb1  ]  % 102-104
       [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]                      % 105-106
-    ] def 
-    
+    ] def
+
     % Invert charmaps to give character to value maps for each state
     /charvals [ 109 dict 109 dict 109 dict ] def
     0 1 charmaps length 1 sub {
@@ -158,7 +158,7 @@ begin
         0 1 2 {
             /j exch def
             encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put 
+            charvals j get exch i put
         } for
     } for
     /seta charvals 0 get def
@@ -181,7 +181,7 @@ begin
         /text () def
     } if
 
-    encoding (auto) eq { 
+    encoding (auto) eq {
 
         /fncvals <<
             (FNC1) fn1
@@ -207,7 +207,7 @@ begin
         } loop
         /msg msg 0 j getinterval def
         /msglen msg length def
- 
+
         % Standard and extended ASCII runlength at position
         /numSA [ msglen {0} repeat 0 ] def
         /numEA [ msglen {0} repeat 0 ] def
@@ -241,7 +241,7 @@ begin
         } for
         /msg msgtmp def
         /msglen msg length def
- 
+
         % Determine digit runlength and characters from given position
         /numsscr {
             /n 0 def /s 0 def
@@ -303,9 +303,9 @@ begin
         % Does a-only come before b-only after given position and vice versa
         /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
         /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
- 
+
         /cws barcode length 2 mul 3 add array def
-       
+
         % Select mode and encode first characters
         /i 0 def /j 0 def
         {  % common exit
@@ -313,7 +313,7 @@ begin
             pos -1 ne {
                 % encode one and two
                 cws 0 pos 10 idiv 1 sub put
-                cws 1 pos 10 mod 1 sub put 
+                cws 1 pos 10 mod 1 sub put
                 /j 2 def
                 /cset (setb) def
                 /mode 7 def
@@ -365,7 +365,7 @@ begin
                     /i 1 def
                     exit
                 } if
-                % b . 3+ odd nums => c sb2 encode 
+                % b . 3+ odd nums => c sb2 encode
                 setb msg 0 get known
                 1 numsscr exch pop dup 3 ge exch 2 mod 1 eq and and {
                     msg 0 get encb
@@ -401,9 +401,9 @@ begin
 
         {  % Encode remainder
             i msglen eq {exit} if
-        
+
             i numsscr /nums exch def /nchars exch def
-        
+
             % Determine switches and shifts
             {  % common exit
                 cset (seta) eq {
@@ -437,7 +437,7 @@ begin
                     } if
                     % 4 nums . a => sc2 encode
                     i msglen 4 sub lt {
-                        nums 4 eq 
+                        nums 4 eq
                         seta msg i 4 add get known and {
                             sc2 enca
                             2 {
@@ -446,15 +446,15 @@ begin
                                     /i i 1 add def
                                 } {
                                     msg i 2 getinterval encc
-                                    /i i 2 add def 
+                                    /i i 2 add def
                                 } ifelse
                             } repeat
                             exit
                         } if
                     } if
                     % 6 nums . a => sc3 encode
-                    i msglen 6 sub lt { 
-                        nums 6 eq 
+                    i msglen 6 sub lt {
+                        nums 6 eq
                         seta msg i 6 add get known and {
                             sc3 enca
                             3 {
@@ -493,7 +493,7 @@ begin
                     } if
                     % anotb . anotb . bnota before anotb => sa2 encode
                     i msglen 2 sub lt {
-                        msg i get anotb 
+                        msg i get anotb
                         msg i 1 add get anotb and
                         i 2 add bbeforea and {
                             sa2 encb
@@ -552,7 +552,7 @@ begin
                     % otherwise => encode
                     msg i get encb
                     /i i 1 add def
-                    exit 
+                    exit
                 } if
                 cset (setc) eq {
                     % 2+ nums => encode
@@ -614,7 +614,7 @@ begin
                     } if
                     % b . b . b . 2+ even nums => sb3 encode
                     i msglen 3 sub lt {
-                        setb msg i get known 
+                        setb msg i get known
                         setb msg i 1 add get known and
                         setb msg i 2 add get known and
                         i 3 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
@@ -623,7 +623,7 @@ begin
                             msg i 1 add get encb
                             msg i 2 add get encb
                             /i i 3 add def
-                            exit 
+                            exit
                         } if
                     } if
                     % anotb before bnota => swa
@@ -639,13 +639,13 @@ begin
                 } if
                 exit
             } loop
-        
+
         } loop
         /cws cws 0 j getinterval def
     } if  % auto encoding
-    
+
     % Basic metrics for the each symbol
-    %     r  dcws 
+    %     r  dcws
     /metrics [
         [  2    7 ]
         [  3   12 ]
@@ -685,9 +685,9 @@ begin
     /cws [ r 2 sub 7 mul mode add cws aload pop ] def
 
     % Calculate the check characters
-    0 0 1 dcws {dup 2 add exch cws exch get mul add} for 
+    0 0 1 dcws {dup 2 add exch cws exch get mul add} for
     107 mod /c1 exch def
-    0 0 1 dcws {dup 1 add exch cws exch get mul add} for 
+    0 0 1 dcws {dup 1 add exch cws exch get mul add} for
     c1 dcws 2 add mul add 107 mod /c2 exch def
     /cws [ cws aload pop c1 c2 ] def
 
@@ -712,7 +712,7 @@ begin
     ] def
 
     % Start/stop character encodings
-    /startencs [ 
+    /startencs [
         (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
         (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
     ] def
@@ -729,7 +729,7 @@ begin
     } {
         /stopencs stopencseven def
     } ifelse
- 
+
     % Derive the bits for each row
     /rowbits r array def
     0 1 r 1 sub {
@@ -740,7 +740,7 @@ begin
             1
             cws i 5 mul 5 getinterval {
                 encs exch get {48 sub} forall
-            } forall 
+            } forall
             stopencs i get {48 sub} forall
             1
         ] def
@@ -761,7 +761,7 @@ begin
         rowheight {rowbits r 1 sub get aload pop} repeat
         81 sepheight mul {1} repeat
     ] def
-    
+
     % Return the arguments
     <<
     /ren //renmatrix

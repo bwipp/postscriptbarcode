@@ -54,9 +54,9 @@ begin
     /height 34 72 div def
     /format (expanded) def
     /segments -1 def
-    /linkage false def   
+    /linkage false def
     /barxmult 34 def
- 
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -67,7 +67,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /height height cvr def
     /segments segments cvi def
     /barxmult barxmult cvi def
@@ -127,7 +127,7 @@ begin
                 } if
             } if
         } if
-    
+
         % (01)9...(3202)...
         ais length 2 eq {
             ais 0 get (01) eq ais 1 get (3202) eq and {
@@ -136,7 +136,7 @@ begin
                 } if
             } if
         } if
-    
+
         % (01)9...(3203)...
         ais length 2 eq {
             ais 0 get (01) eq ais 1 get (3203) eq and {
@@ -145,7 +145,7 @@ begin
                 } if
             } if
         } if
-    
+
         % (01)9...(310x/320x)...[(11/13/15/17)...]
         ais length dup 2 eq exch 3 eq or {
            /ai310x false 3100 1 3109 {10 4 string cvrs ais 1 get eq or} for def
@@ -178,7 +178,7 @@ begin
                } ifelse
            } if
         } if
-    
+
         % (01)9...(392x)...
         ais length 2 ge {
             /ai392x false 3920 1 3923 {10 4 string cvrs ais 1 get eq or} for def
@@ -186,7 +186,7 @@ begin
                 vals 0 get 0 1 getinterval (9) eq { (01100) true exit } if
             } if
         } if
-    
+
         % (01)9...(393x)...
         ais length 2 ge {
             /ai393x false 3930 1 3933 {10 4 string cvrs ais 1 get eq or} for def
@@ -194,17 +194,17 @@ begin
                 vals 0 get 0 1 getinterval (9) eq { (01101) true exit } if
             } if
         } if
-    
+
         % (01)...
         ais 0 get (01) eq { (1) true exit } if
-    
+
         % Freeform
         (00) true exit
-    
+
     } loop
     /gpfallow exch def
     /method exch def
-   
+
     /conv12to40 {
         (0000000000000000000000000000000000000000) 40 string copy
         2 copy  0 10 getinterval exch 0 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
@@ -213,23 +213,23 @@ begin
         2 copy 30 10 getinterval exch 9 3 getinterval cvi 2 10 string cvrs dup length 10 exch sub exch putinterval
         exch pop
     } bind def
-    
+
     /conv13to44 {
         (00000000000000000000000000000000000000000000) 44 string copy
         2 copy 0 4 getinterval exch 0 1 getinterval cvi 2 4 string cvrs dup length 4 exch sub exch putinterval
         dup 3 -1 roll 1 12 getinterval conv12to40 4 exch putinterval
     } bind def
-    
+
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
-        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
     } bind def
-    
+
     method (00) eq {
         /cdf [] def
         /gpf [] def
     } if
-    
+
     method (1) eq {
         /cdf vals 0 get 0 13 getinterval conv13to44 def
         /cdf [ cdf {48 sub} forall ] def
@@ -237,7 +237,7 @@ begin
         /ais  ais  1 ais  length 1 sub getinterval def
         /vals vals 1 vals length 1 sub getinterval def
     } if
-    
+
     method (0100) eq {
         /cdf 55 string def
         cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
@@ -247,7 +247,7 @@ begin
         /ais [] def
         /vals [] def
     } if
-    
+
     method (0101) eq {
         /cdf 55 string def
         cdf 0 vals 0 get 1 12 getinterval conv12to40 putinterval
@@ -262,7 +262,7 @@ begin
         /ais [] def
         /vals [] def
     } if
-    
+
     method length 7 eq {
         /cdf 76 string def
         cdf 0 vals 0 get 1 12 getinterval conv12to40 putinterval
@@ -283,7 +283,7 @@ begin
         /ais [] def
         /vals [] def
     } if
-    
+
     method (01100) eq {
         /cdf 42 string def
         cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
@@ -293,7 +293,7 @@ begin
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
     } if
-    
+
     method (01101) eq {
         /cdf 52 string def
         cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
@@ -304,7 +304,7 @@ begin
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
     } if
-    
+
     % Variable length symbol field
     gpfallow {
         /vlf 2 array def
@@ -331,20 +331,20 @@ begin
     } forall
 
     /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
-    
+
     /numeric <<
         0 1 119 {
             dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
-            dup length 2 exch sub exch putinterval 
-            dup 0 get 65 eq {dup 0 94 put} if 
-            dup 1 get 65 eq {dup 1 94 put} if 
+            dup length 2 exch sub exch putinterval
+            dup 0 get 65 eq {dup 0 94 put} if
+            dup 1 get 65 eq {dup 1 94 put} if
             exch 8 add
-            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs 
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
             dup length 7 exch sub exch putinterval
         } for
         lalphanumeric (0000)
     >> def
-    
+
     /alphanumeric <<
         48 1 57 {dup 43 sub 5 tobin} for
         fnc1 (01111)
@@ -354,7 +354,7 @@ begin
         lnumeric (000)
         liso646 (00100)
     >> def
-    
+
     /iso646 <<
         48 1 57 {dup 43 sub 5 tobin} for
         fnc1 (01111)
@@ -369,7 +369,7 @@ begin
         lnumeric (000)
         lalphanumeric (00100)
     >> def
-    
+
     % Append the remaining AI data
     0 1 ais length 1 sub {
         /i exch def
@@ -391,16 +391,16 @@ begin
     % Calculate the number of bits remaining to the next valid symbol size
     /rembits {
         dup
-        12 div ceiling cvi 12 mul            % Round up to multiple of 12 
+        12 div ceiling cvi 12 mul            % Round up to multiple of 12
         48 2 copy lt {exch} if pop           % At least 4 symbols
         dup 12 idiv dup segments mod 1 eq {  % At least 2 symbols on last row of stacked symbol
             1 add 12 mul exch pop
         } {
             pop
-        } ifelse 
+        } ifelse
         exch sub
     } bind def
-    
+
     /encode {
         dup /raw ne {exch get} {pop} ifelse
         [ exch {48 sub} forall ]
@@ -408,7 +408,7 @@ begin
         gpfenc exch j exch putinterval
         /j exch j add def
     } bind def
-   
+
     % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
     /numericruns [ gpf length {0} repeat 0 -1 ] def
     /alphanumericruns [ gpf length {0} repeat 0 ] def
@@ -417,7 +417,7 @@ begin
         /i exch def
         gpf i get
         (00) 2 string copy
-        dup 0 gpf i get dup fnc1 eq {pop 94} if put 
+        dup 0 gpf i get dup fnc1 eq {pop 94} if put
         i gpf length 1 sub lt {dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put} if
         numeric exch known {
             numericruns i numericruns i 2 add get 2 add put
@@ -435,17 +435,17 @@ begin
             nextiso646only i nextiso646only i 1 add get 1 add put
         } ifelse
     } for
-   
+
     % Encode the general purpose field
     /gpfenc 252 array def
     /i 0 def /j 0 def /mode (numeric) def
     {  % loop
         i gpf length eq {exit} if
         {  % not a loop but common exit point
-    
+
             mode (numeric) eq {
                 i gpf length 2 sub le {
-                    2 string 
+                    2 string
                     dup 0 gpf i get dup fnc1 eq {pop 94} if put
                     dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put
                     dup numeric exch known {
@@ -454,7 +454,7 @@ begin
                         exit
                     } if
                     pop
-                    lalphanumeric numeric encode 
+                    lalphanumeric numeric encode
                     /mode (alphanumeric) def
                     exit
                 } {
@@ -471,13 +471,13 @@ begin
                         /i i 1 add def
                         exit
                     } {  % C1.FNC1
-                        2 string dup 0 gpf i get put dup 1 94 put numeric encode 
+                        2 string dup 0 gpf i get put dup 1 94 put numeric encode
                         /i i 1 add def
                         exit
                     } ifelse
                 } ifelse
             } if
-    
+
             mode (alphanumeric) eq {
                 gpf i get fnc1 eq {
                     fnc1 alphanumeric encode
@@ -504,7 +504,7 @@ begin
                 /i i 1 add def
                 exit
             } if
-    
+
             mode (iso646) eq {
                 gpf i get fnc1 eq {
                     fnc1 iso646 encode
@@ -526,13 +526,13 @@ begin
                 /i i 1 add def
                 exit
             } if
-    
+
         } loop
     } loop
     /gpf gpfenc 0 j getinterval def
 
     % Complete the variable length field and create pad
-    1 12 add method length add vlf length add cdf length add gpf length add 
+    1 12 add method length add vlf length add cdf length add gpf length add
     dup rembits dup array /pad exch def
     vlf length 0 ne {
         add 12 idiv
@@ -544,16 +544,16 @@ begin
     pad length 0 gt {
         0 5 pad length 1 sub {  % Fill with 00100
             /i exch def
-            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval 
-        } for 
+            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
+        } for
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
             /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
     } if
-   
+
     % Concatinate fields
     /binval [
-        linkage {1} {0} ifelse 
+        linkage {1} {0} ifelse
         method {48 sub} forall
         vlf aload pop
         cdf aload pop
@@ -561,7 +561,7 @@ begin
         pad aload pop
     ] def
     /datalen binval length 12 idiv def
-    
+
     /ncr {  % n r
         2 copy sub 2 copy lt {exch} if  % n r maxd mind
         1 1 5 3 roll  % mind j=1 v=1 n maxd
@@ -577,7 +577,7 @@ begin
         } loop
         exch pop exch pop
     } bind def
-    
+
     /getRSSwidths {
         /oe exch def
         /el exch def
@@ -588,7 +588,7 @@ begin
         /mask 0 def
         0 1 el 2 sub {
             /bar exch def
-            /ew 1 def 
+            /ew 1 def
             /mask mask 1 bar bitshift or def {
                 /sval nm ew sub 1 sub el bar sub 2 sub ncr def
                 oe mask 0 eq and nm ew sub el 2 mul sub bar 2 mul add -2 ge and {
@@ -608,10 +608,10 @@ begin
                 val 0 lt {exit} if
                 /ew ew 1 add def
                 /mask mask 1 bar bitshift not and def
-            } loop  
+            } loop
             /val val sval add def
             /nm nm ew sub def
-            out bar ew put 
+            out bar ew put
         } for
         out el 1 sub nm put
         out
@@ -626,7 +626,7 @@ begin
     ] def
 
     /dxw datalen array def
-    
+
     0 1 datalen 1 sub {
 
         /x exch def
@@ -649,14 +649,14 @@ begin
         /dwo d dgs sub dte idiv delo dmwo 4 true  getRSSwidths def
         /dwe d dgs sub dte mod  dele dmwe 4 false getRSSwidths def
 
-        /dw 8 array def        
-        x 2 mod 0 eq {                    
+        /dw 8 array def
+        x 2 mod 0 eq {
             0 1 3 {
                 /j exch def
                 dw 7 j 2 mul sub dwo j get put
                 dw 6 j 2 mul sub dwe j get put
             } for
-        } {           
+        } {
             0 1 3 {
                 /j exch def
                 dw j 2 mul dwo j get put
@@ -667,7 +667,7 @@ begin
         dxw x dw put
 
     } for
-    
+
     /finderwidths [
         1 8 4 1 1    1 1 4 8 1
         3 6 4 1 1    1 1 4 6 3
@@ -702,7 +702,7 @@ begin
         77   96   32   81   27   9    3    1    % A1R
         20   60   180  118  143  7    21   63   % A2L
         205  209  140  117  39   13   145  189  % A2R
-        193  157  49   147  19   57   171  91   % B1L 
+        193  157  49   147  19   57   171  91   % B1L
         132  44   85   169  197  136  186  62   % B1R
         185  133  188  142  4    12   36   108  % B2L
         50   87   29   80   97   173  128  113  % B2R
@@ -731,11 +731,11 @@ begin
     /widths [
         dxw {{} forall} forall
     ] def
-   
+
     /checksum 0 def
     0 1 widths length 1 sub {
         /i exch def
-        /checksum checksum widths i get checkweightseq i get mul add def 
+        /checksum checksum widths i get checkweightseq i get mul add def
     } for
     /checksum checksum 211 mod datalen 3 sub 211 mul add def
 
@@ -754,7 +754,7 @@ begin
     /cwo checksum cgs sub cte idiv celo cmwo 4 true  getRSSwidths def
     /cwe checksum cgs sub cte mod  cele cmwe 4 false getRSSwidths def
 
-    /cw 8 array def        
+    /cw 8 array def
     0 1 3 {
         /i exch def
         cw i 2 mul cwo i get put
@@ -777,7 +777,7 @@ begin
         0 1 segments 1 sub {
             /pos exch r segments mul add def
             pos datalen lt {
-                dxw pos get {} forall                 
+                dxw pos get {} forall
                 pos 2 mod 0 eq {fxw pos 2 idiv get {} forall} if
             } if
         } for
@@ -834,7 +834,7 @@ begin
             /finderpos [  % Finder pattern module positions
                 19 98 row length 13 sub {} for
                 68 98 row length 13 sub {} for
-            ] def 
+            ] def
             finderpos {
                 dup 14 add 1 exch {
                     /i exch def
@@ -873,9 +873,9 @@ begin
         % Extend last row and separator to fill width of symbol
         /pixx rows 0 get length def
         [ pixx {0} repeat ] dup 0 rows numrows 1 sub get putinterval
-        rows exch numrows 1 sub exch put 
+        rows exch numrows 1 sub exch put
         [ pixx {0} repeat ] dup 0 seps numrows 1 sub get putinterval
-        seps exch numrows 1 sub exch put 
+        seps exch numrows 1 sub exch put
 
         % Middle separator pattern
         /sep [ pixx 2 idiv 1 add { 0 1 } repeat ] 0 pixx getinterval def

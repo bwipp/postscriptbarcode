@@ -58,7 +58,7 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 1 def
-    
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -69,12 +69,12 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
     % Create an array containing the character mappings
     /encs
     [ (111131) (311131) (131131) (331111) (113131)
@@ -144,15 +144,15 @@ begin
             /xpos exch enc exch get 48 sub xpos add def
         } for
     } for
-   
+
     % Put the checksum and end characters
     includecheck {
         barlen 10 ge {
-            sbs barlen 6 mul 6 add encs checksum1 get putinterval        
+            sbs barlen 6 mul 6 add encs checksum1 get putinterval
             sbs barlen 6 mul 12 add encs checksum2 get putinterval
             includecheckintext {
                 txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
-                /enc encs checksum1 get def   
+                /enc encs checksum1 get def
                 0 1 5 {       % xpos+=width of the character
                     /xpos exch enc exch get 48 sub xpos add def
                 } for
@@ -163,7 +163,7 @@ begin
             } ifelse
             sbs barlen 6 mul 18 add encs 11 get putinterval
         } {
-            sbs barlen 6 mul 6 add encs checksum1 get putinterval          
+            sbs barlen 6 mul 6 add encs checksum1 get putinterval
             includecheckintext {
                 txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
             } {

@@ -45,7 +45,7 @@ dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1-cc {
-    
+
     20 dict begin            % Confine variables to local scope
 
     /options exch def  % We are given an option string
@@ -56,7 +56,7 @@ begin
     /cccolumns -1 def
     /lintype () def
     /linwidth -1 def
- 
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -67,7 +67,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /cccolumns cccolumns cvi def
     /linwidth linwidth cvi def
 
@@ -87,7 +87,7 @@ begin
             /databarlimited         3
             /databarexpanded        4
             /databarexpandedstacked 4
-        >> lintype get /cccolumns exch def 
+        >> lintype get /cccolumns exch def
     } if
 
     % Expand ordinals of the form ^NNN to ASCII
@@ -107,7 +107,7 @@ begin
                 dup out exch j exch putinterval
                 length j add /j exch def
                 out 0 j getinterval exit
-            } ifelse 
+            } ifelse
         } loop
     } bind def
 
@@ -135,7 +135,7 @@ begin
     /isnum0  {dup 48 ge exch 57 le and} bind def  % 0-9
     /isnum1  {dup 49 ge exch 57 le and} bind def  % 1-9
     {  % common exit
-    
+
         % (10/11/17)...
         ais length 1 ge {
             ais 0 get (10) eq ais 0 get (11) eq or ais 0 get (17) eq or {
@@ -178,7 +178,7 @@ begin
 
         % Freeform
         -1 (0) exit
-    
+
     } loop
     /method exch def
     /npre exch def
@@ -187,9 +187,9 @@ begin
 
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
-        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
     } bind def
- 
+
     /alpha <<
         65 1 90 {dup 65 sub 5 tobin} for
         48 1 57 {dup 4 add 6 tobin} for
@@ -199,16 +199,16 @@ begin
     /numeric <<
         0 1 119 {
             dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
-            dup length 2 exch sub exch putinterval 
-            dup 0 get 65 eq {dup 0 94 put} if 
-            dup 1 get 65 eq {dup 1 94 put} if 
+            dup length 2 exch sub exch putinterval
+            dup 0 get 65 eq {dup 0 94 put} if
+            dup 1 get 65 eq {dup 1 94 put} if
             exch 8 add
-            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs 
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
             dup length 7 exch sub exch putinterval
         } for
         lalphanumeric (0000)
     >> def
- 
+
     /alphanumeric <<
         48 1 57 {dup 43 sub 5 tobin} for
         fnc1 (01111)
@@ -218,7 +218,7 @@ begin
         lnumeric (000)
         liso646 (00100)
     >> def
-    
+
     /iso646 <<
         48 1 57 {dup 43 sub 5 tobin} for
         fnc1 (01111)
@@ -446,7 +446,7 @@ begin
                 } {
                     /ccversion -1 def
                 } ifelse
-            } ifelse 
+            } ifelse
             used rembits
         } if
     } bind def
@@ -467,7 +467,7 @@ begin
         /i exch def
         gpf i get
         (00) 2 string copy
-        dup 0 gpf i get dup fnc1 eq {pop 94} if put 
+        dup 0 gpf i get dup fnc1 eq {pop 94} if put
         i gpf length 1 sub lt {dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put} if
         numeric exch known {
             numericruns i numericruns i 2 add get 2 add put
@@ -485,17 +485,17 @@ begin
             nextiso646only i nextiso646only i 1 add get 1 add put
         } ifelse
     } for
-   
+
     % Encode the general purpose field
     /gpfenc 8296 array def
     /i 0 def /j 0 def
     {  % loop
         i gpf length eq {exit} if
         {  % not a loop but common exit point
-    
+
             mode (numeric) eq {
                 i gpf length 2 sub le {
-                    2 string 
+                    2 string
                     dup 0 gpf i get dup fnc1 eq {pop 94} if put
                     dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put
                     dup numeric exch known {
@@ -504,7 +504,7 @@ begin
                         exit
                     } if
                     pop
-                    lalphanumeric numeric encode 
+                    lalphanumeric numeric encode
                     /mode (alphanumeric) def
                     exit
                 } {
@@ -521,13 +521,13 @@ begin
                         /i i 1 add def
                         exit
                     } {  % C1.FNC1
-                        2 string dup 0 gpf i get put dup 1 94 put numeric encode 
+                        2 string dup 0 gpf i get put dup 1 94 put numeric encode
                         /i i 1 add def
                         exit
                     } ifelse
                 } ifelse
             } if
-    
+
             mode (alphanumeric) eq {
                 gpf i get fnc1 eq {
                     fnc1 alphanumeric encode
@@ -554,7 +554,7 @@ begin
                 /i i 1 add def
                 exit
             } if
-    
+
             mode (iso646) eq {
                 gpf i get fnc1 eq {
                     fnc1 iso646 encode
@@ -576,7 +576,7 @@ begin
                 /i i 1 add def
                 exit
             } if
-    
+
         } loop
     } loop
     /gpf gpfenc 0 j getinterval def
@@ -586,8 +586,8 @@ begin
     pad length 0 gt {
         0 5 pad length 1 sub {  % Fill with 00100
             /i exch def
-            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval 
-        } for 
+            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
+        } for
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
             /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
@@ -614,8 +614,8 @@ begin
             6 -1 1 {
                 /i exch def
                 /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
-                pwr928 j get i v 928 mod put 
-            } for   
+                pwr928 j get i v 928 mod put
+            } for
             pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
         } for
         /cws [ 28 {0} repeat ] def
@@ -640,7 +640,7 @@ begin
                 /i exch def
                 cs i 1 sub 2 copy get cs i get 928 idiv add put
                 cs i 2 copy get 928 mod put
-            } for 
+            } for
             /b b bsl add def
             /c c csl add def
         } loop

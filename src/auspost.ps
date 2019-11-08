@@ -56,7 +56,7 @@ begin
     /textyoffset -7 def
     /height 0.175 def
     /custinfoenc (character) def
-    
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -67,7 +67,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
@@ -89,7 +89,7 @@ begin
 
     % Create a string of the available characters
     /barchars (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz #) def
-    
+
     /barlen barcode length def
     barcode 0 2 getinterval (11) eq {37} if
     barcode 0 2 getinterval (45) eq {37} if
@@ -103,57 +103,57 @@ begin
 
     % Encode the FCC
     0 1 1 {
-        /i exch def       
+        /i exch def
         encs barcode i 1 getinterval cvi 64 add get
         encstr i 2 mul 2 add 3 2 roll putinterval
     } for
-    
+
     % Encode the DPID
     2 1 9 {
-        /i exch def       
+        /i exch def
         encs barcode i 1 getinterval cvi 64 add get
         encstr i 2 mul 2 add 3 2 roll putinterval
         txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textyoffset textfont textsize] put
     } for
-    
-    % Encode the customer information   
+
+    % Encode the customer information
     custinfoenc (numeric) eq {
         0 1 barlen 11 sub {
             /i exch def
             encs barcode i 10 add 1 getinterval cvi 64 add get
             encstr i 2 mul 22 add 3 2 roll putinterval
             txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
-        } for        
+        } for
         /ciflen barlen 10 sub 2 mul def
     } {
         0 1 barlen 11 sub {
-            /i exch def           
+            /i exch def
             barcode i 10 add 1 getinterval barchars exch search
-            pop                                
-            length /indx exch def           
-            pop pop                            
-            /enc encs indx get def          
+            pop
+            length /indx exch def
+            pop pop
+            /enc encs indx get def
             encstr i 3 mul 22 add enc putinterval
             txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textyoffset textfont textsize] put
-        } for        
+        } for
         /ciflen barlen 10 sub 3 mul def
     } ifelse
 
     % Add any filler characters
-    22 ciflen add 1 encstr length 14 sub {        
+    22 ciflen add 1 encstr length 14 sub {
         encstr exch encs 75 get putinterval
     } for
-    
+
     % Create the 64x64 Reed-Solomon table
     /rstable 64 64 mul array def
     rstable 0 [ 64 {0} repeat ] putinterval
     rstable 64 [ 0 1 63 {} for ] putinterval
     /prev 1 def
-    64 {       
+    64 {
         /next prev 1 bitshift def
         next 64 and 0 ne {
             /next next 67 xor def
-        } if        
+        } if
         0 1 63 {
             /j exch def
             /nextcell {rstable 64 next mul j add} def
@@ -164,7 +164,7 @@ begin
         } for
         /prev next def
     } repeat
-    
+
     % Calculate the Reed-Solomon codes for triples
     /rscodes encstr length 16 sub 3 idiv 4 add array def
     rscodes 0 [ 4 {0} repeat ] putinterval
@@ -173,9 +173,9 @@ begin
         rscodes rscodes length i 2 sub 3 idiv sub 1 sub
         encstr i 1 getinterval cvi 16 mul
         encstr i 1 add 1 getinterval cvi 4 mul add
-        encstr i 2 add 1 getinterval cvi add        
+        encstr i 2 add 1 getinterval cvi add
         put
-    } for    
+    } for
     rscodes length 5 sub -1 0 {
        /i exch def
        0 1 4 {
@@ -191,12 +191,12 @@ begin
         /enc rscodes 3 i sub get 4 3 string cvrs def
         checkcode i 3 mul 3 enc length sub add enc putinterval
     } for
-    
+
     % Put checkcode and end characters
     encstr encstr length 14 sub checkcode putinterval
-    encstr encstr length 2 sub encs 74 get putinterval 
+    encstr encstr length 2 sub encs 74 get putinterval
 
-    /bbs encstr length array def    
+    /bbs encstr length array def
     /bhs encstr length array def
     0 1 encstr length 1 sub {
         /i exch def
@@ -217,8 +217,8 @@ begin
             bbs i 3 height mul 8 div put
             bhs i 2 height mul 8 div put
         } if
-    } for   
-    
+    } for
+
     % Return the arguments
     <<
     /ren //renlinear

@@ -59,7 +59,7 @@ begin
     /textsize 10 def
     /textyoffset -7 def
     /height 1 def
-    
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -70,12 +70,12 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
-    
+
     /textfont textfont cvlit def
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
-    
+
     % Create an array containing the character mappings
     /encs
     [ (11111331) (11113311) (11131131) (33111111) (11311311)
@@ -98,7 +98,7 @@ begin
     16 1 19 {ssvals exch dup barchars exch 1 getinterval exch put} for
 
     % Validate the input
-    barcode 0 1 getinterval ssvals exch known not 
+    barcode 0 1 getinterval ssvals exch known not
     barcode barcode length 1 sub 1 getinterval ssvals exch known not or {
         altstartstop {
             /bwipp.rationalizedCodabarBadAltStartStop (Codabar start and stop characters must be one of E N T or *) //raiseerror exec
@@ -120,7 +120,7 @@ begin
         checksum add /checksum exch def
     } for
     barcode barcode length 1 sub 1 getinterval charvals exch get
-    checksum add /checksum exch def 
+    checksum add /checksum exch def
     /checksum 16 checksum 16 mod sub 16 mod def
     validatecheck {
         barcode barlen 1 sub get barchars checksum get ne {

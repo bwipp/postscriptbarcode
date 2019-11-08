@@ -114,7 +114,7 @@ cleanlist += $(RELEASEFILES) $(RELEASEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
-.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag copyright
+.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag copyright whitespace
 
 all: resource packaged_resource monolithic monolithic_package
 
@@ -304,3 +304,5 @@ YEAR:=$(shell date +%Y)
 copyright:
 	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps $(DSTDIR)/make_resource.ps
 
+whitespace:
+	perl -p -i -e 's/\s+$$/\n/;' $(SOURCES)

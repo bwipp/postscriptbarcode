@@ -68,7 +68,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
- 
+
     /layers layers cvi def
     /eclevel eclevel cvr def
     /ecaddchars ecaddchars cvi def
@@ -90,24 +90,24 @@ begin
                 length j add /j exch def
                 /barcode msg 0 j getinterval def
                 exit
-            } ifelse 
+            } ifelse
         } loop
     } if
 
     % Convert from input into message bitstream
-    /msgbits () def 
-    format (rune) ne raw and {/msgbits barcode def} if 
+    /msgbits () def
+    format (rune) ne raw and {/msgbits barcode def} if
     format (rune) ne raw not and {
 
         % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
         /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
-        
+
         % Special function characters
         /lu -1 def  /ll -2 def  /lm -3 def
         /lp -4 def  /ld -5 def  /su -6 def
         /sp -7 def  /sb -8 def  /fl -9 def
         /p2 -10 def /p3 -11 def /p4 -12 def /p5 -13 def
-        
+
         % Character maps for each state
         /charmaps [
             %  U    L    M    P    D
@@ -143,8 +143,8 @@ begin
             [  lm   lm   lu  ({)  -99 ]  % 29
             [  ld   ld   lp  (})  -99 ]  % 30
             [  sb   sb   sb   lu  -99 ]  % 31
-        ] def 
-        
+        ] def
+
         % Invert charmaps to give character to value maps for each state
         /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
         0 1 charmaps length 1 sub {
@@ -153,10 +153,10 @@ begin
             0 1 4 {
                 /j exch def
                 encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-                charvals j get exch i put 
+                charvals j get exch i put
             } for
         } for
-        
+
         % Punctuation compression
         /pcomp <<
             <0d0a> p2   % CR LF
@@ -164,9 +164,9 @@ begin
             (, )   p4
             (: )   p5
         >> def
-        
+
         /e 10000 def  % "Empty"
-        
+
         /latlen [  % Bit length of latch between states
         % To:  U  L  M  P  D  B      From
             [  0  5  5 10  5 10 ]  % U
@@ -195,22 +195,22 @@ begin
             [  e  e  e  e  e ]  % P
             [  4  e  e  4  e ]  % D
         ] def
-        
+
         %            U   L   M   P   D   B
         /charsize [  5   5   5   5   4   8 ] def
-        
+
         %          U  L  M  P  D  B
         /curlen [  0  e  e  e  e  e ] def
         /curseq [ [] [] [] [] [] [] ] def
-        
+
         /backto U def  % U
         /lastchar () def
-        
+
         % Derive the optimal sequences ending in each state
         barcode {
-        
+
             /char exch def
-          
+
             % Check for optimisations in the current sequences by latching from x to y
             {  % loop
                 /imp false def
@@ -237,26 +237,26 @@ begin
                 imp not {exit} if  % Repeat unless no improvement
             } loop
 
-            % Determine optimal next sequences for each valid encoding 
-            /nxtlen [ e e e e e e ] def 
+            % Determine optimal next sequences for each valid encoding
+            /nxtlen [ e e e e e e ] def
             /nxtseq 6 array def
-          
+
             [ U L M P D B ] {
                 /x exch def
-            
+
                 { % loop for common exit
-            
+
                     % Skip states that cannot encode character
                     x B ne {charvals x get char known not {exit} if} if
-              
+
                     % Extend directly
                     /cost curlen x get charsize x get add def
                     cost nxtlen x get lt {
                         nxtlen x cost put
                         nxtseq x [ curseq x get aload pop char ] put
                     } if
-              
-                    % Optimise for direct shifts from y to x 
+
+                    % Optimise for direct shifts from y to x
                     x B eq {exit} if  % B is treated as a latch
                     [ U L M P D ] {
                         /y exch def
@@ -272,12 +272,12 @@ begin
                             } if
                         } if
                     } forall
-              
+
                     exit
                 } loop
-            
+
             } forall
-          
+
             % Optimise using P compression
             lastchar () ne {
                 /pchars 2 string dup 0 lastchar put dup 1 char put def
@@ -287,21 +287,21 @@ begin
                         nxtseq P [ curseq P get aload pop pop pcomp pchars get ] put
                     } if
                 } if
-            } if 
-          
+            } if
+
             % Account for binary extension for 32 or more bytes
             /numbytes 0 def
             nxtseq B get {
                 sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
             } forall
             numbytes 32 eq {nxtlen B nxtlen B get 11 add put} if
-          
+
             /curlen nxtlen def
             /curseq nxtseq def
             /lastchar char def
-          
+
         } forall
-        
+
         % Select the optimal sequence
         /minseq e def
         [ U L M P D B ] {
@@ -311,11 +311,11 @@ begin
                 /seq curseq i get def
             } if
         } forall
-        
+
         % Encoding functions
         /tobin {
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
-            dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval 
+            dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
         } bind def
         /encu {charvals U get exch get 5 tobin} bind def
         /encl {charvals L get exch get 5 tobin} bind def
@@ -328,27 +328,27 @@ begin
             msgbits j v putinterval
             /j j v length add def
         } bind def
-        
+
         % Encode the sequence
         /state U def
         /msgbits minseq string def
         /i 0 def /j 0 def {
             i seq length ge {exit} if
-          
+
             state B ne {
-          
+
                 /char seq i get def
-            
+
                 % Encode character
                 char encfuncs state get load exec addtomsgbits
                 /i i 1 add def
-            
+
                 % Encode shifted next character
                 char su eq char sp eq or {
                     seq i get char su eq {encu} {encp} ifelse addtomsgbits
                     /i i 1 add def
                 } if
-            
+
                 % Latches to new state
                 char lu eq {/state U def} if
                 char ll eq {/state L def} if
@@ -356,16 +356,16 @@ begin
                 char lp eq {/state P def} if
                 char ld eq {/state D def} if
                 char sb eq {/state B def} if
-            
+
             } {  % Binary
-          
+
                 % Find number of bytes before latch or end
                 /numbytes 0 def {
                     i numbytes add seq length ge {exit} if
-                    seq i numbytes add get 0 lt {exit} if 
+                    seq i numbytes add get 0 lt {exit} if
                     /numbytes numbytes 1 add def
                 } loop
-            
+
                 % Encode length
                 numbytes 31 le {
                     numbytes 5 tobin addtomsgbits
@@ -373,13 +373,13 @@ begin
                     0 5 tobin addtomsgbits
                     numbytes 31 sub 11 tobin addtomsgbits
                 } ifelse
-            
+
                 % Encode bytes
                 numbytes {
-                    seq i get 8 tobin addtomsgbits 
+                    seq i get 8 tobin addtomsgbits
                     /i i 1 add def
                 } repeat
-            
+
                 % Return to previous state as indicated
                 i seq length lt {
                     /char seq i get def
@@ -388,14 +388,14 @@ begin
                     char ll eq {/state L def} if
                     char lm eq {/state M def} if
                 } if
-            
+
             } ifelse
-          
+
         } loop
 
     } if
 
-    % Lookup the most appropriate symbol specification 
+    % Lookup the most appropriate symbol specification
     /metrics [
         [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
         [ (compact)  1 1   17  6 ] [ (full)     1 1   21  6 ] [ (compact)  2 0   40  6 ]
@@ -421,12 +421,12 @@ begin
         /ncws m 3 get def                          % Total of codewords
         /bpcw m 4 get def                          % Bits per codeword
         /numecw ncws eclevel mul 100 div ecaddchars add ceiling cvi def
-        msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords 
+        msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords
         /numdcw ncws numecw sub def                % Data codewords
         /okay true def
         format (unset) ne format frmt ne and {/okay false def} if
         readerinit icap 1 ne and {/okay false def} if
-        layers -1 ne layers mlyr ne and {/okay false def} if 
+        layers -1 ne layers mlyr ne and {/okay false def} if
         msgbits length bpcw div ceiling cvi numdcw gt {/okay false def} if
         okay {exit} if
         /i i 1 add def
@@ -446,8 +446,8 @@ begin
             /cwf msgbits m bpcw add 1 sub 1 getinterval def  % Last bit
             cwb allzero {/cwf (1) def /m m 1 sub def} if     % Flip last bit to avoid zeros
             cwb allones {/cwf (0) def /m m 1 sub def} if     % Flip last bit to avoid ones
-            % Concatinate the bits 
-            12 string dup 0 cwb putinterval 
+            % Concatinate the bits
+            12 string dup 0 cwb putinterval
             dup bpcw 1 sub cwf putinterval
             0 bpcw getinterval
             /cwb exch def
@@ -463,9 +463,9 @@ begin
             /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
         } for
         cws c cw put
-        /m m bpcw add def 
+        /m m bpcw add def
         /c c 1 add def
-    } loop    
+    } loop
     /cws cws 0 c getinterval def
 
     % Reed-Solomon algorithm
@@ -493,12 +493,12 @@ begin
         % Generate the coefficients
         /coeffs [ 1 rsnc {0} repeat ] def
         1 1 rsnc {
-            /i exch def 
+            /i exch def
             coeffs i coeffs i 1 sub get put
             i 1 sub -1 1 {
                 /j exch def
                 coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
-            } for 
+            } for
             coeffs 0 coeffs 0 get rsalog i get rsprod put
         } for
 
@@ -506,11 +506,11 @@ begin
         /nd rscws length def
         /rscws [ rscws {} forall rsnc {0} repeat 0 ] def
         0 1 nd 1 sub {
-            /k exch rscws exch get rscws nd get xor def 
+            /k exch rscws exch get rscws nd get xor def
             0 1 rsnc 1 sub {
-                /j exch def 
+                /j exch def
                 rscws nd j add rscws nd j add 1 add get k coeffs rsnc j sub 1 sub get rsprod xor put
-            } for 
+            } for
         } for
 
         % Return all but the last codeword
@@ -528,11 +528,11 @@ begin
             mode 2#0000000011110000 and -4 bitshift
             mode 2#0000000000001111 and
         ] def
-        /mode mode 6 16 19 rscodes def 
+        /mode mode 6 16 19 rscodes def
     } if
     format (compact) eq {
         /mode layers 1 sub 6 bitshift cws length 1 sub add def
-        readerinit {/mode mode 2#00100000 or def} if 
+        readerinit {/mode mode 2#00100000 or def} if
         /mode [
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
@@ -552,32 +552,32 @@ begin
     0 1 modebits length 1 sub {modebits exch (0) putinterval} for
     0 1 mode length 1 sub {
         /i exch def
-        modebits mode i get 2 4 string cvrs dup length 4 exch sub 4 i mul add exch putinterval 
+        modebits mode i get 2 4 string cvrs dup length 4 exch sub 4 i mul add exch putinterval
     } for
 
     % Extend the data codewords with error correction codewords to create the bit string for the data
     /rsparams [
-        [] [] [] [] [] [] 
-        [ 64 67 ]      % 6-bit codewords 
+        [] [] [] [] [] []
+        [ 64 67 ]      % 6-bit codewords
         []
         [ 256 301 ]    % 8-bit codewords
-        [] 
+        []
         [ 1024 1033 ]  % 10-bit codewords
         []
         [ 4096 4201 ]  % 12-bit codewords
     ] def
     /cws cws ncws cws length sub rsparams bpcw get {} forall rscodes def
     format (full) eq {
-        /databits layers layers mul 16 mul layers 112 mul add string def 
+        /databits layers layers mul 16 mul layers 112 mul add string def
     } {
-        /databits layers layers mul 16 mul layers 88 mul add string def 
+        /databits layers layers mul 16 mul layers 88 mul add string def
     } ifelse
     0 1 databits length 1 sub {databits exch (0) putinterval} for
-    0 1 ncws 1 sub { 
+    0 1 ncws 1 sub {
         /i exch def
-        databits cws i get 2 bpcw string cvrs 
-        dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add 
-        exch putinterval 
+        databits cws i get 2 bpcw string cvrs
+        dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add
+        exch putinterval
     } for
 
     % Move to a point in the cartesian plane centered on the bullseye
@@ -590,7 +590,7 @@ begin
         /lwid fw llyr 4 mul add def
         /ldir lbit 2 idiv lwid idiv def
         ldir 0 eq {  % Top
-            lwid 1 sub 2 idiv neg 1 add lbit 2 idiv lwid mod add 
+            lwid 1 sub 2 idiv neg 1 add lbit 2 idiv lwid mod add
             fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add
             cmv
         } if
@@ -614,7 +614,7 @@ begin
     % Create the pixel map
     % For full symbols we disregard the reference grid at this stage
     format (full) eq {/fw 12 def} {/fw 9 def} ifelse
-    /size fw layers 4 mul add 2 add def 
+    /size fw layers 4 mul add 2 add def
     /pixs [size size mul {-1} repeat] def
     /mid size 1 sub 2 idiv size mul size 1 sub 2 idiv add def
 
@@ -644,7 +644,7 @@ begin
                 npixs i size 2 idiv neg j add cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
                 npixs i neg size 2 idiv neg j add cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
             } for
-        } for 
+        } for
         /j 0 def
         0 1 npixs length 1 sub {
             /i exch def
@@ -679,7 +679,7 @@ begin
 
     % Mode ring
     format (full) eq {
-        /modemap [ 
+        /modemap [
             [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
             [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
             [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]

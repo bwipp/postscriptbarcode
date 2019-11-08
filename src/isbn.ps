@@ -57,9 +57,9 @@ begin
     /isbntextxoffset (unset) def
     /isbntextyoffset (unset) def
     /height 1 def
-    /addongap 12 def   
+    /addongap 12 def
     /legacy false def
- 
+
     % Parse the input options
     options type /stringtype eq {
         1 dict begin
@@ -70,7 +70,7 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
-    
+
     /isbntextfont isbntextfont cvlit def
     /isbntextsize isbntextsize cvr def
     isbntextxoffset (unset) ne {/isbntextxoffset isbntextxoffset cvr def} if
@@ -238,7 +238,7 @@ begin
 
     % Convert ISBN digits to EAN-13
     /barcode 12 string def
-    isbn length 9 eq {        
+    isbn length 9 eq {
         barcode 0 (978) putinterval
         barcode 3 isbn putinterval
     } {
@@ -247,7 +247,7 @@ begin
 
     % Append the addon
     addon () ne {
-        12 addon length add 1 add string 
+        12 addon length add 1 add string
         dup 0 barcode putinterval
         dup 12 ( ) putinterval
         dup 13 addon putinterval
@@ -256,7 +256,7 @@ begin
 
     % Get the result of encoding with ean13
     options (dontdraw) true put
-    options (addongap) addongap put 
+    options (addongap) addongap put
     /args barcode options //ean13 exec def
 
     % Add the ISBN text
@@ -284,7 +284,7 @@ begin
     dontdraw not //renlinear if
 
     end
- 
+
 } bind def
 /isbn dup load /uk.co.terryburton.bwipp defineresource pop
 end
