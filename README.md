@@ -75,3 +75,5 @@ Commercial Support
 ------------------
 
 Alternate licensing, bespoke integrations, custom developments and technical support (per incident or prepaid) is available from [Terry Burton Consulting Ltd](https://www.terryburton.co.uk).
+
+[![Terry Burton Consulting Ltd](https://www.terryburton.co.uk/logo.png)](https://www.terryburton.co.uk)
