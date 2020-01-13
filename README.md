@@ -71,7 +71,7 @@ The flavours are built into subdirectories of the `build/` directory.
 The build requirements are Perl, GNU Make and GhostScript.
 
 
-Commercial support
+Commercial Support
 ------------------
 
 Alternate licensing, bespoke integrations, custom developments and technical support (per incident or prepaid) is available from [Terry Burton Consulting Ltd](https://www.terryburton.co.uk).
