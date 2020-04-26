@@ -48,6 +48,8 @@ Berisso, K. (2018) "DotCode Damage Testing," Journal of Computer Sciences and Ap
 
 West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," DEF CON 26. https://www.youtube.com/watch?v=Wy79TLkqArg
 
+Russell, Robert. (2020) "How to Print QRcodes, Data Matrix, Aztec Codes, Maxi Code and Han Xin Barcodes in SAP," https://www.rjruss.info/2020/04/how-to-print-qrcodes-data-matrix-aztec.html
+
 
 #### pst-barcode
 
