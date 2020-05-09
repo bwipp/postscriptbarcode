@@ -7,6 +7,7 @@ on:
     branches:
 
 jobs:
+
   ci:
 
     runs-on: ${{ matrix.os }}
@@ -20,8 +21,122 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build
-      run: make -j `nproc`    
+      run: make -j `nproc`
     - name: Test
       run: make test
-    - name: Release
-      run: make release
+
+
+  release:
+
+    if: startsWith(github.ref, 'refs/tags/')
+
+    runs-on: ubuntu-18.04
+
+    needs:
+      - ci
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Get and check the version
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF/refs\/tags\//}
+        [ "$VERSION" == "`head -1 CHANGES`" ] || exit 1
+        echo ::set-output name=VERSION::$VERSION
+
+    - name: Make assets
+      run: make -j `nproc` release
+
+    - name: Create GitHub release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+
+    - name: "Upload asset: monolithic tgz"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_name: postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_content_type: application/gzip'
+
+    - name: "Upload asset: monolithic zip"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
+    - name: "Upload asset: monolithic-package tgz"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_name: postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_content_type: application/gzip'
+
+    - name: "Upload asset: monolithic-package zip"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
+    - name: "Upload packaged-resource tgz"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_name: postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_content_type: application/gzip'
+
+    - name: "Upload asset: packaged-resource zip"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
+    - name: "Upload asset: resource tgz"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_name: postscriptbarcode-resource-package-${{ steps.get_version.outputs.VERSION }}.tgz
+        asset_content_type: application/gzip'
+
+    - name: "Upload asset: resource zip"
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+
