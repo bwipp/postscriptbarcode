@@ -7,12 +7,12 @@ Useful links:
 
   * Homepage: https://bwipp.terryburton.co.uk
   * Documentation: https://github.com/bwipp/postscriptbarcode/wiki
-  * Documentation in PDF format for print: https://goo.gl/PBFNbv
+  * Documentation in PDF format for print: https://bit.ly/2LzxYcU
   * Download: https://github.com/bwipp/postscriptbarcode/releases/latest
   * Source: https://github.com/bwipp/postscriptbarcode.git
   * Issues and support: https://github.com/bwipp/postscriptbarcode/issues
   * Presentation: Slides: https://goo.gl/WqYB6A Materials: https://goo.gl/dth54z
- 
+
 Barcode Writer in Pure Postscript (BWIPP) generates all barcode formats entirely within PostScript so that the process of converting the input data into the printed output can be performed by the printer or RIP itself. This is ideal for variable data printing (VDP) and avoids the need to re-implement the barcode generation process whenever your language needs change.
 
 Since this resource is written in PostScript and interpreted within the virtual machine of a printer it is compatible with any operating system and hardware platform.
@@ -44,7 +44,7 @@ This leads to the following set of four files.
 For production use:
 
   * `postscriptbarcode-packaged-resource` – Packaged; Separate files.
-  * `postscriptbarcode-monolithic-package` – Packaged; Monolithic file. 
+  * `postscriptbarcode-monolithic-package` – Packaged; Monolithic file.
 
 For BWIPP development:
 
