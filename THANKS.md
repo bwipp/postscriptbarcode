@@ -11,6 +11,7 @@ Many thanks for the technical contributions from:
 * John Desrosiers
 * Lars DIECKOW
 * Chapman Flack
+* "gitlost"
 * Anders Hammarquist
 * Matthew Harmon
 * Adrian Head
@@ -31,5 +32,3 @@ Many thanks for the technical contributions from:
 
 Apologies to anybody that has been forgotten. Send a pull request or contact
 the author if that is the case.
-
-
