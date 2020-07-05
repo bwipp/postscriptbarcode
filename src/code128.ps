@@ -261,12 +261,11 @@ begin
                 p msglen ge {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
-                dup fn1 eq {
-                    pop
+                dup -1 le {
                     % FNC1 in odd position of run like two digits
-                    s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
+                    fn1 eq s 2 mod 0 eq and {/s s 1 add def} {exit} ifelse
                 } {
-                    -1 le {exit} if % LNK
+                    pop
                 } ifelse
                 /n n 1 add def
                 /s s 1 add def
