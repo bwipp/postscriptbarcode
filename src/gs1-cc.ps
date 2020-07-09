@@ -278,7 +278,7 @@ begin
         /ai90rem exch def
         /nalpha 0 ai90rem {dup 65 ge exch 90 le and {1 add} if} forall def
         /nnums  0 ai90rem {dup 48 ge exch 57 le and {1 add} if} forall def
-        /mode nalpha nnums gt {(alpha)} {(numeric)} ifelse def
+        /mode nalpha nnums gt {(alpha)} { nalpha 0 eq {(numeric)} {(alphanumeric)} ifelse } ifelse def
         nalpha nnums add ai90rem length ne {/mode (alphanumeric) def} if
         /cdf [
             cdf aload pop
@@ -326,15 +326,14 @@ begin
                 abits aload pop
             ] def
         } ifelse
-        mode (numeric) eq {
+        mode (alpha) ne {
             /gpf [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
         } {
-            /encs mode (alpha) eq {alpha} {alphanumeric} ifelse def
             /in [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
             /out in length 6 mul array def
             /j 0 def
             0 1 in length 1 sub {
-                in exch get encs exch get
+                in exch get alpha exch get
                 dup [ exch {48 sub} forall ] out exch j exch putinterval
                 length j add /j exch def
             } for
@@ -343,7 +342,7 @@ begin
                 out 0 j getinterval aload pop
             ] def
             /gpf [] def
-            ais length 1 gt mode (alpha) ne or {/mode (numeric) def} if
+            ais length 1 gt {/mode (numeric) def} if
         } ifelse
         /ais  ais  1 ais  length 1 sub getinterval def
         /vals vals 1 vals length 1 sub getinterval def
@@ -591,12 +590,12 @@ begin
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
             /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
-        mode (alpha) eq {  % Prefix FNC1
-            /pad [ 1 1 1 1 1 pad aload pop ] 0 pad length getinterval def
+        mode (alpha) eq {  % Prefix FNC1 + shift from numeric to ASCII
+            /pad [ 1 1 1 1 1 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
     } if
 
-    % Concatinate fields
+    % Concatenate fields
     /bits [
         cdf aload pop
         gpf aload pop
