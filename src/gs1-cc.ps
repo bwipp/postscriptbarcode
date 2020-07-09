@@ -425,14 +425,17 @@ begin
             m   40 le               {8 } if
             m   41 ge m  160 le and {16} if
             m  161 ge m  320 le and {32} if
-            m  321 ge               {64} if
+            m  321 ge m  833 le and {64} if  % 833 = 900 - 3 - 64, where 900 = 30 rows x 30 cols limit
+            m  834 ge               {32} if  % Reduce to meet advertised "up to 2361 digits" (allows max 2372) within 900 limit
             /eccws exch def
             /m m eccws add 3 add def
-            /c linwidth 52 sub 17 idiv def
-            m c idiv 90 gt {/c c 1 add def} if
-            /r m c div ceiling cvi def
-            /tgt c r mul eccws sub 3 sub dup 5 idiv 6 mul exch 5 mod add 8 mul def
-            used 8296 le {tgt used sub} {-1} ifelse
+            {  % Loop until rows <= 30 or columns >= 30 (GS1 General Specifications 5.9.2.3)
+                m cccolumns div ceiling cvi 30 le cccolumns 30 ge or {exit} if
+                /cccolumns cccolumns 1 add def
+            } loop
+            /r m cccolumns div ceiling cvi def
+            /tgt cccolumns r mul eccws sub 3 sub dup 5 idiv 6 mul exch 5 mod add 8 mul def
+            used 8304 le {tgt used sub} {-1} ifelse
         } ifelse
         dup -1 eq {  % Upgrade CC-A to CC-B or CC-B to CC-C to fit
             pop
@@ -486,7 +489,7 @@ begin
     } for
 
     % Encode the general purpose field
-    /gpfenc 8296 array def
+    /gpfenc 8304 array def  % 8304 = (865 / 5) * 6 * 8, where 865 = 900 - 3 - 32
     /i 0 def /j 0 def
     {  % loop
         i gpf length eq {exit} if
@@ -680,6 +683,7 @@ begin
         options (dontdraw) true put
         options (ccc) true put
         options (columns) cccolumns put
+        options (eclevel) eccws ln 2 ln div cvi 1 sub put
         /args barcode options //pdf417 exec def
     } if
 
