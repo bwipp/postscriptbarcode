@@ -73,8 +73,8 @@ begin
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
 
-    columns 4 ge columns 62 le and
-    rows 2 ge rows 44 le and rows -1 eq or and {/c columns def} if
+    /c columns 4 ge columns 62 le and {columns} {8} ifelse def
+    /rows rows 2 ge rows 44 le and {rows} {-1} ifelse def
 
     % Parse ordinals of the form ^NNN to ASCII
     parse {
@@ -267,7 +267,7 @@ begin
     } bind def
 
     % Convert message to codewords
-    /cws c 5 add rows -1 ne {rows} {44} ifelse mul array def
+    /cws c 5 add 44 mul array def
 
     /i 0 def /j 0 def /r 1 def
     /lastrow false def {
@@ -306,12 +306,13 @@ begin
             i msglen eq endofrow or {exit} if
 
             i numsscr /nums exch def /nchars exch def
+            /remnums nums rem 2 mul gt {rem 2 mul} {nums} ifelse def
 
             % Determine switches and shifts
             {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and
+                cset (seta) eq cset (setb) eq or remnums 4 ge and
                 msg i get fn1 ne and {
-                    nums 2 mod 0 eq
+                    remnums 2 mod 0 eq
                     rem 3 ge and {
                         swc cset (seta) eq {enca} {encb} ifelse
                         /cset (setc) def
@@ -326,7 +327,7 @@ begin
                         } repeat
                         exit
                     } if
-                    nums 2 mod 0 ne
+                    remnums 2 mod 0 ne
                     rem 4 ge and {
                         msg i get cset (seta) eq {enca} {encb} ifelse
                         /i i 1 add def
@@ -376,7 +377,7 @@ begin
                     /i i 1 add def
                     exit
                 } if
-                cset (setc) eq nums 2 lt and
+                cset (setc) eq remnums 2 lt and
                 rem 2 ge and {
                     i abeforeb {
                         swa encc
@@ -405,7 +406,7 @@ begin
                     /i i 1 add def
                     exit
                 } if
-                cset (setc) eq nums 2 ge and
+                cset (setc) eq remnums 2 ge and
                 rem 1 ge and {
                     msg i get fn1 eq {
                         fn1 encc
@@ -426,7 +427,7 @@ begin
         } loop
 
         % Determine whether this is the final row
-        r rows eq rows -1 eq or r 1 gt and i msglen eq and rem 2 ge and {
+        r rows ge rows -1 eq or r 1 gt and i msglen eq and rem 2 ge and {
             rem 2 sub padrow
             /j j 3 add def  % Skip symbol and row checksum character positions
             stp enca
