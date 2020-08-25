@@ -203,17 +203,42 @@ begin
             i barlen eq {exit} if
             /char barcode i get def
             text j char put
-            parsefnc char 94 eq and i barlen 4 sub lt and {
-                barcode i 1 add get 94 ne {
-                    /char fncvals barcode i 1 add 4 getinterval get def
+            /i i 1 add def
+            parsefnc char 94 eq and i barlen lt and {
+                barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
                     text j ( ) putinterval
-                    /i i 4 add def
-                } {
+                    i barlen 3 sub ge {
+                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                    } if
+                    barcode i 4 getinterval
+                    dup 0 3 getinterval (ECI) ne {
+                        dup fncvals exch known not {
+                            dup length 28 add string dup 28 4 -1 roll putinterval
+                            dup 0 (Unknown function character: ) putinterval
+                            /bwipp.unknownFNC exch //raiseerror exec
+                        } if
+                        fncvals exch get
+                        /i i 4 add def
+                    } {  % "^ECInnnnnn" -> -nnnnnn
+                        pop
+                        i barlen 8 sub ge {
+                            /bwipp.truncatedECI (ECI truncated) //raiseerror exec
+                        } if
+                        barcode i 3 add 6 getinterval
+                        dup {
+                            dup 48 lt exch 57 gt or {
+                                /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                            } if
+                        } forall
+                        0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                        /i i 9 add def
+                    } ifelse
+                    /char exch def
+                } {  % "^^" -> "^"
                     /i i 1 add def
                 } ifelse
             } if
             msg j char put
-            /i i 1 add def
             /j j 1 add def
         } loop
         /msg msg 0 j getinterval def
