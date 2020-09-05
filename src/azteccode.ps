@@ -57,6 +57,7 @@ begin
     /ecaddchars 3 def
     /raw false def
     /parse false def
+    /parsefnc false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -94,6 +95,57 @@ begin
         } loop
     } if
 
+    /barlen barcode length def
+
+    % Convert input into bytes accounting for FNC characters
+    /fn1 -1 def
+    /fncvals <<
+        (FNC1) fn1
+    >> def
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        /i i 1 add def
+        parsefnc char 94 eq and i barlen lt and {
+            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
+                i barlen 3 sub ge {
+                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                } if
+                barcode i 4 getinterval
+                dup 0 3 getinterval (ECI) ne {
+                    dup fncvals exch known not {
+                        dup length 28 add string dup 28 4 -1 roll putinterval
+                        dup 0 (Unknown function character: ) putinterval
+                        /bwipp.unknownFNC exch //raiseerror exec
+                    } if
+                    fncvals exch get
+                    /i i 4 add def
+                } {  % "^ECInnnnnn" -> -nnnnnn
+                    pop
+                    i barlen 8 sub ge {
+                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
+                    } if
+                    barcode i 3 add 6 getinterval
+                    dup {
+                        dup 48 lt exch 57 gt or {
+                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                        } if
+                    } forall
+                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                    /i i 9 add def
+                } ifelse
+                /char exch def
+            } {  % "^^" -> "^"
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /j j 1 add def
+    } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
+
     % Convert from input into message bitstream
     /msgbits () def
     format (rune) ne raw and {/msgbits barcode def} if
@@ -103,10 +155,10 @@ begin
         /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
 
         % Special function characters
-        /lu -1 def  /ll -2 def  /lm -3 def
-        /lp -4 def  /ld -5 def  /su -6 def
-        /sp -7 def  /sb -8 def  /fl -9 def
-        /p2 -10 def /p3 -11 def /p4 -12 def /p5 -13 def
+        /lu -2 def  /ll -3 def  /lm -4 def
+        /lp -5 def  /ld -6 def  /su -7 def
+        /sp -8 def  /sb -9 def  /fl -10 def
+        /p2 -11 def /p3 -12 def /p4 -13 def /p5 -14 def
 
         % Character maps for each state
         /charmaps [
@@ -196,8 +248,20 @@ begin
             [  4  e  e  4  e ]  % D
         ] def
 
-        %            U   L   M   P   D   B
-        /charsize [  5   5   5   5   4   8 ] def
+        /charsize {
+            dup 0 ge {
+                %      U   L   M   P   D   B
+                pop [  5   5   5   5   4   8 ] exch get
+            } {  % FNC or ECI in P
+                exch pop
+                dup fn1 eq {  % FNC1: PS{Flg(0)} + 3
+                    pop 8
+                } {  % ECI: PS{Flg(n)} + 3 + 4n
+                    neg 1000000 sub dup 0 eq {pop 1} if
+                    ln 10 ln div cvi 1 add 4 mul 8 add
+                } ifelse
+            } ifelse
+        } bind def
 
         %          U  L  M  P  D  B
         /curlen [  0  e  e  e  e  e ] def
@@ -207,7 +271,7 @@ begin
         /lastchar () def
 
         % Derive the optimal sequences ending in each state
-        barcode {
+        msg {
 
             /char exch def
 
@@ -247,10 +311,14 @@ begin
                 { % loop for common exit
 
                     % Skip states that cannot encode character
-                    x B ne {charvals x get char known not {exit} if} if
+                    char 0 ge {
+                        x B ne {charvals x get char known not {exit} if} if
+                    } {
+                        x P ne {exit} if  % Only P can encode FNC1 and ECI
+                    } ifelse
 
                     % Extend directly
-                    /cost curlen x get charsize x get add def
+                    /cost curlen x get x char charsize add def
                     cost nxtlen x get lt {
                         nxtlen x cost put
                         nxtseq x [ curseq x get aload pop char ] put
@@ -261,7 +329,7 @@ begin
                     [ U L M P D ] {
                         /y exch def
                         x y ne {
-                            /cost curlen y get shftlen y get x get add charsize x get add def
+                            /cost curlen y get shftlen y get x get add x char charsize add def
                             cost nxtlen y get lt {
                                 nxtlen y cost put
                                 nxtseq y [
@@ -279,7 +347,7 @@ begin
             } forall
 
             % Optimise using P compression
-            lastchar () ne {
+            lastchar () ne char 0 ge and {
                 /pchars 2 string dup 0 lastchar put dup 1 char put def
                 pcomp pchars known {
                     curlen P get nxtlen P get lt {
@@ -290,15 +358,17 @@ begin
             } if
 
             % Account for binary extension for 32 or more bytes
-            /numbytes 0 def
-            nxtseq B get {
-                sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
-            } forall
-            numbytes 32 eq {nxtlen B nxtlen B get 11 add put} if
+            nxtseq B get null ne {
+                /numbytes 0 def
+                nxtseq B get {
+                    sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
+                } forall
+                numbytes 32 eq {nxtlen B nxtlen B get 11 add put} if
+            } if
 
             /curlen nxtlen def
             /curseq nxtseq def
-            /lastchar char def
+            /lastchar char 0 ge {char} {()} ifelse def
 
         } forall
 
@@ -317,12 +387,36 @@ begin
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
             dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
         } bind def
+
         /encu {charvals U get exch get 5 tobin} bind def
         /encl {charvals L get exch get 5 tobin} bind def
         /encm {charvals M get exch get 5 tobin} bind def
-        /encp {charvals P get exch get 5 tobin} bind def
         /encd {charvals D get exch get 4 tobin} bind def
+
+        /encp {
+            dup 0 ge {
+                charvals P get exch get 5 tobin
+            } {
+                dup fn1 eq {  % FNC1: Flg(0)
+                    pop (00000000)
+                } {  % ECI: Flg(n) + n-Digits
+                    neg 1000000 sub dup dup 0 eq {pop 1} if
+                    ln 10 ln div cvi
+                    dup 1 add 4 mul 8 add string
+                    dup 0 (00000) putinterval  % Flg(n)
+                    dup 2 index 1 add 3 tobin 5 exch putinterval  % len
+                    3 1 roll -1 0 {   % ECI digits in "Digit" encoding
+                        4 mul 8 add exch
+                        dup 10 idiv 3 index 4 2 roll
+                        10 mod 2 add 4 tobin putinterval
+                    } for
+                    pop
+                } ifelse
+            } ifelse
+        } bind def
+
         /encfuncs [ /encu /encl /encm /encp /encd ] def
+
         /addtomsgbits {
             /v exch def
             msgbits j v putinterval
