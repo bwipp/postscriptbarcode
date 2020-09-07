@@ -180,7 +180,10 @@ begin
     ] 0 exch {1 index def 1 add} forall pop
 
     % Convert from input into message bitstream
-    /N 0 def  /A 1 def  /B 2 def  /K 3 def
+    %
+    % Modes: (N)umeric, (A)lphanumeric, (B)yte, (K)anji, (E)CI
+    %
+    /N 0 def  /A 1 def  /B 2 def  /K 3 def  /E 4 def
 
     /Nexcl <<
        [
@@ -213,16 +216,17 @@ begin
         ] {-1} forall
     >> def
 
-    /mids [  % N  A  B  K
-        [ (0001) (0010) (0100) (1000) ]  % v1to9
-        [ (0001) (0010) (0100) (1000) ]  % v10to26
-        [ (0001) (0010) (0100) (1000) ]  % v27to40
-        [     ()   -1     -1     -1   ]  % vM1
-        [    (0)    (1)   -1     -1   ]  % vM2
-        [   (00)   (01)   (10)   (11) ]  % vM3
-        [  (000)  (001)  (010)  (011) ]  % vM4
+    /mids [
+        %    N      A      B      K      E
+        [ (0001) (0010) (0100) (1000) (0111) ]  % v1to9
+        [ (0001) (0010) (0100) (1000) (0111) ]  % v10to26
+        [ (0001) (0010) (0100) (1000) (0111) ]  % v27to40
+        [     ()   -1     -1     -1     -1   ]  % vM1
+        [    (0)    (1)   -1     -1     -1   ]  % vM2
+        [   (00)   (01)   (10)   (11)   -1   ]  % vM3
+        [  (000)  (001)  (010)  (011)   -1   ]  % vM4
       32 {
-        [  (001)  (010)  (011)  (100) ]  % rMQR
+        [  (001)  (010)  (011)  (100)   -1   ]  % rMQR
       } repeat
     ] def
 
@@ -295,7 +299,7 @@ begin
     /encA {
         /in exch def
         fnc1first {  % FNC1 as %
-            /in [ in { dup -1 eq {pop 37} if } forall ] def
+            /in [ in { dup fn1 eq {pop 37} if } forall ] def
         } if
         /out in length 11 mul 2 idiv 1 add string def
         /k 0 def /m 0 def {
@@ -339,7 +343,7 @@ begin
     /encB {
         /in exch def
         fnc1first {  % FNC1 as GS
-            /in [ in { dup -1 eq {pop 29} if } forall ] def
+            /in [ in { dup fn1 eq {pop 29} if } forall ] def
         } if
         /out in length 8 mul string def
         0 1 in length 1 sub {
@@ -365,7 +369,18 @@ begin
         out
     } bind def
 
-    /encfuncs [ /encN /encA /encB /encK ] def
+    /encE {
+        0 get neg 1000000 sub
+            dup 000127 le {  % ECI 000000 - 000127
+            8 tobin
+        } { dup 016383 le {  % ECI 000128 - 016383
+                2#1000000000000000 add 16 tobin
+        } {                  % ECI 016384 - 999999
+                2#110000000000000000000000 add 24 tobin
+        } ifelse } ifelse
+    } bind def
+
+    /encfuncs [ /encN /encA /encB /encK /encE ] def
 
     /addtobits {
         dup bits j 3 -1 roll putinterval
@@ -380,6 +395,7 @@ begin
     /nextBs [ msglen {0} repeat 9999 ] def
     /nextAs [ msglen {0} repeat 9999 ] def
     /nextKs [ msglen {0} repeat 9999 ] def
+    /isECI msglen array def
     msglen 1 sub -1 0 {
         /i exch def
         /barchar msg i get def
@@ -407,6 +423,7 @@ begin
         } {
             nextAs i nextAs i 1 add get 1 add put
         } ifelse
+        isECI i barchar -1000000 le put
     } for
     /numKs [ numKs {1 add 2 idiv} forall ] def
 
@@ -469,16 +486,25 @@ begin
             /numB numBs i get def
             /numA numAs i get def
             /numN numNs i get def
+            /eci isECI i get def
             ver vM1 eq numA 1 ge and {/seq -1 def exit} if
             ver vM1 eq numB 1 ge and {/seq -1 def exit} if
             ver vM1 eq numK 1 ge and {/seq -1 def exit} if
+            ver vM1 eq eci and       {/seq -1 def exit} if
             ver vM2 eq numB 1 ge and {/seq -1 def exit} if
             ver vM2 eq numK 1 ge and {/seq -1 def exit} if
+            ver vM2 eq eci and       {/seq -1 def exit} if
+            ver vM3 eq eci and       {/seq -1 def exit} if
+            ver vM4 eq eci and       {/seq -1 def exit} if
+            ver vR7x43 ge eci and    {/seq -1 def exit} if
             {  % common exit
+                eci {
+                    E exit
+                } if
                 ver vR7x43 ge {  % TODO rMQR is binary only for now
                     B exit
                 } if
-                mode -1 eq {  % Set initial mode
+                mode -1 eq {  % Set initial mode (or mode after ECI)
                     [ 1  1  1  e  e  1  1] KbeforeA {K exit} if
                     [ 1  1  1  e  e  1  1] KbeforeN {K exit} if
                     [ 5  5  6  e  e  2  3] KbeforeB {K exit} if
@@ -549,6 +575,7 @@ begin
                 mode B eq {B msg i numB getinterval} if
                 mode A eq {A msg i numA getinterval} if
                 mode N eq {N msg i numN getinterval} if
+                mode E eq {E msg i 1 getinterval  /mode -1 def} if
                 /dat exch def /sw exch def
                 /seq [ seq aload pop sw dat ] def
             } ifelse
@@ -568,12 +595,14 @@ begin
                 /i exch def
                 /mode seq i get def
                 mids ver get mode get addtobits
-                /cclen cclens ver get mode get def
                 /chars seq i 1 add get def
-                chars length 2 cclen exp cvi ge {  % Too many characters for cc indicator
-                    /abort true def exit
+                mode E ne {
+                    /cclen cclens ver get mode get def
+                    chars length 2 cclen exp cvi ge {  % Too many characters for cc indicator
+                        /abort true def exit
+                    } if
+                    chars length mode K eq {2 idiv} if cclen tobin addtobits
                 } if
-                chars length mode K eq {2 idiv} if cclen tobin addtobits
                 chars encfuncs mode get load exec addtobits
             } for
             abort {exit} if
