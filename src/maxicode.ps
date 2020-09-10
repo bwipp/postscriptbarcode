@@ -53,6 +53,7 @@ begin
     /mode -1 def
     /sam -1 def
     /parse false def
+    /parsefnc false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -88,35 +89,82 @@ begin
             } ifelse
         } loop
     } if
-
-    /msg barcode def
-    /msglen msg length def
+    /barlen barcode length def
 
     % Special message handling for modes 2 and 3
     mode 2 eq mode 3 eq or {
 
         % Normalise messages that begin with a field identifier [)>RS01GSyy
-        msg 0 7 getinterval <5b293e1e30311d> eq {
-            /fid msg 0 9 getinterval def
-            /msg msg 9 msglen 9 sub getinterval def
+        barcode 0 7 getinterval <5b293e1e30311d> eq {
+            /fid barcode 0 9 getinterval def
+            /barcode barcode 9 barlen 9 sub getinterval def
         } {
             /fid () def
         } ifelse
 
         % Read the postcode, country code and service code fields seperated by GS
-        msg <1d> search pop /pcode exch def
+        barcode <1d> search pop /pcode exch def
         pop <1d> search pop /ccode exch def
         pop <1d> search pop /scode exch def
-        pop /msg exch def
+        pop /barcode exch def
 
         % Prepend the field identifier
-        msg length fid length add string dup
+        barcode length fid length add string dup
         0 fid putinterval dup
-        fid length msg putinterval
-        /msg exch def
-        /msglen msg length def
+        fid length barcode putinterval
+        /barcode exch def
+        /barlen barcode length def
 
     } if
+
+    % Convert input into bytes accounting for FNC characters
+    /fn1 -1 def
+    /fncvals <<
+        % ECIs only
+    >> def
+    /msg barlen array def
+    /i 0 def /j 0 def {
+        i barlen eq {exit} if
+        /char barcode i get def
+        /i i 1 add def
+        parsefnc char 94 eq and i barlen lt and {
+            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
+                i barlen 3 sub ge {
+                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                } if
+                barcode i 4 getinterval
+                dup 0 3 getinterval (ECI) ne {
+                    dup fncvals exch known not {
+                        dup length 28 add string dup 28 4 -1 roll putinterval
+                        dup 0 (Unknown function character: ) putinterval
+                        /bwipp.unknownFNC exch //raiseerror exec
+                    } if
+                    fncvals exch get
+                    /i i 4 add def
+                } {  % "^ECInnnnnn" -> -nnnnnn
+                    pop
+                    i barlen 8 sub ge {
+                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
+                    } if
+                    barcode i 3 add 6 getinterval
+                    dup {
+                        dup 48 lt exch 57 gt or {
+                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                        } if
+                    } forall
+                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                    /i i 9 add def
+                } ifelse
+                /char exch def
+            } {  % "^^" -> "^"
+                /i i 1 add def
+            } ifelse
+        } if
+        msg j char put
+        /j j 1 add def
+    } loop
+    /msg msg 0 j getinterval def
+    /msglen msg length def
 
     % Special function characters
     /eci -1 def  /pad -2 def  /ns -3 def
@@ -250,10 +298,39 @@ begin
             exit
         } if
         { % not a loop but common exit point
+            % Immediately encode an ECI
+            msg i get -1000000 le {
+                eci cset load enc
+                msg i get neg 1000000 sub
+                    dup 000031 le {  % ECI 000000 - 000031
+                                         63 and
+                        1 array astore
+                } { dup 001023 le {  % ECI 000032 - 001023
+                        dup  -6 bitshift 31 and 32 or exch
+                                         63 and
+                        2 array astore
+                } { dup 032767 le {  % ECI 001024 - 032767
+                        dup -12 bitshift 47 and 48 or exch
+                        dup  -6 bitshift 63 and       exch
+                                         63 and
+                        3 array astore
+                } {                  % ECI 032768 - 999999
+                        dup -18 bitshift 55 and 56 or exch
+                        dup -12 bitshift 63 and       exch
+                        dup  -6 bitshift 63 and       exch
+                                         63 and
+                        4 array astore
+                } ifelse } ifelse } ifelse
+                dup out exch j exch putinterval
+                length j add /j exch def
+                /i i 1 add def
+                exit
+            } if
 
             % If 9 numerals available then use NS
             nseq i get 9 ge {
-                msg i 9 getinterval cvi 4 { dup 63 and exch -6 bitshift } repeat cset load ns get
+                msg i 9 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
+                4 { dup 63 and exch -6 bitshift } repeat cset load ns get
                 0 2 10 {index} for 6 array astore 7 1 roll 6 {pop} repeat
                 out exch j exch putinterval
                 /i i 9 add def
