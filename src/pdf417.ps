@@ -212,7 +212,7 @@ begin
         /msglen msg length def
 
         % Modes and text submodes
-        /T 0 def  /N 1 def  /B 2 def
+        /T 0 def  /N 1 def  /B 2 def  /E 3 def  % E = ECI
         /A 0 def  /L 1 def  /M 2 def  /P 3 def
 
         % Special function characters for mode switching
@@ -260,14 +260,14 @@ begin
         /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
         /alltext 104 dict def
         0 1 charmaps length 1 sub {
-          /i exch def
-          /encs charmaps i get def
-          0 1 3 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            dup charvals j get exch i put
-            alltext exch -1 put
-          } for
+            /i exch def
+            /encs charmaps i get def
+            0 1 3 {
+                /j exch def
+                encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+                dup charvals j get exch i put
+                alltext exch -1 put
+            } for
         } for
 
         /e 10000 def  % "Empty"
@@ -300,6 +300,7 @@ begin
         /numdigits [ msglen {0} repeat 0 ] def
         /numtext   [ msglen {0} repeat 0 ] def
         /numbytes  [ msglen {0} repeat 0 ] def
+        /iseci     [ msglen {0} repeat 0 ] def
         msglen 1 sub -1 0 {
             /i exch def
             msg i get dup 48 ge exch 57 le and {
@@ -308,9 +309,10 @@ begin
             alltext msg i get known numdigits i get 13 lt and {
                 numtext i numtext i 1 add get 1 add put
             } if
-            numtext i get 5 lt numdigits i get 13 lt and {
+            msg i get 0 ge numtext i get 5 lt and numdigits i get 13 lt and {
                 numbytes i numbytes i 1 add get 1 add put
             } if
+            iseci i msg i get -1000000 le put
         } for
         /numdigits numdigits 0 msglen getinterval def
         /numtext   numtext   0 msglen getinterval def
@@ -318,11 +320,20 @@ begin
 
         /seq [] def /seqlen 0 def /state T def /p 0 def {  % loop
             p msglen eq {exit} if
+            iseci p get {
+                /seq [
+                    seq aload pop
+                    [ msg p get ]
+                ] def
+                /p p 1 add def
+                /seqlen seqlen 1 add def
+            } {
             /n numdigits p get def
             n 13 ge {
                 /seq [
                     seq aload pop
                     nl
+                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p n getinterval aload pop ]
                 ] def
                 /state N def
@@ -333,7 +344,10 @@ begin
             t 5 ge {
                 /seq [
                     seq aload pop
-                    state T ne {tl} if
+                    state T ne {
+                        tl
+                        p 0 gt {iseci p 1 sub get {exch} if} if
+                    } if
                     [ msg p t getinterval aload pop ]
                 ] def
                 /state T def
@@ -345,6 +359,7 @@ begin
                 /seq [
                     seq aload pop
                     bs
+                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p get ]
                 ] def
                 /p p b add def
@@ -353,12 +368,13 @@ begin
                 /seq [
                     seq aload pop
                     b 6 mod 0 ne {bl} {bl6} ifelse
+                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p b getinterval aload pop ]
                 ] def
                 /state B def
                 /p p b add def
                 /seqlen seqlen 1 add b add def
-            } ifelse } ifelse } ifelse
+            } ifelse } ifelse } ifelse } ifelse
         } loop
 
         /latchcws <<
@@ -378,7 +394,6 @@ begin
         } bind def
 
         /enct {
-
             /in exch def
 
             /curlen [  e  e  e  e ] def
@@ -543,6 +558,19 @@ begin
             out
         } bind def
 
+        /ence {
+            0 get neg 1000000 sub
+                dup 000899 le {  % ECI 000000 - 000899
+                927 exch 2 array astore
+            } { dup 810899 le {  % ECI 000900 - 810899
+                926 exch dup 900 idiv 1 sub exch 900 mod 3 array astore
+            } { dup 811799 le {  % ECI 810900 - 811799
+                925 exch 810900 sub 2 array
+            } {
+                /bwipp.pdf417badECI (PDF417 supports ECIs 000000 to 811799) //raiseerror exec
+            } ifelse } ifelse } ifelse
+        } bind def
+
         /encfuncs [ /enct /encn /encb ] def
 
         /addtocws {
@@ -556,8 +584,12 @@ begin
         /i 0 def /j 0 def {
             i seq length ge {exit} if
             /chars seq i get def
-            chars type /arraytype eq {  % Encode data according to mode
-                chars encfuncs state get load exec addtocws
+            chars type /arraytype eq {
+                chars 0 get -1000000 le {  % ECI
+                    chars ence addtocws
+                } {  % Encode data according to mode
+                    chars encfuncs state get load exec addtocws
+                } ifelse
             } {  % Encode the latch to new state or byte shift
                 [ latchcws chars get ] addtocws
                 chars tl eq {/state T def /submode A def} if
