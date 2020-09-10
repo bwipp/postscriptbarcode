@@ -59,6 +59,7 @@ begin
     /ccb false def
     /raw false def
     /parse false def
+    /parsefnc false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -102,15 +103,17 @@ begin
         } loop
     } if
 
+    /barlen barcode length def
+
     raw {/encoding (raw) def} if
     cca {/encoding (cca) def} if
 
     % Convert input into array of codewords
     encoding (raw) eq encoding (cca) eq or {
-        /datcws barcode length array def
+        /datcws barlen array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
+            i barlen eq {exit} if
             /cw barcode i 1 add 3 getinterval cvi def
             datcws j cw put
             /i i 4 add def
@@ -118,9 +121,6 @@ begin
         } loop
         /datcws datcws 0 j getinterval def
     } if
-
-    /barcode [ barcode {} forall ] def
-    /barlen barcode length def
 
     ccb {/encoding (ccb) def} if
 
@@ -163,11 +163,59 @@ begin
     encoding (byte) eq encoding (ccb) eq or {
         /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
         datcws 0 barlen 6 mod 0 eq {924} {901} ifelse put
-        datcws 1 barcode encb putinterval
+        datcws 1 [ barcode {} forall ] encb putinterval
         encoding (ccb) eq {/datcws [920 datcws aload pop] def} if
     } if
 
     encoding (auto) eq {
+
+        % Convert input into bytes accounting for FNC characters
+        /fncvals <<
+            % Predates FNC non-data codewords, but supports ECI
+        >> def
+        /msg barlen array def
+        /i 0 def /j 0 def {
+            i barlen eq {exit} if
+            /char barcode i get def
+            /i i 1 add def
+            parsefnc char 94 eq and i barlen lt and {
+                barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
+                    i barlen 3 sub ge {
+                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                    } if
+                    barcode i 4 getinterval
+                    dup 0 3 getinterval (ECI) ne {
+                        dup fncvals exch known not {
+                            dup length 28 add string dup 28 4 -1 roll putinterval
+                            dup 0 (Unknown function character: ) putinterval
+                            /bwipp.unknownFNC exch //raiseerror exec
+                        } if
+                        fncvals exch get
+                        /i i 4 add def
+                    } {  % "^ECInnnnnn" -> -nnnnnn
+                        pop
+                        i barlen 8 sub ge {
+                            /bwipp.truncatedECI (ECI truncated) //raiseerror exec
+                        } if
+                        barcode i 3 add 6 getinterval
+                        dup {
+                            dup 48 lt exch 57 gt or {
+                                /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                            } if
+                        } forall
+                        0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                        /i i 9 add def
+                    } ifelse
+                    /char exch def
+                } {  % "^^" -> "^"
+                    /i i 1 add def
+                } ifelse
+            } if
+            msg j char put
+            /j j 1 add def
+        } loop
+        /msg msg 0 j getinterval def
+        /msglen msg length def
 
         % Modes and text submodes
         /T 0 def  /N 1 def  /B 2 def
@@ -218,14 +266,14 @@ begin
         /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
         /alltext 104 dict def
         0 1 charmaps length 1 sub {
-          /i exch def
-          /encs charmaps i get def
-          0 1 3 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            dup charvals j get exch i put
-            alltext exch -1 put
-          } for
+            /i exch def
+            /encs charmaps i get def
+            0 1 3 {
+                /j exch def
+                encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+                dup charvals j get exch i put
+                alltext exch -1 put
+            } for
         } for
 
         /e 10000 def  % "Empty"
@@ -255,33 +303,44 @@ begin
         ] def
 
         % Determine runlengths of digits
-        /numdigits [ barlen {0} repeat 0 ] def
-        /numtext   [ barlen {0} repeat 0 ] def
-        /numbytes  [ barlen {0} repeat 0 ] def
-        barlen 1 sub -1 0 {
+        /numdigits [ msglen {0} repeat 0 ] def
+        /numtext   [ msglen {0} repeat 0 ] def
+        /numbytes  [ msglen {0} repeat 0 ] def
+        /iseci     [ msglen {0} repeat ] def
+        msglen 1 sub -1 0 {
             /i exch def
-            barcode i get dup 48 ge exch 57 le and {
+            msg i get dup 48 ge exch 57 le and {
                 numdigits i numdigits i 1 add get 1 add put
             } if
-            alltext barcode i get known numdigits i get 13 lt and {
+            alltext msg i get known numdigits i get 13 lt and {
                 numtext i numtext i 1 add get 1 add put
             } if
-            numtext i get 5 lt numdigits i get 13 lt and {
+            msg i get 0 ge numtext i get 5 lt and numdigits i get 13 lt and {
                 numbytes i numbytes i 1 add get 1 add put
             } if
+            iseci i msg i get -1000000 le put
         } for
-        /numdigits numdigits 0 barlen getinterval def
-        /numtext   numtext   0 barlen getinterval def
-        /numbytes  numbytes  0 barlen getinterval def
+        /numdigits numdigits 0 msglen getinterval def
+        /numtext   numtext   0 msglen getinterval def
+        /numbytes  numbytes  0 msglen getinterval def
 
         /seq [] def /seqlen 0 def /state B def /p 0 def {  % loop
-            p barlen eq {exit} if
+            p msglen eq {exit} if
+            iseci p get {
+                /seq [
+                    seq aload pop
+                    [ msg p get ]
+                ] def
+                /p p 1 add def
+                /seqlen seqlen 1 add def
+            } {
             /n numdigits p get def
             n 13 ge {
                 /seq [
                     seq aload pop
                     nl
-                    [ barcode p n getinterval aload pop ]
+                    p 0 gt {iseci p 1 sub get {exch} if} if
+                    [ msg p n getinterval aload pop ]
                 ] def
                 /state N def
                 /p p n add def
@@ -291,8 +350,11 @@ begin
             t 5 ge {
                 /seq [
                     seq aload pop
-                    state T ne {tl} if
-                    [ barcode p t getinterval aload pop ]
+                    state T ne {
+                        tl
+                        p 0 gt {iseci p 1 sub get {exch} if} if
+                    } if
+                    [ msg p t getinterval aload pop ]
                 ] def
                 /state T def
                 /p p t add def
@@ -303,7 +365,8 @@ begin
                 /seq [
                     seq aload pop
                     bs
-                    [ barcode p get ]
+                    p 0 gt {iseci p 1 sub get {exch} if} if
+                    [ msg p get ]
                 ] def
                 /p p b add def
                 /seqlen seqlen 2 add def
@@ -311,12 +374,13 @@ begin
                 /seq [
                     seq aload pop
                     b 6 mod 0 ne {bl} {bl6} ifelse
-                    [ barcode p b getinterval aload pop ]
+                    p 0 gt {iseci p 1 sub get {exch} if} if
+                    [ msg p b getinterval aload pop ]
                 ] def
                 /state B def
                 /p p b add def
                 /seqlen seqlen 1 add b add def
-            } ifelse } ifelse } ifelse
+            } ifelse } ifelse } ifelse } ifelse
         } loop
 
         /latchcws <<
@@ -501,6 +565,19 @@ begin
             out
         } bind def
 
+        /ence {
+            0 get neg 1000000 sub
+                dup 000899 le {  % ECI 000000 - 000899
+                927 exch 2 array astore
+            } { dup 810899 le {  % ECI 000900 - 810899
+                926 exch dup 900 idiv 1 sub exch 900 mod 3 array astore
+            } { dup 811799 le {  % ECI 810900 - 811799
+                925 exch 810900 sub 2 array
+            } {
+                /bwipp.pdf417badECI (PDF417 supports ECIs 000000 to 811799) //raiseerror exec
+            } ifelse } ifelse } ifelse
+        } bind def
+
         /encfuncs [ /enct /encn /encb ] def
 
         /addtocws {
@@ -515,7 +592,11 @@ begin
             i seq length ge {exit} if
             /chars seq i get def
             chars type /arraytype eq {  % Encode data according to mode
-                chars encfuncs state get load exec addtocws
+                chars 0 get -1000000 le {  % ECI
+                    chars ence addtocws
+                } {  % Encode data according to mode
+                    chars encfuncs state get load exec addtocws
+                } ifelse
             } {  % Encode the latch to new state or byte shift
                 [ latchcws chars get ] addtocws
                 chars tl eq {/state T def /submode A def} if
