@@ -392,9 +392,10 @@ begin
 
         /encvals [ Avals Cvals Tvals Xvals Evals Bvals ] def
 
-        /numD [ msglen {0} repeat 0 ] def
+        /numD      [ msglen {0} repeat 0 ] def
         /nextXterm [ msglen {0} repeat 9999 ] def
         /nextNonX  [ msglen {0} repeat 9999 ] def
+        /isECI     msglen array def
         msglen 1 sub -1 0 {
             /i exch def
             /barchar msg i get def
@@ -411,6 +412,7 @@ begin
             } {
                 nextNonX i nextNonX i 1 add get 1 add put
             } ifelse
+            isECI i barchar -1000000 le put
         } for
         /nextXterm [nextXterm {dup 10000 gt {pop 10000} if} forall] def
         /nextNonX  [nextNonX  {dup 10000 gt {pop 10000} if} forall] def
@@ -435,6 +437,7 @@ begin
             mode E eq {/ec 0 def} if
             mode B eq {/bc 0 def} if
             1 {  % common exit
+                isECI i get {A exit} if  % ECI only in ASCII
                 mailmark i 45 lt and {C exit} if  % Mailmark is C40 only for 45 characters
                 /k 0 def {  % loop
                     i k add msglen eq {
@@ -475,8 +478,32 @@ begin
             /j exch length j add def
         } bind def
 
+        /ECItocws {
+            neg 1000000 sub
+                dup 000126 le {  % ECI 000000 - 000126
+                241 exch 1 add
+                2 array astore
+            } { dup 016382 le {  % ECI 000127 - 016382
+                241 exch 127 sub
+                dup 254 idiv 128 add exch
+                    254 mod 1 add
+                3 array astore
+            } {                  % ECI 016383 - 999999
+                241 exch 16383 sub
+                dup 64516 idiv         192 add exch
+                dup   254 idiv 254 mod   1 add exch
+                               254 mod   1 add
+                4 array astore
+            } ifelse } ifelse
+        } bind def
+
         /encA {
             1 {  % Common exit
+                isECI i get {
+                    msg i get ECItocws addtocws
+                    /i i 1 add def
+                    exit
+                } if
                 numD i get 2 ge {
                     2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
                     /i i 2 add def
@@ -599,7 +626,7 @@ begin
                 [unlcw] addtocws
                 /mode A def
                 % Encode something to avoid latching immediately back
-                i msglen ne {
+                i msglen ne isECI i get not and {
                     numD i get 2 ge {
                         2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
                         /i i 2 add def
@@ -672,7 +699,7 @@ begin
                 edifactvals 0 p getinterval Evalstocws addtocws
                 /mode A def
                 % Encode something to avoid latching immediately back
-                i msglen ne {
+                i msglen ne isECI i get not and {
                     numD i get 2 ge {
                         2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
                         /i i 2 add def
