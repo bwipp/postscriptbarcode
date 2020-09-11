@@ -481,25 +481,26 @@ begin
         /ECItocws {
             neg 1000000 sub
                 dup 000126 le {  % ECI 000000 - 000126
-                241 exch 1 add
-                2 array astore
+                1 add
+                1 array astore
             } { dup 016382 le {  % ECI 000127 - 016382
-                241 exch 127 sub
+                127 sub
                 dup 254 idiv 128 add exch
                     254 mod 1 add
-                3 array astore
+                2 array astore
             } {                  % ECI 016383 - 999999
-                241 exch 16383 sub
+                16383 sub
                 dup 64516 idiv         192 add exch
                 dup   254 idiv 254 mod   1 add exch
                                254 mod   1 add
-                4 array astore
+                3 array astore
             } ifelse } ifelse
         } bind def
 
         /encA {
             1 {  % Common exit
                 isECI i get {
+                    Avals eci get addtocws
                     msg i get ECItocws addtocws
                     /i i 1 add def
                     exit
