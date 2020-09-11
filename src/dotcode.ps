@@ -181,11 +181,11 @@ begin
 
     /fncvals <<
         (FNC1) fn1
-        (FNC2) fn2
+        % (FNC2) fn2  %  Use ^ECInnnnnn for ECI; Structured append not supported
         (FNC3) fn3
     >> def
     /msg barlen array def
-    /i 0 def /j 0 def {
+    /i 0 def /j 0 def /numecis 0 def {
         i barlen eq {exit} if
         /char barcode i get def
         /i i 1 add def
@@ -211,10 +211,15 @@ begin
                     barcode i 3 add 6 getinterval
                     dup {
                         dup 48 lt exch 57 gt or {
-                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                            /bwipp.invalidECI (ECI must be 000000 to 811799) //raiseerror exec
                         } if
                     } forall
                     0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                    dup -1811799 lt {
+                        pop
+                        /bwipp.invalidECI (ECI must be 000000 to 811799) //raiseerror exec
+                    } if
+                    /numecis numecis 1 add def
                     /i i 9 add def
                 } ifelse
                 /char exch def
@@ -226,6 +231,22 @@ begin
         /j j 1 add def
     } loop
     /msg msg 0 j getinterval def
+
+    % Special FNC2 semantics: Expand ECI characters into ^FNC2nnnnnn
+    /msgtmp msg length numecis 6 mul add array def
+    /j 0 def
+    0 1 msg length 1 sub {
+        msg exch get dup -1000000 le {
+            neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
+            msgtmp exch j 1 add exch putinterval
+            msgtmp j fn2 put
+            /j j 7 add def
+        } {
+            msgtmp exch j exch put
+            /j j 1 add def
+        } ifelse
+    } for
+    /msg msgtmp def
     /msglen msg length def
 
     % Pre-compute properties of the input at each point
