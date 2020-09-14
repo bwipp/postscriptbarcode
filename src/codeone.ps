@@ -179,7 +179,7 @@ begin
             (FNC3) fnc3
         >> def
         /msg barlen array def
-        /i 0 def /j 0 def {
+        /i 0 def /j 0 def /numecis 0 def {
             i barlen eq {exit} if
             /char barcode i get def
             /i i 1 add def
@@ -209,6 +209,7 @@ begin
                             } if
                         } forall
                         0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                        /numecis numecis 1 add def
                         /i i 9 add def
                     } ifelse
                     /char exch def
@@ -221,6 +222,41 @@ begin
         } loop
         /msg msg 0 j getinterval def
         /msglen msg length def
+
+        % Special characters
+        /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
+        /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
+        /unlcw 255 def
+
+        % Code One stores ECIs in data
+        /eciesc 16#5c def  % We choose \ as a typical default
+        numecis 0 gt {
+            /msgtmp msg length 2 mul numecis 6 mul add 2 add array def
+            msgtmp 0 pad put
+            msgtmp 1 eciesc put
+            /j 2 def
+            0 1 msg length 1 sub {
+                msg exch get
+                dup -1000000 le {
+                    neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
+                    msgtmp exch j 1 add exch putinterval
+                    msgtmp j eciesc put
+                    /j j 7 add def
+                } {
+                    dup eciesc ne {
+                        msgtmp exch j exch put
+                        /j j 1 add def
+                    } {
+                        pop
+                        msgtmp j eciesc put
+                        msgtmp j 1 add eciesc put
+                        /j j 2 add def
+                    } ifelse
+                } ifelse
+            } for
+            /msg msgtmp 0 j getinterval def
+            /msglen msg length def
+        } if
 
         % Basic metrics for the each symbol
         %     ver    row col dcol dcws rscw rsbl  ro ri rl
@@ -260,11 +296,6 @@ begin
                 numremcws i numremcws i 1 add get 1 add put
             } if
         } for
-
-        % Special characters
-        /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
-        /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
-        /unlcw 255 def
 
         /Avals <<
             0 1 128 {dup 1 add} for
