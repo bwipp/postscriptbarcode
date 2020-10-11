@@ -394,25 +394,24 @@ begin
         /encd {charvals D get exch get 4 tobin} bind def
 
         /encp {
-            dup 0 ge {
-                charvals P get exch get 5 tobin
+            dup fn1 eq {  % FNC1: Flg(0)
+                pop (00000000)
             } {
-                dup fn1 eq {  % FNC1: Flg(0)
-                    pop (00000000)
-                } {  % ECI: Flg(n) + n-Digits
-                    neg 1000000 sub dup dup 0 eq {pop 1} if
-                    ln 10 ln div cvi
-                    dup 1 add 4 mul 8 add string
-                    dup 0 (00000) putinterval  % Flg(n)
-                    dup 2 index 1 add 3 tobin 5 exch putinterval  % len
-                    3 1 roll -1 0 {   % ECI digits in "Digit" encoding
-                        4 mul 8 add exch
-                        dup 10 idiv 3 index 4 2 roll
-                        10 mod 2 add 4 tobin putinterval
-                    } for
-                    pop
-                } ifelse
-            } ifelse
+            dup -1000000 le {  % ECI: Flg(n) + n-Digits
+                neg 1000000 sub dup dup 0 eq {pop 1} if
+                ln 10 ln div cvi
+                dup 1 add 4 mul 8 add string
+                dup 0 (00000) putinterval  % Flg(n)
+                dup 2 index 1 add 3 tobin 5 exch putinterval  % len
+                3 1 roll -1 0 {  % ECI digits in "Digit" encoding
+                    4 mul 8 add exch
+                    dup 10 idiv 3 index 4 2 roll
+                    10 mod 2 add 4 tobin putinterval
+                } for
+                pop
+            } {
+                charvals P get exch get 5 tobin
+            } ifelse } ifelse
         } bind def
 
         /encfuncs [ /encu /encl /encm /encp /encd ] def
