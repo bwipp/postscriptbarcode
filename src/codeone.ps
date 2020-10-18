@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER codeone--
-% --REQUIRES preamble raiseerror renmatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix--
 % --DESC: Code One
 % --EXAM: Code One
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /codeone {
@@ -64,29 +65,6 @@ begin
         currentdict end /options exch def
     } if
     options {def} forall
-
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-
-    /barlen barcode length def
 
     /stype version 0 1 getinterval (S) eq def
 
@@ -143,6 +121,8 @@ begin
             a
         } bind def
 
+        /barlen barcode length def
+
         % Convert value plus one to binary
         /v [ 1 ] def
         0 1 barlen 1 sub {
@@ -175,52 +155,13 @@ begin
         % Convert input into bytes accounting for FNC characters
         /fnc1 -1 def  /fnc3 -2 def
         /fncvals <<
+            /parse parse
+            /parsefnc parsefnc
+            /eci true
             (FNC1) fnc1
             (FNC3) fnc3
         >> def
-        /msg barlen array def
-        /i 0 def /j 0 def /numecis 0 def {
-            i barlen eq {exit} if
-            /char barcode i get def
-            /i i 1 add def
-            parsefnc char 94 eq and i barlen lt and {
-                barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                    i barlen 3 sub ge {
-                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                    } if
-                    barcode i 4 getinterval
-                    dup 0 3 getinterval (ECI) ne {
-                        dup fncvals exch known not {
-                            dup length 28 add string dup 28 4 -1 roll putinterval
-                            dup 0 (Unknown function character: ) putinterval
-                            /bwipp.unknownFNC exch //raiseerror exec
-                        } if
-                        fncvals exch get
-                        /i i 4 add def
-                    } {  % "^ECInnnnnn" -> -nnnnnn
-                        pop
-                        i barlen 8 sub ge {
-                            /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                        } if
-                        barcode i 3 add 6 getinterval
-                        dup {
-                            dup 48 lt exch 57 gt or {
-                                /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                            } if
-                        } forall
-                        0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                        /numecis numecis 1 add def
-                        /i i 9 add def
-                    } ifelse
-                    /char exch def
-                } {  % "^^" -> "^"
-                    /i i 1 add def
-                } ifelse
-            } if
-            msg j char put
-            /j j 1 add def
-        } loop
-        /msg msg 0 j getinterval def
+        /msg barcode fncvals //parseinput exec def
         /msglen msg length def
 
         % Special characters
@@ -230,6 +171,7 @@ begin
 
         % Code One stores ECIs in data
         /eciesc 16#5c def  % We choose \ as a typical default
+        /numecis 0 msg { -1000000 le {1 add} if } forall def
         numecis 0 gt {
             /msgtmp msg length 2 mul numecis 6 mul add 2 add array def
             msgtmp 0 pad put

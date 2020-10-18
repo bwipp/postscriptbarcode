@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER maxicode--
-% --REQUIRES preamble raiseerror renmaximatrix--
+% --REQUIRES preamble raiseerror parseinput renmaximatrix--
 % --DESC: MaxiCode
 % --EXAM: [)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
 % --EXOP: mode=2 parse
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /maxicode {
@@ -69,32 +70,30 @@ begin
     /mode mode cvi def
     /sam sam cvi def
 
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-    /barlen barcode length def
+    % Parse the input
+    /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci true
+        % ECIs only
+    >> def
+    /msg barcode fncvals //parseinput exec def
+    /msglen msg length def
 
     % Special message handling for modes 2 and 3
     mode 2 eq mode 3 eq or {
 
-        % Normalise messages that begin with a field identifier [)>RS01GSyy
+        % Convert to a string for extracting the structured data
+        /barcode msglen string def
+        0 1 msglen 1 sub {
+            /i exch def
+            msg i get 0 gt {
+                barcode i msg i get put
+            } if
+        } for
+        /barlen barcode length def
+
+        % Normalise messages that begin with a field identifier [)>{RS}01{GS}yy
         barcode 0 7 getinterval <5b293e1e30311d> eq {
             /fid barcode 0 9 getinterval def
             /barcode barcode 9 barlen 9 sub getinterval def
@@ -115,56 +114,10 @@ begin
         /barcode exch def
         /barlen barcode length def
 
-    } if
+        /msg [ barcode {} forall ] def
+        /msglen msg length def
 
-    % Convert input into bytes accounting for FNC characters
-    /fn1 -1 def
-    /fncvals <<
-        % ECIs only
-    >> def
-    /msg barlen array def
-    /i 0 def /j 0 def {
-        i barlen eq {exit} if
-        /char barcode i get def
-        /i i 1 add def
-        parsefnc char 94 eq and i barlen lt and {
-            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                i barlen 3 sub ge {
-                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                } if
-                barcode i 4 getinterval
-                dup 0 3 getinterval (ECI) ne {
-                    dup fncvals exch known not {
-                        dup length 28 add string dup 28 4 -1 roll putinterval
-                        dup 0 (Unknown function character: ) putinterval
-                        /bwipp.unknownFNC exch //raiseerror exec
-                    } if
-                    fncvals exch get
-                    /i i 4 add def
-                } {  % "^ECInnnnnn" -> -nnnnnn
-                    pop
-                    i barlen 8 sub ge {
-                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                    } if
-                    barcode i 3 add 6 getinterval
-                    dup {
-                        dup 48 lt exch 57 gt or {
-                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                        } if
-                    } forall
-                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                    /i i 9 add def
-                } ifelse
-                /char exch def
-            } {  % "^^" -> "^"
-                /i i 1 add def
-            } ifelse
-        } if
-        msg j char put
-        /j j 1 add def
-    } loop
-    /msg msg 0 j getinterval def
-    /msglen msg length def
+    } if
 
     % Special function characters
     /eci -1 def  /pad -2 def  /ns -3 def

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code128--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble raiseerror parseinput renlinear--
 % --DESC: Code 128
 % --EXAM: Count01234567!
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /code128 {
@@ -78,35 +79,28 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-
-    /barlen barcode length def
-
     % Special function characters
     /sta  -1 def  /stb  -2 def  /stc  -3 def
     /swa  -4 def  /swb  -5 def  /swc  -6 def
     /fn1  -7 def  /fn2  -8 def  /fn3  -9 def
     /fn4 -10 def  /sft -11 def  /stp -12 def
     /lka -13 def  /lkc -14 def  % CC-A/B and CC-C linkage
+
+    % Parse the input
+    /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci false
+        (FNC1) fn1
+        (FNC1) fn1
+        (FNC2) fn2
+        (FNC3) fn3
+%        (FNC4) fn4    Not user accessible as encoded automatically
+        (LNKA) lka
+        (LNKC) lkc
+    >> def
+    /msg barcode fncvals //parseinput exec def
+    /msglen msg length def
 
     % Character maps for each state
     /charmaps [
@@ -172,10 +166,10 @@ begin
     raw {/encoding (raw) def} if
 
     encoding (raw) eq {
-        /cws barlen array def
+        /cws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barlen eq {exit} if
+            i barcode length eq {exit} if
             /cw barcode i 1 add 3 getinterval cvi def
             cws j cw put
             /i i 4 add def
@@ -187,63 +181,11 @@ begin
 
     encoding (auto) eq {
 
-        /fncvals <<
-            (FNC1) fn1
-            (FNC2) fn2
-            (FNC3) fn3
-%            (FNC4) fn4    Not user accessible as encoded automatically
-            (LNKA) lka
-            (LNKC) lkc
-        >> def
-
-        % Convert input into bytes accounting for FNC and LNK characters
-        /msg barlen array def
-        /text barlen string def
-        /i 0 def /j 0 def {
-            i barlen eq {exit} if
-            /char barcode i get def
-            text j char put
-            /i i 1 add def
-            parsefnc char 94 eq and i barlen lt and {
-                barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                    text j ( ) putinterval
-                    i barlen 3 sub ge {
-                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                    } if
-                    barcode i 4 getinterval
-                    dup 0 3 getinterval (ECI) ne {
-                        dup fncvals exch known not {
-                            dup length 28 add string dup 28 4 -1 roll putinterval
-                            dup 0 (Unknown function character: ) putinterval
-                            /bwipp.unknownFNC exch //raiseerror exec
-                        } if
-                        fncvals exch get
-                        /i i 4 add def
-                    } {  % "^ECInnnnnn" -> -nnnnnn
-                        pop
-                        i barlen 8 sub ge {
-                            /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                        } if
-                        barcode i 3 add 6 getinterval
-                        dup {
-                            dup 48 lt exch 57 gt or {
-                                /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                            } if
-                        } forall
-                        0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                        /i i 9 add def
-                    } ifelse
-                    /char exch def
-                } {  % "^^" -> "^"
-                    /i i 1 add def
-                } ifelse
-            } if
-            msg j char put
-            /j j 1 add def
-        } loop
-        /msg msg 0 j getinterval def
-        /msglen msg length def
-        /text text 0 j getinterval def
+        /text msglen string def
+        0 1 msglen 1 sub {
+            /i exch def
+            text i msg i get dup 0 lt { pop 32 } if put
+        } for
 
         % Standard and extended ASCII runlength at position
         /numSA [ msglen {0} repeat 0 ] def

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER datamatrix--
-% --REQUIRES preamble raiseerror renmatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix--
 % --DESC: Data Matrix
 % --EXAM: This is Data Matrix!
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /datamatrix {
@@ -82,27 +83,6 @@ begin
 
     /columns columns cvi def
     /rows rows cvi def
-
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
 
     /isodmre dmre def
 
@@ -212,82 +192,42 @@ begin
 
     encoding (auto) eq {
 
-        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
-        /mac05comp false def
-        /mac06comp false def
-        barcode length 9 ge {
-            barcode 0 7 getinterval
-            dup  ([\)>\03605\035) eq
-            exch ([\)>\03606\035) eq or
-            barcode barcode length 2 sub 2 getinterval (\036\004) eq and {
-                barcode 5 get 53 eq {/mac05comp} {/mac06comp} ifelse true def
-                /barcode barcode 7 barcode length 9 sub getinterval def
-            } if
-        } if
-        /barlen barcode length def
+        % Special characters
+        /fnc1  -1 def  /prog  -2 def  /m05   -3 def  /m06   -4 def
+        /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lE    -9 def  /unl -10 def
+        /sapp -11 def  /usft -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def
+        /unlcw 254 def
 
-        % Convert input into bytes accounting for FNC characters
-        /fnc1 -1 def  /prog -2 def  /m05 -3 def  /m06 -4 def
+        % Parse the input
         /fncvals <<
+            /parse parse
+            /parsefnc parsefnc
+            /eci true
             (FNC1) fnc1
             (PROG) prog
 %            (MAC5) m05    Encoded automatically
 %            (MAC6) m06    Encoded automatically
         >> def
-        /msg barlen array def
-        /i 0 def /j 0 def {
-            i barlen eq {exit} if
-            /char barcode i get def
-            /i i 1 add def
-            parsefnc char 94 eq and i barlen lt and {
-                barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                    i barlen 3 sub ge {
-                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+        /msg barcode fncvals //parseinput exec def
+        /msglen msg length def
+
+        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
+        msglen 9 ge {
+            msg 0 7 getinterval aload pop
+            29 eq exch pop exch 48 eq and exch  % [)>{RS}0*{GS}...
+            30 eq and exch 62 eq and exch 41 eq and exch 91 eq and {
+                msg msglen 2 sub 2 getinterval aload pop
+                4 eq exch 30 eq and {           %              ...{RS}{EOT}
+                    msg 5 get 53 eq {           %      ...5...
+                        /msg [ m05 msg 7 msg length 9 sub getinterval aload pop ] def
                     } if
-                    barcode i 4 getinterval
-                    dup 0 3 getinterval (ECI) ne {
-                        dup fncvals exch known not {
-                            dup length 28 add string dup 28 4 -1 roll putinterval
-                            dup 0 (Unknown function character: ) putinterval
-                            /bwipp.unknownFNC exch //raiseerror exec
-                        } if
-                        fncvals exch get
-                        /i i 4 add def
-                    } {  % "^ECInnnnnn" -> -nnnnnn
-                        pop
-                        i barlen 8 sub ge {
-                            /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                        } if
-                        barcode i 3 add 6 getinterval
-                        dup {
-                            dup 48 lt exch 57 gt or {
-                                /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                            } if
-                        } forall
-                        0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                        /i i 9 add def
-                    } ifelse
-                    /char exch def
-                } {  % "^^" -> "^"
-                    /i i 1 add def
-                } ifelse
+                    msg 5 get 54 eq {           %      ...6...
+                        /msg [ m06 msg 7 msg length 9 sub getinterval aload pop ] def
+                    } if
+                } if
             } if
-            msg j char put
-            /j j 1 add def
-        } loop
-        /msg msg 0 j getinterval def
+        } if
         /msglen msg length def
-
-        % Prefix the Macro 05/06 compression indicator
-        mac05comp { /msg [ m05 msg aload pop ] def } if
-        mac06comp { /msg [ m06 msg aload pop ] def } if
-
-        /msglen msg length def
-
-        % Special characters
-        /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lE    -9 def  /unl -10 def
-        /sapp -11 def  /usft -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def
-        /unlcw 254 def
 
         /Avals <<
             0 1 128 {dup 1 add} for

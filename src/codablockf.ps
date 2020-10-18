@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER codablockf--
-% --REQUIRES preamble raiseerror renmatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix--
 % --DESC: Codablock F
 % --EXAM: CODABLOCK F 34567890123456789010040digit
 % --EXOP: columns=8
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /codablockf {
@@ -76,33 +77,32 @@ begin
     /c columns 4 ge columns 62 le and {columns} {8} ifelse def
     /rows rows 2 ge rows 44 le and {rows} {-1} ifelse def
 
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-
-    /barlen barcode length def
-
     % Convert input into bytes accounting for FNC characters
     /swa -1 def  /swb -2 def  /swc -3 def  /sft -4 def
     /fn1 -5 def  /fn2 -6 def  /fn3 -7 def  /fn4 -8 def
     /sta -9 def  /stp -10 def
+
+    % Parse the input
+    /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci false
+        (FNC1) fn1
+%        (FNC2) fn2      Not permitted for Codablock F
+        (FNC3) fn3
+%        (FNC4) fn4      Not user accessible as encoded automatically
+    >> def
+    /msg barcode fncvals //parseinput exec def
+    /msglen msg length def
+
+    % FNC4 codeword insertion for extended ASCII
+    /msgtmp [] def
+    msg {
+        /char exch def
+        /msgtmp [ msgtmp aload pop char 128 lt {char} {fn4 char 127 and} ifelse ] def
+    } forall
+    /msg msgtmp def
+    /msglen msg length def
 
     % Character maps for each state
     /charmaps [
@@ -158,65 +158,6 @@ begin
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
-
-    /fncvals <<
-        (FNC1) fn1
-%        (FNC2) fn2      Not permitted for Codablock F
-        (FNC3) fn3
-%        (FNC4) fn4      Not user accessible as encoded automatically
-    >> def
-    /msg barlen array def
-    /i 0 def /j 0 def {
-        i barlen eq {exit} if
-        /char barcode i get def
-        /i i 1 add def
-        parsefnc char 94 eq and i barlen lt and {
-            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                i barlen 3 sub ge {
-                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                } if
-                barcode i 4 getinterval
-                dup 0 3 getinterval (ECI) ne {
-                    dup fncvals exch known not {
-                        dup length 28 add string dup 28 4 -1 roll putinterval
-                        dup 0 (Unknown function character: ) putinterval
-                        /bwipp.unknownFNC exch //raiseerror exec
-                    } if
-                    fncvals exch get
-                    /i i 4 add def
-                } {  % "^ECInnnnnn" -> -nnnnnn
-                    pop
-                    i barlen 8 sub ge {
-                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                    } if
-                    barcode i 3 add 6 getinterval
-                    dup {
-                        dup 48 lt exch 57 gt or {
-                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                        } if
-                    } forall
-                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                    /i i 9 add def
-                } ifelse
-                /char exch def
-            } {  % "^^" -> "^"
-                /i i 1 add def
-            } ifelse
-        } if
-        msg j char put
-        /j j 1 add def
-    } loop
-    /msg msg 0 j getinterval def
-    /msglen msg length def
-
-    % FNC4 codeword insertion for extended ASCII
-    /msgtmp [] def
-    msg {
-        /char exch def
-        /msgtmp [ msgtmp aload pop char 128 lt {char} {fn4 char 127 and} ifelse ] def
-    } forall
-    /msg msgtmp def
-    /msglen msg length def
 
     % Determine digit runlength and characters from given position
     /numsscr {

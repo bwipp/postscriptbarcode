@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ultracode--
-% --REQUIRES preamble raiseerror renmatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix--
 % --DESC: Ultracode
 % --EXAM: Awesome colours!
 % --EXOP: eclevel=EC2
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /ultracode {
@@ -65,77 +66,16 @@ begin
     } if
     options {def} forall
 
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-
-    /barlen barcode length def
-
-    % Convert input into bytes accounting for FNC characters
+    % Parse the input
     /fn1 -1 def  /fn3 -2 def
     /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci false
         (FNC1) fn1
         (FNC3) fn3
     >> def
-    /msg barlen array def
-    /i 0 def /j 0 def {
-        i barlen eq {exit} if
-        /char barcode i get def
-        /i i 1 add def
-        parsefnc char 94 eq and i barlen lt and {
-            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                i barlen 3 sub ge {
-                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                } if
-                barcode i 4 getinterval
-                dup 0 3 getinterval (ECI) ne {
-                    dup fncvals exch known not {
-                        dup length 28 add string dup 28 4 -1 roll putinterval
-                        dup 0 (Unknown function character: ) putinterval
-                        /bwipp.unknownFNC exch //raiseerror exec
-                    } if
-                    fncvals exch get
-                    /i i 4 add def
-                } {  % "^ECInnnnnn" -> -nnnnnn
-                    pop
-                    i barlen 8 sub ge {
-                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                    } if
-                    barcode i 3 add 6 getinterval
-                    dup {
-                        dup 48 lt exch 57 gt or {
-                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
-                        } if
-                    } forall
-                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                    /i i 9 add def
-                } ifelse
-                /char exch def
-            } {  % "^^" -> "^"
-                /i i 1 add def
-            } ifelse
-        } if
-        msg j char put
-        /j j 1 add def
-    } loop
-    /msg msg 0 j getinterval def
+    /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
     % Basic high level encoding

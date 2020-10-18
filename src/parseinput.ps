@@ -1,0 +1,149 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2019 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE parseinput--
+% --REQUIRES preamble raiseerror--
+/setpacking where {pop currentpacking true setpacking} if
+4 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/parseinput {
+
+    6 dict begin
+
+    /fncvals exch def
+    /barcode exch def
+
+    /parse    dup dup fncvals exch get def fncvals exch undef
+    /parsefnc dup dup fncvals exch get def fncvals exch undef
+    /eci      dup dup fncvals exch get def fncvals exch undef
+
+    /msg barcode length array def
+    /j 0 def
+    barcode {  % loop
+        (^) search exch
+        % Copy characters up to a "^"
+        dup length exch
+        msg exch j exch [ exch {} forall ] putinterval
+        j add /j exch def
+        {  % Found a "^" escape character
+            pop
+            1 {  % common exit
+                parse not parsefnc not and {  % "^" as is
+                    msg j 94 put
+                    /j j 1 add def
+                    exit
+                } if
+                dup length 0 eq {
+                    pop
+                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                } if
+                dup 0 get 94 eq {  % "^^" -> "^"
+                    msg j 94 put
+                    /j j 1 add def
+                    dup length 1 sub 1 exch getinterval
+                    exit
+                } if
+                parse {
+                    dup length 3 lt {
+                        pop
+                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                    } if
+                    dup 0 3 getinterval true exch {
+                        dup 48 lt exch 57 gt or { pop false } if
+                    } forall
+                    {  % "^NNN" to byte
+                        dup 0 3 getinterval cvi dup 255 gt {
+                            pop pop
+                            /bwipp.invalidECI (Ordinal must be 000 to 255) //raiseerror exec
+                        } if
+                        msg exch j exch put
+                        /j j 1 add def
+                        dup length 3 sub 3 exch getinterval
+                        exit
+                    } if
+                } if
+                parsefnc not {
+                    pop
+                    /bwipp.parsefncDisabled (Function character parsing is not enabled) //raiseerror exec
+                } if
+                dup 0 3 getinterval (ECI) eq eci and {  % "^ECInnnnnn" -> -1nnnnnn
+                    dup length 9 lt {
+                        pop
+                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
+                    } if
+                    dup 3 6 getinterval
+                    dup {
+                        dup 48 lt exch 57 gt or {
+                            pop pop
+                            /bwipp.invalidECI (ECI must be 000000 to 999999) //raiseerror exec
+                        } if
+                    } forall
+                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
+                    msg exch j exch put
+                    /j j 1 add def
+                    dup length 9 sub 9 exch getinterval
+                    exit
+                } if
+                dup length 4 lt {  % "^FNCx" -> fncvals{FNCx}
+                    pop
+                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                } if
+                dup 0 4 getinterval dup fncvals exch known not {
+                    dup length 28 add string dup 28 4 -1 roll putinterval
+                    dup 0 (Unknown function character: ) putinterval
+                    exch pop
+                    /bwipp.unknownFNC exch //raiseerror exec
+                } if
+                fncvals exch get
+                msg exch j exch put
+                /j j 1 add def
+                dup length 4 sub 4 exch getinterval
+                exit
+            } repeat
+        } {  % No more "^" characters
+            exit
+        }  ifelse
+    } loop
+
+    msg 0 j getinterval
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/parseinput dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RESOURCE parseinput--

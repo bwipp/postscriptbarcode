@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER dotcode--
-% --REQUIRES preamble raiseerror renmatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix--
 % --DESC: DotCode
 % --EXAM: This is DotCode
 % --EXOP: inkspread=0.16
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /dotcode {
@@ -80,29 +81,6 @@ begin
         /ratio 3 2 div def
     } if
 
-    % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
-
-    /barlen barcode length def
-
     % Convert input into bytes accounting for FNC characters
     /laa  -1 def  /lab  -2 def  /lac  -3 def  /bin  -4 def
     /sfa  -5 def  /sfb  -6 def  /sb2  -7 def  /sb3  -8 def
@@ -113,6 +91,36 @@ begin
     /fn1 -25 def  /fn2 -26 def  /fn3 -27 def  /crl -28 def
     /aim -29 def  /m05 -30 def  /m06 -31 def  /m12 -32 def
     /mac -33 def
+
+    % Parse the input
+    /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci true
+        (FNC1) fn1
+        % (FNC2) fn2  %  Use ^ECInnnnnn for ECI; Structured append not supported
+        (FNC3) fn3
+    >> def
+    /msg barcode fncvals //parseinput exec def
+    /msglen msg length def
+
+    % Special FNC2 semantics: Expand ECI characters into ^FNC2nnnnnn
+    /numecis 0 msg { -1000000 le {1 add} if } forall def
+    /msgtmp msg length numecis 6 mul add array def
+    /j 0 def
+    0 1 msg length 1 sub {
+        msg exch get dup -1000000 le {
+            neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
+            msgtmp exch j 1 add exch putinterval
+            msgtmp j fn2 put
+            /j j 7 add def
+        } {
+            msgtmp exch j exch put
+            /j j 1 add def
+        } ifelse
+    } for
+    /msg msgtmp def
+    /msglen msg length def
 
     % Character maps for each state
     /charmaps [
@@ -178,76 +186,6 @@ begin
     /BINvals <<
         102 [ sc2 sc3 sc4 sc5 sc6 sc7 tma tmb tmc tms ] {exch 1 add dup} forall pop
     >> def
-
-    /fncvals <<
-        (FNC1) fn1
-        % (FNC2) fn2  %  Use ^ECInnnnnn for ECI; Structured append not supported
-        (FNC3) fn3
-    >> def
-    /msg barlen array def
-    /i 0 def /j 0 def /numecis 0 def {
-        i barlen eq {exit} if
-        /char barcode i get def
-        /i i 1 add def
-        parsefnc char 94 eq and i barlen lt and {
-            barcode i get 94 ne {  % "^FNCx" -> fncvals{FNCx}
-                i barlen 3 sub ge {
-                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                } if
-                barcode i 4 getinterval
-                dup 0 3 getinterval (ECI) ne {
-                    dup fncvals exch known not {
-                        dup length 28 add string dup 28 4 -1 roll putinterval
-                        dup 0 (Unknown function character: ) putinterval
-                        /bwipp.unknownFNC exch //raiseerror exec
-                    } if
-                    fncvals exch get
-                    /i i 4 add def
-                } {  % "^ECInnnnnn" -> -nnnnnn
-                    pop
-                    i barlen 8 sub ge {
-                        /bwipp.truncatedECI (ECI truncated) //raiseerror exec
-                    } if
-                    barcode i 3 add 6 getinterval
-                    dup {
-                        dup 48 lt exch 57 gt or {
-                            /bwipp.invalidECI (ECI must be 000000 to 811799) //raiseerror exec
-                        } if
-                    } forall
-                    0 exch {48 sub sub 10 mul} forall 10 idiv 1000000 sub
-                    dup -1811799 lt {
-                        pop
-                        /bwipp.invalidECI (ECI must be 000000 to 811799) //raiseerror exec
-                    } if
-                    /numecis numecis 1 add def
-                    /i i 9 add def
-                } ifelse
-                /char exch def
-            } {  % "^^" -> "^"
-                /i i 1 add def
-            } ifelse
-        } if
-        msg j char put
-        /j j 1 add def
-    } loop
-    /msg msg 0 j getinterval def
-
-    % Special FNC2 semantics: Expand ECI characters into ^FNC2nnnnnn
-    /msgtmp msg length numecis 6 mul add array def
-    /j 0 def
-    0 1 msg length 1 sub {
-        msg exch get dup -1000000 le {
-            neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
-            msgtmp exch j 1 add exch putinterval
-            msgtmp j fn2 put
-            /j j 7 add def
-        } {
-            msgtmp exch j exch put
-            /j j 1 add def
-        } ifelse
-    } for
-    /msg msgtmp def
-    /msglen msg length def
 
     % Pre-compute properties of the input at each point
     /nDigits      [ msglen 1 add {0} repeat     ] def
@@ -718,7 +656,7 @@ begin
         } repeat
     } bind def
 
-    /cws barlen 2 mul 1 add array def
+    /cws msglen 2 mul 1 add array def
     /mode C def
     /bvals 5 array def  /bpos 0 def
     /inmac 0 def  /segstart 0 def  /segend UntilEndSeg 0 get def
