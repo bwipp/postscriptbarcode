@@ -268,19 +268,19 @@ begin
         /seq [] def /seqlen 0 def /state B def /p 0 def {  % loop
             p msglen eq {exit} if
             iseci p get {
+                /eci msg p get def
                 /seq [
                     seq aload pop
-                    [ msg p get ]
+                    [ eci ]
                 ] def
                 /p p 1 add def
-                /seqlen seqlen 1 add def
+                /seqlen seqlen eci -1810900 le {2} {eci -1000900 le {3} {2} ifelse} ifelse add def
             } {
             /n numdigits p get def
             n 13 ge {
                 /seq [
                     seq aload pop
                     nl
-                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p n getinterval aload pop ]
                 ] def
                 /state N def
@@ -293,7 +293,6 @@ begin
                     seq aload pop
                     state T ne {
                         tl
-                        p 0 gt {iseci p 1 sub get {exch} if} if
                     } if
                     [ msg p t getinterval aload pop ]
                 ] def
@@ -306,7 +305,6 @@ begin
                 /seq [
                     seq aload pop
                     bs
-                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p get ]
                 ] def
                 /p p b add def
@@ -315,7 +313,6 @@ begin
                 /seq [
                     seq aload pop
                     b 6 mod 0 ne {bl} {bl6} ifelse
-                    p 0 gt {iseci p 1 sub get {exch} if} if
                     [ msg p b getinterval aload pop ]
                 ] def
                 /state B def
@@ -513,7 +510,7 @@ begin
             } { dup 810899 le {  % ECI 000900 - 810899
                 926 exch dup 900 idiv 1 sub exch 900 mod 3 array astore
             } { dup 811799 le {  % ECI 810900 - 811799
-                925 exch 810900 sub 2 array
+                925 exch 810900 sub 2 array astore
             } {
                 /bwipp.pdf417badECI (PDF417 supports ECIs 000000 to 811799) //raiseerror exec
             } ifelse } ifelse } ifelse
