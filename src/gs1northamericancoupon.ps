@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1northamericancoupon--
-% --REQUIRES preamble raiseerror renlinear renmatrix databarexpanded databarexpandedstacked--
+% --REQUIRES preamble raiseerror parseinput renlinear renmatrix databarexpanded databarexpandedstacked--
 % --DESC: GS1 North American Coupon
 % --EXAM: (8110)106141416543213500110000310123196000
 % --EXOP: includetext segments=8
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -57,6 +58,7 @@ begin
     /coupontextsize 9 def
     /coupontextxoffset (unset) def
     /coupontextyoffset (unset) def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -76,23 +78,12 @@ begin
 
     % Expand ordinals of the form ^NNN to ASCII
     /expand {
-        /in exch def
-        /out in length string def
-        /j 0 def
-        in
-        { % loop
-            (^) search {
-                dup out exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi out exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup out exch j exch putinterval
-                length j add /j exch def
-                out 0 j getinterval exit
-            } ifelse
-        } loop
+        /fncvals <<
+            /parse parse
+            /parseonly true
+            /parsefnc false
+        >> def
+        fncvals //parseinput exec
     } bind def
 
     % Parse out AIs
@@ -136,6 +127,7 @@ begin
     coupontext gcp length 1 add cod putinterval
 
     % Get the result of encoding with databarexpandedstacked
+    options (parse) undef
     options (dontdraw) true put
 
     /args barcode options //databarexpandedstacked exec def

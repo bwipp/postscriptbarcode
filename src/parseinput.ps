@@ -44,9 +44,10 @@ begin
     /fncvals exch def
     /barcode exch def
 
-    /parse    dup dup fncvals exch get def fncvals exch undef
-    /parsefnc dup dup fncvals exch get def fncvals exch undef
-    /eci      dup dup fncvals exch get def fncvals exch undef
+    /parse     dup dup fncvals exch get def fncvals exch undef
+    /parsefnc  dup dup fncvals exch get def fncvals exch undef
+    /parseonly dup dup fncvals exch known def fncvals exch undef
+    /eci       dup dup fncvals exch known def fncvals exch undef
 
     /msg barcode length array def
     /j 0 def
@@ -93,6 +94,7 @@ begin
                         exit
                     } if
                 } if
+                parseonly {exit} if
                 parsefnc not {
                     pop
                     /bwipp.parsefncDisabled (Function character parsing is not enabled) //raiseerror exec
@@ -136,7 +138,12 @@ begin
         }  ifelse
     } loop
 
-    msg 0 j getinterval
+    parseonly not {
+        msg 0 j getinterval
+    } {
+        j string
+        0 1 j 1 sub { 1 index exch dup msg exch get put } for
+    } ifelse
 
     end
 

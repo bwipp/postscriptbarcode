@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databarexpanded--
-% --REQUIRES preamble raiseerror renlinear renmatrix--
+% --REQUIRES preamble raiseerror parseinput renlinear renmatrix--
 % --DESC: GS1 DataBar Expanded
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -50,6 +51,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /parse false def
     /dontdraw false def
     /height 34 72 div def
     /format (expanded) def
@@ -78,23 +80,12 @@ begin
 
     % Expand ordinals of the form ^NNN to ASCII
     /expand {
-        /in exch def
-        /out in length string def
-        /j 0 def
-        in
-        { % loop
-            (^) search {
-                dup out exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi out exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup out exch j exch putinterval
-                length j add /j exch def
-                out 0 j getinterval exit
-            } ifelse
-        } loop
+        /fncvals <<
+            /parse parse
+            /parseonly true
+            /parsefnc false
+        >> def
+        fncvals //parseinput exec
     } bind def
 
     % Parse out AIs
@@ -800,6 +791,8 @@ begin
             1 1
         ] def
 
+        options (parse) undef
+
         <<
         /ren //renlinear
         /sbs sbs
@@ -896,6 +889,8 @@ begin
                 } if
             } for
         ] def
+
+        options (parse) undef
 
         <<
         /ren //renmatrix

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER mailmark--
-% --REQUIRES preamble raiseerror renmatrix datamatrix--
+% --REQUIRES preamble raiseerror parseinput renmatrix datamatrix--
 % --DESC: Royal Mail Mailmark
 % --EXAM: JGB 012100123412345678AB19XY1A 0             www.xyz.com
 % --EXOP: type=29
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -66,25 +67,14 @@ begin
     options {def} forall
 
     % Parse ordinals of the form ^NNN to ASCII
-    parse {
-        /msg barcode length string def
-        /j 0 def
-        barcode
-        { % loop
-            (^) search {
-                dup msg exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi msg exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup msg exch j exch putinterval
-                length j add /j exch def
-                /barcode msg 0 j getinterval def
-                exit
-            } ifelse
-        } loop
-    } if
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    /barcode barcode fncvals //parseinput exec def
+    /barlen barcode length def
+    options (parse) undef
 
     % Map the given type to a format and version of Data Matrix
     <<

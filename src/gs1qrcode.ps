@@ -32,13 +32,14 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1qrcode--
-% --REQUIRES preamble raiseerror renmatrix qrcode--
+% --REQUIRES preamble raiseerror parseinput renmatrix qrcode--
 % --DESC: GS1 QR Code
 % --EXAM: (01)03453120000011(8200)http://www.abc.net(10)ABCD1234(410)9501101020917
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +50,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /parse false def
     /dontdraw false def
 
     % Parse the input options
@@ -64,23 +66,12 @@ begin
 
     % Expand ordinals of the form ^NNN to ASCII
     /expand {
-        /in exch def
-        /out in length string def
-        /j 0 def
-        in
-        { % loop
-            (^) search {
-                dup out exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi out exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup out exch j exch putinterval
-                length j add /j exch def
-                out 0 j getinterval exit
-            } ifelse
-        } loop
+        /fncvals <<
+            /parse parse
+            /parseonly true
+            /parsefnc false
+        >> def
+        fncvals //parseinput exec
     } bind def
 
     % Parse out AIs
@@ -156,6 +147,7 @@ begin
     /barcode barcode 0 j getinterval def
 
     % Get the result of encoding with qrcode
+    options (parse) undef
     options (dontdraw) true put
     options (parsefnc) true put
     /args barcode options //qrcode exec def

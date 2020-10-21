@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1-128--
-% --REQUIRES preamble raiseerror renlinear code128--
+% --REQUIRES preamble raiseerror parseinput renlinear code128--
 % --DESC: GS1-128
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code128 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -59,6 +60,7 @@ begin
     /height 0.5 def
     /linkagea false def
     /linkagec false def
+    /parse false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -81,23 +83,12 @@ begin
 
     % Expand ordinals of the form ^NNN to ASCII
     /expand {
-        /in exch def
-        /out in length string def
-        /j 0 def
-        in
-        { % loop
-            (^) search {
-                dup out exch j exch putinterval
-                length j add 1 add /j exch def
-                pop
-                dup 0 3 getinterval cvi out exch j 1 sub exch put
-                dup length 3 sub 3 exch getinterval
-            } {
-                dup out exch j exch putinterval
-                length j add /j exch def
-                out 0 j getinterval exit
-            } ifelse
-        } loop
+        /fncvals <<
+            /parse parse
+            /parseonly true
+            /parsefnc false
+        >> def
+        fncvals //parseinput exec
     } bind def
 
     % Parse out AIs
@@ -177,6 +168,7 @@ begin
     /barcode barcode 0 j getinterval def
 
     % Get the result of encoding with code128
+    options (parse) undef
     options (height) height put
     options (dontdraw) true put
     options (parsefnc) true put
