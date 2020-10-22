@@ -60,12 +60,44 @@ begin
         {  % Found a "^" escape character
             pop
             1 {  % common exit
+
                 parse not parsefnc not and {  % "^" as is
                     msg j 94 put
                     /j j 1 add def
                     exit
                 } if
-                dup length 0 eq {
+
+                % Encode "^" to start with
+                msg j 94 put
+                /j j 1 add def
+
+                % parse
+                parse {
+                    dup length 3 ge {
+                        dup 0 3 getinterval true exch {
+                            dup 48 lt exch 57 gt or { pop false } if
+                        } forall
+                        {  % "^NNN" to byte
+                            dup 0 3 getinterval cvi dup 255 gt {
+                                pop pop
+                                /bwipp.invalidOrdinal (Ordinal must be 000 to 255) //raiseerror exec
+                            } if
+                            /j j 1 sub def  % Replace "^" with ordinal
+                            msg exch j exch put
+                            /j j 1 add def
+                            dup length 3 sub 3 exch getinterval
+                        } if
+                    } if
+                } if
+
+                parseonly
+                parsefnc not or
+                msg j 1 sub get 94 ne  % Carat was substituted away
+                or {exit} if
+
+                % parsefnc
+                /j j 1 sub def
+                dup length 3 lt {
                     pop
                     /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
                 } if
@@ -74,30 +106,6 @@ begin
                     /j j 1 add def
                     dup length 1 sub 1 exch getinterval
                     exit
-                } if
-                parse {
-                    dup length 3 lt {
-                        pop
-                        /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
-                    } if
-                    dup 0 3 getinterval true exch {
-                        dup 48 lt exch 57 gt or { pop false } if
-                    } forall
-                    {  % "^NNN" to byte
-                        dup 0 3 getinterval cvi dup 255 gt {
-                            pop pop
-                            /bwipp.invalidECI (Ordinal must be 000 to 255) //raiseerror exec
-                        } if
-                        msg exch j exch put
-                        /j j 1 add def
-                        dup length 3 sub 3 exch getinterval
-                        exit
-                    } if
-                } if
-                parseonly {exit} if
-                parsefnc not {
-                    pop
-                    /bwipp.parsefncDisabled (Function character parsing is not enabled) //raiseerror exec
                 } if
                 dup 0 3 getinterval (ECI) eq eci and {  % "^ECInnnnnn" -> -1nnnnnn
                     dup length 9 lt {
@@ -132,6 +140,7 @@ begin
                 /j j 1 add def
                 dup length 4 sub 4 exch getinterval
                 exit
+
             } repeat
         } {  % No more "^" characters
             exit
