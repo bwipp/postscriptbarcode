@@ -1,0 +1,34 @@
+%!PS
+
+/ean13 dup /uk.co.terryburton.bwipp findresource cvx def
+
+{  % 13 digits
+    (2112345678900) (dontdraw) ean13
+    /sbs get
+} [1 1 1 2 2 2 1 2 2 2 1 2 2 1 2 1 1 4 1 1 1 3 2 1 3 2 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 3 2 1 1 1 1 1] isEqual
+
+{  % Omit checksum
+    (211234567890) (dontdraw) ean13
+    /sbs get
+} [1 1 1 2 2 2 1 2 2 2 1 2 2 1 2 1 1 4 1 1 1 3 2 1 3 2 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 3 2 1 1 1 1 1] isEqual
+
+{  % Invalid checksum
+    (2112345678901) (dontdraw) ean13
+    /sbs get
+} /bwipp.ean13badCheckDigit isError
+
+{  % Add 5
+    (2112345678900 12345) (dontdraw) ean13
+    /sbs get
+} [1 1 1 2 2 2 1 2 2 2 1 2 2 1 2 1 1 4 1 1 1 3 2 1 3 2 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 3 2 1 1 1 1 1 12.0 1 1 2 1 2 2 2 1 1 2 1 2 2 1 1 1 1 4 1 1 1 1 1 3 2 1 1 1 2 3 1] isEqual
+
+{  % Add 2
+    (2112345678900 12) (dontdraw) ean13
+    /sbs get
+} [1 1 1 2 2 2 1 2 2 2 1 2 2 1 2 1 1 4 1 1 1 3 2 1 3 2 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 3 2 1 1 1 1 1 12.0 1 1 2 2 2 2 1 1 1 2 1 2 2] isEqual
+
+{  % Add 3!
+    (2112345678900 123) (dontdraw) ean13
+    /sbs get
+} /bwipp.ean13badAddOnLength isError
+
