@@ -23,7 +23,7 @@
   {
       cmd exec
   } stopped {
-    $error /errorname get  % Put an error on the stack
+      $error /errorname get  % Put an error on the stack
   } if
   end
   expect /test load exec
@@ -70,14 +70,6 @@
 {
     (A^000BC) << /parse false /parsefnc false >> parseinput exec
 } [ 65 94 48 48 48 66 67 ] isEqual
-
-{
-    (A^000BC) << /parse true /parsefnc false >> parseinput exec
-} [ 65 0 66 67 ] isEqual
-
-{
-    (A^000BC) << /parse false /parsefnc true >> parseinput exec
-} /bwipp.unknownFNC isError
 
 
 % parse
@@ -161,6 +153,10 @@
     (A^ECI99999ABC) << /parse false /parsefnc true /eci true (FNC1) -1 >> parseinput exec
 } /bwipp.invalidECI isError
 
+{  % No parse
+    (A^000BC) << /parse false /parsefnc true >> parseinput exec
+} /bwipp.unknownFNC isError
+
 {  % Parse creates carat
     (AB^094FNC1C) << /parse true /parsefnc true (FNC1) -1 >> parseinput exec
 } [ 65 66 -1 67 ] isEqual
@@ -172,6 +168,6 @@
     (XX^000XX^FNC1XX^ECI123456XX) << /parse true /parsefnc true /eci true (FNC1) -1 >> parseinput exec
 } [ 88 88 0 88 88 -1 88 88 -1123456 88 88 ] isEqual
 
-{
+{  % FNCs not substituted under parseonly
     (XX^000XX^FNC1XX^ECI123456XX) << /parseonly true /parse true /parsefnc true (FNC1) -1 >> parseinput exec
 } (XX\000XX^FNC1XX^ECI123456XX) isEqual
