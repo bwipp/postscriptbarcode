@@ -1,0 +1,49 @@
+%!PS
+
+/ean8 dup /uk.co.terryburton.bwipp findresource cvx def
+
+{  % 8 digits
+    (02345673) (dontdraw) ean8
+    /sbs get
+} [1 1 1 3 2 1 1 2 1 2 2 1 4 1 1 1 1 3 2 1 1 1 1 1 1 2 3 1 1 1 1 4 1 3 1 2 1 4 1 1 1 1 1] isEqual
+
+{  % Omit checksum
+    (0234567) (dontdraw) ean8
+    /sbs get
+} [1 1 1 3 2 1 1 2 1 2 2 1 4 1 1 1 1 3 2 1 1 1 1 1 1 2 3 1 1 1 1 4 1 3 1 2 1 4 1 1 1 1 1] isEqual
+
+{  % Invalid checksum
+    (02345674) (dontdraw) ean8
+    /sbs get
+} /bwipp.ean8badCheckDigit isError
+
+{  % Add 5
+    (02345673 12345) (dontdraw) ean8
+    /sbs get
+} [1 1 1 3 2 1 1 2 1 2 2 1 4 1 1 1 1 3 2 1 1 1 1 1 1 2 3 1 1 1 1 4 1 3 1 2 1 4 1 1 1 1 1 12.0 1 1 2 1 2 2 2 1 1 2 1 2 2 1 1 1 1 4 1 1 1 1 1 3 2 1 1 1 2 3 1] isEqual
+
+{  % Add 2
+    (02345673 12) (dontdraw) ean8
+    /sbs get
+} [1 1 1 3 2 1 1 2 1 2 2 1 4 1 1 1 1 3 2 1 1 1 1 1 1 2 3 1 1 1 1 4 1 3 1 2 1 4 1 1 1 1 1 12.0 1 1 2 2 2 2 1 1 1 2 1 2 2] isEqual
+
+{  % Add 3!
+    (02345673 123) (dontdraw) ean8
+    /sbs get
+} /bwipp.ean8badAddOnLength isError
+
+{  % Bad character
+    (A2345673) (dontdraw) ean8
+    /sbs get
+} /bwipp.ean8badCharacter isError
+
+{  % Too short
+    (023456) (dontdraw) ean8
+    /sbs get
+} /bwipp.ean8badLength isError
+
+{  % Too long
+    (023456731) (dontdraw) ean8
+    /sbs get
+} /bwipp.ean8badLength isError
+

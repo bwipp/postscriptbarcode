@@ -1,0 +1,99 @@
+%!PS
+
+/upce dup /uk.co.terryburton.bwipp findresource cvx def
+
+{  % 8 digits
+    (03084009) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 1 4 1 3 2 1 1 1 2 1 3 2 3 1 1 3 2 1 1 1 1 2 3 1 1 1 1 1 1] isEqual
+
+{  % Omit checksum
+    (0308400) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 1 4 1 3 2 1 1 1 2 1 3 2 3 1 1 3 2 1 1 1 1 2 3 1 1 1 1 1 1] isEqual
+
+{  % Invalid checksum
+    (03084000) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadCheckDigit isError
+
+{  % Add 5
+    (03084009 12345) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 1 4 1 3 2 1 1 1 2 1 3 2 3 1 1 3 2 1 1 1 1 2 3 1 1 1 1 1 1 12.0 1 1 2 1 2 2 2 1 1 2 1 2 2 1 1 1 1 4 1 1 1 1 1 3 2 1 1 1 2 3 1] isEqual
+
+{  % Add 2
+    (03084009 12) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 1 4 1 3 2 1 1 1 2 1 3 2 3 1 1 3 2 1 1 1 1 2 3 1 1 1 1 1 1 12.0 1 1 2 2 2 2 1 1 1 2 1 2 2] isEqual
+
+{  % Add 3!
+    (03084009 123) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadAddOnLength isError
+
+{  % Bad character
+    (A3084009) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadCharacter isError
+
+{  % Too short
+    (030840) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadLength isError
+
+{  % Too long
+    (030840091) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadLength isError
+
+{  % UPC-A conversion
+    (012100003454) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 2 2 2 2 1 2 2 1 1 4 1 2 3 1 1 1 2 3 1 2 2 2 1 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion, no checksum
+    (01210000345) (dontdraw) upce
+    /sbs get
+} [1 1 1 1 2 2 2 2 1 2 2 1 1 4 1 2 3 1 1 1 2 3 1 2 2 2 1 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion, bad checksum
+    (012100003455) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadCheckDigit isError
+
+{  % UPC-A conversion, system 1
+    (112100003451) (dontdraw) upce
+    /sbs get
+} [1 1 1 2 2 2 1 2 1 2 2 1 1 4 1 1 1 3 2 1 3 2 1 1 2 2 2 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion, system 2!
+    (21210000345) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEbadNumberSystem isError
+
+{  % UPC-A conversion, bad character
+    (A1210000345) (dontdraw) upce
+    /sbs get
+} /bwipp.upcEupcAbadCharacter isError
+
+{  % UPC-A conversion NNN{0-2}0000NNNN
+    (098200007653) (dontdraw) upce
+    /sbs get
+} [1 1 1 2 1 1 3 3 1 2 1 1 3 1 2 1 1 1 4 1 2 3 1 2 2 1 2 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion NNNN00000NNN
+    (098700000659) (dontdraw) upce
+    /sbs get
+} [1 1 1 2 1 1 3 1 2 1 3 1 3 1 2 4 1 1 1 1 2 3 1 1 1 4 1 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion NNNNN00000NN
+    (098760000057) (dontdraw) upce
+    /sbs get
+} [1 1 1 2 1 1 3 1 2 1 3 2 1 3 1 1 1 1 4 1 3 2 1 1 1 3 2 1 1 1 1 1 1] isEqual
+
+{  % UPC-A conversion NNNNNN0000{5-9}N
+    (098765000076) (dontdraw) upce
+    /sbs get
+} [1 1 1 2 1 1 3 1 2 1 3 1 3 1 2 1 1 1 4 1 3 2 1 2 1 3 1 1 1 1 1 1 1] isEqual
+
