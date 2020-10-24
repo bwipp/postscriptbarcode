@@ -1,39 +1,5 @@
 %!PS
 
-/_isEqual {
-    2 copy
-    length exch length ne {/testError pstack quit} if
-    dup length 1 sub 0 exch 1 exch {
-        dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
-    } for
-    pop pop
-} bind def
-
-/_isError {
-    2 copy ne {/testError pstack quit} if
-    pop pop
-} bind def
-
-/_doTest {
-  /test exch def
-  /expect exch def
-  /cmd exch def
-  /testStart /cmd load  % Put useful debugging info on stack
-  0 dict begin
-  {
-      cmd exec
-  } stopped {
-      $error /errorname get  % Put an error on the stack
-  } if
-  end
-  expect /test load exec
-  pop pop  % Clear debugging info on stack
-} bind def
-
-/isEqual { //_isEqual //_doTest exec } def
-/isError { //_isError //_doTest exec } def
-
-
 /parseinput /parseinput /uk.co.terryburton.bwipp findresource def
 
 
@@ -172,6 +138,3 @@
     (XX^000XX^FNC1XX^ECI123456XX) << /parseonly true /parse true /parsefnc true (FNC1) -1 >> parseinput exec
 } (XX\000XX^FNC1XX^ECI123456XX) isEqual
 
-
-% done
-(%stdout) (w) file dup (\nPASS\n) writestring dup flushfile
