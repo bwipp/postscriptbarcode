@@ -9,13 +9,16 @@ if gs --version | grep -q '^7\.'; then
   exit 0
 fi
 
-cd build/resource/Resource && gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=nullpage -P ../../../$TEST/test.ps
+OUT=$(cd build/resource/Resource && gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=nullpage -P ../../../$TEST/test.ps)
 
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ] && echo "$OUT" | grep -qFx 'PASS'; then
   echo "PASS"
   exit 0
 else
   echo "FAIL"
+  echo
+  echo "$OUT"
+  echo
   exit 1
 fi
 
