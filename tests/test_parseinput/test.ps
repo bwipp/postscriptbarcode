@@ -1,0 +1,177 @@
+%!PS
+
+/_isEqual {
+    2 copy
+    length exch length ne {/testError pstack quit} if
+    dup length 1 sub 0 exch 1 exch {
+        dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
+    } for
+    pop pop
+} bind def
+
+/_isError {
+    2 copy ne {/testError pstack quit} if
+    pop pop
+} bind def
+
+/_doTest {
+  /test exch def
+  /expect exch def
+  /cmd exch def
+  /testStart /cmd load  % Put useful debugging info on stack
+  0 dict begin
+  {
+      cmd exec
+  } stopped {
+    $error /errorname get  % Put an error on the stack
+  } if
+  end
+  expect /test load exec
+  pop pop  % Clear debugging info on stack
+} bind def
+
+/isEqual { //_isEqual //_doTest exec } def
+/isError { //_isError //_doTest exec } def
+
+
+/parseinput /parseinput /uk.co.terryburton.bwipp findresource def
+
+
+% Sanity
+
+{
+    (ABC) << /parse false /parsefnc false >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parse true /parsefnc false >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parse false /parsefnc true >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parse true /parsefnc true >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parse true /parsefnc true /eci true >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parseonly true /parse false /parsefnc false >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (ABC) << /parseonly true /parse true /parsefnc false >> parseinput exec
+} [ 65 66 67 ] isEqual
+
+{
+    (A^000BC) << /parse false /parsefnc false >> parseinput exec
+} [ 65 94 48 48 48 66 67 ] isEqual
+
+{
+    (A^000BC) << /parse true /parsefnc false >> parseinput exec
+} [ 65 0 66 67 ] isEqual
+
+{
+    (A^000BC) << /parse false /parsefnc true >> parseinput exec
+} /bwipp.unknownFNC isError
+
+
+% parse
+
+{
+    (^000ABC) << /parse true /parsefnc false >> parseinput exec
+} [ 0 65 66 67 ] isEqual
+
+{
+    (ABC^000) << /parse true /parsefnc false >> parseinput exec
+} [ 65 66 67 0 ] isEqual
+
+{
+    (A^000BC) << /parse true /parsefnc false >> parseinput exec
+} [ 65 0 66 67 ] isEqual
+
+{
+    (A^255BC) << /parse true /parsefnc false >> parseinput exec
+} [ 65 255 66 67 ] isEqual
+
+{
+    (A^256BC) << /parse true /parsefnc false >> parseinput exec
+} /bwipp.invalidOrdinal isError
+
+{  % Truncated
+    (ABC^00) << /parse true /parsefnc false >> parseinput exec
+} [65 66 67 94 48 48] isEqual
+
+{  % Truncated
+    (ABC^0) << /parse true /parsefnc false >> parseinput exec
+} [65 66 67 94 48] isEqual
+
+{  % Truncated
+    (ABC^) << /parse true /parsefnc false >> parseinput exec
+} [65 66 67 94] isEqual
+
+
+% parsefnc
+
+{  % FNC when not enabled
+    (^FNC1ABC) << /parse false /parsefnc false (FNC1) -1 >> parseinput exec
+} [ 94 70 78 67 49 65 66 67 ] isEqual
+
+{  % Start
+    (^FNC1ABC) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} [ -1 65 66 67 ] isEqual
+
+{  % Multiple in middle
+    (A^FNC1XXX^SFT+BC) << /parse false /parsefnc true (FNC1) -1 (SFT+) -2 >> parseinput exec
+} [ 65 -1 88 88 88 -2 66 67 ] isEqual
+
+{  % End
+    (ABC^FNC1) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} [ 65 66 67 -1 ] isEqual
+
+{  % Escaped "^^" -> "^"
+    (AB^^FNC1C) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} [ 65 66 94 70 78 67 49 67 ]  isEqual
+
+{  % Truncated
+    (ABC^FNC) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} /bwipp.truncatedFNC isError
+
+{  % No such FNC
+    (A^FNC2BC) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} /bwipp.unknownFNC isError
+
+{  % ECI when not enabled
+    (A^ECI123456BC) << /parse false /parsefnc true (FNC1) -1 >> parseinput exec
+} /bwipp.unknownFNC isError
+
+{  % ECI 000000
+    (A^ECI000000BC) << /parse false /parsefnc true /eci true (FNC1) -1 >> parseinput exec
+} [65 -1000000 66 67] isEqual
+
+{  % ECI 999999
+    (A^ECI999999BC) << /parse false /parsefnc true /eci true (FNC1) -1 >> parseinput exec
+} [65 -1999999 66 67] isEqual
+
+{  % Invalid ECI 99999A
+    (A^ECI99999ABC) << /parse false /parsefnc true /eci true (FNC1) -1 >> parseinput exec
+} /bwipp.invalidECI isError
+
+{  % Parse creates carat
+    (AB^094FNC1C) << /parse true /parsefnc true (FNC1) -1 >> parseinput exec
+} [ 65 66 -1 67 ] isEqual
+
+
+% parseonly
+
+{  % Without parseonly
+    (XX^000XX^FNC1XX^ECI123456XX) << /parse true /parsefnc true /eci true (FNC1) -1 >> parseinput exec
+} [ 88 88 0 88 88 -1 88 88 -1123456 88 88 ] isEqual
+
+{
+    (XX^000XX^FNC1XX^ECI123456XX) << /parseonly true /parse true /parsefnc true (FNC1) -1 >> parseinput exec
+} (XX\000XX^FNC1XX^ECI123456XX) isEqual
