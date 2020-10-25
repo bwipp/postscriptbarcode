@@ -721,6 +721,8 @@ begin
     % Short final data byte in M1 and M3 symbols has high-order value
     lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
 
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+
     % Calculate the log and anti-log tables
     /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
     /rslog 256 array def
@@ -818,6 +820,8 @@ begin
         } for
         cws ncws 1 sub cws ncws 1 sub get 15 and 4 bitshift put
     } if
+
+    options /debugecc known { /bwipp.debugecc cws //raiseerror exec } if
 
     % Create the bitmap
     /pixs [ rows cols mul {-1} repeat ] def

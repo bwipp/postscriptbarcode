@@ -10,7 +10,18 @@
 } bind def
 
 /_isError {
+    exch pop
     2 copy ne {/testError pstack quit} if
+    pop pop
+} bind def
+
+/_debugIsEqual {
+    2 copy
+    length exch length ne {/testError pstack quit} if
+    dup length 1 sub 0 exch 1 exch {
+        dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
+    } for
+    pop
     pop pop
 } bind def
 
@@ -24,6 +35,7 @@
       cmd exec
   } stopped {
       $error /errorname get  % Put an error on the stack
+      $error /errorinfo get  % Put details on the stack
   } if
   end
   expect /test load exec
@@ -32,6 +44,7 @@
 
 /isEqual { //_isEqual //_doTest exec } def
 /isError { //_isError //_doTest exec } def
+/debugIsEqual { //_debugIsEqual //_doTest exec } def
 
 [
     (../../../tests/ps_tests/parseinput.ps)
@@ -39,6 +52,7 @@
     (../../../tests/ps_tests/ean8.ps)
     (../../../tests/ps_tests/upca.ps)
     (../../../tests/ps_tests/upce.ps)
+    (../../../tests/ps_tests/qrcode.ps)
 ] { 1 dict begin run end } forall
 
 (%stdout) (w) file dup (\nPASS\n) writestring dup flushfile
