@@ -33,12 +33,12 @@
 /isEqual { //_isEqual //_doTest exec } def
 /isError { //_isError //_doTest exec } def
 
-
-(../../../tests/ps_tests/parseinput.ps) run
-(../../../tests/ps_tests/ean13.ps) run
-(../../../tests/ps_tests/ean8.ps) run
-(../../../tests/ps_tests/upca.ps) run
-(../../../tests/ps_tests/upce.ps) run
-
+[
+    (../../../tests/ps_tests/parseinput.ps)
+    (../../../tests/ps_tests/ean13.ps)
+    (../../../tests/ps_tests/ean8.ps)
+    (../../../tests/ps_tests/upca.ps)
+    (../../../tests/ps_tests/upce.ps)
+] { 1 dict begin run end } forall
 
 (%stdout) (w) file dup (\nPASS\n) writestring dup flushfile
