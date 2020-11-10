@@ -1,0 +1,47 @@
+name: BWIPP Coverity
+
+on:
+  push:
+    branches:
+      - coverity-scan
+
+jobs:
+
+  coverity:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Coverity
+        run: |
+          curl \
+            -o coverity_tool.tar.gz \
+            --form token="$TOKEN" \
+            --form project="bwipp/postscriptbarcode" \
+            https://scan.coverity.com/download/linux64
+          mkdir coverity_tool
+          tar xzf coverity_tool.tar.gz --strip 1 -C coverity_tool
+        env:
+          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+
+      - name: Build with Coverity
+        run: |
+          export PATH=`pwd`/coverity_tool/bin:$PATH
+          (cd libs/c && cov-build --dir ../../cov-int make)
+
+      - name: Submit result
+        run: |
+          tar czf cov-int.tar.gz cov-int
+          curl \
+            --form token="$TOKEN" \
+            --form email="tez@terryburton.co.uk" \
+            --form file=@cov-int.tar.gz \
+            --form version="`head -n 1 CHANGES`" \
+            --form description="BWIPP" \
+            https://scan.coverity.com/builds?project=bwipp%2Fpostscriptbarcode
+        env:
+          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
