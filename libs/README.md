@@ -11,7 +11,7 @@ directly or embed lots of static data about the resources in their code.
 
 The library implements parsing of the Metadata Specification provided here:
 
-https://github.com/bwipp/postscriptbarcode/wiki/Metadata-Specification
+<https://github.com/bwipp/postscriptbarcode/wiki/Metadata-Specification>
 
 
 Building

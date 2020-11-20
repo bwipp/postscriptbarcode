@@ -1,12 +1,10 @@
 #!/bin/bash
 
-TEST=$(dirname $0)
+TEST=$(dirname "$0")
 
 echo -n "Running $TEST: "
 
-gs -dNOPAUSE -dSAFER -dQUIET -dBATCH -sDEVICE=nullpage build/monolithic_package/barcode_with_sample.ps
-
-if [ $? -eq 0 ]; then
+if gs -dNOPAUSE -dSAFER -dQUIET -dBATCH -sDEVICE=nullpage build/monolithic_package/barcode_with_sample.ps; then
   echo "PASS"
   exit 0
 else

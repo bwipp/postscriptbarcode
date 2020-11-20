@@ -36,9 +36,9 @@
                  -I../../c
                  -I${java.home}/../include
                  -I${java.home}/../include/linux
-		 -I${java.home}/include
+                  -I${java.home}/include
                  -I${java.home}/include/linux
-		 "/>
+                "/>
     </exec>
   </target>
 
@@ -51,8 +51,8 @@
   </target>
 
   <target name="test" depends="jar,jni">
-    <javac includes="example.java" srcdir="." destdir="." includeantruntime="false" classpath=".:${jar}" />
-    <java classname="example" failonerror="true" classpath=".:${jar}" fork="true">
+    <javac includes="Example.java" srcdir="." destdir="." includeantruntime="false" classpath=".:${jar}" />
+    <java classname="Example" failonerror="true" classpath=".:${jar}" fork="true">
       <env key="LD_LIBRARY_PATH" value="../../c:$LD_LIBRARY_PATH"/>
       <sysproperty key="java.library.path" path="."/>
     </java>
@@ -63,7 +63,7 @@
     <delete file="${jar}"/>
     <delete file="${sofile}"/>
     <delete file="${swig_wrap}"/>
-    <delete file="example.class"/>
+    <delete file="Example.class"/>
   </target>
 
   <target name="all" depends="jar,jni"/>

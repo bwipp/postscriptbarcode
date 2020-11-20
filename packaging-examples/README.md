@@ -13,4 +13,4 @@ Please contribute any fixes and improvements.
 The packages are regularly built using the Open Build Service but not
 installed and tested:
 
-https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode
+<https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode>

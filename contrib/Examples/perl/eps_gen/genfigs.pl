@@ -2,9 +2,9 @@
 
 use strict;
 
-open(PS,'barcode.ps') || die 'File not found';
-$_=join('',<PS>);
-close(PS);
+open (my ($ps), '<', 'barcode.ps') || die 'File not found';
+$_=join('',<$ps>);
+close($ps);
 m/
     %\ --BEGIN\ TEMPLATE--
     (.*)
@@ -19,11 +19,11 @@ $template.="10 7 moveto\n";
 $template.="[% call %]\n";
 $template.="showpage\n";
 
-open(IN,'figs.txt');
-my @figs=<IN>;
-close(IN);
+open (my ($in), '<', 'figs.txt') || die 'File not found';
+my @figs=<$in>;
+close($in);
 
-foreach $_ (@figs) {
+foreach (@figs) {
     m/^(.*):(.*):(.*):(.*)$/ || die "Bad line: $_";
     my $filename=$1;
     my $width=$2;
@@ -33,16 +33,7 @@ foreach $_ (@figs) {
     $barcode=~s/\[% call %\]/$contents/;
     $barcode=~s/\[% width %\]/$width/;
     $barcode=~s/\[% height %\]/$height/;
-    open(OUT,"> $filename");
-    print OUT $barcode;
-    close(OUT);
+    open(my ($out), '>', $filename) || die 'Open file failed';
+    print $out $barcode;
+    close($out);
 }
-
-
-
-
-
-
-
-
-

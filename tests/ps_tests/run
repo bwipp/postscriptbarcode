@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEST=$(dirname $0)
+TEST=$(dirname "$0")
 
 echo -n "Running $TEST: "
 
@@ -9,16 +9,15 @@ if gs --version | grep -q '^7\.'; then
   exit 0
 fi
 
-OUT=$(cd build/resource/Resource && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -P ../../../$TEST/test.ps 2>&1)
-
-if [ $? -eq 0 ] && echo "$OUT" | grep -qFx 'PASS'; then
-  echo "PASS"
-  exit 0
-else
-  echo "FAIL"
-  echo
-  echo "$OUT"
-  echo
-  exit 1
+if OUT=$(cd build/resource/Resource && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -P ../../../"$TEST"/test.ps 2>&1); then
+  if echo "$OUT" | grep -qFx 'PASS'; then
+    echo "PASS"
+    exit 0
+  fi
 fi
 
+echo "FAIL"
+echo
+echo "$OUT"
+echo
+exit 1

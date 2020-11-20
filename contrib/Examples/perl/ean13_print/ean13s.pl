@@ -3,9 +3,9 @@ use strict;
 
 die 'Requires two arguments' if (@ARGV!=2);
 
-open(PS,'barcode.ps') || die 'File not found';
-$_=join('',<PS>);
-close(PS);
+open (my ($ps), '<', 'barcode.ps') || die 'File not found';
+$_=join('',<$ps>);
+close($ps);
 
 print "%!PS-Adobe-2.0\n";
 
