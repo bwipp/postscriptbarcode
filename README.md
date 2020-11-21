@@ -4,7 +4,7 @@ Barcode Writer in Pure PostScript
 [![GitHub license](https://img.shields.io/github/license/bwipp/postscriptbarcode.svg)](https://github.com/bwipp/postscriptbarcode/blob/master/LICENSE)
 [![Release](https://img.shields.io/github/release/bwipp/postscriptbarcode.svg)](https://github.com/bwipp/postscriptbarcode/releases/latest)
 [![Github commits (since latest release)](https://img.shields.io/github/commits-since/bwipp/postscriptbarcode/latest.svg)](https://github.com/bwipp/postscriptbarcode/commits/master)
-[![Travis](https://img.shields.io/travis/bwipp/postscriptbarcode/master.svg)](https://travis-ci.org/bwipp/postscriptbarcode)
+[![GitHub Actions](https://github.com/bwipp/postscriptbarcode/workflows/BWIPP%20CI/badge.svg?branch=master)](https://github.com/bwipp/postscriptbarcode/actions)
 
 Useful links:
 
