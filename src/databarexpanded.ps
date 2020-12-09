@@ -150,7 +150,8 @@ begin
                ais length 3 eq {
                    vals 0 get 0 1 getinterval (9) eq
                    vals 1 get cvi 99999 le and
-                   vals 2 get cvi 999999 le and {
+                   vals 2 get 2 2 getinterval cvi dup 1 ge exch 12 le and and  % Month 1-12
+                   vals 2 get 4 2 getinterval cvi dup 0 ge exch 31 le and and {  % Day 0-31
                        ai310x ais 2 get (11) eq and { (0111000) false exit } if
                        ai320x ais 2 get (11) eq and { (0111001) false exit } if
                        ai310x ais 2 get (13) eq and { (0111010) false exit } if
@@ -216,6 +217,8 @@ begin
         dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
     } bind def
 
+    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
+
     method (00) eq {
         /cdf [] def
         /gpf [] def
@@ -280,7 +283,7 @@ begin
         cdf  0 vals 0 get 1 12 getinterval conv12to40 putinterval
         cdf 40 ais  1 get 3  1 getinterval cvi 2 tobin putinterval
         /cdf [ cdf {48 sub} forall ] def
-        /gpf [ vals 1 get {} forall ] def
+        /gpf [ vals 1 get {} forall ais length 2 gt { fnc1 } if ] def
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
     } if
@@ -291,7 +294,7 @@ begin
         cdf 40 ais  1 get 3  1 getinterval cvi 2 tobin putinterval
         cdf 42 vals 1 get 0  3 getinterval cvi 10 tobin putinterval
         /cdf [ cdf {48 sub} forall ] def
-        /gpf [ vals 1 get dup length 3 sub 3 exch getinterval {} forall ] def
+        /gpf [ vals 1 get dup length 3 sub 3 exch getinterval {} forall ais length 2 gt { fnc1 } if ] def
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
     } if
@@ -320,8 +323,6 @@ begin
     ] {
         10 2 string cvrs dup aifixed 3 1 roll put
     } forall
-
-    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
 
     /numeric <<
         0 1 119 {
@@ -542,7 +543,7 @@ begin
         } if
     } if
 
-    % Concatinate fields
+    % Concatenate fields
     /binval [
         linkage {1} {0} ifelse
         method {48 sub} forall
