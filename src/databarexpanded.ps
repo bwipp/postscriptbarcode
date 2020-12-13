@@ -76,7 +76,11 @@ begin
 
     segments -1 eq {
         /segments format (expandedstacked) eq {4} {22} ifelse def
-    } if
+    } {
+        segments 2 lt segments 22 gt or segments 2 mod 0 ne or {
+            /bwipp.gs1databarexpandedBadSegments (The number of segments must be even from 2 to 22) //raiseerror exec
+        } if
+    } ifelse
 
     % Expand ordinals of the form ^NNN to ASCII
     /expand {
