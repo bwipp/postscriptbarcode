@@ -29,17 +29,21 @@
   /test exch def
   /expect exch def
   /cmd exch def
+  /cds countdictstack def
   /testStart /cmd load  % Put useful debugging info on stack
   0 dict begin
   {
       cmd exec
   } stopped {
-      $error /errorname get  % Put an error on the stack
-      $error /errorinfo get  % Put details on the stack
+      $error /errorname get     % Put error details on the stack
+      $error /errorname () put  % and clear the error dictionary
+      $error /errorinfo get
+      $error /errorinfo () put
   } if
   end
   expect /test load exec
-  pop pop  % Clear debugging info on stack
+  clear                                % Clear the operand stack
+  countdictstack cds sub {end} repeat  % Pop any stray dicts from the dictstack
 } bind def
 
 /isEqual { //_isEqual //_doTest exec } def
