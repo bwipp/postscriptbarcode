@@ -1,15 +1,20 @@
 # GS1 Application Identifier format specification
+#
+# X..20  -> 1 <= |X| <= 20
+# X0..20 -> 0 <= |X| <= 20   # Field is optional
+#
 
 00        N18,c=fixed
 01        N14,c=fixed
 02        N14,c=fixed
 10        X..20
-11        N6,c=date
-12        N6,c=date
-13        N6,c=date
-15        N6,c=date
-16        N6,c=date
-17        N6,c=date
+11        N6,c=yymmdd00
+12        N6,c=yymmdd00
+13        N6,c=yymmdd00
+14        N6,c=yymmdd00
+15        N6,c=yymmdd00
+16        N6,c=yymmdd00
+17        N6,c=yymmdd00
 20        N2
 21        X..20
 22        X..20
@@ -79,9 +84,9 @@
 3690-3695 N6
 37        N..8
 3900-3909 N..15
-3910-3919 N3 N..15
+3910-3919 N3,c=isocc N..15
 3920-3929 N..15
-3930-3939 N3 N..15
+3930-3939 N3,c=isocc N..15
 3940-3943 N4
 400       X..30
 401       X..30
@@ -89,39 +94,40 @@
 403       X..30
 410-417   N13,c=fixed
 420       X..20
-421       N3 X..9
-422       N3
-423       N3 N..12
-424       N3
-425       N3 N..12
-426       N3
+421       N3,c=isocc X..9
+422       N3,c=isocc
+423       N..15,c=misocc
+424       N3,c=isocc
+425       N..15,c=misocc
+426       N3,c=isocc
 427       X..3
 7001      N13
 7002      X..30
-7003      N6,c=date N4,c=hhmm
+7003      N6=yymmdd N2,c=hh N2,c=mm00
 7004      N..4
 7005      X..12
-7006      N6,c=datefull
-7007      N6,c=datefull N..6,c=optdatefull
+7006      N6,c=yymmdd
+7007      N6,c=yymmdd N0..6,c=yymmdd
 7008      X..3
 7009      X..10
-7010      X..2,c=ai7010
+7010      X..2
 7020      X..20
 7021      X..20
 7022      X..20
 7023      X..30
-7030-7039 N3 X..27
+7030-7039 N3,c=isocc X..27
+7040      N1 X1 X1 X1=gs1ii
 710-719   X..20
-7230-7239 X30
+7230-7239 X2 X..28
 7240      X..20
-8001      N14
+8001      N4,c=nonzero N5,c=nonzero N3,c=nonzero N1,c=winding N1
 8002      X..20
-8003      N14,c=fixed X..16
+8003      N14,c=fixed X0..16
 8004      X..30
-8005      N..6
-8006      N14,c=fixed N4
+8005      N..6,c=nonzero
+8006      N14,c=fixed N4,c=pieceoftotal
 8007      X..34,c=iban
-8008      N6,c=datefull N2,c=hh N..4,c=optmmss
+8008      N6,c=yymmdd N2,c=hh N0..4,c=mmss
 8009      X..50
 8010      X..30
 8011      N..12
@@ -130,7 +136,7 @@
 8017-8018 N18,c=fixed
 8019      N..10
 8020      X..25
-8026      N14,c=fixed N4,c=piecetotal
+8026      N14,c=fixed N4,c=pieceoftotal
 8110      X..70,c=nacc
 8111      N4
 8112      X..70,c=napo
