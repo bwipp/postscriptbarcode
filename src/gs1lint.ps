@@ -1,0 +1,1276 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2020 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE gs1lint--
+% --REQUIRES preamble raiseerror--
+/setpacking where {pop currentpacking true setpacking} if
+2 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1lint {
+
+    20 dict begin
+
+    /vals exch def
+    /ais exch def
+
+    /lintnumeric {
+        true exch {
+            dup 48 lt exch 57 gt or { pop false exit } if
+        } forall
+        not { pop /bwipp.GS1notNumeric (Not numeric) false exit } if
+    } bind def
+
+    /lintcset82 {
+        true exch {
+            1 string dup 0 4 -1 roll put
+            (!"%&'()*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
+            exch search not { pop pop false exit } if
+            pop pop pop
+        } forall
+        not { pop /bwipp.GS1badCSET82character (Invalid CSET 82 character) false exit } if
+    } bind def
+
+    /lintcset39 {
+        true exch {
+            1 string dup 0 4 -1 roll put
+            (#-/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+            exch search not { pop pop false exit } if
+            pop pop pop
+        } forall
+        not { pop /bwipp.GS1badCSET39character  (Invalid CSET 39 character) false exit } if
+    } bind def
+
+    /lintkey {
+        dup length 2 lt { pop pop /bwipp.GS1keyTooShort (Key is too short) false exit } if
+        dup 0 get dup 48 lt exch 57 gt or exch
+        1 get dup 48 lt exch 57 gt or or {
+            pop /bwipp.GS1badGCP (Non-numeric company prefix) false exit
+        } if
+    } bind def
+
+    /lintimporteridx {
+        (-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
+        exch search not {pop pop /bwipp.GS1badImporterIndex (Invalid importer index) false exit} if
+        pop pop pop
+    } bind def
+
+    /lintcsum {
+        mark exch
+        dup length 2 mod 0 eq {3} {1} ifelse
+        exch { 48 sub 1 index mul exch 4 exch sub } forall pop
+        0 counttomark 1 sub {add} repeat exch pop
+        10 mod 0 ne { pop /bwipp.GS1badChecksum (Bad checksum) false exit } if
+    } bind def
+
+    /lintiban {
+        dup length 4 lt { pop pop /bwipp.GS1tooShort (IBAN too short) false exit } if
+        dup true exch {
+            1 string dup 0 4 -1 roll put
+            (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+            exch search not { pop pop false exit } if
+            pop pop pop
+        } forall
+        not { pop /bwipp.GS1badIBANcharacter (Invalid IBAN character) false exit } if
+        mark exch mark exch {} forall counttomark -4 roll counttomark array astore exch pop {
+            48 sub dup 9 gt {7 sub dup 10 idiv exch 10 mod} if
+        } forall counttomark array astore exch pop
+        0 exch {exch 10 mul add 97 mod} forall
+        1 ne { pop /bwipp.GS1badIBANchecksum (IBAN checksum incorrect) false exit } if
+    } bind def
+
+    /lintzero {
+        (0) ne { pop /bwipp.GS1zeroRequired (Zero is required) false exit } if
+    } bind def
+
+    /lintnonzero {
+        false exch { 48 ne {pop true} if } forall
+        not { pop /bwipp.GS1zeroNotPermitted (Zero not permitted) false exit } if
+    } bind def
+
+    /lintnozeroprefix {
+        dup length 1 gt exch 0 get 48 eq and {
+            pop /bwipp.GS1badZeroPrefix (Zero prefix is not permitted) false exit
+        } if
+    } bind def
+
+    /lintyymmd0 {
+        dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop /bwipp.GS1badMonth (Invalid month) false exit } if
+        dup 0 2 getinterval cvi dup  21  sub  % Update 20YY periodically for century calculation
+        dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
+        dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or           % Leap year?
+        [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
+        1 index 2 2 getinterval cvi 1 sub get
+        exch 4 2 getinterval cvi lt { pop /bwipp.GS1badDay (Invalid day of month) false exit } if
+    } bind def
+
+    /lintyymmdd {
+        dup length 6 ne { pop /bwipp.GS1badDateLength (Invalid length for date) false exit } if
+        dup 4 2 getinterval cvi 1 lt { pop /bwipp.GS1badDay (Invalid day of month) false exit } if
+        lintyymmd0
+    } bind def
+
+    /linthhmm {
+        dup 0 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
+        2 2 getinterval cvi 59 gt { pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
+    } bind def
+
+    /linthhoptmmss {
+        dup length dup 2 ne exch dup 4 ne exch 6 ne and and {
+            pop /bwipp.GS1badTimeLength (Invalid length for time of day with optional mins and secs) false exit
+        } if
+        dup 0 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
+        dup length 4 ge {
+            dup 2 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
+        } if
+        dup length 6 ge {
+            dup 4 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badSecond (Invalid second in the minute) false exit } if
+        } if
+        pop
+    } bind def
+
+    /lintyesno {
+        dup (0) ne exch (1) ne and {
+            pop /bwipp.GS1badBoolean (Neither 0 nor 1 for yes or no) false exit
+        } if
+    } bind def
+
+    /lintwinding {
+        dup (0) ne exch dup (1) ne exch (9) ne and and {
+            pop /bwipp.GS1badWinding (Invalid winding direction) false exit
+        } if
+    } bind def
+
+    /lintpieceoftotal {
+        dup length 2 mod 0 ne { pop pop /bwipp.GS1badPieceTotalLength (Invalid piece/total length) false exit } if
+        dup dup length 2 idiv 0 exch getinterval cvi
+        dup 0 eq { pop pop pop /bwipp.GS1badPieceNumber (Invalid piece number) false exit } if
+        exch dup length 2 idiv dup getinterval cvi
+        dup 0 eq { pop pop pop /bwipp.GS1badPieceTotal (Invalid total number) false exit } if
+        gt { pop /bwipp.GS1pieceExceedsTotal (Piece number exceeds total) false exit } if
+    } bind def
+
+    /lintpcenc {
+        {
+            (%) search not {pop exit} if
+            pop pop dup length 2 lt { pop pop /bwipp.GS1badPercentEscape (Invalid % escape) false exit } if
+            dup 0 2 getinterval true exch {
+                1 string dup 0 4 -1 roll put
+                (0123456789ABCDEFabcdef)
+                exch search not { pop pop false exit } if
+                pop pop pop
+            } forall
+            not { pop pop /bwipp.GS1badPercentChars (Invalid characters for percent encoding) false exit } if
+        } loop
+    } bind def
+
+    /lintcouponcode {  % TODO
+        pop
+    } bind def
+
+    /lintcouponposoffer {  % TODO
+        pop
+    } bind def
+
+    /isocc << [
+        /004 /008 /010 /012 /016 /020 /024 /028 /031 /032 /036 /040 /044 /048
+        /050 /051 /052 /056 /060 /064 /068 /070 /072 /074 /076 /084 /086 /090 /092 /096
+        /100 /104 /108 /112 /116 /120 /124 /132 /136 /140 /144 /148
+        /152 /156 /158 /162 /166 /170 /174 /175 /178 /180 /184 /188 /191 /192 /196
+        /203 /204 /208 /212 /214 /218 /222 /226 /231 /232 /233 /234 /238 /239 /242 /246 /248
+        /250 /254 /258 /260 /262 /266 /268 /270 /275 /276 /288 /292 /296
+        /300 /304 /308 /312 /316 /320 /324 /328 /332 /334 /336 /340 /344 /348
+        /352 /356 /360 /364 /368 /372 /376 /380 /384 /388 /392 /398
+        /400 /404 /408 /410 /414 /417 /418 /422 /426 /428 /430 /434 /438 /440 /442 /446
+        /450 /454 /458 /462 /466 /470 /474 /478 /480 /484 /492 /496 /498 /499
+        /500 /504 /508 /512 /516 /520 /524 /528 /531 /533 /534 /535 /540 /548
+        /554 /558 /562 /566 /570 /574 /578 /580 /581 /583 /584 /585 /586 /591 /598
+        /600 /604 /608 /612 /616 /620 /624 /626 /630 /634 /638 /642 /643 /646
+        /652 /654 /659 /660 /662 /663 /666 /670 /674 /678 /682 /686 /688 /690 /694
+        /702 /703 /704 /705 /706 /710 /716 /724 /728 /729 /732 /740 /744 /748
+        /752 /756 /760 /762 /764 /768 /772 /776 /780 /784 /788 /792 /795 /796 /798
+        /800 /804 /807 /818 /826 /831 /832 /833 /834 /840
+        /850 /854 /858 /860 /862 /876 /882 /887 /894
+    ] {dup} forall >> def
+
+    /lintisocc {
+        isocc exch known not { pop /bwipp.GS1UnknownCountry (Unknown country code) false exit } if
+    } bind def
+
+    /lintisocclist {
+        dup length 3 mod 0 ne {
+            pop pop /bwipp.GS1BadCountryListLength (Not a group of three-digit country codes) false exit
+        } if
+        true
+        0 3 3 index length 1 sub {
+            2 index exch 3 getinterval
+            isocc exch known not { pop pop false exit } if
+        } for
+        not { pop /bwipp.GS1UnknownCountry (Unknown country code) false exit } if
+        pop
+    } bind def
+
+    /gs1syntax <<
+
+        [
+        << /cset /N  /min 18  /max 18  /check [ /lintcsum /lintkey ] >>
+        ]
+        (00) exch dup
+        pop
+
+        [
+        << /cset /N  /min 14  /max 14  /check [ /lintcsum /lintkey ] >>
+        ]
+        (01) exch dup
+        (02) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (10) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmd0 ] >>
+        ]
+        (11) exch dup
+        (12) exch dup
+        (13) exch dup
+        (14) exch dup
+        (15) exch dup
+        (16) exch dup
+        (17) exch dup
+        pop
+
+        [
+        << /cset /N  /min  2  /max  2  /check [] >>
+        ]
+        (20) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (21) exch dup
+        (22) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 28  /check [] >>
+        ]
+        (235) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (240) exch dup
+        (241) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  6  /check [] >>
+        ]
+        (242) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (243) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (250) exch dup
+        (251) exch dup
+        pop
+
+        [
+        << /cset /N  /min 13  /max 13  /check [ /lintcsum /lintkey ] >>
+        << /cset /X  /min  1  /max 17  /check [] >>
+        ]
+        (253) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (254) exch dup
+        pop
+
+        [
+        << /cset /N  /min 13  /max 13  /check [ /lintcsum /lintkey ] >>
+        << /cset /N  /min  1  /max 12  /check [] >>
+        ]
+        (255) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  8  /check [] >>
+        ]
+        (30) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [] >>
+        ]
+        (3100) exch dup
+        (3101) exch dup
+        (3102) exch dup
+        (3103) exch dup
+        (3104) exch dup
+        (3105) exch dup
+        (3110) exch dup
+        (3111) exch dup
+        (3112) exch dup
+        (3113) exch dup
+        (3114) exch dup
+        (3115) exch dup
+        (3120) exch dup
+        (3121) exch dup
+        (3122) exch dup
+        (3123) exch dup
+        (3124) exch dup
+        (3125) exch dup
+        (3130) exch dup
+        (3131) exch dup
+        (3132) exch dup
+        (3133) exch dup
+        (3134) exch dup
+        (3135) exch dup
+        (3140) exch dup
+        (3141) exch dup
+        (3142) exch dup
+        (3143) exch dup
+        (3144) exch dup
+        (3145) exch dup
+        (3150) exch dup
+        (3151) exch dup
+        (3152) exch dup
+        (3153) exch dup
+        (3154) exch dup
+        (3155) exch dup
+        (3160) exch dup
+        (3161) exch dup
+        (3162) exch dup
+        (3163) exch dup
+        (3164) exch dup
+        (3165) exch dup
+        (3200) exch dup
+        (3201) exch dup
+        (3202) exch dup
+        (3203) exch dup
+        (3204) exch dup
+        (3205) exch dup
+        (3210) exch dup
+        (3211) exch dup
+        (3212) exch dup
+        (3213) exch dup
+        (3214) exch dup
+        (3215) exch dup
+        (3220) exch dup
+        (3221) exch dup
+        (3222) exch dup
+        (3223) exch dup
+        (3224) exch dup
+        (3225) exch dup
+        (3230) exch dup
+        (3231) exch dup
+        (3232) exch dup
+        (3233) exch dup
+        (3234) exch dup
+        (3235) exch dup
+        (3240) exch dup
+        (3241) exch dup
+        (3242) exch dup
+        (3243) exch dup
+        (3244) exch dup
+        (3245) exch dup
+        (3250) exch dup
+        (3251) exch dup
+        (3252) exch dup
+        (3253) exch dup
+        (3254) exch dup
+        (3255) exch dup
+        (3260) exch dup
+        (3261) exch dup
+        (3262) exch dup
+        (3263) exch dup
+        (3264) exch dup
+        (3265) exch dup
+        (3270) exch dup
+        (3271) exch dup
+        (3272) exch dup
+        (3273) exch dup
+        (3274) exch dup
+        (3275) exch dup
+        (3280) exch dup
+        (3281) exch dup
+        (3282) exch dup
+        (3283) exch dup
+        (3284) exch dup
+        (3285) exch dup
+        (3290) exch dup
+        (3291) exch dup
+        (3292) exch dup
+        (3293) exch dup
+        (3294) exch dup
+        (3295) exch dup
+        (3300) exch dup
+        (3301) exch dup
+        (3302) exch dup
+        (3303) exch dup
+        (3304) exch dup
+        (3305) exch dup
+        (3310) exch dup
+        (3311) exch dup
+        (3312) exch dup
+        (3313) exch dup
+        (3314) exch dup
+        (3315) exch dup
+        (3320) exch dup
+        (3321) exch dup
+        (3322) exch dup
+        (3323) exch dup
+        (3324) exch dup
+        (3325) exch dup
+        (3330) exch dup
+        (3331) exch dup
+        (3332) exch dup
+        (3333) exch dup
+        (3334) exch dup
+        (3335) exch dup
+        (3340) exch dup
+        (3341) exch dup
+        (3342) exch dup
+        (3343) exch dup
+        (3344) exch dup
+        (3345) exch dup
+        (3350) exch dup
+        (3351) exch dup
+        (3352) exch dup
+        (3353) exch dup
+        (3354) exch dup
+        (3355) exch dup
+        (3360) exch dup
+        (3361) exch dup
+        (3362) exch dup
+        (3363) exch dup
+        (3364) exch dup
+        (3365) exch dup
+        (3370) exch dup
+        (3371) exch dup
+        (3372) exch dup
+        (3373) exch dup
+        (3374) exch dup
+        (3375) exch dup
+        (3400) exch dup
+        (3401) exch dup
+        (3402) exch dup
+        (3403) exch dup
+        (3404) exch dup
+        (3405) exch dup
+        (3410) exch dup
+        (3411) exch dup
+        (3412) exch dup
+        (3413) exch dup
+        (3414) exch dup
+        (3415) exch dup
+        (3420) exch dup
+        (3421) exch dup
+        (3422) exch dup
+        (3423) exch dup
+        (3424) exch dup
+        (3425) exch dup
+        (3430) exch dup
+        (3431) exch dup
+        (3432) exch dup
+        (3433) exch dup
+        (3434) exch dup
+        (3435) exch dup
+        (3440) exch dup
+        (3441) exch dup
+        (3442) exch dup
+        (3443) exch dup
+        (3444) exch dup
+        (3445) exch dup
+        (3450) exch dup
+        (3451) exch dup
+        (3452) exch dup
+        (3453) exch dup
+        (3454) exch dup
+        (3455) exch dup
+        (3460) exch dup
+        (3461) exch dup
+        (3462) exch dup
+        (3463) exch dup
+        (3464) exch dup
+        (3465) exch dup
+        (3470) exch dup
+        (3471) exch dup
+        (3472) exch dup
+        (3473) exch dup
+        (3474) exch dup
+        (3475) exch dup
+        (3480) exch dup
+        (3481) exch dup
+        (3482) exch dup
+        (3483) exch dup
+        (3484) exch dup
+        (3485) exch dup
+        (3490) exch dup
+        (3491) exch dup
+        (3492) exch dup
+        (3493) exch dup
+        (3494) exch dup
+        (3495) exch dup
+        (3500) exch dup
+        (3501) exch dup
+        (3502) exch dup
+        (3503) exch dup
+        (3504) exch dup
+        (3505) exch dup
+        (3510) exch dup
+        (3511) exch dup
+        (3512) exch dup
+        (3513) exch dup
+        (3514) exch dup
+        (3515) exch dup
+        (3520) exch dup
+        (3521) exch dup
+        (3522) exch dup
+        (3523) exch dup
+        (3524) exch dup
+        (3525) exch dup
+        (3530) exch dup
+        (3531) exch dup
+        (3532) exch dup
+        (3533) exch dup
+        (3534) exch dup
+        (3535) exch dup
+        (3540) exch dup
+        (3541) exch dup
+        (3542) exch dup
+        (3543) exch dup
+        (3544) exch dup
+        (3545) exch dup
+        (3550) exch dup
+        (3551) exch dup
+        (3552) exch dup
+        (3553) exch dup
+        (3554) exch dup
+        (3555) exch dup
+        (3560) exch dup
+        (3561) exch dup
+        (3562) exch dup
+        (3563) exch dup
+        (3564) exch dup
+        (3565) exch dup
+        (3570) exch dup
+        (3571) exch dup
+        (3572) exch dup
+        (3573) exch dup
+        (3574) exch dup
+        (3575) exch dup
+        (3600) exch dup
+        (3601) exch dup
+        (3602) exch dup
+        (3603) exch dup
+        (3604) exch dup
+        (3605) exch dup
+        (3610) exch dup
+        (3611) exch dup
+        (3612) exch dup
+        (3613) exch dup
+        (3614) exch dup
+        (3615) exch dup
+        (3620) exch dup
+        (3621) exch dup
+        (3622) exch dup
+        (3623) exch dup
+        (3624) exch dup
+        (3625) exch dup
+        (3630) exch dup
+        (3631) exch dup
+        (3632) exch dup
+        (3633) exch dup
+        (3634) exch dup
+        (3635) exch dup
+        (3640) exch dup
+        (3641) exch dup
+        (3642) exch dup
+        (3643) exch dup
+        (3644) exch dup
+        (3645) exch dup
+        (3650) exch dup
+        (3651) exch dup
+        (3652) exch dup
+        (3653) exch dup
+        (3654) exch dup
+        (3655) exch dup
+        (3660) exch dup
+        (3661) exch dup
+        (3662) exch dup
+        (3663) exch dup
+        (3664) exch dup
+        (3665) exch dup
+        (3670) exch dup
+        (3671) exch dup
+        (3672) exch dup
+        (3673) exch dup
+        (3674) exch dup
+        (3675) exch dup
+        (3680) exch dup
+        (3681) exch dup
+        (3682) exch dup
+        (3683) exch dup
+        (3684) exch dup
+        (3685) exch dup
+        (3690) exch dup
+        (3691) exch dup
+        (3692) exch dup
+        (3693) exch dup
+        (3694) exch dup
+        (3695) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  8  /check [] >>
+        ]
+        (37) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 15  /check [] >>
+        ]
+        (3900) exch dup
+        (3901) exch dup
+        (3902) exch dup
+        (3903) exch dup
+        (3904) exch dup
+        (3905) exch dup
+        (3906) exch dup
+        (3907) exch dup
+        (3908) exch dup
+        (3909) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        << /cset /N  /min  1  /max 15  /check [] >>
+        ]
+        (3910) exch dup
+        (3911) exch dup
+        (3912) exch dup
+        (3913) exch dup
+        (3914) exch dup
+        (3915) exch dup
+        (3916) exch dup
+        (3917) exch dup
+        (3918) exch dup
+        (3919) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 15  /check [] >>
+        ]
+        (3920) exch dup
+        (3921) exch dup
+        (3922) exch dup
+        (3923) exch dup
+        (3924) exch dup
+        (3925) exch dup
+        (3926) exch dup
+        (3927) exch dup
+        (3928) exch dup
+        (3929) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        << /cset /N  /min  1  /max 15  /check [] >>
+        ]
+        (3930) exch dup
+        (3931) exch dup
+        (3932) exch dup
+        (3933) exch dup
+        (3934) exch dup
+        (3935) exch dup
+        (3936) exch dup
+        (3937) exch dup
+        (3938) exch dup
+        (3939) exch dup
+        pop
+
+        [
+        << /cset /N  /min  4  /max  4  /check [] >>
+        ]
+        (3940) exch dup
+        (3941) exch dup
+        (3942) exch dup
+        (3943) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [] >>
+        ]
+        (3950) exch dup
+        (3951) exch dup
+        (3952) exch dup
+        (3953) exch dup
+        (3954) exch dup
+        (3955) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (400) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [ /lintkey ] >>
+        ]
+        (401) exch dup
+        pop
+
+        [
+        << /cset /N  /min 17  /max 17  /check [ /lintcsum /lintkey ] >>
+        ]
+        (402) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (403) exch dup
+        pop
+
+        [
+        << /cset /N  /min 13  /max 13  /check [ /lintcsum /lintkey ] >>
+        ]
+        (410) exch dup
+        (411) exch dup
+        (412) exch dup
+        (413) exch dup
+        (414) exch dup
+        (415) exch dup
+        (416) exch dup
+        (417) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (420) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        << /cset /X  /min  1  /max  9  /check [] >>
+        ]
+        (421) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        ]
+        (422) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 15  /check [ /lintisocclist ] >>
+        ]
+        (423) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        ]
+        (424) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 15  /check [ /lintisocclist ] >>
+        ]
+        (425) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        ]
+        (426) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max  3  /check [] >>
+        ]
+        (427) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 35  /check [ /lintpcenc ] >>
+        ]
+        (4300) exch dup
+        (4301) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 70  /check [ /lintpcenc ] >>
+        ]
+        (4302) exch dup
+        (4303) exch dup
+        (4304) exch dup
+        (4305) exch dup
+        (4306) exch dup
+        pop
+
+        [
+        << /cset /X  /min  2  /max  2  /check [] >>
+        ]
+        (4307) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [ /lintpcenc ] >>
+        ]
+        (4308) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 35  /check [ /lintpcenc ] >>
+        ]
+        (4309) exch dup
+        (4310) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 70  /check [ /lintpcenc ] >>
+        ]
+        (4311) exch dup
+        (4312) exch dup
+        (4313) exch dup
+        (4314) exch dup
+        (4315) exch dup
+        (4316) exch dup
+        pop
+
+        [
+        << /cset /X  /min  2  /max  2  /check [] >>
+        ]
+        (4317) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (4318) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (4319) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 35  /check [ /lintpcenc ] >>
+        ]
+        (4320) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  1  /check [ /lintyesno ] >>
+        ]
+        (4321) exch dup
+        (4322) exch dup
+        (4323) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmd0 ] >>
+        << /cset /N  /min  4  /max  4  /check [ /linthhmm ] >>
+        ]
+        (4324) exch dup
+        (4325) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
+        ]
+        (4326) exch dup
+        pop
+
+        [
+        << /cset /N  /min 13  /max 13  /check [] >>
+        ]
+        (7001) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (7002) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
+        << /cset /N  /min  4  /max  4  /check [ /linthhmm ] >>
+        ]
+        (7003) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  4  /check [] >>
+        ]
+        (7004) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 12  /check [] >>
+        ]
+        (7005) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
+        ]
+        (7006) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
+        << /cset /N  /min  0  /max  6  /check [ /lintyymmdd ] >>
+        ]
+        (7007) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max  3  /check [] >>
+        ]
+        (7008) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 10  /check [] >>
+        ]
+        (7009) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max  2  /check [] >>
+        ]
+        (7010) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (7020) exch dup
+        (7021) exch dup
+        (7022) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [ /lintkey ] >>
+        ]
+        (7023) exch dup
+        pop
+
+        [
+        << /cset /N  /min  3  /max  3  /check [ /lintisocc ] >>
+        << /cset /X  /min  1  /max 27  /check [] >>
+        ]
+        (7030) exch dup
+        (7031) exch dup
+        (7032) exch dup
+        (7033) exch dup
+        (7034) exch dup
+        (7035) exch dup
+        (7036) exch dup
+        (7037) exch dup
+        (7038) exch dup
+        (7039) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  1  /check [] >>
+        << /cset /X  /min  1  /max  1  /check [] >>
+        << /cset /X  /min  1  /max  1  /check [] >>
+        << /cset /X  /min  1  /max  1  /check [ /lintimporteridx ] >>
+        ]
+        (7040) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (710) exch dup
+        (711) exch dup
+        (712) exch dup
+        (713) exch dup
+        (714) exch dup
+        (715) exch dup
+        (716) exch dup
+        (717) exch dup
+        (718) exch dup
+        (719) exch dup
+        pop
+
+        [
+        << /cset /X  /min  2  /max  2  /check [] >>
+        << /cset /X  /min  1  /max 28  /check [] >>
+        ]
+        (7230) exch dup
+        (7231) exch dup
+        (7232) exch dup
+        (7233) exch dup
+        (7234) exch dup
+        (7235) exch dup
+        (7236) exch dup
+        (7237) exch dup
+        (7238) exch dup
+        (7239) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (7240) exch dup
+        pop
+
+        [
+        << /cset /N  /min  4  /max  4  /check [ /lintnonzero ] >>
+        << /cset /N  /min  5  /max  5  /check [ /lintnonzero ] >>
+        << /cset /N  /min  3  /max  3  /check [ /lintnonzero ] >>
+        << /cset /N  /min  1  /max  1  /check [ /lintwinding ] >>
+        << /cset /N  /min  1  /max  1  /check [] >>
+        ]
+        (8001) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (8002) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  1  /check [ /lintzero ] >>
+        << /cset /N  /min 13  /max 13  /check [ /lintcsum /lintkey ] >>
+        << /cset /X  /min  0  /max 16  /check [] >>
+        ]
+        (8003) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [ /lintkey ] >>
+        ]
+        (8004) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max  6  /check [] >>
+        ]
+        (8005) exch dup
+        pop
+
+        [
+        << /cset /N  /min 14  /max 14  /check [ /lintcsum ] >>
+        << /cset /N  /min  4  /max  4  /check [ /lintpieceoftotal ] >>
+        ]
+        (8006) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 34  /check [ /lintiban ] >>
+        ]
+        (8007) exch dup
+        pop
+
+        [
+        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
+        << /cset /N  /min  1  /max  6  /check [ /linthhoptmmss ] >>
+        ]
+        (8008) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 50  /check [] >>
+        ]
+        (8009) exch dup
+        pop
+
+        [
+        << /cset /C  /min  1  /max 30  /check [ /lintkey ] >>
+        ]
+        (8010) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 12  /check [ /lintnozeroprefix ] >>
+        ]
+        (8011) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 20  /check [] >>
+        ]
+        (8012) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [ /lintkey ] >>
+        ]
+        (8013) exch dup
+        pop
+
+        [
+        << /cset /N  /min 18  /max 18  /check [ /lintcsum ] >>
+        ]
+        (8017) exch dup
+        (8018) exch dup
+        pop
+
+        [
+        << /cset /N  /min  1  /max 10  /check [] >>
+        ]
+        (8019) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 25  /check [] >>
+        ]
+        (8020) exch dup
+        pop
+
+        [
+        << /cset /N  /min 14  /max 14  /check [ /lintcsum ] >>
+        << /cset /N  /min  4  /max  4  /check [ /lintpieceoftotal ] >>
+        ]
+        (8026) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 70  /check [ /lintcouponcode ] >>
+        ]
+        (8110) exch dup
+        pop
+
+        [
+        << /cset /N  /min  4  /max  4  /check [] >>
+        ]
+        (8111) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 70  /check [ /lintcouponposoffer ] >>
+        ]
+        (8112) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 70  /check [] >>
+        ]
+        (8200) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 30  /check [] >>
+        ]
+        (90) exch dup
+        pop
+
+        [
+        << /cset /X  /min  1  /max 90  /check [] >>
+        ]
+        (91) exch dup
+        (92) exch dup
+        (93) exch dup
+        (94) exch dup
+        (95) exch dup
+        (96) exch dup
+        (97) exch dup
+        (98) exch dup
+        (99) exch dup
+        pop
+
+    >> def
+
+    true
+    0 1 vals length 1 sub {
+        dup ais exch get /ai exch def
+        vals exch get /val exch def
+        gs1syntax ai known {
+            gs1syntax ai get {  % For each element of the AI
+                /props exch def
+                props /max get val length 2 copy gt {exch} if pop
+                val exch 0 exch getinterval /eval exch def
+                /val val eval length dup val length exch sub getinterval def
+                eval length props /min get lt {
+                    pop /bwipp.GS1valueTooShort (Too short) false exit
+                } if
+                << /N /lintnumeric  /X /lintcset82  /C /lintcset39 >> props /cset get get eval exch load exec
+                eval length 0 gt {
+                    props /check get { eval exch load exec } forall
+                } if
+            } forall
+            val length 0 ne {
+                pop /bwipp.GS1valueTooLong (Too long) false exit
+            } if
+        } {
+            pop /bwipp.GS1unknownAI (Unrecognised AI) false exit
+        } ifelse
+    } for
+    not {
+        dup length ai length add 5 add string
+        dup 0 (AI ) putinterval
+        dup 3 ai putinterval
+        dup 3 ai length add (: ) putinterval
+        dup 5 ai length add 4 -1 roll putinterval
+        //raiseerror exec
+    } if
+    true
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/gs1lint dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RESOURCE gs1lint--

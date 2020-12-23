@@ -4,17 +4,17 @@
 # X0..20 -> 0 <= |X| <= 20   # Field is optional
 #
 
-00        N18,c=fixed
-01        N14,c=fixed
-02        N14,c=fixed
+00        N18,csum,key
+01        N14,csum,key
+02        N14,csum,key
 10        X..20
-11        N6,c=yymmdd00
-12        N6,c=yymmdd00
-13        N6,c=yymmdd00
-14        N6,c=yymmdd00
-15        N6,c=yymmdd00
-16        N6,c=yymmdd00
-17        N6,c=yymmdd00
+11        N6,yymmd0
+12        N6,yymmd0
+13        N6,yymmd0
+14        N6,yymmd0
+15        N6,yymmd0
+16        N6,yymmd0
+17        N6,yymmd0
 20        N2
 21        X..20
 22        X..20
@@ -25,9 +25,9 @@
 243       X..20
 250       X..30
 251       X..30
-253       N13,c=fixed X..17
+253       N13,csum,key X..17
 254       X..20
-255       N13,c=fixed N..12
+255       N13,csum,key N..12
 30        N..8
 3100-3105 N6
 3110-3115 N6
@@ -84,62 +84,90 @@
 3690-3695 N6
 37        N..8
 3900-3909 N..15
-3910-3919 N3,c=isocc N..15
+3910-3919 N3,isocc N..15
 3920-3929 N..15
-3930-3939 N3,c=isocc N..15
+3930-3939 N3,isocc N..15
 3940-3943 N4
+3950-3955 N6
 400       X..30
-401       X..30
-402       N17,c=fixed
+401       X..30,key
+402       N17,csum,key
 403       X..30
-410-417   N13,c=fixed
+410-417   N13,csum,key
 420       X..20
-421       N3,c=isocc X..9
-422       N3,c=isocc
-423       N..15,c=misocc
-424       N3,c=isocc
-425       N..15,c=misocc
-426       N3,c=isocc
+421       N3,isocc X..9
+422       N3,isocc
+423       N..15,isocclist
+424       N3,isocc
+425       N..15,isocclist
+426       N3,isocc
 427       X..3
+4300      X..35,pcenc
+4301      X..35,pcenc
+4302      X..70,pcenc
+4303      X..70,pcenc
+4304      X..70,pcenc
+4305      X..70,pcenc
+4306      X..70,pcenc
+4307      X2
+4308      X..30,pcenc
+4309      X..35,pcenc
+4310      X..35,pcenc
+4311      X..70,pcenc
+4312      X..70,pcenc
+4313      X..70,pcenc
+4314      X..70,pcenc
+4315      X..70,pcenc
+4316      X..70,pcenc
+4317      X2
+4318      X..20
+4319      X..30
+4320      X..35,pcenc
+4321      N1,yesno
+4322      N1,yesno
+4323      N1,yesno
+4324      N6,yymmd0 N4,hhmm
+4325      N6,yymmd0 N4,hhmm
+4326      N6,yymmdd
 7001      N13
 7002      X..30
-7003      N6=yymmdd N2,c=hh N2,c=mm00
+7003      N6,yymmdd N4,hhmm
 7004      N..4
 7005      X..12
-7006      N6,c=yymmdd
-7007      N6,c=yymmdd N0..6,c=yymmdd
+7006      N6,yymmdd
+7007      N6,yymmdd N0..6,yymmdd
 7008      X..3
 7009      X..10
 7010      X..2
 7020      X..20
 7021      X..20
 7022      X..20
-7023      X..30
-7030-7039 N3,c=isocc X..27
-7040      N1 X1 X1 X1=gs1ii
+7023      X..30,key
+7030-7039 N3,isocc X..27
+7040      N1 X1 X1 X1,importeridx
 710-719   X..20
 7230-7239 X2 X..28
 7240      X..20
-8001      N4,c=nonzero N5,c=nonzero N3,c=nonzero N1,c=winding N1
+8001      N4,nonzero N5,nonzero N3,nonzero N1,winding N1
 8002      X..20
-8003      N14,c=fixed X0..16
-8004      X..30
-8005      N..6,c=nonzero
-8006      N14,c=fixed N4,c=pieceoftotal
-8007      X..34,c=iban
-8008      N6,c=yymmdd N2,c=hh N0..4,c=mmss
+8003      N1,zero N13,csum,key X0..16
+8004      X..30,key
+8005      N..6
+8006      N14,csum N4,pieceoftotal
+8007      X..34,iban
+8008      N6,yymmdd N..6,hhoptmmss
 8009      X..50
-8010      X..30
-8011      N..12
+8010      C..30,key
+8011      N..12,nozeroprefix
 8012      X..20
-8013      X..30,c=alpha
-8017-8018 N18,c=fixed
+8013      X..30,key
+8017-8018 N18,csum
 8019      N..10
 8020      X..25
-8026      N14,c=fixed N4,c=pieceoftotal
-8110      X..70,c=nacc
+8026      N14,csum N4,pieceoftotal
+8110      X..70,couponcode
 8111      N4
-8112      X..70,c=napo
+8112      X..70,couponposoffer
 8200      X..70
 90        X..30
 91-99     X..90
