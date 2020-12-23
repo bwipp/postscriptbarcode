@@ -1,11 +1,16 @@
 %!PS
 
 /_isEqual {
-    2 copy
-    length exch length ne {/testError pstack quit} if
-    dup length 1 sub 0 exch 1 exch {
-        dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
-    } for
+    2 copy type exch type ne {/testError pstack quit} if
+    dup type dup /arraytype eq exch /stringtype eq or {
+        2 copy
+        length exch length ne {/testError pstack quit} if
+        dup length 1 sub 0 exch 1 exch {
+            dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
+        } for
+    } {
+        2 copy ne {/testError pstack quit}
+    } ifelse
     pop pop
 } bind def
 
