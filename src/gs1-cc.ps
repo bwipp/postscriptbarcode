@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1-cc--
-% --REQUIRES preamble raiseerror parseinput renmatrix micropdf417 pdf417--
+% --REQUIRES preamble raiseerror parseinput gs1lint renmatrix micropdf417 pdf417--
 % --DESC: GS1 Composite 2D Component
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP: ccversion=b cccolumns=4
@@ -41,6 +41,7 @@
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
@@ -53,6 +54,7 @@ begin
     /barcode exch def  % We are given a barcode string
 
     /parse false def
+    /dontlint false def
     /dontdraw false def
     /ccversion (a) def
     /cccolumns -1 def
@@ -120,6 +122,8 @@ begin
         pop pop
     } loop
     pop
+
+    dontlint not { ais vals //gs1lint exec pop } if
 
     % Method selection
     /isupper {dup 65 ge exch 90 le and} bind def  % A-Z
