@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databarexpanded--
-% --REQUIRES preamble raiseerror parseinput renlinear renmatrix--
+% --REQUIRES preamble raiseerror parseinput gs1lint renlinear renmatrix--
 % --DESC: GS1 DataBar Expanded
 % --EXAM: (01)95012345678903(3103)000123
 % --EXOP:
@@ -41,6 +41,7 @@
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -52,6 +53,7 @@ begin
     /barcode exch def  % We are given a barcode string
 
     /parse false def
+    /dontlint false def
     /dontdraw false def
     /height 34 72 div def
     /format (expanded) def
@@ -110,6 +112,8 @@ begin
         pop pop
     } loop
     pop
+
+    dontlint not { ais vals //gs1lint exec } if
 
     % Method selection
     {  % common exit

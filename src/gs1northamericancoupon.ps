@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1northamericancoupon--
-% --REQUIRES preamble raiseerror parseinput renlinear renmatrix databarexpanded databarexpandedstacked--
+% --REQUIRES preamble raiseerror parseinput gs1lint renlinear renmatrix databarexpanded databarexpandedstacked--
 % --DESC: GS1 North American Coupon
 % --EXAM: (8110)106141416543213500110000310123196000
 % --EXOP: includetext segments=8
@@ -41,6 +41,7 @@
 1 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -59,6 +60,7 @@ begin
     /coupontextxoffset (unset) def
     /coupontextyoffset (unset) def
     /parse false def
+    /dontlint false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -112,6 +114,8 @@ begin
     ais 0 get (8110) ne {
       /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
     } if
+
+    dontlint not { ais vals //gs1lint exec } if
 
     % Parse out the Company Prefix and Offer Code
     /val vals 0 get def
