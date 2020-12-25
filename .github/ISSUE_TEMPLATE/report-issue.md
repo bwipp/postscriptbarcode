@@ -1,6 +1,6 @@
 ---
 name: Report issue
-about: Please use this to report issues or raise feature requests.
+about: Use this only to report issues. Use the discussions feature for questions.
 title: ''
 labels: ''
 assignees: ''
