@@ -1,0 +1,173 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2019 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER gs1dotcode--
+% --REQUIRES preamble raiseerror parseinput gs1lint renmatrix dotcode--
+% --DESC: GS1 DotCode
+% --EXAM: (01)03453120000011(17)120508(10)ABCD1234(410)9501101020917
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+1 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /dotcode dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1dotcode {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def  % We are given an option string
+    /barcode exch def  % We are given a barcode string
+
+    /dontdraw false def
+    /parse false def
+    /dontlint false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    % Expand ordinals of the form ^NNN to ASCII
+    /expand {
+        /fncvals <<
+            /parse parse
+            /parseonly true
+            /parsefnc false
+        >> def
+        fncvals //parseinput exec
+    } bind def
+
+    % Parse out AIs
+    /ais  [] def
+    /vals [] def
+    barcode dup length 1 sub 1 exch getinterval
+    {  % loop
+        dup () eq {exit} if
+        (\)) search pop
+        exch pop
+        exch (\() search {
+            exch pop exch 3 1 roll
+        } {
+            () 3 1 roll
+        } ifelse
+        [ ais  aload pop counttomark 2 add index ] /ais exch def
+        [ vals aload pop counttomark 1 add index expand ] /vals exch def
+        pop pop
+    } loop
+    pop
+
+    dontlint not { ais vals //gs1lint exec pop } if
+
+    % Pre-defined fixed length data field AIs
+    % any AI whose prefix is not included in this table must be
+    % terminated with "FNC1", even if it's fixed length
+    /aifixed 23 dict def
+    [
+        0 1 4 {} for
+    ] {
+        (00) 2 string copy dup dup 1 5 -1 roll 48 add put aifixed 3 1 roll put
+    } forall
+    [
+        11 1 20 {} for
+        23
+        31 1 36 {} for
+        41
+    ] {
+        10 2 string cvrs dup aifixed 3 1 roll put
+    } forall
+
+    % Create the dotcode data
+    /fnc1 -1 def
+    /dmtx [ fnc1 ] def
+    0 1 ais length 1 sub {
+        /i exch def
+        /ai ais i get def
+        /val vals i get def
+        dmtx length ai length add val length add array
+        dup 0 dmtx putinterval
+        dup dmtx length ai [ exch {} forall ] putinterval
+        dup dmtx length ai length add val [ exch {} forall ] putinterval
+        /dmtx exch def
+        i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
+            dmtx length 1 add array
+            dup 0 dmtx putinterval
+            dup dmtx length fnc1 put
+            /dmtx exch def
+        } if
+    } for
+
+    % Compose input to dotcode
+    /barcode dmtx length 1 add 5 mul string def
+    /i 0 def /j 0 def {
+        i dmtx length eq {exit} if
+        dmtx i get dup fnc1 eq {
+            pop barcode j (^FNC1) putinterval
+            /j j 4 add def
+        } {
+            barcode exch j exch put
+        } ifelse
+        /i i 1 add def
+        /j j 1 add def
+    } loop
+    /barcode barcode 0 j getinterval def
+
+    % Get the result of encoding with dotcode
+    options (parse) undef
+    options (dontdraw) true put
+    options (parsefnc) true put
+    /args barcode options //dotcode exec def
+
+    args (opt) options put
+    args
+
+    dontdraw not //renmatrix if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/gs1dotcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1dotcode--
