@@ -80,9 +80,13 @@
 ((11)200131) good_tmpl
 ((11)200010) /bwipp.GS1badMonth er_tmpl
 ((11)201310) /bwipp.GS1badMonth er_tmpl
+((11)209910) /bwipp.GS1badMonth er_tmpl
 ((11)200131) good_tmpl
 ((11)200132) /bwipp.GS1badDay er_tmpl
 ((11)200229) good_tmpl
+((11)000229) good_tmpl
+((11)040229) good_tmpl
+((11)960229) good_tmpl
 ((11)200230) /bwipp.GS1badDay er_tmpl
 ((11)200331) good_tmpl
 ((11)200332) /bwipp.GS1badDay er_tmpl
@@ -105,33 +109,83 @@
 ((11)201231) good_tmpl
 ((11)201232) /bwipp.GS1badDay er_tmpl
 ((11)210229) /bwipp.GS1badDay er_tmpl  % Not leap year
-((11)200600) good_tmpl                 % D=00 permitted
+((11)200600) good_tmpl                 % dd=00 permitted
 
 % N6,yymmdd
-((4326)200615) good_tmpl
-((4326)200600) /bwipp.GS1badDay er_tmpl
+((4326)000606) good_tmpl
+((4326)250606) good_tmpl
+((4326)500606) good_tmpl
+((4326)750606) good_tmpl
+((4326)990606) good_tmpl
+((4326)200131) good_tmpl
+((4326)200010) /bwipp.GS1badMonth er_tmpl
+((4326)201310) /bwipp.GS1badMonth er_tmpl
+((4326)209910) /bwipp.GS1badMonth er_tmpl
+((4326)200131) good_tmpl
+((4326)200132) /bwipp.GS1badDay er_tmpl
+((4326)200229) good_tmpl
+((4326)000229) good_tmpl
+((4326)040229) good_tmpl
+((4326)960229) good_tmpl
+((4326)200230) /bwipp.GS1badDay er_tmpl
+((4326)200331) good_tmpl
+((4326)200332) /bwipp.GS1badDay er_tmpl
+((4326)200430) good_tmpl
+((4326)200431) /bwipp.GS1badDay er_tmpl
+((4326)200531) good_tmpl
+((4326)200532) /bwipp.GS1badDay er_tmpl
+((4326)200630) good_tmpl
+((4326)200631) /bwipp.GS1badDay er_tmpl
+((4326)200731) good_tmpl
+((4326)200732) /bwipp.GS1badDay er_tmpl
+((4326)200831) good_tmpl
+((4326)200832) /bwipp.GS1badDay er_tmpl
+((4326)200930) good_tmpl
+((4326)200931) /bwipp.GS1badDay er_tmpl
+((4326)201031) good_tmpl
+((4326)201032) /bwipp.GS1badDay er_tmpl
+((4326)201130) good_tmpl
+((4326)201131) /bwipp.GS1badDay er_tmpl
+((4326)201231) good_tmpl
+((4326)201232) /bwipp.GS1badDay er_tmpl
+((4326)210229) /bwipp.GS1badDay er_tmpl  % Not leap year
+((4326)200600) /bwipp.GS1badDay er_tmpl  % dd=00 forbidden
 
 % N2
 ((20)12) good_tmpl
+((20)A2) /bwipp.GS1notNumeric er_tmpl
 ((20)1A) /bwipp.GS1notNumeric er_tmpl
+((20)-2) /bwipp.GS1notNumeric er_tmpl
+((20)1-) /bwipp.GS1notNumeric er_tmpl
+((20)1) /bwipp.GS1valueTooShort er_tmpl
+((20)123) /bwipp.GS1valueTooLong er_tmpl
 
 % N13,csum,key X0..17
-((253)123456789012812345678901234567) good_tmpl
-((253)1234567890128123456789012345678) /bwipp.GS1valueTooLong er_tmpl
 ((253)1234567890128) good_tmpl
+((253)1234567890128A) good_tmpl
+((253)1234567890128ABCDEFGHIJKLMNOPQ) good_tmpl
+((253)1234567890128ABCDEFGHIJKLMNOPQR) /bwipp.GS1valueTooLong er_tmpl
+((253)1234567890120) /bwipp.GS1badChecksum er_tmpl
 
 % N3,isocc N..15
+((3919)8501) good_tmpl
 ((3910)850123456789012345) good_tmpl
-((3919)850123456789012345) good_tmpl
 ((3910)851123456789012345) /bwipp.GS1UnknownCountry er_tmpl
-((3910)8501234567890123456) /bwipp.GS1valueTooLong er_tmpl
 ((3910)850) /bwipp.GS1valueTooShort er_tmpl
+((3910)8501234567890123456) /bwipp.GS1valueTooLong er_tmpl
 
 % N..15,isocclist
 ((423)850) good_tmpl
 ((423)004100400850894) good_tmpl
 ((423)8501) /bwipp.GS1BadCountryListLength er_tmpl
+((423)85012) /bwipp.GS1BadCountryListLength er_tmpl
+((423)) /bwipp.GS1valueTooShort er_tmpl
+((423)1) /bwipp.GS1BadCountryListLength er_tmpl
+((423)12) /bwipp.GS1BadCountryListLength er_tmpl
 
+% Note: In reality, almost all GCPs are six or more numeric digits so the
+% restriction for "key" could be tightened
+%
 % X..30,key
 ((401)12) good_tmpl
 ((401)1) /bwipp.GS1keyTooShort er_tmpl
@@ -140,14 +194,28 @@
 ((401)1A) /bwipp.GS1badGCP er_tmpl
 
 % X..35,pcenc
-((4300)ABC) good_tmpl
+((4300)A) good_tmpl
+((4300)ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHI) good_tmpl
+((4300)%20) good_tmpl
+((4300)%00) good_tmpl
+((4300)%FF) good_tmpl
+((4300)%ff) good_tmpl
+((4300)%fg) /bwipp.GS1badPercentChars er_tmpl
+((4300)%gf) /bwipp.GS1badPercentChars er_tmpl
+((4300)%g) /bwipp.GS1badPercentEscape er_tmpl
+((4300)ABC%20) good_tmpl
+((4300)ABC%00) good_tmpl
+((4300)ABC%FF) good_tmpl
+((4300)ABC%ff) good_tmpl
+((4300)ABC%fg) /bwipp.GS1badPercentChars er_tmpl
+((4300)ABC%gf) /bwipp.GS1badPercentChars er_tmpl
+((4300)ABC%g) /bwipp.GS1badPercentEscape er_tmpl
 ((4300)ABC%20XYZ) good_tmpl
 ((4300)ABC%00XYZ) good_tmpl
 ((4300)ABC%FFXYZ) good_tmpl
 ((4300)ABC%ffXYZ) good_tmpl
 ((4300)ABC%fgXYZ) /bwipp.GS1badPercentChars er_tmpl
 ((4300)ABC%gfXYZ) /bwipp.GS1badPercentChars er_tmpl
-((4300)ABC%g) /bwipp.GS1badPercentEscape er_tmpl
 ((4300)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345) good_tmpl
 ((4300)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+123456) /bwipp.GS1valueTooLong er_tmpl
 ((4301)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345) good_tmpl
@@ -159,36 +227,17 @@
 ((4320)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345) good_tmpl
 ((4320)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+123456) /bwipp.GS1valueTooLong er_tmpl
 
-% X..70,pcenc
-((4302)A) good_tmpl
-((4302)) /bwipp.GS1valueTooShort er_tmpl
-((4302)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4302)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4302)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567%FG) /bwipp.GS1badPercentChars er_tmpl
-((4302)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+123456789012345678901234567890123456789%) /bwipp.GS1badPercentEscape er_tmpl
-((4303)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4303)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4304)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4304)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4305)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4305)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4306)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4306)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4312)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4312)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4313)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4313)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4314)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4314)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4315)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4315)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-((4316)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+1234567890123456789012345678901234567890) good_tmpl
-((4316)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345678901234567890123456789012345678901) /bwipp.GS1valueTooLong er_tmpl
-
 % N1,yesno
 ((4321)0) good_tmpl
 ((4321)1) good_tmpl
 ((4321)2) /bwipp.GS1badBoolean er_tmpl
+((4321)3) /bwipp.GS1badBoolean er_tmpl
+((4321)4) /bwipp.GS1badBoolean er_tmpl
+((4321)5) /bwipp.GS1badBoolean er_tmpl
+((4321)6) /bwipp.GS1badBoolean er_tmpl
+((4321)7) /bwipp.GS1badBoolean er_tmpl
+((4321)8) /bwipp.GS1badBoolean er_tmpl
+((4321)9) /bwipp.GS1badBoolean er_tmpl
 
 % N6,yymmd0 N4,hhmm
 ((4324)2006150015) good_tmpl
@@ -201,24 +250,33 @@
 ((7007)200615200615) good_tmpl
 ((7007)2006151) /bwipp.GS1badDateLength er_tmpl
 ((7007)20061512) /bwipp.GS1badDateLength er_tmpl
-((7007)200615123) /bwipp.GS1badDateLength er_tmpl
-((7007)2006151234) /bwipp.GS1badDateLength er_tmpl
-((7007)20061512345) /bwipp.GS1badDateLength er_tmpl
+((7007)200615121) /bwipp.GS1badDateLength er_tmpl
+((7007)2006151212) /bwipp.GS1badDateLength er_tmpl
+((7007)20061512121) /bwipp.GS1badDateLength er_tmpl
+((7007)200615121212) good_tmpl
+((7007)2006151212129) /bwipp.GS1valueTooLong er_tmpl
 
 % N1 X1 X1 X1,importeridx
 ((7040)1ABC) good_tmpl
+((7040)1AB/) /bwipp.GS1badImporterIndex er_tmpl
 ((7040)1AB) /bwipp.GS1valueTooShort er_tmpl
 ((7040)1ABCD) /bwipp.GS1valueTooLong er_tmpl
-((7040)1ABC) good_tmpl
-((7040)1AB/) /bwipp.GS1badImporterIndex er_tmpl
 
 % N4,nonzero N5,nonzero N3,nonzero N1,winding N1
 ((8001)00010000100109) good_tmpl
 ((8001)99999999999999) good_tmpl
 ((8001)00000000100109) /bwipp.GS1zeroNotPermitted er_tmpl
 ((8001)00010000000109) /bwipp.GS1zeroNotPermitted er_tmpl
+((8001)00010000100009) /bwipp.GS1zeroNotPermitted er_tmpl
+((8001)00010000100109) good_tmpl
 ((8001)00010000100119) good_tmpl
 ((8001)00010000100129) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100139) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100149) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100159) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100169) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100179) /bwipp.GS1badWinding er_tmpl
+((8001)00010000100189) /bwipp.GS1badWinding er_tmpl
 ((8001)00010000100199) good_tmpl
 
 % N14,csum N4,pieceoftotal
@@ -229,6 +287,17 @@
 ((8006)123456789012310302) /bwipp.GS1pieceExceedsTotal er_tmpl
 
 % X..34,iban
+((8007)FR7630006000011234567890189) good_tmpl
+((8007)DE91100000000123456789) good_tmpl
+((8007)GR9608100010000001234567890) good_tmpl
+((8007)MU43BOMM0101123456789101000MUR) good_tmpl
+((8007)PK70BANK0000123456789000) good_tmpl
+((8007)PL10105000997603123456789123) good_tmpl
+((8007)RO09BCYP0000001234567890) good_tmpl
+((8007)SA4420000001234567891234) good_tmpl
+((8007)ES7921000813610123456789) good_tmpl
+((8007)CH5604835012345678009) good_tmpl
+((8007)GB98MIDL07009312345678) good_tmpl
 ((8007)BE71096123456769) good_tmpl
 ((8007)BE71096123456760) /bwipp.GS1badIBANchecksum er_tmpl
 ((8007)LC14BOSL123456789012345678901234) good_tmpl
@@ -248,7 +317,7 @@
 
 % C..30,key
 ((8010)12345ABC) good_tmpl
-((8010)12#-/0123456789ABCDEFGHIJK) good_tmpl
+((8010)12#-/0123456789ABCDEFGHIJK) good_tmpl  % "#" is acceptable in CSET32
 ((8010)12CDEFGHIJKLMNOPQRSTUVWXYZ) good_tmpl
 ((8010)12345AB_) /bwipp.GS1badCSET39character er_tmpl
 
@@ -263,6 +332,12 @@
 
 % Unknown
 ((03)ABC) /bwipp.GS1unknownAI er_tmpl
+((AB)ABC) /bwipp.GS1unknownAI er_tmpl
+(()ABC) /bwipp.GS1unknownAI er_tmpl
+(()(10)ABC) /bwipp.GS1unknownAI er_tmpl
+(()A(10)ABC) /bwipp.GS1unknownAI er_tmpl
 
 % Compound
 ((01)95012345678903(3103)000123) good_tmpl
+((01)95012345678902(3103)000123) /bwipp.GS1badChecksum er_tmpl
+((01)95012345678903(11)131313) /bwipp.GS1badMonth er_tmpl
