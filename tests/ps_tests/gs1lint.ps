@@ -167,14 +167,34 @@
 ((253)1234567890128ABCDEFGHIJKLMNOPQR) /bwipp.GS1valueTooLong er_tmpl
 ((253)1234567890120) /bwipp.GS1badChecksum er_tmpl
 
-% N3,isocc N..15
-((3919)8501) good_tmpl
-((3910)850123456789012345) good_tmpl
-((3910)851123456789012345) /bwipp.GS1UnknownCountry er_tmpl
-((3910)850) /bwipp.GS1valueTooShort er_tmpl
-((3910)8501234567890123456) /bwipp.GS1valueTooLong er_tmpl
+% N3,iso4217 N..15
+((3919)0501) good_tmpl
+((3910)050123456789012345) good_tmpl
+((3910)053123456789012345) /bwipp.GS1UnknownCurrency er_tmpl
+((3910)050) /bwipp.GS1valueTooShort er_tmpl
+((3910)0501234567890123456) /bwipp.GS1valueTooLong er_tmpl
 
-% N..15,isocclist
+% X2,iso3166alpha2
+((4307)GB) good_tmpl
+((4307)ZZ) /bwipp.GS1UnknownCountryAlpha er_tmpl
+((4307)G) /bwipp.GS1valueTooShort er_tmpl
+((4307)GBZ) /bwipp.GS1valueTooLong er_tmpl
+
+% N3,iso3166 X..9
+((421)8501) good_tmpl
+((421)850123456789) good_tmpl
+((421)851123456789) /bwipp.GS1UnknownCountry er_tmpl
+((421)850) /bwipp.GS1valueTooShort er_tmpl
+((421)8501234567890) /bwipp.GS1valueTooLong er_tmpl
+
+% N3,iso3166999 X..27
+((7030)8501) good_tmpl
+((7030)9991) good_tmpl
+((7030)8511) /bwipp.GS1UnknownCountryOr999 er_tmpl
+((7030)850) /bwipp.GS1valueTooShort er_tmpl
+((7030)8501234567890123456789012345678) /bwipp.GS1valueTooLong er_tmpl
+
+% N..15,iso3166list
 ((423)850) good_tmpl
 ((423)004100400850894) good_tmpl
 ((423)8501) /bwipp.GS1BadCountryListLength er_tmpl
@@ -182,6 +202,7 @@
 ((423)) /bwipp.GS1valueTooShort er_tmpl
 ((423)1) /bwipp.GS1BadCountryListLength er_tmpl
 ((423)12) /bwipp.GS1BadCountryListLength er_tmpl
+
 
 % Note: In reality, almost all GCPs are six or more numeric digits so the
 % restriction for "key" could be tightened
@@ -303,6 +324,7 @@
 ((8007)LC14BOSL123456789012345678901234) good_tmpl
 ((8007)LC14BOSL123456789012345678901230) /bwipp.GS1badIBANchecksum er_tmpl
 ((8007)LC14BOSLxx3456789012345678901230) /bwipp.GS1badIBANcharacter er_tmpl
+((8007)XX361234567890) /bwipp.GS1UnknownCountryAlpha er_tmpl
 
 % N6,yymmdd N..6,hhoptmmss
 ((8008)200615121530) good_tmpl
