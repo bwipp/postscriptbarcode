@@ -301,11 +301,344 @@ begin
         } loop
     } bind def
 
-    /lintcouponcode {  % TODO
+    /lintcouponcode {
+        dup true exch {
+            dup 48 lt exch 57 gt or { pop false exit } if
+        } forall
+        not { pop pop /bwipp.GS1couponNotNumeric (Coupon not numeric) false exit } if
+
+        % GCP VLI and value
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShortGCPVLI (Coupon too short: Missing GCP VLI) false exit
+        } if
+        dup 0 1 getinterval cvi dup 6 gt {
+            pop pop /bwipp.GS1couponBadGCPVLI (Coupon GCP length indicator must be 0-6) false exit
+        } if
+        6 add 1 add
+        2 copy exch length gt {
+            pop pop pop /bwipp.GS1couponTooShortGCP (Coupon too short: GCP truncated) false exit
+        } if
+        dup 2 index length exch sub getinterval
+
+        % Offer Code
+        dup length 6 lt {
+            pop pop /bwipp.GS1couponTooShortOfferCode (Coupon too short: Offer Code truncated) false exit
+        } if
+        dup length 6 sub 6 exch getinterval
+
+        % Save Value VLI and value
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShortSaveValueVLI (Coupon too short: Missing Save Value VLI) false exit
+        } if
+        dup 0 1 getinterval cvi dup dup 1 lt exch 5 gt or {
+            pop pop /bwipp.GS1couponBadSaveValueVLI (Coupon Save Value length indicator must be 1-5) false exit
+        } if
+        1 add
+        2 copy exch length gt {
+            pop pop pop /bwipp.GS1couponTooShortSaveValue (Coupon too short: Save Value truncated) false exit
+        } if
+        dup 2 index length exch sub getinterval
+
+        % 1st Purchase Requirement VLI and value
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShort1stPurchaseRequirementVLI (Coupon too short: Missing 1st Purchase Requirement VLI) false exit
+        } if
+        dup 0 1 getinterval cvi dup dup 1 lt exch 5 gt or {
+            pop pop /bwipp.GS1couponBad1stPurchaseRequirementVLI (Coupon 1st Purchase Requirement length indicator must be 1-5) false exit
+        } if
+        1 add
+        2 copy exch length gt {
+            pop pop pop /bwipp.GS1couponTooShort1stPurchaseRequirement (Coupon too short: 1st Purchase Requirement truncated) false exit
+        } if
+        dup 2 index length exch sub getinterval
+
+        % 1st Purchase Requirement Code
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShort1stPurchaseRequirementCode (Coupon too short: Missing 1st Purchase Requirement Code) false exit
+        } if
+        dup 0 1 getinterval cvi dup 4 gt exch 9 ne and {
+            pop pop /bwipp.GS1couponBad1stPurchaseRequirementCode (Coupon 1st Purchase Requirement Code must be 0-4 or 9) false exit
+        } if
+        dup length 1 sub 1 exch getinterval
+
+        % 1st Purchase Family Code
+        dup length 3 lt {
+            pop pop /bwipp.GS1couponTooShort1stPurchaseFamilyCode (Coupon too short: 1st Purchase Family Code truncated) false exit
+        } if
+        dup length 3 sub 3 exch getinterval
+
+        % Optional field 1
+        dup length 1 ge { dup 0 1 getinterval cvi 1 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Additional Purchase Rules Code
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortAdditionalPurchaseRulesCode (Coupon too short: Missing Additional Purchase Rules Code) false exit
+            } if
+            dup 0 1 getinterval cvi 3 gt {
+                pop pop /bwipp.GS1couponBadAdditionalPurchaseRulesCode (Coupon Additional Purchase Rules Code must be 0-3) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % 2nd Purchase RequirementVLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort2ndPurchaseRequirementVLI (Coupon too short: Missing 2nd Purchase Requirement VLI) false exit
+            } if
+            dup 0 1 getinterval cvi dup dup 1 lt exch 5 gt or {
+                pop pop /bwipp.GS1couponBad2ndPurchaseRequirementVLI (Coupon 2nd Purchase Requirement length indicator must be 1-5) false exit
+            } if
+            1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShort2ndPurchaseRequirement (Coupon too short: 2nd Purchase Requirement truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+            % 2nd Purchase Requirement Code
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort2ndPurchaseRequirementCode (Coupon too short: Missing 2nd Purchase Requirement Code) false exit
+            } if
+            dup 0 1 getinterval cvi dup 4 gt exch 9 ne and {
+                pop pop /bwipp.GS1couponBad2ndPurchaseRequirementCode (Coupon 2nd Purchase Requirement Code must be 0-4 or 9) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % 2nd Purchase Family Code
+            dup length 3 lt {
+                pop pop /bwipp.GS1couponTooShort2ndPurchaseFamilyCode (Coupon too short: 2nd Purchase Family Code truncated) false exit
+            } if
+            dup length 3 sub 3 exch getinterval
+
+            % 2nd Purchase GCP VLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort2ndPurchaseGCPVLI (Coupon too short: Missing 2nd Purchase GCP VLI) false exit
+            } if
+            dup 0 1 getinterval cvi dup dup 6 gt exch 9 ne and {
+                pop pop /bwipp.GS1couponBad2ndPurchaseGCPVLI (Coupon 2nd Purchase GCP length indicator must be 0-6 or 9) false exit
+            } if
+            dup 9 ne {6 add} {pop 0} ifelse 1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShort2ndPurchaseGCP (Coupon too short: 2nd Purchase GCP truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+        } if } if
+
+        % Optional field 2
+        dup length 1 ge { dup 0 1 getinterval cvi 2 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % 3rd Purchase RequirementVLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort3rdPurchaseRequirementVLI (Coupon too short: Missing 3rd Purchase Requirement VLI) false exit
+            } if
+            dup 0 1 getinterval cvi dup dup 1 lt exch 5 gt or {
+                pop pop /bwipp.GS1couponBad3rdPurchaseRequirementVLI (Coupon 3rd Purchase Requirement length indicator must be 1-5) false exit
+            } if
+            1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShort3rdPurchaseRequirement (Coupon too short: 3rd Purchase Requirement truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+            % 3rd Purchase Requirement Code
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort3rdPurchaseRequirementCode (Coupon too short: Missing 3rd Purchase Requirement Code) false exit
+            } if
+            dup 0 1 getinterval cvi dup 4 gt exch 9 ne and {
+                pop pop /bwipp.GS1couponBad3rdPurchaseRequirementCode (Coupon 3rd Purchase Requirement Code must be 0-4 or 9) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % 3rd Purchase Family Code
+            dup length 3 lt {
+                pop pop /bwipp.GS1couponTooShort3rdPurchaseFamilyCode (Coupon too short: 3rd Purchase Family Code truncated) false exit
+            } if
+            dup length 3 sub 3 exch getinterval
+
+            % 3rd Purchase GCP VLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShort3rdPurchaseGCPVLI (Coupon too short: Missing 3rd Purchase GCP VLI) false exit
+            } if
+            dup 0 1 getinterval cvi dup dup 6 gt exch 9 ne and {
+                pop pop /bwipp.GS1couponBad3rdPurchaseGCPVLI (Coupon 3rd Purchase GCP length indicator must be 0-6 or 9) false exit
+            } if
+            dup 9 ne {6 add} {pop 0} ifelse 1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShort3rdPurchaseGCP (Coupon too short: 3rd Purchase GCP truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+        } if } if
+
+        % Optional field 3
+        /couponexpire -1 def
+        dup length 1 ge { dup 0 1 getinterval cvi 3 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Expiration date
+            dup length 6 lt {
+                pop pop /bwipp.GS1couponTooShortExpirationDate (Coupon too short: Expiration date) false exit
+            } if
+            dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop pop /bwipp.GS1couponExpirationDateBadMonth (Invalid month in expiration date) false exit } if
+            dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
+            dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
+            dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or           % Leap year?
+            [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
+            1 index 2 2 getinterval cvi 1 sub get
+            1 index 4 2 getinterval cvi dup 3 1 roll lt
+            exch 1 lt or { pop pop /bwipp.GS1couponExpirationDateBadDay (Invalid day of month in expiration date) false exit } if
+            dup 0 6 getinterval cvi /couponexpire exch def
+            dup length 6 sub 6 exch getinterval
+
+        } if } if
+
+        % Optional field 4
+        dup length 1 ge { dup 0 1 getinterval cvi 4 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Start date
+            dup length 6 lt {
+                pop pop /bwipp.GS1couponTooShortStartDate (Coupon too short: Start date) false exit
+            } if
+            dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop pop /bwipp.GS1couponStartDateBadMonth (Invalid month in start date) false exit } if
+            dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
+            dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
+            dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or           % Leap year?
+            [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
+            1 index 2 2 getinterval cvi 1 sub get
+            1 index 4 2 getinterval cvi dup 3 1 roll lt
+            exch 1 lt or { pop pop /bwipp.GS1couponStartDateBadDay (Invalid day of month in start date) false exit } if
+            dup 0 6 getinterval cvi /couponstart exch def
+            couponexpire -1 ne couponexpire couponstart lt and {
+                pop pop /bwipp.GS1couponExpireDateBeforeStartDate (Coupon expires before it starts) false exit
+            } if
+            dup length 6 sub 6 exch getinterval
+
+        } if } if
+
+        % Optional field 5
+        dup length 1 ge { dup 0 1 getinterval cvi 5 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Serial Number VLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortSerialNumberVLI (Coupon too short: Missing Serial Number VLI) false exit
+            } if
+            dup 0 1 getinterval cvi 6 add 1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShortSerialNumber (Coupon too short: Serial Number truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+        } if } if
+
+        % Optional field 6
+        dup length 1 ge { dup 0 1 getinterval cvi 6 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Retailer GCP/GLN VLI and value
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortRetailerGCPGLNVLI (Coupon too short: Missing Retailer GCP/GLN VLI) false exit
+            } if
+            dup 0 1 getinterval cvi dup dup 1 lt exch 7 gt or {
+                pop pop /bwipp.GS1couponBadRetailerGCPGLNVLI (Coupon Retailer GCP/GLN length indicator must be 1-7) false exit
+            } if
+            6 add 1 add
+            2 copy exch length gt {
+                pop pop pop /bwipp.GS1couponTooShortRetailerGCPGLN (Coupon too short: Retailer GCP/GLN truncated) false exit
+            } if
+            dup 2 index length exch sub getinterval
+
+        } if } if
+
+        % Optional field 9
+        dup length 1 ge { dup 0 1 getinterval cvi 9 eq {
+            1 dup 2 index length exch sub getinterval
+
+            % Save Value Code
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortSaveValueCode (Coupon too short: Missing Save Value Code) false exit
+            } if
+            dup 0 1 getinterval cvi dup 6 gt exch dup 3 eq exch 4 eq or or {
+                pop pop /bwipp.GS1couponBadSaveValueCode (Coupon Save Value Code must be 0,1,2,5 or 6) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % Save Value Applies to Item
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortSaveValueAppliesToItem (Coupon too short: Missing Save Value Applies to Item) false exit
+            } if
+            dup 0 1 getinterval cvi 2 gt {
+                pop pop /bwipp.GS1couponBadSaveValueAppliesToItem (Coupon Save Value Applies to Item must be 0-2) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % Store Coupon Flag
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortStoreCouponFlag (Coupon too short: Missing Store Coupon Flag) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+            % Don't Multiply Flag
+            dup length 1 lt {
+                pop pop /bwipp.GS1couponTooShortDontMultiplyFlag (Coupon too short: Missing Don't Multiply Flag) false exit
+            } if
+            dup 0 1 getinterval cvi 1 gt {
+                pop pop /bwipp.GS1couponBadDontMultiplyFlag (Don't Multiply Flag must be 0 or 1) false exit
+            } if
+            dup length 1 sub 1 exch getinterval
+
+        } if } if
+
+        dup length 0 ne {
+            pop pop /bwipp.GS1couponUnrecognisedOptionalField (Coupon fields much be 1,2,3,4,5,6 or 9, increasing order) false exit
+        } if
         pop
     } bind def
 
-    /lintcouponposoffer {  % TODO
+    /lintcouponposoffer {
+        dup true exch {
+            dup 48 lt exch 57 gt or { pop false exit } if
+        } forall
+        not { pop pop /bwipp.GS1couponNotNumeric (Coupon not numeric) false exit } if
+        % Format Code
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShortFormatCode (Coupon too short: Missing Format Code) false exit
+        } if
+        dup 0 1 getinterval dup (0) ne exch (1) ne and {
+            pop pop /bwipp.GS1couponBadFormatCode (Coupon format must be 0 or 1) false exit
+        } if
+        dup length 1 sub 1 exch getinterval
+        % Funder ID VLI and Funder ID
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShortFunderVLI (Coupon too short: Missing Funder VLI) false exit
+        } if
+        dup 0 1 getinterval cvi dup 6 gt {
+            pop pop pop /bwipp.GS1couponBadFunderVLI (Coupon Funder length indicator must be 0-6) false exit
+        } if
+        6 add 1 add
+        2 copy exch length gt {
+            pop pop pop /bwipp.GS1couponTooShortFunder (Coupon too short: Truncated Funder ID) false exit
+        } if
+        dup 2 index length exch sub getinterval
+        % Offer Code
+        dup length 6 lt {
+            pop pop /bwipp.GS1couponTooShortOfferCode (Coupon too short: Truncated Offer Code) false exit
+        } if
+        dup length 6 sub 6 exch getinterval
+        % Serial Number VLI and Serial Number
+        dup length 1 lt {
+            pop pop /bwipp.GS1couponTooShortSnVLI (Coupon too short: Missing SN VLI) false exit
+        } if
+        dup 0 1 getinterval cvi
+        6 add 1 add
+        2 copy exch length gt {
+            pop pop pop /bwipp.GS1couponTooShortSn (Coupon too short: Truncated SN) false exit
+        } if
+        dup 2 index length exch sub getinterval
+        dup length 0 ne {
+            pop pop /bwipp.GS1couponTooLong (Coupon too long) false exit
+        } if
         pop
     } bind def
 
