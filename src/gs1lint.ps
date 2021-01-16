@@ -258,13 +258,11 @@ begin
         2 2 getinterval cvi 59 gt { pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
     } bind def
 
-    /lintoptmmss {
-        dup length dup 0 ne exch dup 2 ne exch 4 ne and and {
+    /lintmmoptss {
+        dup length dup 2 ne exch 4 ne and {
             pop /bwipp.GS1badTimeLength (Invalid length for optional minutes and seconds) false exit
         } if
-        dup length 2 ge {
-            dup 0 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
-        } if
+        dup 0 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
         dup length 4 ge {
             dup 2 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badSecond (Invalid second in the minute) false exit } if
         } if
@@ -1524,7 +1522,7 @@ begin
 
         [
         << /cset /N  /min  8  /max  8  /check [ /lintyymmddhh ] >>
-        << /cset /N  /min  0  /max  4  /check [ /lintoptmmss ] >>
+        << /cset /N  /min  0  /max  4  /check [ /lintmmoptss ] >>
         ]
         (8008) exch dup
         pop
