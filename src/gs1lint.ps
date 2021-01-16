@@ -247,21 +247,26 @@ begin
         lintyymmd0
     } bind def
 
+    /lintyymmddhh {
+        dup length 8 ne { pop /bwipp.GS1badYYMMDDHHLength (Invalid length for date with hour) false exit } if
+        dup 6 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
+        0 6 getinterval lintyymmdd
+    } bind def
+
     /linthhmm {
         dup 0 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
         2 2 getinterval cvi 59 gt { pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
     } bind def
 
-    /linthhoptmmss {
-        dup length dup 2 ne exch dup 4 ne exch 6 ne and and {
-            pop /bwipp.GS1badTimeLength (Invalid length for time of day with optional mins and secs) false exit
+    /lintoptmmss {
+        dup length dup 0 ne exch dup 2 ne exch 4 ne and and {
+            pop /bwipp.GS1badTimeLength (Invalid length for optional minutes and seconds) false exit
         } if
-        dup 0 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
+        dup length 2 ge {
+            dup 0 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
+        } if
         dup length 4 ge {
-            dup 2 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
-        } if
-        dup length 6 ge {
-            dup 4 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badSecond (Invalid second in the minute) false exit } if
+            dup 2 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badSecond (Invalid second in the minute) false exit } if
         } if
         pop
     } bind def
@@ -1518,8 +1523,8 @@ begin
         pop
 
         [
-        << /cset /N  /min  6  /max  6  /check [ /lintyymmdd ] >>
-        << /cset /N  /min  1  /max  6  /check [ /linthhoptmmss ] >>
+        << /cset /N  /min  8  /max  8  /check [ /lintyymmddhh ] >>
+        << /cset /N  /min  0  /max  4  /check [ /lintoptmmss ] >>
         ]
         (8008) exch dup
         pop
