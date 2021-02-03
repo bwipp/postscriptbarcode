@@ -24,7 +24,10 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Build
-      run: make -j `nproc`
+      run:
+        apt-get update
+        apt-get install -y --no-install-recommends ghostscript
+        make -j `nproc`
 
     - name: Test
       run: make test
@@ -43,7 +46,7 @@ jobs:
     - name: Convert images from EPS to PDF
       run: |
         sudo apt-get update
-        sudo apt install --no-install-recommends texlive-font-utils
+        sudo apt install -y --no-install-recommends texlive-font-utils
         find wikidocs/images/ -name '*.eps' | xargs -t -P `nproc` -i epstopdf {}
 
     - name: Transform wiki
@@ -361,7 +364,10 @@ jobs:
         echo ::set-output name=VERSION::$VERSION
 
     - name: Make assets
-      run: make -j `nproc` release
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends ghostscript
+        make -j `nproc` release
 
     - name: Load PDF docs
       uses: actions/download-artifact@v2
