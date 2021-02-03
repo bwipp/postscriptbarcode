@@ -397,15 +397,15 @@ begin
                     /tc tc isT {2 3 div add} {isEA { 8 3 div add } { 4 3 div add } ifelse} ifelse def
                     /xc xc isX {2 3 div add} {isEA {13 3 div add } {10 3 div add } ifelse} ifelse def
                     /bc bc isFN {3 add} {1 add} ifelse def
-                    k 3 ge {
+                    k 3 ge {  % Checking after at least 4 characters (cf. Data Matrix), not 3 as in spec Step Q
                         true [ac cc tc xc   ] {bc 1 add exch ceiling le and} forall {B exit} if
                         true [   cc tc xc bc] {ac 1 add exch ceiling le and} forall {A exit} if
-                        true [ac cc    xc bc] {tc 1 add exch ceiling le and} forall {T exit} if
-                        true [ac    tc      ] {cc 1 add exch ceiling le and} forall {
+                        true [ac cc    xc bc] {tc ceiling 1 add exch ceiling le and} forall {T exit} if
+                        true [ac    tc      ] {cc ceiling 1 add exch ceiling le and} forall {
                             cc ceiling xc ceiling lt {C exit} if
                             cc xc eq {i k add 1 add XtermFirst {X exit} {C exit} ifelse} if
                         } if
-                        true [ac cc tc    bc] {xc 1 add exch lt and} forall {X exit} if
+                        true [ac cc tc    bc] {xc ceiling 1 add exch ceiling le and} forall {X exit} if
                     } if
                     /k k 1 add def
                 } loop
@@ -485,24 +485,43 @@ begin
             % Lookup the values for each character
             {
                 i msglen eq {exit} if
-                encvals mode get msg i get known not {exit} if
                 p 3 mod 0 eq {
                     numD i get 12 ge {
-                        [unlcw] addtocws
-                        /mode A def
-                        exit
-                    } if
-                    numD i get dup 8 ge exch i add msglen eq and {
-                        [unlcw] addtocws
-                        /mode A def
-                        exit
-                    } if
-                    lookup mode ne {
                         ctxvals 0 p getinterval CTXvalstocws addtocws
                         [unlcw] addtocws
                         /mode A def
                         exit
                     } if
+                    numD i get dup 8 ge exch i add msglen eq and {
+                        ctxvals 0 p getinterval CTXvalstocws addtocws
+                        [unlcw] addtocws
+                        /mode A def
+                        exit
+                    } if
+                    mode X eq {  % Steps E1c, E2
+                        Xvals msg i get known not {
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            % Unlatch to ASCII unless one codeword left and single ASCII to encode
+                            numremcws j get 1 ne msg i get 127 gt or {
+                                [unlcw] addtocws
+                            } if
+                            /mode A def
+                            exit
+                        } if
+                        i 1 add msglen lt {
+                            Xvals msg i 1 add get known not {exit} if
+                            i 2 add msglen lt {
+                                Xvals msg i 2 add get known not {exit} if
+                            } if
+                        } if
+                    } {
+                        lookup mode ne {
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            [unlcw] addtocws
+                            /mode A def
+                            exit
+                        } if
+                    } ifelse
                     msglen i sub 3 le {  % Check end of data conditions
                         /remcws numremcws j p 3 idiv 2 mul add get def
                         /remvals [
@@ -596,11 +615,17 @@ begin
                     /remcws numremcws j Dbits length 8 idiv add get def
 
                     % Final codeword with no data
-                    numremcws j Dbits length 8 idiv add 1 sub get 1 sub 0 eq
-                    i msglen eq and {exit} if
+                    numremcws j Dbits length 8 idiv add 1 sub get 1 sub 0 eq Drem 0 eq and  % No remaining codewords and no bits
+                    remcws 1 eq Drem 0 ne and or  % Or 1 remaining codeword and some bits
+                    i msglen eq and {
+                        Drem 4 eq Drem 6 eq or { /Dbits [ Dbits aload pop 1 1 1 1 ] def } if
+                        Drem 2 eq Drem 6 eq or { /Dbits [ Dbits aload pop 0 1 ] def } if
+                        exit
+                    } if
 
-                    % Final digit into final codeword as ASCII
+                    % Final digit or double-digit into final codeword as ASCII
                     i msglen 1 sub eq numD i get 1 eq and
+                    i msglen 2 sub eq numD i get 2 eq and or
                     remcws 1 eq and Drem 0 eq and {exit} if
 
                     % Latch to ASCII unless 4 or 6 bits remain in final codeword
@@ -709,6 +734,8 @@ begin
     } {
         /cws [ dcws cws length sub {0} repeat cws aload pop ] def
     } ifelse
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % De-interleave the codewords into blocks
     /cwbs rsbl array def  % Array of data codeword blocks
