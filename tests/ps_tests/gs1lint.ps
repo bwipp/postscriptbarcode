@@ -31,6 +31,13 @@
     true isEqual
 } def
 
+/good_no_parse_tmpl {
+    { 0 0 gs1lint } 3 1 roll
+    2 index 1 3 -1 roll put
+    1 index 0 3 -1 roll put
+    true isEqual
+} def
+
 /er_tmpl {
     exch parse { 0 0 gs1lint } 3 1 roll
     2 index 1 3 -1 roll put
@@ -351,6 +358,42 @@
 ((8011)12345) good_tmpl
 ((8011)0) good_tmpl
 ((8011)01) /bwipp.GS1badZeroPrefix er_tmpl
+
+% X..25,csumalpha,key
+((8013)1987654Ad4X4bL5ttr2310c2K) good_tmpl
+((8013)12345678901234567890123NT) good_tmpl
+((8013)12345_ABCDEFGHIJKLMCP) good_tmpl
+((8013)12345_NOPQRSTUVWXYZDN) good_tmpl
+((8013)12345_abcdefghijklmN3) good_tmpl
+((8013)12345_nopqrstuvwxyzP2) good_tmpl
+[(8013)] [(12345_!"%&'()*+,-./LC)] good_no_parse_tmpl  % TODO add parse option processing
+((8013)12345_0123456789:;<=>?62) good_tmpl
+((8013)7907665Bm8v2AB) good_tmpl
+((8013)97850l6KZm0yCD) good_tmpl
+((8013)225803106GSpEF) good_tmpl
+((8013)149512464PM+GH) good_tmpl
+((8013)62577B8fRG7HJK) good_tmpl
+((8013)515942070CYxLM) good_tmpl
+((8013)390800494sP6NP) good_tmpl
+((8013)386830132uO+QR) good_tmpl
+((8013)53395376X1:nST) good_tmpl
+((8013)957813138Sb6UV) good_tmpl
+((8013)530790no0qOgWX) good_tmpl
+((8013)62185314IvwmYZ) good_tmpl
+((8013)23956qk1&dB!23) good_tmpl
+((8013)794394895ic045) good_tmpl
+((8013)57453Uq3qA<H67) good_tmpl
+((8013)62185314IvwmYZ) good_tmpl
+((8013)0881063PhHvY89) good_tmpl
+((8013)00000!HV) good_tmpl
+((8013)99999zzzzzzzzzzzzzzzzzzT2) good_tmpl
+((8013)1987654Ad4X4bL5ttr2310cXK) /bwipp.GS1badAlphaCheckCharacters er_tmpl
+((8013)1987654Ad4X4bL5ttr2310c2X) /bwipp.GS1badAlphaCheckCharacters er_tmpl
+((8013)198765£Ad4X4bL5ttr2310c2K) /bwipp.GS1badCSET82character er_tmpl
+((8013)1987654Ad4X4bL5ttr2310£2K) /bwipp.GS1badCSET82character er_tmpl
+((8013)1987654Ad4X4bL5ttr2310cxK) /bwipp.GS1UnknownCSET32Character er_tmpl
+((8013)1987654Ad4X4bL5ttr2310c2x) /bwipp.GS1UnknownCSET32Character er_tmpl
+((8013)123456789012345678901234XX) /bwipp.GS1badAlphaCheckCharacters er_tmpl
 
 % X..70,couponcode
 ((8110)012345612345611110123) good_tmpl

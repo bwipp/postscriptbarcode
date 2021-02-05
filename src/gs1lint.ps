@@ -93,8 +93,36 @@ begin
         10 mod 0 ne { pop /bwipp.GS1badChecksum (Bad checksum) false exit } if
     } bind def
 
+    /cset82 <<
+        0 (!"%&'\(\)*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
+        { exch dup 1 add } forall pop
+    >> def
+
+    /cset32 <<
+        0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
+        { exch dup 1 add } forall pop
+    >> def
+
     /lintcsumalpha {
-        % TODO
+        dup length 2 lt { pop pop /bwipp.GS1alphaTooShort (Alphanumeric string is too short to check) false exit} if
+        dup length 2 sub
+        2 copy
+        0 exch getinterval mark exch {
+            dup cset82 exch known { cset82 exch get } { -1 exit } ifelse
+        } forall
+        dup -1 eq { cleartomark pop pop pop /bwipp.GS1UnknownCSET82Character (Unknown CSET 82 character) false exit} if
+        counttomark array astore exch pop
+        3 1 roll
+        2 getinterval mark exch {
+            dup cset32 exch known { cset32 exch get } { -1 exit } ifelse
+        } forall
+        dup -1 eq { cleartomark pop pop /bwipp.GS1UnknownCSET32Character (Unknown CSET 32 character) false exit} if
+        counttomark array astore exch pop
+        dup 0 get 5 bitshift exch 1 get add exch
+        [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 ]
+        1 index length 0 exch getinterval {exch} forall
+        0 exch { 3 -1 roll exch mul add } forall 1021 mod
+        ne { pop /bwipp.GS1badAlphaCheckCharacters (Bad alphanumeric check characters) false exit} if
     } bind def
 
     /iso3166 << [
