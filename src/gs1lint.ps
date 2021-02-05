@@ -120,7 +120,9 @@ begin
         counttomark array astore exch pop
         dup 0 get 5 bitshift exch 1 get add exch
         [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 ]
-        1 index length 0 exch getinterval {exch} forall
+        1 index length
+        dup 2 index length gt { pop pop pop pop pop /bwipp.GS1alphaTooLong (Alphanumeric string is too long to check) false exit} if
+        0 exch getinterval {exch} forall
         0 exch { 3 -1 roll exch mul add } forall 1021 mod
         ne { pop /bwipp.GS1badAlphaCheckCharacters (Bad alphanumeric check characters) false exit} if
     } bind def
