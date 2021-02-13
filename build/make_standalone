@@ -39,6 +39,8 @@ close(PS);
 
 open(PS,">$outfile") || die "Failed to write $outfile";
 print PS $head;
+
+my %seen;
 for my $encoder (@encoders) {
     ($_,$_,my $meta,$_)=$template=~/
         ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ($encoder)--$
@@ -63,6 +65,7 @@ for my $encoder (@encoders) {
       my $dsc=$4;
       my $body=$5;
       next unless $reqs{$resource};
+      next if $seen{$resource}++;
       print PS "$dsc$body\n";
     }
 }
