@@ -9,6 +9,39 @@ use strict;
 print "    /gs1syntax <<\n";
 print "\n";
 
+my $ai_rx = qr/
+    (
+        (0\d)
+    |
+        ([1-9]\d{1,3})
+    )
+/x;
+
+my $ai_rng_rx = qr/${ai_rx}(-${ai_rx})?/;
+
+my $flags_rx = qr/[\*]+/;
+
+my $type_rx = qr/
+    [XNC]
+    (
+        ([1-9]\d?)
+        |
+        (0?\.\.[1-9]\d?)
+    )
+/x;
+
+my $comp_rx = qr/
+    ${type_rx}
+    (,\w+)*
+/x;
+
+my $spec_rx = qr/
+    ${comp_rx}
+    (\s+${comp_rx})*
+/x;
+
+my $title_rx = qr/\S.*\S/;
+
 my $lastspecstr = '';
 my $first = 1;
 
@@ -16,7 +49,33 @@ while (<>) {
 
     chomp;
 
-    (my $ais, my $spec) = $_ =~ /^([0-9-]+)\s+(.*)\s*$/ or next;
+    $_ =~ /^#/ and next;
+    $_ =~ /^\s*$/ and next;
+
+    # 999  *  N13,csum,key X0..17  # EXAMPLE TITLE
+    $_ =~ /
+        ^
+        (?<ais>${ai_rng_rx})
+        (
+            \s+
+            (?<flags>${flags_rx})
+        )?
+        \s+
+        (?<spec>${spec_rx})
+        (
+            \s+
+            \#
+            \s
+            (?<title>${title_rx})
+        )?
+        \s*
+        $
+    /x or die;
+
+    my $ais = $+{ais};
+    my $flags = $+{flags} || '';
+    my $spec = $+{spec};
+    my $title = $+{title} || '';
 
     my @elms = split(/\s+/, $spec);
 
