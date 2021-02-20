@@ -220,10 +220,11 @@ begin
                 4 eq exch 30 eq and {           %              ...{RS}{EOT}
                     msg 5 get 53 eq {           %      ...5...
                         /msg [ m05 msg 7 msg length 9 sub getinterval aload pop ] def
-                    } if
-                    msg 5 get 54 eq {           %      ...6...
-                        /msg [ m06 msg 7 msg length 9 sub getinterval aload pop ] def
-                    } if
+                    } {
+                        msg 5 get 54 eq {       %      ...6...
+                            /msg [ m06 msg 7 msg length 9 sub getinterval aload pop ] def
+                        } if
+                    } ifelse
                 } if
             } if
         } if
@@ -702,6 +703,8 @@ begin
             cws exch i exch put
         } for
     } if
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Lookup symbol metrics based on number of codewords and user specification
     /i 0 def { % loop
