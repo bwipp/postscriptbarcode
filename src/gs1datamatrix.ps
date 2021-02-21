@@ -55,6 +55,7 @@ begin
     /dontdraw false def
     /parse false def
     /dontlint false def
+    /gssep false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -131,7 +132,7 @@ begin
         i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
             dmtx length 1 add array
             dup 0 dmtx putinterval
-            dup dmtx length fnc1 put
+            dup dmtx length gssep {29} {fnc1} ifelse put
             /dmtx exch def
         } if
     } for
