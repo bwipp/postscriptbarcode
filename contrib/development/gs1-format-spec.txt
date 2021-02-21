@@ -1,7 +1,64 @@
-# GS1 Application Identifier format specification
+# GS1 Application Identifier Syntax Dictionary
+# --------------------------------------------
 #
-# X..20  -> 1 <= |X| <= 20
-# X0..20 -> 0 <= |X| <= 20   # Field is optional
+# This is the GS1 Application Identifier format "Syntax Dictionary". It is a
+# collaboration between the BWIPP and Zint projects to provide a harmonised
+# dictionary that can be used by encoders and decoders of GS1 AI formatted data
+# to processing such data.
+#
+# Each entry in this file provides a description for one of more AIs of not
+# only the data type, length and title of the AI and whether an FNC1 separator
+# is required, but also a detailed breakdown of each component part of the data
+# field.
+#
+# The specification is similar to that contained in the GS1 General
+# Specification, however the data field definition is further decomposed into
+# meaningful components that can be individually reported or validated.
+#
+# Together with a set of "linter procedures" this syntax dictionary can be used
+# either directly by application code or by a project's build system to
+# generate code to perform a deep validation of any message consisting of GS1
+# Application Identifier element strings.
+#
+#
+# Syntax: AIs  [Flags]  Spec  [# Title]
+#
+#   AI: Solitary AI or a range of AIs
+#
+#   Flags:
+#
+#     "*" - Pre-defined length AI not requiring FNC1 separator
+#
+#   Spec: Consists of multiple whitespace-separated components
+#
+#     Each component: Type[,linter...]
+#
+#     Type ("N": Numeric, "X": CSET 82, "C": CSET 39), e.g.
+#
+#       "N5"     - length == 5
+#       "N..20"  - 1 <= length <= 20
+#       "N0..20" - 0 <= length <= 20, i.e. the field is optional
+#
+#     Each linter is the nane of a reference procedure that performs content
+#     validation of the component.
+#
+#   Title: Follows first "#" until end of line
+#
+#
+# Implementations of the linter procedures are available in the following
+# projects:
+#
+#   - https://sourceforge.net/p/zint/code/ci/master/tree/backend/gs1.c
+#   - https://github.com/bwipp/postscriptbarcode/blob/master/src/gs1lint.ps
+#
+# Unit test data is also provided which should be used to validate new
+# implementations:
+#
+#   - https://github.com/bwipp/postscriptbarcode/blob/master/tests/ps_tests/gs1lint.ps
+#   - https://sourceforge.net/p/zint/code/ci/master/tree/backend/tests/test_gs1.c
+#
+# Please respect the software licences of these projects.
+#
 #
 
 00        * N18,csum,key                                    # SSCC
