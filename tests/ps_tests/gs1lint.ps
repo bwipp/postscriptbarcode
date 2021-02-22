@@ -53,7 +53,7 @@
 ((00)1234567890123456750) /bwipp.GS1valueTooLong er_tmpl
 ((00)123456789012345670) /bwipp.GS1badChecksum er_tmpl
 
-% X..20
+% X1..20
 ((10)) /bwipp.GS1valueTooShort er_tmpl
 ((10)1) good_tmpl
 ((10)12345678901234567890) good_tmpl
@@ -65,7 +65,7 @@
 ((10)xyz) good_tmpl
 ((10) ) /bwipp.GS1badCSET82character er_tmpl
 
-% X2 X..28
+% X2 X1..28
 ((7230)121234567890123456789012345678) good_tmpl
 ((7230)1212345678901234567890123456789) /bwipp.GS1valueTooLong er_tmpl
 ((7230)123) good_tmpl
@@ -174,7 +174,7 @@
 ((253)1234567890128ABCDEFGHIJKLMNOPQR) /bwipp.GS1valueTooLong er_tmpl
 ((253)1234567890120) /bwipp.GS1badChecksum er_tmpl
 
-% N3,iso4217 N..15
+% N3,iso4217 N1..15
 ((3919)0501) good_tmpl
 ((3910)050123456789012345) good_tmpl
 ((3910)053123456789012345) /bwipp.GS1UnknownCurrency er_tmpl
@@ -187,41 +187,41 @@
 ((4307)G) /bwipp.GS1valueTooShort er_tmpl
 ((4307)GBZ) /bwipp.GS1valueTooLong er_tmpl
 
-% N3,iso3166 X..9
+% N3,iso3166 X1..9
 ((421)8501) good_tmpl
 ((421)850123456789) good_tmpl
 ((421)851123456789) /bwipp.GS1UnknownCountry er_tmpl
 ((421)850) /bwipp.GS1valueTooShort er_tmpl
 ((421)8501234567890) /bwipp.GS1valueTooLong er_tmpl
 
-% N3,iso3166999 X..27
+% N3,iso3166999 X1..27
 ((7030)8501) good_tmpl
 ((7030)9991) good_tmpl
 ((7030)8511) /bwipp.GS1UnknownCountryOr999 er_tmpl
 ((7030)850) /bwipp.GS1valueTooShort er_tmpl
 ((7030)8501234567890123456789012345678) /bwipp.GS1valueTooLong er_tmpl
 
-% N..15,iso3166list
+% N1..15,iso3166list
 ((423)850) good_tmpl
 ((423)004100400850894) good_tmpl
 ((423)8501) /bwipp.GS1BadCountryListLength er_tmpl
 ((423)85012) /bwipp.GS1BadCountryListLength er_tmpl
 ((423)) /bwipp.GS1valueTooShort er_tmpl
-((423)1) /bwipp.GS1BadCountryListLength er_tmpl
-((423)12) /bwipp.GS1BadCountryListLength er_tmpl
+((423)1) /bwipp.GS1valueTooShort er_tmpl
+((423)12) /bwipp.GS1valueTooShort er_tmpl
 
 
 % Note: In reality, almost all GCPs are six or more numeric digits so the
 % restriction for "key" could be tightened
 %
-% X..30,key
+% X1..30,key
 ((401)12) good_tmpl
 ((401)1) /bwipp.GS1keyTooShort er_tmpl
 ((401)) /bwipp.GS1valueTooShort er_tmpl
 ((401)A1) /bwipp.GS1badGCP er_tmpl
 ((401)1A) /bwipp.GS1badGCP er_tmpl
 
-% X..35,pcenc
+% X1..35,pcenc
 ((4300)A) good_tmpl
 ((4300)ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHI) good_tmpl
 ((4300)%20) good_tmpl
@@ -255,7 +255,7 @@
 ((4320)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+12345) good_tmpl
 ((4320)ABCDEFGHIJKLMNOPQRSTUVWXYZ%00+123456) /bwipp.GS1valueTooLong er_tmpl
 
-% X..30 (no pcenc)
+% X1..30 (no pcenc)
 ((4308)ABCDEFGHIJKLMNOPQRSTUVWXYZ%+12) good_tmpl
 ((4308)ABCDEFGHIJKLMNOPQRSTUVWXYZ%+123) /bwipp.GS1valueTooLong er_tmpl
 
@@ -318,7 +318,7 @@
 ((8006)123456789012310200) /bwipp.GS1badPieceTotal er_tmpl
 ((8006)123456789012310302) /bwipp.GS1pieceExceedsTotal er_tmpl
 
-% X..34,iban
+% X1..34,iban
 ((8007)FR7630006000011234567890189) good_tmpl
 ((8007)DE91100000000123456789) good_tmpl
 ((8007)GR9608100010000001234567890) good_tmpl
@@ -348,18 +348,18 @@
 ((8008)200615123) /bwipp.GS1badTimeLength er_tmpl
 ((8008)20061512345) /bwipp.GS1badTimeLength er_tmpl
 
-% C..30,key
+% C1..30,key
 ((8010)12345ABC) good_tmpl
 ((8010)12#-/0123456789ABCDEFGHIJK) good_tmpl  % "#" is acceptable in CSET32
 ((8010)12CDEFGHIJKLMNOPQRSTUVWXYZ) good_tmpl
 ((8010)12345AB_) /bwipp.GS1badCSET39character er_tmpl
 
-% N..12,nozeroprefix
+% N1..12,nozeroprefix
 ((8011)12345) good_tmpl
 ((8011)0) good_tmpl
 ((8011)01) /bwipp.GS1badZeroPrefix er_tmpl
 
-% X..25,csumalpha,key
+% X1..25,csumalpha,key
 ((8013)1987654Ad4X4bL5ttr2310c2K) good_tmpl
 ((8013)12345678901234567890123NT) good_tmpl
 ((8013)12345_ABCDEFGHIJKLMCP) good_tmpl
@@ -395,7 +395,7 @@
 ((8013)1987654Ad4X4bL5ttr2310c2x) /bwipp.GS1UnknownCSET32Character er_tmpl
 ((8013)12345678901234567890123NTX) /bwipp.GS1valueTooLong er_tmpl
 
-% X..70,couponcode
+% X1..70,couponcode
 ((8110)012345612345611110123) good_tmpl
 ((8110)a12345612345611110123) /bwipp.GS1couponNotNumeric er_tmpl
 ((8110)01234561234561111012a) /bwipp.GS1couponNotNumeric er_tmpl
@@ -803,7 +803,7 @@
 ((8110)1061414154321031501101201211014092110256100126663101231) good_tmpl             % Example 5
 ((8110)106141416543213500110000310123196000) good_tmpl                                % Example 6
 
-% X..70,couponposoffer
+% X1..70,couponposoffer
 ((8112)001234561234560123456) good_tmpl
 ((8112)a01234561234560123456) /bwipp.GS1couponNotNumeric er_tmpl
 ((8112)00123456123456012345a) /bwipp.GS1couponNotNumeric er_tmpl
