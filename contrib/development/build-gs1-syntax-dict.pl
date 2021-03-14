@@ -40,6 +40,14 @@ my $spec_rx = qr/
     (\s+${comp_rx})*
 /x;
 
+my $keyval_rx = qr/
+    (
+        (\w+)
+        |
+        (\w+=\S+)
+    )
+/x;
+
 my $title_rx = qr/\S.*\S/;
 
 my $lastspecstr = '';
@@ -62,6 +70,13 @@ while (<>) {
         )?
         \s+
         (?<spec>${spec_rx})
+        \s*
+        (?<keyvals>
+            (
+                ${keyval_rx}
+                \s*
+            )*
+        )?
         (
             \s+
             \#
@@ -75,6 +90,7 @@ while (<>) {
     my $ais = $+{ais};
     my $flags = $+{flags} || '';
     my $spec = $+{spec};
+    my $keyvals = $+{keyvals} || '';
     my $title = $+{title} || '';
 
     my @elms = split(/\s+/, $spec);
