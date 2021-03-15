@@ -50,6 +50,33 @@ my $keyval_rx = qr/
 
 my $title_rx = qr/\S.*\S/;
 
+# 999  *  N13,csum,key X0..17  dlpkey=22,10  # EXAMPLE TITLE
+my $entry_rx = qr/
+    ^
+    (?<ais>${ai_rng_rx})
+    (
+        \s+
+        (?<flags>${flags_rx})
+    )?
+    \s+
+    (?<spec>${spec_rx})
+    (
+        \s+
+        (?<keyvals>
+            (${keyval_rx}\s+)*
+            ${keyval_rx}
+        )
+    )?
+    (
+        \s+
+        \#
+        \s
+        (?<title>${title_rx})
+    )?
+    \s*
+    $
+/x;
+
 my $lastspecstr = '';
 my $first = 1;
 
@@ -60,32 +87,7 @@ while (<>) {
     $_ =~ /^#/ and next;
     $_ =~ /^\s*$/ and next;
 
-    # 999  *  N13,csum,key X0..17  # EXAMPLE TITLE
-    $_ =~ /
-        ^
-        (?<ais>${ai_rng_rx})
-        (
-            \s+
-            (?<flags>${flags_rx})
-        )?
-        \s+
-        (?<spec>${spec_rx})
-        (
-            \s+
-            (?<keyvals>
-                (${keyval_rx}\s+)*
-                ${keyval_rx}
-            )
-        )?
-        (
-            \s+
-            \#
-            \s
-            (?<title>${title_rx})
-        )?
-        \s*
-        $
-    /x or die;
+    $_ =~ $entry_rx or die;
 
     my $ais = $+{ais};
     my $flags = $+{flags} || '';
