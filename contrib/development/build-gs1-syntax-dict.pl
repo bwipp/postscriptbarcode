@@ -70,12 +70,12 @@ while (<>) {
         )?
         \s+
         (?<spec>${spec_rx})
-        \s*
-        (?<keyvals>
-            (
+        (
+            \s+
+            (?<keyvals>
+                (${keyval_rx}\s+)*
                 ${keyval_rx}
-                \s*
-            )*
+            )
         )?
         (
             \s+
