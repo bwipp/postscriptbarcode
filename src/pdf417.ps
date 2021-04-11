@@ -566,6 +566,11 @@ begin
     r rows lt rows 90 le and {/r rows def} if
     r 3 lt {/r 3 def} if
 
+    % Symbol cannot exceed 90 rows
+    r 90 gt {
+      /bwipp.pdf417insufficientCapacity (Insufficient capacity in the symbol) //raiseerror exec
+    } if
+
     % Opportunistically raise the error level if a better fit to the matrix is possible
     /maxeclevel c r mul 1 sub m sub ln 2 ln div cvi 1 sub 8 2 copy gt {exch} if pop def
     maxeclevel eclevel gt {
@@ -879,7 +884,7 @@ begin
     } ifelse
     /pixs rwid r mul array def
 
-   0 1 r 1 sub {
+    0 1 r 1 sub {
         /i exch def
 
         i 3 mod 0 eq {
