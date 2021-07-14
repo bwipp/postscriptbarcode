@@ -52,8 +52,12 @@ begin
 
     /dontdraw false def
     /eclevel (EC2) def     % EC0-EC5
+    /encoding (auto) def
     /parse false def
     /parsefnc false def
+    /start 257 def         % 8-bit ISO-8859-1, until we write high-level encoders
+    /link1 0 def
+    /raw false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -66,31 +70,54 @@ begin
     } if
     options {def} forall
 
-    % Parse the input
-    /fn1 -1 def  /fn3 -2 def
-    /fncvals <<
-        /parse parse
-        /parsefnc parsefnc
-        (FNC1) fn1
-        (FNC3) fn3
-    >> def
-    /msg barcode fncvals //parseinput exec def
-    /msglen msg length def
+    /start start cvi def
+    /link1 link1 cvi def
+
+    raw {/encoding (raw) def} if
+
+    encoding (raw) eq {
+        /dcws barcode length array def
+        /i 0 def /j 0 def
+        { % loop
+            i barcode length eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            dcws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /dcws dcws 0 j getinterval def
+    } if
 
     % Basic high level encoding
-    /start 257 def  % 8-bit ISO-8859-1
-    /scr [] def     % Empty symbol control region
-    /link1 0 def
-    /scp [] def     % Empty start sequence parameters
-    /dcws [
-        scr aload pop
-        scp aload pop
-        msg {
-            dup fn1 eq {pop 268} if
-            dup fn3 eq {pop 269} if
-        } forall
-    ] def
-    /mcc dcws length 3 add def  % start mcc acc dcws
+    encoding (auto) eq {
+
+        % Parse the input
+        /fn1 -1 def  /fn3 -2 def
+        /fncvals <<
+            /parse parse
+            /parsefnc parsefnc
+            (FNC1) fn1
+            (FNC3) fn3
+        >> def
+        /msg barcode fncvals //parseinput exec def
+        /msglen msg length def
+
+        /scr [] def     % Empty symbol control region
+        /scp [] def     % Empty start sequence parameters
+        /dcws [
+            scr aload pop
+            scp aload pop
+            msg {
+                dup fn1 eq {pop 268} if
+                dup fn3 eq {pop 269} if
+            } forall
+        ] def
+
+    } if
+
+    options /debugcws known { /bwipp.debugcws dcws //raiseerror exec } if
+
+    /mcc dcws length 3 add def  % Message codewords: start mcc acc [dcws ...]
 
     /eclval eclevel 2 get 48 sub def
     eclval 0 ne {
@@ -104,19 +131,18 @@ begin
     % Lookup the most appropriate symbol specification
     /metrics [
         % rows  minc  maxc  mcol
-        [   2     4    34     5  ]
-%        [   3    33    78    13  ]
-        [   3    33    82    13  ]   % TODO Adjusted to fill gap in spec
-        [   4    82   158    23  ]
-        [   5   134   282    30  ]
+        [   2     7    37     5  ]
+        [   3    36    84    13  ]
+        [   4    85   161    22  ]
+        [   5   142   282    29  ]
     ] def
     0 1 3 {
         /i exch def
         /m metrics i get def
         /rows m 0 get def
-        /minc m 1 get def
-        /maxc m 2 get def
-        /mcol m 3 get def
+        /minc m 1 get def  % Minimum permissible codewords
+        /maxc m 2 get def  % Maximum permissible codewords
+        /mcol m 3 get def  % Minimum tile columns
         /okay true def
         tcc minc lt tcc maxc gt or {/okay false def} if
         okay {exit} if
@@ -146,7 +172,6 @@ begin
         start
         mcc
         acc
-        scr  aload pop
         dcws aload pop
         qcc {0} repeat
         0  % Working space
@@ -191,6 +216,8 @@ begin
     } for
     n 1 n k add { dup rsseq exch 283 rsseq 5 -1 roll get sub 283 mod put } for
     /ecws rsseq n k getinterval def
+
+    options /debugecc known { /bwipp.debugecc ecws //raiseerror exec } if
 
     /dccu [
         51363  51563  51653  53153  53163  53513  53563  53613  %  0-7
@@ -285,7 +312,6 @@ begin
         tcc
         283  % SEP
         acc
-        scr  aload pop
         dcws aload pop
         pads {284} repeat
         qcc
