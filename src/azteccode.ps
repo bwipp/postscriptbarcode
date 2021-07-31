@@ -290,10 +290,60 @@ begin
             lastchar () ne char 0 ge and {
                 /pchars 2 string dup 0 lastchar put dup 1 char put def
                 pcomp pchars known {
-                    curlen P get nxtlen P get lt {
-                        nxtlen P curlen P get put
-                        nxtseq P [ curseq P get aload pop pop pcomp pchars get ] put
-                    } if
+                    [ U L M P D ] {
+                        /i exch def
+                        /inP true def  % U and L can't encode CR, comma, dot or colon
+                        i M eq {  % M can encode CR
+                            lastchar 13 eq { /inP false def } if
+                        } {
+                            i D eq {  % D can encode comma and dot
+                                lastchar 44 eq lastchar 46 eq or { /inP false def } if
+                            } if
+                        } ifelse
+                        inP curlen i get nxtlen i get lt and {
+                            /curseqi curseq i get def
+                            /lastld false def
+                            /lastsp false def
+                            /lastidx -1 def
+                            curseqi length 1 sub -1 0 {  % Search backwards for lastchar
+                                /idx exch def
+                                /ch curseqi idx get def
+                                lastidx -1 eq {
+                                    ch lastchar eq {
+                                        /lastidx idx def
+                                        idx 0 gt {
+                                            curseqi idx 1 sub get sp eq { /lastsp true def } if  % Preceded by P/S
+                                        } if
+                                    } if
+                                } {  % Found lastchar, check latch
+                                    ch 0 lt ch ld ge and {  % If have latch
+                                        i P eq {
+                                            ch ld eq { /lastld true def } if  % Set flag if D/L for adjustment below
+                                        } {
+                                            ch lp ne { /inP lastsp def } if  % If not P/L only in P if have P/S
+                                        } ifelse
+                                        exit
+                                    } if
+                                } ifelse
+                            } for
+                            inP lastidx 0 ge and {
+                                nxtlen i curlen i get put
+                                lastidx curseqi length 1 sub lt {  % If lastchar not at end of sequence
+                                    i P eq {
+                                        lastld { nxtlen i nxtlen i get 1 add put } if  % Adjust count if D/L
+                                        % Move lastchar to end and replace
+                                        nxtseq i [ curseqi aload pop curseqi length lastidx sub -1 roll pop pcomp pchars get ] put
+                                    } {
+                                        % Replace lastchar in situ
+                                        nxtseq i [ curseqi aload pop ] put
+                                        nxtseq i get lastidx pcomp pchars get put
+                                    } ifelse
+                                } {
+                                    nxtseq i [ curseqi aload pop pop pcomp pchars get ] put
+                                } ifelse
+                            } if
+                        } if
+                    } forall
                 } if
             } if
 
@@ -479,7 +529,7 @@ begin
             /cwf msgbits m bpcw add 1 sub 1 getinterval def  % Last bit
             cwb allzero {/cwf (1) def /m m 1 sub def} if     % Flip last bit to avoid zeros
             cwb allones {/cwf (0) def /m m 1 sub def} if     % Flip last bit to avoid ones
-            % Concatinate the bits
+            % Concatenate the bits
             12 string dup 0 cwb putinterval
             dup bpcw 1 sub cwf putinterval
             0 bpcw getinterval
@@ -500,6 +550,8 @@ begin
         /c c 1 add def
     } loop
     /cws cws 0 c getinterval def
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Reed-Solomon algorithm
     /rscodes {
