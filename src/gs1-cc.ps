@@ -424,11 +424,13 @@ begin
             m  834 ge               {32} if  % Reduce to meet advertised "up to 2361 digits" (allows max 2372) within 900 limit
             /eccws exch def
             /m m eccws add 3 add def
-            {  % Loop until rows <= 30 or columns >= 30 (GS1 General Specifications 5.9.2.3)
+            cccolumns 30 gt { /cccolumns 30 def } if
+            {  % Loop until rows <= 30 or columns >= 30 (GS1 General Specifications 5.11.2.3)
                 m cccolumns div ceiling cvi 30 le cccolumns 30 ge or {exit} if
                 /cccolumns cccolumns 1 add def
             } loop
             /r m cccolumns div ceiling cvi def
+            r 3 lt { /r 3 def } if  % GS1 General Specifications 5.11.2.3 "3 to 30 rows"
             /tgt cccolumns r mul eccws sub 3 sub dup 5 idiv 6 mul exch 5 mod add 8 mul def
             used 8304 le {tgt used sub} {-1} ifelse
         } ifelse
