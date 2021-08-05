@@ -1,0 +1,36 @@
+%!PS
+
+% AIM ISS DotCode, Rev 4.0, DRAFT 0.15, TSC Pre-PR #5, May 28, 2019
+
+% vim: set ts=4 sw=4 et :
+
+/dotcode dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    3 1 roll { 0 0 dotcode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    isEqual
+} def
+
+
+{
+    (^128^1281234567890123456) (parse debugcws) dotcode  % Binary mode Latch C
+} [112 3 14 11 111 12 34 56 78 90 12 34 56] debugIsEqual
+
+
+% Figures
+
+(2741) (dontdraw)  % Figure 7B bottom-left, auto Mask = 2', same
+[
+    1 0 1 0 0 0 1 0 1 0 1 0 1
+    0 0 0 1 0 0 0 0 0 0 0 0 0
+    1 0 0 0 1 0 0 0 1 0 1 0 1
+    0 1 0 0 0 0 0 1 0 1 0 0 0
+    0 0 0 0 1 0 1 0 0 0 1 0 0
+    0 1 0 0 0 1 0 0 0 0 0 1 0
+    1 0 0 0 1 0 1 0 1 0 0 0 1
+    0 1 0 1 0 1 0 0 0 1 0 0 0
+    1 0 0 0 1 0 0 0 1 0 1 0 1
+    0 1 0 1 0 0 0 1 0 0 0 1 0
+] eq_tmpl

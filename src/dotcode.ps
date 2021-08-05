@@ -600,7 +600,7 @@ begin
             n 2 ge {
                 [ finaliseBIN ] addtocws
                 n 7 gt {  % Terminate to C
-                    [ BINvals tmc get ] add
+                    [ BINvals tmc get ] addtocws
                     /mode C def
                     exit
                 } if
@@ -726,6 +726,8 @@ begin
             nd cws length sub 1 sub {106} repeat
         ] def
     } if
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Create an array containing the character mappings
     /encs [
