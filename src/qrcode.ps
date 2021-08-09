@@ -413,7 +413,7 @@ begin
         % rMQR symbols are accessed with an explicit version
     } ifelse
 
-    % Encode unterminated bitsream for each compatible vergrp separately
+    % Encode unterminated bitstream for each compatible vergrp separately
     /msgbits [ 39 {-1} repeat ] def
     /e 10000 def
     verset {
@@ -441,8 +441,8 @@ begin
                 eci {
                     E exit
                 } if
-                ver vR7x43 ge {  % TODO rMQR is binary only for now
-                    B exit
+                ver vR7x43 ge {  % TODO rMQR is all numeric/alphanumeric/binary only for now
+                    numN msglen eq {N} { numA msglen eq {A} {B} ifelse } ifelse exit
                 } if
                 mode -1 eq {  % Set initial mode (or mode after ECI)
                     [ 1  1  1  e  e  1  1] KbeforeA {K exit} if
@@ -556,7 +556,7 @@ begin
     % Lookup the most appropriate symbol specification
     /metrics [
         % format   vers       vergrp  rows cols align modules    error codewords        error correction blocks
-        %                                                          L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
+        %                                                        L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
         [ (micro)  (M1)       vM1       11  11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
         [ (micro)  (M2)       vM2       13  13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
         [ (micro)  (M3)       vM3       15  15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
@@ -685,7 +685,7 @@ begin
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
-    % Complete the message bits by adding the terminator, truncated if neccessary
+    % Complete the message bits by adding the terminator, truncated if necessary
     /term term 0 dmod msgbits length sub term length 2 copy gt {exch} if pop getinterval def
     msgbits length term length add string
     dup 0 msgbits putinterval
