@@ -330,24 +330,31 @@ begin
     /numNs [ msglen {0} repeat 0 ] def
     /numAs [ msglen {0} repeat 0 ] def
     /numBs [ msglen {0} repeat 0 ] def
-    /numKs [ msglen {0} repeat -1 ] def
+    /numKs [ msglen {0} repeat 0 ] def
     /nextNs [ msglen {0} repeat 9999 ] def
     /nextBs [ msglen {0} repeat 9999 ] def
     /nextAs [ msglen {0} repeat 9999 ] def
     /nextKs [ msglen {0} repeat 9999 ] def
+    /numAN 0 def  % Inclusive alphanumeric count (for rMQR only)
     /isECI msglen array def
     msglen 1 sub -1 0 {
         /i exch def
         /barchar msg i get def
         Kexcl barchar known {
-            nextKs i 0 put
-            numKs i numKs i 1 add get 1 add put
+            /sjis i 1 add msglen lt { barchar 256 mul msg i 1 add get add } {0} ifelse def  % Zero if last char
+            sjis 16#8140 ge sjis 16#9FFC le and sjis 16#E040 ge sjis 16#EBBF le and or {
+                nextKs i 0 put
+                numKs i numKs i 2 add get 1 add put
+            } {
+                nextKs i nextKs i 1 add get 1 add put
+            } ifelse
         } {
             nextKs i nextKs i 1 add get 1 add put
         } ifelse
         Nexcl barchar known {
             nextNs i 0 put
             numNs i numNs i 1 add get 1 add put
+            /numAN numAN 1 add def
         } {
             nextNs i nextNs i 1 add get 1 add put
         } ifelse
@@ -360,12 +367,19 @@ begin
         Aexcl barchar known {
             nextAs i 0 put
             numAs i numAs i 1 add get 1 add put
+            /numAN numAN 1 add def
         } {
             nextAs i nextAs i 1 add get 1 add put
         } ifelse
         isECI i barchar -1000000 le put
     } for
-    /numKs [ numKs {1 add 2 idiv} forall ] def
+    0 1 msglen 1 sub {  % Scan forward to set any "2nd byte 1st byte" Kanji matches to zero
+        /i exch def
+        numKs i get 0 gt {
+            numKs i 1 add 0 put
+            nextKs i 1 add nextKs i 1 add get 1 add put
+        } if
+    } for
 
     /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} bind def
     /KbeforeA {numK exch ver get ge nextAs numK 2 mul i add get 0 eq and} bind def
@@ -441,8 +455,8 @@ begin
                 eci {
                     E exit
                 } if
-                ver vR7x43 ge {  % TODO rMQR is all numeric/alphanumeric/binary only for now
-                    numN msglen eq {N} { numA msglen eq {A} {B} ifelse } ifelse exit
+                ver vR7x43 ge {  % TODO rMQR is all numeric/alphanumeric/Kanji/binary only for now
+                    numN msglen eq {N} { numAN msglen eq {A} { numK 2 mul msglen eq {K} {B} ifelse } ifelse } ifelse exit
                 } if
                 mode -1 eq {  % Set initial mode (or mode after ECI)
                     [ 1  1  1  e  e  1  1] KbeforeA {K exit} if
@@ -537,12 +551,13 @@ begin
                 /mode seq i get def
                 mids ver get mode get addtobits
                 /chars seq i 1 add get def
+                /charslen chars length mode K eq {2 idiv} if def
                 mode E ne {
                     /cclen cclens ver get mode get def
-                    chars length 2 cclen exp cvi ge {  % Too many characters for cc indicator
+                    charslen 2 cclen exp cvi ge {  % Too many characters for cc indicator
                         /abort true def exit
                     } if
-                    chars length mode K eq {2 idiv} if cclen tobin addtobits
+                    charslen cclen tobin addtobits
                 } if
                 chars encfuncs mode get load exec addtobits
             } for

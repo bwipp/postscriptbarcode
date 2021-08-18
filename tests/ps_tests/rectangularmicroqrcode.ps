@@ -28,8 +28,31 @@
 
 {
     % Table 7 R13x43-M max 61 numeric (cclen bits 7 -> 6)
-    (1234567890123456789012345678901234567890123456789012345678901) (parse version=R13x43 debugcws) rectangularmicroqrcode
+    (1234567890123456789012345678901234567890123456789012345678901) (version=R13x43 debugcws) rectangularmicroqrcode
 } [62 143 110 70 42 6 43 53 55 10 117 70 251 208 246 228 98 160 98 179 83 112 167 84 111 189 8] debugIsEqual
+
+
+% Encodation examples
+
+{
+    % 7.4.2 Numeric mode Example, R7x59-M, same codewords
+    (0123456789012345) (version=R7x59 debugcws) rectangularmicroqrcode
+} [48 3 21 154 155 133 58 148 0 236 17 236] debugIsEqual
+
+{
+    % 7.4.3 Alphanumeric mode Example, R7x59-H, same codewords
+    (AC-42) (version=R7x59 eclevel=H debugcws) rectangularmicroqrcode
+} [69 57 220 228 32 236 17] debugIsEqual
+
+{
+    % 7.4.4 Byte mode, R7x43-M, 5 bytes max (Table 7)
+    (?????) (version=R7x43 eclevel=M debugcws) rectangularmicroqrcode
+} [116 252 252 252 252 252] debugIsEqual
+
+{
+    % 7.4.5 Kanji mode (点茗点), R7x43-M, 3 Kanji max (Table 7)
+    (^147^095^228^170^147^095) (parse version=R7x43 eclevel=M debugcws) rectangularmicroqrcode
+} [155 103 245 84 217 240] debugIsEqual
 
 
 % Figures

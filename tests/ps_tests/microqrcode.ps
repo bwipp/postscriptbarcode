@@ -1,0 +1,69 @@
+%!PS
+
+% ISO/IEC 18004:2015
+
+% vim: set ts=4 sw=4 et :
+
+/microqrcode dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    3 1 roll { 0 0 microqrcode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    isEqual
+} def
+
+
+% Encodation examples
+
+{
+    % A11, 11 alphanumerics max for M3-M (Table 7)
+    (ABCDEFGHIJK) (version=M3 eclevel=M debugcws) microqrcode
+} [108 230 162 149 10 184 89 234 128] debugIsEqual
+
+{
+    % B15, 15 bytes max for M4-L (Table 7)
+    (???????????????) (version=M4 eclevel=L debugcws) microqrcode
+} [79 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63] debugIsEqual
+
+{
+    % K9 (点茗や点茗や点茗や), 9 Kanji max for M4-L (Table 7); note ^226^147 (0xE293) also valid Shift JIS
+    (^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170^130^226) (parse version=M4 eclevel=L debugcws) microqrcode
+} [114 217 253 85 5 137 179 250 170 11 19 103 245 84 22 32] debugIsEqual
+
+
+% Figures
+
+(01234567) (dontdraw eclevel=L)  % Figure 2 (and I.2), same
+[
+    1 1 1 1 1 1 1 0 1 0 1 0 1
+    1 0 0 0 0 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 0 1 1 0 1
+    1 0 1 1 1 0 1 0 0 1 1 1 1
+    1 0 1 1 1 0 1 0 1 1 1 0 0
+    1 0 0 0 0 0 1 0 1 0 0 0 1
+    1 1 1 1 1 1 1 0 0 1 1 1 1
+    0 0 0 0 0 0 0 0 0 1 1 0 0
+    1 1 0 1 0 0 0 0 1 0 0 0 1
+    0 1 1 0 1 0 1 0 1 0 1 0 1
+    1 1 1 0 0 1 1 1 1 1 1 1 0
+    0 0 0 1 0 1 0 0 0 0 1 1 0
+    1 1 1 0 1 0 0 1 1 0 1 1 1
+] eq_tmpl
+
+(12345) (dontdraw eclevel=M)  % Figure 38, same
+[
+    1 1 1 1 1 1 1 0 1 0 1 0 1
+    1 0 0 0 0 0 1 0 1 0 0 0 0
+    1 0 1 1 1 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 0 0 0 1 1
+    1 0 1 1 1 0 1 0 0 1 1 1 0
+    1 0 0 0 0 0 1 0 1 0 0 0 1
+    1 1 1 1 1 1 1 0 0 0 1 0 1
+    0 0 0 0 0 0 0 0 0 1 0 1 1
+    1 1 1 0 0 1 1 1 1 0 0 0 0
+    0 1 1 1 1 0 0 1 0 1 1 0 0
+    1 1 1 0 0 0 0 0 0 1 1 1 0
+    0 1 0 0 1 0 0 0 1 0 1 0 1
+    1 1 1 1 1 1 1 0 1 0 0 1 1
+] eq_tmpl
