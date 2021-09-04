@@ -75,6 +75,20 @@ begin
     /eclevel eclevel cvr def
     /ecaddchars ecaddchars cvi def
 
+    format (rune) eq {
+        barcode length 0 eq {
+            /bwipp.aztecRuneNotNumeric (Aztec runes must be numeric) //raiseerror exec
+        } if
+        barcode {
+            dup 48 lt exch 57 gt or {
+                /bwipp.aztecRuneNotNumeric (Aztec runes must be numeric) //raiseerror exec
+            } if
+        } forall
+        barcode cvi dup 0 lt exch 255 gt or {
+            /bwipp.aztecRuneInvalid (Aztec runes must be 0 to 255) //raiseerror exec
+        } if
+    } if
+
     % Parse the input
     /fn1 -1 def
     /fncvals <<

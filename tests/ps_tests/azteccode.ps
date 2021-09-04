@@ -5,6 +5,21 @@
 % vim: set ts=4 sw=4 et :
 
 /azteccode dup /uk.co.terryburton.bwipp findresource cvx def
+/aztecrune dup /uk.co.terryburton.bwipp findresource cvx def
+
+/aztecrune_eq_tmpl {
+    3 1 roll { 0 0 aztecrune /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    isEqual
+} def
+
+/aztecrune_er_tmpl {
+    3 1 roll { 0 0 aztecrune /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 
 % Punctuation-space combinations
@@ -178,3 +193,41 @@
     % Figure I.1 (right), 400 3's + CRLF, same
     (3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333^013^010) (parse debugcws) azteccode
 } [970 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 672 191] debugIsEqual
+
+
+% Aztec Runes
+
+(0) (dontdraw)
+[
+    1 1 1 0 1 0 1 0 1 0 1
+    1 1 1 1 1 1 1 1 1 1 1
+    0 1 0 0 0 0 0 0 0 1 0
+    1 1 0 1 1 1 1 1 0 1 1
+    0 1 0 1 0 0 0 1 0 1 0
+    1 1 0 1 0 1 0 1 0 1 1
+    0 1 0 1 0 0 0 1 0 1 0
+    1 1 0 1 1 1 1 1 0 1 1
+    0 1 0 0 0 0 0 0 0 1 0
+    0 1 1 1 1 1 1 1 1 1 1
+    0 0 1 0 1 0 1 0 1 0 0
+] aztecrune_eq_tmpl
+
+(255) (dontdraw)
+[
+    1 1 0 1 0 1 0 1 0 0 1
+    1 1 1 1 1 1 1 1 1 1 1
+    0 1 0 0 0 0 0 0 0 1 1
+    1 1 0 1 1 1 1 1 0 1 1
+    1 1 0 1 0 0 0 1 0 1 1
+    0 1 0 1 0 1 0 1 0 1 1
+    0 1 0 1 0 0 0 1 0 1 0
+    1 1 0 1 1 1 1 1 0 1 1
+    1 1 0 0 0 0 0 0 0 1 0
+    0 1 1 1 1 1 1 1 1 1 1
+    0 0 1 1 0 0 1 1 1 0 0
+] aztecrune_eq_tmpl
+
+() (dontdraw) /bwipp.aztecRuneNotNumeric aztecrune_er_tmpl
+(/) (dontdraw) /bwipp.aztecRuneNotNumeric aztecrune_er_tmpl
+(:) (dontdraw) /bwipp.aztecRuneNotNumeric aztecrune_er_tmpl
+(256) (dontdraw) /bwipp.aztecRuneInvalid aztecrune_er_tmpl
