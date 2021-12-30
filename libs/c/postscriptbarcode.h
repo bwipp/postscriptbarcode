@@ -48,11 +48,11 @@
  *  bwipp_emit_required_resources() (minimal set of resources for a specific
  *  barcode symbology) or bwipp_emit_all_resources() and you own PostScript
  *  code interspersed with calls to bwipp_emit_exec() to render a barcode.
- *  Finally, all resources can be freed using bwipp_unload(). 
- * 
+ *  Finally, all resources can be freed using bwipp_unload().
+ *
  *  The library should be thread-safe provided that the calling code is limited
  *  to one thread per context until the resources for the context have finished
- *  loading. 
+ *  loading.
  *
  */
 
@@ -67,13 +67,13 @@ typedef struct BWIPP BWIPP;
  *         locations.
  *  @return BWIPP context on success, else NULL.
  */
-BWIPP* bwipp_load(void);
+BWIPP *bwipp_load(void);
 
 /** @brief Load the BWIPP resources from a given resource file.
  *  @param filename Path to the barcode.ps resources file.
  *  @return BWIPP context on success, else NULL.
  */
-BWIPP* bwipp_load_from_file(const char *filename);
+BWIPP *bwipp_load_from_file(const char *filename);
 
 /** @brief Unload the BWIPP resources.
  *  @param ctx BWIPP context.
@@ -85,7 +85,7 @@ void bwipp_unload(BWIPP *ctx);
  *  @param ctx BWIPP context.
  *  @return A string containing the version.
  */
-const char* bwipp_get_version(BWIPP *ctx);
+const char *bwipp_get_version(BWIPP *ctx);
 
 /** @brief Provides the set of BWIPP resources required to generate a
  *         barcode of the specified type.
@@ -94,14 +94,14 @@ const char* bwipp_get_version(BWIPP *ctx);
  *  @return A string containing a set of PostScript resources, which the
  *          caller should release with bwipp_free().
  */
-char* bwipp_emit_required_resources(BWIPP *ctx, const char *name);
+char *bwipp_emit_required_resources(BWIPP *ctx, const char *name);
 
 /** @brief Provides the complete set of BWIPP resources.
  *  @param ctx BWIPP context.
  *  @return A string containing the set of all PostScript resources,
  *          which the caller should release with bwipp_free().
  */
-char* bwipp_emit_all_resources(BWIPP *ctx);
+char *bwipp_emit_all_resources(BWIPP *ctx);
 
 /** @brief Provide the PostScript code that invokes a barcode with given
  *         parameters.
@@ -112,8 +112,8 @@ char* bwipp_emit_all_resources(BWIPP *ctx);
  *  @return The PostScript code that invokes the barcode, which the caller
  *          should release with bwipp_free().
  */
-char* bwipp_emit_exec(BWIPP *ctx, const char *barcode, const char *contents,
-			const char *options);
+char *bwipp_emit_exec(BWIPP *ctx, const char *barcode, const char *contents,
+                      const char *options);
 
 /** @brief List all known barcode families.
  *  @param ctx BWIPP context.
@@ -128,7 +128,7 @@ unsigned short bwipp_list_families(BWIPP *ctx, char ***families);
  *  @return A comma seperated list of all barcode families, which the caller
  *          should release with bwipp_free().
  */
-char* bwipp_list_families_as_string(BWIPP *ctx);
+char *bwipp_list_families_as_string(BWIPP *ctx);
 
 /** @brief List all members of a given barcode family.
  *  @param ctx BWIPP context.
@@ -138,16 +138,16 @@ char* bwipp_list_families_as_string(BWIPP *ctx);
  *  @return Number of barcode family members returned.
  */
 unsigned short bwipp_list_family_members(BWIPP *ctx, char ***members,
-			const char *family);
+                                         const char *family);
 
 /** @brief List all members of a given barcode family as a comma seperated
  *         string.
  *  @param ctx BWIPP context.
  *  @param family The name of a barcode family.
  *  @return A comma seperated list of all barcode family members, which the
- *          caller should release with bwipp_free(). 
+ *          caller should release with bwipp_free().
  */
-char* bwipp_list_family_members_as_string(BWIPP *ctx, const char *family);
+char *bwipp_list_family_members_as_string(BWIPP *ctx, const char *family);
 
 /** @brief List all properties of a given barcode symbology.
  *  @param ctx BWIPP context.
@@ -157,16 +157,16 @@ char* bwipp_list_family_members_as_string(BWIPP *ctx, const char *family);
  *  @return Number of properties returned.
  */
 unsigned short bwipp_list_properties(BWIPP *ctx, char ***properties,
-			const char *barcode);
+                                     const char *barcode);
 
 /** @brief List all properties of a given barcode symbology as a comma
  *         seperated string.
  *  @param ctx BWIPP context.
  *  @param barcode The type of barcode symbology.
  *  @return A comma seperated list of all barcode properties, which the caller
- *          should release with bwipp_free(). 
+ *          should release with bwipp_free().
  */
-char* bwipp_list_properties_as_string(BWIPP *ctx, const char *barcode);
+char *bwipp_list_properties_as_string(BWIPP *ctx, const char *barcode);
 
 /** @brief Get the value of a given property of a given barcode symbology.
  *  @param ctx BWIPP context.
@@ -174,13 +174,12 @@ char* bwipp_list_properties_as_string(BWIPP *ctx, const char *barcode);
  *  @param property The name of the property to query.
  *  @return The value of the given property.
  */
-const char* bwipp_get_property(BWIPP *ctx, const char *barcode,
-			const char *property);
+const char *bwipp_get_property(BWIPP *ctx, const char *barcode,
+                               const char *property);
 
-/** @brief Free memory belonging to a BWIPP provided allocation. 
+/** @brief Free memory belonging to a BWIPP provided allocation.
  *  @param p Pointer to memory to free.
  */
 void bwipp_free(void *p);
 
 #endif /* BWIPP_H */
-
