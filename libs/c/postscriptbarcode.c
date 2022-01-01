@@ -192,11 +192,11 @@ BWIPP *bwipp_load_from_file(const char *filename) {
 
 error:
   if (resource) {
-      free(resource->type);
-      free(resource->name);
-      free(resource->reqs);
-      free(resource->code);
-      free_propertylist(curr->entry->props);
+    free(resource->type);
+    free(resource->name);
+    free(resource->reqs);
+    free(resource->code);
+    free_propertylist(curr->entry->props);
   }
   free(code);
   bwipp_unload(ctx);
@@ -221,9 +221,7 @@ void bwipp_unload(BWIPP *ctx) {
   free(ctx);
 }
 
-const char *bwipp_get_version(BWIPP *ctx) {
-  return ctx ? ctx->version : NULL;
-}
+const char *bwipp_get_version(BWIPP *ctx) { return ctx ? ctx->version : NULL; }
 
 char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 
