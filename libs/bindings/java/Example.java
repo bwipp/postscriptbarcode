@@ -1,6 +1,6 @@
 import uk.co.terryburton.bwipp.*;
 
-public class example {
+public class Example {
   static {
     System.loadLibrary("postscriptbarcode");
   }
