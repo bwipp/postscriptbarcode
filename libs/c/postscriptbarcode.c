@@ -1,10 +1,8 @@
 /*
  * libpostscriptbarcode - postscriptbarcode.c
  *
- * Barcode Writer in Pure PostScript
- * https://bwipp.terryburton.co.uk
- *
- * Copyright (c) 2004-2015 Terry Burton
+ * @file postscriptbarcode.c
+ * @author Copyright (c) 2004-2022 Terry Burton.
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -29,6 +27,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
+ *
  */
 
 #include "postscriptbarcode.h"
@@ -45,21 +44,24 @@
 struct BWIPP {
 	char *version;
 	ResourceList *resourcelist;
-	unsigned short numresources;
+	unsigned int numresources;
 };
 
 static const char *default_filename = "/usr/share/postscriptbarcode/barcode.ps";
 
-void bwipp_free(void *p) { free(p); }
 
-BWIPP *bwipp_load(void) {
+BWIPP_API void bwipp_free(void *p) { free(p); }
+
+
+BWIPP_API BWIPP *bwipp_load(void) {
 
 	/* TODO search a set of default paths */
 	return bwipp_load_from_file(default_filename);
 
 }
 
-BWIPP *bwipp_load_from_file(const char *filename) {
+
+BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 
 	FILE *f;
 
@@ -237,7 +239,7 @@ error:
 
 }
 
-void bwipp_unload(BWIPP *ctx) {
+BWIPP_API void bwipp_unload(BWIPP *ctx) {
 
 	ResourceList *curr = ctx->resourcelist;
 
@@ -260,9 +262,11 @@ void bwipp_unload(BWIPP *ctx) {
 
 }
 
-const char *bwipp_get_version(BWIPP *ctx) { return ctx ? ctx->version : NULL; }
 
-char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
+BWIPP_API const char *bwipp_get_version(BWIPP *ctx) { return ctx ? ctx->version : NULL; }
+
+
+BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 
 	char *code, *reqs, *req, *tmp, *saveptr = NULL;
 	const Resource *resource;
@@ -293,7 +297,8 @@ char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 
 }
 
-char *bwipp_emit_all_resources(BWIPP *ctx) {
+
+BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx) {
 
 	ResourceList *curr;
 	char *code, *tmp;
@@ -317,7 +322,8 @@ char *bwipp_emit_all_resources(BWIPP *ctx) {
 
 }
 
-char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data, const char *options) {
+
+BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data, const char *options) {
 
 	char *tmp;
 	char *call = malloc(MAX_CODE * sizeof(char));
@@ -343,7 +349,8 @@ char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data, const char
 
 }
 
-const char *bwipp_get_property(BWIPP *ctx, const char *name, const char *prop) {
+
+BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name, const char *prop) {
 
 	const Property *property;
 	const Resource *resource;
@@ -360,11 +367,12 @@ const char *bwipp_get_property(BWIPP *ctx, const char *name, const char *prop) {
 
 }
 
-unsigned short bwipp_list_properties(BWIPP *ctx, char ***out, const char *name) {
+
+BWIPP_API unsigned int bwipp_list_properties(BWIPP *ctx, char ***out, const char *name) {
 
 	const PropertyList *curr;
 	const Resource *resource = get_resource(ctx, name);
-	unsigned short numprops, i = 0;
+	unsigned int numprops, i = 0;
 	char **properties;
 
 	if (!resource)
@@ -393,9 +401,10 @@ unsigned short bwipp_list_properties(BWIPP *ctx, char ***out, const char *name) 
 
 }
 
-char *bwipp_list_properties_as_string(BWIPP *ctx, const char *name) {
 
-	unsigned short i;
+BWIPP_API char *bwipp_list_properties_as_string(BWIPP *ctx, const char *name) {
+
+	unsigned int i;
 	char **properties;
 	char *properties_str;
 
@@ -406,6 +415,7 @@ char *bwipp_list_properties_as_string(BWIPP *ctx, const char *name) {
 	return properties_str;
 
 }
+
 
 static const Resource *get_resource(BWIPP *ctx, const char *name) {
 
@@ -420,6 +430,7 @@ static const Resource *get_resource(BWIPP *ctx, const char *name) {
 	return curr ? curr->entry : NULL;
 
 }
+
 
 static void update_property(Resource *resource, char *key, char *value) {
 
@@ -470,6 +481,7 @@ static void update_property(Resource *resource, char *key, char *value) {
 
 }
 
+
 static Property *get_property(const Resource *resource, const char *key) {
 
 	PropertyList *curr = resource->props;
@@ -483,6 +495,7 @@ static Property *get_property(const Resource *resource, const char *key) {
 	return curr ? curr->entry : NULL;
 
 }
+
 
 static void free_propertylist(PropertyList *propertylist) {
 
@@ -500,10 +513,11 @@ static void free_propertylist(PropertyList *propertylist) {
 	propertylist = NULL;
 }
 
+
 static char *pshexstr(const char *in) {
 
 	char *out = malloc((3 * strlen(in) + 3) * sizeof(char));
-	unsigned short count = 1, i;
+	unsigned int count = 1, i;
 	char *hex = out;
 
 	hex += sprintf(hex, "<");
@@ -530,6 +544,7 @@ static char *pshexstr(const char *in) {
 
 }
 
+
 static int cmpfnc(const void *a, const void *b) {
 
 	const char *pa = *(const char **)a;
@@ -539,12 +554,13 @@ static int cmpfnc(const void *a, const void *b) {
 
 }
 
-unsigned short bwipp_list_families(BWIPP *ctx, char ***out) {
+
+BWIPP_API unsigned int bwipp_list_families(BWIPP *ctx, char ***out) {
 
 	ResourceList *curr;
 	char **families, **uniqfamilies;
 	char *last = "";
-	unsigned short i = 0, j, k = 0;
+	unsigned int i = 0, j, k = 0;
 
 	if (!ctx->resourcelist)
 		return 0;
@@ -584,9 +600,10 @@ unsigned short bwipp_list_families(BWIPP *ctx, char ***out) {
 
 }
 
-char *bwipp_list_families_as_string(BWIPP *ctx) {
 
-	unsigned short i;
+BWIPP_API char *bwipp_list_families_as_string(BWIPP *ctx) {
+
+	unsigned int i;
 	char **families;
 	char *families_str;
 
@@ -598,10 +615,11 @@ char *bwipp_list_families_as_string(BWIPP *ctx) {
 
 }
 
-unsigned short bwipp_list_family_members(BWIPP *ctx, char ***out, const char *family) {
+
+BWIPP_API unsigned int bwipp_list_family_members(BWIPP *ctx, char ***out, const char *family) {
 
 	char **members;
-	unsigned short i = 0;
+	unsigned int i = 0;
 	ResourceList *curr;
 
 	if (!ctx->resourcelist)
@@ -627,9 +645,10 @@ unsigned short bwipp_list_family_members(BWIPP *ctx, char ***out, const char *fa
 
 }
 
-char *bwipp_list_family_members_as_string(BWIPP *ctx, const char *family) {
 
-	unsigned short i;
+BWIPP_API char *bwipp_list_family_members_as_string(BWIPP *ctx, const char *family) {
+
+	unsigned int i;
 	char **members;
 	char *members_str;
 
@@ -641,6 +660,7 @@ char *bwipp_list_family_members_as_string(BWIPP *ctx, const char *family) {
 
 }
 
+
 static char *dupstr(const char *s) {
 
 	char *p = malloc(strlen(s) + 1);
@@ -651,6 +671,7 @@ static char *dupstr(const char *s) {
 	return p;
 
 }
+
 
 static char *flatten_array_to_string(char **array, const unsigned int size) {
 
