@@ -1,10 +1,10 @@
-/*
- * libpostscriptbarcode - postscriptbarcode.i
+/**
+ * libpostscriptbarcode
  *
- * Barcode Writer in Pure PostScript
- * http://bwipp.terryburton.co.uk
+ * @file postscriptbarcode.i
+ * @author Copyright (c) 2004-2022 Terry Burton.
  *
- * Copyright (c) 2004-2015 Terry Burton
+ * Copyright (c) 2004-2022 Terry Burton
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -29,6 +29,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
+ *
  */
 
 %module postscriptbarcode
@@ -67,21 +68,6 @@ struct BWIPP { };
         char* emit_exec(const char *barcode, const char *contents,
                         const char *options) {
                 return bwipp_emit_exec($self,barcode,contents,options);
-        }
-        %newobject list_families;
-        char* list_families() {
-                return bwipp_list_families_as_string($self);
-        }
-        %newobject list_family_members;
-        char* list_family_members(const char *family) {
-                return bwipp_list_family_members_as_string($self,family);
-        }
-        %newobject list_properties;
-        char* list_properties(const char *barcode) {
-                return bwipp_list_properties_as_string($self,barcode);
-        }
-        const char* get_property(const char *barcode, const char *property) {
-                return bwipp_get_property($self,barcode,property);
         }
 };
 
