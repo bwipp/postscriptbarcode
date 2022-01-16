@@ -66,7 +66,7 @@ $(NAME).o: $(NAME).c $(NAME).h $(NAME)_private.h
 $(TEST_SHARED): lib$(NAME).so $(NAME)_test.c
 	$(CC) $(CFLAGS) $(NAME)_test.c -o $@ -L. -l$(NAME)
 
-$(TEST_STATIC): $(NAME).o
+$(TEST_STATIC): $(NAME).o $(NAME)_test.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(NAME).o $(NAME)_test.c -o $@
 
 test: $(TEST_SHARED) $(TEST_STATIC)
