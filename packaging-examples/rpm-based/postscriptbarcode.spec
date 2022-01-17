@@ -5,7 +5,7 @@ Summary:        Barcode Writer in Pure PostScript
 Group:          Development/Libraries
 
 
-# 
+#
 # This file is intended to provide a guide to packagers of RPM-based distributions to promote consistency.
 #
 # The packages have been built on the OBS but not necessarily installed and tested:
@@ -361,7 +361,7 @@ popd
 
 %files
 %defattr(-,root,root)
-%doc CHANGES LICENSE README.md docs/*
+%doc CHANGES LICENSE README.md
 %dir %{_datadir}/%{name}/
 %{_datadir}/%{name}/barcode.ps
 
