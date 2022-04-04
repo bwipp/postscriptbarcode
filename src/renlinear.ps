@@ -172,15 +172,22 @@ begin
 
     % Display the bars for elements in the bars array
     gsave
-    0 setlinecap
     barcolor (unset) ne { barcolor setanycolor } if
+    newpath
     bars {
         dup -1 ne {
-            aload pop newpath setlinewidth moveto 0 exch rlineto stroke
+            aload pop  % h x y w
+            2 index 1 index 2 div sub 2 index moveto
+            0 4 index rlineto
+            dup 0 rlineto
+            0 4 index neg rlineto
+            closepath
+            pop pop pop pop
         } {
             pop
         } ifelse
     } forall
+    fill
     grestore
 
     % Display the text for elements in the text array
