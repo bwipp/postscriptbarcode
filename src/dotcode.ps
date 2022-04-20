@@ -355,9 +355,16 @@ begin
                 } repeat
                 /inmac exch def
                 inmac 0 ne {
+                    [ Cvals lab get ] addtocws
                     /mode B def
                     [ Bvals inmac get ] addtocws
-                    /i i inmac mac ne {7} {6} ifelse add def
+                    inmac mac eq {
+                        [ Bvals msg segstart 4 add get get ] addtocws
+                        [ Bvals msg segstart 5 add get get ] addtocws
+                        /i i 6 add def
+                    } {
+                        /i i 7 add def
+                    } ifelse
                     exit
                 } if
             } if
