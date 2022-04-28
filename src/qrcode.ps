@@ -139,15 +139,7 @@ begin
         ] {-1} forall
     >> def
 
-    /Bexcl <<
-        [
-            16#00 1 16#1F {} for
-            16#21 16#22 16#23 16#26 16#27 16#28 16#29 16#2C
-            16#3B 1 16#40 {} for
-            16#5B 1 16#7F {} for
-            16#A0 1 16#DF {} for
-        ] {-1} forall
-    >> def
+    % Binary exclusives calculated from "not others"
 
     /Kexcl <<
         [
@@ -358,12 +350,6 @@ begin
         } {
             nextNs i nextNs i 1 add get 1 add put
         } ifelse
-        Bexcl barchar known {
-            nextBs i 0 put
-            numBs i numBs i 1 add get 1 add put
-        } {
-            nextBs i nextBs i 1 add get 1 add put
-        } ifelse
         Aexcl barchar known {
             nextAs i 0 put
             numAs i numAs i 1 add get 1 add put
@@ -379,6 +365,15 @@ begin
             numKs i 1 add 0 put
             nextKs i 1 add nextKs i 1 add get 1 add put
         } if
+    } for
+    msglen 1 sub -1 0 {  % Finally scan backwards again to set numBs/nextBs from "not others"
+        /i exch def
+        numNs i get numAs i get numKs i get add add 0 eq {
+            nextBs i 0 put
+            numBs i numBs i 1 add get 1 add put
+        } {
+            nextBs i nextBs i 1 add get 1 add put
+        } ifelse
     } for
 
     /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} bind def
