@@ -2,6 +2,8 @@
 
 % ISO/IEC 18004:2015
 
+% vim: set ts=4 sw=4 et :
+
 /qrcode dup /uk.co.terryburton.bwipp findresource cvx def
 
 /eq_tmpl {
@@ -35,6 +37,46 @@
 {  % ECI regression fix (PR #179 calculate numBs from "not others" to avoid Kanji overlap [88510ab])
     (^182^ECI000007^182) (parse parsefnc version=1 eclevel=H debugcws) qrcode
 } [64 27 103 7 64 27 96 236 17] debugIsEqual
+
+{
+    % B1 K8 A1 (?点茗や点茗や点茗A), modeBKbeforeA v1to9 change 9 -> 8, previously B18 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170A) (parse version=2 eclevel=L debugcws) qrcode
+} [64 19 248 8 108 254 170 130 196 217 253 85 5 137 179 250 170 32 9 64 7 { 236 17 } repeat ] debugIsEqual
+
+{
+    % B1 K11 A1 (?点茗や点茗や点茗や点茗A), modeBKbeforeA v27to40 change 12 -> 11, previously B24 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170A) (parse version=27 eclevel=L debugcws) qrcode
+} [64 0 19 248 0 182 207 234 168 44 77 159 213 80 88 155 63 170 160 177 54 127 85 68 0 18 128 236 720 { 17 236 } repeat ] debugIsEqual
+
+{
+    % B1 K8 N1 (?点茗や点茗や点茗1), modeBKbeforeN v1to9 change 9 -> 8, previously B18 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^1701) (parse version=2 eclevel=L debugcws) qrcode
+} [64 19 248 8 108 254 170 130 196 217 253 85 5 137 179 250 170 16 4 64 7 { 236 17 } repeat ] debugIsEqual
+
+{
+    % B1 K9 N1 (?点茗や点茗や点茗や1), modeBKbeforeN v10to26 change 10 -> 9, previously B20 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170^130^2261) (parse version=10 eclevel=L debugcws) qrcode
+} [64 0 19 248 2 91 63 170 160 177 54 127 85 65 98 108 254 170 130 196 32 2 32 236 125 { 17 236 } repeat ] debugIsEqual
+
+{
+    % A1 K9 N1 (?点茗や点茗や点茗や1), modeBKbeforeN v10to26 change 10 -> 9, previously B20 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170^130^2261) (parse version=10 eclevel=L debugcws) qrcode
+} [64 0 19 248 2 91 63 170 160 177 54 127 85 65 98 108 254 170 130 196 32 2 32 236 125 { 17 236 } repeat ] debugIsEqual
+
+{
+    % B9 (?点茗や点), modeBKbeforeE (mode0KbeforeE) v1to9 change 4 -> 5, previously B1 K4 (same msgbits length)
+    (?^147^095^228^170^130^226^147^095) (parse version=1 eclevel=L debugcws) qrcode
+} [64 147 249 53 254 74 168 46 41 53 240 236 17 236 17 236 17 236 17] debugIsEqual
+
+{
+    % B1 N4 (?1234), modeBNbeforeE v27to40 change 5 -> 4 previously B5 (same msgbits length)
+    (?1234) (parse version=27 eclevel=L debugcws) qrcode
+} [64 0 19 241 0 16 123 64 730 { 236 17 } repeat ] debugIsEqual
+
+{
+    % A6 K1 (ABCDEF点), new initial mode A before K re-using modeBAbeforeE array, previously B8 (longer msgbits length)
+    (ABCDEF^147^095) (parse version=1 eclevel=L debugcws) qrcode
+} [32 49 205 69 42 22 0 91 62 0 236 17 236 17 236 17 236 17 236] debugIsEqual
 
 
 % Figures
@@ -124,4 +166,29 @@
     1 0 1 1 1 0 1 0 1 0 1 1 0 1 0 0 1 0 1 0 0
     1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 1 0 1 1 0
     1 1 1 1 1 1 1 0 1 1 1 1 0 1 0 0 1 0 1 0 0
+] eq_tmpl
+
+(^ECI000003price:^16320.00) (dontdraw parse parsefnc eclevel=M)  % AIM ITS/04-023:2022 ECI 3 Example 2, same
+[
+    1 1 1 1 1 1 1 0 1 1 1 1 1 0 1 1 1 1 1 1 1
+    1 0 0 0 0 0 1 0 1 1 0 1 0 0 1 0 0 0 0 0 1
+    1 0 1 1 1 0 1 0 0 0 0 1 1 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 1 1 0 0 1 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 0 1 0 1 0 0 1 0 1 1 1 0 1
+    1 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 1
+    1 1 1 1 1 1 1 0 1 0 1 0 1 0 1 1 1 1 1 1 1
+    0 0 0 0 0 0 0 0 1 1 0 1 0 0 0 0 0 0 0 0 0
+    1 0 1 1 0 1 1 1 0 0 0 0 0 0 1 0 0 1 0 1 1
+    0 0 0 0 1 0 0 0 1 1 0 0 1 0 1 1 1 1 1 0 0
+    1 0 1 0 1 1 1 1 0 1 1 1 0 0 0 0 1 0 1 1 0
+    1 0 1 0 0 0 0 1 0 1 0 1 1 1 0 1 0 0 0 1 0
+    0 1 0 1 0 0 1 0 1 0 1 0 1 1 1 1 0 0 1 0 0
+    0 0 0 0 0 0 0 0 1 1 0 1 0 0 1 1 0 0 0 0 1
+    1 1 1 1 1 1 1 0 1 0 1 0 0 0 1 1 1 1 1 0 0
+    1 0 0 0 0 0 1 0 1 1 0 1 0 0 0 1 1 0 1 1 1
+    1 0 1 1 1 0 1 0 0 0 0 1 0 0 0 1 0 1 1 0 1
+    1 0 1 1 1 0 1 0 1 0 0 0 1 1 0 1 0 1 0 1 0
+    1 0 1 1 1 0 1 0 1 0 1 1 0 1 1 1 0 0 0 0 0
+    1 0 0 0 0 0 1 0 0 1 0 1 1 0 1 0 1 1 1 1 0
+    1 1 1 1 1 1 1 0 1 1 0 0 0 1 0 1 1 1 0 0 0
 ] eq_tmpl

@@ -1,6 +1,6 @@
 %!PS
 
-% ISO/IEC JTC1/SC31N000 (Draft 2018-6-8)
+% ISO/IEC DIS 23941 (Draft 2019-10-18)
 
 % vim: set ts=4 sw=4 et :
 
@@ -14,20 +14,20 @@
 } def
 
 
-% Table 3 cclens, values different from 2018-6-8 draft
+% Table 3 cclens, 2019-10-18 values different from 2018-6-8 draft
 
 {
-    % Table 7 R7x43-M max 7 alphanumeric (cclen bits 4 -> 3)
+    % Table 6 R7x43-M max 7 alphanumeric (cclen bits 4 -> 3)
     (ABCDEFG) (version=R7x43 debugcws) rectangularmicroqrcode
 } [92 230 162 149 10 128] debugIsEqual
 
 {
-    % Annex H H.2 R11x27-H example (cclen bits 5 -> 4)
+    % Annex I I.2 R11x27-H example (cclen bits 5 -> 4)
     (0123456) (version=R11x27 eclevel=H debugecc) rectangularmicroqrcode
 } [46 6 43 44 0 17 132 191 191 171 228 80 46 175 36 0] debugIsEqual
 
 {
-    % Table 7 R13x43-M max 61 numeric (cclen bits 7 -> 6)
+    % Table 6 R13x43-M max 61 numeric (cclen bits 7 -> 6)
     (1234567890123456789012345678901234567890123456789012345678901) (version=R13x43 debugcws) rectangularmicroqrcode
 } [62 143 110 70 42 6 43 53 55 10 117 70 251 208 246 228 98 160 98 179 83 112 167 84 111 189 8] debugIsEqual
 
@@ -35,29 +35,34 @@
 % Encodation examples
 
 {
-    % 7.4.2 Numeric mode Example, R7x59-M, same codewords
+    % 7.4.2.2 ECI Example, R17x139-H (using M) same codewords
+    (^ECI000009^161^162^163^164^165) (parse parsefnc version=R17x139 eclevel=M debugcws) rectangularmicroqrcode
+} [225 44 22 134 138 142 146 148 0 236 71 { 17 236 } repeat ] debugIsEqual
+
+{
+    % 7.4.3 Numeric mode Example, R7x59-M, same codewords
     (0123456789012345) (version=R7x59 debugcws) rectangularmicroqrcode
 } [48 3 21 154 155 133 58 148 0 236 17 236] debugIsEqual
 
 {
-    % 7.4.3 Alphanumeric mode Example, R7x59-H, same codewords
+    % 7.4.4 Alphanumeric mode Example, R7x59-H, same codewords
     (AC-42) (version=R7x59 eclevel=H debugcws) rectangularmicroqrcode
 } [69 57 220 228 32 236 17] debugIsEqual
 
 {
-    % 7.4.4 Byte mode, R7x43-M, 5 bytes max (Table 7)
+    % 7.4.5 Byte mode, R7x43-M, 5 bytes max (Table 6)
     (?????) (version=R7x43 eclevel=M debugcws) rectangularmicroqrcode
 } [116 252 252 252 252 252] debugIsEqual
 
 {
-    % 7.4.5 Kanji mode (点茗点), R7x43-M, 3 Kanji max (Table 7)
+    % 7.4.6 Kanji mode (点茗点), R7x43-M, 3 Kanji max (Table 6)
     (^147^095^228^170^147^095) (parse version=R7x43 eclevel=M debugcws) rectangularmicroqrcode
 } [155 103 245 84 217 240] debugIsEqual
 
 
 % Figures
 
-(12345678901234567890123456) (dontdraw eclevel=M version=R13x27)  % Figure 1 (data and version as here, not as given in 2018-6-8 draft)
+(12345678901234567890123456) (dontdraw eclevel=M version=R13x27)  % Figure 1
 [
     1 1 1 1 1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 1
     1 0 0 0 0 0 1 0 0 0 0 1 0 0 1 1 0 0 0 1 0 0 1 1 0 0 1

@@ -16,7 +16,7 @@
 
 % numBs calculation
 
-{  % B1
+{  % B1 not in Kanji 1st byte range
     (^128) (parse debugcws) microqrcode
 } [134 0 0 236 17 236 17 236 17 236 0] debugIsEqual
 
@@ -41,6 +41,31 @@
     % K9 (点茗や点茗や点茗や), 9 Kanji max for M4-L (Table 7); note ^226^147 (0xE293) also valid Shift JIS
     (^147^095^228^170^130^226^147^095^228^170^130^226^147^095^228^170^130^226) (parse version=M4 eclevel=L debugcws) microqrcode
 } [114 217 253 85 5 137 179 250 170 11 19 103 245 84 22 32] debugIsEqual
+
+{
+    % B12 (?点茗や点茗?), modeBKbeforeB M4 change 5 -> 6, previously B1 K5 B1 (same msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^170?) (parse version=M4 eclevel=L debugcws) microqrcode
+} [76 63 147 95 228 170 130 226 147 95 228 170 63 0 0 236] debugIsEqual
+
+{
+    % B1 K3 N1 (?点茗や1), modeBKbeforeN M3 change 5 -> 3, previously B8 (longer msgbits length)
+    (?^147^095^228^170^130^2261) (parse version=M3 eclevel=L debugcws) microqrcode
+} [132 255 109 159 213 80 88 128 136 0 0] debugIsEqual
+
+{
+    % B1 K4 N1 (?点茗や点1), modeBKbeforeN M3 change 5 -> 3, previously not encodable (msgbits too long)
+    (?^147^095^228^170^130^226^147^0951) (parse version=M3 eclevel=L debugcws) microqrcode
+} [132 255 141 159 213 80 88 155 62 4 64] debugIsEqual
+
+{
+    % B1 K5 N1 (?点茗や点茗?), modeBKbeforeN M4 change 6 -> 5, previously B12 (longer msgbits length)
+    (?^147^095^228^170^130^226^147^095^228^1701) (parse version=M4 eclevel=L debugcws) microqrcode
+} [65 63 106 217 253 85 5 137 179 250 170 0 136 0 236 17] debugIsEqual
+
+{
+    % A3 K1 (ABC点), new initial mode A before K re-using modeBAbeforeE array, previously B5 (longer msgbits length)
+    (ABC^147^095) (parse version=M3 eclevel=L debugcws) microqrcode
+} [76 230 153 150 207 128 236 17 236 17 0] debugIsEqual
 
 
 % Figures
