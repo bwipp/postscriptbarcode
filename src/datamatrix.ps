@@ -483,16 +483,18 @@ begin
                 i msglen eq {exit} if
                 encvals mode get msg i get known not {exit} if
                 p 3 mod 0 eq {
-                    /newmode lookup def
-                    newmode mode ne {
-                        ctxvals 0 p getinterval CTXvalstocws addtocws
-                        [unlcw] addtocws
-                        newmode A ne {
-                            Avals [-1 lC lT lX lE lB] newmode get get addtocws
+                    p 0 gt {
+                        /newmode lookup def
+                        newmode mode ne {
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            [unlcw] addtocws
+                            newmode A ne {
+                                Avals [-1 lC lT lX lE lB] newmode get get addtocws
+                            } if
+                            /mode newmode def
+                            /done true def
+                            exit
                         } if
-                        /mode newmode def
-                        /done true def
-                        exit
                     } if
                     msglen i sub 3 le {  % Check end of data conditions
                         /remcws numremcws j p 3 idiv 2 mul add get def
