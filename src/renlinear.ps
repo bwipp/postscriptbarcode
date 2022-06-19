@@ -113,25 +113,25 @@ begin
 
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def
-    /x 0.00 def /maxh 0 def
+    /pixx 0 def /pixy 0 def
     0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
         /i exch def
         i 2 mod 0 eq {           % i is even
-            /d sbs i get barratio mul barratio sub 1 add def  % d=digit*r-r+1
+            /d sbs i get barratio mul barratio sub 1 add def  % d = digit*r-r+1
             sbs i get 0 ne {
                 /h bhs i 2 idiv get 72 mul def  % Height from bhs
-                /c d 2 div x add def            % Centre of the bar = x + d/2
+                /c d 2 div pixx add def         % Centre of the bar = pixx + d/2
                 /y bbs i 2 idiv get 72 mul def  % Baseline from bbs
                 /w d inkspread sub def          % bar width = digit - inkspread
                 bars i 2 idiv [h c y w] put     % Add the bar entry
-                h y add maxh gt {/maxh h y add def} if
+                h y add pixy gt {/pixy h y add def} if
             } {
                 bars i 2 idiv -1 put            % Dummy entry
             } ifelse
         } {
-            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d=digit*r-r+1
+            /d sbs i get spaceratio mul spaceratio sub 1 add def  % d = digit*r-r+1
         } ifelse
-        /x x d add def  % x+=d
+        /pixx pixx d add def  % pixx += d
     } for
 
     gsave
@@ -140,7 +140,7 @@ begin
 
     % Force symbol to given width
     width 0 ne {
-        width 72 mul x div 1 scale
+        width 72 mul pixx div 1 scale
     } if
 
     % Set RGB or CMYK color depending on length of given hex string
@@ -157,10 +157,10 @@ begin
     % Display the border and background
     newpath
     borderleft neg borderbottom neg moveto
-    x borderleft add borderright add 0 rlineto
-    0 maxh borderbottom add bordertop add rlineto
-    x borderleft add borderright add neg 0 rlineto
-    0 maxh borderbottom add bordertop add neg rlineto
+    pixx borderleft add borderright add 0 rlineto
+    0 pixy borderbottom add bordertop add rlineto
+    pixx borderleft add borderright add neg 0 rlineto
+    0 pixy borderbottom add bordertop add neg rlineto
     closepath
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
     showborder {
@@ -234,18 +234,18 @@ begin
             /textascent exch def
             /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
 
-            /textxpos textxoffset x textwidth sub 2 div add def
+            /textxpos textxoffset pixx textwidth sub 2 div add def
             textxalign (left) eq { /textxpos textxoffset def } if
-            textxalign (right) eq { /textxpos x textxoffset sub textwidth sub def } if
+            textxalign (right) eq { /textxpos pixx textxoffset sub textwidth sub def } if
             textxalign (offleft) eq { /textxpos textwidth textxoffset add neg def } if
-            textxalign (offright) eq { /textxpos x textxoffset add def } if
-            textxalign (justify) eq textwidth x lt and {
+            textxalign (offright) eq { /textxpos pixx textxoffset add def } if
+            textxalign (justify) eq textwidth pixx lt and {
                 /textxpos 0 def
-                /textgaps x textwidth sub tstr length 1 sub div def
+                /textgaps pixx textwidth sub tstr length 1 sub div def
             } if
             /textypos textyoffset textascent add 1 add neg def
-            textyalign (above) eq { /textypos textyoffset maxh add 1 add def } if
-            textyalign (center) eq { /textypos textyoffset maxh textascent sub 2 div add def } if
+            textyalign (above) eq { /textypos textyoffset pixy add 1 add def } if
+            textyalign (center) eq { /textypos textyoffset pixy textascent sub 2 div add def } if
             textxpos textypos moveto textgaps 0 tstr ashow
         } ifelse
     } if
@@ -262,7 +262,7 @@ begin
         } if
         guardrightpos 0 ne {
             newpath
-            guardrightpos x add guardwidth sub guardrightypos guardheight 2 div add moveto
+            guardrightpos pixx add guardwidth sub guardrightypos guardheight 2 div add moveto
             guardwidth guardheight -2 div rlineto
             guardwidth neg guardheight -2 div rlineto
             stroke
