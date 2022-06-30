@@ -49,6 +49,19 @@ begin
     /parseonly dup dup fncvals exch known def fncvals exch undef
     /eci       dup dup fncvals exch known def fncvals exch undef
 
+    % Control character names to ordinals
+    <<
+        [
+            /NUL /SOH /STX /ETX /EOT /ENQ /ACK /BEL
+            /BS  /TAB /LF  /VT  /FF  /CR  ()   ()    % SO and SI prefix clash with SOH
+            /DLE /DC1 /DC2 /DC3 /DC4 /NAK /SYN /ETB
+            /CAN /EM  /SUB /ESC /FS  /GS  /RS  /US
+        ]
+        0 exch {
+            1 index 1 add 3 1 roll exch 3 -1 roll
+        } forall pop
+    >> /ctrl exch def
+
     /msg barcode length array def
     /j 0 def
     barcode {  % loop
@@ -73,11 +86,35 @@ begin
 
                 % parse
                 parse {
-                    dup length 3 ge {
+                    dup length 3 ge {  % "^XXX" byte
+                        dup 0 3 getinterval ctrl exch
+                        2 copy known {
+                            /j j 1 sub def  % Replace "^" with ordinal
+                            get msg exch j exch put
+                            /j j 1 add def
+                            dup length 3 sub 3 exch getinterval
+                            exit
+                        } {
+                            pop pop
+                        } ifelse
+                    } if
+                    dup length 2 ge {  % "^XX" to byte
+                        dup 0 2 getinterval ctrl exch
+                        2 copy known {
+                            /j j 1 sub def  % Replace "^" with ordinal
+                            get msg exch j exch put
+                            /j j 1 add def
+                            dup length 2 sub 2 exch getinterval
+                            exit
+                        } {
+                            pop pop
+                        } ifelse
+                    } if
+                    dup length 3 ge {  % "^NNN" to byte
                         dup 0 3 getinterval true exch {
                             dup 48 lt exch 57 gt or { pop false } if
                         } forall
-                        {  % "^NNN" to byte
+                        {
                             dup 0 3 getinterval cvi dup 255 gt {
                                 pop pop
                                 /bwipp.invalidOrdinal (Ordinal must be 000 to 255) //raiseerror exec
