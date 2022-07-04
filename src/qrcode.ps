@@ -69,6 +69,21 @@ begin
     } if
     options {def} forall
 
+    % Place a context dictionary just below the current dictionary, which can
+    % be populated with static data on the first run and then carried between
+    % invokations
+    currentdict /ctx known {
+        ctx /qrcode known not {
+            ctx /qrcode 10 dict put
+            /ctxdef {ctx /qrcode get begin exec end} def
+        } {
+            /ctxdef {pop} def  % No need to redefine within the existing context
+        } ifelse
+        currentdict ctx end /qrcode get begin begin
+    } {
+        /ctxdef {exec} def  % No context provided, so define ephemerally
+    } ifelse
+
     /mask mask cvi def
 
     % If version is supplied and format is not given then set format to correspond
@@ -106,6 +121,8 @@ begin
             /msglen msg length def
         } if
     } if
+
+{  % context
 
     % Enumerate vergrps
     [
@@ -217,16 +234,20 @@ begin
       } repeat
     ] def
 
-    % Encoding functions
-    /tobin {
-        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
-        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
-    } bind def
+    /padstrs [ (11101100) (00010001) ] def
 
     % Alphanumeric character to value map
     /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
     /charvals 44 dict def
     0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
+
+} ctxdef
+
+    % Encoding functions
+    /tobin {
+        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
+    } def
 
     /encA {
         /in exch def
@@ -247,7 +268,7 @@ begin
             length m add /m exch def
         } loop
         out 0 m getinterval
-    } bind def
+    } def
 
     /encN {
         /in exch def
@@ -270,7 +291,7 @@ begin
             length m add /m exch def
         } loop
         out 0 m getinterval
-    } bind def
+    } def
 
     /encB {
         /in exch def
@@ -284,7 +305,7 @@ begin
             out k 8 mul 3 -1 roll putinterval
         } for
         out
-    } bind def
+    } def
 
     /encK {
         /in exch def
@@ -299,7 +320,7 @@ begin
             /k k 2 add def
         } loop
         out
-    } bind def
+    } def
 
     /encE {
         0 get neg 1000000 sub
@@ -310,14 +331,14 @@ begin
         } {                  % ECI 016384 - 999999
                 2#110000000000000000000000 add 24 tobin
         } ifelse } ifelse
-    } bind def
+    } def
 
     /encfuncs [ /encN /encA /encB /encK /encE ] def
 
     /addtobits {
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
-    } bind def
+    } def
 
     /numNs [ msglen {0} repeat 0 ] def
     /numAs [ msglen {0} repeat 0 ] def
@@ -373,18 +394,18 @@ begin
         } ifelse
     } for
 
-    /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} bind def
-    /KbeforeA {numK exch ver get ge nextAs numK 2 mul i add get 0 eq and} bind def
-    /KbeforeN {numK exch ver get ge nextNs numK 2 mul i add get 0 eq and} bind def
-    /KbeforeE {numK exch ver get ge numK 2 mul i add msglen eq and} bind def
-    /AbeforeK {numA exch ver get ge nextKs numA i add get 0 eq and} bind def
-    /AbeforeB {numA exch ver get ge nextBs numA i add get 0 eq and} bind def
-    /AbeforeN {numA exch ver get ge nextNs numA i add get 0 eq and} bind def
-    /AbeforeE {numA exch ver get ge numA i add msglen eq and} bind def
-    /NbeforeK {numN exch ver get ge nextKs numN i add get 0 eq and} bind def
-    /NbeforeB {numN exch ver get ge nextBs numN i add get 0 eq and} bind def
-    /NbeforeA {numN exch ver get ge nextAs numN i add get 0 eq and} bind def
-    /NbeforeE {numN exch ver get ge numN i add msglen eq and} bind def
+    /KbeforeB {numK exch ver get ge nextBs numK 2 mul i add get 0 eq and} def
+    /KbeforeA {numK exch ver get ge nextAs numK 2 mul i add get 0 eq and} def
+    /KbeforeN {numK exch ver get ge nextNs numK 2 mul i add get 0 eq and} def
+    /KbeforeE {numK exch ver get ge numK 2 mul i add msglen eq and} def
+    /AbeforeK {numA exch ver get ge nextKs numA i add get 0 eq and} def
+    /AbeforeB {numA exch ver get ge nextBs numA i add get 0 eq and} def
+    /AbeforeN {numA exch ver get ge nextNs numA i add get 0 eq and} def
+    /AbeforeE {numA exch ver get ge numA i add msglen eq and} def
+    /NbeforeK {numN exch ver get ge nextKs numN i add get 0 eq and} def
+    /NbeforeB {numN exch ver get ge nextBs numN i add get 0 eq and} def
+    /NbeforeA {numN exch ver get ge nextAs numN i add get 0 eq and} def
+    /NbeforeE {numN exch ver get ge numN i add msglen eq and} def
 
     % Elements of the encoded message have differing lengths based on the
     % resulting symbol size. The symbol sizes with different element lengths
@@ -393,29 +414,34 @@ begin
     % on the format of symbol.
 
     % Determine which groups we need to encode
+{
+    /versetmap <<
+        % Full
+         0 1  9 { 10 2 string cvrs v1to9   } for
+        10 1 26 { 10 2 string cvrs v10to26 } for
+        27 1 40 { 10 2 string cvrs v27to40 } for
+
+        % Micro
+        (M1) vM1  (M2) vM2  (M3) vM3  (M4) vM4
+
+        % rMQR
+                          (R7x43)  vR7x43   (R7x59)  vR7x59   (R7x77)  vR7x77   (R7x99)  vR7x99   (R7x139)  vR7x139
+                          (R9x43)  vR9x43   (R9x59)  vR9x59   (R9x77)  vR9x77   (R9x99)  vR9x99   (R9x139)  vR9x139
+        (R11x27) vR11x27  (R11x43) vR11x43  (R11x59) vR11x59  (R11x77) vR11x77  (R11x99) vR11x99  (R11x139) vR11x139
+        (R13x27) vR13x27  (R13x43) vR13x43  (R13x59) vR13x59  (R13x77) vR13x77  (R13x99) vR13x99  (R13x139) vR13x139
+                          (R15x43) vR15x43  (R15x59) vR15x59  (R15x77) vR15x77  (R15x99) vR15x99  (R15x139) vR15x139
+                          (R17x43) vR17x43  (R17x59) vR17x59  (R17x77) vR17x77  (R17x99) vR17x99  (R17x139) vR17x139
+    >> def
+    /versetfull  [v1to9 v10to26 v27to40] def
+    /versetmicro [vM1 vM2 vM3 vM4] def
+} ctxdef
     version (unset) ne {
         % A specific version of symbol is given so encode in just the corresponding vergrp
-        /verset <<
-            % Full
-             0 1  9 { 10 2 string cvrs v1to9   } for
-            10 1 26 { 10 2 string cvrs v10to26 } for
-            27 1 40 { 10 2 string cvrs v27to40 } for
-
-            % Micro
-            (M1) vM1  (M2) vM2  (M3) vM3  (M4) vM4
-
-            % rMQR
-                              (R7x43)  vR7x43   (R7x59)  vR7x59   (R7x77)  vR7x77   (R7x99)  vR7x99   (R7x139)  vR7x139
-                              (R9x43)  vR9x43   (R9x59)  vR9x59   (R9x77)  vR9x77   (R9x99)  vR9x99   (R9x139)  vR9x139
-            (R11x27) vR11x27  (R11x43) vR11x43  (R11x59) vR11x59  (R11x77) vR11x77  (R11x99) vR11x99  (R11x139) vR11x139
-            (R13x27) vR13x27  (R13x43) vR13x43  (R13x59) vR13x59  (R13x77) vR13x77  (R13x99) vR13x99  (R13x139) vR13x139
-                              (R15x43) vR15x43  (R15x59) vR15x59  (R15x77) vR15x77  (R15x99) vR15x99  (R15x139) vR15x139
-                              (R17x43) vR17x43  (R17x59) vR17x59  (R17x77) vR17x77  (R17x99) vR17x99  (R17x139) vR17x139
-        >> version get [ exch ] def
+        /verset versetmap version get [ exch ] def
     } {
         % Just the format is specified so encode in each vergrp for the type of symbol
-        format (full)  eq { /verset [v1to9 v10to26 v27to40] def } if
-        format (micro) eq { /verset [vM1 vM2 vM3 vM4] def } if
+        format (full)  eq { /verset versetfull  def } if
+        format (micro) eq { /verset versetmicro def } if
         % rMQR symbols are accessed with an explicit version
     } ifelse
 
@@ -426,6 +452,7 @@ begin
     % Number of before characters per vergrp, depending on current mode, for optimising modes
     % Generated by contrib/development/build-qr-mode-optim-arrs.php
     %                Full     Micro    R7         R9           R11             R13              R15             R17
+{
     /mode0forceKB  [ 1  1  1  e e 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
     /mode0forceA   [ 1  1  1  e 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
 
@@ -449,6 +476,7 @@ begin
     /modeANbeforeA [13 15 17  e 5 7 9  7 8 9 9 9  8 9 9 9 11   7 9 9 9 11 11   8 9 9 10 11 11   9 10 11 11 11   9 11 11 11 11] def
     /modeANbeforeB [13 17 18  e e 7 9  7 8 9 9 9  8 9 9 9 10   7 9 9 9 10 11   8 9 9  9 11 11   9  9 11 11 11   9 10 11 11 11] def
     /modeANbeforeE [ 7  8  9  e 3 4 5  4 5 5 5 5  5 5 5 5  6   4 5 5 5  6  6   5 5 5  5  6  6   5  5  6  6  6   5  6  6  6  6] def
+} ctxdef
 
     verset {
         /ver exch def
@@ -586,6 +614,7 @@ begin
     } forall
 
     % Lookup the most appropriate symbol specification
+{
     /metrics [
         % format   vers       vergrp  rows cols align modules    error codewords        error correction blocks
         %                                                        L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
@@ -666,6 +695,8 @@ begin
         [ (rmqr)   (R17x99)   vR17x99   17  99  24 50   1283  [  99   60   99  104 ]  [ -1 -1  2  1 -1 -1  4  0 ] ]
         [ (rmqr)   (R17x139)  vR17x139  17 139  28 56   1860  [  99   80   99  156 ]  [ -1 -1  4  0 -1 -1  2  4 ] ]
     ] def
+} ctxdef
+
     /eclval (LMQH) eclevel search pop length exch pop exch pop def
     0 1 metrics length 1 sub {
         /i exch def
@@ -728,7 +759,6 @@ begin
     /pad dmod string def
     0 1 pad length 1 sub {pad exch 48 put} for
     pad 0 msgbits putinterval
-    /padstrs [ (11101100) (00010001) ] def
     /padnum 0 def
     msgbits length 8 div ceiling 8 mul cvi 8 dmod lc4b {5} {1} ifelse sub {
         pad exch padstrs padnum get putinterval
@@ -756,9 +786,11 @@ begin
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Calculate the log and anti-log tables
+{
     /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
     /rslog 256 array def
     1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
+} ctxdef
 
     % Function to calculate the product in the field
     /rsprod {
@@ -767,7 +799,7 @@ begin
         } {
             pop pop 0
         } ifelse
-    } bind def
+    } def
 
     % Generate the coefficients for the Reed-Solomon algorithm
     /coeffs [ 1 ecpb {0} repeat ] def
@@ -796,7 +828,7 @@ begin
             } for
         } for
         rscws rsnd ecpb getinterval
-    } bind def
+    } def
 
     % Divide codewords into two groups of blocks and calculate the error correction codewords
     /dcwsb ecb1 ecb2 add array def
@@ -857,7 +889,7 @@ begin
 
     % Create the bitmap
     /pixs [ rows cols mul {-1} repeat ] def
-    /qmv {cols mul add} bind def
+    /qmv {cols mul add} def
 
     % Timing patterns
     format (full) eq {
@@ -895,6 +927,7 @@ begin
     } if
 
     % Finder patterns
+{
     /fpat [
         [ 1 1 1 1 1 1 1 0 ]
         [ 1 0 0 0 0 0 1 0 ]
@@ -935,12 +968,14 @@ begin
         [ 9 9 9 9 9 9 9 9 ]
         [ 9 9 9 9 9 9 9 9 ]
     ] def
-    /fpats <<
+    /fpatmap <<
         %          TL     TR       BL       BR
         (full)  [ fpat fpat     fpat     fnullpat ]
         (micro) [ fpat fnullpat fnullpat fnullpat ]
         (rmqr)  [ fpat fcorpat  fcorpat  fsubpat  ]
-    >> format get def
+    >> def
+} ctxdef
+    /fpats fpatmap format get def
     0 1 7 {
       /y exch def
       0 1 7 {
@@ -957,6 +992,23 @@ begin
     } for
 
     % Alignment patterns
+{
+    /algnpatfull [
+        [ 1 1 1 1 1 ]
+        [ 1 0 0 0 1 ]
+        [ 1 0 1 0 1 ]
+        [ 1 0 0 0 1 ]
+        [ 1 1 1 1 1 ]
+    ] def
+    /algnpatrmqr [
+        [ 1 1 1 9 9 ]
+        [ 1 0 1 9 9 ]
+        [ 1 1 1 9 9 ]
+        [ 9 9 9 9 9 ]
+        [ 9 9 9 9 9 ]
+    ] def
+} ctxdef
+
     /putalgnpat {
         /py exch def
         /px exch def
@@ -970,15 +1022,9 @@ begin
                 } if
             } for
         } for
-    } bind def
+    } def
     format (full) eq {
-        /algnpat [
-            [ 1 1 1 1 1 ]
-            [ 1 0 0 0 1 ]
-            [ 1 0 1 0 1 ]
-            [ 1 0 0 0 1 ]
-            [ 1 1 1 1 1 ]
-        ] def
+        /algnpat algnpatfull def
         asp2 2 sub asp3 asp2 sub cols 13 sub {
             /i exch def
             i 4 putalgnpat
@@ -993,13 +1039,7 @@ begin
         } for
     } if
     format (rmqr) eq {
-        /algnpat [
-            [ 1 1 1 9 9 ]
-            [ 1 0 1 9 9 ]
-            [ 1 1 1 9 9 ]
-            [ 9 9 9 9 9 ]
-            [ 9 9 9 9 9 ]
-        ] def
+        /algnpat algnpatrmqr def
         asp2 2 sub asp3 asp2 sub cols 13 sub {
             /i exch def
             i 0 putalgnpat
@@ -1008,6 +1048,13 @@ begin
     } if
 
     % Format information modules
+{
+    /formatmapmicro [
+            [ [ 1 8 ] ]  [ [ 2 8 ] ]  [ [ 3 8 ] ]  [ [ 4 8 ] ]  [ [ 5 8 ] ]
+            [ [ 6 8 ] ]  [ [ 7 8 ] ]  [ [ 8 8 ] ]  [ [ 8 7 ] ]  [ [ 8 6 ] ]
+            [ [ 8 5 ] ]  [ [ 8 4 ] ]  [ [ 8 3 ] ]  [ [ 8 2 ] ]  [ [ 8 1 ] ]
+    ] def
+} ctxdef
     /formatmap <<
         (full) [
             [ [ 0 8 ] [ 8 cols 1 sub ] ]  [ [ 1 8 ] [ 8 cols 2 sub ] ]  [ [ 2 8 ] [ 8 cols 3 sub ] ]
@@ -1016,11 +1063,7 @@ begin
             [ [ 8 5 ] [ cols 6 sub 8 ] ]  [ [ 8 4 ] [ cols 5 sub 8 ] ]  [ [ 8 3 ] [ cols 4 sub 8 ] ]
             [ [ 8 2 ] [ cols 3 sub 8 ] ]  [ [ 8 1 ] [ cols 2 sub 8 ] ]  [ [ 8 0 ] [ cols 1 sub 8 ] ]
         ]
-        (micro) [
-            [ [ 1 8 ] ]  [ [ 2 8 ] ]  [ [ 3 8 ] ]  [ [ 4 8 ] ]  [ [ 5 8 ] ]
-            [ [ 6 8 ] ]  [ [ 7 8 ] ]  [ [ 8 8 ] ]  [ [ 8 7 ] ]  [ [ 8 6 ] ]
-            [ [ 8 5 ] ]  [ [ 8 4 ] ]  [ [ 8 3 ] ]  [ [ 8 2 ] ]  [ [ 8 1 ] ]
-        ]
+        (micro) formatmapmicro
         (rmqr) [
             [ [ 11 3 ] [ cols 3 sub rows 6 sub ] ]  [ [ 11 2 ] [ cols 4 sub rows 6 sub ] ]  [ [ 11 1 ] [ cols 5 sub rows 6 sub ] ]
             [ [ 10 5 ] [ cols 6 sub rows 2 sub ] ]  [ [ 10 4 ] [ cols 6 sub rows 3 sub ] ]  [ [ 10 3 ] [ cols 6 sub rows 4 sub ] ]
@@ -1154,7 +1197,7 @@ begin
             } if
         } for
         scr1 scr3
-    } bind def
+    } def
 
     % Evaluation algorithm for full symbols
     /evalfull {
@@ -1210,7 +1253,7 @@ begin
         /n4 dark 100 mul cols dup mul div 50 sub abs 5 div cvi 10 mul def
 
         n1 n2 add n3 add n4 add
-    } bind def
+    } def
 
     % Evaluation algorithm for micro symbols
     /evalmicro {
@@ -1226,7 +1269,7 @@ begin
         } {
             dkbot 16 mul dkrhs add neg
         } ifelse
-    } bind def
+    } def
 
     % Evaluate the masked symbols to find the most suitable
     /bestscore 999999999 def
@@ -1260,15 +1303,43 @@ begin
     } if
 
     % Add the format information
+{
+    /fmtvalsfull [
+        16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
+        16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
+        16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
+        16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
+    ] def
+    /fmtvalsmicro [
+        16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
+        16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
+        16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
+        16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
+    ] def
+    /fmtvalsrmqr1 [
+        16#1fab2 16#1e597 16#1dbdd 16#1c4f8 16#1b86c 16#1a749 16#19903 16#18626
+        16#17f0e 16#1602b 16#15e61 16#14144 16#13dd0 16#122f5 16#11cbf 16#1039a
+        16#0f1ca 16#0eeef 16#0d0a5 16#0cf80 16#0b314 16#0ac31 16#0927b 16#08d5e
+        16#07476 16#06b53 16#05519 16#04a3c 16#036a8 16#0298d 16#017c7 16#008e2
+        16#3f367 16#3ec42 16#3d208 16#3cd2d 16#3b1b9 16#3ae9c 16#390d6 16#38ff3
+        16#376db 16#369fe 16#357b4 16#34891 16#33405 16#32b20 16#3156a 16#30a4f
+        16#2f81f 16#2e73a 16#2d970 16#2c655 16#2bac1 16#2a5e4 16#29bae 16#2848b
+        16#27da3 16#26286 16#25ccc 16#243e9 16#23f7d 16#22058 16#21e12 16#20137
+    ] def
+    /fmtvalsrmqr2 [
+        16#20a7b 16#2155e 16#22b14 16#23431 16#248a5 16#25780 16#269ca 16#276ef
+        16#28fc7 16#290e2 16#2aea8 16#2b18d 16#2cd19 16#2d23c 16#2ec76 16#2f353
+        16#30103 16#31e26 16#3206c 16#33f49 16#343dd 16#35cf8 16#362b2 16#37d97
+        16#384bf 16#39b9a 16#3a5d0 16#3baf5 16#3c661 16#3d944 16#3e70e 16#3f82b
+        16#003ae 16#01c8b 16#022c1 16#03de4 16#04170 16#05e55 16#0601f 16#07f3a
+        16#08612 16#09937 16#0a77d 16#0b858 16#0c4cc 16#0dbe9 16#0e5a3 16#0fa86
+        16#108d6 16#117f3 16#129b9 16#1369c 16#14a08 16#1552d 16#16b67 16#17442
+        16#18d6a 16#1924f 16#1ac05 16#1b320 16#1cfb4 16#1d091 16#1eedb 16#1f1fe
+    ] def
+} ctxdef
     format (full) eq {
-        /fmtvals [
-            16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
-            16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
-            16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
-            16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
-        ] def
         /ecid (MLHQ) eclevel search pop length exch pop exch pop def
-        /fmtval fmtvals ecid 3 bitshift bestmaskval add get def
+        /fmtval fmtvalsfull ecid 3 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             formatmap i get {
@@ -1277,43 +1348,17 @@ begin
         } for
     } if
     format (micro) eq {
-        /fmtvals [
-            16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
-            16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
-            16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
-            16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
-        ] def
         /symid [ [0] [1 2] [3 4] [5 6 7] ] cols 11 sub 2 idiv get eclval get def
-        /fmtval fmtvals symid 2 bitshift bestmaskval add get def
+        /fmtval fmtvalsmicro symid 2 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval 14 i sub neg bitshift 1 and put
         } for
     } if
     format (rmqr) eq {
-        /fmtvals1 [
-            16#1fab2 16#1e597 16#1dbdd 16#1c4f8 16#1b86c 16#1a749 16#19903 16#18626
-            16#17f0e 16#1602b 16#15e61 16#14144 16#13dd0 16#122f5 16#11cbf 16#1039a
-            16#0f1ca 16#0eeef 16#0d0a5 16#0cf80 16#0b314 16#0ac31 16#0927b 16#08d5e
-            16#07476 16#06b53 16#05519 16#04a3c 16#036a8 16#0298d 16#017c7 16#008e2
-            16#3f367 16#3ec42 16#3d208 16#3cd2d 16#3b1b9 16#3ae9c 16#390d6 16#38ff3
-            16#376db 16#369fe 16#357b4 16#34891 16#33405 16#32b20 16#3156a 16#30a4f
-            16#2f81f 16#2e73a 16#2d970 16#2c655 16#2bac1 16#2a5e4 16#29bae 16#2848b
-            16#27da3 16#26286 16#25ccc 16#243e9 16#23f7d 16#22058 16#21e12 16#20137
-        ] def
-        /fmtvals2 [
-            16#20a7b 16#2155e 16#22b14 16#23431 16#248a5 16#25780 16#269ca 16#276ef
-            16#28fc7 16#290e2 16#2aea8 16#2b18d 16#2cd19 16#2d23c 16#2ec76 16#2f353
-            16#30103 16#31e26 16#3206c 16#33f49 16#343dd 16#35cf8 16#362b2 16#37d97
-            16#384bf 16#39b9a 16#3a5d0 16#3baf5 16#3c661 16#3d944 16#3e70e 16#3f82b
-            16#003ae 16#01c8b 16#022c1 16#03de4 16#04170 16#05e55 16#0601f 16#07f3a
-            16#08612 16#09937 16#0a77d 16#0b858 16#0c4cc 16#0dbe9 16#0e5a3 16#0fa86
-            16#108d6 16#117f3 16#129b9 16#1369c 16#14a08 16#1552d 16#16b67 16#17442
-            16#18d6a 16#1924f 16#1ac05 16#1b320 16#1cfb4 16#1d091 16#1eedb 16#1f1fe
-        ] def
         /fmtvalu (MH) eclevel search pop length exch pop exch pop 5 bitshift verind add def
-        /fmtval1 fmtvals1 fmtvalu get def
-        /fmtval2 fmtvals2 fmtvalu get def
+        /fmtval1 fmtvalsrmqr1 fmtvalu get def
+        /fmtval2 fmtvalsrmqr2 fmtvalu get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval1 17 i sub neg bitshift 1 and put
@@ -1322,14 +1367,16 @@ begin
     } if
 
     % Add the version information
+{
+    /vervals [
+        16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
+        16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
+        16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
+        16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216fd 16#228ba
+        16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
+    ] def
+} ctxdef
     format (full) eq cols 45 ge and {
-        /vervals [
-            16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
-            16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
-            16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
-            16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216fd 16#228ba
-            16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
-        ] def
         /verval vervals cols 17 sub 4 idiv 7 sub get def
         0 1 versionmap length 1 sub {
             /i exch def
@@ -1352,6 +1399,7 @@ begin
 
     dontdraw not //renmatrix if
 
+    currentdict /ctx known {end} if
     end
 
 }
