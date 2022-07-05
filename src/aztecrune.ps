@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER aztecrune--
-% --REQUIRES preamble raiseerror parseinput renmatrix azteccode--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix azteccode--
 % --DESC: Aztec Runes
 % --EXAM: 1
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /azteccode dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +50,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
 
     % Parse the input options

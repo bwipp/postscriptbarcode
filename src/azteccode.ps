@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER azteccode--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Aztec Code
 % --EXAM: This is Aztec Code
 % --EXOP: format=full
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /format (unset) def    % full, compact or rune
     /readerinit false def
@@ -74,6 +77,8 @@ begin
     /layers layers cvi def
     /eclevel eclevel cvr def
     /ecaddchars ecaddchars cvi def
+
+    /azteccode //loadctx exec
 
     format (rune) eq {
         barcode length 0 eq {
@@ -100,107 +105,110 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+{
+    % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
+    /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
+
+    % Special function characters
+    /lu -2 def  /ll -3 def  /lm -4 def
+    /lp -5 def  /ld -6 def  /su -7 def
+    /sp -8 def  /sb -9 def  /fl -10 def
+    /p2 -11 def /p3 -12 def /p4 -13 def /p5 -14 def
+
+    % Character maps for each state
+    /charmaps [
+        %  U    L    M    P    D
+        [  sp   sp   sp   fl   sp ]  % 0
+        [  32   32   32   13   32 ]  % 1
+        [ (A)  (a)    1   p2  (0) ]  % 2     p2 = CR LF
+        [ (B)  (b)    2   p3  (1) ]  % 3     p3 = ". "
+        [ (C)  (c)    3   p4  (2) ]  % 4     p4 = ", "
+        [ (D)  (d)    4   p5  (3) ]  % 5     p5 = ": "
+        [ (E)  (e)    5  (!)  (4) ]  % 6
+        [ (F)  (f)    6  (")  (5) ]  % 7
+        [ (G)  (g)    7  (#)  (6) ]  % 8
+        [ (H)  (h)    8  ($)  (7) ]  % 9
+        [ (I)  (i)    9  (%)  (8) ]  % 10
+        [ (J)  (j)   10  (&)  (9) ]  % 11
+        [ (K)  (k)   11  (')  (,) ]  % 12
+        [ (L)  (l)   12   40  (.) ]  % 13
+        [ (M)  (m)   13   41   lu ]  % 14
+        [ (N)  (n)   27  (*)   su ]  % 15
+        [ (O)  (o)   28  (+)  -99 ]  % 16
+        [ (P)  (p)   29  (,)  -99 ]  % 17
+        [ (Q)  (q)   30  (-)  -99 ]  % 18
+        [ (R)  (r)   31  (.)  -99 ]  % 19
+        [ (S)  (s)  (@)  (/)  -99 ]  % 20
+        [ (T)  (t)   92  (:)  -99 ]  % 21
+        [ (U)  (u)  (^)  (;)  -99 ]  % 22
+        [ (V)  (v)  (_)  (<)  -99 ]  % 23
+        [ (W)  (w)  (`)  (=)  -99 ]  % 24
+        [ (X)  (x)  (|)  (>)  -99 ]  % 25
+        [ (Y)  (y)  (~)  (?)  -99 ]  % 26
+        [ (Z)  (z)  127  ([)  -99 ]  % 27
+        [  ll   su   ll  (])  -99 ]  % 28
+        [  lm   lm   lu  ({)  -99 ]  % 29
+        [  ld   ld   lp  (})  -99 ]  % 30
+        [  sb   sb   sb   lu  -99 ]  % 31
+    ] def
+
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 4 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put
+        } for
+    } for
+
+    % Punctuation compression
+    /pcomp <<
+        <0d0a> p2   % CR LF
+        (. )   p3
+        (, )   p4
+        (: )   p5
+    >> def
+
+    /e 10000 def  % "Empty"
+
+    /latlen [  % Bit length of latch between states
+    % To:  U  L  M  P  D  B      From
+        [  0  5  5 10  5 10 ]  % U
+        [  9  0  5 10  5 10 ]  % L
+        [  5  5  0  5 10 10 ]  % M
+        [  5 10 10  0 10 15 ]  % P
+        [  4  9  9 14  0 14 ]  % D
+        [  0  0  0  0  0  0 ]  % B
+    ] def
+
+    /latseq [  % Latch sequences between states
+    % To: U       L       M       P          D       B          From
+        [ []      [ll]    [lm]    [lm lp]    [ld]    [sb]    ]  % U
+        [ [ld lu] []      [lm]    [lm lp]    [ld]    [sb]    ]  % L
+        [ [lu]    [ll]    []      [lp]       [lu ld] [sb]    ]  % M
+        [ [lu]    [lu ll] [lu lm] []         [lu ld] [lu sb] ]  % P
+        [ [lu]    [lu ll] [lu lm] [lu lm lp] []      [lu sb] ]  % D
+        [ [lu]    [ll]    [lm]    []         []      []      ]  % B
+    ] def
+
+    /shftlen [  % Bit length of shift to state
+    % To:  U  L  M  P  D      From
+        [  e  e  e  5  e ]  % U
+        [  5  e  e  5  e ]  % L
+        [  e  e  e  5  e ]  % M
+        [  e  e  e  e  e ]  % P
+        [  4  e  e  4  e ]  % D
+    ] def
+
+} ctxdef
+
     % Convert from input into message bitstream
     /msgbits () def
     format (rune) ne raw and {/msgbits barcode def} if
     format (rune) ne raw not and {
-
-        % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
-        /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
-
-        % Special function characters
-        /lu -2 def  /ll -3 def  /lm -4 def
-        /lp -5 def  /ld -6 def  /su -7 def
-        /sp -8 def  /sb -9 def  /fl -10 def
-        /p2 -11 def /p3 -12 def /p4 -13 def /p5 -14 def
-
-        % Character maps for each state
-        /charmaps [
-            %  U    L    M    P    D
-            [  sp   sp   sp   fl   sp ]  % 0
-            [  32   32   32   13   32 ]  % 1
-            [ (A)  (a)    1   p2  (0) ]  % 2     p2 = CR LF
-            [ (B)  (b)    2   p3  (1) ]  % 3     p3 = ". "
-            [ (C)  (c)    3   p4  (2) ]  % 4     p4 = ", "
-            [ (D)  (d)    4   p5  (3) ]  % 5     p5 = ": "
-            [ (E)  (e)    5  (!)  (4) ]  % 6
-            [ (F)  (f)    6  (")  (5) ]  % 7
-            [ (G)  (g)    7  (#)  (6) ]  % 8
-            [ (H)  (h)    8  ($)  (7) ]  % 9
-            [ (I)  (i)    9  (%)  (8) ]  % 10
-            [ (J)  (j)   10  (&)  (9) ]  % 11
-            [ (K)  (k)   11  (')  (,) ]  % 12
-            [ (L)  (l)   12   40  (.) ]  % 13
-            [ (M)  (m)   13   41   lu ]  % 14
-            [ (N)  (n)   27  (*)   su ]  % 15
-            [ (O)  (o)   28  (+)  -99 ]  % 16
-            [ (P)  (p)   29  (,)  -99 ]  % 17
-            [ (Q)  (q)   30  (-)  -99 ]  % 18
-            [ (R)  (r)   31  (.)  -99 ]  % 19
-            [ (S)  (s)  (@)  (/)  -99 ]  % 20
-            [ (T)  (t)   92  (:)  -99 ]  % 21
-            [ (U)  (u)  (^)  (;)  -99 ]  % 22
-            [ (V)  (v)  (_)  (<)  -99 ]  % 23
-            [ (W)  (w)  (`)  (=)  -99 ]  % 24
-            [ (X)  (x)  (|)  (>)  -99 ]  % 25
-            [ (Y)  (y)  (~)  (?)  -99 ]  % 26
-            [ (Z)  (z)  127  ([)  -99 ]  % 27
-            [  ll   su   ll  (])  -99 ]  % 28
-            [  lm   lm   lu  ({)  -99 ]  % 29
-            [  ld   ld   lp  (})  -99 ]  % 30
-            [  sb   sb   sb   lu  -99 ]  % 31
-        ] def
-
-        % Invert charmaps to give character to value maps for each state
-        /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
-        0 1 charmaps length 1 sub {
-            /i exch def
-            /encs charmaps i get def
-            0 1 4 {
-                /j exch def
-                encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-                charvals j get exch i put
-            } for
-        } for
-
-        % Punctuation compression
-        /pcomp <<
-            <0d0a> p2   % CR LF
-            (. )   p3
-            (, )   p4
-            (: )   p5
-        >> def
-
-        /e 10000 def  % "Empty"
-
-        /latlen [  % Bit length of latch between states
-        % To:  U  L  M  P  D  B      From
-            [  0  5  5 10  5 10 ]  % U
-            [  9  0  5 10  5 10 ]  % L
-            [  5  5  0  5 10 10 ]  % M
-            [  5 10 10  0 10 15 ]  % P
-            [  4  9  9 14  0 14 ]  % D
-            [  0  0  0  0  0  0 ]  % B
-        ] def
-
-        /latseq [  % Latch sequences between states
-        % To: U       L       M       P          D       B          From
-            [ []      [ll]    [lm]    [lm lp]    [ld]    [sb]    ]  % U
-            [ [ld lu] []      [lm]    [lm lp]    [ld]    [sb]    ]  % L
-            [ [lu]    [ll]    []      [lp]       [lu ld] [sb]    ]  % M
-            [ [lu]    [lu ll] [lu lm] []         [lu ld] [lu sb] ]  % P
-            [ [lu]    [lu ll] [lu lm] [lu lm lp] []      [lu sb] ]  % D
-            [ [lu]    [ll]    [lm]    []         []      []      ]  % B
-        ] def
-
-        /shftlen [  % Bit length of shift to state
-        % To:  U  L  M  P  D      From
-            [  e  e  e  5  e ]  % U
-            [  5  e  e  5  e ]  % L
-            [  e  e  e  5  e ]  % M
-            [  e  e  e  e  e ]  % P
-            [  4  e  e  4  e ]  % D
-        ] def
 
         /charsize {
             dup 0 ge {
@@ -215,7 +223,7 @@ begin
                     ln 10 ln div cvi 1 add 4 mul 8 add
                 } ifelse
             } ifelse
-        } bind def
+        } def
 
         %          U  L  M  P  D  B
         /curlen [  0  e  e  e  e  e ] def
@@ -390,12 +398,12 @@ begin
         /tobin {
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
             dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
-        } bind def
+        } def
 
-        /encu {charvals U get exch get 5 tobin} bind def
-        /encl {charvals L get exch get 5 tobin} bind def
-        /encm {charvals M get exch get 5 tobin} bind def
-        /encd {charvals D get exch get 4 tobin} bind def
+        /encu {charvals U get exch get 5 tobin} def
+        /encl {charvals L get exch get 5 tobin} def
+        /encm {charvals M get exch get 5 tobin} def
+        /encd {charvals D get exch get 4 tobin} def
 
         /encp {
             dup fn1 eq {  % FNC1: Flg(0)
@@ -416,7 +424,7 @@ begin
             } {
                 charvals P get exch get 5 tobin
             } ifelse } ifelse
-        } bind def
+        } def
 
         /encfuncs [ /encu /encl /encm /encp /encd ] def
 
@@ -424,7 +432,7 @@ begin
             /v exch def
             msgbits j v putinterval
             /j j v length add def
-        } bind def
+        } def
 
         % Encode the sequence
         /state U def
@@ -493,6 +501,7 @@ begin
     } if
 
     % Lookup the most appropriate symbol specification
+{
     /metrics [
         [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
         [ (compact)  1 1   17  6 ] [ (full)     1 1   21  6 ] [ (compact)  2 0   40  6 ]
@@ -508,6 +517,7 @@ begin
         [ (full)    27 0 1224 12 ] [ (full)    28 0 1306 12 ] [ (full)    29 0 1392 12 ]
         [ (full)    30 0 1480 12 ] [ (full)    31 0 1570 12 ] [ (full)    32 0 1664 12 ]
     ] def
+} ctxdef
 
     /i 0 def
     { % loop
@@ -532,8 +542,8 @@ begin
     /format frmt def
 
     % Expand message bits into codewords avoiding codewords with all zeros or all ones
-    /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} bind def
-    /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} bind def
+    /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} def
+    /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} def
     /cws ncws array def
     /m 0 def /c 0 def
     {
@@ -587,7 +597,7 @@ begin
             } {
                 pop pop 0
             } ifelse
-        } bind def
+        } def
 
         % Generate the coefficients
         /coeffs [ 1 rsnc {0} repeat ] def
@@ -615,7 +625,7 @@ begin
         % Return all but the last codeword
         rscws 0 rscws length 1 sub getinterval
 
-    } bind def
+    } def
 
     % Create the codewords and bit string for the mode
     format (full) eq {
@@ -655,6 +665,7 @@ begin
     } for
 
     % Extend the data codewords with error correction codewords to create the bit string for the data
+{
     /rsparams [
         [] [] [] [] [] []
         [ 64 67 ]      % 6-bit codewords
@@ -665,6 +676,7 @@ begin
         []
         [ 4096 4201 ]  % 12-bit codewords
     ] def
+} ctxdef
     /cws cws ncws cws length sub rsparams bpcw get {} forall rscodes def
     format (full) eq {
         /databits layers layers mul 16 mul layers 112 mul add string def
@@ -680,7 +692,7 @@ begin
     } for
 
     % Move to a point in the cartesian plane centered on the bullseye
-    /cmv {size mul sub mid add} bind def
+    /cmv {size mul sub mid add} def
 
     % Move to a bit position within a layer
     /lmv {
@@ -708,7 +720,7 @@ begin
             lwid 2 idiv 1 sub lbit 2 idiv lwid mod sub neg
             cmv
         } if
-    } bind def
+    } def
 
     % Create the pixel map
     % For full symbols we disregard the reference grid at this stage
@@ -777,21 +789,21 @@ begin
     ] {pixs exch {} forall 3 1 roll cmv exch put} forall
 
     % Mode ring
-    format (full) eq {
-        /modemap [
-            [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
-            [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
-            [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]
-            [-7 -5] [-7 -4] [-7 -3] [-7 -2] [-7 -1] [-7  1] [-7  2] [-7  3] [-7  4] [-7  5]
-        ] def
-    } {
-        /modemap [
-            [-3  5] [-2  5] [-1  5] [ 0  5] [ 1  5] [ 2  5] [ 3  5]
-            [ 5  3] [ 5  2] [ 5  1] [ 5  0] [ 5 -1] [ 5 -2] [ 5 -3]
-            [ 3 -5] [ 2 -5] [ 1 -5] [ 0 -5] [-1 -5] [-2 -5] [-3 -5]
-            [-5 -3] [-5 -2] [-5 -1] [-5  0] [-5  1] [-5  2] [-5  3]
-        ] def
-    } ifelse
+{
+    /modemapfull [
+        [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
+        [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
+        [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]
+        [-7 -5] [-7 -4] [-7 -3] [-7 -2] [-7 -1] [-7  1] [-7  2] [-7  3] [-7  4] [-7  5]
+    ] def
+    /modemapcompact [
+        [-3  5] [-2  5] [-1  5] [ 0  5] [ 1  5] [ 2  5] [ 3  5]
+        [ 5  3] [ 5  2] [ 5  1] [ 5  0] [ 5 -1] [ 5 -2] [ 5 -3]
+        [ 3 -5] [ 2 -5] [ 1 -5] [ 0 -5] [-1 -5] [-2 -5] [-3 -5]
+        [-5 -3] [-5 -2] [-5 -1] [-5  0] [-5  1] [-5  2] [-5  3]
+    ] def
+} ctxdef
+    /modemap format (full) eq {modemapfull} {modemapcompact} ifelse def
     0 1 modemap length 1 sub {
         /i exch def
         pixs modemap i get {} forall cmv modebits i get 48 sub put
@@ -808,6 +820,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
