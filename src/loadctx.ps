@@ -31,55 +31,31 @@
 % CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 % IN THE SOFTWARE.
 
-% --BEGIN ENCODER microqrcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix qrcode--
-% --DESC: Micro QR Code
-% --EXAM: 1234
-% --EXOP:
-% --RNDR: renmatrix
+% --BEGIN RESOURCE loadctx--
+% --REQUIRES preamble--
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
-dup /qrcode dup /uk.co.terryburton.bwipp findresource put
+1 dict
 begin
-/microqrcode {
-
-    20 dict begin                 % Confine variables to local scope
-
-    /options exch def       % We are given an option string
-    /barcode exch def       % We are given a barcode string
-
-    /dontdraw false def
-
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    % Get the result of encoding with qrcode with format=micro
-    options (dontdraw) true put
-    options (format) (micro) put
-
-    /args barcode options //qrcode exec def
-
-    args (opt) options put
-    args
-
-    dontdraw not //renmatrix if
-
-    end
-
+/loadctx {
+    % Place a context dictionary just below the current dictionary, which can
+    % be populated with static data on the first run and then carried between
+    % invocations of the encoder
+    /ctxname exch def
+    ctx null ne {
+        ctx ctxname known not {
+            ctx ctxname 10 dict put
+            /ctxdef {ctx ctxname get begin exec end} def
+        } {
+            /ctxdef {pop} def  % No need to redefine within the existing context
+        } ifelse
+        currentdict ctx ctxname get end begin begin
+    } {
+        /ctxdef {exec} def  % No context provided, so define ephemerally
+    } ifelse
 }
 [/barcode] {null def} forall
 bind def
-/microqrcode dup load /uk.co.terryburton.bwipp defineresource pop
+/loadctx dup load /uk.co.terryburton.bwipp defineresource pop
 end
 /setpacking where {pop setpacking} if
-% --END ENCODER microqrcode--
+% --END RESOURCE loadctx--

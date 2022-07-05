@@ -32,14 +32,18 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RESOURCE gs1lint--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble loadctx unloadctx raiseerror--
 /setpacking where {pop currentpacking true setpacking} if
-2 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1lint {
 
     20 dict begin
+
+    /gs1lint //loadctx exec
 
     /vals exch def
     /ais exch def
@@ -49,7 +53,7 @@ begin
             dup 48 lt exch 57 gt or { pop false exit } if
         } forall
         not { pop /bwipp.GS1notNumeric (Not numeric) false exit } if
-    } bind def
+    } def
 
     /lintcset82 {
         true exch {
@@ -59,7 +63,7 @@ begin
             pop pop pop
         } forall
         not { pop /bwipp.GS1badCSET82character (Invalid CSET 82 character) false exit } if
-    } bind def
+    } def
 
     /lintcset39 {
         true exch {
@@ -69,7 +73,7 @@ begin
             pop pop pop
         } forall
         not { pop /bwipp.GS1badCSET39character  (Invalid CSET 39 character) false exit } if
-    } bind def
+    } def
 
     /lintkey {
         dup length 2 lt { pop pop /bwipp.GS1keyTooShort (Key is too short) false exit } if
@@ -77,13 +81,13 @@ begin
         1 get dup 48 lt exch 57 gt or or {
             pop /bwipp.GS1badGCP (Non-numeric company prefix) false exit
         } if
-    } bind def
+    } def
 
     /lintimporteridx {
         (-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
         exch search not {pop pop /bwipp.GS1badImporterIndex (Invalid importer index) false exit} if
         pop pop pop
-    } bind def
+    } def
 
     /lintcsum {
         mark exch
@@ -91,8 +95,9 @@ begin
         exch { 48 sub 1 index mul exch 4 exch sub } forall pop
         0 counttomark 1 sub {add} repeat exch pop
         10 mod 0 ne { pop /bwipp.GS1badChecksum (Bad checksum) false exit } if
-    } bind def
+    } def
 
+{
     /cset82 <<
         0 (!"%&'\(\)*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
         { exch dup 1 add } forall pop
@@ -102,6 +107,7 @@ begin
         0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
         { exch dup 1 add } forall pop
     >> def
+} ctxdef
 
     /lintcsumalpha {
         dup length 2 lt { pop pop /bwipp.GS1alphaTooShort (Alphanumeric string is too short to check) false exit} if
@@ -125,8 +131,9 @@ begin
         0 exch getinterval {exch} forall
         0 exch { 3 -1 roll exch mul add } forall 1021 mod
         ne { pop /bwipp.GS1badAlphaCheckCharacters (Bad alphanumeric check characters) false exit} if
-    } bind def
+    } def
 
+{
     /iso3166 << [
         /004 /008 /010 /012 /016 /020 /024 /028 /031 /032 /036 /040 /044 /048
         /050 /051 /052 /056 /060 /064 /068 /070 /072 /074 /076 /084 /086 /090 /092 /096
@@ -147,10 +154,11 @@ begin
         /800 /804 /807 /818 /826 /831 /832 /833 /834 /840
         /850 /854 /858 /860 /862 /876 /882 /887 /894
     ] {dup} forall >> def
+} ctxdef
 
     /lintiso3166 {
         iso3166 exch known not { pop /bwipp.GS1UnknownCountry (Unknown country code) false exit } if
-    } bind def
+    } def
 
     /lintiso3166999 {
         dup /999 ne {
@@ -158,7 +166,7 @@ begin
         } {
             pop
         } ifelse
-    } bind def
+    } def
 
     /lintiso3166list {
         dup length 3 mod 0 ne {
@@ -171,8 +179,9 @@ begin
         } for
         not { pop /bwipp.GS1UnknownCountry (Unknown country code) false exit } if
         pop
-    } bind def
+    } def
 
+{
     /iso3166alpha2 << [
         /AD /AE /AF /AG /AI /AL /AM /AO /AQ /AR /AS /AT /AU /AW /AX /AZ
         /BA /BB /BD /BE /BF /BG /BH /BI /BJ /BL /BM /BN /BO /BQ /BR /BS /BT /BV /BW /BY /BZ
@@ -199,11 +208,13 @@ begin
         /YE /YT
         /ZA /ZM /ZW
     ] {dup} forall >> def
+} ctxdef
 
     /lintiso3166alpha2 {
         iso3166alpha2 exch known not { pop /bwipp.GS1UnknownCountryAlpha (Unknown country alpha code) false exit } if
-    } bind def
+    } def
 
+{
     /iso4217 << [
         /008 /012 /032 /036 /044 /048
         /050 /051 /052 /060 /064 /068 /072 /084 /090 /096
@@ -228,10 +239,11 @@ begin
         /970 /971 /972 /973 /975 /976 /977 /978 /979
         /980 /981 /984 /985 /986 /990 /994 /997 /999
     ] {dup} forall >> def
+} ctxdef
 
     /lintiso4217 {
         iso4217 exch known not { pop /bwipp.GS1UnknownCurrency (Unknown currency code) false exit } if
-    } bind def
+    } def
 
     /lintiban {
         dup length 4 le { pop pop /bwipp.GS1tooShort (IBAN too short) false exit } if
@@ -248,22 +260,22 @@ begin
         0 exch {exch 10 mul add 97 mod} forall
         1 ne { pop pop /bwipp.GS1badIBANchecksum (IBAN checksum incorrect) false exit } if
         0 2 getinterval lintiso3166alpha2
-    } bind def
+    } def
 
     /lintzero {
         (0) ne { pop /bwipp.GS1zeroRequired (Zero is required) false exit } if
-    } bind def
+    } def
 
     /lintnonzero {
         false exch { 48 ne {pop true} if } forall
         not { pop /bwipp.GS1zeroNotPermitted (Zero not permitted) false exit } if
-    } bind def
+    } def
 
     /lintnozeroprefix {
         dup length 1 gt exch 0 get 48 eq and {
             pop /bwipp.GS1badZeroPrefix (Zero prefix is not permitted) false exit
         } if
-    } bind def
+    } def
 
     /lintyymmd0 {
         dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop /bwipp.GS1badMonth (Invalid month) false exit } if
@@ -273,24 +285,24 @@ begin
         [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
         1 index 2 2 getinterval cvi 1 sub get
         exch 4 2 getinterval cvi lt { pop /bwipp.GS1badDay (Invalid day of month) false exit } if
-    } bind def
+    } def
 
     /lintyymmdd {
         dup length 6 ne { pop /bwipp.GS1badDateLength (Invalid length for date) false exit } if
         dup 4 2 getinterval cvi 1 lt { pop /bwipp.GS1badDay (Invalid day of month) false exit } if
         lintyymmd0
-    } bind def
+    } def
 
     /lintyymmddhh {
         dup length 8 ne { pop /bwipp.GS1badYYMMDDHHLength (Invalid length for date with hour) false exit } if
         dup 6 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
         0 6 getinterval lintyymmdd
-    } bind def
+    } def
 
     /linthhmm {
         dup 0 2 getinterval cvi 23 gt { pop pop /bwipp.GS1badHour (Invalid hour of day) false exit } if
         2 2 getinterval cvi 59 gt { pop /bwipp.GS1badMinute (Invalid minute in the hour) false exit } if
-    } bind def
+    } def
 
     /lintmmoptss {
         dup length dup 2 ne exch 4 ne and {
@@ -301,19 +313,19 @@ begin
             dup 2 2 getinterval cvi 59 gt { pop pop /bwipp.GS1badSecond (Invalid second in the minute) false exit } if
         } if
         pop
-    } bind def
+    } def
 
     /lintyesno {
         dup (0) ne exch (1) ne and {
             pop /bwipp.GS1badBoolean (Neither 0 nor 1 for yes or no) false exit
         } if
-    } bind def
+    } def
 
     /lintwinding {
         dup (0) ne exch dup (1) ne exch (9) ne and and {
             pop /bwipp.GS1badWinding (Invalid winding direction) false exit
         } if
-    } bind def
+    } def
 
     /lintpieceoftotal {
         dup length 2 mod 0 ne { pop pop /bwipp.GS1badPieceTotalLength (Invalid piece/total length) false exit } if
@@ -322,7 +334,7 @@ begin
         exch dup length 2 idiv dup getinterval cvi
         dup 0 eq { pop pop pop /bwipp.GS1badPieceTotal (Invalid total number) false exit } if
         gt { pop /bwipp.GS1pieceExceedsTotal (Piece number exceeds total) false exit } if
-    } bind def
+    } def
 
     /lintpcenc {
         {
@@ -631,7 +643,7 @@ begin
             pop pop /bwipp.GS1couponUnrecognisedOptionalField (Coupon fields must be 1,2,3,4,5,6 or 9, increasing order) false exit
         } if
         pop
-    } bind def
+    } def
 
     /lintcouponposoffer {
         dup true exch {
@@ -677,8 +689,9 @@ begin
             pop pop /bwipp.GS1couponTooLong (Coupon too long) false exit
         } if
         pop
-    } bind def
+    } def
 
+{
     /gs1syntax <<
 
         [
@@ -1662,6 +1675,7 @@ begin
         pop
 
     >> def
+} ctxdef
 
     true
     0 1 vals length 1 sub {
@@ -1698,6 +1712,8 @@ begin
         //raiseerror exec
     } if
     true
+
+    //unloadctx exec
 
     end
 

@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hibcqrcode--
-% --REQUIRES preamble raiseerror parseinput renmatrix qrcode--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix qrcode--
 % --DESC: HIBC QR Code
 % --EXAM: A123BJC5D6E71
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +50,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /validatecheck false def
 

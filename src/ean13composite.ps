@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean13composite--
-% --REQUIRES preamble raiseerror parseinput gs1lint renlinear renmatrix ean5 ean2 ean13 micropdf417 pdf417 gs1-cc--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix ean5 ean2 ean13 micropdf417 pdf417 gs1-cc--
 % --DESC: EAN-13 Composite
 % --EXAM: 2112345678900|(99)1234-abcd
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
@@ -52,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
 
     % Parse the input options

@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databaromnicomposite--
-% --REQUIRES preamble raiseerror parseinput gs1lint renlinear renmatrix databaromni micropdf417 pdf417 gs1-cc--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix databaromni micropdf417 pdf417 gs1-cc--
 % --DESC: GS1 DataBar Omnidirectional Composite
 % --EXAM: (01)03612345678904|(11)990102
 % --EXOP:
 % --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-2 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /databaromni dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
@@ -52,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
 
     % Parse the input options

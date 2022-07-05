@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER qrcode--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: QR Code
 % --EXAM: http://goo.gl/0bis
 % --EXOP: eclevel=M
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /format (unset) def    % full or micro. rMQR symbols are specified using version
     /version (unset) def   % 1-40 or M1-M4 or R7x43, etc
@@ -69,20 +72,7 @@ begin
     } if
     options {def} forall
 
-    % Place a context dictionary just below the current dictionary, which can
-    % be populated with static data on the first run and then carried between
-    % invokations
-    currentdict /ctx known {
-        ctx /qrcode known not {
-            ctx /qrcode 10 dict put
-            /ctxdef {ctx /qrcode get begin exec end} def
-        } {
-            /ctxdef {pop} def  % No need to redefine within the existing context
-        } ifelse
-        currentdict ctx end /qrcode get begin begin
-    } {
-        /ctxdef {exec} def  % No context provided, so define ephemerally
-    } ifelse
+    /qrcode //loadctx exec
 
     /mask mask cvi def
 
@@ -1399,7 +1389,8 @@ begin
 
     dontdraw not //renmatrix if
 
-    currentdict /ctx known {end} if
+    //unloadctx exec
+
     end
 
 }
