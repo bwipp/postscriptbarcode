@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER auspost--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: AusPost 4 State Customer Code
 % --EXAM: 5956439111ABA 9
 % --EXOP: includetext custinfoenc=character
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def         % Enable/disable text
     /textfont /Courier def
@@ -73,7 +76,10 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /ausport //loadctx exec
+
     % Create an array containing the character mappings
+{
     /encs
     [ (000) (001) (002) (010) (011) (012) (020) (021)
       (022) (100) (101) (102) (110) (111) (112) (120)
@@ -89,6 +95,7 @@ begin
 
     % Create a string of the available characters
     /barchars (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz #) def
+} ctxdef
 
     /barlen barcode length def
     barcode 0 2 getinterval (11) eq {37} if
@@ -232,6 +239,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
