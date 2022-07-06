@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER dotcode--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: DotCode
 % --EXAM: This is DotCode
 % --EXOP: inkspread=0.16
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /rows -1 def
     /columns -1 def
@@ -76,12 +79,15 @@ begin
     /ratio ratio cvr def
     /mask mask cvi def
 
+    /dotcode //loadctx exec
+
     % Set the ratio to 3:2 if no size is specified
     ratio -1 eq rows -1 eq and columns -1 eq and {
         /ratio 3 2 div def
     } if
 
     % Convert input into bytes accounting for FNC characters
+{
     /laa  -1 def  /lab  -2 def  /lac  -3 def  /bin  -4 def
     /sfa  -5 def  /sfb  -6 def  /sb2  -7 def  /sb3  -8 def
     /sb4  -9 def  /sb5 -10 def  /sb6 -11 def  /sfc -12 def
@@ -91,6 +97,7 @@ begin
     /fn1 -25 def  /fn2 -26 def  /fn3 -27 def  /crl -28 def
     /aim -29 def  /m05 -30 def  /m06 -31 def  /m12 -32 def
     /mac -33 def
+} ctxdef
 
     % Parse the input
     /fncvals <<
@@ -123,7 +130,8 @@ begin
     /msglen msg length def
 
     % Character maps for each state
-    /charmaps [
+{
+   /charmaps [
       %  A    B    C         A    B    C         A    B    C
       [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
       [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
@@ -186,6 +194,9 @@ begin
     /BINvals <<
         102 [ sc2 sc3 sc4 sc5 sc6 sc7 tma tmb tmc tms ] {exch 1 add dup} forall pop
     >> def
+
+    /A 0 def  /B 1 def  /C 2 def  /BIN 3 def
+} ctxdef
 
     % Pre-compute properties of the input at each point
     /nDigits      [ msglen 1 add {0} repeat     ] def
@@ -256,12 +267,10 @@ begin
         } if
     } for
 
-    /A 0 def  /B 1 def  /C 2 def  /BIN 3 def
-
     /addtocws {
         dup cws exch j exch putinterval
         /j exch length j add def
-    } bind def
+    } def
 
     % Base 259 to one more in base 103
     /base259to103 {
@@ -292,20 +301,20 @@ begin
         103 idiv mscs 2 get 15 mul add
         out 0 3 -1 roll 103 mod put
         out 6 inlen sub 1 sub inlen 1 add getinterval
-    } bind def
+    } def
 
     /finaliseBIN {
         bpos 0 ne {
             bvals 0 bpos getinterval base259to103 aload pop
             /bpos 0 def
         } if
-    } bind def
+    } def
 
     /addtobin {
         bvals exch bpos exch put
         /bpos bpos 1 add def
         bpos 5 eq { finaliseBIN } if
-    } bind def
+    } def
 
     /ECIabc {  % ECI encoding for modes A, B and C
         msg i 1 add 6 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
@@ -314,7 +323,7 @@ begin
             dup 12769 idiv 40 add exch 12769 mod
             dup   113 idiv        exch   113 mod
         } if
-    } bind def
+    } def
 
     /ECIbin {  % ECI encoding for binary mode
         [
@@ -331,7 +340,7 @@ begin
         ] {
             addtobin
         } forall
-    } bind def
+    } def
 
     /encC {
         1 {  % Common exit
@@ -455,7 +464,7 @@ begin
             } repeat
             exit
         } repeat
-    } bind def  % encC
+    } def  % encC
 
     /encB {
         1 {  % Common exit
@@ -531,7 +540,7 @@ begin
             /mode A def
             exit
         } repeat
-    } bind def
+    } def
 
     /encA {
         1 {  % Common exit
@@ -609,7 +618,7 @@ begin
             } repeat
             exit
         } repeat
-    } bind def
+    } def
 
     /encBIN {
         1 {  % Common exit
@@ -671,7 +680,7 @@ begin
             } if
             exit
         } repeat
-    } bind def
+    } def
 
     /cws msglen 2 mul 1 add array def
     /mode C def
@@ -747,6 +756,7 @@ begin
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Create an array containing the character mappings
+{
     /encs [
         (101010101) (010101011) (010101101) (010110101) (011010101)
         (101010110) (101011010) (101101010) (110101010) (010101110)
@@ -772,6 +782,7 @@ begin
         (100011110) (100111100) (101111000) (110001110) (110011100)
         (110111000) (111000110) (111001100)
     ] def
+} ctxdef
 
     % Final six dots arranged at edges
     rows 2 mod 0 eq {
@@ -794,7 +805,7 @@ begin
         ] def
     } ifelse
 
-    /dmv {columns mul add} bind def
+    /dmv {columns mul add} def
 
     % Construct the template
     /outline rows columns mul array def
@@ -815,7 +826,7 @@ begin
         x 1 and 2 rows 1 sub {
             x exch dmv sym exch get 1 eq {pop false exit} if
         } for
-    } bind def
+    } def
 
     /clearrow {
         /y exch def
@@ -823,7 +834,7 @@ begin
         y 1 and 2 columns 1 sub {
             y dmv sym exch get 1 eq {pop false exit} if
         } for
-    } bind def
+    } def
 
     % Evaluate the symbol
     /evalsymbol {
@@ -931,12 +942,12 @@ begin
             worst sum sum mul sub pen sub
         } ifelse
 
-    } bind def
+    } def
 
     % Reed Solomon antilog table
     /rsalog [ 1 112 { dup 3 mul 113 mod } repeat ] def
     /step nw 112 idiv 1 add def
-    /offset {step mul start add} bind def
+    /offset {step mul start add} def
 
     % Evaluate the symbols in the following order:
     % fast mode: m3 -> m3' -> m2 -> m2' -> m1 -> m1' -> m0 -> m0'
@@ -1082,6 +1093,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
