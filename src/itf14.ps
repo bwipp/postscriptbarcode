@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER itf14--
-% --REQUIRES preamble raiseerror renlinear interleaved2of5--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear interleaved2of5--
 % --DESC: ITF-14
 % --EXAM: 0 46 01234 56789 3
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +50,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def
     /includecheckintext true def

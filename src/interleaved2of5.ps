@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER interleaved2of5--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Interleaved 2 of 5 (ITF)
 % --EXAM: 2401234567
 % --EXOP: height=0.5 includecheck includetext includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def               % We are given an option string
     /barcode exch def               % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includecheck false def         % Enable/disable checkdigit
     /includetext false def          % Enable/disable text
@@ -73,6 +76,8 @@ begin
     /textsize textsize cvr def
     /textyoffset textyoffset cvr def
     /height height cvr def
+
+    /interleaved2of5 //loadctx exec
 
     % Validate the input
     barcode {
@@ -114,6 +119,7 @@ begin
     } if
 
     % Create an array containing the character mappings
+{
     /encs
     [ (11221) (21112) (12112) (22111) (11212)
       (21211) (12211) (11122) (21121) (12121)
@@ -122,6 +128,8 @@ begin
 
     % Create a string of the available characters
     /barchars (0123456789) def
+} ctxdef
+
     /sbs barlen 5 mul 8 add string def
     /txt barlen array def
 
@@ -180,6 +188,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
