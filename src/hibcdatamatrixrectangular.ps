@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hibcdatamatrixrectangular--
-% --REQUIRES preamble raiseerror parseinput renmatrix datamatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix datamatrix--
 % --DESC: HIBC Data Matrix Rectangular
 % --EXAM: A123BJC5D6E71
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /validatecheck false def
 
@@ -64,10 +67,14 @@ begin
     } if
     options {def} forall
 
+    /hibcdatamatrixrectangular //loadctx exec
+
     % Create a string of the available characters
+{
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
     /charvals 43 dict def
     0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
+} ctxdef
 
     % Validate the input
     0 1 barcode length 1 sub {
@@ -105,6 +112,8 @@ begin
     args
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
