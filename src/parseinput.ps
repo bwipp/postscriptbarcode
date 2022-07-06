@@ -32,14 +32,18 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RESOURCE parseinput--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble loadctx unloadctx raiseerror--
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
 /parseinput {
 
-    6 dict begin
+    20 dict begin
+
+    /parseinput //loadctx exec
 
     /fncvals exch def
     /barcode exch def
@@ -50,6 +54,7 @@ begin
     /eci       dup dup fncvals exch known def fncvals exch undef
 
     % Control character names to ordinals
+{
     <<
         [
             /NUL /SOH /STX /ETX /EOT /ENQ /ACK /BEL
@@ -61,6 +66,7 @@ begin
             1 index 1 add 3 1 roll exch 3 -1 roll
         } forall pop
     >> /ctrl exch def
+} ctxdef
 
     /msg barcode length array def
     /j 0 def
@@ -190,6 +196,8 @@ begin
         j string
         0 1 j 1 sub { 1 index exch dup msg exch get put } for
     } ifelse
+
+    //unloadctx exec
 
     end
 
