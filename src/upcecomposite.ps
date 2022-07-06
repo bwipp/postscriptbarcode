@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER upcecomposite--
-% --REQUIRES preamble raiseerror parseinput gs1lint renlinear renmatrix ean5 ean2 upce micropdf417 pdf417 gs1-cc--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix ean5 ean2 upce micropdf417 pdf417 gs1-cc--
 % --DESC: UPC-E Composite
 % --EXAM: 00123457|(15)021231
 % --EXOP: includetext
 % --RNDR: renlinear renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-2 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /upce dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
@@ -52,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
 
     % Parse the input options
