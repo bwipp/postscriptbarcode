@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code16k--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Code 16K
 % --EXAM: Abcd-1234567890-wxyZ
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /mode -1 def
     /pos -1 def
@@ -78,9 +81,12 @@ begin
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
 
+    /code16k //loadctx exec
+
     pos -1 ne {/rows 16 def} if
 
     % Convert input into bytes accounting for FNC characters
+{
     /swa  -1 def  /swb  -2 def  /swc  -3 def
     /sa1  -4 def  /sb1  -5 def  /sc1  -6 def
     /sa2  -7 def  /sb2  -8 def  /sc2  -9 def
@@ -142,6 +148,7 @@ begin
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
+} ctxdef
 
     raw {/encoding (raw) def} if
 
@@ -223,17 +230,17 @@ begin
                 /p p 1 add def
             } loop
             n s
-        } bind def
+        } def
 
         % Encoding for each alphabet
         /enca {
             seta exch get cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
         /encb {
             setb exch get cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
         /encc {
             dup type /arraytype ne {
                 setc exch get
@@ -242,11 +249,11 @@ begin
             } ifelse
             cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
 
         % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} bind def
-        /bnota {dup setb exch known exch seta exch known not and} bind def
+        /anotb {dup seta exch known exch setb exch known not and} def
+        /bnota {dup setb exch known exch seta exch known not and} def
 
         % Pre-compute relative position of next anotb and next bnota characters
         /nextanotb [ msg length {0} repeat 9999 ] def
@@ -266,8 +273,8 @@ begin
         } for
 
         % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
+        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
+        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
 
         /cws barcode length 2 mul 3 add array def
 
@@ -611,6 +618,7 @@ begin
 
     % Basic metrics for the each symbol
     %     r  dcws
+{
     /metrics [
         [  2    7 ]
         [  3   12 ]
@@ -628,6 +636,7 @@ begin
         [ 15   72 ]
         [ 16   77 ]
     ] def
+} ctxdef
 
     % Select metrics of an appropriate symbol
     /urows rows def
@@ -657,6 +666,7 @@ begin
     /cws [ cws aload pop c1 c2 ] def
 
     % Create an array containing the character mappings
+{
     /encs
     [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
       (122312) (132212) (221213) (221312) (231212) (112232) (122132)
@@ -689,6 +699,8 @@ begin
         (2122) (1411) (1132) (1231) (1114) (3112) (1132) (1231)
         (1114) (3112) (3211) (2221) (2122) (1411) (3211) (2221)
     ] def
+} ctxdef
+
     pos -1 eq pos 10 idiv 2 mod 1 eq or {
         /stopencs stopencsodd def
     } {
@@ -739,6 +751,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
