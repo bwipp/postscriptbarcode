@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER rationalizedCodabar--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Codabar
 % --EXAM: A0123456789B
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def          % We are given an option string
     /barcode exch def          % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /altstartstop false def
     /includecheck false def     % Enable/disable checkdigit
@@ -76,6 +79,9 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /rationalizedCodabar //loadctx exec
+
+{
     % Create an array containing the character mappings
     /encs
     [ (11111331) (11113311) (11131131) (33111111) (11311311)
@@ -85,11 +91,12 @@ begin
     ] def
 
     % Create a string of the available characters
-    altstartstop {
-        /barchars (0123456789-$:/.+TN*E) def
-    } {
-        /barchars (0123456789-$:/.+ABCD) def
-    } ifelse
+    /barcharsnormal (0123456789-$:/.+ABCD) def
+    /barcharsalt (0123456789-$:/.+TN*E) def
+} ctxdef
+
+    /barchars altstartstop {barcharsalt} {barcharsnormal} ifelse def
+
     /charvals 20 dict def
     0 1 19 {charvals exch dup barchars exch 1 getinterval exch put} for
     /bodyvals 16 dict def
@@ -186,6 +193,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
