@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code93--
-% --REQUIRES preamble raiseerror parseinput renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear--
 % --DESC: Code 93
 % --EXAM: THIS IS CODE 93
 % --EXOP: includetext includecheck
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
@@ -76,6 +79,9 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /code93 //loadctx exec
+
+{
     /encs
     [ (131112) (111213) (111312) (111411) (121113)
       (121212) (121311) (111114) (131211) (141111)
@@ -92,8 +98,10 @@ begin
     % Create a string of the available characters
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
 
-    % Special function characters
     /sft1 -1 def  /sft2 -2 def  /sft3 -3 def  /sft4 -4 def
+} ctxdef
+
+    % Special function characters
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -162,6 +170,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

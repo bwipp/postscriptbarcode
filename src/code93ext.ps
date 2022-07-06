@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code93ext--
-% --REQUIRES preamble raiseerror parseinput renlinear code93--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear code93--
 % --DESC: Code 93 Extended
 % --EXAM: Code93 Ext!
 % --EXOP: includetext includecheck
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -51,6 +53,7 @@ begin
     /options exch def      % We are given an options string
     /barcode exch def      % We are given the code39extended text
 
+    /ctx null def
     /dontdraw false def
     /includetext false def
     /parse false def
@@ -66,6 +69,8 @@ begin
     } if
     options {def} forall
 
+    /code93ext //loadctx exec
+
     % Parse ordinals of the form ^NNN to ASCII
     /fncvals <<
         /parse parse
@@ -77,6 +82,7 @@ begin
     options (parse) undef
 
     % Extended alphabet to non-extended alphabet
+{
     /extencs
     [ (^SFT%U) (^SFT$A) (^SFT$B) (^SFT$C) (^SFT$D) (^SFT$E) (^SFT$F) (^SFT$G)
       (^SFT$H) (^SFT$I) (^SFT$J) (^SFT$K) (^SFT$L) (^SFT$M) (^SFT$N) (^SFT$O)
@@ -95,6 +101,7 @@ begin
       (^SFT+P) (^SFT+Q) (^SFT+R) (^SFT+S) (^SFT+T) (^SFT+U) (^SFT+V) (^SFT+W)
       (^SFT+X) (^SFT+Y) (^SFT+Z) (^SFT%P) (^SFT%Q) (^SFT%R) (^SFT%S) (^SFT%T)
     ] def
+} ctxdef
 
     /newcode barlen 6 mul string def
     /newtext barlen 6 mul string def
@@ -132,6 +139,8 @@ begin
     args
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
