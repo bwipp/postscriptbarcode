@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ultracode--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Ultracode
 % --EXAM: Awesome colours!
 % --EXOP: eclevel=EC2
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /eclevel (EC2) def     % EC0-EC5
     /encoding (auto) def
@@ -78,6 +81,8 @@ begin
     rev dup 1 ne exch 2 ne and {
         /bwipp.ultracodeInvalidRevision (Valid revisions are 1 and 2) //raiseerror exec
     } if
+
+    /ultracode //loadctx exec
 
     raw {/encoding (raw) def} if
 
@@ -135,6 +140,7 @@ begin
     /tcc mcc qcc add def
 
     % Lookup the most appropriate symbol specification
+{
     /metrics [
         % rows  minc  maxc  mcol
         [   2     7    37     5  ]
@@ -142,6 +148,8 @@ begin
         [   4    85   161    22  ]
         [   5   142   282    29  ]
     ] def
+} ctxdef
+
     0 1 3 {
         /i exch def
         /m metrics i get def
@@ -225,34 +233,7 @@ begin
 
     options /debugecc known { /bwipp.debugecc ecws //raiseerror exec } if
 
-    rev 1 eq {
-        /dccu [
-            51363  51563  51653  53153  53163  53513  53563  53613  %  0-7
-            53653  56153  56163  56313  56353  56363  56513  56563  %  8-15
-            51316  51356  51536  51616  53156  53516  53536  53616  % 16-23
-            53636  53656  56136  56156  56316  56356  56516  56536  % 24-31
-        ] def
-        /dccl [
-            61351  61361  61531  61561  61631  61651  63131  63151  %  0-7
-            63161  63531  63561  63631  65131  65161  65351  65631  %  8-15
-            31351  31361  31531  31561  31631  31651  35131  35151  % 16-23
-            35161  35361  35631  35651  36131  36151  36351  36531  % 24-31
-        ] def
-    } {  % rev=2
-        /dccu [
-            15316  16316  13516  16516  13616  15616  13136  15136  %  0-7
-            16136  13536  16536  13636  13156  16156  15356  13656  %  8-15
-            15313  16313  13513  16513  13613  15613  13153  15153  % 16-23
-            16153  16353  13653  15653  13163  15163  15363  13563  % 24-31
-        ] def
-        /dccl [
-            36315  36515  35615  35135  36135  31535  36535  31635  %  0-7
-            35635  35165  36165  31365  35365  36365  31565  36565  %  8-15
-            61315  65315  63515  61615  65135  61535  63535  61635  % 16-23
-            63635  65635  63165  65165  61365  65365  61565  63565  % 24-31
-        ] def
-    } ifelse
-
+{
     /tiles [
         13135  13136  13153  13156  13163  13165  13513  13515  13516  13531  %   0-9
         13535  13536  13561  13563  13565  13613  13615  13616  13631  13635  %  10-19
@@ -284,6 +265,35 @@ begin
         65316  65351  65353  65356  65361  65363  65365  65613  65615  65631  % 270-279
         65635  65651  65653  56565  51515                                     % 280-284
     ] def
+
+    /dccurev1 [
+        51363  51563  51653  53153  53163  53513  53563  53613  %  0-7
+        53653  56153  56163  56313  56353  56363  56513  56563  %  8-15
+        51316  51356  51536  51616  53156  53516  53536  53616  % 16-23
+        53636  53656  56136  56156  56316  56356  56516  56536  % 24-31
+    ] def
+    /dcclrev1 [
+        61351  61361  61531  61561  61631  61651  63131  63151  %  0-7
+        63161  63531  63561  63631  65131  65161  65351  65631  %  8-15
+        31351  31361  31531  31561  31631  31651  35131  35151  % 16-23
+        35161  35361  35631  35651  36131  36151  36351  36531  % 24-31
+    ] def
+    /dccurev2 [
+        15316  16316  13516  16516  13616  15616  13136  15136  %  0-7
+        16136  13536  16536  13636  13156  16156  15356  13656  %  8-15
+        15313  16313  13513  16513  13613  15613  13153  15153  % 16-23
+        16153  16353  13653  15653  13163  15163  15363  13563  % 24-31
+    ] def
+    /dcclrev2 [
+        36315  36515  35615  35135  36135  31535  36535  31635  %  0-7
+        35635  35165  36165  31365  35365  36365  31565  36565  %  8-15
+        61315  65315  63515  61615  65135  61535  63535  61635  % 16-23
+        63635  65635  63165  65165  61365  65365  61565  63565  % 24-31
+    ] def
+} ctxdef
+
+    /dccu rev 1 eq {dccurev1} {dccurev2} ifelse def
+    /dccl rev 1 eq {dcclrev1} {dcclrev2} ifelse def
 
     % Create the bitmap
     /rows rows 6 mul 1 add def
@@ -353,6 +363,17 @@ begin
          } ifelse
     } forall
 
+{
+    /colormap <<
+        0 (FFFFFF)  % W
+        9 (000000)  % K
+        1 (00FFFF)  % C
+        3 (FF00FF)  % M
+        5 (FFFF00)  % Y
+        6 (00FF00)  % G
+    >> def
+} ctxdef
+
     % Return the arguments
     <<
     /ren //renmatrix
@@ -361,18 +382,13 @@ begin
     /pixy rows
     /height rows 72 div 2 mul
     /width columns 72 div 2 mul
-    /colormap <<
-        0 (FFFFFF)  % W
-        9 (000000)  % K
-        1 (00FFFF)  % C
-        3 (FF00FF)  % M
-        5 (FFFF00)  % Y
-        6 (00FF00)  % G
-    >>
+    /colormap colormap
     /opt options
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
