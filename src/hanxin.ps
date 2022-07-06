@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hanxin--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Han Xin Code
 % --EXAM: This is Han Xin
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /version (unset) def   % 1-84
     /eclevel (unset) def   % L1, L2, L3 or L4
@@ -70,6 +73,8 @@ begin
 
     /mask mask cvi def
 
+    /hanxin //loadctx exec
+
     % Parse the input
     /fncvals <<
         /parse parse
@@ -86,7 +91,7 @@ begin
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
         dup 3 -1 roll 2 2 index length string cvrs
         dup length 2 index length exch sub exch putinterval
-    } bind def
+    } def
 
     % Encode the data using byte mode encoding
     /bits 4 13 add msglen 8 mul add string def
@@ -98,6 +103,7 @@ begin
     } for
 
     % Lookup the most appropriate symbol specification
+{
     /metrics [
         % vers size  align  modules            error correction blocks
         [ (1)    23  -1  0    205  [  1  21   4 ] [  0  -1  -1 ] [  0  -1  -1 ]
@@ -437,6 +443,7 @@ begin
                                    [  2  26  26 ] [ 62  33  28 ] [  0  -1  -1 ]
                                    [ 79  18  28 ] [  4  33  30 ] [  0  -1  -1 ] ]
     ] def
+} ctxdef
 
     /eclval eclevel 1 get 49 sub def
     0 1 83 {
@@ -507,7 +514,7 @@ begin
             } {
                 pop pop 0
             } ifelse
-        } bind def
+        } def
 
         % Generate the coefficients
         /coeffs [ 1 rsnc {0} repeat ] def
@@ -535,7 +542,7 @@ begin
         % Return all but the last codeword
         rscws 0 rscws length 1 sub getinterval
 
-    } bind def
+    } def
 
     % Divide codewords into two groups of blocks and calculate the error correction codewords
     /dcwsb e1nb e2nb add e3nb add array def
@@ -586,15 +593,15 @@ begin
 
     % Create the bitmap
     /pixs [ size size mul {-1} repeat ] def
-    /qmv {size mul add} bind def
+    /qmv {size mul add} def
 
     % Alignment patterns
     alnn 0 ne {
-        /trmv {size mul size add 1 sub exch sub} bind def
+        /trmv {size mul size add 1 sub exch sub} def
         /aplot {
             3 1 roll 3 copy exch trmv pixs exch 3 -1 roll put
             trmv pixs exch 3 -1 roll put
-        } bind def
+        } def
         /i 0 def /stag 0 def {
             i size ge {exit} if
             0 1 size 1 sub {
@@ -648,6 +655,7 @@ begin
     } if
 
     % Finder patterns
+{
     /fpat [
         [ 1 1 1 1 1 1 1 0 ]
         [ 1 0 0 0 0 0 0 0 ]
@@ -668,6 +676,7 @@ begin
         [ 1 1 1 1 1 1 1 0 ]
         [ 0 0 0 0 0 0 0 0 ]
     ] def
+} ctxdef
     0 1 fpat length 1 sub {
         /y exch def
         0 1 fpat 0 get length 1 sub {
@@ -787,7 +796,7 @@ begin
             } if
         } for
         scr1 scr3
-    } bind def
+    } def
 
     % Evaluation algorithm
     /evalfull {
@@ -825,7 +834,7 @@ begin
         } for
 
         n1 n3 add
-    } bind def
+    } def
 
     % Evaluate the masked symbols to find the most suitable
     /bestscore 999999999 def
@@ -880,6 +889,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
