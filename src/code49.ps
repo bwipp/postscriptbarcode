@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code49--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Code 49
 % --EXAM: MULTIPLE ROWS IN CODE 49
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -76,8 +78,13 @@ begin
     /rowheight rowheight cvi def
     /sepheight sepheight cvi def
 
-     % Parse the input
+    /code49 //loadctx exec
+
+{
     /s1 -1 def /s2 -2 def /fn1 -3 def /fn2 -4 def /fn3 -5 def /ns -6 def
+} ctxdef
+
+    % Parse the input
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -88,6 +95,7 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+{
     % Character encodings
     /charmap [
         (0) (1) (2) (3) (4) (5) (6) (7) (8) (9)
@@ -127,13 +135,14 @@ begin
             charvals i [ charvals s2 get charvals c2 get ] put
         } if
     } for
+} ctxdef
 
     /encodealpha {
         charvals exch get
         dup type /arraytype ne {1 array astore} if
         dup cws exch j exch putinterval
         length j add /j exch def
-    } bind def
+    } def
 
     /base48 {
         0 exch {48 sub exch 10 mul add} forall
@@ -141,7 +150,7 @@ begin
         [ exch dup length 1 sub -1 0 {1 index exch get exch} for pop ]
         dup cws exch j exch putinterval
         length j add /j exch def
-    } bind def
+    } def
 
     /encodenumeric {
         /nums exch def
@@ -156,7 +165,7 @@ begin
             3 [49 48 nums 0 4 getinterval aload pop] base48
             2 nums 4 3 getinterval base48
         } if
-    } bind def
+    } def
 
     % Pre-compute alphanumeric and numeric runlengths
     /numericruns [ msglen {0} repeat 0 ] def
@@ -185,20 +194,23 @@ begin
     /cws msglen 2 mul 1 add array def
     /method (alpha) def /i -1 def /j -1 def
 
+{
+    /posval [
+        12 22
+        13 23 33
+        14 24 34 44
+        15 25 35 45 55
+        16 26 36 46 56 66
+        17 27 37 47 57 67 77
+        18 28 38 48 58 68 78 88
+        19 29 39 49 59 69 79 89 99
+    ] def
+} ctxdef
+
     % Handle start for each mode
     mode 0 eq mode 1 eq or {/method (alpha) def /i 0 def /j 0 def} if
     mode 2 eq {/method (numeric) def /i 0 def /j 0 def} if
     mode 3 eq {
-        /posval [
-            12 22
-            13 23 33
-            14 24 34 44
-            15 25 35 45 55
-            16 26 36 46 56 66
-            17 27 37 47 57 67 77
-            18 28 38 48 58 68 78 88
-            19 29 39 49 59 69 79 89 99
-        ] def
         cws 0 0 1 43 {dup posval exch get pos ne {pop} if} for 1 add put
         /method (alpha) def /i 0 def /j 1 def
     } if
@@ -237,6 +249,7 @@ begin
 
     % Basic metrics for the each symbol
     %     r dcws
+{
     /metrics [
         [ 2    9 ]
         [ 3   16 ]
@@ -246,6 +259,7 @@ begin
         [ 7   42 ]
         [ 8   49 ]
     ] def
+} ctxdef
 
     % Select metrics of an appropriate symbol
     /urows rows def
@@ -283,11 +297,13 @@ begin
     ccs ccs length 2 sub cr7 put
 
     % Calculate the symbol check characters
+{
     [  1  9 31 26  2 12 17 23 37 18 22  6 27 44 15 43 39
       11 13  5 41 33 36  8  4 32  3 19 40 25 29 10 24 30 ]
     dup [ exch 20 exch 0 32 getinterval aload pop ] /weightx exch def
     dup [ exch 16 exch 1 32 getinterval aload pop ] /weighty exch def
         [ exch 38 exch 2 32 getinterval aload pop ] /weightz exch def
+} ctxdef
     /calccheck {
         /weights exch def
         /score 0 def
@@ -297,7 +313,7 @@ begin
             weights i 1 add get mul /score exch score add def
         } for
         score
-    } bind def
+    } def
     /lastrow ccs ccs length 8 sub 8 getinterval def
 
     % wr1 check character
@@ -327,6 +343,7 @@ begin
     ccs ccs length 8 sub 7 getinterval 0 exch {add} forall 49 mod
     ccs ccs length 1 sub 3 -1 roll put
 
+{
     /patterns [
         [  % Even parity
             (11521132) (25112131) (14212132) (25121221) (14221222) (12412132) (23321221)
@@ -1022,6 +1039,7 @@ begin
     /parity [
         (1001) (0101) (1100) (0011) (1010) (0110) (1111) (0000)
     ] def
+} ctxdef
 
     % Derive the bits for each row
     /rowbits r array def
@@ -1070,6 +1088,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
