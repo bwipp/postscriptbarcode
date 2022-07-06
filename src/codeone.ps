@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER codeone--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: Code One
 % --EXAM: Code One
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /version (unset) def
     /parse false def
@@ -66,29 +69,169 @@ begin
     } if
     options {def} forall
 
+    /codeone //loadctx exec
+
     /stype version 0 1 getinterval (S) eq def
 
+{
+    /stypevals [
+        (1)
+        (1010)
+        (1100100)
+        (1111101000)
+        (10011100010000)
+        (11000011010100000)
+        (11110100001001000000)
+        (100110001001011010000000)
+        (101111101011110000100000000)
+        (111011100110101100101000000000)
+        (1001010100000010111110010000000000)
+        (1011101001000011101101110100000000000)
+        (1110100011010100101001010001000000000000)
+        (10010001100001001110011100101010000000000000)
+        (10110101111001100010000011110100100000000000000)
+        (11100011010111111010100100110001101000000000000000)
+        (100011100001101111001001101111110000010000000000000000)
+        (101100011010001010111100001011101100010100000000000000000)
+    ] def
+
+    % Basic metrics for the each symbol
+    %     ver    row col dcol dcws rscw rsbl  ro ri rl
+    /stypemetrics [
+        [ (S-10)   8  11   10    4    4    1  99 99 99 ]
+        [ (S-20)   8  21   20    8    8    1  99 99 99 ]
+        [ (S-30)   8  31   30   12   12    1  99 99 99 ]
+    ] def
+
+    % Basic metrics for the each symbol
+    %     ver    row col dcol dcws rscw rsbl  ro ri rl
+    /nonstypemetrics [
+        [ (A)     16  18   16   10   10    1   4 99  6 ]
+        [ (B)     22  22   20   19   16    1   4 99  8 ]
+        [ (C)     28  32   28   44   26    1   4 22 11 ]
+        [ (D)     40  42   36   91   44    1   4 16 16 ]
+        [ (E)     52  54   48  182   70    1   4 22 22 ]
+        [ (F)     70  76   68  370  140    2   4 22 31 ]
+        [ (G)    104  98   88  732  280    4   6 21 47 ]
+        [ (H)    148 134  120 1480  560    8   6 20 69 ]
+        [ (T-16)  16  17   16   10   10    1  99 99 99 ]
+        [ (T-32)  16  33   32   24   16    1  99 99 99 ]
+        [ (T-48)  16  49   48   38   22    1  99 99 99 ]
+    ] def
+
+    % Special characters
+    /fnc1 -1 def  /fnc3 -2 def
+    /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
+    /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
+    /unlcw 255 def
+
+    /Avals <<
+        0 1 128 {dup 1 add} for
+        pad 129
+        0 1 99 {  % Double digits
+            dup 10 2 string cvrs (00) 2 string copy dup 2 3 index length sub 4 -1 roll putinterval
+            exch 130 add
+        } for
+        229 [ lC lB fnc1 fnc2 fnc3 fnc4 fnc1lD ] {exch 1 add dup} forall pop
+        lX 238
+        lT 239
+        % 240-255 lD + 4 bits
+    >> def
+    /Avals <<
+        Avals {[exch]} forall
+    >> def
+
+    /CNvals <<
+        sft1 0
+        sft2 1
+        sft3 2
+        32   3
+        48 1 57 {dup 44 sub} for  % 0-9
+        65 1 90 {dup 51 sub} for  % A-Z
+    >> def
+    /C1vals << 0 1 31 {dup} for >> def
+    /C2vals <<
+        33 1 47 {dup 33 sub} for
+        58 1 64 {dup 43 sub} for
+        91 1 95 {dup 69 sub} for
+        fnc1 27
+        fnc2 28
+        fnc3 29
+        fnc4 30
+        pad  31
+    >> def
+    /C3vals << 96 1 127 {dup 96 sub} for >> def
+    /Cvals <<
+        CNvals {[exch]} forall
+        C1vals {[exch CNvals sft1 get exch]} forall
+        C2vals {[exch CNvals sft2 get exch]} forall
+        C3vals {[exch CNvals sft3 get exch]} forall
+    >> def
+
+    /TNvals <<
+        sft1 0
+        sft2 1
+        sft3 2
+        32   3
+        48 1  57 {dup 44 sub} for  % 0-9
+        97 1 122 {dup 83 sub} for  % a-z
+    >> def
+    /T1vals << 0 1 31 {dup} for >> def
+    /T2vals <<
+        33 1 47 {dup 33 sub} for
+        58 1 64 {dup 43 sub} for
+        91 1 95 {dup 69 sub} for
+        fnc1 27
+        fnc2 28
+        fnc3 29
+        fnc4 30
+        pad  31
+    >> def
+    /T3vals <<
+         96 0
+         65 1  90 {dup 64 sub} for
+        123 1 127 {dup 96 sub} for
+    >> def
+    /Tvals <<
+        TNvals {[exch]} forall
+        T1vals {[exch TNvals sft1 get exch]} forall
+        T2vals {[exch TNvals sft2 get exch]} forall
+        T3vals {[exch TNvals sft3 get exch]} forall
+    >> def
+
+    % Extended ASCII mappings
+    128 1 255 {
+        /i exch def
+        Avals i [ Avals fnc4 get aload pop Avals i 128 sub get aload pop ] put
+        Cvals i [ Cvals fnc4 get aload pop Cvals i 128 sub get aload pop ] put
+        Tvals i [ Tvals fnc4 get aload pop Tvals i 128 sub get aload pop ] put
+    } for
+
+    /Xvals <<
+        13 0
+        42 1
+        62 2
+        32 3
+        48 1 57 {dup 44 sub} for
+        65 1 90 {dup 51 sub} for
+    >> def
+    /Xvals <<
+        Xvals {[exch]} forall
+    >> def
+
+    /Bvals <<
+        0 1 255 {dup} for
+    >> def
+    /Bvals <<
+        Bvals {[exch]} forall
+    >> def
+
+    /encvals [ Avals Cvals Tvals Xvals -1 Bvals ] def
+
+    /A 0 def  /C 1 def  /T 2 def  /X 3 def  /D 4 def  /B 5 def
+} ctxdef
+
     stype {
-        /vals [
-            (1)
-            (1010)
-            (1100100)
-            (1111101000)
-            (10011100010000)
-            (11000011010100000)
-            (11110100001001000000)
-            (100110001001011010000000)
-            (101111101011110000100000000)
-            (111011100110101100101000000000)
-            (1001010100000010111110010000000000)
-            (1011101001000011101101110100000000000)
-            (1110100011010100101001010001000000000000)
-            (10010001100001001110011100101010000000000000)
-            (10110101111001100010000011110100100000000000000)
-            (11100011010111111010100100110001101000000000000000)
-            (100011100001101111001001101111110000010000000000000000)
-            (101100011010001010111100001011101100010100000000000000000)
-        ] def
 
         /normalize {
             /base exch def
@@ -108,7 +251,7 @@ begin
             /num [/i true def num {dup 0 eq i and {pop} {/i false def} ifelse} forall] def
             num length 0 eq {/num [0] def} if
             num
-        } bind def
+        } def
 
         /bigadd {
             2 copy length exch length
@@ -119,7 +262,7 @@ begin
                 dup a exch offset add 2 copy get b 5 -1 roll get add put
             } for
             a
-        } bind def
+        } def
 
         /barlen barcode length def
 
@@ -127,7 +270,7 @@ begin
         /v [ 1 ] def
         0 1 barlen 1 sub {
             /i exch def
-            [ vals i get {48 sub barcode barlen i sub 1 sub get 48 sub mul} forall ]
+            [ stypevals i get {48 sub barcode barlen i sub 1 sub get 48 sub mul} forall ]
             v bigadd /v exch def
         } for
         /v v 2 normalize def
@@ -142,18 +285,11 @@ begin
             cws exch i exch put
         } for
 
-        % Basic metrics for the each symbol
-        %     ver    row col dcol dcws rscw rsbl  ro ri rl
-        /metrics [
-            [ (S-10)   8  11   10    4    4    1  99 99 99 ]
-            [ (S-20)   8  21   20    8    8    1  99 99 99 ]
-            [ (S-30)   8  31   30   12   12    1  99 99 99 ]
-        ] def
+        /metrics stypemetrics def
 
     } {  % Standard and type-T
 
         % Convert input into bytes accounting for FNC characters
-        /fnc1 -1 def  /fnc3 -2 def
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
@@ -163,11 +299,6 @@ begin
         >> def
         /msg barcode fncvals //parseinput exec def
         /msglen msg length def
-
-        % Special characters
-        /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
-        /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
-        /unlcw 255 def
 
         % Code One stores ECIs in data
         /eciesc 16#5c def  % We choose \ as a typical default
@@ -200,21 +331,7 @@ begin
             /msglen msg length def
         } if
 
-        % Basic metrics for the each symbol
-        %     ver    row col dcol dcws rscw rsbl  ro ri rl
-        /metrics [
-            [ (A)     16  18   16   10   10    1   4 99  6 ]
-            [ (B)     22  22   20   19   16    1   4 99  8 ]
-            [ (C)     28  32   28   44   26    1   4 22 11 ]
-            [ (D)     40  42   36   91   44    1   4 16 16 ]
-            [ (E)     52  54   48  182   70    1   4 22 22 ]
-            [ (F)     70  76   68  370  140    2   4 22 31 ]
-            [ (G)    104  98   88  732  280    4   6 21 47 ]
-            [ (H)    148 134  120 1480  560    8   6 20 69 ]
-            [ (T-16)  16  17   16   10   10    1  99 99 99 ]
-            [ (T-32)  16  33   32   24   16    1  99 99 99 ]
-            [ (T-48)  16  49   48   38   22    1  99 99 99 ]
-        ] def
+        /metrics nonstypemetrics def
 
         % Select metrics of an appropriate symbol
         /fullcws [] def
@@ -239,109 +356,6 @@ begin
             } if
         } for
 
-        /Avals <<
-            0 1 128 {dup 1 add} for
-            pad 129
-            0 1 99 {  % Double digits
-                dup 10 2 string cvrs (00) 2 string copy dup 2 3 index length sub 4 -1 roll putinterval
-                exch 130 add
-            } for
-            229 [ lC lB fnc1 fnc2 fnc3 fnc4 fnc1lD ] {exch 1 add dup} forall pop
-            lX 238
-            lT 239
-            % 240-255 lD + 4 bits
-        >> def
-        /Avals <<
-            Avals {[exch]} forall
-        >> def
-
-        /CNvals <<
-            sft1 0
-            sft2 1
-            sft3 2
-            32   3
-            48 1 57 {dup 44 sub} for  % 0-9
-            65 1 90 {dup 51 sub} for  % A-Z
-        >> def
-        /C1vals << 0 1 31 {dup} for >> def
-        /C2vals <<
-            33 1 47 {dup 33 sub} for
-            58 1 64 {dup 43 sub} for
-            91 1 95 {dup 69 sub} for
-            fnc1 27
-            fnc2 28
-            fnc3 29
-            fnc4 30
-            pad  31
-        >> def
-        /C3vals << 96 1 127 {dup 96 sub} for >> def
-        /Cvals <<
-            CNvals {[exch]} forall
-            C1vals {[exch CNvals sft1 get exch]} forall
-            C2vals {[exch CNvals sft2 get exch]} forall
-            C3vals {[exch CNvals sft3 get exch]} forall
-        >> def
-
-        /TNvals <<
-            sft1 0
-            sft2 1
-            sft3 2
-            32   3
-            48 1  57 {dup 44 sub} for  % 0-9
-            97 1 122 {dup 83 sub} for  % a-z
-        >> def
-        /T1vals << 0 1 31 {dup} for >> def
-        /T2vals <<
-            33 1 47 {dup 33 sub} for
-            58 1 64 {dup 43 sub} for
-            91 1 95 {dup 69 sub} for
-            fnc1 27
-            fnc2 28
-            fnc3 29
-            fnc4 30
-            pad  31
-        >> def
-        /T3vals <<
-             96 0
-             65 1  90 {dup 64 sub} for
-            123 1 127 {dup 96 sub} for
-        >> def
-        /Tvals <<
-            TNvals {[exch]} forall
-            T1vals {[exch TNvals sft1 get exch]} forall
-            T2vals {[exch TNvals sft2 get exch]} forall
-            T3vals {[exch TNvals sft3 get exch]} forall
-        >> def
-
-        % Extended ASCII mappings
-        128 1 255 {
-            /i exch def
-            Avals i [ Avals fnc4 get aload pop Avals i 128 sub get aload pop ] put
-            Cvals i [ Cvals fnc4 get aload pop Cvals i 128 sub get aload pop ] put
-            Tvals i [ Tvals fnc4 get aload pop Tvals i 128 sub get aload pop ] put
-        } for
-
-        /Xvals <<
-            13 0
-            42 1
-            62 2
-            32 3
-            48 1 57 {dup 44 sub} for
-            65 1 90 {dup 51 sub} for
-        >> def
-        /Xvals <<
-            Xvals {[exch]} forall
-        >> def
-
-        /Bvals <<
-            0 1 255 {dup} for
-        >> def
-        /Bvals <<
-            Bvals {[exch]} forall
-        >> def
-
-        /encvals [ Avals Cvals Tvals Xvals -1 Bvals ] def
-
         /numD [ msglen {0} repeat 0 ] def
         /nextXterm [ msglen {0} repeat 9999 ] def
         /nextNonX  [ msglen {0} repeat 9999 ] def
@@ -365,15 +379,13 @@ begin
         /nextXterm [nextXterm {dup 10000 gt {pop 10000} if} forall] def
         /nextNonX  [nextNonX  {dup 10000 gt {pop 10000} if} forall] def
 
-        /isD  {char 48 ge char 57 le and} bind def
-        /isC  {CNvals char known} bind def
-        /isT  {TNvals char known} bind def
-        /isX  {Xvals char known} bind def
-        /isEA {char 127 gt} bind def
-        /isFN {char 0 lt} bind def
-        /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} bind def
-
-        /A 0 def  /C 1 def  /T 2 def  /X 3 def  /D 4 def  /B 5 def
+        /isD  {char 48 ge char 57 le and} def
+        /isC  {CNvals char known} def
+        /isT  {TNvals char known} def
+        /isX  {Xvals char known} def
+        /isEA {char 127 gt} def
+        /isFN {char 0 lt} def
+        /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} def
 
         /lookup {
             /ac 1 def /cc 2 def /tc 2 def /xc 2 def /bc 3 def
@@ -410,18 +422,18 @@ begin
                     /k k 1 add def
                 } loop
             } repeat
-        } bind def
+        } def
 
         /addtocws {
             dup cws exch j exch putinterval
             /j exch length j add def
-        } bind def
+        } def
 
         /tobin {
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
             dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
             [ exch {48 sub} forall ]
-        } bind def
+        } def
 
         /encA {
             1 {  % Common exit
@@ -466,7 +478,7 @@ begin
                 /i i 1 add def
                 exit
             } repeat
-        } bind def
+        } def
 
         /CTXvalstocws {
             /in exch def
@@ -476,7 +488,7 @@ begin
                 dup 256 idiv exch 256 mod
             } for
             counttomark array astore exch pop
-        } bind def
+        } def
 
         /encCTX {
             /p 0 def
@@ -603,7 +615,7 @@ begin
                 } if
             } if
 
-        } bind def
+        } def
 
         /encD {
 
@@ -671,7 +683,7 @@ begin
             counttomark array astore exch pop addtocws
             /mode A def
 
-        } bind def
+        } def
 
         /encB {
             /p 0 def /bvals 1480 array def {
@@ -693,7 +705,7 @@ begin
             ] def
             bvals addtocws
             /mode A def
-        } bind def
+        } def
 
         % Derive the codewords
         /cws 1480 array def
@@ -763,7 +775,7 @@ begin
         } {
             pop pop 0
         } ifelse
-    } bind def
+    } def
 
     % Generate the coefficients for the Reed-Solomon algorithm
     /coeffs [ 1 ecpb {0} repeat ] def
@@ -827,7 +839,7 @@ begin
     } for
 
     % Create bitmap and add finder patterns
-    /mmv {cols mul add} bind def
+    /mmv {cols mul add} def
     /pixs [ rows cols mul {-1} repeat ] def
 
     % Centre pattern
@@ -841,7 +853,8 @@ begin
         {1   cols 2 sub {0} repeat   1} bind
         {1 0 cols 4 sub {1} repeat 0 1} bind
     ] def
-    /cpat <<
+{
+    /cpatmap <<
         /A (121343)
         /B (12134343)
         /C (12121343)
@@ -852,7 +865,9 @@ begin
         /H (121212134343)
         /S (56661278)
         /T (5666666666127878)
-    >> vers 0 1 getinterval get def
+    >> def
+} ctxdef
+    /cpat cpatmap vers 0 1 getinterval get def
     pixs 0 rows cpat length sub 2 idiv mmv
     [ cpat {artifact exch 49 sub get exec} forall ] putinterval
 
@@ -872,7 +887,8 @@ begin
     } for
 
     % Black dots
-    <<
+{
+    /blackdotmap <<
         /A [ [12 5] ]
         /B [ [16 7] ]
         /C [ [26 12] ]
@@ -887,7 +903,9 @@ begin
         /T-16 [ [8 10] ]
         /T-32 [ [16 10] [16 12] ]
         /T-48 [ [24 10] [24 12] [24 14] ]
-    >> vers get {pixs exch aload pop mmv 1 put} forall
+    >> def
+} ctxdef
+    blackdotmap vers get {pixs exch aload pop mmv 1 put} forall
 
     % Place the modules onto a pixel map between alignment patterns
     /j 0 def
@@ -911,6 +929,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
