@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code2of5--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Code 25
 % --EXAM: 01234567
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includecheck false def
     /validatecheck false def
@@ -76,6 +79,8 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /code2of5 //loadctx exec
+
     % Validate input
     barcode {
         dup 48 lt exch 57 gt or {
@@ -100,6 +105,7 @@ begin
     } if
 
     % Create an array containing the character mappings
+{
     /versions <<
     /industrial
         [ (1111313111) (3111111131) (1131111131) (3131111111)
@@ -124,6 +130,8 @@ begin
           (133111) (111331) (311311) (131311) (1111)   (311)
         ]
     >> def
+} ctxdef
+
     versions version known not {
         /bwipp.code2of5badVersion (Unrecognised Code 25 version) //raiseerror exec
     } if
@@ -136,7 +144,9 @@ begin
     /es encs 11 get length def
 
     % Create a string of the available characters
+{
     /barchars (0123456789) def
+} ctxdef
 
     /sbs barlen includecheck {1 add} if cs mul ss add es add string def
     /txt barlen includecheck {1 add} if array def
@@ -181,6 +191,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
