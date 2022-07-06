@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code128--
-% --REQUIRES preamble raiseerror parseinput renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear--
 % --DESC: Code 128
 % --EXAM: Count01234567!
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
@@ -79,12 +82,16 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /code128 //loadctx exec
+
     % Special function characters
+{
     /sta  -1 def  /stb  -2 def  /stc  -3 def
     /swa  -4 def  /swb  -5 def  /swc  -6 def
     /fn1  -7 def  /fn2  -8 def  /fn3  -9 def
     /fn4 -10 def  /sft -11 def  /stp -12 def
     /lka -13 def  /lkc -14 def  % CC-A/B and CC-C linkage
+} ctxdef
 
     % Parse the input
     /fncvals <<
@@ -102,6 +109,7 @@ begin
     /msglen msg length def
 
     % Character maps for each state
+{
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
       [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
@@ -156,6 +164,7 @@ begin
     /seta charvals 0 get def
     /setb charvals 1 get def
     /setc charvals 2 get def
+} ctxdef
 
     % Include pseudo characters for GS1-128 Composite linkage identifiers
     seta lka seta swb get put  seta lkc seta swc get put
@@ -238,17 +247,17 @@ begin
                 /p p 1 add def
             } loop
             n s
-        } bind def
+        } def
 
         % Encoding for each alphabet
         /enca {
             seta exch get cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
         /encb {
             setb exch get cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
         /encc {
             dup type /arraytype ne {
                 setc exch get
@@ -257,11 +266,11 @@ begin
             } ifelse
             cws exch j exch put
             /j j 1 add def
-        } bind def
+        } def
 
         % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} bind def
-        /bnota {dup setb exch known exch seta exch known not and} bind def
+        /anotb {dup seta exch known exch setb exch known not and} def
+        /bnota {dup setb exch known exch seta exch known not and} def
 
         % Pre-compute relative position of next anotb and next bnota characters
         /nextanotb [ msg length {0} repeat 9999 ] def
@@ -281,8 +290,8 @@ begin
         } for
 
         % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} bind def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} bind def
+        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
+        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
 
         /cws barcode length 2 mul 3 add array def
 
@@ -415,6 +424,7 @@ begin
     cws j 1 add seta stp get put
 
     % Create an array containing the character mappings
+{
     /encs
     [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
       (122312) (132212) (221213) (221312) (231212) (112232) (122132)
@@ -433,6 +443,7 @@ begin
       (411311) (113141) (114131) (311141) (411131) (211412) (211214)
       (211232) (2331112)
     ] def
+} ctxdef
 
     % Derive space bar succession
     /sbs cws length 6 mul 1 add string def
@@ -453,6 +464,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

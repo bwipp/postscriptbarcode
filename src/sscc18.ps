@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER sscc18--
-% --REQUIRES preamble raiseerror parseinput renlinear code128--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear code128--
 % --DESC: SSCC-18
 % --EXAM: (00) 0 0614141 123456789 0
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code128 dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +50,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def

@@ -39,6 +39,8 @@
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
@@ -82,6 +84,8 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /gs1-128 //loadctx exec
+
     /text barcode def
 
     % Expand ordinals of the form ^NNN to ASCII
@@ -92,7 +96,7 @@ begin
             /parsefnc false
         >> def
         fncvals //parseinput exec
-    } bind def
+    } def
 
     % Parse out AIs
     /ais  [] def
@@ -118,6 +122,7 @@ begin
     % Pre-defined fixed length data field AIs
     % any AI whose prefix is not included in this table must be
     % terminated with "FNC1", even if it's fixed length
+{
     /aifixed 23 dict def
     [
         0 1 4 {} for
@@ -132,6 +137,7 @@ begin
     ] {
         10 2 string cvrs dup aifixed 3 1 roll put
     } forall
+} ctxdef
 
     % Create the code128 data
     /fnc1 -1 def
@@ -185,6 +191,8 @@ begin
     args
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
