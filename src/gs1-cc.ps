@@ -39,6 +39,8 @@
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
@@ -76,6 +78,8 @@ begin
     /cccolumns cccolumns cvi def
     /linwidth linwidth cvi def
 
+    /gs1-cc //loadctx exec
+
     % Select columns based on linear type
     cccolumns -1 eq {
         <<
@@ -103,7 +107,7 @@ begin
             /parsefnc false
         >> def
         fncvals //parseinput exec
-    } bind def
+    } def
 
     % Parse out AIs
     /ais  [] def
@@ -127,9 +131,9 @@ begin
     dontlint not { ais vals //gs1lint exec pop } if
 
     % Method selection
-    /isupper {dup 65 ge exch 90 le and} bind def  % A-Z
-    /isnum0  {dup 48 ge exch 57 le and} bind def  % 0-9
-    /isnum1  {dup 49 ge exch 57 le and} bind def  % 1-9
+    /isupper {dup 65 ge exch 90 le and} def  % A-Z
+    /isnum0  {dup 48 ge exch 57 le and} def  % 0-9
+    /isnum1  {dup 49 ge exch 57 le and} def  % 1-9
     {  % common exit
 
         % (10/11/17)...
@@ -179,12 +183,14 @@ begin
     /method exch def
     /npre exch def
 
-    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
-
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
         dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
-    } bind def
+    } def
+
+{
+
+    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
 
     /alpha <<
         65 1 90 {dup 65 sub 5 tobin} for
@@ -229,6 +235,8 @@ begin
         lnumeric (000)
         lalphanumeric (00100)
     >> def
+
+} ctxdef
 
     method (10) eq {  % TODO: fixme
         ais 0 get (11) eq ais 0 get (17) eq or {
@@ -364,6 +372,7 @@ begin
     % Pre-defined fixed length data field AIs
     % any AI whose prefix is not included in this table must be
     % terminated with "FNC1", even if it's fixed length
+{
     /aifixed 23 dict def
     [
         0 1 4 {} for
@@ -378,6 +387,7 @@ begin
     ] {
         10 2 string cvrs dup aifixed 3 1 roll put
     } forall
+} ctxdef
 
     % Append the remaining AI data
     0 1 ais length 1 sub {
@@ -398,21 +408,25 @@ begin
     } for
 
     % Calculate the number of bits remaining to the next valid symbol size
+{
+    /bitcapsmaps <<
+        /a [
+            [167 138 118 108 88 78 59]
+            [167 138 118  98 78]
+            [197 167 138 108 78]
+        ]
+        /b [
+            [ 336  296 256 208 160 104  56]
+            [ 768  648 536 416 304 208 152 112  72 32]
+            [1184 1016 840 672 496 352 264 208 152 96 56]
+        ]
+    >> def
+} ctxdef
+
     /rembits {
         /used exch def
         ccversion (c) ne {  % cc-a or cc-b
-            <<
-            /a [
-                [167 138 118 108 88 78 59]
-                [167 138 118  98 78]
-                [197 167 138 108 78]
-            ]
-            /b [
-                [ 336  296 256 208 160 104  56]
-                [ 768  648 536 416 304 208 152 112  72 32]
-                [1184 1016 840 672 496 352 264 208 152 96 56]
-            ]
-            >> ccversion get cccolumns 2 sub get /bitcaps exch def
+            /bitcap bitcapsmaps ccversion get cccolumns 2 sub get def
             -1 bitcaps {dup used ge {exch} if pop} forall
             dup -1 ne {used sub} if
         } {
@@ -449,7 +463,7 @@ begin
             } ifelse
             used rembits
         } if
-    } bind def
+    } def
 
     /encode {
         dup /raw ne {exch get} {pop} ifelse
@@ -457,7 +471,7 @@ begin
         dup length exch
         gpfenc exch j exch putinterval
         /j exch j add def
-    } bind def
+    } def
 
     % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
     /numericruns [ gpf length {0} repeat 0 -1 ] def
@@ -603,21 +617,24 @@ begin
         pad aload pop
     ] def
 
-    ccversion (a) eq {
-        /pwr928 [
-            [ 0 0 0 0 0 0 1 ]
-            68 {7 array} repeat
-        ] def
-        1 1 68 {
-            /j exch def
-            /v 0 def
-            6 -1 1 {
-                /i exch def
-                /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
-                pwr928 j get i v 928 mod put
-            } for
-            pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
+{
+    /pwr928 [
+        [ 0 0 0 0 0 0 1 ]
+        68 {7 array} repeat
+    ] def
+    1 1 68 {
+        /j exch def
+        /v 0 def
+        6 -1 1 {
+            /i exch def
+            /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
+            pwr928 j get i v 928 mod put
         } for
+        pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
+    } for
+} ctxdef
+
+    ccversion (a) eq {
         /cws [ 28 {0} repeat ] def
         /b 0 def /c 0 def
         {  % loop
@@ -690,6 +707,8 @@ begin
 
     args
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 

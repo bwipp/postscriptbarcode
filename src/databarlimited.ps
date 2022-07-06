@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databarlimited--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: GS1 DataBar Limited
 % --EXAM: (01)15012345678907
 % --EXOP:
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+20 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /height 10 72 div def
     /linkage false def
@@ -65,6 +68,8 @@ begin
     options {def} forall
 
     /height height cvr def
+
+    /databarlimited //loadctx exec
 
     % Validate the input
     barcode 0 4 getinterval (\(01\)) ne {
@@ -100,11 +105,13 @@ begin
     /barcode exch def
 
     % Strip the AI and optional check digit
+{
+    /linkval [ 2 0 1 5 1 3 3 5 3 1 0 9 6 ] def
+} ctxdef
     /binval [
         barcode 4 13 getinterval {48 sub} forall
     ] def
     linkage {
-        /linkval [ 2 0 1 5 1 3 3 5 3 1 0 9 6 ] def
         0 1 binval length 1 sub {
             /i exch def
             binval i binval i get linkval i get add put
@@ -132,7 +139,7 @@ begin
             1 index idiv exch 1 add exch
         } loop
         exch pop exch pop
-    } bind def
+    } def
 
     /getRSSwidths {
         /oe exch def
@@ -171,7 +178,7 @@ begin
         } for
         out el 1 sub nm put
         out
-    } bind def
+    } def
 
     0 1 11 {
         /i exch def
@@ -194,6 +201,7 @@ begin
         } ifelse
     } for
 
+{
     /tab267 [
         183063   0        17 9   6 3  6538   28
         820063   183064   13 13  5 4  875    728
@@ -203,6 +211,7 @@ begin
         1996938  1979845  19 7   8 1  17094  1
         2013570  1996939  7  19  1 8  1      16632
     ] def
+} ctxdef
 
     /i 0 def {
         d1 tab267 i get le {
@@ -252,6 +261,7 @@ begin
         d2w {} forall
     ] def
 
+{
     /checkweights [
         1  3  9  27 81 65 17 51 64 14 42 37 22 66
         20 60 2  6  18 54 73 41 34 13 39 28 84 74
@@ -272,6 +282,7 @@ begin
         322 323
         326 337
     ] def
+} ctxdef
 
     /checksum 0 def
     0 1 27 {
@@ -306,6 +317,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
