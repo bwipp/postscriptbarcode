@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code11--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Code 11
 % --EXAM: 0123456789
 % --EXOP: includetext includecheck includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includecheck false def
     /validatecheck false def
@@ -75,7 +78,10 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /code11 //loadctx exec
+
     % Create an array containing the character mappings
+{
     /encs
     [ (111131) (311131) (131131) (331111) (113131)
       (313111) (133111) (111331) (311311) (311111)
@@ -86,6 +92,7 @@ begin
     /barchars (0123456789-) def
     /charvals 11 dict def
     0 1 10 {charvals exch dup barchars exch 1 getinterval exch put} for
+} ctxdef
 
     % Validate the input
     0 1 barcode length 1 sub {
@@ -188,6 +195,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
