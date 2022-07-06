@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean13--
-% --REQUIRES preamble raiseerror renlinear ean5 ean2--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean5 ean2--
 % --DESC: EAN-13
 % --EXAM: 2112345678900
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
@@ -51,6 +53,7 @@ begin
     /options exch def                  % We are given an option string
     /barcode exch def                  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def             % Enable/disable text
     /textfont /Helvetica def
@@ -85,6 +88,8 @@ begin
     addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
     addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
     addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
+
+    /ean13 //loadctx exec
 
     % Split off the addon
     barcode ( ) search {
@@ -131,6 +136,7 @@ begin
     pad 12 checksum 48 add put      % Put ascii for checksum at end of pad
     /barcode pad def
 
+{
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
@@ -146,6 +152,7 @@ begin
     [ (000000) (001011) (001101) (001110) (010011)
       (011001) (011100) (010101) (010110) (011010)
     ] def
+} ctxdef
 
     /sbs 59 string def
     /txt 13 array def
@@ -245,6 +252,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

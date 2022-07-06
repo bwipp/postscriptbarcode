@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean5--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: EAN-5 (5 digit addon)
 % --EXAM: 90200
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def                   % We are given an option string
     /barcode exch def                   % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
@@ -78,6 +81,8 @@ begin
         /textyoffset textyoffset cvr def
     } ifelse
 
+    /ean5 //loadctx exec
+
     % Validate input
     barcode length 5 ne {
         /bwipp.ean5badLength (EAN-5 add-on must be 5 digits) //raiseerror exec
@@ -88,6 +93,7 @@ begin
         } if
     } forall
 
+{
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
@@ -103,6 +109,8 @@ begin
     [ (11000) (10100) (10010) (10001) (01100)
       (00110) (00011) (01010) (01001) (00101)
     ] def
+} ctxdef
+
     /checksum 0 def
     0 1 4 {
         /i exch def
@@ -165,6 +173,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean2--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: EAN-2 (2 digit addon)
 % --EXAM: 05
 % --EXOP: includetext guardwhitespace
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def                   % We are given an options string
     /barcode exch def                   % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
@@ -78,6 +81,8 @@ begin
         /textyoffset textyoffset cvr def
     } ifelse
 
+    /ean2 //loadctx exec
+
     % Validate input
     barcode length 2 ne {
       /bwipp.ean2badLength (EAN-2 add-on must be 2 digits) //raiseerror exec
@@ -88,6 +93,7 @@ begin
         } if
     } forall
 
+{
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
@@ -99,7 +105,10 @@ begin
     /barchars (0123456789) def
 
     % Determine the mirror map based on mod 4 checksum
-    /mirrormap [(00) (01) (10) (11)] barcode 0 2 getinterval cvi 4 mod get def
+    /mirrormaps [(00) (01) (10) (11)] def
+} ctxdef
+
+    /mirrormap mirrormaps barcode 0 2 getinterval cvi 4 mod get def
 
     /sbs 13 string def
     /txt 2 array def
@@ -150,6 +159,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

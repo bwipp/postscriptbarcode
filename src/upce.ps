@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER upce--
-% --REQUIRES preamble raiseerror renlinear ean5 ean2--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean5 ean2--
 % --DESC: UPC-E
 % --EXAM: 00123457
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
@@ -51,6 +53,7 @@ begin
     /options exch def                   % We are given an option string
     /barcode exch def                   % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
@@ -85,6 +88,8 @@ begin
     addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
     addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
     addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
+
+    /upce //loadctx exec
 
     % Split off the addon
     barcode ( ) search {
@@ -155,6 +160,7 @@ begin
         /bwipp.upcEbadNumberSystem (UPC-E must have number system 0 or 1) //raiseerror exec
     } if
 
+{
     % Create an array containing the character mappings
     /encs
     [ (3211) (2221) (2122) (1411) (1132)
@@ -169,6 +175,7 @@ begin
     [ (000111) (001011) (001101) (001110) (010011)
       (011001) (011100) (010101) (010110) (011010)
     ] def
+} ctxdef
 
     % Derive the equivalent UPC-A for its checksum
     1 {  % Common exit
@@ -317,6 +324,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
