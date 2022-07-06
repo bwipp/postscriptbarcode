@@ -32,13 +32,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER telepennumeric--
-% --REQUIRES preamble raiseerror parseinput renlinear telepen--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear telepen--
 % --DESC: Telepen Numeric
 % --EXAM: 01234567
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /telepen dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +50,7 @@ begin
     /options exch def  % We are given an option string
     /barcode exch def  % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
@@ -75,7 +76,7 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
-    % Get the result of encoding with code2of5 with version=industrial
+    % Get the result of encoding with telepen with numeric=true
     options (dontdraw) true put
     options (numeric) true put
 

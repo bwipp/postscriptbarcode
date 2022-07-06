@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER telepen--
-% --REQUIRES preamble raiseerror parseinput renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear--
 % --DESC: Telepen
 % --EXAM: ABCDEF
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /ctx null def
     /numeric false def
     /dontdraw false def
     /includetext false def    % Enable/disable text
@@ -75,6 +78,8 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /telepen //loadctx exec
+
     % Parse ordinals of the form ^NNN to ASCII
     /fncvals <<
         /parse parse
@@ -86,6 +91,7 @@ begin
     options (parse) undef
 
     % Create an array containing the character mappings
+{
     /encs
     [ (31313131)        (1131313111)     (33313111)       (1111313131)
       (3111313111)      (11333131)       (13133131)       (111111313111)
@@ -120,6 +126,7 @@ begin
       (3113111113)      (11311111111111) (331111111111)   (111113111113)
       (31111111111111)  (111311111113)   (131111111113)   (1111111111111111)
     ] def
+} ctxdef
 
     /barlen barcode length def    % Length of the code
     /sbs barlen 16 mul 48 add string def
@@ -193,6 +200,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
