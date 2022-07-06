@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER posicode--
-% --REQUIRES preamble raiseerror parseinput renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear--
 % --DESC: PosiCode
 % --EXAM: ABC123
 % --EXOP: version=b inkspread=-0.5 parsefnc includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
@@ -84,15 +87,16 @@ begin
     /checkoffset checkoffset cvi def
     /height height cvr def
 
+    /posicode //loadctx exec
+
+{
     % Special function characters
     /la0  -1 def  /la1  -2 def  /la2  -3 def
     /sf0  -4 def  /sf1  -5 def  /sf2  -6 def
     /fn1  -7 def  /fn2  -8 def  /fn3  -9 def  /fn4 -10 def
 
     % Character maps for each state
-    <<
-    /normal
-      [
+    /charmapsnormal [
           %  0    1    2        0    1    2        0    1    2
           [ (0)  (^)  (') ]  [ (1)  (;)   27 ]  [ (2)  (<)   28 ]  % 0-2
           [ (3)  (=)   29 ]  [ (4)  (>)   30 ]  [ (5)  (?)   31 ]  % 3-5
@@ -110,9 +114,8 @@ begin
           [ ($)  ({)  (*) ]  [ (/)  (|)  (,) ]  [ (+)  (})  (:) ]  % 39-41
           [ (%)  (~)  fn1 ]  [ la1  la0  fn2 ]  [ sf1  sf0  fn3 ]  % 42-44
           [ sf2  sf2  fn4 ]                                        % 45
-      ]
-    /limited
-      [
+    ] def
+    /chapmapslimited [
           [ (0)  -98  -98 ]  [ (1)  -98   -98 ]  [ (2)  -98  -98 ]  % 0-2
           [ (3)  -98  -98 ]  [ (4)  -98   -98 ]  [ (5)  -98  -98 ]  % 3-5
           [ (6)  -98  -98 ]  [ (7)  -98   -98 ]  [ (8)  -98  -98 ]  % 6-8
@@ -126,10 +129,10 @@ begin
           [ (U)  -98  -98 ]  [ (V)  -98   -98 ]  [ (W)  -98  -98 ]  % 30-32
           [ (X)  -98  -98 ]  [ (Y)  -98   -98 ]  [ (Z)  -98  -98 ]  % 33-35
           [ (-)  -98  -98 ]  [ (.)  -98   -98 ]                     % 36-37
-      ]
-    >>
-    version (a) eq version (b) eq or {/normal} {/limited} ifelse get
-    /charmaps exch def
+    ] def
+} ctxdef
+
+    /charmaps version (a) eq version (b) eq or {charmapsnormal} {chapmapslimited} ifelse def
 
     % Invert charmaps to give character to value maps for each state
     /charvals [
@@ -280,7 +283,8 @@ begin
     } if  % auto encoding
 
     % Create an array containing the character mappings
-    <<   % ";"=11, "<"=12
+{
+    /encmaps <<   % ";"=11, "<"=12
     /a
         [ (141112) (131212) (121312) (111412) (131113)
           (121213) (111313) (121114) (111214) (111115)
@@ -325,9 +329,11 @@ begin
           (131415) (121515) (141216) (131316) (121416)
           (131217) (121317) (121218) (141212) (1)
         ]
-    >>
-    version get /encs exch def
+    >> def
+} ctxdef
+    encmaps version get /encs exch def
 
+{
     /c2w [
         [ 495 330 210 126  70  35  15   5 ]
         [ 165 120  84  56  35  20  10   4 ]
@@ -335,6 +341,7 @@ begin
         [   9   8   7   6   5   4   3   2 ]
         [   1   1   1   1   1   1   1   1 ]
     ] def
+} ctxdef
     /v 0 def
     cws {
         /cw exch def
@@ -418,6 +425,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
