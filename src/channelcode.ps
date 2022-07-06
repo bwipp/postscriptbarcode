@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER channelcode--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Channel Code
 % --EXAM: 3493
 % --EXOP: height=0.5 includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /shortfinder false def
     /includetext false def
@@ -68,6 +71,8 @@ begin
 
     /height height cvr def
 
+    /channelcode //loadctx exec
+
     % Validate the input
     barcode length 2 lt barcode length 7 gt or {
         /bwipp.channelcodeBadLength (Channel Code must be 2 to 7 digits) //raiseerror exec
@@ -83,49 +88,50 @@ begin
 
     % Tail-call optimisation FTW!
     /loops1 { /s2max s1max 1 add s1 sub def  /b1 1 def
-              s1 1 eq {nextb1} {loopb1} ifelse                             } bind def
-    /loopb1 { /b2max b1max 1 add b1 sub def  /s2 1 def  loops2             } bind def
+              s1 1 eq {nextb1} {loopb1} ifelse                             } def
+    /loopb1 { /b2max b1max 1 add b1 sub def  /s2 1 def  loops2             } def
     /loops2 { /s3max s2max 1 add s2 sub def  /b2 1 def
-              s1 b1 add s2 add 3 eq {nextb2} {loopb2} ifelse               } bind def
-    /loopb2 { /b3max b2max 1 add b2 sub def  /s3 1 def  loops3             } bind def
+              s1 b1 add s2 add 3 eq {nextb2} {loopb2} ifelse               } def
+    /loopb2 { /b3max b2max 1 add b2 sub def  /s3 1 def  loops3             } def
     /loops3 { /s4max s3max 1 add s3 sub def  /b3 1 def
-              b1 s2 add b2 add s3 add 4 eq {nextb3} {loopb3} ifelse        } bind def
-    /loopb3 { /b4max b3max 1 add b3 sub def  /s4 1 def  loops4             } bind def
+              b1 s2 add b2 add s3 add 4 eq {nextb3} {loopb3} ifelse        } def
+    /loopb3 { /b4max b3max 1 add b3 sub def  /s4 1 def  loops4             } def
     /loops4 { /s5max s4max 1 add s4 sub def  /b4 1 def
-              b2 s3 add b3 add s4 add 4 eq {nextb4} {loopb4} ifelse        } bind def
-    /loopb4 { /b5max b4max 1 add b4 sub def  /s5 1 def  loops5             } bind def
+              b2 s3 add b3 add s4 add 4 eq {nextb4} {loopb4} ifelse        } def
+    /loopb4 { /b5max b4max 1 add b4 sub def  /s5 1 def  loops5             } def
     /loops5 { /s6max s5max 1 add s5 sub def  /b5 1 def
-              b3 s4 add b4 add s5 add 4 eq {nextb5} {loopb5} ifelse        } bind def
-    /loopb5 { /b6max b5max 1 add b5 sub def  /s6 1 def  loops6             } bind def
+              b3 s4 add b4 add s5 add 4 eq {nextb5} {loopb5} ifelse        } def
+    /loopb5 { /b6max b5max 1 add b5 sub def  /s6 1 def  loops6             } def
     /loops6 { /s7max s6max 1 add s6 sub def  /b6 1 def
-              b4 s5 add b5 add s6 add 4 eq {nextb6} {loopb6} ifelse        } bind def
-    /loopb6 { /b7max b6max 1 add b6 sub def  /s7 1 def  loops7             } bind def
+              b4 s5 add b5 add s6 add 4 eq {nextb6} {loopb6} ifelse        } def
+    /loopb6 { /b7max b6max 1 add b6 sub def  /s7 1 def  loops7             } def
     /loops7 { /s8 s7max 1 add s7 sub def     /b7 1 def
-              b5 s6 add b6 add s7 add 4 eq {nextb7} {loopb7} ifelse        } bind def
+              b5 s6 add b6 add s7 add 4 eq {nextb7} {loopb7} ifelse        } def
     /loopb7 { /b8 b7max 1 add b7 sub def
-              b6 s7 add b7 add s8 add b8 add 5 eq {nextb7} {chkchr} ifelse } bind def
+              b6 s7 add b7 add s8 add b8 add 5 eq {nextb7} {chkchr} ifelse } def
     /chkchr {
         value target eq {
             [s1 b1 s2 b2 s3 b3 s4 b4 s5 b5 s6 b6 s7 b7 s8 b8] exit
         } if
         /value value 1 add def
         nextb7
-    } bind def
-    /nextb7 { /b7 b7 1 add def  b7 b7max le {loopb7} {nexts7} ifelse } bind def
-    /nexts7 { /s7 s7 1 add def  s7 s7max le {loops7} {nextb6} ifelse } bind def
-    /nextb6 { /b6 b6 1 add def  b6 b6max le {loopb6} {nexts6} ifelse } bind def
-    /nexts6 { /s6 s6 1 add def  s6 s6max le {loops6} {nextb5} ifelse } bind def
-    /nextb5 { /b5 b5 1 add def  b5 b5max le {loopb5} {nexts5} ifelse } bind def
-    /nexts5 { /s5 s5 1 add def  s5 s5max le {loops5} {nextb4} ifelse } bind def
-    /nextb4 { /b4 b4 1 add def  b4 b4max le {loopb4} {nexts4} ifelse } bind def
-    /nexts4 { /s4 s4 1 add def  s4 s4max le {loops4} {nextb3} ifelse } bind def
-    /nextb3 { /b3 b3 1 add def  b3 b3max le {loopb3} {nexts3} ifelse } bind def
-    /nexts3 { /s3 s3 1 add def  s3 s3max le {loops3} {nextb2} ifelse } bind def
-    /nextb2 { /b2 b2 1 add def  b2 b2max le {loopb2} {nexts2} ifelse } bind def
-    /nexts2 { /s2 s2 1 add def  s2 s2max le {loops2} {nextb1} ifelse } bind def
-    /nextb1 { /b1 b1 1 add def  b1 b1max le {loopb1} {nexts1} ifelse } bind def
-    /nexts1 { /s1 s1 1 add def  s1 s1max le {loops1} if              } bind def
+    } def
+    /nextb7 { /b7 b7 1 add def  b7 b7max le {loopb7} {nexts7} ifelse } def
+    /nexts7 { /s7 s7 1 add def  s7 s7max le {loops7} {nextb6} ifelse } def
+    /nextb6 { /b6 b6 1 add def  b6 b6max le {loopb6} {nexts6} ifelse } def
+    /nexts6 { /s6 s6 1 add def  s6 s6max le {loops6} {nextb5} ifelse } def
+    /nextb5 { /b5 b5 1 add def  b5 b5max le {loopb5} {nexts5} ifelse } def
+    /nexts5 { /s5 s5 1 add def  s5 s5max le {loops5} {nextb4} ifelse } def
+    /nextb4 { /b4 b4 1 add def  b4 b4max le {loopb4} {nexts4} ifelse } def
+    /nexts4 { /s4 s4 1 add def  s4 s4max le {loops4} {nextb3} ifelse } def
+    /nextb3 { /b3 b3 1 add def  b3 b3max le {loopb3} {nexts3} ifelse } def
+    /nexts3 { /s3 s3 1 add def  s3 s3max le {loops3} {nextb2} ifelse } def
+    /nextb2 { /b2 b2 1 add def  b2 b2max le {loopb2} {nexts2} ifelse } def
+    /nexts2 { /s2 s2 1 add def  s2 s2max le {loops2} {nextb1} ifelse } def
+    /nextb1 { /b1 b1 1 add def  b1 b1max le {loopb1} {nexts1} ifelse } def
+    /nexts1 { /s1 s1 1 add def  s1 s1max le {loops1} if              } def
 
+{
     /memo [  % Accelerate generation of bar patterns
         [  % CH3
             [       0  [1 1 1 1 1 2 1 2]  [1 1 1 1 1 1 1 3]  [1 1 1 1 1 3 2]  [1 1 1 1 1 3 3] ]
@@ -200,6 +206,7 @@ begin
             [ 7650000  [5 2 1 2 1 2 1 1]  [5 2 2 1 1 2 1 1]  [8 4 3 3 2 2 1]  [8 4 3 2 2 2 1] ]
         ]
     ] def
+} ctxdef
 
     /encode {
         /chan exch def
@@ -223,7 +230,7 @@ begin
 
         1 {chkchr} repeat 8 chan sub 2 mul dup 16 exch sub getinterval
 
-    } bind def
+    } def
 
     /barlen barcode length def
 
@@ -234,9 +241,8 @@ begin
     /data barcode cvi barlen 1 add encode def
 
     % Determine check data
-    /check [] def
-    includecheck {
-        /mod23 [
+{
+    /mod23map [
             [] []
             [ 13 12  4  9  3  1 ]
             [  8  2 12  3 18 16  4  1 ]
@@ -244,7 +250,11 @@ begin
             [  1  4 16 18  3 12  2  8  9 13  6  1 ]
             [ 20 16 22 13 15 12  5  4 17  9 21  3  7  1 ]
             [  2  6 18  8  1  3  9  4 12 13 16  2  6 18  8  1 ]
-        ] barlen get def
+    ] def
+} ctxdef
+    /check [] def
+    includecheck {
+        /mod23 mod23map barlen get def
         0
         0 1 data length 1 sub {
             dup data exch get 1 sub exch mod23 exch get mul add
@@ -278,6 +288,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
