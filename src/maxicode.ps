@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER maxicode--
-% --REQUIRES preamble raiseerror parseinput renmaximatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmaximatrix--
 % --DESC: MaxiCode
 % --EXAM: [)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
 % --EXOP: mode=2 parse
 % --RNDR: renmaximatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /mode -1 def
     /sam -1 def
@@ -69,6 +72,8 @@ begin
 
     /mode mode cvi def
     /sam sam cvi def
+
+    /maxicode //loadctx exec
 
     % Parse the input
     /fncvals <<
@@ -119,6 +124,7 @@ begin
 
     } if
 
+{
     % Special function characters
     /eci -1 def  /pad -2 def  /ns -3 def
     /la  -4 def  /lb  -5 def
@@ -212,6 +218,7 @@ begin
     /setc charvals 2 get def
     /setd charvals 3 get def
     /sete charvals 4 get def
+} ctxdef
 
     % Compute numeric runlengths
     /nseq [ msglen 1 add {0} repeat ] def
@@ -557,6 +564,7 @@ begin
     } for
 
     % Maps modules to pixels in the grid
+{
     /modmap [
         469 529 286 316 347 346 673 672 703 702 647 676 283 282 313 312 370 610 618 379
         378 409 408 439 705 704 559 589 588 619 458 518 640 701 675 674 285 284 315 314
@@ -603,6 +611,7 @@ begin
         538 569 568 598 629 628 658 689 688 718 749 748 778 809 808 838 869 868 898 929
         928 958 989 988
     ] def
+} ctxdef
 
     % Lookup pixels for enabled modules from modmap
     /pixs 864 array def
@@ -624,6 +633,8 @@ begin
     >>
 
     dontdraw not //renmaximatrix if
+
+    //unloadctx exec
 
     end
 
