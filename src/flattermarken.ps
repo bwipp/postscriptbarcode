@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER flattermarken--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Flattermarken
 % --EXAM: 11099
 % --EXOP: inkspread=-0.25 showborder borderleft=0 borderright=0
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def       % We are given an option string
     /barcode exch def       % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def   % Enable/disable text
     /textfont /Courier def
@@ -79,6 +82,8 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /flattermarken //loadctx exec
+
     % Validate the input
     barcode {
         dup 48 lt exch 57 gt or {
@@ -86,6 +91,7 @@ begin
         } if
     } forall
 
+{
     % Create an array containing the character mappings
     /encs
     [ (0018) (0117) (0216) (0315) (0414) (0513) (0612) (0711) (0810)
@@ -94,6 +100,7 @@ begin
 
     % Create a string of the available characters
     /barchars (1234567890) def
+} ctxdef
 
     /barlen barcode length def            % Length of the code
 
@@ -123,6 +130,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
