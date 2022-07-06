@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER plessey--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Plessey UK
 % --EXAM: 01234ABCD
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def        % We are given an option string
     /barcode exch def        % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /validatecheck false def
@@ -75,10 +78,23 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /plessey //loadctx exec
+
     % Create a string of the available characters
+{
     /barchars (0123456789ABCDEF) def
     /charvals 16 dict def
     0 1 15 {charvals exch dup barchars exch 1 getinterval exch put} for
+
+    % Create an array containing the character mappings
+    /encs
+    [ (14141414) (32141414) (14321414) (32321414)
+      (14143214) (32143214) (14323214) (32323214)
+      (14141432) (32141432) (14321432) (32321432)
+      (14143232) (32143232) (14323232) (32323232)
+      (32321432) (541412323) (323)
+    ] def
+} ctxdef
 
     % Validate the input
     0 1 barcode length 1 sub {
@@ -127,15 +143,6 @@ begin
         /barcode barcode 0 barlen getinterval def
     } if
 
-    % Create an array containing the character mappings
-    /encs
-    [ (14141414) (32141414) (14321414) (32321414)
-      (14143214) (32143214) (14323214) (32323214)
-      (14141432) (32141432) (14321432) (32321432)
-      (14143232) (32143232) (14323232) (32323232)
-      (32321432) (541412323) (323)
-    ] def
-
     /sbs barlen 8 mul unidirectional {27} {33} ifelse add string def
     /txt barlen 2 add array def
 
@@ -176,6 +183,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
