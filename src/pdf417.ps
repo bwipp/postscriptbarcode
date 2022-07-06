@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER pdf417--
-% --REQUIRES preamble raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
 % --DESC: PDF417
 % --EXAM: This is PDF417
 % --EXOP: columns=2
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -50,6 +52,7 @@ begin
     /options exch def
     /barcode exch def
 
+    /ctx null def
     /dontdraw false def
     /compact false def
     /eclevel -1 def
@@ -77,6 +80,99 @@ begin
     /columns columns cvi def
     /rows rows cvi def
     /rowmult rowmult cvr def
+
+    /pdf417 //loadctx exec
+
+{
+    % Modes and text submodes
+    /T 0 def  /N 1 def  /B 2 def
+    /A 0 def  /L 1 def  /M 2 def  /P 3 def
+
+    % Special function characters for mode switching
+    /tl -1 def  /nl -2 def  /bl -3 def  /bl6 -4 def  /bs -5 def
+
+    % Special function characters for text mode
+    /al -6 def  /ll -7 def  /ml -8 def  /pl -9 def  /as -10 def  /ps -11 def
+
+    % Character maps for each state
+    /charmaps [
+      %  A    L    M    P
+      [ (A)  (a)  (0)  (;) ]  % 0
+      [ (B)  (b)  (1)  (<) ]  % 1
+      [ (C)  (c)  (2)  (>) ]  % 2
+      [ (D)  (d)  (3)  (@) ]  % 3
+      [ (E)  (e)  (4)  ([) ]  % 4
+      [ (F)  (f)  (5)   92 ]  % 5
+      [ (G)  (g)  (6)  (]) ]  % 6
+      [ (H)  (h)  (7)  (_) ]  % 7
+      [ (I)  (i)  (8)  (`) ]  % 8
+      [ (J)  (j)  (9)  (~) ]  % 9
+      [ (K)  (k)  (&)  (!) ]  % 10
+      [ (L)  (l)   13   13 ]  % 11
+      [ (M)  (m)    9    9 ]  % 12
+      [ (N)  (n)  (,)  (,) ]  % 13
+      [ (O)  (o)  (:)  (:) ]  % 14
+      [ (P)  (p)  (#)   10 ]  % 15
+      [ (Q)  (q)  (-)  (-) ]  % 16
+      [ (R)  (r)  (.)  (.) ]  % 17
+      [ (S)  (s)  ($)  ($) ]  % 18
+      [ (T)  (t)  (/)  (/) ]  % 19
+      [ (U)  (u)  (+)  (") ]  % 20
+      [ (V)  (v)  (%)  (|) ]  % 21
+      [ (W)  (w)  (*)  (*) ]  % 22
+      [ (X)  (x)  (=)   40 ]  % 23
+      [ (Y)  (y)  (^)   41 ]  % 24
+      [ (Z)  (z)   pl  (?) ]  % 25
+      [ ( )  ( )  ( )  ({) ]  % 26
+      [  ll   as   ll  (}) ]  % 27
+      [  ml   ml   al  (') ]  % 28
+      [  ps   ps   ps   al ]  % 29
+    ] def
+
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
+    /alltext 104 dict def
+    0 1 charmaps length 1 sub {
+        /i exch def
+        /encs charmaps i get def
+        0 1 3 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            dup charvals j get exch i put
+            alltext exch -1 put
+        } for
+    } for
+
+    /e 10000 def  % "Empty"
+
+    /latlen [  % Bit length of latch between submodes
+    % To:  A  L  M  P      From
+        [  0  1  1  2 ]  % A
+        [  2  0  1  2 ]  % L
+        [  1  1  0  1 ]  % M
+        [  1  2  2  0 ]  % P
+    ] def
+
+    /latseq [  % Latch sequences between submodes
+    % To: A       L       M       P               From
+        [ []      [ll]    [ml]    [ml pl]    ]  % A
+        [ [ml al] []      [ml]    [ml pl]    ]  % L
+        [ [al]    [ll]    []      [pl]       ]  % M
+        [ [al]    [al ll] [al ml] []         ]  % P
+    ] def
+
+    /shftlen [  % Bit length of shift to submode
+    % To:  A  L  M  P      From
+        [  e  e  e  1 ]  % A
+        [  1  e  e  1 ]  % L
+        [  e  e  e  1 ]  % M
+        [  e  e  e  e ]  % P
+    ] def
+
+    /latchcws <<
+        tl 900  bl 901  bl6 924  nl 902  bs 913
+    >> def
+} ctxdef
 
     raw {/encoding (raw) def} if
 
@@ -130,7 +226,7 @@ begin
             putinterval
         } if
         out
-    } bind def
+    } def
 
     encoding (byte) eq encoding (ccc) eq or {
         /barlen barcode length def
@@ -151,91 +247,6 @@ begin
         >> def
         /msg barcode fncvals //parseinput exec def
         /msglen msg length def
-
-        % Modes and text submodes
-        /T 0 def  /N 1 def  /B 2 def
-        /A 0 def  /L 1 def  /M 2 def  /P 3 def
-
-        % Special function characters for mode switching
-        /tl -1 def  /nl -2 def  /bl -3 def  /bl6 -4 def  /bs -5 def
-
-        % Special function characters for text mode
-        /al -6 def  /ll -7 def  /ml -8 def  /pl -9 def  /as -10 def  /ps -11 def
-
-        % Character maps for each state
-        /charmaps [
-          %  A    L    M    P
-          [ (A)  (a)  (0)  (;) ]  % 0
-          [ (B)  (b)  (1)  (<) ]  % 1
-          [ (C)  (c)  (2)  (>) ]  % 2
-          [ (D)  (d)  (3)  (@) ]  % 3
-          [ (E)  (e)  (4)  ([) ]  % 4
-          [ (F)  (f)  (5)   92 ]  % 5
-          [ (G)  (g)  (6)  (]) ]  % 6
-          [ (H)  (h)  (7)  (_) ]  % 7
-          [ (I)  (i)  (8)  (`) ]  % 8
-          [ (J)  (j)  (9)  (~) ]  % 9
-          [ (K)  (k)  (&)  (!) ]  % 10
-          [ (L)  (l)   13   13 ]  % 11
-          [ (M)  (m)    9    9 ]  % 12
-          [ (N)  (n)  (,)  (,) ]  % 13
-          [ (O)  (o)  (:)  (:) ]  % 14
-          [ (P)  (p)  (#)   10 ]  % 15
-          [ (Q)  (q)  (-)  (-) ]  % 16
-          [ (R)  (r)  (.)  (.) ]  % 17
-          [ (S)  (s)  ($)  ($) ]  % 18
-          [ (T)  (t)  (/)  (/) ]  % 19
-          [ (U)  (u)  (+)  (") ]  % 20
-          [ (V)  (v)  (%)  (|) ]  % 21
-          [ (W)  (w)  (*)  (*) ]  % 22
-          [ (X)  (x)  (=)   40 ]  % 23
-          [ (Y)  (y)  (^)   41 ]  % 24
-          [ (Z)  (z)   pl  (?) ]  % 25
-          [ ( )  ( )  ( )  ({) ]  % 26
-          [  ll   as   ll  (}) ]  % 27
-          [  ml   ml   al  (') ]  % 28
-          [  ps   ps   ps   al ]  % 29
-        ] def
-
-        % Invert charmaps to give character to value maps for each state
-        /charvals [ 30 dict 30 dict 30 dict 30 dict ] def
-        /alltext 104 dict def
-        0 1 charmaps length 1 sub {
-            /i exch def
-            /encs charmaps i get def
-            0 1 3 {
-                /j exch def
-                encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-                dup charvals j get exch i put
-                alltext exch -1 put
-            } for
-        } for
-
-        /e 10000 def  % "Empty"
-
-        /latlen [  % Bit length of latch between submodes
-        % To:  A  L  M  P      From
-            [  0  1  1  2 ]  % A
-            [  2  0  1  2 ]  % L
-            [  1  1  0  1 ]  % M
-            [  1  2  2  0 ]  % P
-        ] def
-
-        /latseq [  % Latch sequences between submodes
-        % To: A       L       M       P               From
-            [ []      [ll]    [ml]    [ml pl]    ]  % A
-            [ [ml al] []      [ml]    [ml pl]    ]  % L
-            [ [al]    [ll]    []      [pl]       ]  % M
-            [ [al]    [al ll] [al ml] []         ]  % P
-        ] def
-
-        /shftlen [  % Bit length of shift to submode
-        % To:  A  L  M  P      From
-            [  e  e  e  1 ]  % A
-            [  1  e  e  1 ]  % L
-            [  e  e  e  1 ]  % M
-            [  e  e  e  e ]  % P
-        ] def
 
         % Determine runlengths of digits
         /numdigits [ msglen {0} repeat 0 ] def
@@ -315,21 +326,17 @@ begin
             } ifelse } ifelse } ifelse } ifelse
         } loop
 
-        /latchcws <<
-            tl 900  bl 901  bl6 924  nl 902  bs 913
-        >> def
-
         % Submode encoding functions
-        /enca {charvals A get exch get} bind def
-        /encl {charvals L get exch get} bind def
-        /encm {charvals M get exch get} bind def
-        /encp {charvals P get exch get} bind def
+        /enca {charvals A get exch get} def
+        /encl {charvals L get exch get} def
+        /encm {charvals M get exch get} def
+        /encp {charvals P get exch get} def
         /textencfuncs [ /enca /encl /encm /encp ] def
 
         /addtotext {
             text exch l exch put
             /l l 1 add def
-        } bind def
+        } def
 
         /enct {
             /in exch def
@@ -460,7 +467,7 @@ begin
 
             out
 
-        } bind def
+        } def
 
         /encn {
             /in exch def
@@ -494,7 +501,7 @@ begin
                 /out [ out aload pop cwn aload pop ] def
             } for
             out
-        } bind def
+        } def
 
         /ence {
             0 get neg 1000000 sub
@@ -507,14 +514,14 @@ begin
             } {
                 /bwipp.pdf417badECI (PDF417 supports ECIs 000000 to 811799) //raiseerror exec
             } ifelse } ifelse } ifelse
-        } bind def
+        } def
 
         /encfuncs [ /enct /encn /encb ] def
 
         /addtocws {
             dup datcws j 3 -1 roll putinterval
             length j add /j exch def
-        } bind def
+        } def
 
         % Encode the sequence
         /state T def /submode A def
@@ -598,7 +605,7 @@ begin
         } {
             pop pop 0
         } ifelse
-    } bind def
+    } def
 
     % Generate the coefficients
     /coeffs [ 1 k {0} repeat ] def
@@ -630,6 +637,7 @@ begin
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Base 10 encoding of the bar space successions for the codewords in each cluster
+{
     /clusters [
         [
             120256 125680 128380 120032 125560 128318 108736 119920 108640  86080 108592  86048
@@ -870,13 +878,14 @@ begin
              67476  69556  67474  69554 116714
         ]
     ] def
+} ctxdef
 
     % Return the 17 bits for a codeword in a given cluster
     /cwtobits {
         clusters exch get exch get /v exch def
         [ 17 {0} repeat v 2 17 string cvrs {48 sub} forall ]
         dup length 17 sub 17 getinterval
-    } bind def
+    } def
 
     % Populate bitmap for the image
     compact {
@@ -928,6 +937,8 @@ begin
     >>
 
     dontdraw not //renmatrix if
+
+    //unloadctx exec
 
     end
 
