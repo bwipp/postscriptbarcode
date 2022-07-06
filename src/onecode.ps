@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER onecode--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: USPS Intelligent Mail
 % --EXAM: 0123456709498765432101234567891
 % --EXOP: barcolor=FF0000
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /height 0.15 def
 
@@ -64,6 +67,8 @@ begin
     options {def} forall
 
     /height height cvr def
+
+    /onecode //loadctx exec
 
     /barlen barcode length def
 
@@ -193,6 +198,7 @@ begin
     } if
 
     % Conversion from codewords to characters
+{
     /tab513 [
         31 7936   47 7808   55 7552   59 7040   61 6016   62 3968   79 7744   87
       7488   91 6976   93 5952   94 3904  103 7360  107 6848  109 5824  110 3776
@@ -290,6 +296,7 @@ begin
        513 4104  514 2056  516 1032 1025 4100 1026 2052 2049 4098 4097 2050 1028
        520  272  160
     ] def
+} ctxdef
 
     /chars 10 array def
     0 1 9 {
@@ -310,6 +317,7 @@ begin
     } for
 
     % Conversion from characters to the OneCode encoding
+{
     /barmap [
         7 2 4 3    1 10 0 0   9 12 2 8   5 5 6 11   8 9 3 1
         0 1 5 12   2 5 1 8    4 4 9 11   6 3 8 10   3 9 7 6
@@ -325,6 +333,7 @@ begin
         5 4 0 11   1 5 2 2    9 1 4 12   8 3 6 6    7 0 3 7
         4 7 7 5    0 12 1 11  2 9 9 0    6 8 5 3    3 10 8 2
     ] def
+} ctxdef
 
     /bbs 65 array def
     /bhs 65 array def
@@ -365,6 +374,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

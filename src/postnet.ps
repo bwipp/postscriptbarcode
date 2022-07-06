@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER postnet--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: USPS POSTNET
 % --EXAM: 01234
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /validatecheck false def
@@ -74,6 +77,8 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /postnet //loadctx exec
+
     /barlen barcode length validatecheck {1 sub} if def
 
     % Validate the input
@@ -86,8 +91,17 @@ begin
         } if
     } forall
 
+{
     % Create a string of the available characters
     /barchars (0123456789) def
+
+    % Create an array containing the character mappings
+    /encs
+    [ (55222) (22255) (22525) (22552) (25225)
+      (25252) (25522) (52225) (52252) (52522)
+      (5) (5)
+    ] def
+} ctxdef
 
     /checksum 0 def
     0 1 barlen 1 sub {
@@ -101,13 +115,6 @@ begin
         } if
         /barcode barcode 0 barlen getinterval def
     } if
-
-    % Create an array containing the character mappings
-    /encs
-    [ (55222) (22255) (22525) (22552) (25225)
-      (25252) (25522) (52225) (52252) (52522)
-      (5) (5)
-    ] def
 
     /bhs barlen 5 mul 7 add array def
     /txt barlen 1 add array def
@@ -170,6 +177,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

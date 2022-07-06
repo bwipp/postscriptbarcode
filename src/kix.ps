@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER kix--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Royal Dutch TPG Post KIX
 % --EXAM: 1231FZ13XHS
 % --EXOP: includetext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /textfont /Courier def
@@ -72,6 +75,9 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /kix //loadctx exec
+
+{
     % Create an array containing the character mappings
     /encs
     [ (0033) (0123) (0132) (1023) (1032) (1122)
@@ -86,6 +92,7 @@ begin
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
     /charvals 36 dict def
     0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
+} ctxdef
 
     % Validate the input
     0 1 barcode length 1 sub {
@@ -141,6 +148,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

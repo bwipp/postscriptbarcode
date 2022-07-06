@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER royalmail--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Royal Mail 4 State Customer Code
 % --EXAM: LE28HS9Z
 % --EXOP: includetext barcolor=FF0000
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /validatecheck false def
@@ -74,10 +77,25 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /royalmail //loadctx exec
+
+{
     % Create a string of the available characters
     /barchars (ZUVWXY501234B6789AHCDEFGNIJKLMTOPQRS) def
     /charvals 36 dict def
     0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
+
+    % Create an array containing the character mappings
+    /encs
+    [ (3300) (2211) (2301) (2310) (3201) (3210)
+      (1122) (0033) (0123) (0132) (1023) (1032)
+      (1302) (0213) (0303) (0312) (1203) (1212)
+      (1320) (0231) (0321) (0330) (1221) (1230)
+      (3102) (2013) (2103) (2112) (3003) (3012)
+      (3120) (2031) (2121) (2130) (3021) (3030)
+      (2) (3)
+    ] def
+} ctxdef
 
     % Validate the input
     0 1 barcode length 1 sub {
@@ -103,17 +121,6 @@ begin
         } if
         /barcode barcode 0 barlen getinterval def
     } if
-
-    % Create an array containing the character mappings
-    /encs
-    [ (3300) (2211) (2301) (2310) (3201) (3210)
-      (1122) (0033) (0123) (0132) (1023) (1032)
-      (1302) (0213) (0303) (0312) (1203) (1212)
-      (1320) (0231) (0321) (0330) (1221) (1230)
-      (3102) (2013) (2103) (2112) (3003) (3012)
-      (3120) (2031) (2121) (2130) (3021) (3030)
-      (2) (3)
-    ] def
 
     /encstr barlen 4 mul 6 add string def
     /txt barlen 1 add array def
@@ -175,6 +182,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 

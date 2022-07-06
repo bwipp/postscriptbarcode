@@ -32,13 +32,15 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER japanpost--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
 % --DESC: Japan Post 4 State Customer Code
 % --EXAM: 6540123789-A-K-Z
 % --EXOP: includetext includecheckintext
 % --RNDR: renlinear
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -49,6 +51,7 @@ begin
     /options exch def              % We are given an option string
     /barcode exch def              % We are given a barcode string
 
+    /ctx null def
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
@@ -73,6 +76,11 @@ begin
     /textyoffset textyoffset cvr def
     /height height cvr def
 
+    /barlen barcode length def
+
+    /japanpost //loadctx exec
+
+{
     % Create an array containing the character mappings
     % 0123456789- C1C2C3C4C5C6C7C8 ST EN
     /encs
@@ -83,7 +91,7 @@ begin
 
     % Create a string of the available characters
     /barchars (0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
-    /barlen barcode length def
+} ctxdef
 
     /encstr 20 1 add 3 mul 4 add string def
     /digits 20 array def
@@ -192,6 +200,8 @@ begin
     >>
 
     dontdraw not //renlinear if
+
+    //unloadctx exec
 
     end
 
