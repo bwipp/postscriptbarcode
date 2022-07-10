@@ -691,6 +691,15 @@ begin
         pop
     } def
 
+    /lintlatlong {
+        dup length 20 ne {
+            pop /bwipp.GS1badGeoLength (Invalid length for a geo-location) false exit
+        } if
+        dup  0 10 getinterval cvi 1800000000 gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
+        dup 10 10 getinterval cvi 3600000000 gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
+        pop
+    } def
+
 {
     /gs1syntax <<
 
