@@ -74,7 +74,7 @@
 ((7230)123) good_tmpl
 ((7230)12) /bwipp.GS1valueTooShort er_tmpl
 
-% N1,zero N13,csum,key X0..16
+% N1,zero N13,csum,key [X..16]
 ((8003)01234567890128) good_tmpl
 ((8003)012345678901281) good_tmpl
 ((8003)012345678901281234567890123456) good_tmpl
@@ -170,7 +170,7 @@
 ((20)1) /bwipp.GS1valueTooShort er_tmpl
 ((20)123) /bwipp.GS1valueTooLong er_tmpl
 
-% N13,csum,key X0..17
+% N13,csum,key [X..17]
 ((253)1234567890128) good_tmpl
 ((253)1234567890128A) good_tmpl
 ((253)1234567890128ABCDEFGHIJKLMNOPQ) good_tmpl
@@ -204,14 +204,14 @@
 ((7030)850) /bwipp.GS1valueTooShort er_tmpl
 ((7030)8501234567890123456789012345678) /bwipp.GS1valueTooLong er_tmpl
 
-% N3..15,iso3166list
+% N1..15,iso3166list
 ((423)850) good_tmpl
 ((423)004100400850894) good_tmpl
 ((423)8501) /bwipp.GS1BadCountryListLength er_tmpl
 ((423)85012) /bwipp.GS1BadCountryListLength er_tmpl
 ((423)) /bwipp.GS1valueTooShort er_tmpl
-((423)1) /bwipp.GS1valueTooShort er_tmpl
-((423)12) /bwipp.GS1valueTooShort er_tmpl
+((423)1) /bwipp.GS1BadCountryListLength er_tmpl
+((423)12) /bwipp.GS1BadCountryListLength er_tmpl
 
 
 % Note: In reality, almost all GCPs are six or more numeric digits so the
@@ -280,14 +280,14 @@
 ((4324)2006152400) /bwipp.GS1badHour er_tmpl
 ((4324)2006151260) /bwipp.GS1badMinute er_tmpl
 
-% N6,yymmdd N0..6,yymmdd
+% N6,yymmdd [N6],yymmdd
 ((7007)200615) good_tmpl
 ((7007)200615200615) good_tmpl
-((7007)2006151) /bwipp.GS1badDateLength er_tmpl
-((7007)20061512) /bwipp.GS1badDateLength er_tmpl
-((7007)200615121) /bwipp.GS1badDateLength er_tmpl
-((7007)2006151212) /bwipp.GS1badDateLength er_tmpl
-((7007)20061512121) /bwipp.GS1badDateLength er_tmpl
+((7007)2006151) /bwipp.GS1valueTooShort er_tmpl
+((7007)20061512) /bwipp.GS1valueTooShort er_tmpl
+((7007)200615121) /bwipp.GS1valueTooShort er_tmpl
+((7007)2006151212) /bwipp.GS1valueTooShort er_tmpl
+((7007)20061512121) /bwipp.GS1valueTooShort er_tmpl
 ((7007)200615121212) good_tmpl
 ((7007)2006151212129) /bwipp.GS1valueTooLong er_tmpl
 
@@ -340,7 +340,7 @@
 ((8007)LC14BOSLxx3456789012345678901230) /bwipp.GS1badIBANcharacter er_tmpl
 ((8007)XX361234567890) /bwipp.GS1UnknownCountryAlpha er_tmpl
 
-% N8,yymmddhh N0..4,optmmss
+% N8,yymmddhh [N..4],optmmss
 ((8008)200615121530) good_tmpl
 ((8008)2006151215) good_tmpl
 ((8008)20061512) good_tmpl
