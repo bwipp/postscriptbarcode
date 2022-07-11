@@ -62,7 +62,7 @@ my $keyval_rx = qr/
 
 my $title_rx = qr/\S.*\S/;
 
-# 123  *  N13,csum,key X0..17  req=01,321 ex=42,101 dlpkey=22,10  # EXAMPLE TITLE
+# 123  *  N13,csum,key [X..17]  req=01,321 ex=42,101 dlpkey=22,10|789  # EXAMPLE TITLE
 my $entry_rx = qr/
     ^
     (?<ais>${ai_rng_rx})
