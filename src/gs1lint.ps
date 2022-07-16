@@ -2579,7 +2579,15 @@ begin
         dup ais exch get /ai exch def
         vals exch get /val exch def
         gs1syntax ai known {
-            gs1syntax ai get /parts get {  % For each component of the AI
+            gs1syntax ai get /parts get
+            % Overall length checks, e.g. to report "too long", not "checksum failure"
+            dup 0 exch {dup /opt get {pop 0} {/min get} ifelse add} forall val length gt {
+                pop /bwipp.GS1valueTooShort (Too short) false exit
+            } if
+            dup 0 exch {/max get add} forall val length lt {
+                pop /bwipp.GS1valueTooLong (Too long) false exit
+            } if
+            {  % Checks for each component of the AI
                 /props exch def
                 props /max get val length 2 copy gt {exch} if pop
                 val exch 0 exch getinterval /eval exch def
