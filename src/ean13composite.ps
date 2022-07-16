@@ -42,6 +42,8 @@
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,6 +56,8 @@ begin
 
     /ctx null def
     /dontdraw false def
+    /parse false def
+    /dontlint false def
 
     % Parse the input options
     options type /stringtype eq {
@@ -80,6 +84,39 @@ begin
     options (lintype) (ean13) put
     options (inkspread) (0) put
     options (dontdraw) true put
+    options (dontlint) true put
+
+    % Parse and lint with a fake AI (01)
+    dontlint not {
+        /expand {
+            /fncvals <<
+                /parse parse
+                /parseonly true
+                /parsefnc false
+            >> def
+            fncvals //parseinput exec
+        } def
+        /ais  [] def
+        /vals [] def
+        comp length 17 add string
+        dup 0 (01\)00000000000000) putinterval  % Value not important
+        dup 17 comp putinterval
+        {  % loop
+            dup () eq {exit} if
+            (\)) search pop
+            exch pop
+            exch (\() search {
+                exch pop exch 3 1 roll
+            } {
+                () 3 1 roll
+            } ifelse
+            [ ais  aload pop counttomark 2 add index ] /ais exch def
+            [ vals aload pop counttomark 1 add index expand ] /vals exch def
+            pop pop
+        } loop
+        pop
+        ais vals //gs1lint exec pop
+    } if
 
     % Plot the linear part
     linear options //ean13 exec //renlinear exec
