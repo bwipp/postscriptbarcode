@@ -2573,6 +2573,7 @@ begin
     >> def
 } ctxdef
 
+    % Validate AI contents
     true
     0 1 vals length 1 sub {
         dup ais exch get /ai exch def
@@ -2596,7 +2597,7 @@ begin
                 } ifelse
             } forall
             dup not {exit} if
-            val length 0 ne {
+            val length 0 ne {  % Not all data consumed by components
                 pop /bwipp.GS1valueTooLong (Too long) false exit
             } if
         } {
@@ -2611,6 +2612,89 @@ begin
         dup 5 ai length add 4 -1 roll putinterval
         //raiseerror exec
     } if
+
+    % Search for "patt" matching an AIs, excluding "this" AI
+    /aiexists {
+        /this exch def
+        /patt exch def
+        1 {  % common exit
+            aivals patt known {true exit} if  % Fast path
+            patt length 4 eq {
+                patt 3 1 getinterval (n) eq {
+                    /pfxlen patt 2 1 getinterval (n) eq {2} {3} ifelse def
+                    false
+                    ais {
+                        dup dup this ne exch length 4 eq and {
+                            0 pfxlen getinterval patt 0 pfxlen getinterval eq {
+                                pop true
+                            } if
+                        } {
+                            pop
+                        } ifelse
+                    } forall
+                    exit
+                } if
+                false exit
+            } if
+            false exit
+        } repeat
+    } def
+
+    % Build AI dict and validate repeats
+    /aivals vals length dict def
+    0 1 vals length 1 sub {
+        dup ais exch get /ai exch def
+        vals exch get /val exch def
+        aivals ai known {
+            aivals ai get val ne {
+                ai length 40 add string
+                dup 0 (Repeated AIs \() putinterval
+                dup 14 ai putinterval
+                dup 14 ai length add (\) must have the same value) putinterval
+                /bwipp.GS1repeatedDifferingAIs exch //raiseerror exec
+            } if
+        } {
+            aivals ai val put
+        } ifelse
+    } for
+
+    % Validate ex and req pairings
+    0 1 vals length 1 sub {
+        ais exch get /ai exch def
+        gs1syntax ai get /ex 2 copy known {
+            get {
+                /patt exch def
+                patt ai aiexists {
+                    ai length patt length add 36 add string
+                    dup 0 (AIs \() putinterval
+                    dup 5 ai putinterval
+                    dup 5 ai length add (\) and \() putinterval
+                    dup 12 ai length add patt putinterval
+                    dup 12 ai length add patt length add (\) are mutually exclusive) putinterval
+                    /bwipp.GS1exclusiveAIs exch //raiseerror exec
+                } if
+            } forall
+        } {
+            pop pop
+        } ifelse
+        gs1syntax ai get /req 2 copy known {
+            get {  % For each req attribute group
+                false exch {  % Any req AI in the group is fine
+                    ai aiexists {pop true} if
+                } forall
+                not {
+                    ai length patt length add 45 add string
+                    dup 0 (One of more requisite AIs for AI \() putinterval
+                    dup 34 ai putinterval
+                    dup 34 ai length add (\) are missing) putinterval
+                    /bwipp.GS1missingAIs exch //raiseerror exec
+                } if
+            } forall
+        } {
+            pop pop
+        } ifelse
+    } for
+
     true
 
     //unloadctx exec
