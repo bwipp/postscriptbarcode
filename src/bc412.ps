@@ -81,7 +81,7 @@ begin
     /height height cvr def
 
     semi {
-        /includecheck true def
+        % Implies includecheck and includecheckintext also
         /includestartstop true def
     } if
 
@@ -101,21 +101,63 @@ begin
         } if
     } for
 
-    /barlen barcode length validatecheck {1 sub} if def
+    semi {
+        % Validate length
+        validatecheck {
+            barcode length 8 lt barcode length 19 gt or {
+                /bwipp.bc412semivalidateBadLength (BC412 semi with check digit must be 8 to 19 characters long) //raiseerror exec
+            } if
+        } {
+            barcode length 7 lt barcode length 18 gt or {
+                /bwipp.bc412semiBadLength (BC412 semi must be 7 to 18 characters long) //raiseerror exec
+            } if
+        } ifelse
 
-    /checksum 0 def
-    0 1 barlen 1 sub {
-        barcode exch 1 getinterval charvals exch get
-        checksum add /checksum exch def
-    } for
-    /checksum checksum 35 mod def
-    validatecheck {
-        barcode barlen get barchars checksum get ne {
-            /bwipp.bc412badCheckDigit (Incorrect BC412 check digit provided) //raiseerror exec
+        /barlen barcode length def
+        validatecheck not {  % Place dummy (0) in checksum position (1-based 2nd)
+            /barlen barlen 1 add def
+            /sbarcode barlen string def
+            sbarcode 0 barcode 0 get put
+            sbarcode 1 48 put  % (0)
+            sbarcode 2 barcode 1 barlen 2 sub getinterval putinterval
+            /barcode sbarcode def
         } if
-        /barcode barcode 0 barlen getinterval def
-        /includecheck true def
-    } if
+        /sumodd 0 def /sumeven 0 def
+        0 1 barlen 1 sub {
+            /i exch def
+            barcode i 1 getinterval charvals exch get
+            i 2 mod 0 eq {  % 1-based odd
+                sumodd add /sumodd exch def
+            } {
+                sumeven add /sumeven exch def
+            } ifelse
+        } for
+        /checksum sumodd 35 mod sumeven 35 mod 2 mul add 35 mod def  % F = Mod35( Mod35( Fodd ) + 2 * Mod35( Feven ) )
+        validatecheck {
+            checksum 0 ne {
+                /bwipp.bc412semiBadCheckDigit (Incorrect BC412 semi check digit provided) //raiseerror exec
+            } if
+        } {
+            /checksum checksum 17 mul 35 mod def  % CD = Mod35( 17 * F )
+            barcode 1 barchars checksum get put
+        } ifelse
+    } {
+        /barlen barcode length validatecheck {1 sub} if def
+
+        /checksum 0 def
+        0 1 barlen 1 sub {
+            barcode exch 1 getinterval charvals exch get
+            checksum add /checksum exch def
+        } for
+        /checksum checksum 35 mod def
+        validatecheck {
+            barcode barlen get barchars checksum get ne {
+                /bwipp.bc412badCheckDigit (Incorrect BC412 check digit provided) //raiseerror exec
+            } if
+            /barcode barcode 0 barlen getinterval def
+            /includecheck true def
+        } if
+    } ifelse
 
     % Create an array containing the character mappings
 {
@@ -170,7 +212,7 @@ begin
     % Put the stop character
     includestartstop {
         sbs pos encs 36 get putinterval
-        /pos pos 2 add def
+        /pos pos 3 add def
     } if
 
     % Return the arguments
