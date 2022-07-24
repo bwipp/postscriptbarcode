@@ -1,0 +1,105 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2022 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER gs1dldatamatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renmatrix datamatrix--
+% --DESC: GS1 Digital Link Data Matrix
+% --EXAM: https://id.gs1.org/01/12312312312333/22/ABC%2d123?99=XYZ%2f987#test
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1dldatamatrix {
+
+    20 dict begin            % Confine variables to local scope
+
+    /options exch def  % We are given an option string
+    /barcode exch def  % We are given a barcode string
+
+    /ctx null def
+    /parse false def
+    /dontlint false def
+    /lintreqs true def
+    /dontdraw false def
+
+    % Parse the input options
+    options type /stringtype eq {
+        1 dict begin
+        options {
+            token false eq {exit} if dup length string cvs (=) search
+            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
+        } loop
+        currentdict end /options exch def
+    } if
+    options {def} forall
+
+    /gs1dldatamatrix //loadctx exec
+
+    % Parse the input
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    /barcode barcode fncvals //parseinput exec def
+
+    dontlint not { barcode /dl //gs1lint exec pop } if
+
+    % Get the result of encoding with datamatrix
+    options (parse) undef
+    options (dontdraw) true put
+    /args barcode options //datamatrix exec def
+
+    args (opt) options put
+    args
+
+    dontdraw not //renmatrix if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/gs1dldatamatrix dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1dldatamatrix--
