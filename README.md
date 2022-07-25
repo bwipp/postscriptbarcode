@@ -15,7 +15,7 @@ Useful links:
 * Source: <https://github.com/bwipp/postscriptbarcode.git>
 * Support: <https://github.com/bwipp/postscriptbarcode/discussions>
 * Issues: <https://github.com/bwipp/postscriptbarcode/issues>
-* Presentation: Slides: <https://goo.gl/WqYB6A> Materials: <https://goo.gl/dth54z>
+* Presentation: Slides: <https://goo.gl/WqYB6A>
 
 Barcode Writer in Pure Postscript (BWIPP) generates all barcode formats
 entirely within PostScript so that the process of converting the input data
