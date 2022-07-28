@@ -3,20 +3,21 @@
 /gs1lint dup /uk.co.terryburton.bwipp findresource cvx def
 
 /good_tmpl {
-    { 0 /dl gs1lint } exch
+    { 0 /dl gs1lint null } exch
     1 index 0 3 -1 roll put
-    true isEqual
+    null isEqual
 } def
 
 
 /er_tmpl {
-    exch { 0 /dl gs1lint } 3 1 roll
-    2 index  0 3 -1 roll put
+    exch { 0 /dl gs1lint null } 3 1 roll
+    2 index 0 3 -1 roll put
     isError
 } def
 
 
 /ctx null def
+/dontlint false def
 /lintreqs true def
 
 () /bwipp.GS1dlURIbadScheme er_tmpl
