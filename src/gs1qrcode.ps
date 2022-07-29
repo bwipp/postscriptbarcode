@@ -32,14 +32,14 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1qrcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renmatrix qrcode--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renmatrix qrcode--
 % --DESC: GS1 QR Code
 % --EXAM: (01)03453120000011(8200)http://www.abc.net(10)ABCD1234(410)9501101020917
 % --EXOP:
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -67,7 +67,7 @@ begin
     } if
     options {def} forall
 
-    barcode /ai //gs1lint exec
+    barcode /ai //gs1process exec
     /fncs exch def
     /vals exch def
     /ais exch def

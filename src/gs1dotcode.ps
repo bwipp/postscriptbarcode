@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1dotcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renmatrix dotcode--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renmatrix dotcode--
 % --DESC: GS1 DotCode
 % --EXAM: (235)5vBZIF%!<B;?oa%(01)01234567890128(8008)19052001
 % --EXOP: rows=16
@@ -40,7 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /dotcode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -68,7 +68,7 @@ begin
     } if
     options {def} forall
 
-    barcode /ai //gs1lint exec
+    barcode /ai //gs1process exec
     /fncs exch def
     /vals exch def
     /ais exch def

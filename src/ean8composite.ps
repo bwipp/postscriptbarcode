@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean8composite--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix ean5 ean2 ean8 micropdf417 pdf417 gs1-cc--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear renmatrix ean5 ean2 ean8 micropdf417 pdf417 gs1-cc--
 % --DESC: EAN-8 Composite
 % --EXAM: 02345673|(21)A12345678
 % --EXOP: includetext
@@ -42,7 +42,7 @@
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /ean8 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -91,7 +91,7 @@ begin
     comp length 18 add string
     dup 0 ((01)00000000000000) putinterval
     dup 18 comp putinterval
-    /ai //gs1lint exec pop pop pop
+    /ai //gs1process exec pop pop pop
 
     % Plot the linear part
     linear options //ean8 exec //renlinear exec

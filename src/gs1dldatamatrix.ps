@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1dldatamatrix--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renmatrix datamatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renmatrix datamatrix--
 % --DESC: GS1 Digital Link Data Matrix
 % --EXAM: https://id.gs1.org/01/12312312312333/22/ABC%2d123?99=XYZ%2f987#test
 % --EXOP:
@@ -40,7 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -76,7 +76,7 @@ begin
     >> def
     /barcode barcode fncvals //parseinput exec def
 
-    barcode /dl //gs1lint exec pop pop pop
+    barcode /dl //gs1process exec pop pop pop
 
     % Get the result of encoding with datamatrix
     options (parse) undef

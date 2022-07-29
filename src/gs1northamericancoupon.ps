@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1northamericancoupon--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix databarexpanded databarexpandedstacked--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear renmatrix databarexpanded databarexpandedstacked--
 % --DESC: GS1 North American Coupon
 % --EXAM: (8110)106141416543213500110000310123196000
 % --EXOP: includetext segments=8
@@ -40,7 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -78,7 +78,7 @@ begin
     coupontextxoffset (unset) ne {/coupontextxoffset coupontextxoffset cvr def} if
     coupontextyoffset (unset) ne {/coupontextyoffset coupontextyoffset cvr def} if
 
-    barcode /ai //gs1lint exec
+    barcode /ai //gs1process exec
     pop
     /vals exch def
     /ais exch def

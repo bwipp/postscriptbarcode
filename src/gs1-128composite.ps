@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1-128composite--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1lint renlinear renmatrix code128 gs1-128 micropdf417 pdf417 gs1-cc--
+% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear renmatrix code128 gs1-128 micropdf417 pdf417 gs1-cc--
 % --DESC: GS1-128 Composite
 % --EXAM: (00)030123456789012340|(02)13012345678909(37)24(10)1234567ABCDEFG
 % --EXOP: ccversion=c
@@ -42,7 +42,7 @@
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-128 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
-dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -89,7 +89,7 @@ begin
     linear length comp length add string
     dup 0 linear putinterval
     dup linear length comp putinterval
-    /ai //gs1lint exec pop pop pop
+    /ai //gs1process exec pop pop pop
 
     % Dummy plot of linear part with CC-A to get width
     options (linkagea) true put
