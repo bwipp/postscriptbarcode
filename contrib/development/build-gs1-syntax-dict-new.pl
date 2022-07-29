@@ -102,18 +102,12 @@ while (<>) {
     $_ =~ $entry_rx or die "Bad entry: $_";
 
     my $ais = $+{ais};
-    my $flags = $+{flags} || '';
+#    my $flags = $+{flags} || '';       # ignored
     my $spec = $+{spec};
     my $keyvals = $+{keyvals} || '';
 #    my $title = $+{title} || '';       # ignored
 
-    my $specstr = "        <<\n";
-
-    # Predefined fixed length AIs
-    $specstr .= "            /fixed  true\n" if $flags eq '*';
-
-    # Components
-    $specstr .= "            /parts  [\n";
+    my $specstr = "        <<\n            /parts [\n";
     foreach (split /\s+/, $spec) {
 
         (my $cset, my $linters) = split(',', $_, 2);
