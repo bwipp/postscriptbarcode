@@ -40,8 +40,6 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
@@ -70,8 +68,6 @@ begin
     } if
     options {def} forall
 
-    /gs1dlqrcode //loadctx exec
-
     % Parse the input
     /fncvals <<
         /parse parse
@@ -80,7 +76,7 @@ begin
     >> def
     /barcode barcode fncvals //parseinput exec def
 
-    barcode /dl //gs1lint exec
+    barcode /dl //gs1lint exec pop pop pop
 
     % Get the result of encoding with qrcode
     options (parse) undef
@@ -91,8 +87,6 @@ begin
     args
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 

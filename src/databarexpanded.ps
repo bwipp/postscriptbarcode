@@ -42,7 +42,6 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -90,36 +89,10 @@ begin
         } if
     } ifelse
 
-    % Expand ordinals of the form ^NNN to ASCII
-    /expand {
-        /fncvals <<
-            /parse parse
-            /parseonly true
-            /parsefnc false
-        >> def
-        fncvals //parseinput exec
-    } def
-
-    % Parse out AIs
-    /ais  [] def
-    /vals [] def
-    barcode dup length 1 sub 1 exch getinterval
-    {  % loop
-        dup () eq {exit} if
-        (\)) search pop
-        exch pop
-        exch (\() search {
-            exch pop exch 3 1 roll
-        } {
-            () 3 1 roll
-        } ifelse
-        [ ais  aload pop counttomark 2 add index ] /ais exch def
-        [ vals aload pop counttomark 1 add index expand ] /vals exch def
-        pop pop
-    } loop
-    pop
-
-    ais vals /ai //gs1lint exec
+    barcode /ai //gs1lint exec
+    /fncs exch def
+    /vals exch def
+    /ais exch def
 
     % Method selection
     {  % common exit
@@ -244,6 +217,7 @@ begin
         /gpf [] def
         /ais  ais  1 ais  length 1 sub getinterval def
         /vals vals 1 vals length 1 sub getinterval def
+        /fncs fncs 1 fncs length 1 sub getinterval def
     } if
 
     method (0100) eq {
@@ -254,6 +228,7 @@ begin
         /gpf [] def
         /ais [] def
         /vals [] def
+        /fncs [] def
     } if
 
     method (0101) eq {
@@ -269,6 +244,7 @@ begin
         /gpf [] def
         /ais [] def
         /vals [] def
+        /fncs [] def
     } if
 
     method length 7 eq {
@@ -290,6 +266,7 @@ begin
         /gpf [] def
         /ais [] def
         /vals [] def
+        /fncs [] def
     } if
 
     method (01100) eq {
@@ -300,6 +277,7 @@ begin
         /gpf [ vals 1 get {} forall ais length 2 gt { fnc1 } if ] def
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
+        /fncs fncs 2 fncs length 2 sub getinterval def
     } if
 
     method (01101) eq {
@@ -311,6 +289,7 @@ begin
         /gpf [ vals 1 get dup length 3 sub 3 exch getinterval {} forall ais length 2 gt { fnc1 } if ] def
         /ais  ais  2 ais  length 2 sub getinterval def
         /vals vals 2 vals length 2 sub getinterval def
+        /fncs fncs 2 fncs length 2 sub getinterval def
     } if
 
     % Variable length symbol field
@@ -320,25 +299,7 @@ begin
         /vlf [] def
     } ifelse
 
-    % Pre-defined fixed length data field AIs
-    % any AI whose prefix is not included in this table must be
-    % terminated with "FNC1", even if it's fixed length
 {
-    /aifixed 23 dict def
-    [
-        0 1 4 {} for
-    ] {
-        (00) 2 string copy dup dup 1 5 -1 roll 48 add put aifixed 3 1 roll put
-    } forall
-    [
-        11 1 20 {} for
-        23
-        31 1 36 {} for
-        41
-    ] {
-        10 2 string cvrs dup aifixed 3 1 roll put
-    } forall
-
     /numeric <<
         0 1 119 {
             dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
@@ -388,7 +349,7 @@ begin
         dup gpf length ai [ exch {} forall ] putinterval
         dup gpf length ai length add val [ exch {} forall ] putinterval
         /gpf exch def
-        i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
+        i ais length 1 sub ne fncs i get and {  % Append FNC1
             gpf length 1 add array
             dup 0 gpf putinterval
             dup gpf length fnc1 put

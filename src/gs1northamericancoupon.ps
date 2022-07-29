@@ -40,7 +40,6 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
@@ -79,34 +78,10 @@ begin
     coupontextxoffset (unset) ne {/coupontextxoffset coupontextxoffset cvr def} if
     coupontextyoffset (unset) ne {/coupontextyoffset coupontextyoffset cvr def} if
 
-    % Expand ordinals of the form ^NNN to ASCII
-    /expand {
-        /fncvals <<
-            /parse parse
-            /parseonly true
-            /parsefnc false
-        >> def
-        fncvals //parseinput exec
-    } bind def
-
-    % Parse out AIs
-    /ais  [] def
-    /vals [] def
-    barcode dup length 1 sub 1 exch getinterval
-    {  % loop
-        dup () eq {exit} if
-        (\)) search pop
-        exch pop
-        exch (\() search {
-            exch pop exch 3 1 roll
-        } {
-            () 3 1 roll
-        } ifelse
-        [ ais  aload pop counttomark 2 add index ] /ais exch def
-        [ vals aload pop counttomark 1 add index expand ] /vals exch def
-        pop pop
-    } loop
+    barcode /ai //gs1lint exec
     pop
+    /vals exch def
+    /ais exch def
 
     % Validate the AI structure
     ais length 1 ne {
@@ -115,8 +90,6 @@ begin
     ais 0 get (8110) ne {
       /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
     } if
-
-    ais vals /ai //gs1lint exec
 
     % Parse out the Company Prefix and Offer Code
     /val vals 0 get def

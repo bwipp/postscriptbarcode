@@ -39,9 +39,6 @@
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /parseinput dup /uk.co.terryburton.bwipp findresource put
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /gs1lint dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
@@ -70,58 +67,10 @@ begin
     } if
     options {def} forall
 
-    /gs1qrcode //loadctx exec
-
-    % Expand ordinals of the form ^NNN to ASCII
-    /expand {
-        /fncvals <<
-            /parse parse
-            /parseonly true
-            /parsefnc false
-        >> def
-        fncvals //parseinput exec
-    } bind def
-
-    % Parse out AIs
-    /ais  [] def
-    /vals [] def
-    barcode dup length 1 sub 1 exch getinterval
-    {  % loop
-        dup () eq {exit} if
-        (\)) search pop
-        exch pop
-        exch (\() search {
-            exch pop exch 3 1 roll
-        } {
-            () 3 1 roll
-        } ifelse
-        [ ais  aload pop counttomark 2 add index ] /ais exch def
-        [ vals aload pop counttomark 1 add index expand ] /vals exch def
-        pop pop
-    } loop
-    pop
-
-    ais vals /ai //gs1lint exec
-
-    % Pre-defined fixed length data field AIs
-    % any AI whose prefix is not included in this table must be
-    % terminated with "FNC1", even if it's fixed length
-{
-    /aifixed 23 dict def
-    [
-        0 1 4 {} for
-    ] {
-        (00) 2 string copy dup dup 1 5 -1 roll 48 add put aifixed 3 1 roll put
-    } forall
-    [
-        11 1 20 {} for
-        23
-        31 1 36 {} for
-        41
-    ] {
-        10 2 string cvrs dup aifixed 3 1 roll put
-    } forall
-} ctxdef
+    barcode /ai //gs1lint exec
+    /fncs exch def
+    /vals exch def
+    /ais exch def
 
     % Create the qrcode data
     /fnc1 -1 def
@@ -135,7 +84,7 @@ begin
         dup qrc length ai [ exch {} forall ] putinterval
         dup qrc length ai length add val [ exch {} forall ] putinterval
         /qrc exch def
-        i ais length 1 sub ne aifixed ai 0 2 getinterval known not and {  % Append FNC1
+        i ais length 1 sub ne fncs i get and {  % Append FNC1
             qrc length 1 add array
             dup 0 qrc putinterval
             dup qrc length fnc1 put
@@ -168,8 +117,6 @@ begin
     args
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 

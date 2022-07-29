@@ -2,51 +2,21 @@
 
 /gs1lint dup /uk.co.terryburton.bwipp findresource cvx def
 
-/parse {
-    /barcode exch def
-    /ais  [] def
-    /vals [] def
-    barcode dup length 1 sub 1 exch getinterval
-    {  % loop
-        dup () eq {exit} if
-        (\)) search pop
-        exch pop
-        exch (\() search {
-            exch pop exch 3 1 roll
-        } {
-            () 3 1 roll
-        } ifelse
-        [ ais  aload pop counttomark 2 add index ] /ais exch def
-        [ vals aload pop counttomark 1 add index ] /vals exch def
-        pop pop
-    } loop
-    pop
-    ais vals
-} bind def
-
 /good_tmpl {
-    parse { 0 0 /ai gs1lint null } 3 1 roll
-    2 index 1 3 -1 roll put
-    1 index 0 3 -1 roll put
-    null isEqual
-} def
-
-/good_no_parse_tmpl {
-    { 0 0 /ai gs1lint null } 3 1 roll
-    2 index 1 3 -1 roll put
+    { 0 /ai gs1lint pop pop pop null } exch
     1 index 0 3 -1 roll put
     null isEqual
 } def
 
 /er_tmpl {
-    exch parse { 0 0 /ai gs1lint null } 3 1 roll
-    2 index 1 3 -1 roll put
+    exch { 0 /ai gs1lint pop pop pop null } exch
     1 index 0 3 -1 roll put
     exch isError
 } def
 
 
 /ctx null def
+/parse false def
 /dontlint false def
 /lintreqs true def
 
@@ -371,7 +341,7 @@
 ((8013)12345_NOPQRSTUVWXYZDN) good_tmpl
 ((8013)12345_abcdefghijklmN3) good_tmpl
 ((8013)12345_nopqrstuvwxyzP2) good_tmpl
-[(8013)] [(12345_!"%&'()*+,-./LC)] good_no_parse_tmpl  % TODO add parse option processing
+%[(8013)] [(12345_!"%&'()*+,-./LC)] good_no_parse_tmpl  % TODO add parse option processing
 ((8013)12345_0123456789:;<=>?62) good_tmpl
 ((8013)7907665Bm8v2AB) good_tmpl
 ((8013)97850l6KZm0yCD) good_tmpl
