@@ -125,7 +125,7 @@ test:
 	tests/run_tests
 
 $(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
-	$(DSTDIR)/make_deps $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
+	$(DSTDIR)/make_deps.pl $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
 cleanlist += ${SOURCES:.ps=.d}
 
 ifneq "$(MAKECMDGOALS)" "clean"
@@ -141,10 +141,10 @@ $(RESMKDIRSTAMP):
 	touch $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
-	$(DSTDIR)/make_resource $< $@
+	$(DSTDIR)/make_resource.pl $< $@
 
 $(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
-	$(DSTDIR)/make_resource $< $@
+	$(DSTDIR)/make_resource.pl $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(RESMKDIRSTAMP)
 	cp $< $@
@@ -168,10 +168,10 @@ $(PACKAGEMKDIRSTAMP):
 	touch $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
-	$(DSTDIR)/make_resource $< $@
+	$(DSTDIR)/make_resource.pl $< $@
 
 $(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
-	$(DSTDIR)/make_resource $< $@
+	$(DSTDIR)/make_resource.pl $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(PACKAGEMKDIRSTAMP)
 	cp $< $@
@@ -195,7 +195,7 @@ $(MONOLITHIC_MKDIRSTAMP):
 	touch $@
 
 $(MONOLITHIC_FILE): $(TARGETS_RES) $(SRCDIR)/ps.head $(CHANGES_FILE) $(UPR_FILE) $(MONOLITHIC_MKDIRSTAMP)
-	$(DSTDIR)/make_monolithic $(RESDIR)/Resource >$@
+	$(DSTDIR)/make_monolithic.pl $(RESDIR)/Resource >$@
 $(MONOLITHIC_FILE_WITH_SAMPLE): $(MONOLITHIC_FILE) $(SRCDIR)/sample $(MONOLITHIC_MKDIRSTAMP)
 	cat $(MONOLITHIC_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_DIR)/README: $(SRCDIR)/README.monolithic $(MONOLITHIC_MKDIRSTAMP)
@@ -216,7 +216,7 @@ $(MONOLITHIC_PACKAGE_MKDIRSTAMP):
 	touch $@
 
 $(MONOLITHIC_PACKAGE_FILE): $(TARGETS_PACKAGE) $(SRCDIR)/ps.head $(CHANGES_FILE) $(UPR_FILE) $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
-	$(DSTDIR)/make_monolithic $(PACKAGEDIR)/Resource >$@
+	$(DSTDIR)/make_monolithic.pl $(PACKAGEDIR)/Resource >$@
 $(MONOLITHIC_PACKAGE_FILE_WITH_SAMPLE): $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
 	cat $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/sample > $@
 $(MONOLITHIC_PACKAGE_DIR)/README: $(SRCDIR)/README.monolithic $(MONOLITHIC_PACKAGE_MKDIRSTAMP)
@@ -235,7 +235,7 @@ $(STANDALONE_MKDIRSTAMP):
 	touch $@
 
 $(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
-	$(DSTDIR)/make_standalone $< $@
+	$(DSTDIR)/make_standalone.pl $< $@
 
 #------------------------------------------------------------
 
@@ -244,7 +244,7 @@ $(STANDALONE_PACKAGE_MKDIRSTAMP):
 	touch $@
 
 $(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
-	$(DSTDIR)/make_standalone $< $@
+	$(DSTDIR)/make_standalone.pl $< $@
 
 #------------------------------------------------------------
 
