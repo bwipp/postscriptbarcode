@@ -1,9 +1,11 @@
 NAME = postscriptbarcode
 
+PYTHON_BIN=python3
+
 PYTHON_MAKEFILE     = setup.py
 PYTHON_OUT = _$(NAME).so
 
-cleanlist += $(NAME).py $(NAME).pyc $(NAME)_wrap.c 
+cleanlist += $(NAME).py $(NAME).pyc $(NAME)_wrap.c
 
 .PHONY: all swig-python install uninstall clean
 
@@ -12,19 +14,19 @@ all: swig-python
 swig-python: $(PYTHON_OUT)
 
 $(PYTHON_OUT): $(PYTHON_MAKEFILE)
-	python $< build_ext --inplace
+	$(PYTHON_BIN) $< build_ext --inplace
 
 test: swig-python
-	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) python $(PYTHON_MAKEFILE) test
+	LD_LIBRARY_PATH=../../c:$(LD_LIBRARY_PATH) $(PYTHON_BIN) $(PYTHON_MAKEFILE) test
 
 install: $(PYTHON_MAKEFILE) $(PYTHON_OUT)
-	python $< install
+	$(PYTHON_BIN) $< install
 
 uninstall: $(PYTHON_MAKEFILE)
-	python $< uninstall
+	$(PYTHON_BIN) $< uninstall
 
 clean:
-	python $(PYTHON_MAKEFILE) clean --all
+	$(PYTHON_BIN) $(PYTHON_MAKEFILE) clean --all
 	$(RM) $(cleanlist) *.pyc
 	$(RM) $(cleanlist) $(PYTHON_OUT)
 
