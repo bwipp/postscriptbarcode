@@ -44,7 +44,7 @@
 #elif defined(_MSC_VER)
 #include <CodeAnalysis/warnings.h>
 #pragma warning(push)
-#pragma warning(disable: ALL_CODE_ANALYSIS_WARNINGS)
+#pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
 #endif
 
 #include "acutest.h"
@@ -62,87 +62,81 @@
 
 #include "postscriptbarcode.h"
 
-
 static void test_api_bwipp_load_from_file(void) {
 
-	BWIPP *ctx;
+  BWIPP *ctx;
 
-	TEST_CHECK((ctx = bwipp_load_from_file("../../build/monolithic/barcode.ps")) != NULL);
+  TEST_CHECK((ctx = bwipp_load_from_file(
+                  "../../build/monolithic/barcode.ps")) != NULL);
 
-	bwipp_unload(ctx);
-
+  bwipp_unload(ctx);
 }
-
 
 static void test_api_bwipp_get_version(void) {
 
-	BWIPP *ctx;
-	const char *version;
+  BWIPP *ctx;
+  const char *version;
 
-	TEST_ASSERT((ctx = bwipp_load_from_file("../../build/monolithic/barcode.ps")) != NULL);
-	TEST_CHECK((version = bwipp_get_version(ctx)) != NULL);
-	TEST_CHECK(strlen(version) >= 10);
+  TEST_ASSERT((ctx = bwipp_load_from_file(
+                   "../../build/monolithic/barcode.ps")) != NULL);
+  TEST_CHECK((version = bwipp_get_version(ctx)) != NULL);
+  TEST_CHECK(strlen(version) >= 10);
 
-	bwipp_unload(ctx);
-
+  bwipp_unload(ctx);
 }
-
 
 static void test_api_bwipp_emit_required_resources(void) {
 
-	BWIPP *ctx;
-	char *out;
+  BWIPP *ctx;
+  char *out;
 
-	TEST_ASSERT((ctx = bwipp_load_from_file("../../build/monolithic/barcode.ps")) != NULL);
+  TEST_ASSERT((ctx = bwipp_load_from_file(
+                   "../../build/monolithic/barcode.ps")) != NULL);
 
-	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "code39ext")) != NULL);
-	bwipp_free(out);
+  TEST_CHECK((out = bwipp_emit_required_resources(ctx, "code39ext")) != NULL);
+  bwipp_free(out);
 
-	// Resource does not exist
-	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "xyz")) != NULL);
-	TEST_CHECK(strcmp(out, "") == 0);
-	bwipp_free(out);
+  // Resource does not exist
+  TEST_CHECK((out = bwipp_emit_required_resources(ctx, "xyz")) != NULL);
+  TEST_CHECK(strcmp(out, "") == 0);
+  bwipp_free(out);
 
-	bwipp_unload(ctx);
-
+  bwipp_unload(ctx);
 }
-
 
 static void test_api_bwipp_emit_all_resources(void) {
 
-	BWIPP *ctx;
-	char *out;
+  BWIPP *ctx;
+  char *out;
 
-	TEST_ASSERT((ctx = bwipp_load_from_file("../../build/monolithic/barcode.ps")) != NULL);
+  TEST_ASSERT((ctx = bwipp_load_from_file(
+                   "../../build/monolithic/barcode.ps")) != NULL);
 
-	TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
-	bwipp_free(out);
+  TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
+  bwipp_free(out);
 
-	bwipp_unload(ctx);
-
+  bwipp_unload(ctx);
 }
-
 
 static void test_api_bwipp_emit_exec(void) {
 
-	BWIPP *ctx;
-	char *out;
+  BWIPP *ctx;
+  char *out;
 
-	TEST_ASSERT((ctx = bwipp_load_from_file("../../build/monolithic/barcode.ps")) != NULL);
+  TEST_ASSERT((ctx = bwipp_load_from_file(
+                   "../../build/monolithic/barcode.ps")) != NULL);
 
-	TEST_CHECK((out = bwipp_emit_exec(ctx, "qrcode", "TESTING123", "version=20")) != NULL);
-	bwipp_free(out);
+  TEST_CHECK((out = bwipp_emit_exec(ctx, "qrcode", "TESTING123",
+                                    "version=20")) != NULL);
+  bwipp_free(out);
 
-	bwipp_unload(ctx);
-
+  bwipp_unload(ctx);
 }
 
-
 TEST_LIST = {
-	{ "bwipp_load_from_file", test_api_bwipp_load_from_file },
-	{ "bwipp_get_version", test_api_bwipp_get_version },
-	{ "bwipp_emit_required_resources", test_api_bwipp_emit_required_resources },
-	{ "bwipp_emit_all_resources", test_api_bwipp_emit_all_resources },
-	{ "bwipp_emit_exec", test_api_bwipp_emit_exec },
-	{ NULL, NULL }
-};
+    {"bwipp_load_from_file", test_api_bwipp_load_from_file},
+    {"bwipp_get_version", test_api_bwipp_get_version},
+    {"bwipp_emit_required_resources", test_api_bwipp_emit_required_resources},
+    {"bwipp_emit_all_resources", test_api_bwipp_emit_all_resources},
+    {"bwipp_emit_exec", test_api_bwipp_emit_exec},
+    {NULL, NULL}};

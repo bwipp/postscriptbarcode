@@ -60,29 +60,24 @@
  *
  */
 
-
 #ifndef BWIPP_H
 #define BWIPP_H
 
-
 // Decorator for public API functions that we export
 #if _WIN32
-#  define BWIPP_API __declspec(dllexport)
+#define BWIPP_API __declspec(dllexport)
 #else
-#  define BWIPP_API
+#define BWIPP_API
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
 /**
  * @brief A BWIPP context.
  */
 typedef struct BWIPP BWIPP;
-
 
 /**
  * @brief Load the BWIPP resources by searching for barcode.ps in default
@@ -90,7 +85,6 @@ typedef struct BWIPP BWIPP;
  * @return ::BWIPP context on success, else NULL.
  */
 BWIPP_API BWIPP *bwipp_load(void);
-
 
 /**
  * @brief Load the BWIPP resources from a given resource file.
@@ -100,7 +94,6 @@ BWIPP_API BWIPP *bwipp_load(void);
  */
 BWIPP_API BWIPP *bwipp_load_from_file(const char *filename);
 
-
 /**
  * @brief Unload the BWIPP resources.
  *
@@ -109,7 +102,6 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename);
  */
 BWIPP_API void bwipp_unload(BWIPP *ctx);
 
-
 /**
  * @brief Provide the version of BWIPP that has been loaded.
  *
@@ -117,7 +109,6 @@ BWIPP_API void bwipp_unload(BWIPP *ctx);
  * @return A string containing the version.
  */
 BWIPP_API const char *bwipp_get_version(BWIPP *ctx);
-
 
 /**
  * @brief Provides the set of BWIPP resources required to generate a
@@ -130,7 +121,6 @@ BWIPP_API const char *bwipp_get_version(BWIPP *ctx);
  */
 BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name);
 
-
 /**
  * @brief Provides the complete set of BWIPP resources.
  *
@@ -139,7 +129,6 @@ BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name);
  *          which the caller should release with bwipp_free().
  */
 BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx);
-
 
 /**
  * @brief Provide the PostScript code that invokes a barcode with given
@@ -152,9 +141,8 @@ BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx);
  * @return The PostScript code that invokes the barcode, which the caller
  *          should release with bwipp_free().
  */
-BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *barcode, const char *contents,
-                      const char *options);
-
+BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *barcode,
+                                const char *contents, const char *options);
 
 /**
  * @brief Free memory belonging to a BWIPP provided allocation.
@@ -163,10 +151,8 @@ BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *barcode, const char *con
  */
 BWIPP_API void bwipp_free(void *p);
 
-
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* BWIPP_H */
