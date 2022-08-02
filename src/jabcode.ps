@@ -98,28 +98,28 @@ begin
         /arrayw {
             dup 65535 idiv 1 add dup array exch 0 exch 1 sub {2 copy 65535 array put 1 add} repeat
             1 index 4 1 roll 3 -1 roll 65535 mod array put
-        } bind def
-        /getw  {exch 1 index 65535 idiv get exch 65535 mod get} bind def
-        /putw  {3 1 roll exch 1 index 65535 idiv get exch 65535 mod 3 -1 roll put} bind def
-        /copyw {exch 0 exch {dup length array copy 3 copy put pop 1 add} forall pop} bind def
+        } def
+        /getw  {exch 1 index 65535 idiv get exch 65535 mod get} def
+        /putw  {3 1 roll exch 1 index 65535 idiv get exch 65535 mod 3 -1 roll put} def
+        /copyw {exch 0 exch {dup length array copy 3 copy put pop 1 add} forall pop} def
     } {
         pop
-        /arrayw {array} bind def
-        /getw   {get}   bind def
-        /putw   {put}   bind def
-        /copyw  {copy}  bind def
+        /arrayw {array} def
+        /getw   {get}   def
+        /putw   {put}   def
+        /copyw  {copy}  def
     } ifelse
 
     /addtobits {
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
-    } bind def
+    } def
 
     /tofixedbits {  % Zero padded base 2 string
         (0000000000000) 13 string copy dup 4 -1 roll 2 13 string cvrs
         dup length 4 index exch sub exch putinterval
         0 3 -1 roll getinterval
-    } bind def
+    } def
 
     % Encode the data using byte mode encoding and terminate with EOM
     /bits 7 msglen 15 le {4} {17} ifelse add msglen 8 mul add 12 add string def
@@ -185,12 +185,12 @@ begin
         dup              /nummetamodules exch def
         add add add sub  /numdatamodules exch def
         /numdatabits numdatamodules databpm mul def
-    } bind def
+    } def
 
     % Select a symbol size sufficient to carry the message
     /coderate [ 0.67 0.63 0.57 0.55 0.50 0.43 0.34 0.25 0.20 0.17 0.14 ] eclevel get def
     /grosslen bits length coderate div ceiling cvi def
-    /snapsize {ceiling cvi 18 sub dup 0 lt {pop 0} if 4 idiv 4 mul 21 add} bind def
+    /snapsize {ceiling cvi 18 sub dup 0 lt {pop 0} if 4 idiv 4 mul 21 add} def
 
     rows -1 eq columns -1 eq and {        % Square if neither rows or columns fixed
         /size grosslen sqrt snapsize def
@@ -299,7 +299,7 @@ begin
         16#ffffffff and
         dup -18 bitshift xor
 
-    } bind def
+    } def
 
     /createMatrixA {
 
@@ -346,7 +346,7 @@ begin
             } for
         } for
 
-    } bind def
+    } def
 
     /createMetadataMatrixA {
 
@@ -376,7 +376,7 @@ begin
             } for
         } for
 
-    } bind def
+    } def
 
     /GaussJordan {
 
@@ -505,7 +505,7 @@ begin
             } for
         } for
 
-    } bind def
+    } def
 
     /createGeneratorMatrix {
 
@@ -542,7 +542,7 @@ begin
             } if
         } for
 
-    } bind def
+    } def
 
     /ldpc {
 
@@ -621,7 +621,7 @@ begin
         } for
         out
 
-    } bind def
+    } def
 
     % Replace data bitstream with LDPC error correction stream
     /bits bits datawc datawr ldpc def
@@ -718,7 +718,7 @@ begin
 
     % Create the pixel map
     /pixs [rows cols mul {-1} repeat] def
-    /jmv {cols mul add} bind def
+    /jmv {cols mul add} def
 
     % Finder patterns
     slave not {  % Master alignment pattern
@@ -794,7 +794,7 @@ begin
                 pixs px pa add py pb add jmv pp pb get pa get put
             } for
         } for
-    } bind def
+    } def
     0 1 algncpos length 1 sub {
         /j exch def
         /y algncpos j get def
@@ -981,7 +981,7 @@ begin
             } if
         } for
         scr1 scr3
-    } bind def
+    } def
 
     /evalmask {
         /sym exch def
@@ -1031,7 +1031,7 @@ begin
         } for
 
         n1 n2 add n3 add
-    } bind def
+    } def
 
     % Evaluate the masked symbols to find the most suitable
     /bestscore 999999999 def
@@ -1060,12 +1060,12 @@ begin
     /addtometapart {
         dup metapart p 3 -1 roll putinterval
         length p add /p exch def
-    } bind def
+    } def
 
     /addtometabits {
         dup metabits q 3 -1 roll putinterval
         length q add /q exch def
-    } bind def
+    } def
 
     /metapart 40 string def
     /metabits nummetabits string def

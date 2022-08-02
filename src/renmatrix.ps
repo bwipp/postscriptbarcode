@@ -89,15 +89,15 @@ begin
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if
 
-    /xyget { pixx mul add pixs exch get} bind def
-    /cget { pixx mul add cache exch get and} bind def
+    /xyget { pixx mul add pixs exch get} def
+    /cget { pixx mul add cache exch get and} def
     /cput {  % Optimise by only storing "stem" corners
         dup 4 mod 0 eq { % dir is up or left
             3 1 roll pixx mul add cache exch 2 copy get 4 -1 roll or put
         } {
             pop pop pop
         } ifelse
-    } bind def
+    } def
 
     /abcd {
         4 string 0 [
@@ -106,12 +106,12 @@ begin
             pixs exch 2 getinterval aload pop 3 -1 roll  % A B
             pixs exch pixx add 2 getinterval aload pop   % C D
         ] {3 copy 48 add put pop 1 add} forall pop
-    } bind def
+    } def
 
-    /right {dir 1 ne {x y dir cput [x y]} if  /x x 1 add def  /dir 1 def} bind def
-    /down  {dir 2 ne {x y dir cput [x y]} if  /y y 1 add def  /dir 2 def} bind def
-    /left  {dir 4 ne {x y dir cput [x y]} if  /x x 1 sub def  /dir 4 def} bind def
-    /up    {dir 8 ne {x y dir cput [x y]} if  /y y 1 sub def  /dir 8 def} bind def
+    /right {dir 1 ne {x y dir cput [x y]} if  /x x 1 add def  /dir 1 def} def
+    /down  {dir 2 ne {x y dir cput [x y]} if  /y y 1 add def  /dir 2 def} def
+    /left  {dir 4 ne {x y dir cput [x y]} if  /x x 1 sub def  /dir 4 def} def
+    /up    {dir 8 ne {x y dir cput [x y]} if  /y y 1 sub def  /dir 8 def} def
 
     /trace {
         % Walk the outline of a region emitting edge coordinates of the path
@@ -139,7 +139,7 @@ begin
         } loop
         counttomark array astore exch pop
 
-    } bind def
+    } def
 
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
@@ -150,7 +150,7 @@ begin
         anycolor length 8 eq {
             (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
         } if
-    } bind def
+    } def
 
     % Plot a layer of single colour
     /drawlayer {
@@ -224,7 +224,7 @@ begin
 
         /pixs pixsorig def
 
-    } bind def
+    } def
 
     /drawlayerdots {
 
@@ -244,7 +244,7 @@ begin
 
         /pixs pixsorig def
 
-    } bind def
+    } def
 
     gsave
 
