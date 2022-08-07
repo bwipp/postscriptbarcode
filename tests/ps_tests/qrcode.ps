@@ -13,6 +13,13 @@
     isEqual
 } def
 
+/er_tmpl {
+    3 1 roll { 0 0 qrcode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
 
 {
     (TESTING) (debugcws) qrcode
@@ -77,6 +84,42 @@
     % A6 K1 (ABCDEF点), new initial mode A before K re-using modeBAbeforeE array, previously B8 (longer msgbits length)
     (ABCDEF^147^095) (parse version=1 eclevel=L debugcws) qrcode
 } [32 49 205 69 42 22 0 91 62 0 236 17 236 17 236 17 236 17 236] debugIsEqual
+
+{
+    % B17, issue #237, previously unencodable A3 B14
+    (K9K^000^000^000^000^000^000^000^000^000^000^000^000^000^000) (parse version=1 eclevel=L debugcws) qrcode
+} [65 20 179 148 176 0 0 0 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B17, inversion of above
+    (^000^000^000^000^000^000^000^000^000^000^000^000^000^000K9K) (parse version=1 eclevel=L debugcws) qrcode
+} [65 16 0 0 0 0 0 0 0 0 0 0 0 0 0 4 179 148 176] debugIsEqual
+
+{
+    % A10 B9
+    (K9K9K9K9K9^000^000^000^000^000^000^000^000^000) (parse version=1 eclevel=L debugcws) qrcode
+} [32 83 141 113 174 53 198 184 212 9 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B9 A10, inversion of above
+    (^000^000^000^000^000^000^000^000^000K9K9K9K9K9) (parse version=1 eclevel=L debugcws) qrcode
+} [64 144 0 0 0 0 0 0 0 0 2 5 56 215 26 227 92 107 141] debugIsEqual
+
+{
+    % B9 A10, with AorN sequence containing N5
+    (^000^000^000^000^000^000^000^000^000K99999K9KK) (parse version=1 eclevel=L debugcws) qrcode
+} [64 144 0 0 0 0 0 0 0 0 2 5 56 211 60 103 156 107 152] debugIsEqual
+    % With AorN sequence containing N6 fails with unencodable B10 N6 A3 (due to nextNslt test)
+    (^000^000^000^000^000^000^000^000^000K999999KKK) (parse version=1 eclevel=L dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+
+{
+    % A14 B6
+    (K9K9K9K9K9K9K9^000^000^000^000^000^000) (parse version=1 eclevel=L debugcws) qrcode
+} [32 115 141 113 174 53 198 184 215 26 227 80 24 0 0 0 0 0 0] debugIsEqual
+    % Inversion of above fails with unencodable B8 A12 (terminal AorN sequence too long to produce B6 A14)
+    (^000^000^000^000^000^000K9K9K9K9K9K9K9) (parse version=1 eclevel=L dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+{
+    % One less fits with B7 A12, though longer msgbits length than B6 A13
+    (^000^000^000^000^000^000K9K9K9K9K9K9K) (parse version=1 eclevel=L debugcws) qrcode
+} [64 112 0 0 0 0 0 4 178 6 26 147 82 106 77 73 169 53 32] debugIsEqual
 
 
 % Figures

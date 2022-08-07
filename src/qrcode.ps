@@ -332,6 +332,7 @@ begin
 
     /numNs [ msglen {0} repeat 0 ] def
     /numAs [ msglen {0} repeat 0 ] def
+    /numAorNs [ msglen {0} repeat 0 ] def
     /numBs [ msglen {0} repeat 0 ] def
     /numKs [ msglen {0} repeat 0 ] def
     /nextNs [ msglen {0} repeat 9999 ] def
@@ -356,12 +357,14 @@ begin
         Nexcl barchar known {
             nextNs i 0 put
             numNs i numNs i 1 add get 1 add put
+            numAorNs i numAorNs i 1 add get 1 add put
         } {
             nextNs i nextNs i 1 add get 1 add put
         } ifelse
         Aexcl barchar known {
             nextAs i 0 put
             numAs i numAs i 1 add get 1 add put
+            numAorNs i numAorNs i 1 add get 1 add put
         } {
             nextAs i nextAs i 1 add get 1 add put
         } ifelse
@@ -396,6 +399,10 @@ begin
     /NbeforeB {numN exch ver get ge nextBs numN i add get 0 eq and} def
     /NbeforeA {numN exch ver get ge nextAs numN i add get 0 eq and} def
     /NbeforeE {numN exch ver get ge numN i add msglen eq and} def
+    /AorNbeforeB {numAorN exch ver get ge nextBs numAorN i add get 0 eq and} def
+    /AorNbeforeE {numAorN exch ver get ge numAorN i add msglen eq and} def
+
+    /nextNslt { nextNs i get msglen ge { pop true } { numNs nextNs i get i add get exch ver get lt } ifelse } def
 
     % Elements of the encoded message have differing lengths based on the
     % resulting symbol size. The symbol sizes with different element lengths
@@ -445,6 +452,7 @@ begin
 {
     /mode0forceKB  [ 1  1  1  e e 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
     /mode0forceA   [ 1  1  1  e 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
+    /mode0forceN   [ 1  1  1  1 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
 
     /mode0NbeforeB [ 4  4  5  e e 2 3  2 2 3 3 3  2 3 3 3  3   2 3 3 3  3  3   2 3 3  3  3  3   3  3  3  3  3   3  3  3  3  3] def
 
@@ -478,6 +486,7 @@ begin
             /numB numBs i get def
             /numA numAs i get def
             /numN numNs i get def
+            /numAorN numAorNs i get def
             /eci isECI i get def
             ver vM1 eq numA 1 ge and {/seq -1 def exit} if
             ver vM1 eq numB 1 ge and {/seq -1 def exit} if
@@ -498,18 +507,13 @@ begin
                     modeBKbeforeE KbeforeB {K exit} if  % Re-using modeB KbeforeE array
                     mode0forceKB  KbeforeE {K exit} if
                     numK 1 ge {B exit} if
-                    modeBAbeforeE AbeforeK {A exit} if  % Re-using modeB AbeforeE array
-                    modeBAbeforeE AbeforeB {A exit} if  % Re-using modeB AbeforeE array
-                    mode0forceA   AbeforeN {A exit} if
-                    mode0forceA   AbeforeE {A exit} if
-                    numA 1 ge {
-                        ver vM2 ne {B} {A} ifelse exit
-                    } if
                     mode0NbeforeB NbeforeB {N exit} if
                     mode0forceKB  NbeforeB {B exit} if
                     modeANbeforeE NbeforeA {N exit} if  % Re-using modeA NbeforeE array
-                    mode0forceA   NbeforeA {A exit} if
-                    numN 1 ge {N exit} if
+                    mode0forceN   NbeforeE {N exit} if
+                    modeBAbeforeE AbeforeK {A exit} if  % Re-using modeB AbeforeE array
+                    modeBAbeforeE AorNbeforeB {A exit} if  % Re-using modeB AbeforeE array
+                    mode0forceA   AorNbeforeE {A exit} if
                     B exit
                 } if
                 mode B eq {
@@ -525,6 +529,9 @@ begin
                     modeBNbeforeB NbeforeB {N exit} if
                     modeBNbeforeA NbeforeA {N exit} if
                     modeBNbeforeE NbeforeE {N exit} if
+                    modeBAbeforeE AorNbeforeE numAorN modeBAbeforeN ver get le and {  % If A/N sequence at end and short
+                        modeBNbeforeA nextNslt {A exit} if  % And next N sequence shorter than NbeforeA
+                    } if
                     B exit
                 } if
                 mode A eq {
