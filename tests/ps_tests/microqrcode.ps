@@ -13,6 +13,13 @@
     isEqual
 } def
 
+/er_tmpl {
+    3 1 roll { 0 0 microqrcode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
 
 % numBs calculation
 
@@ -66,6 +73,69 @@
     % A3 K1 (ABC点), new initial mode A before K re-using modeBAbeforeE array, previously B5 (longer msgbits length)
     (ABC^147^095) (parse version=M3 eclevel=L debugcws) microqrcode
 } [76 230 153 150 207 128 236 17 236 17 0] debugIsEqual
+
+{
+    % B14, issue #237, initial AN, removal of mode0forceA AbeforeN, previously not encodable A2 B12
+    (K9^000^000^000^000^000^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [79 75 57 0 0 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B14, issue #237, initial NA, removal of numN 1 ge test, previously not encodable A2 B12
+    (9K^000^000^000^000^000^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [79 57 75 0 0 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+
+{
+    % B14, initial ANA
+    (K9K^000^000^000^000^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [79 75 57 75 0 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B14, inversion of above
+    (^000^000^000^000^000^000^000^000^000^000^000^000K9K) (parse debugcws) microqrcode
+} [79 0 0 0 0 0 0 0 0 0 0 0 0 75 57 75] debugIsEqual
+
+{
+    % A4 B11, issue #237, initial ANAN, new AorN before B re-using modeBAbeforeE array
+    % (needed after removals mentioned above), previously the same
+    (K9K9^000^000^000^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [36 113 174 53 44 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B11 A4, inversion of above
+    (^000^000^000^000^000^000^000^000^000^000^000K9K9) (parse debugcws) microqrcode
+} [75 0 0 0 0 0 0 0 0 0 0 0 36 113 174 52] debugIsEqual
+
+{
+    % A7 B9, initial ANANANA
+    (K9K9K9K^000^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [39 113 174 53 198 168 146 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B9 A7, inversion of above, new mode B terminal short AorN sequence
+    (^000^000^000^000^000^000^000^000^000K9K9K9K) (parse debugcws) microqrcode
+} [73 0 0 0 0 0 0 0 0 0 39 113 174 53 198 168] debugIsEqual
+{
+    % B9 A7, with AorN sequence containg N3
+    (^000^000^000^000^000^000^000^000^000KK999KK) (parse debugcws) microqrcode
+} [73 0 0 0 0 0 0 0 0 0 39 115 6 120 212 168] debugIsEqual
+    % With AorN sequence containing N4 fails with unencodable B11 N4 A1 (due to next N sequence shorter than NbeforeA)
+    (^000^000^000^000^000^000^000^000^000KK9999K) (parse dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+
+{
+    % A8 B8, initial ANANANAN
+    (K9K9K9K9^000^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [40 113 174 53 198 184 212 128 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B8 A8, inversion of above
+    (^000^000^000^000^000^000^000^000K9K9K9K9) (parse debugcws) microqrcode
+} [72 0 0 0 0 0 0 0 0 40 113 174 53 198 184 208] debugIsEqual
+
+{
+    % A10 B7, initial ANANANANAN
+    (K9K9K9K9K9^000^000^000^000^000^000^000) (parse debugcws) microqrcode
+} [42 113 174 53 198 184 215 26 142 0 0 0 0 0 0 0] debugIsEqual
+    % Inversion of above fails with unencodable B9 A8 (terminal AorN sequence too long to produce B7 A10)
+    (^000^000^000^000^000^000^000K9K9K9K9K9) (parse dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+{
+    % B7 A9, one less works
+    (^000^000^000^000^000^000^000K9K9K9K9K) (parse debugcws) microqrcode
+} [72 0 0 0 0 0 0 0 75 40 53 38 164 212 154 144] debugIsEqual
 
 
 % Figures

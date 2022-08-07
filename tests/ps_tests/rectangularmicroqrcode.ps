@@ -13,6 +13,13 @@
     isEqual
 } def
 
+/er_tmpl {
+    3 1 roll { 0 0 rectangularmicroqrcode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
 
 % Table 3 cclens, 2019-10-18 values different from 2018-6-8 draft
 
@@ -65,6 +72,37 @@
     % 7.4.6 Kanji mode (点茗点), R7x43-M, 3 Kanji max (Table 6)
     (^147^095^228^170^147^095) (parse version=R7x43 eclevel=M debugcws) rectangularmicroqrcode
 } [155 103 245 84 217 240] debugIsEqual
+
+{
+    % B14, issue #237, previously unencodable A2 B12
+    (K9^000^000^000^000^000^000^000^000^000^000^000^000) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [110 75 57 0 0 0 0 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B14, inversion of above
+    (^000^000^000^000^000^000^000^000^000^000^000^000K9) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [110 0 0 0 0 0 0 0 0 0 0 0 0 75 57] debugIsEqual
+
+{
+    % A7 B8
+    (K9K9K9K^000^000^000^000^000^000^000^000) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [67 184 215 26 227 84 104 0 0 0 0 0 0 0 0] debugIsEqual
+{
+    % B8 A7, inversion of above, previously unencodable B15
+    (^000^000^000^000^000^000^000^000K9K9K9K) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [104 0 0 0 0 0 0 0 0 67 184 215 26 227 84] debugIsEqual
+
+{
+    % A10 B6
+    (K9K9K9K9K9^000^000^000^000^000^000) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [69 56 215 26 227 92 107 141 102 0 0 0 0 0 0] debugIsEqual
+    % Inversion of above fails with unencodable B8 A8 (terminal AorN sequence too long to produce B6 A10)
+    (^000^000^000^000^000^000K9K9K9K9K9) (parse version=R11x59 eclevel=H dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+false {
+{
+    % One less fits with B7 A8, though longer msgbits length than B6 A9
+    (^000^000^000^000^000^000K9K9K9K9K) (parse version=R11x59 eclevel=H debugcws) rectangularmicroqrcode
+} [103 0 0 0 0 0 0 75 68 26 147 82 106 77 72] debugIsEqual
+} if
 
 
 % Figures

@@ -194,6 +194,12 @@ for ($i = 0; $i < 3; $i++) $arr[] = 1;
 for ($i = 0; $i < 4; $i++) $arr[] = $mqr[QR_A][$i] == -1 ? -1 : 1;
 for ($i = 0; $i < 32; $i++) $arr[] = 1;
 print_arr('mode0forceA', $arr);
+
+$arr = array(); /* mode0forceN */
+for ($i = 0; $i < 3; $i++) $arr[] = 1;
+for ($i = 0; $i < 4; $i++) $arr[] = 1;
+for ($i = 0; $i < 32; $i++) $arr[] = 1;
+print_arr('mode0forceN', $arr);
 print PHP_EOL;
 
 /* mode0KbeforeB same as modeBKbeforeE so omit */
@@ -220,11 +226,9 @@ set_and_print_arr('modeBKbeforeB', BITS_CHAR_MAX / 2,
         return $qr[QR_K][$i] + $bits[QR_K][$j] + $qr[QR_B][$i] < $bits[QR_B][$j * 2];
     }, function ($i) use ($mqr) {
         return $mqr[QR_B][$i] == -1 || $mqr[QR_K][$i] == -1;
-    },
-    function ($i, $j) use ($mqr, $bits) {
+    }, function ($i, $j) use ($mqr, $bits) {
         return $mqr[QR_K][$i] + $bits[QR_K][$j] + $mqr[QR_B][$i] < $bits[QR_B][$j * 2];
-    },
-    function ($i, $j) use ($rmqr, $bits) {
+    }, function ($i, $j) use ($rmqr, $bits) {
         return $rmqr[QR_K][$i] + $bits[QR_K][$j] + $rmqr[QR_B][$i] < $bits[QR_B][$j * 2];}
 );
 set_and_print_arr('modeBKbeforeA', BITS_CHAR_MAX / 2,
