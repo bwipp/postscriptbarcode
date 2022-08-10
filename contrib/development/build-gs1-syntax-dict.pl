@@ -1,10 +1,10 @@
 #!/usr/bin/perl -Tw
 
 #
-#  cat gs1-format-spec.txt | ./build-gs1-syntax-dict.pl
+#  cat gs1-syntax-dictionary.txt | ./build-gs1-syntax-dict.pl
 #
-
 use strict;
+use Data::Dumper;
 
 print "    /gs1syntax <<\n";
 print "\n";
@@ -21,12 +21,24 @@ my $ai_rng_rx = qr/${ai_rx}(-${ai_rx})?/;
 
 my $flags_rx = qr/[\*]+/;
 
-my $type_rx = qr/
-    [XNC]
+my $type_mand_rx = qr/
+    [XNY]
     (
         ([1-9]\d?)
         |
-        ([0-9]\d?\.\.[1-9]\d?)
+        (\.\.[1-9]\d?)
+    )
+/x;
+
+my $type_opt_rx = qr/
+    \[${type_mand_rx}\]
+/x;
+
+my $type_rx = qr/
+    (
+        ${type_mand_rx}
+        |
+        ${type_opt_rx}
     )
 /x;
 
@@ -50,7 +62,7 @@ my $keyval_rx = qr/
 
 my $title_rx = qr/\S.*\S/;
 
-# 999  *  N13,csum,key X0..17  dlpkey=22,10  # EXAMPLE TITLE
+# 123  *  N13,csum,key [X..17]  req=01,321 ex=42,101 dlpkey=22,10|789  # EXAMPLE TITLE
 my $entry_rx = qr/
     ^
     (?<ais>${ai_rng_rx})
@@ -87,39 +99,62 @@ while (<>) {
     $_ =~ /^#/ and next;
     $_ =~ /^\s*$/ and next;
 
-    $_ =~ $entry_rx or die;
+    $_ =~ $entry_rx or die "Bad entry: $_";
 
     my $ais = $+{ais};
-    my $flags = $+{flags} || '';
+#    my $flags = $+{flags} || '';       # ignored
     my $spec = $+{spec};
     my $keyvals = $+{keyvals} || '';
-    my $title = $+{title} || '';
+#    my $title = $+{title} || '';       # ignored
 
-    my @elms = split(/\s+/, $spec);
+    my $specstr = "        <<\n            /parts [\n";
+    foreach (split /\s+/, $spec) {
 
-    my $specstr = "        [\n";
-    foreach (@elms) {
+        (my $cset, my $linters) = split(',', $_, 2);
 
-        (my $cset, my $checks) = split(',', $_, 2);
-
-        ($cset, my $len) = $cset =~ /^(.)(.*)$/;
+        (my $opt, $cset, my $len) = $cset =~ /^(\[?)(.)(.*?)\]?$/;
+        $opt = $opt ? 'true ' : 'false';
         $len = "1$len" if $len =~ /^\.\./;
         $len = "$len..$len" if $len !~ /\./;
         (my $min, my $max) = $len =~ /^(\d+)\.\.(\d+)$/;
         $min = sprintf('% 2s', $min);
         $max = sprintf('% 2s', $max);
 
-        $checks=$checks || '';
-        my @checks=split(',', $checks);
-        $checks='';
-        $checks .= "/lint$_ " foreach @checks;
-        $checks =~ s/^\s+|\s+$//g;
-        $checks = " $checks " unless $checks eq '';
+        $linters=$linters || '';
+        my @linters=split(',', $linters);
+        $linters='';
+        $linters .= "/lint$_ " foreach @linters;
+        $linters =~ s/^\s+|\s+$//g;
+        $linters = " $linters " unless $linters eq '';
 
-        $specstr .= "        << /cset /$cset  /min $min  /max $max  /check [$checks] >>\n";
+        $specstr .= "                << /cset /$cset  /min $min  /max $max  /opt $opt  /linters [$linters] >>\n";
 
     }
-    $specstr .= "        ]\n";
+    $specstr .= "            ]\n";
+
+    my %attrs = ();
+    foreach (split /\s+/, $keyvals) {
+        (my $key, $_, my $value) = $_ =~ /^([^=]+)(=(.*))?$/;
+        $attrs{$key} = [] unless defined $attrs{$key};
+        push @{$attrs{$key}}, $value if $value;
+    }
+
+    # Flatten, split and markup "ex"
+    $specstr .= "            /ex     [ " . join(' ', map { "($_)" } map { split ',' } @{$attrs{ex}}) . " ]\n" if defined $attrs{'ex'};
+
+    # Split and markup "req"
+    my $reqspec = '';
+    $reqspec .= "[ " . join(' ', map { "($_)" } map { split ',' } $_) . " ] " foreach @{$attrs{'req'}};
+    $specstr .= "            /req    [ $reqspec]\n" if $reqspec;
+
+    # Pick first (only), split and markup "dlpkey"
+    if (defined $attrs{'dlpkey'}) {
+        my $dlpkeyspec = '';
+        $dlpkeyspec .= "[ " . join(' ', map { "($_)" } split ',', $_) . " ] " foreach split '\|', @{$attrs{'dlpkey'}}[0] || '';
+        $specstr .= "            /dlpkey [ $dlpkeyspec]\n";
+    }
+
+    $specstr .= "        >>\n";
 
     $ais = "$ais-$ais" if $ais !~ /-/;
     (my $aimin, my $aimax) = $ais =~ /^(\d+)-(\d+)$/;
