@@ -55,6 +55,7 @@ begin
 
     /ctx null def
     /dontdraw false def
+    /usematrix false def
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -70,6 +71,8 @@ begin
     } if
     options {def} forall
 
+    dontdraw { /usematrix true def } if
+
     % Split the linear and composite parts
     barcode (|) search {
         /linear exch def
@@ -79,7 +82,7 @@ begin
         pop
     } ifelse
 
-    gsave
+    usematrix not { gsave } if
 
     options (inkspread) (0) put
     options (dontdraw) true put
@@ -113,35 +116,91 @@ begin
     linear << options {} forall >> //gs1-128 exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
-    //renlinear exec
+    usematrix not { //renlinear exec } { pop } ifelse
 
     % Plot the separator
     mark
     1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
     counttomark 1 sub array astore /sep exch def pop pop
-    0 linheight rmoveto <<
-        /ren //renmatrix
-        /pixs sep
-        /pixx sep length
-        /pixy 1
-        /height 1 72 div
-        /width sep length 72 div
-        /opt options
-    >> //renmatrix exec
+    usematrix not {
+        0 linheight rmoveto <<
+            /ren //renmatrix
+            /pixs sep
+            /pixx sep length
+            /pixy 1
+            /height 1 72 div
+            /width sep length 72 div
+            /opt options
+        >> //renmatrix exec
+    } if
 
     % Plot the 2D part
     linktype (a) eq {
         /s linwidth 2 sub 11 idiv def
         /p s 9 sub 2 idiv def
         /x s p sub 1 sub 11 mul 10 add p 0 eq {2 add} if 99 sub def
-        x 1 rmoveto
     } {
-        -7 1 rmoveto
+        /x -7 def
     } ifelse
 
-    compsym //renmatrix exec
+    usematrix not {
+        x 1 rmoveto compsym //renmatrix exec
 
-    grestore
+        grestore
+    } {
+        /ccpixs compsym /pixs get def
+        /ccpixx compsym /pixx get def
+
+        /linpixs [
+            linsbs { 1 index 1 eq {{0}} {{1}} ifelse repeat } forall  % Alternates i 1/0's (linsbs always begins with "2")
+        ] def
+
+        x 0 gt {  % Left pad composite
+            /cclpad [ x {0} repeat ] def
+            /linlpad 0 array def
+        } {  % Left pad linear
+            /cclpad 0 array def
+            /linlpad [ x neg {0} repeat ] def
+        } ifelse
+
+        /diff linwidth ccpixx x add sub def
+        diff 0 gt {  % Right pad composite
+            /ccrpad [ diff {0} repeat ] def
+            /linrpad 0 array def
+        } {  % Right pad linear
+            /ccrpad 0 array def
+            /linrpad [ diff neg {0} repeat ] def
+        } ifelse
+
+        /linheight linheight cvi def
+        /ccrepeat linktype (a) eq {2} {3} ifelse def
+        /pixs [
+            0 ccpixx ccpixs length 1 sub {
+                /i exch def
+                ccrepeat { cclpad aload pop ccpixs i ccpixx getinterval aload pop ccrpad aload pop } repeat
+            } for
+            linlpad aload pop sep aload pop linrpad aload pop
+            linheight { linlpad aload pop linpixs aload pop linrpad aload pop } repeat
+        ] def
+
+        /pixx cclpad length ccpixx add ccrpad length add def
+        /pixy pixs length pixx idiv def
+        <<
+        /ren //renmatrix
+        /pixs pixs
+        /pixx pixx
+        /pixy pixy
+        /height pixy 72 div
+        /width pixx 72 div
+        /opt options
+        >>
+
+        dontdraw not {
+            gsave
+            //renmatrix exec
+            grestore
+        } if
+    } ifelse
 
     end
 
