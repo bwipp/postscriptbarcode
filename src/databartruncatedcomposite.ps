@@ -55,6 +55,7 @@ begin
 
     /ctx null def
     /dontdraw false def
+    /usematrix false def
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -70,6 +71,8 @@ begin
     } if
     options {def} forall
 
+    dontdraw { /usematrix true def } if
+
     % Split the linear and composite parts
     barcode (|) search {
         /linear exch def
@@ -79,7 +82,7 @@ begin
         pop
     } ifelse
 
-    gsave
+    usematrix not { gsave } if
 
     options (lintype) (databartruncated) put
     options (linkage) true put
@@ -97,7 +100,7 @@ begin
     linear options //databartruncated exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
-    //renlinear exec
+    usematrix not { //renlinear exec } { pop } ifelse
 
     % Plot the separator
     /sepfinder {
@@ -128,20 +131,59 @@ begin
     sep 0 [0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
     18 sepfinder 64 sepfinder
-    0 linheight rmoveto <<
+    usematrix not {
+        0 linheight rmoveto <<
+            /ren //renmatrix
+            /pixs sep
+            /pixx sep length
+            /pixy 1
+            /height 1 72 div
+            /width sep length 72 div
+            /opt options
+        >> //renmatrix exec
+
+        % Plot the 2D part
+        -5 1 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+        grestore
+    } {
+        /compsym comp options //gs1-cc exec def
+        /ccpixs compsym /pixs get def
+        /ccpixx compsym /pixx get def
+
+        /linpixs [ 0  % Begin with left guard space
+            linsbs { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall  % Alternates i 1/0's
+        ] def
+        /sep [ 0 sep aload pop ] def  % Offset by 1
+
+        /linheight linheight cvi def
+        % ccpixx is 99 for both 4-col CC-A and 4-col CC-B; linpixs length is 96
+        /pixs [
+            0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
+                /i exch def
+                2 { ccpixs i ccpixx getinterval aload pop 0 } repeat
+            } for
+            0 0 0 0 sep aload pop linheight { 0 0 0 0 linpixs aload pop } repeat  % Left pad with 4 spaces
+        ] def
+        /pixx ccpixx 1 add def  % 100
+
+        /pixy pixs length pixx idiv def
+        <<
         /ren //renmatrix
-        /pixs sep
-        /pixx sep length
-        /pixy 1
-        /height 1 72 div
-        /width sep length 72 div
+        /pixs pixs
+        /pixx pixx
+        /pixy pixy
+        /height pixy 72 div
+        /width pixx 72 div
         /opt options
-    >> //renmatrix exec
+        >>
 
-    % Plot the 2D part
-    -5 1 rmoveto comp options //gs1-cc exec //renmatrix exec
-
-    grestore
+        dontdraw not {
+            gsave
+            //renmatrix exec
+            grestore
+        } if
+    } ifelse
 
     end
 
