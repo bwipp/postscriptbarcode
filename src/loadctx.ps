@@ -43,12 +43,16 @@ begin
     /ctxname exch def
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /ctx exch def} {pop} ifelse
     ctx null ne {
-        ctx ctxname known not {
+        1 {  % Common exit
+            ctx ctxname known {
+                ctx ctxname get /_FINALIZED known {
+                    /ctxdef {pop} def  % No need to redefine within the existing context
+                    exit
+                } if
+            } if
             ctx ctxname 10 dict put
             /ctxdef {ctx ctxname get begin exec end} def
-        } {
-            /ctxdef {pop} def  % No need to redefine within the existing context
-        } ifelse
+        } repeat
         currentdict ctx ctxname get end begin begin
     } {
         /ctxdef {exec} def  % No context provided, so define ephemerally
