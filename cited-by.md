@@ -49,8 +49,6 @@ West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," D
 
 Russell, Robert. (2020) "How to Print QRcodes, Data Matrix, Aztec Codes, Maxi Code and Han Xin Barcodes in SAP," <https://www.rjruss.info/2020/04/how-to-print-qrcodes-data-matrix-aztec.html>
 
-Burton, T. and Wright IV, G. (2020) "GS1 Updates Global Model Number Identifier For Use as a Basic UDI-DI to Meet EU MDR Requirements," MedTech Intelligence. <https://www.medtechintelligence.com/feature_article/gs1-updates-global-model-number-identifier-for-use-as-a-basic-udi-di-to-meet-eu-mdr-requirements/>
-
 
 pst-barcode
 -----------
