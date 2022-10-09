@@ -105,6 +105,7 @@ begin
         /char exch def
         /msgtmp [ msgtmp aload pop char 128 lt {char} {fn4 char 127 and} ifelse ] def
     } forall
+    /kmsg msg def  % Keep for k1/k2 check characters calculation
     /msg msgtmp def
     /msglen msg length def
 
@@ -238,6 +239,38 @@ begin
         } repeat
     } def
 
+    % Encode a if fits in row, allowing for fn4 + possible shift, assuming rem ge 1
+    /encafitsrow {
+        rem 2 le msg i get fn4 eq and {
+            % If have 2 left and don't need to shift
+            rem 2 eq msg i 1 add get 95 le and dup {  % Return false if not
+                fn4 enca
+                msg i 1 add get enca
+                /i i 2 add def
+            } if
+        } {
+            msg i get enca
+            /i i 1 add def
+            true
+        } ifelse
+    } def
+
+    % Encode b if fits in row, allowing for fn4 + possible shift, assuming rem ge 1
+    /encbfitsrow {
+        rem 2 le msg i get fn4 eq and {
+            % If have 2 left and don't need to shift
+            rem 2 eq msg i 1 add get 32 ge and dup {  % Return false if not
+                fn4 encb
+                msg i 1 add get encb
+                /i i 2 add def
+            } if
+        } {
+            msg i get encb
+            /i i 1 add def
+            true
+        } ifelse
+    } def
+
     % Convert message to codewords
     /cws c 5 add 44 mul array def
 
@@ -351,32 +384,26 @@ begin
                 } if
                 cset (setc) eq remnums 2 lt and
                 rem 2 ge and {
+                    /rem rem 1 sub def
                     i abeforeb {
                         swa encc
                         /cset (seta) def
-                        msg i get enca
-                        /i i 1 add def
-                        exit
-                    } if
-                    swb encc
-                    /cset (setb) def
-                    msg i get encb
-                    /i i 1 add def
-                    exit
+                        encafitsrow { exit } if
+                    } {
+                        swb encc
+                        /cset (setb) def
+                        encbfitsrow { exit } if
+                    } ifelse
                 } if
 
                 % No switches or latches so try to encode
                 cset (seta) eq seta msg i get known and
                 rem 1 ge and {
-                    msg i get enca
-                    /i i 1 add def
-                    exit
+                    encafitsrow { exit } if
                 } if
                 cset (setb) eq setb msg i get known and
                 rem 1 ge and {
-                    msg i get encb
-                    /i i 1 add def
-                    exit
+                    encbfitsrow { exit } if
                 } if
                 cset (setc) eq remnums 2 ge and
                 rem 1 ge and {
@@ -425,11 +452,11 @@ begin
 } ctxdef
 
     % Add symbol check characters to last row
-    /chkmsg msglen array def
+    /chkmsg kmsg length array def  % Using kmsg (pre-fn4 insertion)
     /j 0 def
-    0 1 msglen 1 sub {
+    0 1 kmsg length 1 sub {
         /i exch def
-        /char msg i get def
+        /char kmsg i get def
         char 0 ge {chkmsg j char put /j j 1 add def} if
         char fn1 eq i 0 ne and {chkmsg j 29 put /j j 1 add def} if
     } for
@@ -461,6 +488,8 @@ begin
         } for
         rcws rcws length 1 sub csum 103 mod put
     } for
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Create an array containing the character mappings
 {
