@@ -640,8 +640,8 @@ begin
 
     % Select metrics of an appropriate symbol
     /urows rows def
-    /i 0 def
-    { % loop
+    0 1 metrics length 1 sub {
+        /i exch def
         /m metrics i get def
         /r    m 0 get def        % Columns in symbol
         /dcws m 1 get def        % Data codewords in symbol
@@ -649,8 +649,11 @@ begin
         urows 0 ne urows r ne and {/okay false def} if
         cws length dcws gt {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } for
+
+    okay not {
+        /bwipp.code16kNoValidSymbol (Maximum length exceeded or data too large for given options) //raiseerror exec
+    } if
 
     % Extend cws to ncws codewords by addition of pad characters
     /cws [ cws aload pop dcws cws length sub {103} repeat ] def
@@ -664,6 +667,8 @@ begin
     0 0 1 dcws {dup 1 add exch cws exch get mul add} for
     c1 dcws 2 add mul add 107 mod /c2 exch def
     /cws [ cws aload pop c1 c2 ] def
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Create an array containing the character mappings
 {
