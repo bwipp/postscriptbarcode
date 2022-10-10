@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean8--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean5 ean2--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear ean5 ean2--
 % --DESC: EAN-8
 % --EXAM: 95200002
 % --EXOP: includetext guardwhitespace
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
@@ -57,34 +58,18 @@ begin
     /dontdraw false def
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
-    /textsize 12 def
-    /textxoffset 4 def
-    /textyoffset -4 def
-    /height 1 def
-    /addongap 12 def
+    /textsize 12.0 def
+    /textxoffset 4.0 def
+    /textyoffset -4.0 def
+    /height 1.0 def
+    /addongap 12.0 def
     /addontextfont (unset) def
     /addontextsize (unset) def
     /addontextxoffset (unset) def
     /addontextyoffset (unset) def
 
-    % Parse the input options, either a string or a dict
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
-    /addongap addongap cvr def
-    addontextfont (unset) ne {/addontextfont addontextfont cvlit def} if
     addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
     addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
     addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if

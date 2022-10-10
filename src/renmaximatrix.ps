@@ -32,10 +32,11 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renmaximatrix--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble raiseerror processoptions--
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 begin
 /renmaximatrix {
 
@@ -49,10 +50,7 @@ begin
 
     % Apply the renderer options and the user options
     args {def} forall
-    opt {def} forall
-
-    /barcolor barcolor cvlit def
-    /backgroundcolor backgroundcolor cvlit def
+    opt //processoptions exec pop
 
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {

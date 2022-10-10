@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER pharmacode2--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble raiseerror processoptions renlinear--
 % --DESC: Two-track Pharmacode
 % --EXAM: 117480
 % --EXOP: includetext showborder
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /pharmacode2 {
@@ -52,20 +53,9 @@ begin
     /ctx null def
     /dontdraw false def
     /includetext false def      % Enable/disable text
-    /height 4 def               % Height of short bars in millimetres
+    /height 4.0 def             % Height of short bars in millimetres
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     % Validate the input
     barcode length 1 lt barcode length 8 gt or {

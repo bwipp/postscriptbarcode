@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER datamatrix--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
 % --DESC: Data Matrix
 % --EXAM: This is Data Matrix!
 % --EXOP:
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -67,25 +68,13 @@ begin
     /dindmre false def
     /isodmre false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     version (unset) ne {
         version (x) search
-        pop /rows exch def
-        pop /columns exch def
+        pop /rows exch cvi def
+        pop /columns exch cvi def
     } if
-
-    /columns columns cvi def
-    /rows rows cvi def
 
     /isodmre dmre def
 

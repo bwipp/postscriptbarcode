@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databarexpandedstacked--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear renmatrix databarexpanded--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear renmatrix databarexpanded--
 % --DESC: GS1 DataBar Expanded Stacked
 % --EXAM: (01)09521234543213(3103)000123
 % --EXOP: segments=4
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpanded dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -53,16 +54,7 @@ begin
     /ctx null def
     /dontdraw false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     % Get the result of encoding with databarexpanded with format=expandedstacked
     options (dontdraw) true put

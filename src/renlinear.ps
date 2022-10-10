@@ -32,10 +32,11 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renlinear--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble raiseerror processoptions--
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 begin
 /renlinear {
 
@@ -54,62 +55,34 @@ begin
     /textxalign (unset) def
     /textyalign (unset) def
     /textfont (Courier) def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset 0 def
-    /textgaps 0 def
+    /textsize 10.0 def
+    /textxoffset 0.0 def
+    /textyoffset 0.0 def
+    /textgaps 0.0 def
     /alttext () def
     /bordercolor (unset) def
     /backgroundcolor (unset) def
     /inkspread 0.15 def
-    /width 0 def
-    /barratio 1 def
-    /spaceratio 1 def
+    /width 0.0 def
+    /barratio 1.0 def
+    /spaceratio 1.0 def
     /showborder false def
-    /borderleft 10 def
-    /borderright 10 def
-    /bordertop 1 def
-    /borderbottom 1 def
+    /borderleft 10.0 def
+    /borderright 10.0 def
+    /bordertop 1.0 def
+    /borderbottom 1.0 def
     /borderwidth 0.5 def
     /guardwhitespace false def
-    /guardleftpos 0 def
-    /guardleftypos 0 def
-    /guardrightpos 0 def
-    /guardrightypos 0 def
-    /guardwidth 6 def
-    /guardheight 7 def
+    /guardleftpos 0.0 def
+    /guardleftypos 0.0 def
+    /guardrightpos 0.0 def
+    /guardrightypos 0.0 def
+    /guardwidth 6.0 def
+    /guardheight 7.0 def
 
     % Apply the renderer options and the user options
     args {def} forall
-    opt {def} forall
-
-    /barcolor barcolor cvlit def
-    /textcolor textcolor cvlit def
-    /textxalign textxalign cvlit def
-    /textyalign textyalign cvlit def
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /textgaps textgaps cvr def
-    /alttext alttext cvlit def
-    /bordercolor bordercolor cvlit def
-    /backgroundcolor backgroundcolor cvlit def
-    /inkspread inkspread cvr def
-    /width width cvr def
-    /barratio barratio cvr def
-    /spaceratio spaceratio cvr def
-    /borderleft borderleft cvr def
-    /borderright borderright cvr def
-    /bordertop bordertop cvr def
-    /borderbottom borderbottom cvr def
-    /borderwidth borderwidth cvr def
-    /guardleftpos guardleftpos cvr def
-    /guardleftypos guardleftypos cvr def
-    /guardrightpos guardrightpos cvr def
-    /guardrightypos guardrightypos cvr def
-    /guardwidth guardwidth cvr def
-    /guardheight guardheight cvr def
+    opt //processoptions exec pop
 
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def

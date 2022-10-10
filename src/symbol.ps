@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER symbol--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble raiseerror processoptions renlinear--
 % --DESC: Miscellaneous symbols
 % --EXAM: fima
 % --EXOP: backgroundcolor=DD000011
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /symbol {
@@ -52,16 +53,7 @@ begin
     /ctx null def
     /dontdraw false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     /symbols <<
         /fima {

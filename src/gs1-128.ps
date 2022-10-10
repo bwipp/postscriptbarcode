@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1-128--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear code128--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear code128--
 % --DESC: GS1-128
 % --EXAM: (01)09521234543213(3103)000123
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
@@ -56,9 +57,9 @@ begin
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset -7 def
+    /textsize 10.0 def
+    /textxoffset 0.0 def
+    /textyoffset -7.0 def
     /height 0.5 def
     /linkagea false def
     /linkagec false def
@@ -66,22 +67,7 @@ begin
     /dontlint false def
     /lintreqs false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     /text barcode def
 

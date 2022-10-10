@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER aztecrune--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix azteccode--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix azteccode--
 % --DESC: Aztec Runes
 % --EXAM: 1
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /azteccode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -53,16 +54,7 @@ begin
     /ctx null def
     /dontdraw false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     % Get the result of encoding with azteccode with format=rune
     options (dontdraw) true put

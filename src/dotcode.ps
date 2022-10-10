@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER dotcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
 % --DESC: DotCode
 % --EXAM: This is DotCode
 % --EXOP: inkspread=0.16
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -56,28 +57,14 @@ begin
     /dontdraw false def
     /rows -1 def
     /columns -1 def
-    /ratio -1 def
+    /ratio -1.0 def
     /parse false def
     /parsefnc false def
     /raw false def
     /fast false def
     /mask -1 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /rows rows cvi def
-    /columns columns cvi def
-    /ratio ratio cvr def
-    /mask mask cvi def
+    options //processoptions exec /options exch def
 
     /dotcode //loadctx exec
 

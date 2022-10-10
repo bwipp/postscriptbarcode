@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hibcpdf417--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix pdf417--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix pdf417--
 % --DESC: HIBC PDF417
 % --EXAM: A999BJC5D6E71
 % --EXOP:
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -57,18 +58,7 @@ begin
     /columns 2 def
     /validatecheck false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /columns columns cvi def
+    options //processoptions exec /options exch def
 
     /hibcpdf417 //loadctx exec
 

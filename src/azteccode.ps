@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER azteccode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
 % --DESC: Aztec Code
 % --EXAM: This is Aztec Code
 % --EXOP: format=full
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -63,20 +64,7 @@ begin
     /parse false def
     /parsefnc false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /layers layers cvi def
-    /eclevel eclevel cvr def
-    /ecaddchars ecaddchars cvi def
+    options //processoptions exec /options exch def
 
     /azteccode //loadctx exec
 

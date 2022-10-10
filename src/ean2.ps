@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ean2--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear--
 % --DESC: EAN-2 (2 digit addon)
 % --EXAM: 05
 % --EXOP: includetext guardwhitespace
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean2 {
@@ -55,26 +56,13 @@ begin
     /dontdraw false def
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
-    /textsize 12 def
-    /textxoffset 0 def
+    /textsize 12.0 def
+    /textxoffset 0.0 def
     /textyoffset (unset) def
     /height 0.7 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /height height cvr def
-    /textxoffset textxoffset cvr def
     textyoffset (unset) eq {
         /textyoffset height 72 mul 1 add def
     } {

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER datamatrixrectangularextension--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix datamatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix datamatrix--
 % --DESC: Data Matrix Rectangular Extension
 % --EXAM: 1234
 % --EXOP: version=8x96
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 20 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -56,16 +57,7 @@ begin
     /dmre false def
     /dindmre false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     % Get the result of encoding with datamatrix
     options (dontdraw) true put

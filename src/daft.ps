@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER daft--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble raiseerror processoptions renlinear--
 % --DESC: Custom 4 state symbology
 % --EXAM: FATDAFTDAD
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /daft {
@@ -53,18 +54,7 @@ begin
     /dontdraw false def
     /height 0.175 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     barcode {
         dup 68 ne exch dup 65 ne exch dup 70 ne exch 84 ne and and and {

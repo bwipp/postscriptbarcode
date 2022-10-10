@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER pharmacode--
-% --REQUIRES preamble raiseerror renlinear--
+% --REQUIRES preamble raiseerror processoptions renlinear--
 % --DESC: Pharmaceutical Binary Code
 % --EXAM: 117480
 % --EXOP: showborder
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /pharmacode {
@@ -51,26 +52,12 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /height 8 2.835 mul 72 div def
+    /height 8.0 2.835 mul 72 div def
     /nwidth 0.5 2.835 mul def
     /wwidth 1.5 2.835 mul def
     /swidth 1.0 2.835 mul def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /height height cvr def
-    /nwidth nwidth cvr def
-    /wwidth wwidth cvr def
-    /swidth swidth cvr def
+    options //processoptions exec /options exch def
 
     % Validate the input
     barcode length 1 lt barcode length 6 gt or {

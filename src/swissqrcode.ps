@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER swissqrcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix qrcode--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix qrcode--
 % --DESC: Swiss QR Code
 % --EXAM:
 % --EXOP:
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
@@ -56,16 +57,7 @@ begin
 
     /parse false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     % Parse ordinals of the form ^NNN to ASCII
     /fncvals <<

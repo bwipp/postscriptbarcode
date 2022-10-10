@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER mands--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean2 ean5 ean8--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear ean2 ean5 ean8--
 % --DESC: Marks & Spencer
 % --EXAM: 0642118
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean8 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,16 +55,7 @@ begin
     /dontdraw false def
     /includetext false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     /barlen barcode length def
 

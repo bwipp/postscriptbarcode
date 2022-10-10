@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER pzn--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear code39--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear code39--
 % --DESC: Pharmazentralnummer (PZN)
 % --EXAM: 123456
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code39 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,28 +55,13 @@ begin
     /dontdraw false def
     /includetext false def  % Enable/disable code32 text
     /textfont /Courier def
-    /textsize 10 def
-    /textyoffset -7 def
-    /textxoffset 0 def
-    /height 1 def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /textxoffset 0.0 def
+    /height 1.0 def
     /pzn8 false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textyoffset textyoffset cvr def
-    /textxoffset textxoffset cvr def
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     % Validate the input
     pzn8 {

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER leitcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear interleaved2of5--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear interleaved2of5--
 % --DESC: Deutsche Post Leitcode
 % --EXAM: 21348075016401
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,27 +55,12 @@ begin
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset -7 def
-    /height 1 def
+    /textsize 10.0 def
+    /textxoffset 0.0 def
+    /textyoffset -7.0 def
+    /height 1.0 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     % Validate the input
     barcode length 13 ne barcode length 14 ne and {

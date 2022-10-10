@@ -32,10 +32,11 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renmatrix--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble raiseerror processoptions--
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 begin
 /renmatrix {
 
@@ -44,47 +45,30 @@ begin
     /args exch def
 
     % Default options
-    /width 1 def
-    /height 1 def
+    /width 1.0 def
+    /height 1.0 def
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /colormap (unset) def
     /dotty false def
-    /inkspread 0 def
-    /inkspreadh 0 def
-    /inkspreadv 0 def
+    /inkspread 0.0 def
+    /inkspreadh 0.0 def
+    /inkspreadv 0.0 def
     /includetext false def
     /txt [] def
     /textcolor (unset) def
     /textxalign (unset) def
     /textyalign (unset) def
     /textfont (Courier) def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset 0 def
-    /textgaps 0 def
+    /textsize 10.0 def
+    /textxoffset 0.0 def
+    /textyoffset 0.0 def
+    /textgaps 0.0 def
     /alttext () def
 
     % Apply the renderer options and the user options
     args {def} forall
-    opt {def} forall
-
-    /width width cvr def
-    /height height cvr def
-    /barcolor barcolor cvlit def
-    /backgroundcolor backgroundcolor cvlit def
-    /inkspread inkspread cvr def
-    /inkspreadh inkspreadh cvr def
-    /inkspreadv inkspreadv cvr def
-    /textcolor textcolor cvlit def
-    /textxalign textxalign cvlit def
-    /textyalign textyalign cvlit def
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /textgaps textgaps cvr def
-    /alttext alttext cvlit def
+    opt //processoptions exec pop
 
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if

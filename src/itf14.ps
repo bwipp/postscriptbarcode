@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER itf14--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear interleaved2of5--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear interleaved2of5--
 % --DESC: ITF-14
 % --EXAM: 0 952 1234 54321 3
 % --EXOP: includetext
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -55,34 +56,16 @@ begin
     /includetext false def
     /includecheckintext true def
     /textfont /Courier def
-    /textsize 10 def
-    /textxoffset 0 def
-    /textyoffset 3 def
+    /textsize 10.0 def
+    /textxoffset 0.0 def
+    /textyoffset 3.0 def
     /height 0.5 def
     /showborder true def
-    /borderwidth 4 def
-    /borderleft 15 def
-    /borderright 15 def
+    /borderwidth 4.0 def
+    /borderleft 15.0 def
+    /borderright 15.0 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textxoffset textxoffset cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
-    /borderwidth borderwidth cvr def
-    /borderleft borderleft cvr def
-    /borderright borderright cvr def
+    options //processoptions exec /options exch def
 
     % Strip spaces from the given data
     /text barcode def

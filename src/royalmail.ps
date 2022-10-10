@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER royalmail--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear--
 % --DESC: Royal Mail 4 State Customer Code
 % --EXAM: LE28HS9Z
 % --EXOP: includetext barcolor=FF0000
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /royalmail {
@@ -57,25 +58,11 @@ begin
     /validatecheck false def
     /includecheckintext false def
     /textfont /Courier def
-    /textsize 10 def
-    /textyoffset -7 def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
     /height 0.175 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /textfont textfont cvlit def
-    /textsize textsize cvr def
-    /textyoffset textyoffset cvr def
-    /height height cvr def
+    options //processoptions exec /options exch def
 
     /royalmail //loadctx exec
 

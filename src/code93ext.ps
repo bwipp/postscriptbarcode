@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER code93ext--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renlinear code93--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renlinear code93--
 % --DESC: Code 93 Extended
 % --EXAM: Code93 Ext!
 % --EXOP: includetext includecheck
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code93 dup /uk.co.terryburton.bwipp findresource put
@@ -58,16 +59,7 @@ begin
     /includetext false def
     /parse false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
     /code93ext //loadctx exec
 

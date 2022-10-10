@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER issn--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean2 ean5 ean13--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear ean2 ean5 ean13--
 % --DESC: ISSN
 % --EXAM: 0311-175X 00 17
 % --EXOP: includetext guardwhitespace
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,29 +55,16 @@ begin
     /dontdraw false def
     /includetext false def  % Enable/disable ISSN text
     /issntextfont /Courier def
-    /issntextsize 9 def
+    /issntextsize 9.0 def
     /issntextxoffset (unset) def
     /issntextyoffset (unset) def
-    /height 1 def
-    /addongap 12 def
+    /height 1.0 def
+    /addongap 12.0 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    /issntextfont issntextfont cvlit def
-    /issntextsize issntextsize cvr def
     issntextxoffset (unset) ne {/issntextxoffset issntextxoffset cvr def} if
     issntextyoffset (unset) ne {/issntextyoffset issntextyoffset cvr def} if
-    /height height cvr def
-    /addongap addongap cvr def
 
     % Split off the ISSN
     issntxt ( ) search {

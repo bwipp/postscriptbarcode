@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER databaromni--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear renmatrix--
 % --DESC: GS1 DataBar Omnidirectional
 % --EXAM: (01)09521234543213
 % --EXOP:
@@ -42,6 +42,7 @@
 dup /loadctx dup /uk.co.terryburton.bwipp findresource put
 dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,25 +55,14 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /height 33 72 div def
+    /height 33.0 72 div def
     /linkage false def
     /format (omni) def
     /barxmult 33 def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    format (truncated) eq {/height 13 72 div def} if
-    /height height cvr def
-    /barxmult barxmult cvi def
+    format (truncated) eq {/height 13.0 72 div def} if
 
     /databaromni //loadctx exec
 

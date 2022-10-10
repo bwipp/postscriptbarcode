@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER gs1northamericancoupon--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput gs1process renlinear renmatrix databarexpanded databarexpandedstacked--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear renmatrix databarexpanded databarexpandedstacked--
 % --DESC: GS1 North American Coupon
 % --EXAM: (8110)106141416543213500110000310123196000
 % --EXOP: includetext segments=8
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
@@ -55,26 +56,15 @@ begin
     /dontdraw false def
     /includetext false def  % Enable/disable coupon text
     /coupontextfont /Helvetica def
-    /coupontextsize 9 def
+    /coupontextsize 9.0 def
     /coupontextxoffset (unset) def
     /coupontextyoffset (unset) def
     /parse false def
     /dontlint false def
     /lintreqs true def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    /coupontextfont coupontextfont cvlit def
-    /coupontextsize coupontextsize cvr def
     coupontextxoffset (unset) ne {/coupontextxoffset coupontextxoffset cvr def} if
     coupontextyoffset (unset) ne {/coupontextyoffset coupontextyoffset cvr def} if
 

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ismn--
-% --REQUIRES preamble loadctx unloadctx raiseerror renlinear ean5 ean2 ean13--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear ean5 ean2 ean13--
 % --DESC: ISMN
 % --EXAM: 979-0-2605-3211-3
 % --EXOP: includetext guardwhitespace
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -54,30 +55,17 @@ begin
     /dontdraw false def
     /includetext false def  % Enable/disable ISMN text
     /ismntextfont /Courier def
-    /ismntextsize 9 def
+    /ismntextsize 9.0 def
     /ismntextxoffset (unset) def
     /ismntextyoffset (unset) def
-    /height 1 def
-    /addongap 12 def
+    /height 1.0 def
+    /addongap 12.0 def
     /legacy false def
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
+    options //processoptions exec /options exch def
 
-    /ismntextfont ismntextfont cvlit def
-    /ismntextsize ismntextsize cvr def
     ismntextxoffset (unset) ne {/ismntextxoffset ismntextxoffset cvr def} if
     ismntextyoffset (unset) ne {/ismntextyoffset ismntextyoffset cvr def} if
-    /height height cvr def
-    /addongap addongap cvr def
 
     % Split off the addon
     barcode ( ) search {

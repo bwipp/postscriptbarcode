@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER jabcode--
-% --REQUIRES preamble loadctx unloadctx raiseerror parseinput renmatrix--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
 % --DESC: JAB Code (Beta)
 % --EXAM: This is JAB Code
 % --EXOP: eclevel=6
@@ -40,6 +40,7 @@
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -62,22 +63,7 @@ begin
     /parsefnc false def
     /mask -1 def    % 0-7
 
-    % Parse the input options
-    options type /stringtype eq {
-        1 dict begin
-        options {
-            token false eq {exit} if dup length string cvs (=) search
-            true eq {cvlit exch pop exch def} {cvlit true def} ifelse
-        } loop
-        currentdict end /options exch def
-    } if
-    options {def} forall
-
-    /rows rows cvi def
-    /columns columns cvi def
-    /colors colors cvi def
-    /eclevel eclevel cvi def
-    /mask mask cvi def
+    options //processoptions exec /options exch def
 
     /databpm colors ln 2 ln div round cvi def
     /metabpm colors dup 8 gt {pop 8} if ln 2 ln div round cvi def
