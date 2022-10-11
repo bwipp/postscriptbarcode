@@ -68,6 +68,13 @@ begin
 
     /msi //loadctx exec
 
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.msiBadCharacter (MSI must contain only digits) //raiseerror exec
+        } if
+    } forall
+
 {
     % Create an array containing the character mappings
     /encs
