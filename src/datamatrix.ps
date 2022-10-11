@@ -57,7 +57,7 @@ begin
     /dontdraw false def
     /columns 0 def
     /rows 0 def
-    /format (square) def    % square or rectangle
+    /format (unset) def    % square or rectangle
     /version (unset) def
     /parse false def
     /parsefnc false def
@@ -70,13 +70,17 @@ begin
 
     options //processoptions exec /options exch def
 
+    /isodmre dmre def
+
+    format (unset) eq version (unset) eq and {
+        /format isodmre dindmre or { (rectangle) } { (square) } ifelse def
+    } if
+
     version (unset) ne {
         version (x) search
         pop /rows exch cvi def
         pop /columns exch cvi def
     } if
-
-    /isodmre dmre def
 
     /datamatrix //loadctx exec
 
