@@ -65,13 +65,21 @@ begin
 
     /japanpost //loadctx exec
 
+    % Validate the input
+    barcode {
+        dup dup 48 ge exch 57 le and exch  % 0-9
+        dup dup 65 ge exch 90 le and exch  % A-Z
+        45 eq or or not {                  % "-"
+            /bwipp.japanPostBadCharacter (Japan Post must contain only digits, capital letters and the dash symbol) /raiseerror exec
+        } if
+    } forall
+
 {
     % Create an array containing the character mappings
-    % 0123456789- C1C2C3C4C5C6C7C8 ST EN
     /encs
-    [ (300) (330) (312) (132) (321) (303) (123) (231) (213) (033) (030)
-      (120) (102) (210) (012) (201) (021) (003) (333)
-      (31) (13)
+    [ (300) (330) (312) (132) (321) (303) (123) (231) (213) (033) (030)  % 0-9 and "-"
+      (120) (102) (210) (012) (201) (021) (003) (333)                    % C1-C8
+      (31) (13)                                                          % ST EN
     ] def
 
     % Create a string of the available characters
