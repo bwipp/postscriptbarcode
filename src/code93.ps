@@ -70,22 +70,30 @@ begin
 
 {
     /encs
-    [ (131112) (111213) (111312) (111411) (121113)
-      (121212) (121311) (111114) (131211) (141111)
-      (211113) (211212) (211311) (221112) (221211)
-      (231111) (112113) (112212) (112311) (122112)
-      (132111) (111123) (111222) (111321) (121122)
-      (131121) (212112) (212211) (211122) (211221)
-      (221121) (222111) (112122) (112221) (122121)
-      (123111) (121131) (311112) (311211) (321111)
-      (112131) (113121) (211131) (121221) (312111)
-      (311121) (122211) (111141) (1111411)
+    [ (131112) (111213) (111312) (111411) (121113)  % 0-4
+      (121212) (121311) (111114) (131211) (141111)  % 5-9
+      (211113) (211212) (211311) (221112) (221211)  % A-E
+      (231111) (112113) (112212) (112311) (122112)  % F-J
+      (132111) (111123) (111222) (111321) (121122)  % K-O
+      (131121) (212112) (212211) (211122) (211221)  % P-T
+      (221121) (222111) (112122) (112221) (122121)  % U-Y
+      (123111) (121131) (311112) (311211) (321111)  % "Z" "-" "." " " "$"
+      (112131) (113121) (211131) (121221) (312111)  % "/" "+" "%" ($) (%)
+      (311121) (122211) (111141) (1111411)          % (/) (+) STA END
     ] def
 
     % Create a string of the available characters
     /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
+    /charvals 47 dict def
+    0 1 42 {charvals exch dup barchars exch get exch put} for
 
     /sft1 -1 def  /sft2 -2 def  /sft3 -3 def  /sft4 -4 def
+
+    charvals sft1 43 put
+    charvals sft2 44 put
+    charvals sft3 45 put
+    charvals sft4 46 put
+
 } ctxdef
 
     % Special function characters
@@ -100,6 +108,13 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+    % Validate the input
+    msg {
+        charvals exch known not {
+            /bwipp.code93BadCharacter (Code 93 must only contain digits, capital letters, spaces, the symbols -.$/+ and shift non-data characters) //raiseerror exec
+        } if
+    } forall
+
     includecheck {
         /sbs msglen 6 mul 25 add string def
     } {
@@ -113,19 +128,9 @@ begin
     /checksum1 0 def /checksum2 0 def
     0 1 msglen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        msg i get dup 0 lt {
-            42 exch sub /indx exch def
-            /char ( ) def
-        } {
-            1 string dup 0 4 -1 roll put /char exch def
-            barchars char search
-            pop                                  % Discard true leaving pre
-            length /indx exch def                % indx is the length of pre
-            pop pop                              % Discard seek and post
-        } ifelse
-        /enc encs indx get def                   % Get the indxth encoding
-        sbs i 6 mul 6 add enc putinterval        % Put encoded digit into sbs
+        /indx charvals msg i get get def
+        sbs i 6 mul 6 add encs indx get putinterval
+        /char msg i get dup 0 lt { ( ) } { 1 string dup 0 4 -1 roll put } ifelse def
         txt i [char i 9 mul 9 add textyoffset textfont textsize] put
         /checksum1 checksum1 msglen i sub 1 sub 20 mod 1 add indx mul add def
         /checksum2 checksum2 msglen i sub 15 mod 1 add indx mul add def
