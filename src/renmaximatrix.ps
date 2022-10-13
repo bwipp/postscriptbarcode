@@ -42,15 +42,12 @@ begin
 
     20 dict begin
 
-    /args exch def   % We are given some arguments
-
     % Default options
     /barcolor (unset) def
     /backgroundcolor (unset) def
 
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt //processoptions exec pop
+    {def} forall
+    opt currentdict /opt undef //processoptions exec pop
 
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {

@@ -42,8 +42,6 @@ begin
 
     20 dict begin          % Confine variables to local scope
 
-    /args exch def   % We are given some arguments
-
     % Default options
     /sbs [] def
     /bhs [] def
@@ -80,9 +78,8 @@ begin
     /guardwidth 6.0 def
     /guardheight 7.0 def
 
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt //processoptions exec pop
+    {def} forall
+    opt currentdict /opt undef //processoptions exec pop
 
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def

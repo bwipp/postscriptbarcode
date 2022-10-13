@@ -42,8 +42,6 @@ begin
 
     20 dict begin
 
-    /args exch def
-
     % Default options
     /width 1.0 def
     /height 1.0 def
@@ -66,9 +64,8 @@ begin
     /textgaps 0.0 def
     /alttext () def
 
-    % Apply the renderer options and the user options
-    args {def} forall
-    opt //processoptions exec pop
+    {def} forall
+    opt currentdict /opt undef //processoptions exec pop
 
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if
