@@ -56,12 +56,12 @@ begin
     {
         exch dup currentdict exch known {
             dup load type 3 -1 roll exch <<
-                /booleantype { false or }                                      % Force a type error if not boolean value
-                /stringtype  { }
-                /nametype    { }                                               % Conversion to string is fine
+                /booleantype { false or }                             % Force a type error if not boolean value
+                /stringtype  { dup length string cvs }                % Conversion to string to force a boolean to fail
+                /nametype    1 index                                  % Conversion original nametype to string is fine
                 /realtype    { dup cvr exch pop }
-                /nulltype    1 index                                           % We define "null" as the sentinal value of a realtype
-                /integertype { dup dup cvr dup cvi ne {not} if cvi exch pop }  % Force type error when precision is lost
+                /nulltype    1 index                                  % We define "null" as the sentinal value of a realtype
+                /integertype { dup cvr dup cvi ne {dup not} if cvi }  % Force type error when precision is lost or boolean is given
             >> exch get stopped {
                 pop pop
                 dup length string cvs dup length 24 add string
