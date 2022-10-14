@@ -61,16 +61,12 @@ begin
     /height 1.0 def
     /addongap 12.0 def
     /addontextfont (unset) def
-    /addontextsize (unset) def
-    /addontextxoffset (unset) def
-    /addontextyoffset (unset) def
+    /addontextsize null def     % sentinal realtype
+    /addontextxoffset null def  % sentinal realtype
+    /addontextyoffset null def  % sentinal realtype
 
     //processoptions exec /options exch def
     /barcode exch def
-
-    addontextsize (unset) ne {/addontextsize addontextsize cvr def} if
-    addontextxoffset (unset) ne {/addontextxoffset addontextxoffset cvr def} if
-    addontextyoffset (unset) ne {/addontextyoffset addontextyoffset cvr def} if
 
     /upce //loadctx exec
 
@@ -278,9 +274,9 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset addontextxoffset (unset) ne {addontextxoffset} {51 addongap add} ifelse
-            addontextyoffset (unset) ne {/textyoffset addontextyoffset} if
-            /textsize addontextsize (unset) ne {addontextsize} {textsize} ifelse
+            /textxoffset addontextxoffset null ne {addontextxoffset} {51 addongap add} ifelse
+            addontextyoffset null ne {/textyoffset addontextyoffset} if
+            /textsize addontextsize null ne {addontextsize} {textsize} ifelse
             /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
         >> def
         addon length 2 eq {addon addopts //ean2 exec} if

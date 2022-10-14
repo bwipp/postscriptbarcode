@@ -50,20 +50,17 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /includetext false def  % Enable/disable ISMN text
+    /includetext false def
     /ismntextfont /Courier def
     /ismntextsize 9.0 def
-    /ismntextxoffset (unset) def
-    /ismntextyoffset (unset) def
+    /ismntextxoffset null def  % sentinal realtype
+    /ismntextyoffset null def  % sentinal realtype
     /height 1.0 def
     /addongap 12.0 def
     /legacy false def
 
     //processoptions exec /options exch def
     /barcode exch def
-
-    ismntextxoffset (unset) ne {/ismntextxoffset ismntextxoffset cvr def} if
-    ismntextyoffset (unset) ne {/ismntextyoffset ismntextyoffset cvr def} if
 
     % Split off the addon
     barcode ( ) search {
@@ -227,10 +224,10 @@ begin
 
     % Add the ISMN text
     includetext {
-        ismntextxoffset (unset) eq {
+        ismntextxoffset null eq {
             /ismntextxoffset ismntxt length 18 eq {-1} {-12} ifelse def
         } if
-        ismntextyoffset (unset) eq {
+        ismntextyoffset null eq {
             /ismntextyoffset height 72 mul 3 add def
         } if
         args (txt) known {

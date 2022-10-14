@@ -50,19 +50,16 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /includetext false def  % Enable/disable ISSN text
+    /includetext false def
     /issntextfont /Courier def
     /issntextsize 9.0 def
-    /issntextxoffset (unset) def
-    /issntextyoffset (unset) def
+    /issntextxoffset null def  % sentinal realtype
+    /issntextyoffset null def  % sentinal realtype
     /height 1.0 def
     /addongap 12.0 def
 
     //processoptions exec /options exch def
     /issntxt exch def
-
-    issntextxoffset (unset) ne {/issntextxoffset issntextxoffset cvr def} if
-    issntextyoffset (unset) ne {/issntextyoffset issntextyoffset cvr def} if
 
     % Split off the ISSN
     issntxt ( ) search {
@@ -174,10 +171,8 @@ begin
 
     % Add the ISSN text
     includetext {
-        issntextxoffset (unset) eq {/issntextxoffset 10 def} if
-        issntextyoffset (unset) eq {
-            /issntextyoffset height 72 mul 3 add def
-        } if
+        issntextxoffset null eq {/issntextxoffset 10 def} if
+        issntextyoffset null eq {/issntextyoffset height 72 mul 3 add def} if
         args (txt) known {
             /txt args (txt) get def
             /newtxt txt length 1 add array def

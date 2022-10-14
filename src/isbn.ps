@@ -53,17 +53,14 @@ begin
     /includetext false def  % Enable/disable ISBN text
     /isbntextfont /Courier def
     /isbntextsize 9.0 def
-    /isbntextxoffset (unset) def
-    /isbntextyoffset (unset) def
+    /isbntextxoffset null def  % sentinal realtype
+    /isbntextyoffset null def  % sentinal realtype
     /height 1.0 def
     /addongap 12.0 def
     /legacy false def
 
     //processoptions exec /options exch def
     /barcode exch def
-
-    isbntextxoffset (unset) ne {/isbntextxoffset isbntextxoffset cvr def} if
-    isbntextyoffset (unset) ne {/isbntextyoffset isbntextyoffset cvr def} if
 
     % Split off the addon
     barcode ( ) search {
@@ -248,10 +245,10 @@ begin
 
     % Add the ISBN text
     includetext {
-        isbntextxoffset (unset) eq {
+        isbntextxoffset null eq {
             /isbntextxoffset isbn length 9 eq {-1} {-12} ifelse def
         } if
-        isbntextyoffset (unset) eq {
+        isbntextyoffset null eq {
             /isbntextyoffset height 72 mul 3 add def
         } if
         args (txt) known {

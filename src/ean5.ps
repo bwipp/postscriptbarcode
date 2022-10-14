@@ -51,21 +51,19 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /includetext false def              % Enable/disable text
+    /includetext false def
     /textfont /Helvetica def
     /textsize 12.0 def
     /textxoffset 0.0 def
-    /textyoffset (unset) def
+    /textyoffset null def  % realtype sentinal
     /height 0.7 def
 
     //processoptions exec /options exch def
     /barcode exch def
 
-    textyoffset (unset) eq {
+    textyoffset null eq {
         /textyoffset height 72 mul 1 add def
-    } {
-        /textyoffset textyoffset cvr def
-    } ifelse
+    } if
 
     /ean5 //loadctx exec
 

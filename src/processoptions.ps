@@ -60,6 +60,7 @@ begin
                 /stringtype  { }
                 /nametype    { }                                               % Conversion to string is fine
                 /realtype    { dup cvr exch pop }
+                /nulltype    1 index                                           % We define "null" as the sentinal value of a realtype
                 /integertype { dup dup cvr dup cvi ne {not} if cvi exch pop }  % Force type error when precision is lost
             >> exch get stopped {
                 pop pop
