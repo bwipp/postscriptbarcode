@@ -368,14 +368,15 @@ begin
         /isFN {char 0 lt} def
         /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} def
 
+        % TODO To avoid roundoff, consider increasing the scores by a scale factor of 12 to convert to integers
         /lookup {
-            /ac 1 def /cc 2 def /tc 2 def /xc 2 def /ec 2 def /bc 2.25 def
-            mode A eq {/ac 0 def /cc 1 def /tc 1 def /xc 1 def /ec 1 def /bc 1.25 def} if
-            mode C eq {/cc 0 def} if
-            mode T eq {/tc 0 def} if
-            mode X eq {/xc 0 def} if
-            mode E eq {/ec 0 def} if
-            mode B eq {/bc 0 def} if
+            /ac 1.0 def /cc 2.0 def /tc 2.0 def /xc 2.0 def /ec 2.0 def /bc 2.25 def
+            mode A eq {/ac 0.0 def /cc 1.0 def /tc 1.0 def /xc 1.0 def /ec 1.0 def /bc 1.25 def} if
+            mode C eq {/cc 0.0 def} if
+            mode T eq {/tc 0.0 def} if
+            mode X eq {/xc 0.0 def} if
+            mode E eq {/ec 0.0 def} if
+            mode B eq {/bc 0.0 def} if
             1 {  % common exit
                 isECI i get {A exit} if  % ECI only in ASCII
                 mailmark i 45 lt and {C exit} if  % Mailmark is C40 only for 45 characters
