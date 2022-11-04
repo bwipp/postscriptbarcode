@@ -447,7 +447,44 @@ begin
                     /pad al encp def
                     /submode A def
                 } {
-                    /pad ps textencfuncs submode get load exec def
+                    % Need to check whether a ps shift can be used to pad
+                    /nextecitext false def
+                    % If have one or more ECIs next followed by text sequence (array)
+                    i 1 add 1 seq length 1 sub {
+                        /ti exch def
+                        seq ti get type /arraytype ne { /nextecitext false def exit } if
+                        seq ti get 0 get -1000000 gt { exit } if
+                        /nextecitext true def
+                    } for
+                    nextecitext { % Then don't use ps as it would affect first char of text sequence
+                        submode A eq {
+                            charvals L get seq ti get 0 get known {  % Check whether to use ll or ml latch
+                                /pad ll enca def
+                                /submode L def
+                            } {
+                                /pad ml enca def
+                                /submode M def
+                            } ifelse
+                        } {
+                        submode M eq {
+                            charvals L get seq ti get 0 get known {  % Check whether to use ll, pl or al latch
+                                /pad ll encm def
+                                /submode L def
+                            } {
+                            charvals P get seq ti get 0 get known {
+                                /pad pl encm def
+                                /submode P def
+                            } {
+                                /pad al encm def
+                                /submode A def
+                            } ifelse } ifelse
+                        } {  % L
+                            /pad ml encl def  % Only latch available
+                            /submode M def
+                        } ifelse } ifelse
+                    } {  % Otherwise use standard ps shift pad
+                        /pad ps textencfuncs submode get load exec def
+                    } ifelse
                 } ifelse
                 /text [ text aload pop pad ] def
             } if
