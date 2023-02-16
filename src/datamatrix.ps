@@ -59,7 +59,7 @@ begin
     /parse false def
     /parsefnc false def
     /encoding (auto) def
-    /mailmark false def
+    /c40headerlength -1 def
     /raw false def
     /dmre false def      % Alias for isodmre
     /dindmre false def
@@ -379,7 +379,7 @@ begin
             mode B eq {/bc 0.0 def} if
             1 {  % common exit
                 isECI i get {A exit} if  % ECI only in ASCII
-                mailmark i 45 lt and {C exit} if  % Mailmark is C40 only for 45 characters
+                c40headerlength -1 ne i c40headerlength lt and {C exit} if  % C40 only for c40headerlength characters
                 /k 0 def {  % loop
                     i k add msglen eq {
                         [/ac /cc /tc /xc /ec /bc] {dup load ceiling def} forall
