@@ -1,7 +1,7 @@
 # Barcode Writer in Pure PostScript
 # https://bwipp.terryburton.co.uk
 #
-# Copyright (c) 2004-2022 Terry Burton
+# Copyright (c) 2004-2023 Terry Burton
 #
 # $Id$
 
@@ -302,7 +302,7 @@ tag:
 YEAR:=$(shell date +%Y)
 
 copyright:
-	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps $(DSTDIR)/make_resource.ps
+	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps $(DSTDIR)/make_resource.ps libs/bindings/postscriptbarcode.i libs/c/*.[ch]
 
 whitespace:
 	perl -p -i -e 's/\s+$$/\n/;' $(SOURCES)

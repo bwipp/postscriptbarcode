@@ -4,7 +4,7 @@
  * @file postscriptbarcode.h
  * @author Terry Burton
  *
- * \copyright Copyright (c) 2004-2021 Terry Burton
+ * \copyright Copyright (c) 2004-2023 Terry Burton
  * Barcode Writer in Pure PostScript
  *
  * @licenseblock{License}

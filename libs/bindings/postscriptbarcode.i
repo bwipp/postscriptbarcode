@@ -2,9 +2,9 @@
  * libpostscriptbarcode
  *
  * @file postscriptbarcode.i
- * @author Copyright (c) 2004-2022 Terry Burton.
+ * @author Copyright (c) 2004-2023 Terry Burton.
  *
- * Copyright (c) 2004-2022 Terry Burton
+ * Copyright (c) 2004-2023 Terry Burton
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
