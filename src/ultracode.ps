@@ -52,7 +52,7 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /eclevel (EC2) def     % EC0-EC5
+    /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
     /encoding (auto) def
     /parse false def
     /parsefnc false def
@@ -66,6 +66,15 @@ begin
 
     rev dup 1 ne exch 2 ne and {
         /bwipp.ultracodeInvalidRevision (Valid revisions are 1 and 2) //raiseerror exec
+    } if
+
+    eclevel length 3 eq dup {
+       pop eclevel 0 2 getinterval (EC) dup eq {
+           pop eclevel 2 get 48 sub dup rev 2 eq {1} {0} ifelse ge exch 5 le and
+       } if
+    } if
+    not {
+        /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
     } if
 
     /ultracode //loadctx exec
