@@ -125,12 +125,20 @@ begin
     % Set RGB or CMYK color depending on length of given hex string
     /setanycolor {
         /anycolor exch def
-        anycolor length 6 eq {
-            (<      >) 8 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setrgbcolor
+        anycolor length dup 6 ne exch 8 ne and {
+            /bwipp.renmatrixBadColorLength (Colors must be 6 or 8 characters) //raiseerror exec
         } if
-        anycolor length 8 eq {
-            (<        >) 10 string copy dup 1 anycolor putinterval cvx exec {255 div} forall setcmykcolor
-        } if
+        anycolor {
+            dup     dup 48 ge exch  59 le and  % 0-9
+            1 index dup 65 ge exch  70 le and  % A-F
+            2 index dup 97 ge exch 102 le and  % a-f
+            or or exch pop not {
+                /bwipp.renmatrixBadColorCharacter (Colors must be in hexadecimal notation) //raiseerror exec
+            } if
+        } forall
+        anycolor length 6 eq { (<      >) } { (<        >) } ifelse dup length string copy
+        dup 1 anycolor putinterval cvx exec {255 div} forall
+        anycolor length 6 eq { setrgbcolor } { setcmykcolor } ifelse
     } def
 
     % Plot a layer of single colour
@@ -243,7 +251,7 @@ begin
     } if
 
     colormap {
-        setanycolor
+        dup (unset) ne { setanycolor } { pop } ifelse
         /key exch def
         [
             pixs { key eq {1} {0} ifelse } forall
