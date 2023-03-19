@@ -121,7 +121,7 @@ all: resource packaged_resource monolithic monolithic_package
 clean:
 	$(RM) $(cleanlist)
 
-test:
+test: all
 	tests/run_tests
 
 $(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
