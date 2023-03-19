@@ -76,8 +76,20 @@ begin
         format (unset) eq { /format (full) def } if  % Default to full
     } ifelse
 
+    format (full) ne format (micro) ne format (rmqr) ne and and {
+        /bwipp.qrcodeInvalidFormat (The format must be either full, micro or rmqr) //raiseerror exec
+    } if
+
+    format (rmqr) eq version (unset) eq and {
+        /bwipp.qrcodeRMQRwithoutVersion (A version must be provided for RMQR) //raiseerror exec
+    } if
+
     % Default error correction level
     eclevel (unset) eq {/eclevel format (micro) ne {(M)} {(L)} ifelse def} if
+
+    eclevel (L) ne eclevel (M) ne eclevel (Q) ne eclevel (H) ne and and and {
+        /bwipp.qrcodeInvalidEClevel (Error correction level must be either L, M, Q, or H) //raiseerror exec
+    } if
 
     % Parse the input
     /fn1 -1 def
@@ -401,28 +413,40 @@ begin
     % Determine which groups we need to encode
 {
     /versetmap <<
-        % Full
-         0 1  9 { 10 2 string cvrs v1to9   } for
-        10 1 26 { 10 2 string cvrs v10to26 } for
-        27 1 40 { 10 2 string cvrs v27to40 } for
-
-        % Micro
-        (M1) vM1  (M2) vM2  (M3) vM3  (M4) vM4
-
-        % rMQR
-                          (R7x43)  vR7x43   (R7x59)  vR7x59   (R7x77)  vR7x77   (R7x99)  vR7x99   (R7x139)  vR7x139
-                          (R9x43)  vR9x43   (R9x59)  vR9x59   (R9x77)  vR9x77   (R9x99)  vR9x99   (R9x139)  vR9x139
-        (R11x27) vR11x27  (R11x43) vR11x43  (R11x59) vR11x59  (R11x77) vR11x77  (R11x99) vR11x99  (R11x139) vR11x139
-        (R13x27) vR13x27  (R13x43) vR13x43  (R13x59) vR13x59  (R13x77) vR13x77  (R13x99) vR13x99  (R13x139) vR13x139
-                          (R15x43) vR15x43  (R15x59) vR15x59  (R15x77) vR15x77  (R15x99) vR15x99  (R15x139) vR15x139
-                          (R17x43) vR17x43  (R17x59) vR17x59  (R17x77) vR17x77  (R17x99) vR17x99  (R17x139) vR17x139
+        (full) <<
+             0 1  9 { 10 2 string cvrs v1to9   } for
+            10 1 26 { 10 2 string cvrs v10to26 } for
+            27 1 40 { 10 2 string cvrs v27to40 } for
+        >>
+        (micro) <<
+            (M1) vM1  (M2) vM2  (M3) vM3  (M4) vM4
+        >>
+        (rmqr) <<
+                              (R7x43)  vR7x43   (R7x59)  vR7x59   (R7x77)  vR7x77   (R7x99)  vR7x99   (R7x139)  vR7x139
+                              (R9x43)  vR9x43   (R9x59)  vR9x59   (R9x77)  vR9x77   (R9x99)  vR9x99   (R9x139)  vR9x139
+            (R11x27) vR11x27  (R11x43) vR11x43  (R11x59) vR11x59  (R11x77) vR11x77  (R11x99) vR11x99  (R11x139) vR11x139
+            (R13x27) vR13x27  (R13x43) vR13x43  (R13x59) vR13x59  (R13x77) vR13x77  (R13x99) vR13x99  (R13x139) vR13x139
+                              (R15x43) vR15x43  (R15x59) vR15x59  (R15x77) vR15x77  (R15x99) vR15x99  (R15x139) vR15x139
+                              (R17x43) vR17x43  (R17x59) vR17x59  (R17x77) vR17x77  (R17x99) vR17x99  (R17x139) vR17x139
+        >>
     >> def
     /versetfull  [v1to9 v10to26 v27to40] def
     /versetmicro [vM1 vM2 vM3 vM4] def
 } ctxdef
     version (unset) ne {
         % A specific version of symbol is given so encode in just the corresponding vergrp
-        /verset versetmap version get [ exch ] def
+        versetmap format get version 2 copy known not {
+            pop pop
+            format (full) eq {
+                /bwipp.qrcodeInvalidFullVersion (Valid versions for QR Code symbols are 1 to 40) //raiseerror exec
+            } {
+            format (micro) eq {
+                /bwipp.qrcodeInvalidMicroVersion (Valid versions for Micro QR Code symbols are M1 to M4) //raiseerror exec
+            } {  % rmqr
+                /bwipp.qrcodeInvalidRMQRversion (Invalid version for an RMQR symbol) //raiseerror exec
+            } ifelse } ifelse
+        } if
+        get [ exch ] /verset exch def
     } {
         % Just the format is specified so encode in each vergrp for the type of symbol
         format (full)  eq { /verset versetfull  def } if
