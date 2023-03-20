@@ -50,21 +50,13 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /dmre false def
-    /dindmre false def
 
     //processoptions exec /options exch def
     /barcode exch def
 
     % Get the result of encoding with datamatrix
     options (dontdraw) true put
-
-    dindmre dmre or not {  % Default is (ISO) DMRE
-        options (dmre) true put
-    } {  % Otherwise enable formats as given
-        options (dmre) dmre put        % ISO
-        options (dindmre) dindmre put  % DIN
-    } ifelse
+    options (dmre) true put
 
     /args barcode options //datamatrix exec def
 

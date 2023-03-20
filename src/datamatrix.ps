@@ -58,88 +58,105 @@ begin
     /version (unset) def
     /parse false def
     /parsefnc false def
-    /encoding (auto) def
     /c40headerlength -1 def
     /raw false def
-    /dmre false def      % Alias for isodmre
-    /dindmre false def
-    /isodmre false def
+    /dmre false def
 
     //processoptions exec /options exch def
     /barcode exch def
 
-    /isodmre dmre def
-
-    format (unset) eq version (unset) eq and {
-        /format isodmre dindmre or { (rectangle) } { (square) } ifelse def
+    version (unset) ne rows 0 ne columns 0 ne or and {
+        /bwipp.datamatrixVersionRowsCols (rows and columns must not be given if version is specified) //raiseerror exec
     } if
 
+    % Parse version=RxC into rows and columns
     version (unset) ne {
-        version (x) search
-        pop /rows exch cvi def
-        pop /columns exch cvi def
+        version (x) search {
+            exch pop
+            2 copy 2 array astore {
+                true
+                1 index length 0 eq { pop false } if
+                exch {
+                    dup 48 lt exch 59 gt or { pop false } if
+                } forall
+                not {
+                    /bwipp.datamatrixVersionBadRowOrColumn (version must be formatted as RxC) //raiseerror exec
+                } if
+            } forall
+            /rows exch cvi def
+            /columns exch cvi def
+            /format rows columns eq { (square) } { (rectangle) } ifelse def
+        } {
+            pop /bwipp.datamatrixVersionFormat (version must be formatted as RxC) //raiseerror exec
+        } ifelse
+    } {
+        format (unset) eq {
+            /format dmre { (rectangle) } { (square) } ifelse def
+        } if
+    } ifelse
+
+    format (square) ne format (rectangle) ne and {
+        /bwipp.datamatrixInvalidFormat (The format must be either square or rectangle) //raiseerror exec
     } if
 
     /datamatrix //loadctx exec
 
-    % TODO make this "static"
     % Basic metrics for the each symbol
-    %                         rows  cols  regh  regv  rscw  rsbl
+    %    rows  cols  regh  regv  rscw  rsbl  dmre
+{
     /metrics [
         % Standard square symbols
-                             [  10    10     1     1     5     1 ]
-                             [  12    12     1     1     7     1 ]
-                             [  14    14     1     1    10     1 ]
-                             [  16    16     1     1    12     1 ]
-                             [  18    18     1     1    14     1 ]
-                             [  20    20     1     1    18     1 ]
-                             [  22    22     1     1    20     1 ]
-                             [  24    24     1     1    24     1 ]
-                             [  26    26     1     1    28     1 ]
-                             [  32    32     2     2    36     1 ]
-                             [  36    36     2     2    42     1 ]
-                             [  40    40     2     2    48     1 ]
-                             [  44    44     2     2    56     1 ]
-                             [  48    48     2     2    68     1 ]
-                             [  52    52     2     2    84     2 ]
-                             [  64    64     4     4   112     2 ]
-                             [  72    72     4     4   144     4 ]
-                             [  80    80     4     4   192     4 ]
-                             [  88    88     4     4   224     4 ]
-                             [  96    96     4     4   272     4 ]
-                             [ 104   104     4     4   336     6 ]
-                             [ 120   120     6     6   408     6 ]
-                             [ 132   132     6     6   496     8 ]
-                             [ 144   144     6     6   620    10 ]
+        [  10    10     1     1     5     1     0 ]
+        [  12    12     1     1     7     1     0 ]
+        [  14    14     1     1    10     1     0 ]
+        [  16    16     1     1    12     1     0 ]
+        [  18    18     1     1    14     1     0 ]
+        [  20    20     1     1    18     1     0 ]
+        [  22    22     1     1    20     1     0 ]
+        [  24    24     1     1    24     1     0 ]
+        [  26    26     1     1    28     1     0 ]
+        [  32    32     2     2    36     1     0 ]
+        [  36    36     2     2    42     1     0 ]
+        [  40    40     2     2    48     1     0 ]
+        [  44    44     2     2    56     1     0 ]
+        [  48    48     2     2    68     1     0 ]
+        [  52    52     2     2    84     2     0 ]
+        [  64    64     4     4   112     2     0 ]
+        [  72    72     4     4   144     4     0 ]
+        [  80    80     4     4   192     4     0 ]
+        [  88    88     4     4   224     4     0 ]
+        [  96    96     4     4   272     4     0 ]
+        [ 104   104     4     4   336     6     0 ]
+        [ 120   120     6     6   408     6     0 ]
+        [ 132   132     6     6   496     8     0 ]
+        [ 144   144     6     6   620    10     0 ]
         % Optional rectangular symbols
-                             [   8    18     1     1     7     1 ]
-                             [   8    32     1     2    11     1 ]
-        dindmre isodmre or { [   8    48     1     2    15     1 ] } if
-        dindmre isodmre or { [   8    64     1     4    18     1 ] } if
-                isodmre    { [   8    80     1     4    22     1 ] } if
-                isodmre    { [   8    96     1     4    28     1 ] } if
-                isodmre    { [   8   120     1     6    32     1 ] } if
-                isodmre    { [   8   144     1     6    36     1 ] } if
-                             [  12    26     1     1    14     1 ]
-                             [  12    36     1     2    18     1 ]
-        dindmre isodmre or { [  12    64     1     4    27     1 ] } if
-                isodmre    { [  12    88     1     4    36     1 ] } if
-                             [  16    36     1     2    24     1 ]
-                             [  16    48     1     2    28     1 ]
-        dindmre isodmre or { [  16    64     1     4    36     1 ] } if
-                isodmre    { [  20    36     1     2    28     1 ] } if
-                isodmre    { [  20    44     1     2    34     1 ] } if
-                isodmre    { [  20    64     1     4    42     1 ] } if
-                isodmre    { [  22    48     1     2    38     1 ] } if
-        dindmre            { [  24    32     1     2    28     1 ] } if
-        dindmre            { [  24    36     1     2    33     1 ] } if
-        dindmre isodmre or { [  24    48     1     2    41     1 ] } if
-        dindmre isodmre or { [  24    64     1     4    46     1 ] } if
-        dindmre            { [  26    32     1     2    32     1 ] } if
-        dindmre isodmre or { [  26    40     1     2    38     1 ] } if
-        dindmre isodmre or { [  26    48     1     2    42     1 ] } if
-        dindmre isodmre or { [  26    64     1     4    50     1 ] } if
+        [   8    18     1     1     7     1     0 ]
+        [   8    32     1     2    11     1     0 ]
+        [   8    48     1     2    15     1     1 ]
+        [   8    64     1     4    18     1     1 ]
+        [   8    80     1     4    22     1     1 ]
+        [   8    96     1     4    28     1     1 ]
+        [   8   120     1     6    32     1     1 ]
+        [   8   144     1     6    36     1     1 ]
+        [  12    26     1     1    14     1     0 ]
+        [  12    36     1     2    18     1     0 ]
+        [  12    64     1     4    27     1     1 ]
+        [  12    88     1     4    36     1     1 ]
+        [  16    36     1     2    24     1     0 ]
+        [  16    48     1     2    28     1     0 ]
+        [  16    64     1     4    36     1     1 ]
+        [  20    36     1     2    28     1     1 ]
+        [  20    44     1     2    34     1     1 ]
+        [  20    64     1     4    42     1     1 ]
+        [  22    48     1     2    38     1     1 ]
+        [  24    48     1     2    41     1     1 ]
+        [  24    64     1     4    46     1     1 ]
+        [  26    40     1     2    38     1     1 ]
+        [  26    48     1     2    42     1     1 ]
+        [  26    64     1     4    50     1     1 ]
     ] def
+} ctxdef
 
     % Create array of codewords remaining to make a full symbol
     /urows rows def
@@ -153,6 +170,7 @@ begin
         /regv m 3 get def                          % Vertical regions
         /rscw m 4 get def                          % Error correction codewords
         /rsbl m 5 get def                          % Error correction blocks
+        /doly m 6 get def                          % DMRE-only model
         /mrows rows 2 regh mul sub def             % Rows in the mapping matrix
         /mcols cols 2 regv mul sub def             % Columns in the mapping matrix
         /ncws mrows mcols mul 8 idiv rscw sub def  % Data codewords
@@ -161,6 +179,7 @@ begin
         ucols 0 ne ucols cols ne and {/okay false def} if
         format (square) eq rows cols ne and {/okay false def} if
         format (rectangle) eq rows cols eq and {/okay false def} if
+        dmre not doly 1 eq and {/okay false def} if
         okay {/fullcws [ fullcws aload pop ncws ] def} if
     } forall
     /numremcws [ 1558 {10000} repeat ] def
@@ -285,9 +304,8 @@ begin
     /A 0 def  /C 1 def  /T 2 def  /X 3 def  /E 4 def  /B 5 def
 } ctxdef
 
-    raw {/encoding (raw) def} if
+    raw {
 
-    encoding (raw) eq {
         /cws barcode length array def
         /i 0 def /j 0 def
         { % loop
@@ -298,9 +316,8 @@ begin
             /j j 1 add def
         } loop
         /cws cws 0 j getinterval def
-    } if  % encoding=raw
 
-    encoding (auto) eq {
+    } {
 
         % Parse the input
         /fncvals <<
@@ -691,7 +708,7 @@ begin
         } loop
         /cws cws 0 j getinterval def
 
-    } if  % encoding=auto
+    } ifelse
 
     % Extend codewords to fill symbol with pseudo-randomised pad characters
     /datlen cws length def
@@ -709,8 +726,8 @@ begin
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
     % Lookup symbol metrics based on number of codewords and user specification
-    /i 0 def { % loop
-        /m metrics i get def
+    metrics {
+        /m exch def
         /rows m 0 get def                          % Rows in symbol
         /cols m 1 get def                          % Columns in symbol
         /regh m 2 get def                          % Horizontal regions
@@ -729,8 +746,11 @@ begin
         format (square) eq rows cols ne and {/okay false def} if
         format (rectangle) eq rows cols eq and {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } forall
+
+    okay not {
+        /bwipp.datamatrixNoValidSymbol (Maximum length exceeded or invalid size) //raiseerror exec
+    } if
 
     % De-interleave the codewords into blocks
     /cwbs rsbl array def  % Array of data codeword blocks
