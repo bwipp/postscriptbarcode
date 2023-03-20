@@ -66,7 +66,46 @@ begin
 
     /azteccode //loadctx exec
 
+    eclevel 5 lt eclevel 95 gt or {
+        /bwipp.aztecInvalidEClevel (The EC percentage must be from 5 to 95) //raiseerror exec
+    } if
+
+    ecaddchars 3 lt {
+        /bwipp.aztecInvalidECaddChars (The number of additional EC codewords must be 3 or more) //raiseerror exec
+    } if
+
+    format (full) ne format (compact) ne format (rune) ne and and {
+        /bwipp.aztecInvalidFormat (The format must be either full, compact or rune) //raiseerror exec
+    } if
+
+    format (full) eq {
+        readerinit layers 1 lt layers 22 gt or and {
+            /bwipp.aztecFullInitInvalidLayers (Full-range symbols for reader programming must specify from 1 to 22 layers) //raiseerror exec
+        } if
+        layers -1 ne layers 1 lt layers 32 gt or and {
+            /bwipp.aztecFullInvalidLayers (Layers for full-range symbols must be from 1 to 32) //raiseerror exec
+        } if
+    } if
+
+    format (compact) eq {
+        readerinit {
+            layers -1 ne layers 1 ne and {
+                /bwipp.aztecCompactInitInvalidLayers (Compact symbols for reader programming must have 1 layer) //raiseerror exec
+            } if
+            /layers 1 def
+        } if
+        layers -1 ne layers 1 lt layers 4 gt or and {
+            /bwipp.aztecCompactInvalidLayers (Layers for compact symbols must be from 1 to 4) //raiseerror exec
+        } if
+    } if
+
     format (rune) eq {
+        layers -1 ne {
+            /bwipp.aztecRuneInvalidLayers (It is not valid to specify layers for runes) //raiseerror exec
+        } if
+        readerinit {
+            /bwipp.aztecRuneReaderInit (Reader initialisation is not compactible with Aztec Runes) //raiseerror exec
+        } if
         barcode length 0 eq {
             /bwipp.aztecRuneNotNumeric (Aztec runes must be numeric) //raiseerror exec
         } if
@@ -517,7 +556,7 @@ begin
         msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords
         /numdcw ncws numecw sub def                % Data codewords
         /okay true def
-        format (unset) ne format frmt ne and {/okay false def} if
+        format frmt ne {/okay false def} if
         readerinit icap 1 ne and {/okay false def} if
         layers -1 ne layers mlyr ne and {/okay false def} if
         msgbits length bpcw div ceiling cvi numdcw gt {/okay false def} if
@@ -525,7 +564,6 @@ begin
         /i i 1 add def
     } loop
     /layers mlyr def
-    /format frmt def
 
     % Expand message bits into codewords avoiding codewords with all zeros or all ones
     /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} def
