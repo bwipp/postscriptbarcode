@@ -53,7 +53,6 @@ begin
     /ctx null def
     /dontdraw false def
     /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
-    /encoding (auto) def
     /parse false def
     /parsefnc false def
     /start 257 def         % 8-bit ISO-8859-1, until we write high-level encoders
@@ -79,9 +78,8 @@ begin
 
     /ultracode //loadctx exec
 
-    raw {/encoding (raw) def} if
+    raw {
 
-    encoding (raw) eq {
         /dcws barcode length array def
         /i 0 def /j 0 def
         { % loop
@@ -92,10 +90,8 @@ begin
             /j j 1 add def
         } loop
         /dcws dcws 0 j getinterval def
-    } if
 
-    % Basic high level encoding
-    encoding (auto) eq {
+    } {
 
         % Parse the input
         /fn1 -1 def  /fn3 -2 def
@@ -119,7 +115,7 @@ begin
             } forall
         ] def
 
-    } if
+    } ifelse
 
     options /debugcws known { /bwipp.debugcws dcws //raiseerror exec } if
 
