@@ -70,6 +70,10 @@ begin
     inkspread 0 ne {/inkspreadh inkspread def} if
     inkspread 0 ne {/inkspreadv inkspread def} if
 
+    textsize 0 le {
+        /bwipp.renmatrixBadTextsize (The font size must be greater than zero) //raiseerror exec
+    } if
+
     /xyget { pixx mul add pixs exch get} def
     /cget { pixx mul add cache exch get and} def
     /cput {  % Optimise by only storing "stem" corners
@@ -266,6 +270,10 @@ begin
             txt {
                 {} forall
                 2 copy s ne exch fn ne or {
+                    dup 0 le {
+                        pop pop pop pop pop
+                        /bwipp.renmatrixFontTooSmall (The font size is too small) //raiseerror exec
+                    } if
                     2 copy /s exch def /fn exch def
                     selectfont
                 } {

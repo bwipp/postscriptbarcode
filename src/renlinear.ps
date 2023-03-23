@@ -81,6 +81,10 @@ begin
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
 
+    textsize 0 le {
+        /bwipp.renlinearBadTextsize (The font size must be greater than zero) //raiseerror exec
+    } if
+
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def
     /pixx 0 def /pixy 0 def
@@ -174,8 +178,12 @@ begin
         textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
             /s 0 def /fn () def
             txt {
-                {} forall
+                aload pop
                 2 copy s ne exch fn ne or {
+                    dup 0 le {
+                        pop pop pop pop pop
+                        /bwipp.renlinearFontTooSmall (The font size is too small) //raiseerror exec
+                    } if
                     2 copy /s exch def /fn exch def
                     selectfont
                 } {
