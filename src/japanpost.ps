@@ -95,6 +95,7 @@ begin
 
     /checksum 0 def
     /j 0 def /i 0 def
+    true
     0 1 barlen 1 sub {
         /i exch def
         barcode i 1 getinterval barchars exch search
@@ -102,7 +103,7 @@ begin
         length /indx exch def                % indx is the length of pre
         pop pop                              % Discard match and post
         indx 11 ge indx 37 lt and {          % Insert escape
-            j 18 gt {exit} if                % Should fit in 20 chars
+            j 18 gt {pop false exit} if      % Should fit in 20 chars
                                              % 11-20: C1 (11)
                                              % 21-30: C2 (12)
                                              % 31-36: C3 (13)
@@ -112,7 +113,7 @@ begin
             digits j digit put
             /j j 1 add def
         } if
-        j 19 gt {exit} if                    % Should fit in 20 chars
+        j 19 gt {pop false exit} if          % Should fit in 20 chars
         /digit 0 def
         indx 37 eq {
             /digit 14 def                    % space (C14)
@@ -129,6 +130,10 @@ begin
         txt i [barcode i 1 getinterval j 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
         /j j 1 add def
     } for
+
+    not {
+        /bwipp.japanpostTooLong (The input is too long) //raiseerror exec
+    } if
 
     % Fill spaces (c14) at right end
     j 1 20 1 sub {
