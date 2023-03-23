@@ -75,6 +75,10 @@ begin
     /barlen barcode length def
     options (parse) undef
 
+    numeric barlen 2 mod 0 ne and {
+        /bwipp.telepenNumericOddLength (Telepen Numeric must have an even length) //raiseerror exec
+    } if
+
     % Create an array containing the character mappings
 {
     /encs
@@ -113,7 +117,6 @@ begin
     ] def
 } ctxdef
 
-    /barlen barcode length def    % Length of the code
     /sbs barlen 16 mul 48 add string def
     /txt barlen array def
 
@@ -126,23 +129,34 @@ begin
     /i 0 def /j 0 def
     { % loop
         i barlen eq {exit} if
-        numeric {  % numeric mode: 00-99 & 0X-9X
-            barcode i get 16 gt {
+        numeric {
+            barcode i get 16 gt {  % 00-99 or 0X-9X
                 /np barcode i 2 getinterval def
-                np 1 1 getinterval (X) eq {  % X in even position amongst digits
-                    /indx np 0 1 getinterval cvi 17 add def
+                np 0 get dup 48 lt exch 57 gt or
+                np 1 get dup 48 lt 1 index 57 gt or exch 88 eq not and
+                or {
+                    -1
                 } {
-                    /indx np cvi 27 add def
+                    np 0 get 48 sub
+                    np 1 get 48 sub dup 40 ne { exch 10 mul add 10 add } { pop } ifelse
+                    17 add
                 } ifelse
+                dup -1 eq {
+                    /bwipp.telepenInvalidNumericCharacter (Telepen Numeric may contain only digits, or X in even positions) //raiseerror exec
+                } if
+                /indx exch def
                 txt j [np j 16 mul 16 add textyoffset textfont textsize] put
                 /i i 2 add def
-            } {
+            } {  % Ordinal values 0-16
                 /indx barcode i get def
                 txt j [( ) j 16 mul 16 add textyoffset textfont textsize] put
                 /i i 1 add def
             } ifelse
         } {  % ASCII mode
             /indx barcode i get def
+            indx 127 gt {
+                /bwipp.telepenInvalidAlphaCharacter (Telepen Alpha characters must have ordinal values 0 to 127) //raiseerror exec
+            } if
             indx 32 ge indx 126 le and {
                 txt j [barcode i 1 getinterval j 16 mul 16 add textyoffset textfont textsize] put
             } {
