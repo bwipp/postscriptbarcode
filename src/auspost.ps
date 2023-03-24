@@ -61,6 +61,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    custinfoenc (character) ne custinfoenc (numeric) ne and {
+        /bwipp.auspostBadCustinfoEncoding (Customer information encoding must be either character or numeric) //raiseerror exec
+    } if
+
     /auspost //loadctx exec
 
     % Create an array containing the character mappings
@@ -80,15 +84,36 @@ begin
 
     % Create a string of the available characters
     /barchars (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz #) def
+
+    % FCC lengths
+    /fcclen << (11) 37  (45) 37  (59) 52  (62) 67 >> def
+
 } ctxdef
 
     /barlen barcode length def
-    barcode 0 2 getinterval (11) eq {37} if
-    barcode 0 2 getinterval (45) eq {37} if
-    barcode 0 2 getinterval (59) eq {52} if
-    barcode 0 2 getinterval (62) eq {67} if
-    /encstr exch string def
     /txt barlen 2 sub array def
+
+    fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
+    2 copy known not {
+        pop pop /bwipp.auspostBadFCC (Must begin with an FCC, either 11, 45, 59 or 62) //raiseerror exec
+    } if
+    get /encstr exch string def
+
+    % Validate that the message has a complete, numeric DPID
+    true
+    1 {
+        barlen 10 lt { pop false exit } if
+        barcode 2 8 getinterval { dup 48 lt exch 57 gt or { pop false exit } if } forall
+    } repeat
+    not {
+        /bwipp.auspostIncompleteDPID (The DPID must be 8 digits) //raiseerror exec
+    } if
+
+    % Validate that the message will fit
+    barlen 10 sub custinfoenc (numeric) eq {2} {3} ifelse mul
+    encstr length 22 sub 14 sub gt {
+        /bwipp.auspostTooLong (The message is too long) //raiseerror exec
+    } if
 
     % Put start character
     encstr 0 encs 74 get putinterval
@@ -112,7 +137,11 @@ begin
     custinfoenc (numeric) eq {
         0 1 barlen 11 sub {
             /i exch def
-            encs barcode i 10 add 1 getinterval cvi 64 add get
+            encs barcode i 10 add get
+            dup dup 48 lt exch 57 gt or {
+                /bwipp.auspostInvalidCustinfoDigit (The customer information data contains a non-digit character) //raiseerror exec
+            } if
+            48 sub 64 add get
             encstr i 2 mul 22 add 3 2 roll putinterval
             txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
         } for
@@ -121,7 +150,9 @@ begin
         0 1 barlen 11 sub {
             /i exch def
             barcode i 10 add 1 getinterval barchars exch search
-            pop
+            not {
+                pop /bwipp.auspostInvalidCustinfoCharacter (The customer information contains an invalid character) //raiseerror exec
+            } if
             length /indx exch def
             pop pop
             /enc encs indx get def
