@@ -60,6 +60,22 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    mode -1 ne mode 2 lt mode 6 gt or and {
+       /bwipp.maxicodeBadMode (Mode must be 2 to 6) //raiseerror exec
+    } if
+
+    sam -1 ne {
+        true
+        1 {
+            sam dup 12 lt exch 88 gt or { pop false exit } if
+            sam 10 mod dup 2 lt exch 8 gt or { pop false exit } if
+            sam 10 idiv dup 1 lt exch sam 10 mod gt or { pop false exit } if
+        } repeat
+        not {
+            /bwipp.maxicodeBadSAM (SAM must be formatted as "NM" for Nth of M symbols, from 2 to 8 symbols) //raiseerror exec
+        } if
+    } if
+
     /maxicode //loadctx exec
 
     % Parse the input
@@ -94,10 +110,58 @@ begin
         } ifelse
 
         % Read the postcode, country code and service code fields separated by GS
-        barcode <1d> search pop /pcode exch def
-        pop <1d> search pop /ccode exch def
-        pop <1d> search pop /scode exch def
-        pop /barcode exch def
+        barcode
+        <1d> search {
+            /pcode exch def pop
+            mode 2 eq {
+                true
+                1 {
+                    pcode length 9 gt { pop false exit } if
+                    pcode { dup 48 lt exch 57 gt or { pop false exit } if } forall
+                } repeat
+                not {
+                    pop /bwipp.maxicodeBadMode2PostCode (A mode 2 postcode must not exceed 9 digits) //raiseerror exec
+                } if
+            } {  % mode=3
+                pcode {
+                         dup     32 eq                    % SP
+                    exch dup dup 34 ge exch 58 le and     % punct, 0-9, :
+                    exch dup 65 ge exch 90 le and         % A-Z
+                    or or not {
+                        pop /bwipp.maxicodeBadMode3PostCode (A mode 3 postcode must not exceed 6 characters) //raiseerror exec
+                    } if
+                } forall
+            } ifelse
+        } {
+            pop /bwipp.maxicodeExpectedPostCode (Expected postcode followed by group separator character) //raiseerror exec
+        } ifelse
+        <1d> search {
+            /ccode exch def pop
+            true
+            1 {
+                ccode length 3 ne { pop false exit } if
+                ccode { dup 48 lt exch 57 gt or { pop false exit } if } forall
+            } repeat
+            not {
+                pop /bwipp.maxicodeBadCountryCode (Country code must be three digits) //raiseerror exec
+            } if
+        } {
+            pop /bwipp.maxicodeExpectedCountryCode (Expected country code followed by group separator character) //raiseerror exec
+        } ifelse
+        <1d> search {
+            /scode exch def pop
+            true
+            1 {
+                scode length 3 ne { pop false exit } if
+                scode { dup 48 lt exch 57 gt or { pop false exit } if } forall
+            } repeat
+            not {
+                pop /bwipp.maxicodeBadServiceClass (Service class must be three digits) //raiseerror exec
+            } if
+        } {
+            pop /bwipp.maxicodeExpectedServiceClass (Expected service class followed by group separator character) //raiseerror exec
+        } ifelse
+        /barcode exch def
 
         % Prepend the field identifier
         barcode length fid length add string dup
@@ -391,16 +455,15 @@ begin
     /padval cset load pad get def
 
     % Prefix the encoded message with the structured append insert
-    /sami [] def
-    sam -1 ne {
-        /sami 2 array def
-        sami 0 seta pad get put
-        sami 1 sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add put
-    } if
+    /sami sam -1 ne { [ seta pad get sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add ] } { [] } ifelse def
     /encmsg [ sami aload pop encmsg aload pop ] def
 
     % Derive the primary and secondary codewords for modes 2 and 3
     mode 2 eq mode 3 eq or {
+
+        encmsg length 84 gt {
+            /bwipp.maxicodeMode23TooLong (The secondary message is too long) //raiseerror exec
+        } if
 
         % Calculate the fixed-width binary values for the mode, postcode, country code and service
         /mdb (0000) 4 string copy dup mode cvi 2 4 string cvrs dup length 4 exch sub exch putinterval def
@@ -462,8 +525,10 @@ begin
             /mode encmsg length 77 le {5} {4} ifelse def
         } if
 
-        % First symbol is the mode and the remainder are the padded message
         /cws [ mode 5 eq {78} {94} ifelse {padval} repeat ] def
+        encmsg length cws length 1 sub gt {
+            /bwipp.maxicodeMode56TooLong (The message is too long) //raiseerror exec
+        } if
         cws 0 mode put
         cws 1 encmsg putinterval
 
@@ -610,7 +675,7 @@ begin
             /j j 1 add def
         } if
     } for
-    /pixs [ pixs 0 j getinterval {} forall 28 29 280 281 311 457 488 500 530 670 700 677 707 ] def
+    /pixs [ pixs 0 j getinterval aload pop 28 29 280 281 311 457 488 500 530 670 700 677 707 ] def
 
     % Return the arguments
     <<
