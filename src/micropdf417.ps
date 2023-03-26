@@ -56,7 +56,6 @@ begin
     /columns 0 def
     /rows 0 def
     /rowmult 2.0 def
-    /encoding (auto) def
     /cca false def
     /ccb false def
     /raw false def
@@ -66,10 +65,33 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    rowmult 0 le {
+        /bwipp.micropdf417badRowMult (The row multiplier must be greater than zero) //raiseerror exec
+    } if
+
+    cca ccb and cca raw and ccb raw and or or {
+        /bwipp.micropdf417ccaAndCcb (Cannot combine cca, ccb and raw) //raiseerror exec
+    } if
+
+    % Parse version=RxC into rows and columns
     version (unset) ne {
-        version (x) search
-        pop /columns exch cvi def
-        pop /rows exch cvi def
+        version (x) search {
+            exch pop
+            2 copy 2 array astore {
+                true
+                1 index length 0 eq { pop false } if
+                exch {
+                    dup 48 lt exch 57 gt or { pop false } if
+                } forall
+                not {
+                    /bwipp.micropdf417BadVersionBadRowOrColumn (version must be formatted as RxC) //raiseerror exec
+                } if
+            } forall
+            /rows exch cvi def
+            /columns exch cvi def
+        } {
+            pop /bwipp.micropdf417badVersionFormat (version must be formatted as RxC) //raiseerror exec
+        } ifelse
     } if
 
     /micropdf417 //loadctx exec
@@ -161,24 +183,26 @@ begin
     ] def
 } ctxdef
 
-    raw {/encoding (raw) def} if
-    cca {/encoding (cca) def} if
-
     % Convert input into array of codewords
-    encoding (raw) eq encoding (cca) eq or {
+    raw cca or {
         /datcws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
+            i barcode length 3 sub ge {exit} if
+            barcode i get 94 ne {exit} if
+            barcode i 1 add 3 getinterval false 1 index {
+                dup 48 lt exch 57 gt or { pop true } if
+            } forall { pop exit } if
+            cvi /cw exch def
             datcws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
+        i barcode length ne {
+            /bwipp.micropdf417badCcaRawFormat (cca and raw data must be formatted as ^NNN) //raiseerror exec
+        } if
         /datcws datcws 0 j getinterval def
     } if
-
-    ccb {/encoding (ccb) def} if
 
     /encb {
         /in exch def
@@ -216,15 +240,15 @@ begin
         out
     } def
 
-    encoding (byte) eq encoding (ccb) eq or {
+    ccb {
         /barlen barcode length def
-        /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
-        datcws 0 barlen 6 mod 0 eq {924} {901} ifelse put
-        datcws 1 [ barcode {} forall ] encb putinterval
-        encoding (ccb) eq {/datcws [920 datcws aload pop] def} if
+        /datcws barlen 6 idiv 5 mul barlen 6 mod add 2 add array def
+        datcws 0 920 put
+        datcws 1 barlen 6 mod 0 eq {924} {901} ifelse put
+        datcws 2 [ barcode {} forall ] encb putinterval
     } if
 
-    encoding (auto) eq {
+    raw not cca not and ccb not and {
 
         % Parse the input
         /fncvals <<
@@ -648,9 +672,8 @@ begin
     % Select metrics of an appropriate symbol
     /urows rows def
     /ucols columns def
-    /i 0 def
-    { % loop
-        /m metrics i get def
+    metrics {
+        /m exch def
         /c    m 0 get def        % Columns in symbol
         /r    m 1 get def        % Rows in symbol
         /k    m 2 get def        % Error correction codewords
@@ -663,11 +686,14 @@ begin
         urows 0 ne urows r ne and {/okay false def} if
         ucols 0 ne ucols c ne and {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
-    /m datcws length def
+    } forall
+
+    okay not {
+        /bwipp.micropdf417noValidSymbol (Maximum length exceeded or invalid size) //raiseerror exec
+    } if
 
     % Create codewords array with one extra working space element and add padding
+    /m datcws length def
     /n c r mul k sub def
     /cws c r mul 1 add array def
     cws 0 datcws putinterval
