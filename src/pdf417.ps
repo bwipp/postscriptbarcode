@@ -57,7 +57,6 @@ begin
     /columns 0 def
     /rows 0 def
     /rowmult 3.0 def
-    /encoding (auto) def
     /ccc false def
     /raw false def
     /parse false def
@@ -65,6 +64,30 @@ begin
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    eclevel -1 ne eclevel 1 lt eclevel 5 gt or and {
+        /bwipp.pdf417InvalidErrorCorrectionLevel (Valid error correction levels are 1 to 5) //raiseerror exec
+    } if
+
+    ccc raw and {
+        /bwipp.pdf417cccAndRaw (Cannot combine ccc and raw) //raiseerror exec
+    } if
+
+    ccc compact and {
+        /bwipp.pdf417cccAndCompact (Cannot combine ccc and compact) //raiseerror exec
+    } if
+
+    rows 0 ne rows 3 lt rows 90 gt or and {
+        /bwipp.pdf417invalidRows (There must be between 3 and 90 rows) //raiseerror exec
+    } if
+
+    columns 0 ne columns 1 lt columns 30 gt or and {
+        /bwipp.pdf417invalidColumns (There must be between 1 and 30 columns) //raiseerror exec
+    } if
+
+    rowmult 0 le {
+        /bwipp.pdf417badRowMult (The row multiplier must be greater than zero) //raiseerror exec
+    } if
 
     /pdf417 //loadctx exec
 
@@ -159,23 +182,26 @@ begin
     >> def
 } ctxdef
 
-    raw {/encoding (raw) def} if
-
     % Convert input into array of codewords
-    encoding (raw) eq {
+    raw {
         /datcws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
+            i barcode length 3 sub ge {exit} if
+            barcode i get 94 ne {exit} if
+            barcode i 1 add 3 getinterval false 1 index {
+                dup 48 lt exch 57 gt or { pop true } if
+            } forall { pop exit } if
+            cvi /cw exch def
             datcws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
+        i barcode length ne {
+            /bwipp.pdf417badRawFormat (raw data must be formatted as ^NNN) //raiseerror exec
+        } if
         /datcws datcws 0 j getinterval def
     } if
-
-    ccc {/encoding (ccc) def} if
 
     /encb {
         /in exch def
@@ -213,15 +239,15 @@ begin
         out
     } def
 
-    encoding (byte) eq encoding (ccc) eq or {
+    ccc {
         /barlen barcode length def
-        /datcws barlen 6 idiv 5 mul barlen 6 mod add 1 add array def
-        datcws 0 barlen 6 mod 0 eq {924} {901} ifelse put
-        datcws 1 [ barcode {} forall ] encb putinterval
-        encoding (ccc) eq {/datcws [920 datcws aload pop] def} if
+        /datcws barlen 6 idiv 5 mul barlen 6 mod add 2 add array def
+        datcws 0 920 put put
+        datcws 1 barlen 6 mod 0 eq {924} {901} ifelse put
+        datcws 2 [ barcode {} forall ] encb putinterval
     } if
 
-    encoding (auto) eq {
+    raw not ccc not and {
 
         % Parse the input
         /fncvals <<
