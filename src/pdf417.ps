@@ -65,6 +65,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.pdf417emptyData (The data must not be empty) //raiseerror exec
+    } if
+
     eclevel -1 ne eclevel 1 lt eclevel 5 gt or and {
         /bwipp.pdf417InvalidErrorCorrectionLevel (Valid error correction levels are 1 to 5) //raiseerror exec
     } if

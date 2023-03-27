@@ -60,6 +60,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.maxicodeEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
     mode -1 ne mode 2 lt mode 6 gt or and {
        /bwipp.maxicodeBadMode (Mode must be 2 to 6) //raiseerror exec
     } if

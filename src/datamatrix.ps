@@ -65,6 +65,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.datamatrixEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
     version (unset) ne rows 0 ne columns 0 ne or and {
         /bwipp.datamatrixVersionRowsCols (rows and columns must not be given if version is specified) //raiseerror exec
     } if
