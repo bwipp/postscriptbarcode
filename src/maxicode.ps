@@ -106,12 +106,13 @@ begin
         /barlen barcode length def
 
         % Normalise messages that begin with a field identifier [)>{RS}01{GS}yy
-        barcode 0 7 getinterval <5b293e1e30311d> eq {
-            /fid barcode 0 9 getinterval def
-            /barcode barcode 9 barlen 9 sub getinterval def
-        } {
-            /fid () def
-        } ifelse
+        /fid () def
+        barlen 7 ge {
+            barcode 0 7 getinterval <5b293e1e30311d> eq {
+                /fid barcode 0 9 getinterval def
+                /barcode barcode 9 barlen 9 sub getinterval def
+            } if
+        } if
 
         % Read the postcode, country code and service code fields separated by GS
         barcode
