@@ -98,11 +98,15 @@ begin
     /j 0 def /k 0 def
     0 1 barlen 1 sub {
         /i exch def
-        /extchar extencs barcode i get get def
+        barcode i get
+        dup 127 gt {
+            pop /bwipp.code93extbadCharacter (Code 93 Extended only support ASCII characters with values 0 to 127) //raiseerror exec
+        } if
+        extencs exch get /extchar exch def
         /extlen extchar length def
         newcode j extchar putinterval
-        newtext k barcode i get put
-        extlen 1 ne {newtext k 1 add ( ) putinterval} if
+        newtext k barcode i get dup dup 32 lt exch 127 eq or { pop 32 } if put
+        extlen 1 ne { newtext k 1 add 32 put } if
         /j j extlen add def
         /k k extlen 1 eq {1} {2} ifelse add def
     } for
