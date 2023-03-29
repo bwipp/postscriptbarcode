@@ -62,10 +62,26 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /c columns 4 ge columns 62 le and {columns} {8} ifelse def
-    /rows rows 2 ge rows 44 le and {rows} {-1} ifelse def
+    columns 4 lt columns 62 gt or {
+        /bwipp.codablockfBadColumns (Codablock F must have 4 to 62 columns) //raiseerror exec
+    } if
+
+    rows -1 ne rows 2 lt rows 44 gt or and {
+        /bwipp.codablockfBadRows (Codablock F must have 2 to 44 rows) //raiseerror exec
+    } if
+
+    rowheight 8 lt {
+        /bwipp.codablockfBadRowHeight (Codablock F must have rowheight of at least 8) //raiseerror exec
+    } if
+
+    sepheight 1 lt {
+        /bwipp.codablockfBadSepHeight (Codablock F must have sepheight of at least 1) //raiseerror exec
+    } if
 
     /codablockf //loadctx exec
+
+    /c columns 4 ge columns 62 le and {columns} {8} ifelse def
+    /rows rows 2 ge rows 44 le and {rows} {-1} ifelse def
 
     % Convert input into bytes accounting for FNC characters
     /swa -1 def  /swb -2 def  /swc -3 def  /sft -4 def
@@ -263,6 +279,10 @@ begin
     /lastrow false def {
 
         lastrow {exit} if
+
+        r 44 gt {
+            /bwipp.codablockfTooBig (Maximum length exceeded) //raiseerror exec
+        } if
 
         % Add start character and code subset selector
         sta enca
