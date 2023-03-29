@@ -99,8 +99,8 @@ begin
         /i exch def
         /extchar extencs barcode i get get def
         newcode j extchar putinterval
-        newtext j barcode i get put
-        extchar length 1 ne {newtext j 1 add ( ) putinterval} if
+        newtext j barcode i get dup dup 32 lt exch 127 eq or { pop 32 } if put
+        extchar length 1 ne { newtext j 1 add 32 put } if
         /j j extchar length add def
     } for
     /newcode newcode 0 j getinterval def
