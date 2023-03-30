@@ -1699,6 +1699,24 @@ begin
 
         <<
             /parts [
+                << /cset /N  /min  2  /max  2  /opt false  /linters [ /lintmediatype ] >>
+            ]
+            /req    [ [ (8017) (8018) ] ]
+        >>
+        (7241) exch dup
+        pop
+
+        <<
+            /parts [
+                << /cset /X  /min  1  /max 25  /opt false  /linters [] >>
+            ]
+            /req    [ [ (8017) (8018) ] ]
+        >>
+        (7242) exch dup
+        pop
+
+        <<
+            /parts [
                 << /cset /N  /min  4  /max  4  /opt false  /linters [ /lintnonzero ] >>
                 << /cset /N  /min  5  /max  5  /opt false  /linters [ /lintnonzero ] >>
                 << /cset /N  /min  3  /max  3  /opt false  /linters [ /lintnonzero ] >>
@@ -1824,8 +1842,9 @@ begin
 
         <<
             /parts [
-                << /cset /N  /min 18  /max 18  /opt false  /linters [ /lintcsum ] >>
+                << /cset /N  /min 18  /max 18  /opt false  /linters [ /lintcsum /lintkey ] >>
             ]
+            /ex     [ (8018) ]
             /dlpkey [ [ (8019) ] ]
         >>
         (8017) exch dup
@@ -1833,7 +1852,7 @@ begin
 
         <<
             /parts [
-                << /cset /N  /min 18  /max 18  /opt false  /linters [ /lintcsum ] >>
+                << /cset /N  /min 18  /max 18  /opt false  /linters [ /lintcsum /lintkey ] >>
             ]
             /ex     [ (8017) ]
             /dlpkey [ [ (8019) ] ]
@@ -2793,6 +2812,18 @@ begin
         dup  0 10 getinterval cvi 1800000000 gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
         dup 10 10 getinterval cvi 3600000000 gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
         pop
+    } def
+
+{
+    /aidcmediatype << [
+        /01 /02 /03 /04 /05 /06 /07 /08 /09 /10
+        /80 /81 /82 /83 /84 /85 /86 /87 /88 /89
+        /90 /91 /92 /93 /94 /95 /96 /97 /98 /99
+    ] {dup} forall >> def
+} ctxdef
+
+    /lintmediatype {
+        aidcmediatype exch known not { pop /bwipp.GS1UnknownMediaType (Unknown AIDC media type) false exit } if
     } def
 
     dontlint not {

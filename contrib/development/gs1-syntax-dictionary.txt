@@ -1,7 +1,7 @@
 # GS1 Application Identifier Syntax Dictionary
 # --------------------------------------------
 #
-# Release: 2022-11-24
+# Release: 2023-03-22
 #
 # This is the GS1 Application Identifier format "Syntax Dictionary".
 #
@@ -276,6 +276,8 @@
 7238        X2 X..28             req=01,8004                        # CERT # 9
 7239        X2 X..28             req=01,8004                        # CERT # 10
 7240        X..20                req=01,8006                        # PROTOCOL
+7241        N2,mediatype         req=8017,8018                      # AIDC MEDIA TYPE
+7242        X..25                req=8017,8018                      # VCN
 8001        N4,nonzero N5,nonzero N3,nonzero N1,winding N1  req=01  # DIMENSIONS
 8002        X..20                                                   # CMT NO.
 8003        N1,zero N13,csum,key [X..16]  dlpkey                    # GRAI
@@ -289,8 +291,8 @@
 8011        N..12,nozeroprefix   req=8010                           # CPID SERIAL
 8012        X..20                req=01,8006                        # VERSION
 8013        X..25,csumalpha,key  dlpkey                             # GMN
-8017        N18,csum             dlpkey=8019                        # GSRN - PROVIDER
-8018        N18,csum             ex=8017 dlpkey=8019                # GSRN - RECIPIENT
+8017        N18,csum,key         ex=8018 dlpkey=8019                # GSRN - PROVIDER
+8018        N18,csum,key         ex=8017 dlpkey=8019                # GSRN - RECIPIENT
 8019        N..10                req=8017,8018                      # SRIN
 8020        X..25                req=415                            # REF NO.
 8026        N14,csum N4,pieceoftotal  req=37 ex=02,8006             # ITIP CONTENT
