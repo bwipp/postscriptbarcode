@@ -60,6 +60,16 @@ begin
 
     /barlen barcode length def
 
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.onecodeBadCharacter (The data must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    barlen 20 ne barlen 25 ne and barlen 29 ne and barlen 31 ne and {
+        /bwipp.onecodeInvalidLength (The data must be 20, 25, 29 or 31 digits) //raiseerror exec
+    } if
+
     % Create the human readable text
     /txtdict <<
         2 dup
@@ -91,7 +101,7 @@ begin
         } for
         { %loop - extend input as necessary
             num 0 get base lt {exit} if
-            /num [0 num {} forall] def
+            /num [ 0 num aload pop ] def
             num 0 num 0 get num 1 get base idiv add put
             num 1 num 1 get base mod put
         } loop
@@ -113,18 +123,23 @@ begin
     } def
 
     % Conversion of data fields into binary data
-    barlen 20 eq {[0]} if
-    barlen 25 eq {[1]} if
-    barlen 29 eq {[1 0 0 0 0 1]} if
-    barlen 31 eq {[1 0 0 0 1 0 0 0 0 1]} if
-    /binval exch [barcode 20 barlen 20 sub getinterval {48 sub} forall] bigadd def
-    /binval [binval {} forall barcode 0 get 48 sub] def
+{
+    /startvals <<
+        20 [0]
+        25 [1]
+        29 [1 0 0 0 0 1]
+        31 [1 0 0 0 1 0 0 0 0 1]
+    >> def
+} ctxdef
+
+    /binval startvals barlen get [barcode 20 barlen 20 sub getinterval {48 sub} forall] bigadd def
+    /binval [binval aload pop barcode 0 get 48 sub] def
     /binval [binval {5 mul} forall] [barcode 1 get 48 sub] bigadd 10 normalize def
-    /binval [binval {} forall barcode 2 18 getinterval {48 sub} forall] def
+    /binval [binval aload pop barcode 2 18 getinterval {48 sub} forall] def
 
     % Conversion of binary data into byte array
     /bytes 13 array def
-    /bintmp [binval {} forall] def
+    /bintmp binval dup length array copy def
     12 -1 0 {
         /i exch def
         0 1 bintmp length 2 sub {
@@ -165,11 +180,7 @@ begin
     /codewords 10 array def
     9 -1 0 {
         /i exch def
-        i 9 eq {
-            /b 636 def
-        } {
-            /b 1365 def
-        } ifelse
+        /b i 9 eq { 636 } { 1365 } ifelse def
         0 1 binval length 2 sub {
             /j exch def
             binval j 1 add 2 copy get binval j get b mod 10 mul add put
