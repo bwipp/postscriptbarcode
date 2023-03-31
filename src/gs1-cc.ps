@@ -67,23 +67,48 @@ begin
 
     /gs1-cc //loadctx exec
 
+    ccversion (a) ne ccversion (b) ne and ccversion (c) ne and {
+        /bwipp.gs1ccBadCCversion (ccversion must be a, b or c) //raiseerror exec
+    } if
+
+    cccolumns 30 gt {
+        /bwipp.gs1ccColumnsTooBig (The maximum number of composite component columns is 30) //raiseerror exec
+    } if
+
+{
+    /lintypecccolumns <<
+        /ean13                  4
+        /upca                   4
+        /ean8                   3
+        /upce                   2
+        /gs1-128                4
+        /databaromni            4
+        /databarstacked         2
+        /databarstackedomni     2
+        /databartruncated       4
+        /databarlimited         3
+        /databarexpanded        4
+        /databarexpandedstacked 4
+    >> def
+} ctxdef
+
+    lintype () ne {
+        lintypecccolumns lintype known not {
+            /bwipp.gs1ccBadLinType (The lintype is not recognised) //raiseerror exec
+        } if
+    } if
+
     % Select columns based on linear type
     cccolumns -1 eq {
-        <<
-            /ean13                  4
-            /upca                   4
-            /ean8                   3
-            /upce                   2
-            /gs1-128
-                ccversion (c) ne {4} {linwidth 52 sub 17 idiv} ifelse
-            /databaromni            4
-            /databarstacked         2
-            /databarstackedomni     2
-            /databartruncated       4
-            /databarlimited         3
-            /databarexpanded        4
-            /databarexpandedstacked 4
-        >> lintype get /cccolumns exch def
+        lintype (gs1-128) eq ccversion (c) eq and {
+            linwidth 0 lt {
+                /bwipp.gs1ccMissingLinWidth (linwidth must be set for a GS1-128 with a CC-C composite component) //raiseerror exec
+            } if
+            linwidth 52 sub 17 idiv
+        } {
+            lintypecccolumns lintype get
+        } ifelse
+        /cccolumns exch def
     } if
 
     barcode /ai //gs1process exec
