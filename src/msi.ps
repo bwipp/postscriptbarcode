@@ -54,7 +54,7 @@ begin
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
     /includecheckintext false def
-    /checktype (mod10) def
+    /checktype (unset) def
     /badmod11 false def
     /textfont /Courier def
     /textsize 10.0 def
@@ -63,6 +63,16 @@ begin
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    checktype (unset) ne includecheck not and {
+        /bwipp.msiCheckTypeWithoutCheck (checktype requires includecheck) //raiseerror exec
+    } if
+
+    badmod11 checktype (mod11) ne and {
+        /bwipp.msiBadMod11Mismatch (badmod11 requires checktype=mod11) //raiseerror exec
+    } if
+
+    checktype (unset) eq { /checktype (mod10) def } if
 
     /msi //loadctx exec
 
@@ -121,15 +131,23 @@ begin
         } ifelse
     } def
 
+{
+    /checkfunc <<
+        /mod10      { mod10 }
+        /mod1010    { mod10 mod10 }
+        /mod11      { mod11 }
+        /ncrmod11   { ncrmod11 }
+        /mod1110    { mod11 mod10 }
+        /ncrmod1110 { ncrmod11 mod10 }
+    >> def
+} ctxdef
+
     % Calculate checksum
     includecheck {
-        checktype (mod10) eq      {barcode mod10} if
-        checktype (mod1010) eq    {barcode mod10 mod10} if
-        checktype (mod11) eq      {barcode mod11} if
-        checktype (ncrmod11) eq   {barcode ncrmod11} if
-        checktype (mod1110) eq    {barcode mod11 mod10} if
-        checktype (ncrmod1110) eq {barcode ncrmod11 mod10} if
-        /barcode exch def
+        checkfunc checktype 2 copy known not {
+            pop pop /bwipp.msiBadCharacter (MSI checktype must be mod10, mod1010, mod11, ncrmod11, mod1110 or ncrmod1110) //raiseerror exec
+        } if
+        get barcode exch exec /barcode exch def
         /barlen barcode length def
         includecheckintext {/txtlen barlen def} if
     } if
