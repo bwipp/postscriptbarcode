@@ -63,6 +63,34 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    rows 0 ne rows 2 lt rows 8 gt or and {
+        /bwipp.code49badRows (Code 49 must have 2 to 8 rows) //raiseerror exec
+    } if
+
+    rowheight 8 lt {
+        /bwipp.code49badRowHeight (Code 49 must have rowheight of at least 8) //raiseerror exec
+    } if
+
+    sepheight 1 lt {
+        /bwipp.code49badSepHeight (Code 49 must have sepheight of at least 1) //raiseerror exec
+    } if
+
+    concat sam -1 ne and {
+        /bwipp.code49samAndConcat (sam and concat cannot be specified together) //raiseerror exec
+    } if
+
+    sam -1 ne {
+        true
+        1 {
+            sam dup 12 lt exch 99 gt or { pop false exit } if
+            sam 10 mod 2 lt { pop false exit } if
+            sam 10 idiv sam 10 mod gt { pop false exit } if
+        } repeat
+        not {
+            /bwipp.code49badSAM (SAM must be formatted as "NM" for Nth of M symbols, from 2 to 9 symbols) //raiseerror exec
+        } if
+    } if
+
     /code49 //loadctx exec
 
 {
@@ -79,6 +107,12 @@ begin
     >> def
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
+
+    msg {
+        127 gt {
+            /bwipp.code49badCharacter (Code 49 can only support ASCII characters with values 0 to 127) //raiseerror exec
+        } if
+    } forall
 
 {
     % Character encodings
@@ -259,17 +293,19 @@ begin
 
     % Select metrics of an appropriate symbol
     /urows rows def
-    /i 0 def
-    { % loop
-        /m metrics i get def
+    metrics {
+        /m exch def
         /r    m 0 get def        % Columns in symbol
         /dcws m 1 get def        % Data codewords in symbol
         /okay true def
         urows 0 ne urows r ne and {/okay false def} if
         cws length dcws gt {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } forall
+
+    okay not {
+        /bwipp.code49noValidSymbol (Maximum length exceeded) //raiseerror exec
+    } if
 
     % Extend cws to ncws codewords by addition of pad characters
     /cws [ cws aload pop dcws cws length sub {48} repeat ] def
