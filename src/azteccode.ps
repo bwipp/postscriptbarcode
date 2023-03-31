@@ -548,9 +548,8 @@ begin
     ] def
 } ctxdef
 
-    /i 0 def
-    { % loop
-        /m metrics i get def
+    metrics {
+        /m exch def
         /frmt m 0 get def                          % Format of the symbol
         /mlyr m 1 get def                          % Data layers
         /icap m 2 get def                          % Reader initialisation capable
@@ -565,8 +564,12 @@ begin
         layers -1 ne layers mlyr ne and {/okay false def} if
         msgbits length bpcw div ceiling cvi numdcw gt {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } forall
+
+    okay not {
+        /bwipp.qrcodeNoValidSymbol (Maximum length exceeded) //raiseerror exec
+    } if
+
     /layers mlyr def
 
     % Expand message bits into codewords avoiding codewords with all zeros or all ones
