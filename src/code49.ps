@@ -53,6 +53,7 @@ begin
     /ctx null def
     /dontdraw false def
     /sam -1 def
+    /concat false def
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
@@ -180,6 +181,12 @@ begin
 
     % Autoselect and encode the starting mode
     {  % common exit
+        concat {  % Concatenate alphanumeric mode
+            /mode 1 def
+            /method (alpha) def
+            /i 0 def /j 0 def
+            exit
+        } if
         sam -1 ne {  % Group alphanumeric mode
             /mode 3 def
             cws 0 0 1 43 { dup samval exch get sam ne {pop} if } for 1 add put
