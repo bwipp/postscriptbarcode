@@ -53,7 +53,7 @@ begin
     /ctx null def
     /dontdraw false def
     /mode -1 def
-    /pos -1 def
+    /sam -1 def
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
@@ -167,7 +167,7 @@ begin
     % Autoselect mode
     mode -1 eq {
         {  % common exit
-            pos -1 ne {/mode 3 def exit} if
+            sam -1 ne {/mode 3 def exit} if
             numericruns 0 get 5 ge {/mode 2 def exit} if
             charvals msg 0 get get
             dup type /arraytype ne {pop /mode 0 def exit} if
@@ -180,7 +180,7 @@ begin
     /method (alpha) def /i -1 def /j -1 def
 
 {
-    /posval [
+    /samval [
         12 22
         13 23 33
         14 24 34 44
@@ -196,7 +196,7 @@ begin
     mode 0 eq mode 1 eq or {/method (alpha) def /i 0 def /j 0 def} if
     mode 2 eq {/method (numeric) def /i 0 def /j 0 def} if
     mode 3 eq {
-        cws 0 0 1 43 {dup posval exch get pos ne {pop} if} for 1 add put
+        cws 0 0 1 43 {dup samval exch get sam ne {pop} if} for 1 add put
         /method (alpha) def /i 0 def /j 1 def
     } if
     mode 4 eq mode 5 eq or {
