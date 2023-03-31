@@ -56,13 +56,36 @@ begin
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
-    /encoding (auto) def
     /raw false def
     /parse false def
     /parsefnc false def
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    rows 0 ne rows 2 lt rows 16 gt or and {
+        /bwipp.code16kBadRows (Code 16K must have 2 to 16 rows) //raiseerror exec
+    } if
+
+    rowheight 8 lt {
+        /bwipp.code16kBadRowHeight (Code 16K must have rowheight of at least 8) //raiseerror exec
+    } if
+
+    sepheight 1 lt {
+        /bwipp.code16kBadSepHeight (Code 16K must have sepheight of at least 1) //raiseerror exec
+    } if
+
+    sam -1 ne {
+        true
+        1 {
+            sam dup 12 lt exch 99 gt or { pop false exit } if
+            sam 10 mod 2 lt { pop false exit } if
+            sam 10 idiv sam 10 mod gt { pop false exit } if
+        } repeat
+        not {
+            /bwipp.code16kBadSAM (SAM must be formatted as "NM" for Nth of M symbols, from 2 to 9 symbols) //raiseerror exec
+        } if
+    } if
 
     /code16k //loadctx exec
 
@@ -133,22 +156,27 @@ begin
     /setc charvals 2 get def
 } ctxdef
 
-    raw {/encoding (raw) def} if
+    raw {
 
-    encoding (raw) eq {
         /cws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
+            i barcode length 3 sub ge {exit} if
+            barcode i get 94 ne {exit} if
+            barcode i 1 add 3 getinterval false 1 index {
+                dup 48 lt exch 57 gt or { pop true } if
+            } forall { pop exit } if
+            cvi /cw exch def
             cws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
+        i barcode length ne {
+            /bwipp.code16kBadRawFormat (raw data must be formatted as ^NNN) //raiseerror exec
+        } if
         /cws cws 0 j getinterval def
-    } if
 
-    encoding (auto) eq {
+    } {
 
         % Parse the input
         /fncvals <<
@@ -597,7 +625,7 @@ begin
 
         } loop
         /cws cws 0 j getinterval def
-    } if  % auto encoding
+    } ifelse
 
     % Basic metrics for the each symbol
     %     r  dcws
@@ -623,16 +651,15 @@ begin
 
     % Select metrics of an appropriate symbol
     /urows rows def
-    0 1 metrics length 1 sub {
-        /i exch def
-        /m metrics i get def
+    metrics {
+        /m exch def
         /r    m 0 get def        % Columns in symbol
         /dcws m 1 get def        % Data codewords in symbol
         /okay true def
         urows 0 ne urows r ne and {/okay false def} if
         cws length dcws gt {/okay false def} if
         okay {exit} if
-    } for
+    } forall
 
     okay not {
         /bwipp.code16kNoValidSymbol (Maximum length exceeded or data too large for given options) //raiseerror exec
