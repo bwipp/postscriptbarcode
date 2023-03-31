@@ -59,6 +59,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    false [ (unset) (T-16) (T-32) (T-48) (S-10) (S-20) (S-30) (A) (B) (C) (D) (E) (F) (G) (H) ]
+    { version eq or } forall not {
+        /bwipp.codeoneBadVersion (version must be A to H, T-16, T-32, T-48, S-10, S-20 or S-30) //raiseerror exec
+    } if
+
     /codeone //loadctx exec
 
     /stype version 0 1 getinterval (S) eq def
@@ -222,6 +227,12 @@ begin
 } ctxdef
 
     stype {
+
+        barcode {
+            dup 48 lt exch 57 gt or {
+                /bwipp.codeoneStypeNonDigit (S-Type symbols can only contain digits) //raiseerror exec
+            } if
+        } forall
 
         /normalize {
             /base exch def
@@ -708,9 +719,8 @@ begin
     } ifelse
 
     % Select metrics of an appropriate symbol
-    /i 0 def
-    { % loop
-        /m metrics i get def
+    metrics {
+        /m exch def
         /vers m 0 get def           % Version of symbol
         /rows m 1 get def           % Rows in symbol
         /cols m 2 get def           % Columns in symbol
@@ -727,8 +737,11 @@ begin
         version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         cws length dcws gt {/okay false def} if
         okay {exit} if
-        /i i 1 add def
-    } loop
+    } forall
+
+    okay not {
+        /bwipp.codeoneNoValidSymbol (Maximum length exceeded) //raiseerror exec
+    } if
 
     % Extend cws to ncws codewords by addition of pad characters
     stype not {
