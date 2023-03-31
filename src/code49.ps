@@ -52,7 +52,6 @@ begin
 
     /ctx null def
     /dontdraw false def
-    /mode -1 def
     /sam -1 def
     /rows 0 def
     /rowheight 8 def
@@ -164,20 +163,7 @@ begin
         } ifelse
     } for
 
-    % Autoselect mode
-    mode -1 eq {
-        {  % common exit
-            sam -1 ne {/mode 3 def exit} if
-            numericruns 0 get 5 ge {/mode 2 def exit} if
-            charvals msg 0 get get
-            dup type /arraytype ne {pop /mode 0 def exit} if
-            0 get 43 eq {4} {5} ifelse /mode exch def
-            exit
-        } loop
-    } if
-
     /cws msglen 2 mul 1 add array def
-    /method (alpha) def /i -1 def /j -1 def
 
 {
     /samval [
@@ -192,17 +178,35 @@ begin
     ] def
 } ctxdef
 
-    % Handle start for each mode
-    mode 0 eq mode 1 eq or {/method (alpha) def /i 0 def /j 0 def} if
-    mode 2 eq {/method (numeric) def /i 0 def /j 0 def} if
-    mode 3 eq {
-        cws 0 0 1 43 {dup samval exch get sam ne {pop} if} for 1 add put
-        /method (alpha) def /i 0 def /j 1 def
-    } if
-    mode 4 eq mode 5 eq or {
+    % Autoselect and encode the starting mode
+    {  % common exit
+        sam -1 ne {  % Group alphanumeric mode
+            /mode 3 def
+            cws 0 0 1 43 { dup samval exch get sam ne {pop} if } for 1 add put
+            /method (alpha) def
+            /i 0 def /j 1 def
+            exit
+        } if
+        numericruns 0 get 5 ge {  % Numeric mode
+            /mode 2 def
+            /method (numeric) def /i 0 def /j 0 def
+            exit
+        } if
+        charvals msg 0 get get
+        dup type /arraytype ne {  % Regular alphanumeric mode
+            pop
+            /mode 0 def
+            /method (alpha) def
+            /i 0 def /j 0 def
+            exit
+        } if
+        % Alphanumeric mode starting shift 1 (mode=4) or shift 2 (mode=5)
+        0 get 43 eq {4} {5} ifelse /mode exch def
         cws 0 charvals msg 0 get get 1 get put
-        /method (alpha) def /i 1 def /j 1 def
-    } if
+        /method (alpha) def
+        /i 1 def /j 1 def
+        exit
+    } loop
 
     % Encode remainder
     {
