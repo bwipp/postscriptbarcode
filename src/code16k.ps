@@ -53,7 +53,7 @@ begin
     /ctx null def
     /dontdraw false def
     /mode -1 def
-    /pos -1 def
+    /sam -1 def
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
@@ -67,7 +67,7 @@ begin
 
     /code16k //loadctx exec
 
-    pos -1 ne {/rows 16 def} if
+    sam -1 ne {/rows 16 def} if
 
     % Convert input into bytes accounting for FNC characters
 {
@@ -266,10 +266,10 @@ begin
         /i 0 def /j 0 def
         {  % common exit
             % extended data length
-            pos -1 ne {
+            sam -1 ne {
                 % encode one and two
-                cws 0 pos 10 idiv 1 sub put
-                cws 1 pos 10 mod 1 sub put
+                cws 0 sam 10 idiv 1 sub put
+                cws 1 sam 10 mod 1 sub put
                 /j 2 def
                 /cset (setb) def
                 /mode 7 def
@@ -690,7 +690,7 @@ begin
     ] def
 } ctxdef
 
-    pos -1 eq pos 10 idiv 2 mod 1 eq or {
+    sam -1 eq sam 10 idiv 2 mod 1 eq or {
         /stopencs stopencsodd def
     } {
         /stopencs stopencseven def
