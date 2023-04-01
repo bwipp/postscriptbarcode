@@ -67,6 +67,14 @@ begin
 
     /databarexpanded //loadctx exec
 
+    barxmult 34 lt {
+        /bwipp.databarStackedOmniBarXmult (GS1 DataBar Expanded Stacked must have a barxmult of at least 34) //raiseerror exec
+    } if
+
+    format (expanded) ne format (expandedstacked) ne and {
+        /bwipp.databarexpandedBadFormat (Valid formats are expanded and expandedstacked) //raiseerror exec
+    } if
+
     segments -1 eq {
         /segments format (expandedstacked) eq {4} {22} ifelse def
     } {
