@@ -48,7 +48,7 @@ dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /databaromni {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -60,11 +60,6 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    format (truncated) eq {/height 13.0 72 div def} if
-
-    /databaromni //loadctx exec
-
-    % Validate the input
     barcode 0 4 getinterval (\(01\)) ne {
         /bwipp.databaromniBadAI (GS1 DataBar Omnidirectional must begin with (01) application identifier) //raiseerror exec
     } if
@@ -76,6 +71,18 @@ begin
             /bwipp.databaromniBadCharacter (GS1 DataBar Omnidirectional must contain only digits) //raiseerror exec
         } if
     } forall
+
+    barxmult 33 lt {
+        /bwipp.databarStackedOmniBarXmult (GS1 DataBar Stacked Omnidirectional must have a barxmult of at least 33) //raiseerror exec
+    } if
+
+    format (omni) ne format (stacked) ne and format (stackedomni) ne and format (truncated) ne and {
+        /bwipp.databaromniBadFormat (Valid formats are omni, stacked, stackedomni and truncated) //raiseerror exec
+    } if
+
+    format (truncated) eq {/height 13.0 72 div def} if
+
+    /databaromni //loadctx exec
 
     % Calculate checksum and add to end of barcode
     /checksum 0 def
