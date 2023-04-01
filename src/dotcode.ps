@@ -64,12 +64,39 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /dotcode //loadctx exec
+    rows -1 ne {
+        rows 5 lt {
+            /bwipp.dotcodeBadRows (There must be at least 5 rows) //raiseerror exec
+        } if
+    } if
+
+    columns -1 ne {
+        columns 5 lt {
+            /bwipp.dotcodeBadColumns (There must be at least 5 columns) //raiseerror exec
+        } if
+    } if
+
+    rows -1 ne columns -1 ne and rows columns add 2 mod 1 ne and {
+        /bwipp.dotcodeRowsColumnsBadParity (Sum of rows and columns must be odd) //raiseerror exec
+    } if
 
     % Set the ratio to 3:2 if no size is specified
     ratio -1 eq rows -1 eq and columns -1 eq and {
         /ratio 3 2 div def
     } if
+    ratio -1 ne {
+        ratio 0 le {
+            /bwipp.dotcodeRatio (The ratio must be greater than 0) //raiseerror exec
+        } if
+    } if
+
+    mask -1 ne {
+        mask 0 lt mask 3 gt or {
+            /bwipp.dotcodeBadMask (Valid mask values are 0 to 3) //raiseerror exec
+        } if
+    } if
+
+    /dotcode //loadctx exec
 
     % Convert input into bytes accounting for FNC characters
 {
@@ -739,6 +766,11 @@ begin
     } if
 
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+
+    % Check that the codewords will fit in the symbol
+    nw 9 mul ndots 2 sub gt {
+        /bwipp.dotcodeTooLong (Maximum length exceeded) //raiseerror exec
+    } if
 
     % Create an array containing the character mappings
 {
