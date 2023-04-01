@@ -234,6 +234,11 @@ begin
             } if
         } forall
 
+        /barlen barcode length def
+        barlen 18 gt {
+            /bwipp.codeoneStypeTooLong (Maximum length exceeded) //raiseerror exec
+        } if
+
         /normalize {
             /base exch def
             /num exch def
@@ -426,6 +431,9 @@ begin
         } def
 
         /addtocws {
+            dup length j add 1480 gt {
+                pop /bwipp.codeoneTooLong (Maximum length exceeded) //raiseerror exec
+            } if
             dup cws exch j exch putinterval
             /j exch length j add def
         } def
