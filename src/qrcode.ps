@@ -95,6 +95,16 @@ begin
         /bwipp.qrcodeInvalidEClevel (Error correction level must be either L, M, Q, or H) //raiseerror exec
     } if
 
+    mask -1 ne format (rmqr) eq and {
+        /bwipp.qrcodeRMQRmask (A mask cannot be supplied for RMQR) //raiseerror exec
+    } if
+
+    mask -1 ne {
+        mask 1 lt mask format (full) eq {8} {4} ifelse gt or {
+            /bwipp.qrcodeBadMask (An invalid mask was supplied) //raiseerror exec
+        } if
+    } if
+
     % Parse the input
     /fn1 -1 def
     /fncvals <<
