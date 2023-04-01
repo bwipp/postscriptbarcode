@@ -53,13 +53,44 @@ begin
     /ctx null def
     /dontdraw false def
     /version (unset) def   % 1-84
-    /eclevel (unset) def   % L1, L2, L3 or L4
+    /eclevel (L2) def   % L1, L2, L3 or L4
     /parse false def
     /parsefnc false def
     /mask -1 def
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    barcode () eq {
+        /bwipp.hanxinEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
+    version (unset) ne {
+        version length dup 1 ge exch 2 le and dup {
+            pop
+            true version {dup 48 lt exch 57 gt or { pop false } if } forall dup {
+                pop version cvi dup 1 ge exch 84 le and
+            } if
+        } if
+        not {
+            /bwipp.hanxinInvalidVersion (Valid versions are 1 to 84) //raiseerror exec
+        } if
+    } if
+
+    eclevel length 2 eq dup {
+        pop eclevel 0 1 getinterval (L) dup eq {
+            pop eclevel 1 get 48 sub dup 1 ge exch 4 le and
+        } if
+    } if
+    not {
+        /bwipp.hanxinInvalidErrorCorrectionLevel (Valid error correction levels are L1 to L4) //raiseerror exec
+    } if
+
+    mask -1 ne {
+        mask 1 lt mask 4 gt or {
+            /bwipp.hanxinInvalidErrorCorrectionLevel (The valid masks are 1 to 4) //raiseerror exec
+        } if
+    } if
 
     /hanxin //loadctx exec
 
@@ -71,9 +102,6 @@ begin
     >> def
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
-
-    % Default error correction level
-    eclevel (unset) eq {/eclevel (L2) def} if
 
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
@@ -434,9 +462,8 @@ begin
 } ctxdef
 
     /eclval eclevel 1 get 49 sub def
-    0 1 83 {
-        /i exch def
-        /m metrics i get def
+    metrics {
+        /m exch def
         /vers m 0 get def                             % Version of symbol
         /size m 1 get def                             % Length of side
         /alnk m 2 get def                             % Regular alignment pattern length
@@ -453,7 +480,7 @@ begin
         version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         bits length dmod gt {/okay false def} if      % Bitstream must fit into data modules
         okay {exit} if
-    } for
+    } forall
 
     okay not {
         /bwipp.hanxinNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
