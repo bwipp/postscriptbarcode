@@ -16,12 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-22.04
 
     steps:
 
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build
       run: |
@@ -34,7 +34,7 @@ jobs:
 
   docs-pdf:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
 
@@ -186,14 +186,14 @@ jobs:
           cited-by.md
 
     - name: Store PDF docs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: docs-pdf
         path: wikidocs/__pandoc/barcodewriter.pdf
 
   docs-html:
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     steps:
 
@@ -244,6 +244,7 @@ jobs:
           wikidocs/symbologies/Compact-PDF417.md
           wikidocs/symbologies/QR-Code.md
           wikidocs/symbologies/Micro-QR-Code.md
+          wikidocs/symbologies/Swiss-QR-Code.md
           wikidocs/__pandoc/__symbology-1d.md
           wikidocs/symbologies/Code-128.md
           wikidocs/symbologies/Code-39.md
@@ -336,7 +337,7 @@ jobs:
           cited-by.md
 
     - name: Store HTML docs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: docs-html
         path: wikidocs/__pandoc/barcodewriter.html
@@ -345,7 +346,7 @@ jobs:
 
     if: startsWith(github.ref, 'refs/tags/')
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     needs:
       - ci
@@ -354,7 +355,7 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Get and check the version
       id: get_version
@@ -370,12 +371,12 @@ jobs:
         make -j `nproc` release
 
     - name: Load PDF docs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: docs-pdf
 
     - name: Load HTML docs
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: docs-html
 
