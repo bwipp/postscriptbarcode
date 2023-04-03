@@ -53,7 +53,7 @@ begin
     /ctx null def
     /dontdraw false def
     /sam -1 def
-    /concat false def
+    /append false def
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
@@ -75,8 +75,8 @@ begin
         /bwipp.code49badSepHeight (Code 49 must have sepheight of at least 1) //raiseerror exec
     } if
 
-    concat sam -1 ne and {
-        /bwipp.code49samAndConcat (sam and concat cannot be specified together) //raiseerror exec
+    append sam -1 ne and {
+        /bwipp.code49samAndAppend (sam and append cannot be specified together) //raiseerror exec
     } if
 
     sam -1 ne {
@@ -215,7 +215,7 @@ begin
 
     % Autoselect and encode the starting mode
     {  % common exit
-        concat {  % Concatenate alphanumeric mode
+        append {  % Concatenate alphanumeric mode
             /mode 1 def
             /method (alpha) def
             /i 0 def /j 0 def
@@ -374,6 +374,8 @@ begin
     % Place last row check character
     ccs ccs length 8 sub 7 getinterval 0 exch {add} forall 49 mod
     ccs ccs length 1 sub 3 -1 roll put
+
+    options /debugcws known { /bwipp.debugcws ccs //raiseerror exec } if
 
 {
     /patterns [
