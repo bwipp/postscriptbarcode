@@ -738,6 +738,7 @@ begin
         /regv m 3 get def                          % Vertical regions
         /rscw m 4 get def                          % Error correction codewords
         /rsbl m 5 get def                          % Error correction blocks
+        /doly m 6 get def                          % DMRE-only model
         /mrows rows 2 regh mul sub def             % Rows in the mapping matrix
         /mcols cols 2 regv mul sub def             % Columns in the mapping matrix
         /rrows mrows regh idiv def                 % Rows per region
@@ -749,6 +750,7 @@ begin
         ucols 0 ne ucols cols ne and {/okay false def} if
         format (square) eq rows cols ne and {/okay false def} if
         format (rectangle) eq rows cols eq and {/okay false def} if
+        dmre not doly 1 eq and {/okay false def} if
         okay {exit} if
     } forall
 
