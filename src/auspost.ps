@@ -91,6 +91,10 @@ begin
 } ctxdef
 
     /barlen barcode length def
+    barlen 10 lt {
+        /bwipp.auspostTooShort (The data length must be at least 10) //raiseerror exec
+    } if
+
     /txt barlen 2 sub array def
 
     fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
