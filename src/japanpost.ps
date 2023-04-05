@@ -61,6 +61,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.japanpostEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
     /japanpost //loadctx exec
 
     % Validate the input
@@ -68,7 +72,7 @@ begin
         dup dup 48 ge exch 57 le and exch  % 0-9
         dup dup 65 ge exch 90 le and exch  % A-Z
         45 eq or or not {                  % "-"
-            /bwipp.japanPostBadCharacter (Japan Post must contain only digits, capital letters and the dash symbol) /raiseerror exec
+            /bwipp.japanpostBadCharacter (Japan Post must contain only digits, capital letters and the dash symbol) //raiseerror exec
         } if
     } forall
 
