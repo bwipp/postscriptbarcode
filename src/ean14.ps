@@ -68,11 +68,11 @@ begin
     /hasspace text length barcode length ne def
 
     % Validate the input
-    barcode 0 4 getinterval (\(01\)) ne {
-        /bwipp.ean14badAI (GS1-14 must begin with (01) application identifier) //raiseerror exec
-    } if
     barcode length 17 ne barcode length 18 ne and {
         /bwipp.ean14badLength (GS1-14 must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.ean14badAI (GS1-14 must begin with (01) application identifier) //raiseerror exec
     } if
     barcode 4 barcode length 4 sub getinterval {
         dup 48 lt exch 57 gt or {
