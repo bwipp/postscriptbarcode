@@ -60,11 +60,11 @@ begin
     /databarlimited //loadctx exec
 
     % Validate the input
-    barcode 0 4 getinterval (\(01\)) ne {
-        /bwipp.databarlimitedBadAI (GS1 DataBar Limited must begin with (01) application identifier) //raiseerror exec
-    } if
     barcode length 17 ne barcode length 18 ne and {
         /bwipp.databarlimitedBadLength (GS1 DataBar Limited must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databarlimitedBadAI (GS1 DataBar Limited must begin with (01) application identifier) //raiseerror exec
     } if
     barcode 4 get dup 48 lt exch 49 gt or {
         /bwipp.databarlimitedBadStartDigit (GS1 DataBar Limited must begin with 0 or 1) //raiseerror exec
