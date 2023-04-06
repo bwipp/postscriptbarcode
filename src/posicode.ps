@@ -113,6 +113,10 @@ begin
     ] def
 } ctxdef
 
+    version (a) ne version (b) ne and version (limiteda) ne and version (limitedb) ne and {
+        /bwipp.posicodeInvalidVersion (The version must be either a, b, limiteda or limitedb) //raiseerror exec
+    } if
+
     /charmaps version (a) eq version (b) eq or {charmapsnormal} {chapmapslimited} ifelse def
 
     % Invert charmaps to give character to value maps for each state
@@ -131,6 +135,15 @@ begin
     /set0 charvals 0 get def
     /set1 charvals 1 get def
     /set2 charvals 2 get def
+
+    % Validate the input if limited
+    version (limiteda) eq version (limitedb) eq or {
+        0 1 barcode length 1 sub {
+            barcode exch 1 getinterval 0 get set0 exch known not {
+                /bwipp.posicodeBadCharacter (Posicode limited must contain only digits, capital letters, and the symbols - and .) //raiseerror exec
+            } if
+        } for
+    } if
 
     raw {/encoding (raw) def} if
 
