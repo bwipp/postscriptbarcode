@@ -64,6 +64,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode length 2 lt barcode length 3 lt validatecheck and or {
+        /bwipp.rationalizedCodabarBadLength (Codabar must be at least 2 characters in length excluding any check digit) //raiseerror exec
+    } if
+
     /rationalizedCodabar //loadctx exec
 
 {
