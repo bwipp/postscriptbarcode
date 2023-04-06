@@ -57,6 +57,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.hibccodablockfEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
     /hibccodablockf //loadctx exec
 
     % Create a string of the available characters
@@ -69,7 +73,7 @@ begin
     % Validate the input
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
-            /bwipp.codablockfBadCharacter (HIBC Codablock F must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
+            /bwipp.hibccodablockfBadCharacter (HIBC Codablock F must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
         } if
     } for
 
