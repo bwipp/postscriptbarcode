@@ -111,6 +111,9 @@ begin
     % Special function characters for text mode
     /al -6 def  /ll -7 def  /ml -8 def  /pl -9 def  /as -10 def  /ps -11 def
 
+    % Special function characters for 05/06 macros
+    /m05 -12 def  /m06 -13 def
+
     % Character maps for each state
     /charmaps [
       %  A    L    M    P
@@ -258,10 +261,31 @@ begin
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
-            /eci true
+%            (MAC5) m05    Encoded automatically
+%            (MAC6) m06    Encoded automatically
             % Predates FNC non-data codewords, but supports ECI
+            /eci true
         >> def
         /msg barcode fncvals //parseinput exec def
+        /msglen msg length def
+
+        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
+        msglen 9 ge {
+            msg 0 7 getinterval aload pop
+            29 eq exch pop exch 48 eq and exch  % [)>{RS}0*{GS}...
+            30 eq and exch 62 eq and exch 41 eq and exch 91 eq and {
+                msg msglen 2 sub 2 getinterval aload pop
+                4 eq exch 30 eq and {           %              ...{RS}{EOT}
+                    msg 5 get 53 eq {           %      ...5...
+                        /msg [ m05 msg 7 msg length 9 sub getinterval aload pop ] def
+                    } {
+                        msg 5 get 54 eq {       %      ...6...
+                            /msg [ m06 msg 7 msg length 9 sub getinterval aload pop ] def
+                        } if
+                    } ifelse
+                } if
+            } if
+        } if
         /msglen msg length def
 
         % Determine runlengths of digits
@@ -288,6 +312,14 @@ begin
 
         /seq [] def /seqlen 0 def /state B def /p 0 def {  % loop
             p msglen eq {exit} if
+            p 0 eq msg p get dup m05 eq exch m06 eq or and {
+                /seq [
+                    seq aload pop
+                    msg p get m05 eq { m05 } { m06 } ifelse
+                ] def
+                /p p 1 add def
+                /seqlen seqlen 1 add def
+            } {
             iseci p get {
                 /eci msg p get def
                 /seq [
@@ -339,11 +371,11 @@ begin
                 /state B def
                 /p p b add def
                 /seqlen seqlen 1 add b add def
-            } ifelse } ifelse } ifelse } ifelse
+            } ifelse } ifelse } ifelse } ifelse } ifelse
         } loop
 
         /latchcws <<
-            tl 900  bl 901  bl6 924  nl 902  bs 913
+            tl 900  bl 901  bl6 924  nl 902  bs 913  m05 916  m06 917
         >> def
 
         % Submode encoding functions
@@ -593,7 +625,7 @@ begin
                 } {  % Encode data according to mode
                     chars encfuncs state get load exec addtocws
                 } ifelse
-            } {  % Encode the latch to new state or byte shift
+            } {  % Encode the latch to new state, byte shift or macro
                 [ latchcws chars get ] addtocws
                 chars tl eq {/state T def /submode A def} if
                 chars nl eq {/state N def} if
@@ -601,6 +633,22 @@ begin
                 chars bs eq {
                     /i i 1 add def
                     seq i get encb addtocws
+                } if
+                chars m05 eq {
+                    i 1 add seq length lt {
+                        seq i 1 add get nl eq {  % Latch to numeric mode is implied
+                            /i i 1 add def
+                        } if
+                    } if
+                    /state N def
+                } if
+                chars m06 eq {
+                    i 1 add seq length lt {
+                        seq i 1 add get tl eq {  % Latch to mixed text submode is implied
+                            /i i 1 add def
+                        } if
+                    } if
+                    /state T def /submode M def
                 } if
             } ifelse
             /i i 1 add def
