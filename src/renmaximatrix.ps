@@ -45,6 +45,7 @@ begin
     % Default options
     /barcolor (unset) def
     /backgroundcolor (unset) def
+    /inkspread 0.0 def
 
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
@@ -78,6 +79,8 @@ begin
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
     barcolor (unset) ne { barcolor setanycolor } if
 
+    /g 0.06 inkspread add def
+
     0.5 0.5774 translate
 
     newpath
@@ -88,24 +91,24 @@ begin
         y 2 mod 0 eq {x} {x 0.5 add} ifelse
         32 y sub 0.8661 mul
         moveto
-        0     0.5774 rmoveto
-        -0.5 -0.2887 rlineto
-        0    -0.5774 rlineto
-        0.5  -0.2887 rlineto
-        0.5   0.2887 rlineto
-        0     0.5774 rlineto
-        -0.5  0.2887 rlineto
+        0              0.5774 g       sub rmoveto
+       -0.5 g add     -0.2887 g 2 div add rlineto
+        0             -0.5774 g       add rlineto
+        0.5 g sub     -0.2887 g 2 div add rlineto
+        0.5 g sub      0.2887 g 2 div sub rlineto
+        0              0.5774 g       sub rlineto
+       -0.5 g add      0.2887 g 2 div sub rlineto
         closepath
     } forall
     fill
 
     % Plot the locator symbol
-    newpath 14 13.8576 0.5774 0 360 arc closepath
-    14 13.8576 1.3359 360 0 arcn closepath fill
-    newpath 14 13.8576 2.1058 0 360 arc closepath
-    14 13.8576 2.8644 360 0 arcn closepath fill
-    newpath 14 13.8576 3.6229 0 360 arc closepath
-    14 13.8576 4.3814 360 0 arcn closepath fill
+    newpath 14 13.8576 0.5774 inkspread add 0 360 arc closepath
+            14 13.8576 1.3359 inkspread sub 360 0 arcn closepath fill
+    newpath 14 13.8576 2.1058 inkspread add 0 360 arc closepath
+            14 13.8576 2.8644 inkspread sub 360 0 arcn closepath fill
+    newpath 14 13.8576 3.6229 inkspread add 0 360 arc closepath
+            14 13.8576 4.3814 inkspread sub 360 0 arcn closepath fill
 
     grestore
 
