@@ -125,7 +125,7 @@ begin
 
         /linpad [ ccpixx 69 sub {0} repeat ] def
 
-        /diff linwidth linpad length add 2 add ccpixx sub def  % An add-on can make linear wider than composite
+        /diff linwidth linpad length add 1 add ccpixx sub def  % An add-on can make linear wider than composite
         diff 0 gt {  % Left align composite
             /ccrpad [ diff {0} repeat ] def
             /pixx ccpixx diff add def
@@ -159,7 +159,7 @@ begin
                         sbs i get cvi {0} repeat
                     } ifelse
                 } for
-                0
+                diff 0 lt {0} if  % Allow for middle separator overhang on RHS if no add-on
             } for
         ] def
 
