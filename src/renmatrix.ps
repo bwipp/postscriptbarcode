@@ -45,6 +45,7 @@ begin
     % Default options
     /width 1.0 def
     /height 1.0 def
+    /bordercolor (unset) def
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /colormap (unset) def
@@ -63,6 +64,12 @@ begin
     /textyoffset 0.0 def
     /textgaps 0.0 def
     /alttext () def
+    /showborder false def
+    /borderleft 0.0 def
+    /borderright 0.0 def
+    /bordertop 0.0 def
+    /borderbottom 0.0 def
+    /borderwidth 0.5 def
 
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
@@ -241,15 +248,33 @@ begin
 
     gsave
 
-    % Draw the image
+    currentpoint translate
+
     /inkspread  inkspread  2 div def
     /inkspreadh inkspreadh 2 div def
     /inkspreadv inkspreadv 2 div def
-    currentpoint translate
-    width pixx div 72 mul height pixy div 72 mul scale
-    0 0 moveto pixx 0 lineto pixx pixy lineto 0 pixy lineto closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
 
+    % Force symbol to given width
+    width pixx div 72 mul height pixy div 72 mul scale
+
+    % Display the border and background
+    newpath
+    borderleft borderwidth 2 div add neg borderbottom borderwidth 2 div add neg moveto
+    pixx borderleft add borderright add borderwidth add 0 rlineto
+    0 pixy borderbottom add bordertop add borderwidth add rlineto
+    pixx borderleft add borderright add borderwidth add neg 0 rlineto
+    0 pixy borderbottom add bordertop add borderwidth add neg rlineto
+    closepath
+
+    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
+    showborder {
+        gsave
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth inkspread 2 mul sub setlinewidth stroke
+        grestore
+    } if
+
+    % Display the matrix
     colormap (unset) eq {
         /colormap << 1 barcolor >> def
     } if
