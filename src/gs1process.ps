@@ -2044,12 +2044,13 @@ begin
         pipos exch get dup pp length exch sub pp 3 1 roll getinterval /pp exch def
 
         /uriunescape {
+            /qq exch def  % Is query parameter
             /in exch def
             /out in length string def
             0 0 {
                 1 index in length ge {exit} if
                 in 2 index get
-                dup 43 eq {  % "+" -> " "
+                dup 43 eq qq and {  % "+" -> " " in query params
                     pop out 1 index 32 put
                     1 add exch 1 add exch
                 } {
@@ -2081,7 +2082,7 @@ begin
                 ais exch 4 index exch put
                 pop
                 (/) search {exch pop} {() exch} ifelse
-                vals exch 3 index exch uriunescape put
+                vals exch 3 index exch false uriunescape put
             } {
                 pop exit
             } ifelse
@@ -2117,7 +2118,7 @@ begin
                 true 1 index {dup 48 ge exch 57 le and and} forall {
                     ais exch 5 index exch put
                     pop
-                    vals exch 3 index exch uriunescape put
+                    vals exch 3 index exch true uriunescape put
                     exch 1 add exch
                 } {  % Ignore non-numeric parameters
                     pop pop pop
