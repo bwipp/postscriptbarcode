@@ -2171,6 +2171,11 @@ begin
         0 (#-/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
         { exch dup 1 add } forall pop
     >> def
+
+    /cset32 <<
+        0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
+        { exch dup 1 add } forall pop
+    >> def
 } ctxdef
 
     /lintnumeric {
@@ -2209,14 +2214,6 @@ begin
         0 counttomark 1 sub {add} repeat exch pop
         10 mod 0 ne { pop /bwipp.GS1badChecksum (Bad checksum) false exit } if
     } def
-
-{
-
-    /cset32 <<
-        0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
-        { exch dup 1 add } forall pop
-    >> def
-} ctxdef
 
     /lintcsumalpha {
         dup length 2 lt { pop pop /bwipp.GS1alphaTooShort (Alphanumeric string is too short to check) false exit} if
