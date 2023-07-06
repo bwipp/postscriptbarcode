@@ -22,7 +22,7 @@ my $ai_rng_rx = qr/${ai_rx}(-${ai_rx})?/;
 my $flags_rx = qr/[\*]+/;
 
 my $type_mand_rx = qr/
-    [XNY]
+    [XNYZ]
     (
         ([1-9]\d?)
         |
