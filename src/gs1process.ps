@@ -1375,7 +1375,8 @@ begin
 
         <<
             /parts [
-                << /cset /N  /min 20  /max 20  /opt false  /linters [ /lintlatlong ] >>
+                << /cset /N  /min 10  /max 10  /opt false  /linters [ /lintlatitude ] >>
+                << /cset /N  /min 10  /max 10  /opt false  /linters [ /lintlongitude ] >>
             ]
             /req    [ [ (00) ] ]
         >>
@@ -1887,6 +1888,15 @@ begin
             /req    [ [ (37) ] ]
         >>
         (8026) exch dup
+        pop
+
+        <<
+            /parts [
+                << /cset /Z  /min  1  /max 90  /opt false  /linters [] >>
+            ]
+            /req    [ [ (00) (01) (253) (255) (8003) (8004) (8006) (8010) (8017) (8018) ] ]
+        >>
+        (8030) exch dup
         pop
 
         <<
@@ -2808,13 +2818,18 @@ begin
         pop
     } def
 
-    /lintlatlong {
-        dup length 20 ne {
-            pop /bwipp.GS1badGeoLength (Invalid length for a geo-location) false exit
+    /lintlatitude {
+        dup length 10 ne {
+            pop /bwipp.GS1badLatitudeLength (Invalid length for a latitude) false exit
         } if
-        dup  0 10 getinterval cvi 1800000000 gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
-        dup 10 10 getinterval cvi 3600000000 gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
-        pop
+        cvi 1800000000 gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
+    } def
+
+    /lintlongitude {
+        dup length 10 ne {
+            pop /bwipp.GS1badLongitudeLength (Invalid length for a longitude) false exit
+        } if
+        cvi 3600000000 gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
     } def
 
 {
