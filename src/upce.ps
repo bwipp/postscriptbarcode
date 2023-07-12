@@ -56,7 +56,7 @@ begin
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
     /textsize 12.0 def
-    /textxoffset -7.0 def
+    /textxoffset -9.0 def
     /textyoffset -4.0 def
     /height 1.0 def
     /addongap 12.0 def
@@ -249,10 +249,10 @@ begin
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 11 add textxoffset add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 13 add textxoffset add textyoffset textfont textsize] put
     } for
 
-    txt 7 [barcode 7 1 getinterval 6 7 mul 18 add textxoffset add textyoffset textfont textsize 2 sub] put
+    txt 7 [barcode 7 1 getinterval 6 7 mul 21 add textxoffset add textyoffset textfont textsize 2 sub] put
 
     % Put the end character
     sbs 27 encs 11 get putinterval
@@ -274,7 +274,7 @@ begin
             /dontdraw true
             /includetext true
             /height height 0.15 sub
-            /textxoffset addontextxoffset null ne {addontextxoffset} {51 addongap add} ifelse
+            /textxoffset addontextxoffset null ne {addontextxoffset} {48 addongap add} ifelse
             addontextyoffset null ne {/textyoffset addontextyoffset} if
             /textsize addontextsize null ne {addontextsize} {textsize} ifelse
             /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
@@ -297,7 +297,7 @@ begin
     /bbs bbs
     /txt txt
     /opt options
-    /guardrightpos 10.0
+    /guardrightpos addon () eq {9.0} {5.0} ifelse
     /guardrightypos guardrightypos
     /borderbottom 5.0
     >>
