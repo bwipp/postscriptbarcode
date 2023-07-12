@@ -55,7 +55,7 @@ begin
     /version (unset) def
     /columns 0 def
     /rows 0 def
-    /rowmult 2.0 def
+    /rowmult 2 def
     /cca false def
     /ccb false def
     /raw false def
@@ -1073,12 +1073,12 @@ begin
     % Populate bitmap for the image
     /rwid [38 55 82 99] c 1 sub get def
     c 3 eq cca and {/rwid 72 def} if
-    /pixs rwid r mul array def
+    /pixs rwid r mul rowmult mul array def
 
     0 1 r 1 sub {
         /i exch def
         /clst i rapl add 1 sub 3 mod def
-        pixs rwid i mul [
+        [
             c 1 eq {
                 i rapl add 1 sub 52 mod 0 raptobits aload pop
                 cws i get clst cwtobits aload pop
@@ -1110,7 +1110,11 @@ begin
                 i rapr add 1 sub 52 mod 0 raptobits aload pop
             } if
             1
-        ] putinterval
+        ]
+        0 1 rowmult 1 sub {
+            i rowmult mul add rwid mul pixs exch 2 index putinterval
+        } for
+        pop
     } for
 
     % Return the arguments
@@ -1118,8 +1122,8 @@ begin
     /ren //renmatrix
     /pixs pixs
     /pixx rwid
-    /pixy r
-    /height r 72 div rowmult mul
+    /pixy r rowmult mul
+    /height r rowmult mul 72 div
     /width rwid 72 div
     /opt options
     >>

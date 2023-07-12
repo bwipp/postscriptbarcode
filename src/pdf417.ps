@@ -56,7 +56,7 @@ begin
     /eclevel -1 def
     /columns 0 def
     /rows 0 def
-    /rowmult 3.0 def
+    /rowmult 3 def
     /ccc false def
     /raw false def
     /parse false def
@@ -945,7 +945,7 @@ begin
     } {
         /rwid 17 c mul 17 add 17 add 17 add 18 add def
     } ifelse
-    /pixs rwid r mul array def
+    /pixs rwid r mul rowmult mul array def
 
     0 1 r 1 sub {
         /i exch def
@@ -963,18 +963,21 @@ begin
             /rcw i 3 idiv 30 mul eclevel 3 mul add r 1 sub 3 mod add def
         } if
 
-        pixs rwid i mul [
+        [
             1 1 1 1 1 1 1 1 0 1 0 1 0 1 0 0 0
-            lcw i 3 mod cwtobits {} forall
-            cws c i mul c getinterval { i 3 mod cwtobits {} forall } forall
+            lcw i 3 mod cwtobits aload pop
+            cws c i mul c getinterval { i 3 mod cwtobits aload pop } forall
             compact {
                 1
             } {
-                rcw i 3 mod cwtobits {} forall
+                rcw i 3 mod cwtobits aload pop
                 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 0 0 1
             } ifelse
-        ] putinterval
-
+        ]
+        0 1 rowmult 1 sub {
+            i rowmult mul add rwid mul pixs exch 2 index putinterval
+        } for
+        pop
     } for
 
     % Return the arguments
@@ -982,8 +985,8 @@ begin
     /ren //renmatrix
     /pixs pixs
     /pixx rwid
-    /pixy r
-    /height r 72 div rowmult mul
+    /pixy r rowmult mul
+    /height r rowmult mul 72 div
     /width rwid 72 div
     /opt options
     >>
