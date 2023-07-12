@@ -43,9 +43,16 @@ begin
     20 dict begin
 
     % Default options
+    /bordercolor (unset) def
     /barcolor (unset) def
     /backgroundcolor (unset) def
-    /inkspread 0.0 def
+    /inkspread 0.15 def
+    /showborder false def
+    /borderleft 0.0 def
+    /borderright 0.0 def
+    /bordertop 0.0 def
+    /borderbottom 0.0 def
+    /borderwidth 0.25 def
 
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
@@ -75,8 +82,22 @@ begin
 
     2.4945 dup scale  % from 1pt to 0.88mm
 
-    0 0 moveto 30 0 lineto 30 29 lineto 0 29 lineto closepath
+    newpath
+    borderleft borderwidth 2 div add neg borderbottom borderwidth 2 div add neg moveto
+    30 borderleft add borderright add borderwidth add 0 rlineto
+    0 29 borderbottom add bordertop add borderwidth add rlineto
+    30 borderleft add borderright add borderwidth add neg 0 rlineto
+    0 29 borderbottom add bordertop add borderwidth add neg rlineto
+    closepath
+
     backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
+    showborder {
+        gsave
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth inkspread 2 mul sub setlinewidth stroke
+        grestore
+    } if
+
     barcolor (unset) ne { barcolor setanycolor } if
 
     /g 0.06 inkspread add def
