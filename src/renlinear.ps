@@ -65,6 +65,7 @@ begin
     /barratio 1.0 def
     /spaceratio 1.0 def
     /showborder false def
+    /showbearer false def
     /borderleft 10.0 def
     /borderright 10.0 def
     /bordertop 0.0 def
@@ -137,20 +138,32 @@ begin
     } def
 
     % Display the border and background
-    newpath
-    borderleft borderwidth 2 div add neg borderbottom borderwidth 2 div add neg moveto
-    pixx borderleft add borderright add borderwidth add 0 rlineto
-    0 pixy borderbottom add bordertop add borderwidth add rlineto
-    pixx borderleft add borderright add borderwidth add neg 0 rlineto
-    0 pixy borderbottom add bordertop add borderwidth add neg rlineto
-    closepath
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
-    showborder {
+    /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
+    /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
+    /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
+    /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
+    backgroundcolor (unset) ne {
         gsave
+        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
+        backgroundcolor setanycolor fill
+        grestore
+    } if
+    showbearer {  % Overrides showborder
+        gsave
+        newpath
+        bl aload pop moveto br aload pop lineto
+        tl aload pop moveto tr aload pop lineto
         bordercolor (unset) ne { bordercolor setanycolor } if
         borderwidth inkspread 2 mul sub setlinewidth stroke
         grestore
-    } if
+    } {
+    showborder {
+        gsave
+        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
+        bordercolor (unset) ne { bordercolor setanycolor } if
+        borderwidth inkspread 2 mul sub setlinewidth stroke
+        grestore
+    } if } ifelse
 
     % Display the bars for elements in the bars array
     gsave
