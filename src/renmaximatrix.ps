@@ -82,17 +82,19 @@ begin
 
     2.4945 dup scale  % from 1pt to 0.88mm
 
-    newpath
-    borderleft borderwidth 2 div add neg borderbottom borderwidth 2 div add neg moveto
-    30 borderleft add borderright add borderwidth add 0 rlineto
-    0 29 borderbottom add bordertop add borderwidth add rlineto
-    30 borderleft add borderright add borderwidth add neg 0 rlineto
-    0 29 borderbottom add bordertop add borderwidth add neg rlineto
-    closepath
-
-    backgroundcolor (unset) ne { gsave backgroundcolor setanycolor fill grestore } if
+    /tl [ borderleft borderwidth 2 div add neg      29 bordertop add borderwidth 2 div add ] def
+    /tr [ 30 borderright add borderwidth 2 div add  29 bordertop add borderwidth 2 div add ] def
+    /bl [ borderleft borderwidth 2 div add neg      borderbottom borderwidth 2 div add neg ] def
+    /br [ 30 borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg ] def
+    backgroundcolor (unset) ne {
+        gsave
+        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
+        backgroundcolor setanycolor fill
+        grestore
+    } if
     showborder {
         gsave
+        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
         bordercolor (unset) ne { bordercolor setanycolor } if
         borderwidth inkspread 2 mul sub setlinewidth stroke
         grestore
