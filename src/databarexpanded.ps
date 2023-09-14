@@ -366,6 +366,9 @@ begin
 
     /encode {
         dup /raw ne {exch get} {pop} ifelse
+        dup length j add 252 ge {
+            pop /bwipp.gs1databarexpandedTooLong (Maximum length exceeded) //raiseerror exec
+        } if
         [ exch {48 sub} forall ]
         dup length exch
         gpfenc exch j exch putinterval
