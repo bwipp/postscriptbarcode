@@ -144,7 +144,7 @@ while (<>) {
 
     # Split and markup "req"
     my $reqspec = '';
-    $reqspec .= "[ " . join(' ', map { "($_)" } map { split ',' } $_) . " ] " foreach @{$attrs{'req'}};
+    $reqspec .= "[ " . join(' ', map { '[ (' . join(') (', split '\+') . ') ]' } map { split ',' } $_) . " ] " foreach @{$attrs{'req'}};
     $specstr .= "            /req    [ $reqspec]\n" if $reqspec;
 
     # Pick first (only), split and markup "dlpkey"
