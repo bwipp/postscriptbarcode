@@ -104,7 +104,10 @@ begin
             linwidth 0 lt {
                 /bwipp.gs1ccMissingLinWidth (linwidth must be set for a GS1-128 with a CC-C composite component) //raiseerror exec
             } if
-            linwidth 52 sub 17 idiv
+            linwidth 68 lt {
+                /bwipp.gs1ccMinimumLinWidth (Minimum linwidth for a GS1-128 with a CC-C composite component is 68) //raiseerror exec
+            } if
+            linwidth 68 eq { 1 } { linwidth 52 sub 17 idiv } ifelse  % Ensure cccolumns != 0 if minimum linwidth
         } {
             lintype () ne { lintypecccolumns lintype get } {2} ifelse
         } ifelse
