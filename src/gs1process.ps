@@ -2823,14 +2823,19 @@ begin
         dup length 10 ne {
             pop /bwipp.GS1badLatitudeLength (Invalid length for a latitude) false exit
         } if
-        cvi 1800000000 gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
+        cvi
+        (1800000000) cvi  % Workaround issue with packager
+        gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
     } def
 
     /lintlongitude {
         dup length 10 ne {
             pop /bwipp.GS1badLongitudeLength (Invalid length for a longitude) false exit
         } if
-        cvi 3600000000 gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
+        % Workaround issue with packager
+        cvi
+        (3600000000) cvi  % Workaround issue with packager
+        gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
     } def
 
 {
