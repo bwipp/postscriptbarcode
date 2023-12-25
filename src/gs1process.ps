@@ -2072,6 +2072,24 @@ begin
             out
         } def
 
+        /isvaliddlpkeyseq {
+            /in exch def
+            false
+            gs1syntax in 0 get get /dlpkey get {
+                /seq exch def
+                /i 1 def  /j 0 def
+                {
+                    i in length ge {exit} if
+                    j seq length ge {exit} if
+                    in i get seq j get eq {
+                        /i i 1 add def
+                    } if
+                    /j j 1 add def
+                } loop
+                i in length eq {pop true exit} if
+            } forall
+        } def
+
         /ais 99 array def
         /vals 99 array def
         0
@@ -2088,24 +2106,11 @@ begin
             } ifelse
             exch 1 add exch
         } loop
+        dup /plen exch def
 
         % Validate the key-qualifiers in the path info sequence
         dup 1 gt {
-            false
-            gs1syntax ais 0 get get /dlpkey get {
-                /seq exch def
-                /i 1 def  /j 0 def
-                {
-                    i ais length ge {exit} if
-                    j seq length ge {exit} if
-                    ais i get seq j get eq {
-                        /i i 1 add def
-                    } if
-                    /j j 1 add def
-                } loop
-                i 2 index eq {pop true exit} if
-            } forall
-            not {
+            ais 0 plen getinterval isvaliddlpkeyseq not {
                 pop /bwipp.GS1dlBadPathInfo (The AIs in the path are not a valid key-qualifier sequence for the key) //raiseerror exec
             } if
         } if
@@ -2127,6 +2132,24 @@ begin
                 pop
             } ifelse
         } loop
+
+        % Check for valid path info attributes in query params
+        ais plen 2 index plen sub getinterval {
+            plen -1 1 {  % Trial the query param at each non-initial path info position
+                1 index [
+                    ais 0 plen getinterval aload pop
+                    counttomark 3 add -2 roll exch 1 roll
+                ] isvaliddlpkeyseq {
+                    exch pop
+                    dup length dup 50 add string
+                    dup 0 (AI \() putinterval
+                    dup 4 4 index putinterval
+                    dup 2 index 4 add (\) from query params should be in the path info) putinterval
+                    exch pop exch pop /bwipp.GS1dlAttributeMustBeQualifier exch //raiseerror exec
+                } if
+            } for
+            pop
+        } forall
 
         /ais ais 0 3 index getinterval def
         /vals vals 0 3 index getinterval def
