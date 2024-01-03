@@ -2,7 +2,7 @@
  * libpostscriptbarcode - postscriptbarcode.c
  *
  * @file postscriptbarcode_private.h
- * @author Copyright (c) 2004-2023 Terry Burton.
+ * @author Copyright (c) 2004-2024 Terry Burton.
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
