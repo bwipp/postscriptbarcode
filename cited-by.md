@@ -49,6 +49,8 @@ West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," D
 
 Russell, Robert. (2020) "How to Print QRcodes, Data Matrix, Aztec Codes, Maxi Code and Han Xin Barcodes in SAP," <https://www.rjruss.info/2020/04/how-to-print-qrcodes-data-matrix-aztec.html>
 
+Nyström, Rikard. (2021) "A Machine Vision System for Robotic Operations Quality Control in an Automated Biological Lab," Thesis. <https://umu.diva-portal.org/smash/get/diva2:1584678/FULLTEXT01.pdf>
+
 
 pst-barcode
 -----------
