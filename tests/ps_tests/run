@@ -13,7 +13,7 @@ if gs -dBATCH -dNODISPLAY -dQUIET -c '401 string { dup } forall count =' | grep 
   STRING_CONTINUE_BUG=-dSTRING_CONTINUE_BUG
 fi
 
-if OUT=$(cd build/resource/Resource && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage $STRING_CONTINUE_BUG -P ../../../"$TEST"/test.ps 2>&1); then
+if OUT=$(cd build/packaged_resource/Resource && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage $STRING_CONTINUE_BUG -P ../../../"$TEST"/test.ps 2>&1); then
   if echo "$OUT" | grep -qFx 'PASS'; then
     echo "PASS"
     exit 0
