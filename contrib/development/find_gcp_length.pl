@@ -14,6 +14,8 @@
 
 use strict;
 
+use constant XML_FILE => 'gcpprefixformatlist.xml';
+
 
 #
 #  Globals populated by init()
@@ -30,7 +32,7 @@ my $maxplen;
 sub init {
     $minplen = 1000;
     $maxplen = 0;
-    open my $fh, 'gcp.xml' or die "Could not open file";
+    open my $fh, XML_FILE or die "Could not open file";
     while (<$fh>) {
         chomp;
         next unless (my $pfx, my $len) = $_ =~ m#<entry prefix="(\d+)" gcpLength="(\d+)"/>#;
@@ -40,6 +42,27 @@ sub init {
         $maxplen = $plen if $plen > $maxplen;
     }
     close $fh;
+}
+
+
+#
+#  Perform tests on the data from the XML file
+#
+sub sanity_check {
+
+    foreach my $pfx (keys %gcppfxlen) {
+
+        # No smaller prefix of the entry may exist
+        for (1..length($pfx)-1) {
+            die "Prefix of prefix $pfx exists!" if defined $gcppfxlen{substr($pfx, 0, $_)};
+        }
+
+        # The GCP length cannot be smaller than the prefix
+        my $len = $gcppfxlen{$pfx};
+        die "GCP length is smaller than the prefix itself for $pfx" if $len && $len < length($pfx);
+
+    }
+
 }
 
 
@@ -78,6 +101,7 @@ sub random_num {
 ##########
 
 init();
+sanity_check();
 
 while (1) {
     my $key = random_num();
