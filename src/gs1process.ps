@@ -1988,9 +1988,11 @@ begin
 
         % Validate and strip the scheme
         (http://) anchorsearch not {
+        (HTTP://) anchorsearch not {
         (https://) anchorsearch not {
-            pop /bwipp.GS1dlURIbadScheme (Scheme must be http:// or https://) //raiseerror exec
-        } if} if
+        (HTTPS://) anchorsearch not {
+            pop /bwipp.GS1dlURIbadScheme (Scheme must be http:// HTTP:// https:// or HTTPS://) //raiseerror exec
+        } if} if} if} if
         pop
 
         % Strip the domain
