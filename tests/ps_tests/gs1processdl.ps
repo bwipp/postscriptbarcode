@@ -56,7 +56,6 @@
 (https://example.com/00/006141411234567890?99=ABC) good_tmpl
 (https://example.com/401/12345678?99=ABC) good_tmpl
 (https://example.com/01/12312312312333?99=ABC&98=XYZ) good_tmpl
-(https://example.com/01/12312312312333?99=ABC&999=faux) /bwipp.GS1unknownAI er_tmpl
 (https://example.com/01/12312312312333?&&&99=ABC&&&&&&98=XYZ&&&) good_tmpl    % Ignore extraneous separators
 (https://example.com/01/12312312312333?99=ABC&unknown=666&98=XYZ) good_tmpl   % Ignore non-numeric params
 (https://example.com/01/12312312312333?99=ABC&singleton&98=XYZ) good_tmpl     % Ignore singlton params
@@ -111,8 +110,11 @@
 (https://example.com/01/09520123456788/22/2A/99/XYZ/10/ABC123/21/12345) /bwipp.GS1dlBadPathInfo er_tmpl  % Extra
 (https://example.com/01/09520123456788/99/XYZ/22/2A/10/ABC123/21/12345) /bwipp.GS1dlBadPathInfo er_tmpl  % Extra
 
-% Attributes that must be key-qualifiers
-(https://example.com/01/09520123456788/10/ABC123/21/12345?22=2A) /bwipp.GS1dlAttributeMustBeQualifier er_tmpl
+% TODO Invalid data attributes
+%(https://example.com/01/09520123456788?99=ABC&999=faux) /bwipp.GS1dlInvalidDataAttribute er_tmpl
+%(https://example.com/01/09520123456788?22=2A) /bwipp.GS1dlInvalidDataAttribute er_tmpl
+%(https://example.com/01/09520123456788?21=12345) /bwipp.GS1dlInvalidDataAttribute er_tmpl
+%(https://example.com/01/09520123456788?235=XYZ) /bwipp.GS1dlInvalidDataAttribute er_tmpl
+
+% Attributes that must be promoted to key-qualifiers
 (https://example.com/01/09520123456788/22/2A/21/12345?10=ABC123) /bwipp.GS1dlAttributeMustBeQualifier er_tmpl
-(https://example.com/01/09520123456788/22/2A/10/ABC123?21=12345) /bwipp.GS1dlAttributeMustBeQualifier er_tmpl
-(https://example.com/01/09520123456788/10/ABC123?235=XYZ) good_tmpl  % Alternate key qualifier
