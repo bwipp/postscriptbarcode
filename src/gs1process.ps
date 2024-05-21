@@ -2135,6 +2135,23 @@ begin
             } ifelse
         } loop
 
+        % Check for invalid DL data attributes in the query params
+        ais plen 2 index plen sub getinterval {
+            gs1syntax 1 index known {
+                gs1syntax 1 index get /dlattr 2 copy known { get } { pop pop true } ifelse
+            } {
+                dontlint
+            } ifelse
+            not {
+                dup length dup 46 add string
+                dup 0 (AI \() putinterval
+                dup 4 4 index putinterval
+                dup 2 index 4 add (\) is not a valid GS1 DL URI data attribute) putinterval
+                exch pop exch pop /bwipp.GS1dlInvalidDataAttribute exch //raiseerror exec
+            } if
+            pop
+        } forall
+
         % Check for valid path info attributes in query params
         ais plen 2 index plen sub getinterval {
             plen -1 1 {  % Trial the query param at each non-initial path info position
@@ -2173,7 +2190,7 @@ begin
 
     } ifelse
 
-    % AIs not requiring FNC1 separation
+    % Two-digit AI prefixes not requiring FNC1 separation
 {
     /aifixed << [
         (00) (01) (02) (03) (04)

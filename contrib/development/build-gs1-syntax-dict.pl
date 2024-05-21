@@ -19,7 +19,12 @@ my $ai_rx = qr/
 
 my $ai_rng_rx = qr/${ai_rx}(-${ai_rx})?/;
 
-my $flags_rx = qr/[\*]+/;
+my $flags_rx = qr/
+    [
+        *?!"%&'()+,.:;<=>@[_`{|}~
+        \$  \-  \/  \\  \]  \^
+    ]+
+/x;
 
 my $type_mand_rx = qr/
     [XNYZ]
@@ -102,7 +107,7 @@ while (<>) {
     $_ =~ $entry_rx or die "Bad entry: $_";
 
     my $ais = $+{ais};
-#    my $flags = $+{flags} || '';       # ignored
+    my $flags = $+{flags} || '';
     my $spec = $+{spec};
     my $keyvals = $+{keyvals} || '';
 #    my $title = $+{title} || '';       # ignored
@@ -153,6 +158,9 @@ while (<>) {
         $dlpkeyspec .= "[ " . join(' ', map { "($_)" } split ',', $_) . " ] " foreach split '\|', @{$attrs{'dlpkey'}}[0] || '';
         $specstr .= "            /dlpkey [ $dlpkeyspec]\n";
     }
+
+    # dlattr defaults to true since most AIs are valid DL URI attributes
+    $specstr .= "            /dlattr false\n" if $flags !~ /\?/;
 
     $specstr .= "        >>\n";
 
