@@ -118,23 +118,38 @@ begin
         width 72 mul pixx div 1 scale
     } if
 
-    % Set RGB or CMYK color depending on length of given hex string
+    % Set RGB or CMYK color, or some other color by name
     /setanycolor {
         /anycolor exch def
-        anycolor length dup 6 ne exch 8 ne and {
-            /bwipp.renlinearBadColorLength (Colors must be 6 or 8 characters) //raiseerror exec
+        anycolor length 1 lt {
+            /bwipp.colorEnpty (Colors must not be empty) //raiseerror exec
         } if
-        anycolor {
-            dup     dup 48 ge exch  59 le and  % 0-9
-            1 index dup 65 ge exch  70 le and  % A-F
-            2 index dup 97 ge exch 102 le and  % a-f
-            or or exch pop not {
-                /bwipp.renlinearBadColorCharacter (Colors must be in hexadecimal notation) //raiseerror exec
+        anycolor 0 get 95 ne {  % RGB or CMYK
+            anycolor length dup 6 ne exch 8 ne and {
+                /bwipp.colorBadLength (Colors must be 6 or 8 hexadecimal characters or a defined name beginning with underscore) //raiseerror exec
             } if
-        } forall
-        anycolor length 6 eq { (<      >) } { (<        >) } ifelse dup length string copy
-        dup 1 anycolor putinterval cvx exec {255 div} forall
-        anycolor length 6 eq { setrgbcolor } { setcmykcolor } ifelse
+            anycolor {
+                dup     dup 48 ge exch  59 le and  % 0-9
+                1 index dup 65 ge exch  70 le and  % A-F
+                2 index dup 97 ge exch 102 le and  % a-f
+                or or exch pop not {
+                    /bwipp.colorBadCharacter (RGB and CMYK Colors must be in hexadecimal notation) //raiseerror exec
+                } if
+            } forall
+            anycolor length 6 eq { (<      >) } { (<        >) } ifelse dup length string copy
+            dup 1 anycolor putinterval cvx exec {255 div} forall
+            anycolor length 6 eq { /DeviceRGB } { /DeviceCMYK } ifelse
+        } {  % Named color beginning "_..."
+            /uk.co.terryburton.bwipp.global_ctx dup where {exch get} {0 dict} ifelse
+            /named_colors 2 copy known {get} {pop pop 0 dict} ifelse
+            anycolor 2 copy known not {
+                pop pop /bwipp.colorUnknown (Color is not defined) //raiseerror exec
+            } if
+            get mark exch aload pop counttomark 1 add -2 roll exch pop
+        } ifelse
+        { setcolorspace setcolor } stopped {
+            /bwipp.colorFailedToSet (Failed to set color) //raiseerror exec
+        } if
     } def
 
     % Display the border and background
