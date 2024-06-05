@@ -2207,11 +2207,15 @@ begin
                 } {
                 dup 37 eq 3 index in length 2 sub lt and {  % "%nn" -> ord
                     pop
-                    (<  >) 4 string copy dup 1 in 5 index 1 add 2 getinterval putinterval cvx
-                    stopped {
-                        pop pop /bwipp.GS1dlBadHexCharacter (Invalid hex character) //raiseerror exec
-                    } if
-                    0 get out exch 2 index exch put
+                    in 2 index 1 add 2 getinterval 0 exch {
+                        dup dup 48 ge exch  57 le and {48 sub} {  % 0-9
+                        dup dup 65 ge exch  70 le and {55 sub} {  % A-F
+                        dup dup 97 ge exch 102 le and {87 sub} {  % a-f
+                            pop pop /bwipp.GS1dlBadHexCharacter (Invalid hex character) //raiseerror exec
+                        } ifelse } ifelse } ifelse
+                        exch 16 mul exch add
+                    } forall
+                    out exch 2 index exch put
                     1 add exch 3 add exch
                 } {
                     out exch 2 index exch put
