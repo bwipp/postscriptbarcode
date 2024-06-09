@@ -112,9 +112,10 @@
 # AI     Flags Specification                 Attributes                             Title
 
 00         *?  N18,csum,key                  dlpkey                               # SSCC
-01         *?  N14,csum,key                  ex=02,255,37 dlpkey=22,10,21|235     # GTIN
-02         *?  N14,csum,key                  req=37                               # CONTENT
-10          ?  X..20                         req=01,02,8006,8026                  # BATCH/LOT
+01         *?  N14,csum,key                  ex=255,37 dlpkey=22,10,21|235        # GTIN
+02         *?  N14,csum,key                  ex=01,03 req=37                      # CONTENT
+03         *   N14,csum,key                  ex=01,02,37                          # MTO GTIN
+10          ?  X..20                         req=01,02,03,8006,8026               # BATCH/LOT
 11         *?  N6,yymmd0                     req=01,02,8006,8026                  # PROD DATE
 12         *?  N6,yymmd0                     req=8020                             # DUE DATE
 13         *?  N6,yymmd0                     req=01,02,8006,8026                  # PACK DATE
@@ -122,12 +123,12 @@
 16         *?  N6,yymmd0                     req=01,02,8006,8026                  # SELL BY
 17         *?  N6,yymmd0                     req=01,02,255,8006,8026              # USE BY or EXPIRY
 20         *?  N2                            req=01,02,8006,8026                  # VARIANT
-21             X..20                         req=01,8006 ex=235                   # SERIAL
+21             X..20                         req=01,03,8006 ex=235                # SERIAL
 22             X..20                         req=01                               # CPV
 235            X..28                         req=01                               # TPX
 240         ?  X..30                         req=01,02,8006,8026                  # ADDITIONAL ID
 241         ?  X..30                         req=01,02,8006,8026                  # CUST. PART No.
-242         ?  N..6                          req=01,02,8006,8026                  # MTO VARIANT
+242         ?  N..6                          req=01,02,03,8006,8026               # MTO VARIANT
 243         ?  X..20                         req=01                               # PCN
 250         ?  X..30                         req=01,8006 req=21                   # SECONDARY SERIAL
 251         ?  X..30                         req=01,8006                          # REF. TO SOURCE
@@ -314,6 +315,7 @@
 8011           N..12,nozeroprefix            req=8010                             # CPID SERIAL
 8012        ?  X..20                         req=01,8006                          # VERSION
 8013        ?  X..25,csumalpha,key           dlpkey                               # GMN
+8014           X..25,csumalpha,key,hasnondigit  req=01                            # MUDI
 8017        ?  N18,csum,key                  ex=8018 dlpkey=8019                  # GSRN - PROVIDER
 8018        ?  N18,csum,key                  ex=8017 dlpkey=8019                  # GSRN - RECIPIENT
 8019           N..10                         req=8017,8018                        # SRIN

@@ -63,7 +63,7 @@ begin
             /parts [
                 << /cset /N  /min 14  /max 14  /opt false  /linters [ /lintcsum /lintkey ] >>
             ]
-            /ex     [ (02) (255) (37) ]
+            /ex     [ (255) (37) ]
             /dlpkey [ [ (22) (10) (21) ] [ (235) ] ]
         >>
         (01) exch dup
@@ -73,6 +73,7 @@ begin
             /parts [
                 << /cset /N  /min 14  /max 14  /opt false  /linters [ /lintcsum /lintkey ] >>
             ]
+            /ex     [ (01) (03) ]
             /req    [ [ [ (37) ] ] ]
         >>
         (02) exch dup
@@ -80,9 +81,19 @@ begin
 
         <<
             /parts [
+                << /cset /N  /min 14  /max 14  /opt false  /linters [ /lintcsum /lintkey ] >>
+            ]
+            /ex     [ (01) (02) (37) ]
+            /dlattr false
+        >>
+        (03) exch dup
+        pop
+
+        <<
+            /parts [
                 << /cset /X  /min  1  /max 20  /opt false  /linters [] >>
             ]
-            /req    [ [ [ (01) ] [ (02) ] [ (8006) ] [ (8026) ] ] ]
+            /req    [ [ [ (01) ] [ (02) ] [ (03) ] [ (8006) ] [ (8026) ] ] ]
         >>
         (10) exch dup
         pop
@@ -139,7 +150,7 @@ begin
                 << /cset /X  /min  1  /max 20  /opt false  /linters [] >>
             ]
             /ex     [ (235) ]
-            /req    [ [ [ (01) ] [ (8006) ] ] ]
+            /req    [ [ [ (01) ] [ (03) ] [ (8006) ] ] ]
             /dlattr false
         >>
         (21) exch dup
@@ -179,7 +190,7 @@ begin
             /parts [
                 << /cset /N  /min  1  /max  6  /opt false  /linters [] >>
             ]
-            /req    [ [ [ (01) ] [ (02) ] [ (8006) ] [ (8026) ] ] ]
+            /req    [ [ [ (01) ] [ (02) ] [ (03) ] [ (8006) ] [ (8026) ] ] ]
         >>
         (242) exch dup
         pop
@@ -1990,6 +2001,16 @@ begin
 
         <<
             /parts [
+                << /cset /X  /min  1  /max 25  /opt false  /linters [ /lintcsumalpha /lintkey /linthasnondigit ] >>
+            ]
+            /req    [ [ [ (01) ] ] ]
+            /dlattr false
+        >>
+        (8014) exch dup
+        pop
+
+        <<
+            /parts [
                 << /cset /N  /min 18  /max 18  /opt false  /linters [ /lintcsum /lintkey ] >>
             ]
             /ex     [ (8018) ]
@@ -2604,6 +2625,11 @@ begin
         dup length 1 gt exch 0 get 48 eq and {
             pop /bwipp.GS1badZeroPrefix (Zero prefix is not permitted) false exit
         } if
+    } def
+
+    /linthasnondigit {
+        false exch { dup 48 lt exch 57 gt or {pop true exit} if } forall
+        not { /bwipp.GS1requiresNonDigit (A non-digit character is required) false exit } if
     } def
 
     /linthyphen {
