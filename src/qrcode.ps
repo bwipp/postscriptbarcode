@@ -359,7 +359,8 @@ begin
         /barchar msg i get def
         Kexcl barchar known {
             /sjis i 1 add msglen lt { barchar 256 mul msg i 1 add get add } {0} ifelse def  % Zero if last char
-            sjis 16#8140 ge sjis 16#9FFC le and sjis 16#E040 ge sjis 16#EBBF le and or {
+            sjis 16#8140 ge sjis 16#9FFC le and sjis 16#E040 ge sjis 16#EBBF le and or
+            sjis 16#C0 and 0 ne and {  % Low byte >= 16#40
                 nextKs i 0 put
                 numKs i numKs i 2 add get 1 add put
             } {
