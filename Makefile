@@ -300,6 +300,7 @@ tag:
 	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
 	@echo EOF
 	@echo git push origin `head -n1 CHANGES`
+	@echo git push upstream `head -n1 CHANGES`
 
 YEAR:=$(shell date +%Y)
 
