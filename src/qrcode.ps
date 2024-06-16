@@ -58,6 +58,7 @@ begin
     /parse false def
     /parsefnc false def
     /mask -1 def
+    /suppresskanjimode false def
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -357,7 +358,7 @@ begin
     msglen 1 sub -1 0 {
         /i exch def
         /barchar msg i get def
-        Kexcl barchar known {
+        Kexcl barchar known suppresskanjimode not and {
             /sjis i 1 add msglen lt { barchar 256 mul msg i 1 add get add } {0} ifelse def  % Zero if last char
             sjis 16#8140 ge sjis 16#9FFC le and sjis 16#E040 ge sjis 16#EBBF le and or
             sjis 16#C0 and 0 ne and {  % Low byte >= 16#40
