@@ -359,9 +359,13 @@ begin
         /i exch def
         /barchar msg i get def
         Kexcl barchar known suppresskanjimode not and {
-            /sjis i 1 add msglen lt { barchar 256 mul msg i 1 add get add } {0} ifelse def  % Zero if last char
-            sjis 16#8140 ge sjis 16#9FFC le and sjis 16#E040 ge sjis 16#EBBF le and or
-            sjis 16#C0 and 0 ne and {  % Low byte >= 16#40
+            i 1 add msglen lt { barchar 256 mul msg i 1 add get add } { 0 } ifelse
+            dup                                               % Double byte:
+            dup dup 16#8140 ge exch 16#9FFC le and exch       % 8140-9FFC or
+                dup 16#E040 ge exch 16#EBBF le and or exch    % E040-EBBF
+            16#FF and                                         % Low byte:
+            dup dup 16#40 ge exch 16#FC le and exch 16#7F ne  % 40-FC except !7F
+            and and {
                 nextKs i 0 put
                 numKs i numKs i 2 add get 1 add put
             } {
