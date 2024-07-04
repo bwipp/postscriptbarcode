@@ -94,6 +94,7 @@ begin
     options (linwidth) linwidth put
     comp << options {} forall >> //gs1-cc exec /compsym exch def
     compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def
+    compsym (borderbottom) 0 put
 
     % Plot linear part
     linktype (a) eq {
@@ -112,17 +113,6 @@ begin
     mark
     1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
     counttomark 1 sub array astore /sep exch def pop pop
-    usematrix not {
-        0 linheight rmoveto <<
-            /ren /renmatrix
-            /pixs sep
-            /pixx sep length
-            /pixy 1
-            /height 1 72 div
-            /width sep length 72 div
-            /opt options
-        >> //renmatrix exec
-    } if
 
     % Plot the 2D part
     linktype (a) eq {
@@ -134,7 +124,20 @@ begin
     } ifelse
 
     usematrix not {
-        x 1 rmoveto compsym //renmatrix exec
+
+        currentpoint
+
+        x linheight 1 add rmoveto compsym //renmatrix exec
+
+        linheight add moveto <<
+            /ren /renmatrix
+            /pixs sep
+            /pixx sep length
+            /pixy 1
+            /height 1 72 div
+            /width sep length 72 div
+            /opt options
+        >> //renmatrix exec
 
         grestore
     } {

@@ -100,7 +100,15 @@ begin
     sep sep length 9 sub [0 0 0 0 0 0 0 0 0] putinterval % 4 + 5 right guard spaces
 
     usematrix not {
-        0 linheight rmoveto <<
+
+        currentpoint
+
+        % Plot the 2D part
+        comp options //gs1-cc exec
+        dup (pixx) get 72 exch sub linheight 1 add rmoveto
+        //renmatrix exec
+
+        linheight add moveto <<
             /ren /renmatrix
             /pixs sep
             /pixx sep length
@@ -109,11 +117,6 @@ begin
             /width sep length 72 div
             /opt options
         >> //renmatrix exec
-
-        % Plot the 2D part
-        comp options //gs1-cc exec
-        dup (pixx) get 72 exch sub 1 rmoveto
-        //renmatrix exec
 
         grestore
     } {

@@ -115,8 +115,16 @@ begin
         19 98 bot length 13 sub {} for
         70 98 bot length 13 sub {} for
     ] {sepfinder} forall
+
     usematrix not {
-        0 linheight rmoveto <<
+
+        currentpoint
+
+        % Plot the 2D part
+        bot 0 get 0 eq {2} {0} ifelse linheight 1 add rmoveto
+        comp options //gs1-cc exec //renmatrix exec
+
+        linheight add moveto <<
             /ren /renmatrix
             /pixs sep
             /pixx sep length
@@ -125,10 +133,6 @@ begin
             /width sep length 72 div
             /opt options
         >> //renmatrix exec
-
-        % Plot the 2D part
-        bot 0 get 0 eq {2} {0} ifelse 1 rmoveto
-        comp options //gs1-cc exec //renmatrix exec
 
         grestore
     } {
