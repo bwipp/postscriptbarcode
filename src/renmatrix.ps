@@ -278,10 +278,17 @@ begin
     width pixx div 72 mul height pixy div 72 mul scale
 
     % Display the border and background
-    /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
-    /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
-    /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
-    /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
+    showborder {
+        /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
+        /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
+        /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
+        /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
+    } {  % No need to extend background when there is no border
+        /tl [ borderleft neg                              pixy bordertop add                       ] def
+        /tr [ pixx borderright add                        pixy bordertop add                       ] def
+        /bl [ borderleft neg                              borderbottom neg                         ] def
+        /br [ pixx borderright add                        borderbottom neg                         ] def
+    } ifelse
     backgroundcolor (unset) ne {
         gsave
         newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
