@@ -43,9 +43,9 @@ begin
     20 dict begin
 
     % Default options
-    /bordercolor (unset) def
     /barcolor (unset) def
     /backgroundcolor (unset) def
+    /bordercolor (unset) def
     /inkspread 0.15 def
     /showborder false def
     /borderleft 0.0 def
@@ -56,6 +56,13 @@ begin
 
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
+
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get /ctx exch def
+        barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
+        backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
+        bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+    } { pop } ifelse
 
     % Set RGB or CMYK color, or some other color by name
     /setanycolor {

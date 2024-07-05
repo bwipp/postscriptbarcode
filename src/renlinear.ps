@@ -47,7 +47,6 @@ begin
     /bhs [] def
     /bbs [] def
     /txt [] def
-    /barcolor (unset) def
     /includetext false def
     /textcolor (unset) def
     /textxalign (unset) def
@@ -58,8 +57,9 @@ begin
     /textyoffset 0.0 def
     /textgaps 0.0 def
     /alttext () def
-    /bordercolor (unset) def
+    /barcolor (unset) def
     /backgroundcolor (unset) def
+    /bordercolor (unset) def
     /inkspread 0.15 def
     /width 0.0 def
     /barratio 1.0 def
@@ -85,6 +85,13 @@ begin
     textsize 0 le {
         /bwipp.renlinearBadTextsize (The font size must be greater than zero) //raiseerror exec
     } if
+
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get /ctx exch def
+        barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
+        backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
+        bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+    } { pop } ifelse
 
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def

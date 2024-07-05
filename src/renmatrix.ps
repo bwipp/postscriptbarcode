@@ -45,9 +45,9 @@ begin
     % Default options
     /width 1.0 def
     /height 1.0 def
-    /bordercolor (unset) def
     /barcolor (unset) def
     /backgroundcolor (unset) def
+    /bordercolor (unset) def
     /colormap (unset) def
     /dotty false def
     /inkspread null def    % real sentinal
@@ -77,6 +77,13 @@ begin
     inkspread null eq {/inkspread 0.15 def} if
     inkspreadh null eq {/inkspreadh inkspread def} if
     inkspreadv null eq {/inkspreadv inkspread def} if
+
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get /ctx exch def
+        barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
+        backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
+        bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+    } { pop } ifelse
 
     textsize 0 le {
         /bwipp.renmatrixBadTextsize (The font size must be greater than zero) //raiseerror exec
