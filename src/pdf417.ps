@@ -54,6 +54,7 @@ begin
     /dontdraw false def
     /compact false def
     /eclevel -1 def
+    /fixedeclevel false def
     /columns 0 def
     /rows 0 def
     /rowmult 3 def
@@ -631,10 +632,12 @@ begin
     } if
 
     % Opportunistically raise the error level if a better fit to the matrix is possible
-    /maxeclevel c r mul 1 sub m sub ln 2 ln div cvi 1 sub 8 2 copy gt {exch} if pop def
-    maxeclevel eclevel gt {
-      /eclevel maxeclevel def
-      /k 2 eclevel 1 add exp cvi def
+    fixedeclevel not {
+        /maxeclevel c r mul 1 sub m sub ln 2 ln div cvi 1 sub 8 2 copy gt {exch} if pop def
+        maxeclevel eclevel gt {
+          /eclevel maxeclevel def
+          /k 2 eclevel 1 add exp cvi def
+        } if
     } if
 
     % Create codewords array with one extra working space element and add padding
