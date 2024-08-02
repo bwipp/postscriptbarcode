@@ -213,7 +213,7 @@ begin
 
     /i 0 def {
         d1 tab164 i get le {
-            tab164 i 1 add 7 getinterval {} forall
+            tab164 i 1 add 7 getinterval aload pop
             /d1te exch def /d1to exch def
             /d1mwe exch def /d1mwo exch def
             /d1ele exch def /d1elo exch def
@@ -225,7 +225,7 @@ begin
 
     /i 0 def {
         d2 tab154 i get le {
-            tab154 i 1 add 7 getinterval {} forall
+            tab154 i 1 add 7 getinterval aload pop
             /d2te exch def /d2to exch def
             /d2mwe exch def /d2mwo exch def
             /d2ele exch def /d2elo exch def
@@ -237,7 +237,7 @@ begin
 
     /i 0 def {
         d3 tab164 i get le {
-            tab164 i 1 add 7 getinterval {} forall
+            tab164 i 1 add 7 getinterval aload pop
             /d3te exch def /d3to exch def
             /d3mwe exch def /d3mwo exch def
             /d3ele exch def /d3elo exch def
@@ -249,7 +249,7 @@ begin
 
     /i 0 def {
         d4 tab154 i get le {
-            tab154 i 1 add 7 getinterval {} forall
+            tab154 i 1 add 7 getinterval aload pop
             /d4te exch def /d4to exch def
             /d4mwe exch def /d4mwo exch def
             /d4ele exch def /d4elo exch def
@@ -297,10 +297,10 @@ begin
     } for
 
     /widths [
-        d1w {} forall
-        d2w {} forall
-        d3w {} forall
-        d4w {} forall
+        d1w aload pop
+        d2w aload pop
+        d3w aload pop
+        d4w aload pop
     ] def
 
 {
@@ -338,8 +338,14 @@ begin
     format (omni) eq format (truncated) eq or {  % linear
 
         /sbs [
-            1 d1w {} forall checklt {} forall d2w {} forall
-            d4w {} forall checkrt {} forall d3w {} forall 1 1
+            1
+            d1w aload pop
+            checklt aload pop
+            d2w aload pop
+            d4w aload pop
+            checkrt aload pop
+            d3w aload pop
+            1 1
         ] def
 
         <<
@@ -358,8 +364,20 @@ begin
 
     } {  % 2D - stacked or stackedomni
 
-        /top [ 1 1 d1w {} forall checklt {} forall d2w {} forall 1 1 0 ] def
-        /bot [ 1 1 d4w {} forall checkrt {} forall d3w {} forall 1 1 0 ] def
+        /top [
+            1 1
+            d1w aload pop
+            checklt aload pop
+            d2w aload pop
+            1 1 0
+        ] def
+        /bot [
+            1 1
+            d4w aload pop
+            checkrt aload pop
+            d3w aload pop
+            1 1 0
+        ] def
         0 2 24 {
             /i exch def
             top i get {0} repeat

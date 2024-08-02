@@ -824,11 +824,14 @@ begin
 
     % Strange fixup for 144x144 symbols
     ncws 1558 eq {
-        /ecbs [ ecbs 8 2 getinterval {} forall ecbs 0 8 getinterval {} forall ] def
+        /ecbs [
+            ecbs 8 2 getinterval aload pop
+            ecbs 0 8 getinterval aload pop
+        ] def
     } if
 
     % Extend codewords with the interleaved error correction codes
-    /cws [ cws {} forall rscw {0} repeat ] def
+    /cws [ cws aload pop rscw {0} repeat ] def
     0 1 rscw 1 sub {
         /i exch def
         cws ncws i add ecbs i rsbl mod get i rsbl idiv get put
