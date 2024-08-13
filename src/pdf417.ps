@@ -602,9 +602,13 @@ begin
         } loop
         /datcws datcws 0 j getinterval def
     } if
+    /m datcws length def
+
+    m 926 gt {
+      /bwipp.pdf417dataTooLong (The data is too long) //raiseerror exec
+    } if
 
     % Determine the error correction level if unspecified
-    /m datcws length def
     eclevel -1 eq {
         m  40 le              {/eclevel 2 def} if
         m  41 ge m 160 le and {/eclevel 3 def} if
