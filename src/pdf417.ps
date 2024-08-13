@@ -613,11 +613,13 @@ begin
     } if
 
     % Reduce the error level so that it does not cause an excessive number of codewords
-    /maxeclevel 928 1 sub m sub ln 2 ln div cvi 1 sub def
-    eclevel maxeclevel gt {/eclevel maxeclevel def} if
-    /k 2 eclevel 1 add exp cvi def
+    fixedeclevel not {
+        /maxeclevel 928 1 sub m sub ln 2 ln div cvi 1 sub def
+        eclevel maxeclevel gt {/eclevel maxeclevel def} if
+    } if
 
     % To determine size of matrix, number of columns if given by user...
+    /k 2 eclevel 1 add exp cvi def
     columns 0 eq {/columns m k add 3 div sqrt round cvi def} if
     /c columns 1 ge {columns} {1} ifelse def
 
