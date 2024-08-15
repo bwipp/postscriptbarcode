@@ -53,8 +53,8 @@ begin
     /inkspread null def    % real sentinal
     /inkspreadh null def   % real sentinal
     /inkspreadv null def   % real sentinal
-    /includetext false def
     /txt [] def
+    /includetext false def
     /textcolor (unset) def
     /textxalign (unset) def
     /textyalign (unset) def
@@ -64,6 +64,15 @@ begin
     /textyoffset 0.0 def
     /textgaps 0.0 def
     /alttext () def
+    /extratext () def
+    /extratextcolor (unset) def
+    /extratextxalign (left) def
+    /extratextyalign (above) def
+    /extratextfont (Courier) def
+    /extratextsize 10.0 def
+    /extratextxoffset 0.0 def
+    /extratextyoffset 0.0 def
+    /extratextgaps 0.0 def
     /showborder false def
     /borderleft 0.0 def
     /borderright 0.0 def
@@ -324,8 +333,8 @@ begin
     } forall
 
     % Display the text for elements in the text array
-    textcolor (unset) ne { textcolor setanycolor } if
     includetext {
+        textcolor (unset) ne { textcolor setanycolor } if
         textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
             /s 0 def /fn () def
             txt {
@@ -372,19 +381,54 @@ begin
             /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
 
             /textxpos textxoffset pixx textwidth sub 2 div add def
-            textxalign (left) eq { /textxpos textxoffset def } if
-            textxalign (right) eq { /textxpos pixx textxoffset sub textwidth sub def } if
-            textxalign (offleft) eq { /textxpos textwidth textxoffset add neg def } if
+            textxalign (left)     eq { /textxpos textxoffset def } if
+            textxalign (right)    eq { /textxpos pixx textxoffset sub textwidth sub def } if
+            textxalign (offleft)  eq { /textxpos textwidth textxoffset add neg def } if
             textxalign (offright) eq { /textxpos pixx textxoffset add def } if
-            textxalign (justify) eq textwidth pixx lt and {
+            textxalign (justify)  eq textwidth pixx lt and {
                 /textxpos 0.0 def
                 /textgaps pixx textwidth sub tstr length 1 sub div def
             } if
             /textypos textyoffset textascent add 1 add neg def
-            textyalign (above) eq { /textypos textyoffset pixy add 1 add def } if
+            textyalign (above)  eq { /textypos textyoffset pixy add 1 add def } if
             textyalign (center) eq { /textypos textyoffset pixy textascent sub 2 div add def } if
             textxpos textypos moveto textgaps 0 tstr ashow
         } ifelse
+    } if
+
+    % Render any extratext
+    extratext () ne {
+        extratextcolor (unset) ne { extratextcolor setanycolor } if
+        extratextfont extratextsize selectfont
+
+        % Find true ascent of font
+        gsave
+        newpath 0 0 moveto (0) false charpath pathbbox
+        4 1 roll pop pop pop
+        grestore
+        currentfont /PaintType known {currentfont /PaintType get 2 eq} {false} ifelse
+        currentfont /StrokeWidth known and {
+            currentfont /StrokeWidth get 2 div 0 exch
+            currentfont /FontMatrix get dtransform
+            dup mul exch dup mul add sqrt
+            add
+        } if
+        /textascent exch def
+        /textwidth extratext stringwidth pop extratext length 1 sub extratextgaps mul add def
+
+        /extratextxpos extratextxoffset pixx textwidth sub 2 div add def
+        extratextxalign (left)     eq { /textxpos extratextxoffset def } if
+        extratextxalign (right)    eq { /textxpos pixx extratextxoffset sub textwidth sub def } if
+        extratextxalign (offleft)  eq { /textxpos textwidth extratextxoffset add neg def } if
+        extratextxalign (offright) eq { /textxpos pixx extratextxoffset add def } if
+        extratextxalign (justify)  eq textwidth pixx lt and {
+            /textxpos 0.0 def
+            /extratextgaps pixx textwidth sub extratext length 1 sub div def
+        } if
+        /textypos extratextyoffset textascent add 1 add neg def
+        extratextyalign (above)  eq { /textypos extratextyoffset pixy add 1 add def } if
+        extratextyalign (center) eq { /textypos extratextyoffset pixy textascent sub 2 div add def } if
+        textxpos textypos moveto extratextgaps 0 extratext ashow
     } if
 
     grestore
