@@ -35,7 +35,7 @@
 % --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renmatrix datamatrix--
 % --DESC: GS1 Digital Link Data Matrix
 % --EXAM: https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987
-% --EXOP:
+% --EXOP: includetext
 % --RNDR: renmatrix
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
@@ -66,7 +66,15 @@ begin
     >> def
     /barcode barcode fncvals //parseinput exec def
 
-    barcode /dl //gs1process exec pop pop pop
+    barcode /dl //gs1process exec pop
+    0 get /val exch def
+    0 get /key exch def
+
+    /hri key length val length add 2 add string def
+    hri 0 40 put
+    hri 1 key putinterval
+    hri key length 1 add 41 put
+    hri key length 2 add val putinterval
 
     % Get the result of encoding with datamatrix
     options (parse) undef
@@ -74,6 +82,10 @@ begin
     /args barcode options //datamatrix exec def
 
     args (opt) options put
+    args (alttext) hri put
+    args (textyoffset) 1.0 put
+    args (textfont) /Helvetica put
+    args (textsize) 5 put
     args
 
     dontdraw not //renmatrix if
