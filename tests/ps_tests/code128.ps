@@ -10,3 +10,7 @@
 {  % Allow for FNC4 immediately after CodeC sequence (cf https://github.com/woo-j/OkapiBarcode/commit/9ce6dccbab20d1190090585ddf91a7f549f4fac9)
     (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code128
 } [104 100 100 33 33 33 33 33 33 100 100 99 99 99 99 99 99 99 99 100 100 33 3 106] debugIsEqual
+
+{  % Avoid extraneous CodeC switch (with immediate switch back to CodeA/B) by re-checking digit runlength >= 4 after enca/encb push
+    (12^FNC1345^FNC167^FNC18) (debugcws parse parsefnc) code128
+} [105 12 102 34 100 21 102 22 23 102 24 49 106] debugIsEqual
