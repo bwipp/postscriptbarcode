@@ -213,9 +213,9 @@ begin
         /msg msgtmp def
         /msglen msg length def
 
-        % Determine digit runlength and characters from given position
+        % Determine digit runlength from given position
         /numsscr {
-            /n 0 def /s 0 def
+            /s 0 def
             /p exch def {
                 p msglen ge {exit} if
                 msg p get
@@ -226,11 +226,10 @@ begin
                 } {
                     pop
                 } ifelse
-                /n n 1 add def
                 /s s 1 add def
                 /p p 1 add def
             } loop
-            n s
+            s
         } def
 
         % Encoding for each alphabet
@@ -281,7 +280,7 @@ begin
 
         % Select start character
         /j 0 def
-        msglen 0 gt {0 numsscr} {-1 -1} ifelse /nums exch def /nchars exch def
+        msglen 0 gt {0 numsscr} {-1} ifelse /nums exch def
         {  % common exit
             msglen 0 eq {
                 stb enca
@@ -312,7 +311,7 @@ begin
         /i 0 def {
             i msglen eq {exit} if
 
-            i numsscr /nums exch def /nchars exch def
+            i numsscr /nums exch def
 
             % Determine switches and shifts
             {  % common exit
@@ -325,9 +324,11 @@ begin
                     } {
                         msg i get cset (seta) eq {enca} {encb} ifelse
                         /i i 1 add def
-                        swc cset (seta) eq {enca} {encb} ifelse
-                        /cset (setc) def
-                        exit
+                        i numsscr 4 ge {
+                            swc cset (seta) eq {enca} {encb} ifelse
+                            /cset (setc) def
+                            exit
+                       } if
                     } ifelse
                 } if
                 cset (setb) eq msg i get anotb and {
