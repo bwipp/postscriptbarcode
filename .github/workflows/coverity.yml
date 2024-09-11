@@ -34,7 +34,8 @@ jobs:
 
       - name: Build with Coverity
         run: |
-          export PATH=`pwd`/coverity_tool/bin:$PATH
+          PATH=$(pwd)/coverity_tool/bin:$PATH
+          export PATH
           (cd libs/c && cov-build --dir ../../cov-int make)
 
       - name: Submit result
@@ -44,7 +45,7 @@ jobs:
             --form token="$TOKEN" \
             --form email="tez@terryburton.co.uk" \
             --form file=@cov-int.tar.gz \
-            --form version="`head -n 1 CHANGES`" \
+            --form version="$(head -n 1 CHANGES)" \
             --form description="BWIPP" \
             https://scan.coverity.com/builds?project=bwipp%2Fpostscriptbarcode
         env:
