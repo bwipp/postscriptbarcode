@@ -46,13 +46,18 @@ jobs:
       - name: Convert images from EPS to PDF
         run: |
           sudo apt-get update
-          sudo apt install -y --no-install-recommends texlive-font-utils ghostscript
-          find wikidocs/images/ -name '*.eps' -print0 | xargs -0 -t -P "$(nproc)" -I{} epstopdf {}
+          sudo apt install -y --no-install-recommends \
+              texlive-font-utils ghostscript
+          find wikidocs/images/ -name '*.eps' -print0 | \
+              xargs -0 -t -P "$(nproc)" -I{} epstopdf {}
 
       - name: Transform wiki
         run: |
-          sed -i -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.pdf)/' wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
-          perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
+          sed -i \
+            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.pdf)/' \
+            wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
+          perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
+            wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           sed -i -e 's/\[!\[GitHub license\].*//' README.md
 
       - name: Build PDF docs
@@ -202,8 +207,11 @@ jobs:
 
       - name: Transform wiki
         run: |
-          sed -i -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.png)/' wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
-          perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
+          sed -i \
+            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.png)/' \
+            wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
+          perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
+            wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           sed -i -e 's/\[!\[GitHub license\].*//' README.md
 
       - name: Build HTML docs
@@ -393,8 +401,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.tgz
-          asset_name: postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_path: "build/release/postscriptbarcode-monolithic-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
+          asset_name: "postscriptbarcode-monolithic-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
           asset_content_type: application/gzip'
 
       - name: "Upload asset: monolithic zip"
@@ -403,8 +413,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_path: "build/release/postscriptbarcode-monolithic-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
+          asset_name: "postscriptbarcode-monolithic-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
           asset_content_type: application/zip
 
       - name: "Upload asset: monolithic-package tgz"
@@ -413,8 +425,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.tgz
-          asset_name: postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_path: "build/release/postscriptbarcode-monolithic-package-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
+          asset_name: "postscriptbarcode-monolithic-package-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
           asset_content_type: application/gzip'
 
       - name: "Upload asset: monolithic-package zip"
@@ -423,8 +437,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_path: "build/release/postscriptbarcode-monolithic-package-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
+          asset_name: "postscriptbarcode-monolithic-package-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
           asset_content_type: application/zip
 
       - name: "Upload packaged-resource tgz"
@@ -433,8 +449,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.tgz
-          asset_name: postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_path: "build/release/postscriptbarcode-packaged-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
+          asset_name: "postscriptbarcode-packaged-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
           asset_content_type: application/gzip'
 
       - name: "Upload asset: packaged-resource zip"
@@ -443,8 +461,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_path: "build/release/postscriptbarcode-packaged-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
+          asset_name: "postscriptbarcode-packaged-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
           asset_content_type: application/zip
 
       - name: "Upload asset: resource tgz"
@@ -453,8 +473,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.tgz
-          asset_name: postscriptbarcode-resource-package-${{ steps.get_version.outputs.VERSION }}.tgz
+          asset_path: "build/release/postscriptbarcode-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
+          asset_name: "postscriptbarcode-resource-package-\
+            ${{ steps.get_version.outputs.VERSION }}.tgz"
           asset_content_type: application/gzip'
 
       - name: "Upload asset: resource zip"
@@ -463,8 +485,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_path: "build/release/postscriptbarcode-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
+          asset_name: "postscriptbarcode-resource-\
+            ${{ steps.get_version.outputs.VERSION }}.zip"
           asset_content_type: application/zip
 
       - name: "Upload asset: PDF docs"
