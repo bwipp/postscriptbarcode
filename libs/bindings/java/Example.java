@@ -6,7 +6,7 @@ public class Example {
         System.loadLibrary("postscriptbarcode");
     }
 
-    public static void main(final String args[]) {
+    public static void main(final String[] args) {
         BWIPP bwipp1 =
             new BWIPP("../../../build/monolithic_package/barcode.ps");
 
@@ -27,12 +27,12 @@ public class Example {
         System.out.println("Unpackaged version: " + bwipp2.get_version());
 
         String ps = bwipp1.emit_all_resources();
-        System.out.println("Packaged lines: " +
-            ps.split("\r\n|\r|\n").length);
+        System.out.println("Packaged lines: "
+            + ps.split("\r\n|\r|\n").length);
 
         ps = bwipp2.emit_all_resources();
-        System.out.println("Unpackaged lines: " +
-            ps.split("\r\n|\r|\n").length);
+        System.out.println("Unpackaged lines: "
+            + ps.split("\r\n|\r|\n").length);
 
     }
 

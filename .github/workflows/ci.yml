@@ -4,8 +4,10 @@ name: BWIPP CI
 on:
   push:
     branches:
+      - "*"
   pull_request:
     branches:
+      - "*"
 
 permissions: read-all
 
@@ -27,7 +29,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ghostscript
-          make -j $(nproc)
+          make -j "$(nproc)"
 
       - name: Test
         run: make test
@@ -45,7 +47,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt install -y --no-install-recommends texlive-font-utils ghostscript
-          find wikidocs/images/ -name '*.eps' | xargs -t -P $(nproc) -i epstopdf {}
+          find wikidocs/images/ -name '*.eps' -print0 | xargs -0 -t -P "$(nproc)" -I{} epstopdf {}
 
       - name: Transform wiki
         run: |
@@ -354,15 +356,15 @@ jobs:
       - name: Get and check the version
         id: get_version
         run: |
-          VERSION=${GITHUB_REF/refs\/tags\//}
+          VERSION="${GITHUB_REF/refs\/tags\//}"
           [ "$VERSION" == "$(head -1 CHANGES)" ] || exit 1
-          echo ::set-output name=VERSION::$VERSION
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Make assets
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ghostscript
-          make -j $(nproc) release
+          make -j "$(nproc)" release
 
       - name: Load PDF docs
         uses: actions/download-artifact@v4
