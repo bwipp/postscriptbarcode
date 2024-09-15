@@ -6,13 +6,15 @@ use strict;
 
 my $srcfile = shift @ARGV || '';
 
-open(SRC, '<', $srcfile) || die "Unable to open source file: $srcfile";
-my $src = join('', <SRC>);
-close(SRC);
+my $fh;
 
-open(UPR, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
-my $upr = join('', <UPR>);
-close(UPR);
+open($fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
+my $src = join('', <$fh>);
+close($fh);
+
+open($fh, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
+my $upr = join('', <$fh>);
+close($fh);
 
 (my $begin, $_, my $resource, my $meta, $_, my $end) = $src =~ /
   (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)

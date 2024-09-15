@@ -3,8 +3,8 @@
 ## Supported Versions
 
 All development is done against the current head of the master branch,
-with a single train of releases being tagged from the master branch 
-regularly and often. Bug fixes are not backported to old versions.
+with a single train of releases being tagged from the master branch
+regularly and often. Bugfixes are not backported to old versions.
 
 ## Reporting a Vulnerability
 

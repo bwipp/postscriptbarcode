@@ -5,16 +5,16 @@ TEST=$(dirname "$0")
 echo -n "Running $TEST: "
 
 if gs --version | grep -q '^7\.'; then
-  echo "SKIPPED GS too old"
-  exit 0
+	echo "SKIPPED GS too old"
+	exit 0
 fi
 
 cd build/packaged_resource/Resource || exit
 
 if gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=nullpage -P ../sample.ps; then
-  echo "PASS"
-  exit 0
+	echo "PASS"
+	exit 0
 else
-  echo "FAIL"
-  exit 1
+	echo "FAIL"
+	exit 1
 fi

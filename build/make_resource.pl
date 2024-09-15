@@ -1,28 +1,35 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -Tw
 
 # $Id$
 
 use strict;
 use File::Temp;
 use File::Basename;
+use Cwd qw(abs_path getcwd);
 
-my $abspath = `pwd`;
-chomp $abspath;
+$ENV{PATH} = '/usr/bin';
+
+(my $abspath) = abs_path(getcwd()) =~ /(.*)/;
 
 my $infile = $ARGV[0];
 my $outfile = $ARGV[1];
 
+($outfile) = $outfile =~ /(.*)/;  # Untaint
+
 (my $resdir) = $outfile =~ m#^(build/[^/]+)/#;
 my $packager = $resdir eq 'build/packaged_resource' ? 'make_packaged_resource.ps' : 'make_resource.ps';
 
-open(VER, '<', 'CHANGES') || die 'Unable to open CHANGES';
-my $version = <VER>;
-close VER;
-chomp $version;
+my $fh;
 
-open(PS, '<', $infile) || die "File not found: $infile";
-my $template = join('', <PS>);
-close PS;
+open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
+my $version = <$fh>;
+close $fh;
+chomp $version;
+($version) = $version =~ m/(.*)/;  # Untaint
+
+open($fh, '<', $infile) || die "File not found: $infile";
+my $template = join('', <$fh>);
+close $fh;
 
 $template =~ /
     ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
@@ -48,9 +55,9 @@ foreach (split /\s+/, $reqs) {
 }
 $neededresources =~ s/\s+$//;
 
-open(PS, '>', "$outfile.tmp") || die "Failed to write $outfile";
-print PS $body;
-close PS;
+open($fh, '>', "$outfile.tmp") || die "Failed to write $outfile";
+print $fh $body;
+close $fh;
 
 my $category = 'uk.co.terryburton.bwipp';
 my $key = $resource;
