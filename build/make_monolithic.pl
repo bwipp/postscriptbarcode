@@ -6,18 +6,20 @@ use strict;
 
 my $resourcedir = $ARGV[0] || '';
 
-open(UPR, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
-my $upr = join('', <UPR>);
-close UPR;
+my $fh;
 
-open(VER, '<', 'CHANGES') || die 'Unable to open CHANGES';
-my $version = <VER>;
-close VER;
+open($fh, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
+my $upr = join('', <$fh>);
+close $fh;
+
+open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
+my $version = <$fh>;
+close $fh;
 chomp $version;
 
-open(HEAD, '<', 'src/ps.head') || die 'Unable to open ps.head';
-my $head = join('', <HEAD>);
-close HEAD;
+open($fh, '<', 'src/ps.head') || die 'Unable to open ps.head';
+my $head = join('', <$fh>);
+close $fh;
 $head =~ s/XXXX-XX-XX/$version/;
 print $head;
 
@@ -29,9 +31,9 @@ while ($upr =~ /^(.*)=(.*)$/mg) {
   $srcfile = 'src/preamble.ps' if $1 eq 'uk.co.terryburton.bwipp';
   my $resfile = "$resourcedir/$2";
 
-  open(SRC, '<', $srcfile) || die "Unable to open source file: $srcfile";
-  my $src = join('', <SRC>);
-  close SRC;
+  open($fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
+  my $src = join('', <$fh>);
+  close $fh;
 
   (my $begin, $_, $_, my $meta, my $end) = $src =~ /
     (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
@@ -40,9 +42,9 @@ while ($upr =~ /^(.*)=(.*)$/mg) {
     (^%\ --END\ \2\ \3--$)
   /msgx;
 
-  open(RES, '<', $resfile) || die "Unable to open resource file: $resfile";
-  my $res = join('', <RES>);
-  close RES;
+  open($fh, '<', $resfile) || die "Unable to open resource file: $resfile";
+  my $res = join('', <$fh>);
+  close $fh;
   $res =~ /
     (^%%BeginResource:\ [\w\.]+\ [\w\.-]+?\ .*?$)
     .*

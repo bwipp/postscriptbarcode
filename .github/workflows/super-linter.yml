@@ -1,25 +1,34 @@
+---
 name: Super-Linter
+
+permissions: read-all
 
 on:
   push:
   pull_request:
 
 jobs:
-
   lint:
     name: Super-Linter
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Lint
-        uses: github/super-linter@v4
+        uses: github/super-linter@v7
         env:
           DEFAULT_BRANCH: master
-          VALIDATE_ALL_CODEBASE: false
           VALIDATE_JSCPD: false
+          VALIDATE_NATURAL_LANGUAGE: false
+          VALIDATE_GIT_MERGE_CONFLICT_MARKERS: false
+          VALIDATE_MARKDOWN_PRETTIER: false
+          VALIDATE_CLANG_FORMAT: false
+          VALIDATE_CPP: false
+          VALIDATE_GOOGLE_JAVA_FORMAT: false
+          VALIDATE_JAVA: false
+          FILTER_REGEX_EXCLUDE: wikidocs/.*|.*/acutest\.h|build-qr-mode-optim-arrs\.php|setup\.py
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

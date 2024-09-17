@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+"""Example user of the BWIPP Python binding."""
+
 import postscriptbarcode
 
 bwipp1 = postscriptbarcode.BWIPP("../../../build/monolithic_package/barcode.ps")

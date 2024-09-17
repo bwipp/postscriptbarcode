@@ -43,393 +43,385 @@
 #define HEXIFY_WIDTH 72
 
 struct BWIPP {
-  char *version;
-  ResourceList *resourcelist; // Singly-linked list of resources
-  unsigned int numresources;
+	char *version;
+	ResourceList *resourcelist;	/* Singly-linked list of resources */
+	unsigned int numresources;
 };
 
 /*
- *  TODO Differentiate by OS
+ *	TODO Differentiate by OS
  */
 static const char *default_filename = "/usr/share/postscriptbarcode/barcode.ps";
 
 static char *pshexstr(const char *in) {
+	char *out, *hex;
+	unsigned int count = 1, i;
 
-  char *out, *hex;
-  unsigned int count = 1, i;
+	assert(in);
 
-  assert(in);
+	out = malloc(3 * strlen(in) + 3);
+	if (!out)
+		return NULL;
 
-  out = malloc(3 * strlen(in) + 3);
-  if (!out)
-    return NULL;
+	hex = out;
 
-  hex = out;
+	hex += sprintf(hex, "<");
+	for (i = 0; i < strlen(in); i++) {
+		if (count >= HEXIFY_WIDTH) {
+			hex += sprintf(hex, "\n");
+			count = 0;
+		}
+		if (!count) {
+			hex += sprintf(hex, " ");
+			count++;
+		}
+		hex += sprintf(hex, "%02X", in[i]);
+		count += 2;
+	}
+	hex += sprintf(hex, ">");
+	hex++;
 
-  hex += sprintf(hex, "<");
-  for (i = 0; i < strlen(in); i++) {
-    if (count >= HEXIFY_WIDTH) {
-      hex += sprintf(hex, "\n");
-      count = 0;
-    }
-    if (!count) {
-      hex += sprintf(hex, " ");
-      count++;
-    }
-    hex += sprintf(hex, "%02X", in[i]);
-    count += 2;
-  }
-  hex += sprintf(hex, ">");
-  hex++;
+	out = realloc(out, (size_t)(hex - out));
 
-  out = realloc(out, (size_t)(hex - out));
-
-  return out;
+	return out;
 }
 
 static const Resource *get_resource(BWIPP *ctx, const char *name) {
+	ResourceList *curr;
 
-  ResourceList *curr = ctx->resourcelist;
+	for (curr = ctx->resourcelist; curr; curr = curr->next) {
+		if (strcmp(curr->entry->name, name) == 0)
+			return curr->entry;
+	}
 
-  while (curr) {
-    if (strcmp(curr->entry->name, name) == 0)
-      break;
-    curr = curr->next;
-  }
-
-  return curr ? curr->entry : NULL;
+	return NULL;
 }
 
 BWIPP_API void bwipp_free(void *p) { free(p); }
 
 BWIPP_API BWIPP *bwipp_load(void) {
-
-  /* TODO search a set of default paths */
-  return bwipp_load_from_file(default_filename);
+	/* TODO search a set of default paths */
+	return bwipp_load_from_file(default_filename);
 }
 
 BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
+	BWIPP *ctx;
+	FILE *f;
 
-  BWIPP *ctx;
-  FILE *f;
+	ResourceList *curr = NULL;
+	Resource *resource = NULL;
+	char buf[MAX_LINE];
+	char *code = NULL;
+	bool skip;
 
-  ResourceList *curr = NULL;
-  Resource *resource = NULL;
-  char buf[MAX_LINE];
-  char *code = NULL;
-  bool skip;
+	assert(filename);
 
-  assert(filename);
+	ctx = malloc(sizeof(BWIPP));
+	if (!ctx)
+		return NULL;
 
-  ctx = malloc(sizeof(BWIPP));
-  if (!ctx)
-    return NULL;
+	ctx->version = NULL;
+	ctx->resourcelist = NULL;
+	ctx->numresources = 0;
 
-  ctx->version = NULL;
-  ctx->resourcelist = NULL;
-  ctx->numresources = 0;
+	f = fopen(filename, "r");
+	if (!f)
+		goto error;
 
-  f = fopen(filename, "r");
-  if (!f)
-    goto error;
+	code = malloc(MAX_CODE);
+	if (!code)
+		goto error;
 
-  code = malloc(MAX_CODE);
-  if (!code)
-    goto error;
+	skip = true;
+	while (fgets(buf, sizeof buf, f)) {
 
-  skip = true;
-  while (fgets(buf, sizeof buf, f)) {
+		if (skip) {
+			if (strcmp(buf, "% --BEGIN TEMPLATE--\n") == 0)
+				skip = false;
+			if (!ctx->version &&
+					strncmp(buf, "% Barcode Writer in Pure PostScript", 35) == 0) {
+				char *version, *p;
+				p = strrchr(buf, ' ');
+				version = p + 1;
+				p = strchr(version, '\n');
+				*p = '\0';
+				ctx->version = strdup(version);
+				if (!ctx->version)
+					goto error;
+			}
+			continue;
+		}
 
-    if (skip) {
-      if (strcmp(buf, "% --BEGIN TEMPLATE--\n") == 0)
-        skip = false;
-      if (!ctx->version &&
-          strncmp(buf, "% Barcode Writer in Pure PostScript", 35) == 0) {
-        char *version, *p;
-        p = strrchr(buf, ' ');
-        version = p + 1;
-        p = strchr(version, '\n');
-        *p = '\0';
-        ctx->version = strdup(version);
-        if (!ctx->version)
-          goto error;
-      }
-      continue;
-    }
+		if (strcmp(buf, "% --END TEMPLATE--\n") == 0)
+			break;
 
-    if (strcmp(buf, "% --END TEMPLATE--\n") == 0)
-      break;
+		/* % --BEGIN {TYPE} {NAME}-- */
+		if (strncmp(buf, "% --BEGIN ", 10) == 0) {
 
-    /* % --BEGIN {TYPE} {NAME}-- */
-    if (strncmp(buf, "% --BEGIN ", 10) == 0) {
+			char *type, *name, *p;
 
-      char *type, *name, *p;
+			if (resource)
+				goto error;
 
-      if (resource)
-        goto error;
+			type = buf + 10;
+			p = strchr(type, ' ');
+			*p = '\0';
+			name = p + 1;
+			p = strrchr(name, '-');
+			*(p - 1) = '\0';
 
-      type = buf + 10;
-      p = strchr(type, ' ');
-      *p = '\0';
-      name = p + 1;
-      p = strrchr(name, '-');
-      *(p - 1) = '\0';
+			resource = calloc(1, sizeof(Resource));
+			if (!resource)
+				goto error;
 
-      resource = calloc(1, sizeof(Resource));
-      if (!resource)
-        goto error;
+			resource->type = strdup(type);
+			if (!resource->type)
+				goto error;
+			resource->name = strdup(name);
+			if (!resource->name)
+				goto error;
 
-      resource->type = strdup(type);
-      if (!resource->type)
-        goto error;
-      resource->name = strdup(name);
-      if (!resource->name)
-        goto error;
+			*code = '\0';
 
-      *code = '\0';
+			continue;
 
-      continue;
+		} /* BEGIN */
 
-    } /* BEGIN */
+		/* % --REQUIRES {REQS}-- */
+		if (strncmp(buf, "% --REQUIRES ", 13) == 0) {
 
-    /* % --REQUIRES {REQS}-- */
-    if (strncmp(buf, "% --REQUIRES ", 13) == 0) {
+			char *reqs, *p;
 
-      char *reqs, *p;
+			if (!resource || resource->reqs)
+				goto error;
 
-      if (!resource || resource->reqs)
-        goto error;
+			reqs = buf + 13;
+			p = strrchr(reqs, '-');
+			*(p - 1) = '\0';
+			resource->reqs = strdup(reqs);
+			if (!resource->reqs)
+				goto error;
 
-      reqs = buf + 13;
-      p = strrchr(reqs, '-');
-      *(p - 1) = '\0';
-      resource->reqs = strdup(reqs);
-      if (!resource->reqs)
-        goto error;
+			continue;
 
-      continue;
+		} /* REQUIRES */
 
-    } /* REQUIRES */
+		/* % --END {TYPE} {NAME}-- */
+		if (strncmp(buf, "% --END ", 8) == 0) {
 
-    /* % --END {TYPE} {NAME}-- */
-    if (strncmp(buf, "% --END ", 8) == 0) {
+			char *type, *name, *p;
 
-      char *type, *name, *p;
+			if (!resource)
+				goto error;
 
-      if (!resource)
-        goto error;
+			type = buf + 8;
+			p = strchr(type, ' ');
+			*p = '\0';
+			name = p + 1;
+			p = strrchr(name, '-');
+			*(p - 1) = '\0';
 
-      type = buf + 8;
-      p = strchr(type, ' ');
-      *p = '\0';
-      name = p + 1;
-      p = strrchr(name, '-');
-      *(p - 1) = '\0';
+			if (strcmp(resource->type, type) != 0)
+				goto error;
+			if (strcmp(resource->name, name) != 0)
+				goto error;
 
-      if (strcmp(resource->type, type) != 0)
-        goto error;
-      if (strcmp(resource->name, name) != 0)
-        goto error;
+			resource->code = strdup(code);
+			if (!resource->code)
+				goto error;
 
-      resource->code = strdup(code);
-      if (!resource->code)
-        goto error;
+			*code = '\0';
 
-      *code = '\0';
+			/* Add to ResourceList */
+			if (!ctx->resourcelist) {
+				ctx->resourcelist = malloc(sizeof(ResourceList));
+				if (!ctx->resourcelist)
+					goto error;
+				ctx->resourcelist->entry = resource;
+				ctx->resourcelist->next = NULL;
+				curr = ctx->resourcelist;
+			} else {
+				ResourceList *tmp = malloc(sizeof(ResourceList));
+				if (!tmp)
+					goto error;
+				tmp->entry = resource;
+				tmp->next = NULL;
+				curr = curr->next = tmp;
+			}
 
-      /* Add to ResourceList */
-      if (!ctx->resourcelist) {
-        ctx->resourcelist = malloc(sizeof(ResourceList));
-        if (!ctx->resourcelist)
-          goto error;
-        ctx->resourcelist->entry = resource;
-        ctx->resourcelist->next = NULL;
-        curr = ctx->resourcelist;
-      } else {
-        ResourceList *tmp = malloc(sizeof(ResourceList));
-        if (!tmp)
-          goto error;
-        tmp->entry = resource;
-        tmp->next = NULL;
-        curr = curr->next = tmp;
-      }
+			resource = NULL;
+			ctx->numresources++;
 
-      resource = NULL;
-      ctx->numresources++;
+			continue;
 
-      continue;
+		} /* END */
 
-    } /* END */
+		/* PS Code */
+		if (resource)
+			strcat(code, buf);
+	}
 
-    /* PS Code */
-    if (resource)
-      strcat(code, buf);
-  }
+	/* Finished without seeing an END RESOURCE for the current resource! */
+	if (resource)
+		goto error;
 
-  if (resource) // Finished without seeing an END RESOURCE for the current
-                // resource!
-    goto error;
+	fclose(f);
+	free(code);
 
-  fclose(f);
-  free(code);
-
-  return ctx;
+	return ctx;
 
 error:
 
-  if (f)
-    fclose(f);
-  if (resource) {
-    free(resource->type);
-    free(resource->name);
-    free(resource->reqs);
-    free(resource->code);
-  }
-  free(resource);
+	if (f)
+		fclose(f);
+	if (resource) {
+		free(resource->type);
+		free(resource->name);
+		free(resource->reqs);
+		free(resource->code);
+	}
+	free(resource);
 
-  free(code);
-  bwipp_unload(ctx);
+	free(code);
+	bwipp_unload(ctx);
 
-  return NULL;
+	return NULL;
 }
 
 BWIPP_API void bwipp_unload(BWIPP *ctx) {
+	ResourceList *curr;
 
-  ResourceList *curr;
+	assert(ctx);
 
-  assert(ctx);
+	curr = ctx->resourcelist;
 
-  curr = ctx->resourcelist;
+	while (curr) {
+		ResourceList *next = curr->next;
+		free(curr->entry->type);
+		free(curr->entry->name);
+		free(curr->entry->reqs);
+		free(curr->entry->code);
+		free(curr->entry);
+		free(curr);
+		curr = next;
+	}
 
-  while (curr) {
-    ResourceList *next = curr->next;
-    free(curr->entry->type);
-    free(curr->entry->name);
-    free(curr->entry->reqs);
-    free(curr->entry->code);
-    free(curr->entry);
-    free(curr);
-    curr = next;
-  }
+	ctx->resourcelist = NULL;
 
-  ctx->resourcelist = NULL;
-
-  free(ctx->version);
-  free(ctx);
+	free(ctx->version);
+	free(ctx);
 }
 
 BWIPP_API const char *bwipp_get_version(BWIPP *ctx) {
+	assert(ctx);
 
-  assert(ctx);
-
-  return ctx->version;
+	return ctx->version;
 }
 
 BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
+	char *code = NULL, *reqs, *req, *tmp = NULL, *saveptr = NULL;
+	const Resource *resource, *res;
 
-  char *code = NULL, *reqs, *req, *tmp = NULL, *saveptr = NULL;
-  const Resource *resource, *res;
+	resource = get_resource(ctx, name);
+	if (!resource) {  /* Resource not found */
+		tmp = strdup("");
+		if (!tmp)
+			goto error;
+		return tmp;  /* Copy of empty string */
+	}
 
-  resource = get_resource(ctx, name);
-  if (!resource) { // Resource not found
-    tmp = strdup("");
-    if (!tmp)
-      goto error;
-    return tmp; // Copy of empty string
-  }
+	code = malloc(MAX_CODE);
+	if (!code)
+		goto error;
+	*code = '\0';
 
-  code = malloc(MAX_CODE);
-  if (!code)
-    goto error;
-  *code = '\0';
+	/* Add code for required resources */
+	reqs = strdup(resource->reqs);
+	if (!reqs)
+		goto error;
+	req = strtok_r(reqs, " ", &saveptr);
+	while (req) {
+		res = get_resource(ctx, req);
+		if (!res)
+			continue;  /* Ignore missing requisites */
+		strcat(code, res->code);
+		req = strtok_r(NULL, " ", &saveptr);
+	}
+	free(reqs);
 
-  /* Add code for required resources */
-  reqs = strdup(resource->reqs);
-  if (!reqs)
-    goto error;
-  req = strtok_r(reqs, " ", &saveptr);
-  while (req) {
-    res = get_resource(ctx, req);
-    if (!res)
-      continue; // Ignore missing requisites
-    strcat(code, res->code);
-    req = strtok_r(NULL, " ", &saveptr);
-  }
-  free(reqs);
+	/* Add code for this resource */
+	strcat(code, resource->code);
 
-  /* Add code for this resource */
-  strcat(code, resource->code);
-
-  tmp = strdup(code);
+	tmp = strdup(code);
 
 error:
 
-  free(code);
+	free(code);
 
-  return tmp;
+	return tmp;
 }
 
 BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx) {
+	ResourceList *curr;
+	char *code, *tmp;
 
-  ResourceList *curr;
-  char *code, *tmp;
+	assert(ctx);
 
-  assert(ctx);
+	curr = ctx->resourcelist;
 
-  curr = ctx->resourcelist;
+	assert(ctx->resourcelist);
 
-  assert(ctx->resourcelist);
+	code = malloc(MAX_CODE);
+	if (!code)
+		return NULL;
 
-  code = malloc(MAX_CODE);
-  if (!code)
-    return NULL;
+	*code = '\0';
+	while (curr) {
+		strcat(code, curr->entry->code);
+		curr = curr->next;
+	}
 
-  *code = '\0';
-  while (curr) {
-    strcat(code, curr->entry->code);
-    curr = curr->next;
-  }
+	tmp = strdup(code);
+	free(code);
 
-  tmp = strdup(code);
-  free(code);
-
-  return tmp;
+	return tmp;
 }
 
 BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data,
-                                const char *options) {
+				const char *options) {
+	char *tmp = NULL, *call = NULL, *data_h, *options_h;
 
-  char *tmp = NULL, *call = NULL, *data_h, *options_h;
+	assert(ctx);
+	assert(name);
+	assert(data);
+	assert(options);
 
-  assert(ctx);
-  assert(name);
-  assert(data);
-  assert(options);
+	data_h = pshexstr(data);
+	options_h = pshexstr(options);
 
-  data_h = pshexstr(data);
-  options_h = pshexstr(options);
+	if (!data_h || !options_h)
+		goto error;
 
-  if (!data_h || !options_h)
-    goto error;
+	call = malloc(MAX_CODE);
+	if (!call)
+		goto error;
 
-  call = malloc(MAX_CODE);
-  if (!call)
-    goto error;
+	snprintf(call,
+		MAX_CODE,
+		"0 0 moveto\n"
+		"%s\n"
+		"%s\n"
+		"/%s /uk.co.terryburton.bwipp findresource exec\n",
+		data_h, options_h, name
+	       );
 
-  sprintf(call,
-          "0 0 moveto\n"
-          "%s\n"
-          "%s\n"
-          "/%s /uk.co.terryburton.bwipp findresource exec\n",
-          data_h, options_h, name);
-
-  tmp = strdup(call);
+	tmp = strdup(call);
 
 error:
 
-  free(call);
-  free(data_h);
-  free(options_h);
+	free(call);
+	free(data_h);
+	free(options_h);
 
-  return tmp;
+	return tmp;
 }

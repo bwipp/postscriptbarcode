@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -Tw
 
 use strict;
 use File::Temp;
@@ -13,62 +13,65 @@ from the name of the output file.
 EOF
 }
 
-my $infile=shift;
-my $outfile=shift;
+my $infile = shift;
+my $outfile = shift;
+
+($outfile) = $outfile =~ /(.*)/;   # Untaint
 
 my @encoders = @ARGV;
 if (!@encoders) {
-    my $encoder=basename($outfile);
-    $encoder=~s/\.ps$//;
+    my $encoder = basename($outfile);
+    $encoder =~ s/\.ps$//;
     push @encoders, $encoder;
 }
 
-open(VER,'CHANGES') || die 'Unable to open CHANGES';
-my $version=<VER>;
-close VER;
+my $fh;
+
+open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
+my $version = <$fh>;
+close $fh;
 chomp $version;
 
-open(HEAD,'src/ps.head') || die 'Unable to open ps.head';
-my $head=join('',<HEAD>);
-close HEAD;
-$head=~s/XXXX-XX-XX/$version/;
+open($fh, '<', 'src/ps.head') || die 'Unable to open ps.head';
+my $head = join('', <$fh>);
+close $fh;
+$head =~ s/XXXX-XX-XX/$version/;
 
-open(PS,$infile) || die "File not found: $infile";
-my $template=join('',<PS>);
-close(PS);
+open($fh, '<', $infile) || die "File not found: $infile";
+my $template = join('', <$fh>);
+close($fh);
 
-open(PS,">$outfile") || die "Failed to write $outfile";
-print PS $head;
+open($fh, '>', $outfile) || die "Failed to write $outfile";
+print $fh $head;
 
 my %seen;
 for my $encoder (@encoders) {
-    ($_,$_,my $meta,$_)=$template=~/
+    ($_, $_, my $meta, $_) = $template =~ /
         ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ($encoder)--$
         (.*?)
         (^[^%].*?)
         ^%\ --END\ \1\ \2--$
     /msgx or die 'Encoder unknown';
-    (my $reqs)=$meta=~/^% --REQUIRES (.*)--$/mg;
-    $reqs='' unless defined $reqs;
-    my %reqs=($encoder=>1);
-    $reqs{$_}=1 foreach split ' ', $reqs;
+    (my $reqs) = $meta =~ /^% --REQUIRES (.*)--$/mg;
+    $reqs = '' unless defined $reqs;
+    my %reqs = ($encoder => 1);
+    $reqs{$_} = 1 foreach split ' ', $reqs;
 
-    while ($template=~/
+    while ($template =~ /
         ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
         (.*?)
         (^%%.*?)
         (^[^%].*?)
         ^%\ --END\ \1\ \2--$
     /msgx) {
-      my $resource=$2;
-      my $meta=$3;
-      my $dsc=$4;
-      my $body=$5;
+      my $resource = $2;
+      my $meta = $3;
+      my $dsc = $4;
+      my $body = $5;
       next unless $reqs{$resource};
       next if $seen{$resource}++;
-      print PS "$dsc$body\n";
+      print $fh "$dsc$body\n";
     }
 }
 
-close(PS);
-
+close($fh);

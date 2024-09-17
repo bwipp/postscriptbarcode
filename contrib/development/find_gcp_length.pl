@@ -32,7 +32,7 @@ my $maxplen;
 sub init {
     $minplen = 1000;
     $maxplen = 0;
-    open my $fh, XML_FILE or die "Could not open file";
+    open my $fh, '<', XML_FILE or die "Could not open file";
     while (<$fh>) {
         chomp;
         next unless (my $pfx, my $len) = $_ =~ m#<entry prefix="(\d+)" gcpLength="(\d+)"/>#;

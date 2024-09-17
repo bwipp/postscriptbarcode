@@ -61,7 +61,7 @@ Goossens, M., Mittelbach F., Rahtz, S., Roegel, D. (2007) "The LaTeX Graphics Co
 
 Robbers, Yuri & Skjold, Annemarie. (2007) "Creating Book Covers using PSTricks," The PracTex Journal, Number 1.
 
-Thompson, Paul A. (2008) "Clinical trials management on the internet - II. Using LATEX, PostScript, and SAS to produce barcode label sheets," The PracTeX Journal, Number 3.
+Thompson, Paul A. (2008) "Clinical trials management on the internet - II. Using LaTeX, PostScript, and SAS to produce barcode label sheets," The PracTeX Journal, Number 3.
 
 Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat Journal, Volume 31i, Number 1. p. 36.
 

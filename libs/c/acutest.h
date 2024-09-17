@@ -474,18 +474,7 @@ acutest_exit_(int exit_code)
     static double
     acutest_timer_diff_(struct timespec start, struct timespec end)
     {
-        double endns;
-        double startns;
-
-        endns = end.tv_sec;
-        endns *= 1e9;
-        endns += end.tv_nsec;
-
-        startns = start.tv_sec;
-        startns *= 1e9;
-        startns += start.tv_nsec;
-
-        return ((endns - startns)/ 1e9);
+        return (double)(end.tv_sec - start.tv_sec) + (double)(end.tv_nsec - start.tv_nsec) / 1e9;
     }
 
     static void
@@ -902,7 +891,7 @@ acutest_remember_(int i)
 static void
 acutest_set_success_(int i, int success)
 {
-    acutest_test_data_[i].flags |= success ? ACUTEST_FLAG_SUCCESS_ : ACUTEST_FLAG_FAILURE_;
+    acutest_test_data_[i].flags = (unsigned char)(acutest_test_data_[i].flags | success ? ACUTEST_FLAG_SUCCESS_ : ACUTEST_FLAG_FAILURE_);
 }
 
 static void
@@ -1150,7 +1139,7 @@ acutest_run_(const struct acutest_test_* test, int index, int master_index)
                     case SIGSEGV: signame = "SIGSEGV"; break;
                     case SIGILL:  signame = "SIGILL"; break;
                     case SIGTERM: signame = "SIGTERM"; break;
-                    default:      sprintf(tmp, "signal %d", WTERMSIG(exit_code)); signame = tmp; break;
+                    default:      snprintf(tmp, sizeof(tmp), "signal %d", WTERMSIG(exit_code)); signame = tmp; break;
                 }
                 acutest_error_("Test interrupted by %s.", signame);
             } else {
@@ -1325,7 +1314,11 @@ acutest_cmdline_read_(const ACUTEST_CMDLINE_OPTION_* options, int argc, char** a
                             if(opt->flags & (ACUTEST_CMDLINE_OPTFLAG_OPTIONALARG_ | ACUTEST_CMDLINE_OPTFLAG_REQUIREDARG_)) {
                                 ret = callback(opt->id, argv[i]+2+len+1);
                             } else {
-                                sprintf(auxbuf, "--%s", opt->longname);
+#if defined(ACUTEST_WIN_)
+                                _snprintf(auxbuf, sizeof(auxbuf)-1, "--%s", opt->longname);
+#else
+                                snprintf(auxbuf, sizeof(auxbuf), "--%s", opt->longname);
+#endif
                                 ret = callback(ACUTEST_CMDLINE_OPTID_BOGUSARG_, auxbuf);
                             }
                             break;
@@ -1369,7 +1362,7 @@ acutest_cmdline_read_(const ACUTEST_CMDLINE_OPTION_* options, int argc, char** a
                         /* Strip any argument from the long option. */
                         char* assignment = strchr(badoptname, '=');
                         if(assignment != NULL) {
-                            size_t len = assignment - badoptname;
+                            size_t len = (size_t)(assignment - badoptname);
                             if(len > ACUTEST_CMDLINE_AUXBUF_SIZE_)
                                 len = ACUTEST_CMDLINE_AUXBUF_SIZE_;
                             strncpy(auxbuf, badoptname, len);
@@ -1614,7 +1607,7 @@ acutest_is_tracer_present_(void)
             n = read(fd, buf + n_read, sizeof(buf) - 1 - n_read);
             if(n <= 0)
                 break;
-            n_read += n;
+            n_read += (size_t)n;
         }
         buf[n_read] = '\0';
 
@@ -1673,7 +1666,7 @@ acutest_AmIBeingDebugged(void)
 int
 main(int argc, char** argv)
 {
-    int i;
+    int i, index;
 
     acutest_argv0_ = argv[0];
 
@@ -1760,7 +1753,7 @@ main(int argc, char** argv)
             printf("1..%d\n", (int) acutest_count_);
     }
 
-    int index = acutest_worker_index_;
+    index = acutest_worker_index_;
     for(i = 0; acutest_list_[i].func != NULL; i++) {
         int run = (acutest_test_data_[i].flags & ACUTEST_FLAG_RUN_);
         if (acutest_skip_mode_) /* Run all tests except those listed. */
