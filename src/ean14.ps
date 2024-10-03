@@ -33,7 +33,7 @@
 
 % --BEGIN ENCODER ean14--
 % --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renlinear code128--
-% --DESC: GS1-14
+% --DESC: EAN-14
 % --EXAM: (01) 0 952 8765 43210 8
 % --EXOP: includetext
 % --RNDR: renlinear
@@ -69,14 +69,14 @@ begin
 
     % Validate the input
     barcode length 17 ne barcode length 18 ne and {
-        /bwipp.ean14badLength (GS1-14 must be 13 or 14 digits) //raiseerror exec
+        /bwipp.ean14badLength (EAN-14 must be 13 or 14 digits) //raiseerror exec
     } if
     barcode 0 4 getinterval (\(01\)) ne {
-        /bwipp.ean14badAI (GS1-14 must begin with (01) application identifier) //raiseerror exec
+        /bwipp.ean14badAI (EAN-14 must begin with (01) application identifier) //raiseerror exec
     } if
     barcode 4 barcode length 4 sub getinterval {
         dup 48 lt exch 57 gt or {
-            /bwipp.ean14badCharacter (GS1-14 must contain only digits) //raiseerror exec
+            /bwipp.ean14badCharacter (EAN-14 must contain only digits) //raiseerror exec
         } if
     } forall
 
@@ -89,7 +89,7 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     barcode length 18 eq {
         barcode 17 get checksum 48 add ne {
-            /bwipp.ean14badCheckDigit (Incorrect GS1-14 check digit provided) //raiseerror exec
+            /bwipp.ean14badCheckDigit (Incorrect EAN-14 check digit provided) //raiseerror exec
         } if
     } {
         18 string
