@@ -476,6 +476,8 @@ begin
         /scb (0000000000) 10 string copy dup scode cvi 2 10 string cvrs dup length 10 exch sub exch putinterval def
         /pcb (000000000000000000000000000000000000) 36 string copy def
         mode 2 eq {
+            % For US postcodes lacking "+4", pad with zeroes (ISO/IEC 16023:2000 Annex B.1.4a)
+            ccode (840) eq pcode length 5 eq and { /pcode (     0000) 9 string copy dup 0 pcode putinterval def } if
             % For numeric postcode, first six bits represent length and remaining 30 bits the value
             pcb pcode length 2 6 string cvrs dup length 6 exch sub exch putinterval
             pcb pcode cvi 2 30 string cvrs dup length 36 exch sub exch putinterval
@@ -613,6 +615,8 @@ begin
         sec aload pop
         secchk aload pop
     ] def
+
+    options /debugcws known { /bwipp.debugcws codewords //raiseerror exec } if
 
     % Convert the codewords into module bits
     /mods [ 864 {0} repeat ] def
