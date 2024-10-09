@@ -11,6 +11,22 @@
     (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code128
 } [104 100 100 33 33 33 33 33 33 100 100 99 99 99 99 99 99 99 99 100 100 33 3 106] debugIsEqual
 
+{  % Minimize FNC4 insertion
+    ( ^160^160^160^160 ^160^160^160^160 ) (debugcws parse parsefnc) code128
+} [104 0 100 100 0 0 0 0 100 0 0 0 0 0 100 0 23 106] debugIsEqual
+
 {  % Avoid extraneous CodeC switch (with immediate switch back to CodeA/B) by re-checking digit runlength >= 4 after enca/encb push
     (12^FNC1345^FNC167^FNC18) (debugcws parse parsefnc) code128
 } [105 12 102 34 100 21 102 22 23 102 24 49 106] debugIsEqual
+
+{  % Don't switch to C when 2 digits are followed by FNC1 followed by a non-C character (even though that is unreasonable input)
+    ( 12^FNC1 ) (debugcws parse parsefnc) code128
+} [104 0 17 18 102 0 85 106] debugIsEqual
+
+{  % Do switch to C when an even number (larger than 1) of digits are followed by FNC1 and then by an odd number of digits (as long as the total number of digits is 6 or more)
+    ( 1234^FNC1567) (debugcws parse parsefnc) code128
+} [104 0 99 12 34 102 56 100 23 41 106] debugIsEqual
+
+{  % Don't start in C if A or B would be more efficient
+    (123^FNC14567) (debugcws parse parsefnc) code128
+} [104 17 99 23 102 45 67 84 106] debugIsEqual
