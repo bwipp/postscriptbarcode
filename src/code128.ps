@@ -194,30 +194,36 @@ begin
         } for
 
         % FNC4 codeword insertion for extended ASCII
-        /ea false def /msgtmp [] def
+        /ea false def /msgtmp [] def /numEAtmp [] def
         0 1 msglen 1 sub {
             /i exch def
             /c msg i get def
+            /n numEA i get def
             ea c 128 lt xor not c 0 ge and {  % Other mode required
                 ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
-                i add msglen eq {3} {5} ifelse       % Does run terminate symbol
+                i add msglen eq {3} {4} ifelse       % Does run terminate symbol
                 lt {  % Shift
                     /msgtmp [ msgtmp aload pop fn4 ] def
+                    /numEAtmp [ numEAtmp aload pop 1 ] def
                 } {   % Latch
                     /msgtmp [ msgtmp aload pop fn4 fn4 ] def
+                    /numEAtmp [ numEAtmp aload pop 1 1 ] def
                     /ea ea not def
                 } ifelse
             } if
             /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
+            /numEAtmp [ numEAtmp aload pop n ] def
         } for
         /msg msgtmp def
         /msglen msg length def
+        /numEA numEAtmp def
 
         % Determine digit runlength from given position
         /numsscr {
             /s 0 def
             /p exch def {
                 p msglen ge {exit} if
+                numEA p get 0 gt {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
                 dup -1 le {
