@@ -179,58 +179,161 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        % Standard and extended ASCII runlength at position
-        /numSA [ msglen {0} repeat 0 ] def
-        /numEA [ msglen {0} repeat 0 ] def
-        msglen 1 sub -1 0 {
-            /i exch def
-            msg i get 0 ge {
-                msg i get 128 ge {
-                    numEA i numEA i 1 add get 1 add put
-                } {
-                    numSA i numSA i 1 add get 1 add put
-                } ifelse
-            } if
-        } for
+        % Divide-And-Conquer with Memoization by Alex Geller, adapted from ZXing - see
+        % https://github.com/zxing/zxing/commit/94fb277607003c070ffd1413754a782f3f87cbcd
 
-        % FNC4 codeword insertion for extended ASCII
-        /ea false def /msgtmp [] def
+        /canc {
+            msg p get dup 48 ge exch 57 le and {
+                p 1 add msglen lt {
+                    msg p 1 add get dup 48 ge exch 57 le and
+                } {
+                    false
+                } ifelse
+            } {
+                setc msg p get known
+            } ifelse
+        } def
+
+        /canaorb {
+            {
+                msg p get -1 le { tryset 1 eq {seta} {setb} ifelse msg p get known exit } if
+                msg p get 31 le { tryset 1 eq exit } if
+                msg p get 95 le { true exit } if
+                msg p get 127 le { tryset 2 eq exit } if
+                msg p get 159 le { tryset 1 eq exit } if
+                msg p get 223 le { true exit } if
+                tryset 2 eq exit
+            } loop
+        } def
+
+        %                A (1)                 B (2)                 C (3)
+        /costs [ [ 0 ] [ msglen {0} repeat ] [ msglen {0} repeat ] [ msglen {0} repeat ] ] def
+        /modes [ [ 0 ] [ msglen {0} repeat ] [ msglen {0} repeat ] [ msglen {0} repeat ] ] def
+
+        /p 0 def /cs 0 def /mincost 0 def /minlatch 0 def /cost 0 def /latch 0 def /tryset 0 def  % Recursive state
+
+        /dmcost {  % Args charset cs and msg index p
+            p cs mincost minlatch cost latch tryset  % Save state on recursion
+            9 -2 roll  % Move args to front
+            /p exch def
+            /cs exch def
+            costs cs get p get 0 ne {  % Memoized?
+                costs cs get p get
+            } {
+                /mincost 999999 def
+                /minlatch 0 def
+                canc {  % Mode C
+                    /advance msg p get fn1 eq {1} {2} ifelse def
+                    /cost 1 def
+                    /latch 0 def  % Continue in current `cs`
+                    cs 3 ne { /cost cost 1 add def /latch 3 def } if
+                    p advance add msglen lt {
+                        /cost cost 3 p advance add dmcost add def
+                    } if
+                    cost mincost lt { /mincost cost def /minlatch latch def } if
+                } if
+                2 -1 1 {  % Mode B then A
+                    /tryset exch def
+                    canaorb {
+                        /cost 1 def
+                        /latch 0 def  % Continue in current `cs`
+                        cs tryset ne { /cost cost 1 add def /latch tryset def } if
+                        p 1 add msglen lt { /cost cost tryset p 1 add dmcost add def } if
+                        cost mincost lt { /mincost cost def /minlatch latch def } if
+                        cs tryset ne cs 1 eq cs 2 eq or and {
+                            /cost 2 def
+                            /latch cs 3 add def  % Shift A/B
+                            p 1 add msglen lt { /cost cost cs p 1 add dmcost add def } if
+                            cost mincost lt { /mincost cost def /minlatch latch def } if
+                        } if
+                    } if
+                } for
+                costs cs get p mincost put
+                modes cs get p minlatch put
+                mincost
+            } ifelse
+
+            8 1 roll  % Move saved state to front and restore
+            /tryset exch def /latch exch def /cost exch def /minlatch exch def /mincost exch def /cs exch def /p exch def
+        } def
+
+        msglen 0 gt { 0 0 dmcost pop } if
+
+        % ASCII modes: 1 A, 2 B, 3 C, 4 shift from B, 5 shift from A
+        /aset msglen array def
+        /cs 0 def
+        /i 0 def
+        {
+            i msglen ge {exit} if
+            /latch modes cs get i get def
+            latch 4 ge latch 5 le and {  % Shift A/B
+                /cs latch 3 sub def
+                aset i latch put
+            } {
+                latch 1 ge latch 3 le and { /cs latch def } if  % Else continue in current `cs`
+                aset i cs put
+                cs 3 eq msg i get 0 ge and { /i i 1 add def aset i cs put } if  % Guaranteed to be in range by algorithm
+            } ifelse
+            /i i 1 add def
+        } loop
+
+        % Extended ASCII modes: 0 not extended, 1 extended shift, 2 extended latch, 3 ASCII shift from extended
+        /eset [ msglen {0} repeat ] def
         0 1 msglen 1 sub {
             /i exch def
-            /c msg i get def
-            ea c 128 lt xor not c 0 ge and {  % Other mode required
-                ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
-                i add msglen eq {3} {5} ifelse       % Does run terminate symbol
-                lt {  % Shift
-                    /msgtmp [ msgtmp aload pop fn4 ] def
-                } {   % Latch
-                    /msgtmp [ msgtmp aload pop fn4 fn4 ] def
-                    /ea ea not def
-                } ifelse
-            } if
-            /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
+            msg i get 128 ge { eset i 1 put } if
         } for
-        /msg msgtmp def
-        /msglen msg length def
 
-        % Determine digit runlength from given position
-        /numsscr {
-            /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                dup -1 le {
-                    % FNC1 in odd position of run like two digits
-                    fn1 eq s 2 mod 0 eq and {/s s 1 add def} {exit} ifelse
-                } {
-                    pop
-                } ifelse
-                /s s 1 add def
-                /p p 1 add def
-            } loop
-            s
-        } def
+        % Decide when to latch to extended - ISO/IEC 15417:2007 Annex E note 3
+        /j 0 def /k 0 def
+        0 1 msglen 1 sub {
+            /i exch def
+            eset i get 1 eq {
+                /j j 1 add def
+                j 4 ge {
+                    eset i 2 put
+                    k 0 eq {
+                        eset i 1 sub 2 put eset i 2 sub 2 put eset i 3 sub 2 put
+                        /k i def
+                    } if
+                } if
+            } {
+                /j 0 def /k 0 def
+            } ifelse
+        } for
+        j 3 ge k 0 eq and {
+            eset msglen 1 sub 2 put eset msglen 2 sub 2 put eset msglen 3 sub 2 put
+        } if
+
+        % Decide if it is worth reverting to ASCII encodation for a few characters as described in 4.3.4.2 (d)
+        1 1 msglen 1 sub {
+            /i exch def
+            eset i 1 sub get 2 eq eset i get 0 eq and {
+                % Detected a change from extended to ASCII - count ASCII
+                /c aset i get 3 eq {1} {0} ifelse def  % Count C so can subtract when deciding below
+                /j 1 def
+                1 1 msglen i sub {
+                    /j exch def
+                    i j add msglen ge {exit} if
+                    eset i j add get 0 ne {exit} if
+                    aset i j add get 3 eq { /c c 1 add def } if
+                } for
+                % Count how many extended beyond
+                /k i j add msglen lt {1} {0} ifelse def
+                k 1 msglen i j add sub {
+                    /k exch def
+                    i j add k add msglen ge {exit} if
+                    eset i j add k add get 0 eq {exit} if
+                } for
+                j c sub 3 lt j c sub 5 lt k 2 gt and or {
+                    % Change to shifting rather than latching back
+                    0 1 j 1 sub {
+                        /k exch def
+                        eset i k add 3 put
+                    } for
+                } if
+            } if
+        } for
 
         % Encoding for each alphabet
         /enca {
@@ -251,148 +354,94 @@ begin
             /j j 1 add def
         } def
 
-        % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} def
-        /bnota {dup setb exch known exch seta exch known not and} def
-
-        % Pre-compute relative position of next anotb and next bnota characters
-        /nextanotb [ msg length {0} repeat 9999 ] def
-        /nextbnota [ msg length {0} repeat 9999 ] def
-        msg length 1 sub -1 0 {
-            /i exch def
-            msg i get anotb {
-                nextanotb i 0 put
-            } {
-                nextanotb i nextanotb i 1 add get 1 add put
-            } ifelse
-            msg i get bnota {
-                nextbnota i 0 put
-            } {
-                nextbnota i nextbnota i 1 add get 1 add put
-            } ifelse
-        } for
-
-        % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
-
         /cws barcode length 2 mul 3 add array def
 
         % Select start character
         /j 0 def
-        msglen 0 gt {0 numsscr} {-1} ifelse /nums exch def
         {  % common exit
             msglen 0 eq {
                 stb enca
-                /cset (setb) def
+                /cset 2 def
                 exit
             } if
-            msglen 2 eq nums 2 eq and {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            nums 4 ge {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            0 abeforeb {
+            aset 0 get 1 eq {  % StartA
                 sta enca
-                /cset (seta) def
+                /cset 1 def
                 exit
             } if
-            stb enca
-            /cset (setb) def
+            aset 0 get 3 eq {  % StartC
+                stc enca
+                /cset 3 def
+                exit
+            } if
+            stb enca  % StartB
+            /cset 2 def
             exit
         } loop
 
         % Main encoding loop
+        /estate false def  % Extended latch state
         /i 0 def {
             i msglen eq {exit} if
-
-            i numsscr /nums exch def
-
+            /aseti aset i get def
+            /eseti eset i get def
             % Determine switches and shifts
-            {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and
-                msg i get fn1 ne and {
-                    nums 2 mod 0 eq {
-                        swc cset (seta) eq {enca} {encb} ifelse
-                        /cset (setc) def
-                        exit
-                    } {
-                        msg i get cset (seta) eq {enca} {encb} ifelse
-                        /i i 1 add def
-                        i numsscr 4 ge {
-                            swc cset (seta) eq {enca} {encb} ifelse
-                            /cset (setc) def
-                            exit
-                       } if
-                    } ifelse
-                } if
-                cset (setb) eq msg i get anotb and {
-                    i msglen 1 sub lt {
-                        i 1 add bbeforea {
-                            sft encb
-                            msg i get enca
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
+            aseti cset ne {
+                aseti 1 eq {
                     swa encb
-                    /cset (seta) def
-                    exit
+                    /cset 1 def
                 } if
-                cset (seta) eq msg i get bnota and {
-                    i msglen 1 sub lt {
-                        i 1 add abeforeb {
-                            sft enca
-                            msg i get encb
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
+                aseti 2 eq {
                     swb enca
-                    /cset (setb) def
-                    exit
+                    /cset 2 def
                 } if
-                cset (setc) eq nums 2 lt and msg i get -1 gt msg i get fn4 eq or and {
-                    i abeforeb {
-                        swa encc
-                        /cset (seta) def
-                        exit
+                aseti 3 eq {
+                    swc enca
+                    /cset 3 def
+                } if
+            } if
+
+            eseti 2 eq estate not and eseti 0 eq estate and or {
+                cset 1 eq {
+                    fn4 enca fn4 enca
+                    /estate estate not def
+                } if
+                cset 2 eq {
+                    fn4 encb fn4 encb
+                    /estate estate not def
+                } if
+            } {
+                eseti 1 eq estate not and eseti 3 eq estate and or {
+                    cset 1 eq {
+                        fn4 enca
                     } if
-                    swb encc
-                    /cset (setb) def
-                    exit
+                    cset 2 eq {
+                        fn4 encb
+                    } if
                 } if
+            } ifelse
 
-                % No switches or latches so encode
-                cset (seta) eq {
-                    msg i get enca
+            aseti 4 eq aseti 5 eq or {
+                sft enca
+            } if
+
+            aseti 1 eq aseti 5 eq or {  % A
+                msg i get dup 0 ge {127 and} if enca
+                /i i 1 add def
+            } if
+            aseti 2 eq aseti 4 eq or {  % B
+                msg i get dup 0 ge {127 and} if encb
+                /i i 1 add def
+            } if
+            aseti 3 eq {  % C
+                msg i get -1 le {
+                    msg i get encc
                     /i i 1 add def
-                    exit
-                } if
-                cset (setb) eq {
-                    msg i get encb
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setc) eq {
-                    msg i get -1 le {
-                        msg i get encc
-                        /i i 1 add def
-                    } {
-                        msg i 2 getinterval encc
-                        /i i 2 add def
-                    } ifelse
-                    exit
-                } if
-
-                exit
-            } loop
-
+                } {
+                    msg i 2 getinterval encc
+                    /i i 2 add def
+                } ifelse
+            } if
         } loop
         /cws cws 0 j getinterval def
     } if  % auto encoding

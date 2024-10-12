@@ -9,8 +9,48 @@
 
 {  % Allow for FNC4 immediately after CodeC sequence (cf https://github.com/woo-j/OkapiBarcode/commit/9ce6dccbab20d1190090585ddf91a7f549f4fac9)
     (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code128
-} [104 100 100 33 33 33 33 33 33 100 100 99 99 99 99 99 99 99 99 100 100 33 3 106] debugIsEqual
+} [104 100 100 33 33 33 33 33 33 99 99 99 99 99 99 99 99 100 33 91 106] debugIsEqual
+
+{  % Ignore extended ASCII in numsscr ("±" (^177) maps to "1" when masked to ASCII) (obsolete)
+    (^177^177^177^1771234AA) (debugcws parse) code128
+} [104 100 100 17 17 17 17 99 12 34 100 100 33 100 33 89 106] debugIsEqual
+
+{  % Minimize FNC4 insertion using non-terminal 4 char cut-off instead of 5 (PR #272, lyngklip)
+    ( ^160^160^160^160 ^160^160^160^160 ) (debugcws parse) code128
+} [104 0 100 100 0 0 0 0 100 0 0 0 0 0 100 0 23 106] debugIsEqual
+
+{  % Still uses shifts with 4 middle spaces (same codeword count as if unlatched)
+    ( ^160^160^160^160    ^160^160^160^160 ) (debugcws parse) code128
+} [104 0 100 100 0 0 0 0 100 0 100 0 100 0 100 0 0 0 0 0 100 0 0 106] debugIsEqual
+
+{  % Unlatches with 5 middle spaces
+    ( ^160^160^160^160     ^160^160^160^160 ) (debugcws parse) code128
+} [104 0 100 100 0 0 0 0 100 100 0 0 0 0 0 100 100 0 0 0 0 100 0 88 106] debugIsEqual
+
+{  % Doesn't unlatch with 6 middle ASCII (as ignores mode C chars) and shifts final extended
+    (^128^128^128^128^128A0000A^128) (debugcws parse) code128
+} [103 101 101 64 64 64 64 64 101 33 99 0 0 101 101 33 64 4 106] debugIsEqual
+
+{  % OkapiBarcode "code128/fnc1-mode-c-fnc1-in-middle.png"
+    (^FNC112345^FNC11234^FNC112345) (debugcws parsefnc) code128
+} [104 102 17 99 23 45 102 12 34 102 12 34 100 21 72 106] debugIsEqual
 
 {  % Avoid extraneous CodeC switch (with immediate switch back to CodeA/B) by re-checking digit runlength >= 4 after enca/encb push
-    (12^FNC1345^FNC167^FNC18) (debugcws parse parsefnc) code128
+    (12^FNC1345^FNC167^FNC18) (debugcws parsefnc) code128
 } [105 12 102 34 100 21 102 22 23 102 24 49 106] debugIsEqual
+
+{  % Don't switch to C when 2 digits are followed by FNC1 followed by a non-C character (PR #272, lyngklip)
+    ( 12^FNC1 ) (debugcws parsefnc) code128
+} [104 0 17 18 102 0 85 106] debugIsEqual
+
+{  % Do switch to C when an even number of digits are followed by FNC1 and then by an odd number of digits (PR #272, lyngklip)
+    ( 1234^FNC1567) (debugcws parsefnc) code128
+} [104 0 99 12 34 102 56 100 23 41 106] debugIsEqual
+
+{  % Don't start in C if A or B would be more efficient (PR #272, lyngklip)
+    (123^FNC14567) (debugcws parsefnc) code128
+} [104 17 99 23 102 45 67 84 106] debugIsEqual
+
+{  % Mix of code sets, shifts and latches
+    (^031^031_^127^159^031^159^159^159^15912345``^255^000^127^255^224^224^159`) (debugcws parse) code128
+} [103 95 95 63 98 95 101 95 95 101 101 95 95 95 95 99 12 34 100 100 100 21 64 64 100 95 98 64 95 100 100 95 64 64 98 95 100 64 51 106] debugIsEqual
