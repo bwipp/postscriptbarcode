@@ -254,15 +254,16 @@ begin
         /is_c { 4 and 4 eq } def    % chset is C
 
         % Shorthand for properties of a character:
-        /in_range { 128 lt state is_x xor } def                         % char is in range (char must be < 256)
-        /in_chset { 127 and state is_b { 32 ge } { 96 lt } ifelse } def % char is in chset (char must be < 256 and state must be A or B)
+        /is_fnlnk { 0 lt } def                                          % char is a function code or linkage
+        /in_chrng { 128 lt state is_x xor } def                         % char is in range (char must be < 256)
+        /in_chset { 127 and state is_b { 32 ge } { 96 lt } ifelse } def % char is in set (char must be < 256 and state must be A or B)
         /is_digit { dup 48 ge exch 57 le and } def                      % char is a digit
 
         % Shorthand for determining if msg[n] and msg[n-1] are both digits:
         /is_dpair { n 0 gt { msg n 1 sub get is_digit msg n get is_digit and } { false } ifelse } def
 
         % Shorthand for converting msg[n] and msg[n-1] into code C:
-        /dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
+        /map_dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
 
         % Find the smallest value of an array applying a key function for each element:
         /min { exch dup 0 get exch { dup 3 index exec 2 index 4 index exec lt { exch } if pop } forall exch pop } def
@@ -272,9 +273,9 @@ begin
 
         % Determine the entry output length: 1 to 3 or 9; when an entry cannot be encoded.
         /get_output_length { { /c msg n get def
-            c 0 lt { [ seta setb setc ] state 2 idiv get c known { 1 } { 9 } ifelse exit } if
+            c is_fnlnk { [ seta setb setc ] state 2 idiv get c known { 1 } { 9 } ifelse exit } if
             state is_c { is_dpair { 1 } { 9 } ifelse exit } if
-            1 c in_range not { 1 add } if c in_chset not { 1 add } if exit } loop } def
+            1 c in_chrng not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
         % Get length at the entry prior to path[n][state]:
         % 1 for start code, 9 to prevent start in extended ASCII 
@@ -300,15 +301,24 @@ begin
         /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
             path n get state get_optimal_entry put } for } for } def
 
+        % Map FNC and linkage:
+        /map_fnlnk { [ seta setb setc ] state 2 idiv get c get } def
+
+        % Shift character range as necessary:
+        /shift_chrng { c in_chrng not { [ 101 100 ] state 2 idiv get } if } def 
+
+        % Shift character set as necessary:
+        /shift_chset { c in_chset not { 98 } if } def                           
+
+        % Map A and B to Code 128:
+        /map_a_and_b { c 127 and dup 32 lt { 64 add } { 32 sub } ifelse } def
+
         % Get entry output:
         /get_output { { /c msg n get def
-            c 0 lt { [ [ seta setb setc ] state 2 idiv get c get ] exit } if    % A, B & C: FNC and linkage
-            state is_c { [ dpair ] exit } if                                    % C
-            3 array 0                                                           % A & B: worst case
-            c in_range not { 2 copy [ 101 100 ] state 2 idiv get put 1 add } if % A & B: range shift
-            c in_chset not { 2 copy 98 put 1 add } if                           % A & B: chset shift
-            2 copy c 127 and dup 32 lt { 64 add } { 32 sub } ifelse put 1 add   % A & B: map
-            0 exch getinterval exit  } loop } def                               % A & B: truncate       
+            c is_fnlnk { [ map_fnlnk ] exit } if    % Map FNC and linkage
+            state is_c { [ map_dpair ] exit } if    % C: map double digits
+            [ shift_chrng shift_chset map_a_and_b ] % A & B: add shift codes as neccesary and map
+            exit } loop } def
 
         % array, index, sub: reduce index by sub length, copy sub to array at index. Leave array, index.
         /revcpy { dup length exch 4 1 roll sub 2 copy 5 4 roll putinterval } def
