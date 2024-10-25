@@ -62,6 +62,7 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /allowxc false def  % Allow extended ASCII with character set C
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -179,222 +180,159 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        % Standard and extended ASCII runlength at position
-        /numSA [ msglen {0} repeat 0 ] def
-        /numEA [ msglen {0} repeat 0 ] def
-        msglen 1 sub -1 0 {
-            /i exch def
-            msg i get 0 ge {
-                msg i get 128 ge {
-                    numEA i numEA i 1 add get 1 add put
-                } {
-                    numSA i numSA i 1 add get 1 add put
-                } ifelse
-            } if
-        } for
+        40 dict begin
+        % A Code 128 encoder will go through states reflecting the character sets and
+        % ranges of Code 128. Let's call the states A0, A1, B0, B1, C0, and C1 and
+        % assign the numbers 0-5:
+        %
+        % | Range/Set | A    | B    | C    |
+        % |-----------|------|------|------|
+        % | ASCII     | A0=0 | B0=2 | C0=4 |
+        % | Extended  | A1=1 | B1=3 | C1=5 |
+        % |           |      |      |      |
+        %
+        % The sequences for switching state can be placed in a matrix.
+        % Some sequences have alternate forms.
+        % For example (eed) and (ddd) would both switch from A0 to B1.
+        % (dddc) and (eeec) would both switch between C0 and C1, but
+        % C to C transitions don't make sense and their entries are empty.
+        % So too are entries on the diagonal where no state changes occur.
+        % This is just one of many combinations of valid sequences:
+        /switchstr [
+            %            Target                    Origin
+            % A0   A1   B0   B1   C0   C1     
+            [()   (ee) (d)  (ddd)(c)  (eec)]       % A0 
+            [(ee) ()   (ddd)(d)  (eec)(c)  ]       % A1
+            [(e)  (eee)()   (dd) (c)  (ddc)]       % B0
+            [(eee)(e)  (dd) ()   (ddc)(c)  ]       % B1
+            [(e)  (eee)(d)  (ddd)()   ()   ]       % C0
+            [(eee)(e)  (ddd)(d)  ()   ()   ] ] def % C1
 
-        % FNC4 codeword insertion for extended ASCII
-        /ea false def /msgtmp [] def
-        0 1 msglen 1 sub {
-            /i exch def
-            /c msg i get def
-            ea c 128 lt xor not c 0 ge and {  % Other mode required
-                ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
-                i add msglen eq {3} {5} ifelse       % Does run terminate symbol
-                lt {  % Shift
-                    /msgtmp [ msgtmp aload pop fn4 ] def
-                } {   % Latch
-                    /msgtmp [ msgtmp aload pop fn4 fn4 ] def
-                    /ea ea not def
-                } ifelse
-            } if
-            /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
-        } for
-        /msg msgtmp def
-        /msglen msg length def
+        % Reading the length of the sequences from a separate matrix allows you to
+        % avoid specific transitions by entering large-ish values into the matrix.
+        % The following matrix enables arbitrary state switches.
+        /switchlen_with_c1 [
+            [ 0 2 1 3 1 3 ]
+            [ 2 0 3 1 3 1 ]
+            [ 1 3 0 2 1 3 ]
+            [ 3 1 2 0 3 1 ]
+            [ 1 3 1 3 0 4 ]
+            [ 3 1 3 1 4 0 ] ] def 
 
-        % Determine digit runlength from given position
-        /numsscr {
-            /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                dup -1 le {
-                    % FNC1 in odd position of run like two digits
-                    fn1 eq s 2 mod 0 eq and {/s s 1 add def} {exit} ifelse
-                } {
-                    pop
-                } ifelse
-                /s s 1 add def
-                /p p 1 add def
-            } loop
-            s
-        } def
+        % This matrix has 9 in all entries targeting C1; effectively disabling C1.
+        % When reading from this matrix, the encoder will switch to the ASCII range 
+        % before using character set C. This might prevent problems for some decoders.
+        /switchlen_without_c1 [
+            [ 0 2 1 3 1 9 ]
+            [ 2 0 3 1 3 9 ]
+            [ 1 3 0 2 1 9 ]
+            [ 3 1 2 0 3 9 ]
+            [ 1 3 1 3 0 9 ]
+            [ 3 1 3 1 4 9 ] ] def 
 
-        % Encoding for each alphabet
-        /enca {
-            seta exch get cws exch j exch put
-            /j j 1 add def
-        } def
-        /encb {
-            setb exch get cws exch j exch put
-            /j j 1 add def
-        } def
-        /encc {
-            dup type /arraytype ne {
-                setc exch get
-            } {
-                aload pop 48 sub exch 48 sub 10 mul add
-            } ifelse
-            cws exch j exch put
-            /j j 1 add def
-        } def
+        % Use option "allowxc" to enable state C1 for more compact code
+        /switchlen allowxc { switchlen_with_c1 } { switchlen_without_c1 } ifelse def
 
-        % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} def
-        /bnota {dup setb exch known exch seta exch known not and} def
+        % "path" is a table with a column for each character in the message and a row for each state
+        % of the encoder. The entries in the table will be filled iteratively with dictionaries:
+        %
+        % - intake: The number of characters - 1 or 2 - consumed in the entry.
+        %   One character would be at index n, two at n and n-1.
+        % - origin: The previous state of the shortest encoding ending in this entry.
+        % - len: The length of the shortest encoding ending in this entry.
+        %
+        /path [ msg length { [ 6 { 0 } repeat ] } repeat ] def % table of optimal paths (eventually)
 
-        % Pre-compute relative position of next anotb and next bnota characters
-        /nextanotb [ msg length {0} repeat 9999 ] def
-        /nextbnota [ msg length {0} repeat 9999 ] def
-        msg length 1 sub -1 0 {
-            /i exch def
-            msg i get anotb {
-                nextanotb i 0 put
-            } {
-                nextanotb i nextanotb i 1 add get 1 add put
-            } ifelse
-            msg i get bnota {
-                nextbnota i 0 put
-            } {
-                nextbnota i nextbnota i 1 add get 1 add put
-            } ifelse
-        } for
+        % When multiple optimal paths are available, states are prioritized with an array.
+        % The following array configures the encoder to pick B over A over C and ASCII over 
+        % extended ASCIII. This is mainly to comform with existing tests:
+        /priority [2 0 4 3 1 5] def % Priority for picking equally optimal paths.
 
-        % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
+        % Shorthand for properties of a state:
+        /is_x { 1 and 1 eq } def    % range is extended ASCII
+        /is_b { 2 and 2 eq } def    % chset is B
+        /is_c { 4 and 4 eq } def    % chset is C
 
-        /cws barcode length 2 mul 3 add array def
+        % Shorthand for properties of a character:
+        /in_range { 128 lt state is_x xor } def                         % char is in range (char must be < 256)
+        /in_chset { 127 and state is_b { 32 ge } { 96 lt } ifelse } def % char is in chset (char must be < 256 and state must be A or B)
+        /is_digit { dup 48 ge exch 57 le and } def                      % char is a digit
 
-        % Select start character
-        /j 0 def
-        msglen 0 gt {0 numsscr} {-1} ifelse /nums exch def
-        {  % common exit
-            msglen 0 eq {
-                stb enca
-                /cset (setb) def
-                exit
-            } if
-            msglen 2 eq nums 2 eq and {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            nums 4 ge {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            0 abeforeb {
-                sta enca
-                /cset (seta) def
-                exit
-            } if
-            stb enca
-            /cset (setb) def
-            exit
-        } loop
+        % Shorthand for determining if msg[n] and msg[n-1] are both digits:
+        /is_dpair { n 0 gt { msg n 1 sub get is_digit msg n get is_digit and } { false } ifelse } def
 
-        % Main encoding loop
-        /i 0 def {
-            i msglen eq {exit} if
+        % Shorthand for converting msg[n] and msg[n-1] into code C:
+        /dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
 
-            i numsscr /nums exch def
+        % Find the smallest value of an array applying a key function for each element:
+        /min { exch dup 0 get exch { dup 3 index exec 2 index 4 index exec lt { exch } if pop } forall exch pop } def
 
-            % Determine switches and shifts
-            {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and
-                msg i get fn1 ne and {
-                    nums 2 mod 0 eq {
-                        swc cset (seta) eq {enca} {encb} ifelse
-                        /cset (setc) def
-                        exit
-                    } {
-                        msg i get cset (seta) eq {enca} {encb} ifelse
-                        /i i 1 add def
-                        i numsscr 4 ge {
-                            swc cset (seta) eq {enca} {encb} ifelse
-                            /cset (setc) def
-                            exit
-                       } if
-                    } ifelse
-                } if
-                cset (setb) eq msg i get anotb and {
-                    i msglen 1 sub lt {
-                        i 1 add bbeforea {
-                            sft encb
-                            msg i get enca
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
-                    swa encb
-                    /cset (seta) def
-                    exit
-                } if
-                cset (seta) eq msg i get bnota and {
-                    i msglen 1 sub lt {
-                        i 1 add abeforeb {
-                            sft enca
-                            msg i get encb
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
-                    swb enca
-                    /cset (setb) def
-                    exit
-                } if
-                cset (setc) eq nums 2 lt and msg i get -1 gt msg i get fn4 eq or and {
-                    i abeforeb {
-                        swa encc
-                        /cset (seta) def
-                        exit
-                    } if
-                    swb encc
-                    /cset (setb) def
-                    exit
-                } if
+        % Determine the entry intake - 1 or 2 characters:
+        /get_intake { state is_c is_dpair and { 2 } { 1 } ifelse } def
 
-                % No switches or latches so encode
-                cset (seta) eq {
-                    msg i get enca
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setb) eq {
-                    msg i get encb
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setc) eq {
-                    msg i get -1 le {
-                        msg i get encc
-                        /i i 1 add def
-                    } {
-                        msg i 2 getinterval encc
-                        /i i 2 add def
-                    } ifelse
-                    exit
-                } if
+        % Determine the entry output length: 1 to 3 or 9; when an entry cannot be encoded.
+        /get_output_length { { /c msg n get def
+            c 0 lt { [ seta setb setc ] state 2 idiv get c known { 1 } { 9 } ifelse exit } if
+            state is_c { is_dpair { 1 } { 9 } ifelse exit } if
+            1 c in_range not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
-                exit
-            } loop
+        % Get length at the entry prior to path[n][state]:
+        % 1 for start code, 9 to prevent start in extended ASCII 
+        % (subsequent state switch may enter extended ASCII)
+        /get_origin_length { intake n gt { [1 9] 1 origin and get } 
+            { path n intake sub get origin get /len get } ifelse } def
 
-        } loop
-        /cws cws 0 j getinterval def
+        % Get length of switch codes:
+        /get_switch_length { switchlen origin get state get } def
+
+        % Get length of candidate entry:
+        /get_prospect_length { get_origin_length get_switch_length get_output_length add add } def
+ 
+        % Get potential values for path[n][state]:
+        /get_prospect { << /intake intake /origin origin /len get_prospect_length >> } def
+ 
+        % Get optimal values for path[n][state]:
+        /get_optimal_entry { /intake get_intake def 
+            /prospects [ 0 1 5 { /origin exch def get_prospect } for ] def
+            prospects priority { prospects exch get /len get } min get } def   
+
+        % Populate path with optimal entries:
+        /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
+            path n get state get_optimal_entry put } for } for } def
+
+        % Get entry output:
+        /get_output { { /c msg n get def
+            c 0 lt { [ [ seta setb setc ] state 2 idiv get c get ] exit } if    % A, B & C: FNC and linkage
+            state is_c { [ dpair ] exit } if                                    % C
+            3 array 0                                                           % A & B: worst case
+            c in_range not { 2 copy [ 101 100 ] state 2 idiv get put 1 add } if % A & B: range shift
+            c in_chset not { 2 copy 98 put 1 add } if                           % A & B: chset shift
+            2 copy c 127 and dup 32 lt { 64 add } { 32 sub } ifelse put 1 add   % A & B: map
+            0 exch getinterval exit  } loop } def                               % A & B: truncate       
+
+        % array, index, sub: reduce index by sub length, copy sub to array at index. Leave array, index.
+        /revcpy { dup length exch 4 1 roll sub 2 copy 5 4 roll putinterval } def
+
+        % Encode state switch - convert string to array
+        /get_switch { [ switchstr origin get state get {} forall ] } def     
+
+        % Travel the path in the opposite direction to yield the optimal encoding:
+        /backtrack { /n path length 1 sub def
+            /state priority { path n get exch get /len get } min def    % Get the shortest encoding of final stage
+            path n get state get /len get array {                       % Put output array on the stack
+                n 0 lt { exit } if                                      % 
+                path n get state get currentdict copy pop               % Copy intake, origin, and len to scope
+                len get_output revcpy get_switch revcpy pop             % Copy output and switch in reverse
+                /n n intake sub def /state origin def } loop            % Previous entry
+            dup 0 103 state 2 idiv add put } def                        % Start code
+
+        % Populate path and backtrack. Leave the result on the stack:
+        populate_path backtrack
+
+        end
+
+        % Name the result and get length for further processing:
+        /cws exch def /j cws length def 
     } if  % auto encoding
 
     % Derive checksum and place stop character
