@@ -62,8 +62,9 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
-    /allowxc false def  % Allow extended ASCII with character set C
-    /avoidc false def % Avoid character set C completely
+    /allowxc false def     % Allow extended ASCII with character set C
+    /avoidc false def      % Avoid character set C completely
+    /avoidxlatch false def % Avoid latching extended ASCII
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -212,7 +213,7 @@ begin
         % Reading the length of the sequences from a separate matrix allows you to
         % avoid specific transitions by entering large-ish values into the matrix.
         % The following matrix enables arbitrary state switches.
-        /switchlen_with_c1 [
+        /switchlen [
             [ 0 2 1 3 1 3 ]
             [ 2 0 3 1 3 1 ]
             [ 1 3 0 2 1 3 ]
@@ -220,33 +221,20 @@ begin
             [ 1 3 1 3 0 4 ]
             [ 3 1 3 1 4 0 ] ] def 
 
-        % This matrix has 9 in all entries targeting C1; effectively disabling C1.
-        % When reading from this matrix, the encoder will switch to the ASCII range 
-        % before using character set C. This might prevent problems for some decoders.
-        /switchlen_without_c1 [
-            [ 0 2 1 3 1 3 ]
-            [ 2 0 3 1 3 1 ]
-            [ 1 3 0 2 1 3 ]
-            [ 3 1 2 0 3 1 ]
-            [ 1 3 1 3 0 4 ]
-            [ 9 9 9 9 9 9 ] ] def 
-
-        % This matrix has 9 in all entries targeting C; effectively disabling C.
-        % When reading from this matrix, the encoder will not use character set C.
-        /switchlen_without_c [
-            [ 0 2 1 3 1 3 ]
-            [ 2 0 3 1 3 1 ]
-            [ 1 3 0 2 1 3 ]
-            [ 3 1 2 0 3 1 ]
-            [ 9 9 9 9 9 9 ]
-            [ 9 9 9 9 9 9 ] ] def 
-
         % Use option "allowxc" to enable state C1 for more compact code
-        /switchlen allowxc { switchlen_with_c1 } { switchlen_without_c1 } ifelse def
+        % The options "avoidc" and "avoidxlatch" ovrerrule the option "allowxc"
+        % Put 9 in all entries targeting C1; effectively disabling C1.
+        % The encoder will switch to the ASCII range before using character set C.
+        allowxc not avoidc or avoidxlatch or {switchlen 5 [9 9 9 9 9 9] put} if
 
         % Use option "avoidc" to disable states C0 and C1 for more compact code
-        % The option "avoidc" ovrerrules the option "allowxc"
-        /switchlen avoidc { switchlen_without_c } { switchlen } ifelse def
+        % Put 9 in all entries targeting C; effectively disabling C.
+        % The encoder will not use character set C at all.
+        avoidc {switchlen 4 [9 9 9 9 9 9] put} if
+
+        % Use option "avoidxlatch" to disable extended ASCII latch codes entirely
+        avoidxlatch {switchlen 1 [9 9 9 9 9 9] put switchlen 3 [9 9 9 9 9 9] put} if
+        % avoidxlatch { 0 1 5 { /state exch def [1 3 5] {switchlen state get exch 9 put} forall } for } if
 
         % "path" is a table with a column for each character in the message and a row for each state
         % of the encoder. The entries in the table will be filled iteratively with a set of values:

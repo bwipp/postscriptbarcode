@@ -19,6 +19,14 @@
     (^193^193^193^193^193^19399999999999999^193) (debugcws parse allowxc avoidc) code128
 } [104 100 100 33 33 33 33 33 33 100 100 25 25 25 25 25 25 25 25 25 25 25 25 25 25 100 33 1 106] debugIsEqual
 
+{  % Option "avoidxlatch" avoids latching extended ASCII
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse avoidxlatch) code128
+} [104 100 33 100 33 100 33 100 33 100 33 100 33 99 99 99 99 99 99 99 99 100 100 33 42 106] debugIsEqual
+
+{  % Options "avoidc" and "avoidxlatch" combine
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse avoidxlatch avoidc) code128
+} [104 100 33 100 33 100 33 100 33 100 33 100 33 25 25 25 25 25 25 25 25 25 25 25 25 25 25 100 33 89 106] debugIsEqual
+
 {  % Minimize FNC4 insertion
     ( ^160^160^160^160 ^160^160^160^160 ) (debugcws parse parsefnc) code128
 } [104 0 100 100 0 0 0 0 100 0 0 0 0 0 100 0 23 106] debugIsEqual
