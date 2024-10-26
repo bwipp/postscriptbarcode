@@ -242,6 +242,7 @@ begin
         % - len: The length of the shortest encoding ending in this entry.
         %
         /path [ msg length { [ 6 { 0 } repeat ] } repeat ] def % table of optimal paths (eventually)
+        /pathlen [ msg length { [ 6 { 0 } repeat ] } repeat ] def
 
         % When multiple optimal paths are available, states are prioritized with an array.
         % The following array configures the encoder to pick B over A over C and ASCII over 
@@ -274,15 +275,18 @@ begin
             state is_c { is_dpair { 1 } { 9 } ifelse exit } if
             1 c in_chrng not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
+        /start_len [1 9 1 9 1 9] def
+
         % Get optimal values for path[n][state]:
         /get_optimal_entry {
             /c msg n get def
             /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
-            /orglen intake n gt {[1 9 1 9 1 9]} {[path n intake sub get {2 get} forall]} ifelse def
+            /orglen intake n gt {start_len} {pathlen n intake sub get} ifelse def
             /swlen switchlen state get def
             /prospects [priority {dup orglen exch get exch swlen exch get add} forall] def
             /origin priority prospects minidx get def
-            [intake origin orglen origin get swlen origin get add get_output_length add]
+            pathlen n get state orglen origin get swlen origin get add get_output_length add put
+            [intake origin]
         } def
 
         % Populate path with optimal entries:
@@ -316,13 +320,14 @@ begin
 
         % Travel the path in the opposite direction to yield the optimal encoding:
         /backtrack { 
-            /n path length 1 sub def
-            /prospects [priority {path n get exch get 2 get} forall] def
+            /n msg length 1 sub def
+            /prospects [priority {pathlen n get exch get} forall] def
             /state priority prospects minidx get def
-            path n get state get 2 get array {                          % Put output array on the stack
+            pathlen n get state get array {                          % Put output array on the stack
                 n 0 lt { exit } if                                      % 
                 path n get state get aload pop                          % Copy intake, origin, and len to scope
-                /len exch def /origin exch def /intake exch def
+                /origin exch def /intake exch def
+                /len pathlen n get state get def
                 len get_output revcpy get_switch revcpy pop             % Copy output and switch in reverse
                 /n n intake sub def /state origin def } loop            % Previous entry
             dup 0 103 state 2 idiv add put } def                        % Start code
