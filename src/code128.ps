@@ -249,6 +249,9 @@ begin
         % extended ASCIII. This is mainly to comform with existing tests:
         /priority [2 0 4 3 1 5] def % Priority for picking equally optimal paths.
 
+        % With this optimization, priority changes require corresponding changes in the unrolled loop
+        /priority_is_baked_in_and_loop_is_unrolled true def
+
         % Shorthand for properties of a state:
         /is_x { 1 and 1 eq } def    % range is extended ASCII
         /is_b { 2 and 2 eq } def    % chset is B
@@ -282,10 +285,21 @@ begin
             /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
             /orglen intake n gt {startlen} {pathlen n intake sub get} ifelse def
             /swlen switchlen state get def
-            /origin priority 0 get def
-            /len orglen origin get swlen origin get add def
-            priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup 
-                len lt {/len exch def /origin exch def} {pop pop} ifelse} forall
+            priority_is_baked_in_and_loop_is_unrolled {
+                /origin 2 def
+                /len orglen 2 get swlen 2 get add def
+                orglen 0 get swlen 0 get add dup len lt { /len exch def /origin 0 def } { pop } ifelse
+                orglen 4 get swlen 4 get add dup len lt { /len exch def /origin 4 def } { pop } ifelse
+                orglen 3 get swlen 3 get add dup len lt { /len exch def /origin 3 def } { pop } ifelse
+                orglen 1 get swlen 1 get add dup len lt { /len exch def /origin 1 def } { pop } ifelse
+                orglen 5 get swlen 5 get add dup len lt { /len exch def /origin 5 def } { pop } ifelse
+            }
+            {
+                /origin priority 0 get def
+                /len orglen origin get swlen origin get add def
+                priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup 
+                    len lt {/len exch def /origin exch def} {pop pop} ifelse} forall
+            } ifelse
             pathlen n get state len get_output_length add put
             [intake origin]
         } def
