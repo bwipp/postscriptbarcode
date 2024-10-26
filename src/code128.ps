@@ -253,6 +253,10 @@ begin
         /is_x { 1 and 1 eq } def    % range is extended ASCII
         /is_b { 2 and 2 eq } def    % chset is B
         /is_c { 4 and 4 eq } def    % chset is C
+        /startlen [1 9 1 9 1 9] def
+        /charset [seta seta setb setb setc setc] def
+        /shiftcode [101 101 100 100   0   0] def
+        /startcode [103   0 104   0 105   0] def
 
         % Shorthand for properties of a character:
         /is_fnlnk { 0 lt } def                                          % char is a function code or linkage
@@ -266,26 +270,23 @@ begin
         % Shorthand for converting msg[n] and msg[n-1] into code C:
         /map_dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
 
-        % Return the index of the first occurrence of the smallest value in an array:
-        /minidx { dup 0 get 0 0 4 3 roll { dup 4 index lt { exch dup 5 3 roll pop } if pop 1 add } forall pop exch pop } def
-
         % Determine the entry output length: 1 to 3 or 9; when an entry cannot be encoded.
         /get_output_length { {
             c is_fnlnk { [ seta setb setc ] state 2 idiv get c known { 1 } { 9 } ifelse exit } if
             state is_c { is_dpair { 1 } { 9 } ifelse exit } if
             1 c in_chrng not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
-        /start_len [1 9 1 9 1 9] def
-
         % Get optimal values for path[n][state]:
         /get_optimal_entry {
             /c msg n get def
             /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
-            /orglen intake n gt {start_len} {pathlen n intake sub get} ifelse def
+            /orglen intake n gt {startlen} {pathlen n intake sub get} ifelse def
             /swlen switchlen state get def
-            /prospects [priority {dup orglen exch get exch swlen exch get add} forall] def
-            /origin priority prospects minidx get def
-            pathlen n get state orglen origin get swlen origin get add get_output_length add put
+            /origin priority 0 get def
+            /len orglen origin get swlen origin get add def
+            priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup 
+                len lt {/len exch def /origin exch def} {pop pop} ifelse} forall
+            pathlen n get state len get_output_length add put
             [intake origin]
         } def
 
@@ -294,10 +295,10 @@ begin
             path n get state get_optimal_entry put } for } for } def
 
         % Map FNC and linkage:
-        /map_fnlnk { [ seta setb setc ] state 2 idiv get c get } def
+        /map_fnlnk {charset state get c get} def
 
         % Shift character range as necessary:
-        /shift_chrng { c in_chrng not { [ 101 100 ] state 2 idiv get } if } def 
+        /shift_chrng {c in_chrng not {shiftcode state get} if} def 
 
         % Shift character set as necessary:
         /shift_chset { c in_chset not { 98 } if } def                           
@@ -321,16 +322,21 @@ begin
         % Travel the path in the opposite direction to yield the optimal encoding:
         /backtrack { 
             /n msg length 1 sub def
-            /prospects [priority {pathlen n get exch get} forall] def
-            /state priority prospects minidx get def
-            pathlen n get state get array {                          % Put output array on the stack
+            /stage pathlen n get def
+            /state priority 0 get def
+            /len stage state get def
+            priority 1 5 getinterval {dup stage exch get dup 
+                len lt {/len exch def /state exch def} {pop pop} ifelse} forall
+            % /prospects [priority {pathlen n get exch get} forall] def
+            % /state priority prospects minidx get def
+            pathlen n get state get array {                             % Put output array on the stack
                 n 0 lt { exit } if                                      % 
                 path n get state get aload pop                          % Copy intake, origin, and len to scope
                 /origin exch def /intake exch def
                 /len pathlen n get state get def
                 len get_output revcpy get_switch revcpy pop             % Copy output and switch in reverse
                 /n n intake sub def /state origin def } loop            % Previous entry
-            dup 0 103 state 2 idiv add put } def                        % Start code
+            dup 0 startcode state get put} def                          % Start code
 
         % Populate path and backtrack. Leave the result on the stack:
         populate_path backtrack
