@@ -265,16 +265,8 @@ begin
         % Shorthand for converting msg[n] and msg[n-1] into code C:
         /map_dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
 
-        % Return the smallest value of an array:
-        /min { dup 0 get exch { 2 copy gt { exch } if pop } forall } def
-
-        % Return the index of the first occurrence of a value in an array
-        % The value must be present in the array
-        /idx { exch 0 { 3 copy get eq { exit } if 1 add } loop 3 1 roll pop pop } def
-
-        % Return the first index of the smallest value in an array:
-        % /minidx { dup 0 get 0 0 4 3 roll { dup 4 index lt { exch dup 5 3 roll pop } if pop 1 add } forall pop exch pop } def
-        /minidx { dup min idx } def
+        % Return the index of the first occurrence of the smallest value in an array:
+        /minidx { dup 0 get 0 0 4 3 roll { dup 4 index lt { exch dup 5 3 roll pop } if pop 1 add } forall pop exch pop } def
 
         % Determine the entry output length: 1 to 3 or 9; when an entry cannot be encoded.
         /get_output_length { {
@@ -325,8 +317,7 @@ begin
         % Travel the path in the opposite direction to yield the optimal encoding:
         /backtrack { 
             /n path length 1 sub def
-            /prospects [path n get {2 get} forall] def
-            /prospects [priority {prospects exch get} forall] def
+            /prospects [priority {path n get exch get 2 get} forall] def
             /state priority prospects minidx get def
             path n get state get 2 get array {                          % Put output array on the stack
                 n 0 lt { exit } if                                      % 
