@@ -180,7 +180,7 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        40 dict begin
+        45 dict begin
         % A Code 128 encoder will go through states reflecting the character sets and
         % ranges of Code 128. Let's call the states A0, A1, B0, B1, C0, and C1 and
         % assign the numbers 0-5:
@@ -199,14 +199,14 @@ begin
         % So too are entries on the diagonal where no state changes occur.
         % This is just one of many combinations of valid sequences:
         /switchstr [
-            %            Target                    Origin
+            %            Origin                    Target
             % A0   A1   B0   B1   C0   C1     
-            [()   (ee) (d)  (ddd)(c)  (eec)]       % A0 
-            [(ee) ()   (ddd)(d)  (eec)(c)  ]       % A1
-            [(e)  (eee)()   (dd) (c)  (ddc)]       % B0
-            [(eee)(e)  (dd) ()   (ddc)(c)  ]       % B1
-            [(e)  (eee)(d)  (ddd)()   ()   ]       % C0
-            [(eee)(e)  (ddd)(d)  ()   ()   ] ] def % C1
+            [()   (ee) (e)  (eee)(e)  (eee)]       % A0 
+            [(ee) ()   (eee)(e)  (eee)(e)  ]       % A1
+            [(d)  (ddd)()   (dd) (d)  (ddd)]       % B0
+            [(ddd)(d)  (dd) ()   (ddd)(d)  ]       % B1
+            [(c)  (eec)(c)  (ddc)()   ()   ]       % C0
+            [(eec)(c)  (ddc)(c)  ()   ()   ] ] def % C1
 
         % Reading the length of the sequences from a separate matrix allows you to
         % avoid specific transitions by entering large-ish values into the matrix.
@@ -223,18 +223,18 @@ begin
         % When reading from this matrix, the encoder will switch to the ASCII range 
         % before using character set C. This might prevent problems for some decoders.
         /switchlen_without_c1 [
-            [ 0 2 1 3 1 9 ]
-            [ 2 0 3 1 3 9 ]
-            [ 1 3 0 2 1 9 ]
-            [ 3 1 2 0 3 9 ]
-            [ 1 3 1 3 0 9 ]
-            [ 3 1 3 1 4 9 ] ] def 
+            [ 0 2 1 3 1 3 ]
+            [ 2 0 3 1 3 1 ]
+            [ 1 3 0 2 1 3 ]
+            [ 3 1 2 0 3 1 ]
+            [ 1 3 1 3 0 4 ]
+            [ 9 9 9 9 9 9 ] ] def 
 
         % Use option "allowxc" to enable state C1 for more compact code
         /switchlen allowxc { switchlen_with_c1 } { switchlen_without_c1 } ifelse def
 
         % "path" is a table with a column for each character in the message and a row for each state
-        % of the encoder. The entries in the table will be filled iteratively with dictionaries:
+        % of the encoder. The entries in the table will be filled iteratively with a set of values:
         %
         % - intake: The number of characters - 1 or 2 - consumed in the entry.
         %   One character would be at index n, two at n and n-1.
@@ -277,25 +277,20 @@ begin
             state is_c { is_dpair { 1 } { 9 } ifelse exit } if
             1 c in_chrng not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
-        % Get length at the entry prior to path[n][state]:
+        % Start stage:
         % 1 for start code, 9 to prevent start in extended ASCII 
         % (subsequent state switch may enter extended ASCII)
-        /get_origin_length { intake n gt { [1 9] 1 origin and get } 
-            { path n intake sub get origin get /len get } ifelse } def
+        /start_stage [[0 0 1][0 0 9][0 0 1][0 0 9][0 0 1][0 0 9]] def
 
-        % Get length of switch codes:
-        /get_switch_length { switchlen origin get state get } def
-
-        % Get length of candidate entry:
-        /get_prospect_length { get_origin_length get_switch_length get_output_length add add } def
- 
-        % Get potential values for path[n][state]:
-        /get_prospect { << /intake intake /origin origin /len get_prospect_length >> } def
- 
         % Get optimal values for path[n][state]:
-        /get_optimal_entry { /intake get_intake def 
-            /prospects [ 0 1 5 { /origin exch def get_prospect } for ] def
-            prospects priority { prospects exch get /len get } min get } def   
+        /get_optimal_entry { 
+            /intake get_intake def
+            /origin_stage intake n gt { start_stage } { path n intake sub get } ifelse def
+            /swlen switchlen state get def
+            /prospects [ 0 1 5 { dup exch origin_stage exch get 2 get exch swlen exch get add } for ] def
+            /origin priority { prospects exch get } min def
+            [intake origin prospects origin get get_output_length add]
+        } def   
 
         % Populate path with optimal entries:
         /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
@@ -324,14 +319,15 @@ begin
         /revcpy { dup length exch 4 1 roll sub 2 copy 5 4 roll putinterval } def
 
         % Encode state switch - convert string to array
-        /get_switch { [ switchstr origin get state get {} forall ] } def     
+        /get_switch { [ switchstr state get origin get {} forall ] } def     
 
         % Travel the path in the opposite direction to yield the optimal encoding:
         /backtrack { /n path length 1 sub def
-            /state priority { path n get exch get /len get } min def    % Get the shortest encoding of final stage
-            path n get state get /len get array {                       % Put output array on the stack
+            /state priority { path n get exch get 2 get } min def       % Get the shortest encoding of final stage
+            path n get state get 2 get array {                          % Put output array on the stack
                 n 0 lt { exit } if                                      % 
-                path n get state get currentdict copy pop               % Copy intake, origin, and len to scope
+                path n get state get aload pop                          % Copy intake, origin, and len to scope
+                /len exch def /origin exch def /intake exch def
                 len get_output revcpy get_switch revcpy pop             % Copy output and switch in reverse
                 /n n intake sub def /state origin def } loop            % Previous entry
             dup 0 103 state 2 idiv add put } def                        % Start code
