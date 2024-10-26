@@ -180,7 +180,7 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        45 dict begin
+        50 dict begin
         % A Code 128 encoder will go through states reflecting the character sets and
         % ranges of Code 128. Let's call the states A0, A1, B0, B1, C0, and C1 and
         % assign the numbers 0-5:
@@ -265,32 +265,33 @@ begin
         % Shorthand for converting msg[n] and msg[n-1] into code C:
         /map_dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
 
-        % Find the smallest value of an array applying a key function for each element:
-        /min { exch dup 0 get exch { dup 3 index exec 2 index 4 index exec lt { exch } if pop } forall exch pop } def
+        % Return the smallest value of an array:
+        /min { dup 0 get exch { 2 copy gt { exch } if pop } forall } def
 
-        % Determine the entry intake - 1 or 2 characters:
-        /get_intake { state is_c is_dpair and { 2 } { 1 } ifelse } def
+        % Return the index of the first occurrence of a value in an array
+        % The value must be present in the array
+        /idx { exch 0 { 3 copy get eq { exit } if 1 add } loop 3 1 roll pop pop } def
+
+        % Return the first index of the smallest value in an array:
+        % /minidx { dup 0 get 0 0 4 3 roll { dup 4 index lt { exch dup 5 3 roll pop } if pop 1 add } forall pop exch pop } def
+        /minidx { dup min idx } def
 
         % Determine the entry output length: 1 to 3 or 9; when an entry cannot be encoded.
-        /get_output_length { { /c msg n get def
+        /get_output_length { {
             c is_fnlnk { [ seta setb setc ] state 2 idiv get c known { 1 } { 9 } ifelse exit } if
             state is_c { is_dpair { 1 } { 9 } ifelse exit } if
             1 c in_chrng not { 1 add } if c in_chset not { 1 add } if exit } loop } def
 
-        % Start stage:
-        % 1 for start code, 9 to prevent start in extended ASCII 
-        % (subsequent state switch may enter extended ASCII)
-        /start_stage [[0 0 1][0 0 9][0 0 1][0 0 9][0 0 1][0 0 9]] def
-
         % Get optimal values for path[n][state]:
-        /get_optimal_entry { 
-            /intake get_intake def
-            /origin_stage intake n gt { start_stage } { path n intake sub get } ifelse def
+        /get_optimal_entry {
+            /c msg n get def
+            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
+            /orglen intake n gt {[1 9 1 9 1 9]} {[path n intake sub get {2 get} forall]} ifelse def
             /swlen switchlen state get def
-            /prospects [ 0 1 5 { dup exch origin_stage exch get 2 get exch swlen exch get add } for ] def
-            /origin priority { prospects exch get } min def
-            [intake origin prospects origin get get_output_length add]
-        } def   
+            /prospects [priority {dup orglen exch get exch swlen exch get add} forall] def
+            /origin priority prospects minidx get def
+            [intake origin orglen origin get swlen origin get add get_output_length add]
+        } def
 
         % Populate path with optimal entries:
         /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
@@ -322,8 +323,11 @@ begin
         /get_switch { [ switchstr state get origin get {} forall ] } def     
 
         % Travel the path in the opposite direction to yield the optimal encoding:
-        /backtrack { /n path length 1 sub def
-            /state priority { path n get exch get 2 get } min def       % Get the shortest encoding of final stage
+        /backtrack { 
+            /n path length 1 sub def
+            /prospects [path n get {2 get} forall] def
+            /prospects [priority {prospects exch get} forall] def
+            /state priority prospects minidx get def
             path n get state get 2 get array {                          % Put output array on the stack
                 n 0 lt { exit } if                                      % 
                 path n get state get aload pop                          % Copy intake, origin, and len to scope
