@@ -179,14 +179,14 @@ begin
         % Use option "avoidxlatch" to disable extended ASCII latch codes.
         avoidxlatch {switchlen 1 [9 9 9 9 9 9] put switchlen 3 [9 9 9 9 9 9] put} if
 
-        % "path" is a table with a column for each character in the message and a row for each state
+        % "path" is a table with a row for each character in the message and a column for each state
         % of the encoder. The entries in the table will be filled iteratively with a set of values:
         %
         % - intake: The number of characters - 1 or 2 - consumed in the entry.
         %   One character would be at index n, two at n and n-1.
         % - origin: The previous state of the shortest encoding ending in this entry.
         % - len: The length of the shortest encoding ending in this entry.
-        %   * update - "len" has been moved to a separate table "pathlen" * 
+        %   * update - "len" has been moved to a separate table "pathlen" for optimization purposes * 
         %
         /path [ msg length { [ 6 { null } repeat ] } repeat ] def % table of optimal paths (eventually)
         /pathlen [ msg length { [ 6 { 0 } repeat ] } repeat ] def
@@ -229,27 +229,34 @@ begin
         % Get optimal values for path[n][state]:
         /get_optimal_entry {
             /c msg n get def
-            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
+
+            % Intake may be 2 in state C; otherwise it's always 1.
+            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def 
+
+            % Use the array "startlen" if there is no previous entry, 
+            % otherwise get the previous row from pathlen[n - intake].
             /orglen intake n gt {startlen} {pathlen n intake sub get} ifelse def
+
+            % Get the row from the switch length table targeting state.
             /swlen switchlen state get def
+
+            % Determine the total length of the optimal encoding
+            % entering path[n][state] via path[n - intake][priority[0..5]]
+            % Pick the shortest one.
             priority_is_baked_in_and_loop_is_unrolled {
-                /origin 2 def
-                /len orglen 2 get swlen 2 get add def
-                orglen 0 get swlen 0 get add dup len lt { /len exch def /origin 0 def } { pop } ifelse
-                orglen 4 get swlen 4 get add dup len lt { /len exch def /origin 4 def } { pop } ifelse
-                orglen 3 get swlen 3 get add dup len lt { /len exch def /origin 3 def } { pop } ifelse
-                orglen 1 get swlen 1 get add dup len lt { /len exch def /origin 1 def } { pop } ifelse
-                orglen 5 get swlen 5 get add dup len lt { /len exch def /origin 5 def } { pop } ifelse
-            }
-            {
+                orglen 2 get swlen 2 get add              /len exch def /origin 2 def                   % 2 is priority[0]
+                orglen 0 get swlen 0 get add dup len lt { /len exch def /origin 0 def } { pop } ifelse  % 0 is priority[1]
+                orglen 4 get swlen 4 get add dup len lt { /len exch def /origin 4 def } { pop } ifelse  % 4 is priority[2]
+                orglen 3 get swlen 3 get add dup len lt { /len exch def /origin 3 def } { pop } ifelse  % 3 is priority[3]
+                orglen 1 get swlen 1 get add dup len lt { /len exch def /origin 1 def } { pop } ifelse  % 1 is priority[4]
+                orglen 5 get swlen 5 get add dup len lt { /len exch def /origin 5 def } { pop } ifelse  % 5 is priority[5]
+            } {
                 /origin priority 0 get def
                 /len orglen origin get swlen origin get add def
                 priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup 
-                    len lt {/len exch def /origin exch def} {pop pop} ifelse} forall
-            } ifelse
+                    len lt {/len exch def /origin exch def} {pop pop} ifelse} forall } ifelse
             pathlen n get state len get_output_length add put
-            [intake origin]
-        } def
+            [intake origin] } def
 
         % Populate path with optimal entries:
         /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
@@ -288,14 +295,14 @@ begin
             /len stage state get def
             priority 1 5 getinterval {dup stage exch get dup 
                 len lt {/len exch def /state exch def} {pop pop} ifelse} forall
-            pathlen n get state get array {                             % Put output array on the stack
-                n 0 lt { exit } if                                      % 
-                path n get state get aload pop                          % Copy intake, origin, and len to scope
-                /origin exch def /intake exch def
-                /len pathlen n get state get def
-                len get_output revcpy get_switch revcpy pop             % Copy output and switch in reverse
-                /n n intake sub def /state origin def } loop            % Previous entry
-            dup 0 startcode state get put} def                          % Start code
+            len array {                                       % Put output array on the stack
+                n 0 lt { exit } if                            % Loop condition
+                path n get state get aload pop                % Put path[n][state] on the stack
+                /origin exch def /intake exch def             % Get origin and intake from path[n][state]
+                /len pathlen n get state get def              % Get len from pathlen[n][state]
+                len get_output revcpy get_switch revcpy pop   % Copy output and switch in reverse
+                /n n intake sub def /state origin def } loop  % Previous entry
+            dup 0 startcode state get put} def                % Start code
 
         % Populate path and backtrack. Leave the result on the stack:
         populate_path backtrack
