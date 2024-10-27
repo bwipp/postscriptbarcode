@@ -232,7 +232,7 @@ begin
         /is_digit { dup 48 ge exch 57 le and } def                      % char is a digit
 
         % Shorthand for determining if msg[n] and msg[n-1] are both digits:
-        /is_dpair { n 0 gt { msg n 1 sub get is_digit msg n get is_digit and } { false } ifelse } def
+        /is_dpair { n 0 gt { msg n 1 sub get is_digit c is_digit and } { false } ifelse } def
 
         % Shorthand for converting msg[n] and msg[n-1] into code C:
         /map_dpair { msg n 1 sub get 48 sub 10 mul msg n get 48 sub add } def
@@ -245,10 +245,8 @@ begin
 
         % Get optimal values for path[n][state]:
         /get_optimal_entry {
-            /c msg n get def
-
             % Intake may be 2 in state C; otherwise it's always 1.
-            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
+            /intake state is_c {c_was_digit c_is_digit and {2} {1} ifelse} {1} ifelse def
 
             % Use the array "startlen" if there is no previous entry,
             % otherwise get the previous row from pathlen[n - intake].
@@ -262,8 +260,16 @@ begin
             [intake origin] } def
 
         % Populate path with optimal entries:
-        /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def
-            path n get state get_optimal_entry put } for } for } def
+        /c_is_digit false def
+        /populate_path {
+            0 1 msg length 1 sub { 
+                /n exch def
+                /c msg n get def
+                /c_was_digit c_is_digit def
+                /c_is_digit c is_digit def
+                0 1 5 { 
+                    /state exch def
+                    path n get state get_optimal_entry put } for } for } def
 
         % Map FNC and linkage:
         /map_fnlnk {charset state get c get} def
