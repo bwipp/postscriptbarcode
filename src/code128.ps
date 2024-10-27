@@ -62,8 +62,8 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
-    /allowxc false def     % Allow extended ASCII with character set C
-    /avoidc false def      % Avoid character set C completely
+    /avoidxc false def     % Avoid extended ASCII with character set C
+    /avoidc false def      % Avoid character set C
     /avoidxlatch false def % Avoid latching extended ASCII
 
     //processoptions exec /options exch def
@@ -219,20 +219,20 @@ begin
             [ 1 3 0 2 1 3 ]
             [ 3 1 2 0 3 1 ]
             [ 1 3 1 3 0 4 ]
-            [ 3 1 3 1 4 0 ] ] def 
+            [ 3 1 3 1 4 0 ] ] def
 
-        % Use option "allowxc" to enable state C1 for more compact code
-        % The options "avoidc" and "avoidxlatch" ovrerrule the option "allowxc"
+        % Use option "avoidxc" to disable state C1.
+        % The options "avoidc" and "avoidxlatch" imply the option "avoidxc".
         % Put 9 in all entries targeting C1; effectively disabling C1.
         % The encoder will switch to the ASCII range before using character set C.
-        allowxc not avoidc or avoidxlatch or {switchlen 5 [9 9 9 9 9 9] put} if
+        avoidxc avoidc or avoidxlatch or {switchlen 5 [9 9 9 9 9 9] put} if
 
-        % Use option "avoidc" to disable states C0 and C1 for more compact code
+        % Use option "avoidc" to disable states C0 and C1.
         % Put 9 in all entries targeting C; effectively disabling C.
         % The encoder will not use character set C at all.
         avoidc {switchlen 4 [9 9 9 9 9 9] put} if
 
-        % Use option "avoidxlatch" to disable extended ASCII latch codes entirely
+        % Use option "avoidxlatch" to disable extended ASCII latch codes.
         avoidxlatch {switchlen 1 [9 9 9 9 9 9] put switchlen 3 [9 9 9 9 9 9] put} if
         % avoidxlatch { 0 1 5 { /state exch def [1 3 5] {switchlen state get exch 9 put} forall } for } if
 

@@ -6,17 +6,17 @@
 
 /code128 dup /uk.co.terryburton.bwipp findresource cvx def
 
-
+   % Option "avoidxc" avoids extended range with character set C (for reader compatibility perhaps?)
 {  % Allow for FNC4 immediately after CodeC sequence (cf https://github.com/woo-j/OkapiBarcode/commit/9ce6dccbab20d1190090585ddf91a7f549f4fac9)
-    (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code128
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse avoidxc) code128
 } [104 100 100 33 33 33 33 33 33 100 100 99 99 99 99 99 99 99 99 100 100 33 3 106] debugIsEqual
 
-{  % Option "allowxc" allows extended range with character set C for more compact code
-    (^193^193^193^193^193^19399999999999999^193) (debugcws parse allowxc) code128
+{  % Nothing avoided here...
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code128
 } [104 100 100 33 33 33 33 33 33 99 99 99 99 99 99 99 99 100 33 91 106] debugIsEqual
 
-{  % Option "avoidc" avoids character set C entirely - and it overrules option "allowxc"
-    (^193^193^193^193^193^19399999999999999^193) (debugcws parse allowxc avoidc) code128
+{  % Option "avoidc" avoids character set C
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse avoidc) code128
 } [104 100 100 33 33 33 33 33 33 100 100 25 25 25 25 25 25 25 25 25 25 25 25 25 25 100 33 1 106] debugIsEqual
 
 {  % Option "avoidxlatch" avoids latching extended ASCII
