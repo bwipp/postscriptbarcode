@@ -146,8 +146,8 @@ begin
         % This is just one of many combinations of valid sequences:
         /switchstr [
             %            Origin                    Target
-            % A0   A1   B0   B1   C0   C1     
-            [()   (ee) (e)  (eee)(e)  (eee)]       % A0 
+            % A0   A1   B0   B1   C0   C1
+            [()   (ee) (e)  (eee)(e)  (eee)]       % A0
             [(ee) ()   (eee)(e)  (eee)(e)  ]       % A1
             [(d)  (ddd)()   (dd) (d)  (ddd)]       % B0
             [(ddd)(d)  (dd) ()   (ddd)(d)  ]       % B1
@@ -186,13 +186,13 @@ begin
         %   One character would be at index n, two at n and n-1.
         % - origin: The previous state of the shortest encoding ending in this entry.
         % - len: The length of the shortest encoding ending in this entry.
-        %   * update - "len" has been moved to a separate table "pathlen" for optimization purposes * 
+        %   * update - "len" has been moved to a separate table "pathlen" for optimization purposes *
         %
         /path [ msg length { [ 6 { null } repeat ] } repeat ] def % table of optimal paths (eventually)
         /pathlen [ msg length { [ 6 { 0 } repeat ] } repeat ] def
 
         % When multiple optimal paths are available, states are prioritized with an array.
-        % The following array configures the encoder to pick B over A over C and ASCII over 
+        % The following array configures the encoder to pick B over A over C and ASCII over
         % extended ASCIII. This is mainly to comform with existing tests:
         /priority [2 0 4 3 1 5] def % Priority for picking equally optimal paths.
 
@@ -231,9 +231,9 @@ begin
             /c msg n get def
 
             % Intake may be 2 in state C; otherwise it's always 1.
-            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def 
+            /intake state is_c {is_dpair {2} {1} ifelse} {1} ifelse def
 
-            % Use the array "startlen" if there is no previous entry, 
+            % Use the array "startlen" if there is no previous entry,
             % otherwise get the previous row from pathlen[n - intake].
             /orglen intake n gt {startlen} {pathlen n intake sub get} ifelse def
 
@@ -253,23 +253,23 @@ begin
             } {
                 /origin priority 0 get def
                 /len orglen origin get swlen origin get add def
-                priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup 
+                priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup
                     len lt {/len exch def /origin exch def} {pop pop} ifelse} forall } ifelse
             pathlen n get state len get_output_length add put
             [intake origin] } def
 
         % Populate path with optimal entries:
-        /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def 
+        /populate_path { 0 1 msg length 1 sub { /n exch def 0 1 5 { /state exch def
             path n get state get_optimal_entry put } for } for } def
 
         % Map FNC and linkage:
         /map_fnlnk {charset state get c get} def
 
         % Shift character range as necessary:
-        /shift_chrng {c in_chrng not {shiftcode state get} if} def 
+        /shift_chrng {c in_chrng not {shiftcode state get} if} def
 
         % Shift character set as necessary:
-        /shift_chset { c in_chset not { 98 } if } def                           
+        /shift_chset { c in_chset not { 98 } if } def
 
         % Map A and B to Code 128:
         /map_a_and_b { c 127 and dup 32 lt { 64 add } { 32 sub } ifelse } def
@@ -285,15 +285,15 @@ begin
         /revcpy { dup length exch 4 1 roll sub 2 copy 5 4 roll putinterval } def
 
         % Encode state switch - convert string to array
-        /get_switch { [ switchstr state get origin get {} forall ] } def     
+        /get_switch { [ switchstr state get origin get {} forall ] } def
 
         % Travel the path in the opposite direction to yield the optimal encoding:
-        /backtrack { 
+        /backtrack {
             /n msg length 1 sub def
             /stage pathlen n get def
             /state priority 0 get def
             /len stage state get def
-            priority 1 5 getinterval {dup stage exch get dup 
+            priority 1 5 getinterval {dup stage exch get dup
                 len lt {/len exch def /state exch def} {pop pop} ifelse} forall
             len array {                                       % Put output array on the stack
                 n 0 lt { exit } if                            % Loop condition
@@ -310,7 +310,7 @@ begin
         end
 
         % Name the result and get length for further processing:
-        /cws exch def /j cws length def 
+        /cws exch def /j cws length def
     } if  % auto encoding
 
     % Derive checksum and place stop character
