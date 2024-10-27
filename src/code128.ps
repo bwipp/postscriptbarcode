@@ -62,9 +62,8 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
-    /avoidxc false def     % Avoid extended ASCII with character set C
-    /avoidc false def      % Avoid character set C
-    /avoidxlatch false def % Avoid latching extended ASCII
+    /unlatchextbeforec false def    % Suppress extended ASCII with character set C
+    /suppressc false def            % Suppress character set C
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -84,7 +83,6 @@ begin
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
-        (FNC1) fn1
         (FNC1) fn1
         (FNC2) fn2
         (FNC3) fn3
@@ -155,7 +153,7 @@ begin
             [(eec)(c)  (ddc)(c)  ()   ()   ] ] def % C1
 
         % Reading the length of the sequences from a separate matrix allows you to
-        % avoid specific transitions by entering large-ish values into the matrix.
+        % suppress specific transitions by entering large-ish values into the matrix.
         % The following matrix enables arbitrary state switches.
         /switchlen [
             [ 0 2 1 3 1 3 ]
@@ -165,19 +163,16 @@ begin
             [ 1 3 1 3 0 4 ]
             [ 3 1 3 1 4 0 ] ] def
 
-        % Use option "avoidxc" to disable state C1.
-        % The options "avoidc" and "avoidxlatch" imply the option "avoidxc".
+        % Use option "unlatchextbeforec" to disable state C1.
+        % The option "suppressc" implies "unlatchextbeforec".
         % Put 9 in all entries targeting C1; effectively disabling C1.
         % The encoder will switch to the ASCII range before using character set C.
-        avoidxc avoidc or avoidxlatch or {switchlen 5 [9 9 9 9 9 9] put} if
+        suppressc unlatchextbeforec or {switchlen 5 [9 9 9 9 9 9] put} if
 
-        % Use option "avoidc" to disable states C0 and C1.
+        % Use option "suppressc" to disable states C0 and C1.
         % Put 9 in all entries targeting C; effectively disabling C.
         % The encoder will not use character set C at all.
-        avoidc {switchlen 4 [9 9 9 9 9 9] put} if
-
-        % Use option "avoidxlatch" to disable extended ASCII latch codes.
-        avoidxlatch {switchlen 1 [9 9 9 9 9 9] put switchlen 3 [9 9 9 9 9 9] put} if
+        suppressc {switchlen 4 [9 9 9 9 9 9] put} if
 
         % "path" is a table with a row for each character in the message and a column for each state
         % of the encoder. The entries in the table will be filled iteratively with a set of values:
@@ -196,8 +191,30 @@ begin
         % extended ASCIII. This is mainly to comform with existing tests:
         /priority [2 0 4 3 1 5] def % Priority for picking equally optimal paths.
 
-        % With this optimization, priority changes require corresponding changes in the unrolled loop
+        % With this optimization, priority changes require corresponding changes in the unrolled loop below
         /priority_is_baked_in_and_loop_is_unrolled true def
+
+        % Determine the total length of the optimal encoding
+        % entering path[n][state] via path[n - intake][priority[0..5]]
+        % Pick the shortest one.
+        /get_optimal_origin_unrolled {
+            orglen 2 get swlen 2 get add              /len exch def /origin 2 def                   % 2 is priority[0]
+            orglen 0 get swlen 0 get add dup len lt { /len exch def /origin 0 def } { pop } ifelse  % 0 is priority[1]
+            orglen 4 get swlen 4 get add dup len lt { /len exch def /origin 4 def } { pop } ifelse  % 4 is priority[2]
+            orglen 3 get swlen 3 get add dup len lt { /len exch def /origin 3 def } { pop } ifelse  % 3 is priority[3]
+            orglen 1 get swlen 1 get add dup len lt { /len exch def /origin 1 def } { pop } ifelse  % 1 is priority[4]
+            orglen 5 get swlen 5 get add dup len lt { /len exch def /origin 5 def } { pop } ifelse  % 5 is priority[5]
+        } def
+
+        /get_optimal_origin_rolled {
+            /origin priority 0 get def
+            /len orglen origin get swlen origin get add def
+            priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup
+                len lt {/len exch def /origin exch def} {pop pop} ifelse} forall
+        } def
+
+        /get_optimal_origin priority_is_baked_in_and_loop_is_unrolled
+            {{get_optimal_origin_unrolled}} {{get_optimal_origin_rolled}} ifelse def
 
         % Shorthand for properties of a state:
         /is_x { 1 and 1 eq } def    % range is extended ASCII
@@ -240,21 +257,7 @@ begin
             % Get the row from the switch length table targeting state.
             /swlen switchlen state get def
 
-            % Determine the total length of the optimal encoding
-            % entering path[n][state] via path[n - intake][priority[0..5]]
-            % Pick the shortest one.
-            priority_is_baked_in_and_loop_is_unrolled {
-                orglen 2 get swlen 2 get add              /len exch def /origin 2 def                   % 2 is priority[0]
-                orglen 0 get swlen 0 get add dup len lt { /len exch def /origin 0 def } { pop } ifelse  % 0 is priority[1]
-                orglen 4 get swlen 4 get add dup len lt { /len exch def /origin 4 def } { pop } ifelse  % 4 is priority[2]
-                orglen 3 get swlen 3 get add dup len lt { /len exch def /origin 3 def } { pop } ifelse  % 3 is priority[3]
-                orglen 1 get swlen 1 get add dup len lt { /len exch def /origin 1 def } { pop } ifelse  % 1 is priority[4]
-                orglen 5 get swlen 5 get add dup len lt { /len exch def /origin 5 def } { pop } ifelse  % 5 is priority[5]
-            } {
-                /origin priority 0 get def
-                /len orglen origin get swlen origin get add def
-                priority 1 5 getinterval {dup dup orglen exch get exch swlen exch get add dup
-                    len lt {/len exch def /origin exch def} {pop pop} ifelse} forall } ifelse
+            get_optimal_origin
             pathlen n get state len get_output_length add put
             [intake origin] } def
 
