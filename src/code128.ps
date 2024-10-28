@@ -188,7 +188,7 @@ begin
 
         % When multiple optimal paths are available, states are prioritized with an array.
         % The following array configures the encoder to pick B over A over C and ASCII over
-        % extended ASCIII. This is mainly to comform with existing tests:
+        % extended ASCII. This is mainly to conform with existing tests:
         /priority [2 0 4 3 1 5] def % Priority for picking equally optimal paths.
 
         % With this optimization, priority changes require corresponding changes in the unrolled loop below
@@ -262,12 +262,12 @@ begin
         % Populate path with optimal entries:
         /c_is_digit false def
         /populate_path {
-            0 1 msg length 1 sub { 
+            0 1 msg length 1 sub {
                 /n exch def
                 /c msg n get def
                 /c_was_digit c_is_digit def
                 /c_is_digit c is_digit def
-                0 1 5 { 
+                0 1 5 {
                     /state exch def
                     path n get state get_optimal_entry put } for } for } def
 
@@ -287,7 +287,7 @@ begin
         /get_output { { /c msg n get def
             c is_fnlnk { [ map_fnlnk ] exit } if    % Map FNC and linkage
             state is_c { [ map_dpair ] exit } if    % C: map double digits
-            [ shift_chrng shift_chset map_a_and_b ] % A & B: add shift codes as neccesary and map
+            [ shift_chrng shift_chset map_a_and_b ] % A & B: add shift codes as necessary and map
             exit } loop } def
 
         % array, index, sub: reduce index by sub length, copy sub to array at index. Leave array, index.
