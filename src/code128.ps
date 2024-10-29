@@ -181,10 +181,11 @@ begin
         %   One character would be at index n, two at n and n-1.
         % - origin: The previous state of the shortest encoding ending in this entry.
         % - len: The length of the shortest encoding ending in this entry.
-        %   * update - "len" has been moved to a separate table "pathlen" for optimization purposes *
+        %   * update - "len" has been moved to a separate table "optimal_length" for optimization purposes *
         %
-        /path [ msg length { [ 6 { null } repeat ] } repeat ] def % table of optimal paths (eventually)
-        /pathlen [ msg length { [ 6 { 0 } repeat ] } repeat ] def
+        /optimal_intake [msg length {[6 {0} repeat]} repeat] def
+        /optimal_length [msg length {[6 {0} repeat]} repeat] def
+        /optimal_origin [msg length {[6 {0} repeat]} repeat] def
 
         % When multiple optimal paths are available, states are prioritized with an array.
         % The following array configures the encoder to pick B over A over C and ASCII over
@@ -249,15 +250,17 @@ begin
             /intake state is_c {c_was_digit c_is_digit and {2} {1} ifelse} {1} ifelse def
 
             % Use the array "startlen" if there is no previous entry,
-            % otherwise get the previous row from pathlen[n - intake].
-            /orglen intake n gt {startlen} {pathlen n intake sub get} ifelse def
+            % otherwise get the previous row from optimal_length[n - intake].
+            /orglen intake n gt {startlen} {optimal_length n intake sub get} ifelse def
 
             % Get the row from the switch length table targeting state.
             /swlen switchlen state get def
 
             get_optimal_origin
-            pathlen n get state len get_output_length add put
-            [intake origin] } def
+            optimal_length n get state len get_output_length add put
+            optimal_intake n get state intake put
+            optimal_origin n get state origin put
+        } def
 
         % Populate path with optimal entries:
         /c_is_digit false def
@@ -267,9 +270,7 @@ begin
                 /c msg n get def
                 /c_was_digit c_is_digit def
                 /c_is_digit c is_digit def
-                0 1 5 {
-                    /state exch def
-                    path n get state get_optimal_entry put } for } for } def
+                0 1 5 {/state exch def get_optimal_entry} for} for} def
 
         % Map FNC and linkage:
         /map_fnlnk {charset state get c get} def
@@ -299,21 +300,21 @@ begin
         % Travel the path in the opposite direction to yield the optimal encoding:
         /backtrack {
             /n msg length 1 sub def
-            /stage pathlen n get def
+            /stage optimal_length n get def
             /state priority 0 get def
             /len stage state get def
             priority 1 5 getinterval {dup stage exch get dup
                 len lt {/len exch def /state exch def} {pop pop} ifelse} forall
             len array {                                       % Put output array on the stack
                 n 0 lt { exit } if                            % Loop condition
-                path n get state get aload pop                % Put path[n][state] on the stack
-                /origin exch def /intake exch def             % Get origin and intake from path[n][state]
-                /len pathlen n get state get def              % Get len from pathlen[n][state]
+                /intake optimal_intake n get state get def
+                /origin optimal_origin n get state get def
+                /len optimal_length n get state get def              % Get len from optimal_length[n][state]
                 len get_output revcpy get_switch revcpy pop   % Copy output and switch in reverse
                 /n n intake sub def /state origin def } loop  % Previous entry
             dup 0 startcode state get put} def                % Start code
 
-        % Populate path and backtrack. Leave the result on the stack:
+        % Populate tables and backtrack. Leave the result on the stack:
         populate_path backtrack
 
         end
