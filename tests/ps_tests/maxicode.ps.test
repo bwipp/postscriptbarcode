@@ -35,6 +35,18 @@
     (mode=2 parse debugcws) maxicode
 } uszeropad debugIsEqual
 
+
+
+{   % Here's an A/B (and NS) example which could be one codeword less (immediate LCHB on "b" between NS segments instead of SHB and then LCHB after 2nd NS):
+    % (props to gitlost for this one)
+    (A123456789b123456789bbbA)
+    (mode=4 parse debugcws) maxicode
+} [ 4  1 31  7 22 60 52 21 63  2 16 27 40 34 32 50 55 12 11 42 31  7 22 60 52 21  2  2  2 59  1 33
+   33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+   33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+   33 33 33 33 33 33 33 33 55 37 56 59 53 19 57 43 17 15  9 22 13 34  3 59 10 35 23 51 54 24 13 17
+   20 55 43 59 24 35 6 17 50 57 36 35 11 20 19 52] debugIsEqual
+
 { % Don't stay in mode A when mode D or even C would be more efficient.
     (^192^224^224^224^192^224^224^224^192^224^224^224^192^224^224^224^192^224^224^224^192)
     (mode=4 parse debugcws) maxicode
