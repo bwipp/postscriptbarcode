@@ -234,7 +234,7 @@ begin
         /addopts <<
             /dontdraw true
             /includetext true
-            /height height 0.15 sub
+            /height height includetext { 0.15 sub } if
             /textxoffset addontextxoffset null ne {addontextxoffset} {95 addongap add} ifelse
             addontextyoffset null ne {/textyoffset addontextyoffset} if
             /textsize addontextsize null ne {addontextsize} {textsize} ifelse
@@ -244,8 +244,8 @@ begin
         addon length 5 eq {addon addopts //ean5 exec} if
         /addcode exch def
         /sbs [sbs aload pop addongap addcode (sbs) get aload pop] def
-        /bhs [bhs aload pop addcode (bhs) get {.075 sub} forall] def
-        /bbs [bbs aload pop addcode (bbs) get {.075 add} forall] def
+        /bhs [bhs aload pop addcode (bhs) get aload pop] def
+        /bbs [bbs aload pop addcode (bbs) get aload pop] def
         /txt [txt aload pop addcode (txt) get aload pop] def
         /guardrightypos height 72 mul 6 sub def
     } if
