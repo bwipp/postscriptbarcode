@@ -143,7 +143,7 @@ begin
 
         /latch_sequence [latch_a0 latch_a1 latch_b0 latch_b1 latch_c0 latch_c1] def
 
-        /state_priority [2 0 4 3 1 5] def % Configure encoder to conform with existing tests (baked in now)
+        /state_priority [2 0 4 3 1 5] def % Configure encoder to conform with existing tests
         /start_origin [0 0 2 2 4 4] def % Encoding starts in ASCII
         /start_length [1 1 1 1 1 1] def
         /start_code [103 0 104 0 105 0] def
@@ -185,13 +185,13 @@ begin
         suppressc unlatchextbeforec or {/can_c1 {false} def} if    % ..and C1 as required by options
 
         /get_optimal_origin {
-            optimal_length_n exch get add             /len exch def /org exch def
-            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
-            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
-            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
-            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
-            optimal_length_n exch get add     len lt {              /org exch def} {    pop} ifelse
-            org
+            optimal_length_n exch get add             /len exch def /o exch def
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add     len lt {              /o exch def} {    pop} ifelse
+            o
         } def
 
         /populate_tables {
@@ -212,26 +212,12 @@ begin
                 /optimal_origin_n optimal_origin n get def
                 /optimal_origin_c num_digits 2 ge {optimal_origin_2} {optimal_origin_1} ifelse def
                 /optimal_length_c num_digits 2 ge {optimal_length_2} {optimal_length_1} ifelse def
-                can_a {/o optimal_origin_1 0 get def
-                          optimal_length_n 0 optimal_length_1  o get
-                                               latch_length_a0 o get add out_a0 add put
-                       /o optimal_origin_1 1 get def
-                          optimal_length_n 1 optimal_length_1  o get
-                                               latch_length_a1 o get add out_a1 add put} if
-                can_b {/o optimal_origin_1 2 get def
-                          optimal_length_n 2 optimal_length_1  o get
-                                               latch_length_b0 o get add out_b0 add put
-                       /o optimal_origin_1 3 get def
-                          optimal_length_n 3 optimal_length_1  o get
-                                               latch_length_b1 o get add out_b1 add put} if
-                can_c0 {
-                       /o optimal_origin_c 4 get def
-                          optimal_length_n 4 optimal_length_c  o get
-                                               latch_length_c0 o get add 1 add put} if
-                can_c1 {
-                       /o optimal_origin_c 5 get def
-                          optimal_length_n 5 optimal_length_c  o get
-                                               latch_length_c1 o get add 1 add put} if
+                can_a  {optimal_length_n 0 /o optimal_origin_1 0 get def optimal_length_1 o get latch_length_a0 o get add out_a0 add put
+                        optimal_length_n 1 /o optimal_origin_1 1 get def optimal_length_1 o get latch_length_a1 o get add out_a1 add put} if
+                can_b  {optimal_length_n 2 /o optimal_origin_1 2 get def optimal_length_1 o get latch_length_b0 o get add out_b0 add put
+                        optimal_length_n 3 /o optimal_origin_1 3 get def optimal_length_1 o get latch_length_b1 o get add out_b1 add put} if
+                can_c0 {optimal_length_n 4 /o optimal_origin_c 4 get def optimal_length_c o get latch_length_c0 o get add      1 add put} if
+                can_c1 {optimal_length_n 5 /o optimal_origin_c 5 get def optimal_length_c o get latch_length_c1 o get add      1 add put} if
                 optimal_origin_n 0 prioritized_latch_length_a0 aload pop get_optimal_origin put
                 optimal_origin_n 1 prioritized_latch_length_a1 aload pop get_optimal_origin put
                 optimal_origin_n 2 prioritized_latch_length_b0 aload pop get_optimal_origin put
