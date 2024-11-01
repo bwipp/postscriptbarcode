@@ -134,112 +134,102 @@ begin
                          [(c)  (eec)(c)  (ddc)()   ()   ]      % C0
                          [(eec)(c)  (ddc)(c)  ()   ()   ]] def % C1
 
-        /latch_length   [[0    2    1    3    1    3    ]      % A0
-                         [2    0    3    1    3    1    ]      % A1
-                         [1    3    0    2    1    3    ]      % B0
-                         [3    1    2    0    3    1    ]      % B1
-                         [1    3    1    3    0    4    ]      % C0
-                         [3    1    3    1    4    0    ]] def % C1
+        /latch_length   [[  0    2    1    3    1    3  ]      % A0
+                         [  2    0    3    1    3    1  ]      % A1
+                         [  1    3    0    2    1    3  ]      % B0
+                         [  3    1    2    0    3    1  ]      % B1
+                         [  1    3    1    3    0    4  ]      % C0
+                         [  3    1    3    1    4    0  ]] def % C1
 
-        suppressc                      {latch_length 4 [9 9 9 9 9 9] put} if    % Suppress C0 and C1
-        suppressc unlatchextbeforec or {latch_length 5 [9 9 9 9 9 9] put} if    % as required by options
+        /state_priority  [  2    0    4    3    1    5  ]  def % Configure encoder to conform with existing tests (baked in now)
+        /start_origin    [  0    0    2    2    4    4  ]  def % Encoding starts in ASCII
+        /code_set        [seta seta setb setb setc setc ]  def
+        /start_code      [103    0  104    0  105    0  ]  def
 
-        /optimal_length [msg length {[6 {0} repeat]} repeat] def    % Shortest output ending in state
-        /optimal_origin [msg length {[6 {0} repeat]} repeat] def    % Optimal origin for latching state
+        /start_length 1 def % Make room for start code
+        /max_int 666 def    % Make sure state doesn't get picked
 
-        /code_range_is_extended           {state 1 and 1 eq} def
-        /code_set_is_b                    {state 2 and 2 eq} def
-        /code_set_is_c                    {state 4 and 4 eq} def
+        /optimal_length [msg length {[6 {max_int} repeat]} repeat] def
+        /optimal_origin [msg length {[6 {   0   } repeat]} repeat] def
 
-        /state_priority      [2    0    4    3    1    5   ] def    % Configure encoder to conform with existing tests
-        /start_origin        [0    0    2    2    4    4   ] def    % Encoding starts in ASCII
-        /code_set            [seta seta setb setb setc setc] def
-        /shift_code          [101  101  100  100    0    0 ] def
-        /start_code          [103    0  104    0  105    0 ] def
+        /can_a0 {c          0 ge {true} {seta c known} ifelse} def
+        /can_a1 {c          0 ge {true} {seta c known} ifelse} def
+        /can_b0 {c          0 ge {true} {setb c known} ifelse} def
+        /can_b1 {c          0 ge {true} {setb c known} ifelse} def
+        /can_c0 {num_digits 2 ge {true} {setc c known} ifelse} def
+        /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def
 
-        % Properties of input:
-        /in_code_range {128 lt code_range_is_extended xor} def          % must be < 256
-        /in_code_set {127 and code_set_is_b {32 ge} {96 lt} ifelse} def % must be < 256 and state must be A or B
-        /is_digit {dup 48 ge exch 57 le and} def
-        /is_double_digit {n 0 gt dup {pop msg n 1 sub get is_digit msg n get is_digit and} if} def
+        /int_c  {num_digits 2 ge {2} {1} ifelse} def
 
-        /get_output_length {{   % Common exit. Return 1-3; or 9 when an entry cannot be encoded.
-            c 0 lt {code_set state get c known {1} {9} ifelse exit} if
-            code_set_is_c {is_double_digit {1} {9} ifelse exit} if
-            1 c in_code_range not {1 add} if c in_code_set not {1 add} if exit
-        } loop} def
+        /out_a0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 96 ge {1 add} if} if} def
+        /out_a1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 96 ge {1 add} if} if} def
+        /out_b0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 32 lt {1 add} if} if} def
+        /out_b1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 32 lt {1 add} if} if} def
+
+        /map_ab {dup 32 lt {64 add} {32 sub} ifelse} def
+        /enc_a0 {1 [c 0 lt {seta c get} {c 128 ge {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_a1 {1 [c 0 lt {seta c get} {c 128 lt {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_b0 {1 [c 0 lt {setb c get} {c 128 ge {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_b1 {1 [c 0 lt {setb c get} {c 128 lt {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_c  {c 0 lt {1} {2} ifelse [c 0 lt {setc c get} {msg n 1 sub get 48 sub 10 mul msg n get 48 sub add} ifelse]} def
+
+        /viable [{can_a0} {can_a1} {can_b0} {can_b1} {can_c0} {can_c1}] def
+        /intake [{   1  } {   1  } {   1  } {   1  } {int_c } {int_c }] def
+        /output [{out_a0} {out_a1} {out_b0} {out_b1} {   1  } {   1  }] def
+        /encode [{enc_a0} {enc_a1} {enc_b0} {enc_b1} {enc_c } {enc_c }] def
+
+        suppressc                      {/can_c0 {false} def} if    % Suppress C0
+        suppressc unlatchextbeforec or {/can_c1 {false} def} if    % and C1 as required by options
 
         /get_optimal_length {
-            /state exch def
-            /m n state 4 and 0 ne {c_was_digit c_is_digit and {2} {1} ifelse} {1} ifelse sub def
-            /origin m 0 lt {start_origin} {optimal_origin m get} ifelse state get def
-                    m 0 lt {     1      } {optimal_length m get        origin get} ifelse
-            latch_length state get origin get add get_output_length add
+            viable state get exec {
+                /m n intake state get exec sub def
+                /o m 0 lt {start_origin} {optimal_origin m get} ifelse state get def
+                optimal_length_n state m 0 lt {start_length} {optimal_length m get o get} ifelse
+                    latch_length state get o get add output state get exec add put
+            } if
         } def
 
-        /add_length {dup dup optimal_length_n exch get exch latch_length_s exch get add} def
-        /get_optimal_origin_rolled {
-            /state exch def
-            /latch_length_s latch_length state get def
-            state_priority 0   get          add_length
-            state_priority 1 5 getinterval {add_length dup 3 index lt {4 2 roll} if pop pop} forall pop} def
-
         /get_optimal_origin {   % This improves performance but bakes in state_priority.
-            /latch_length_s exch latch_length exch get def
-            optimal_length_n 2 get latch_length_s 2 get add                /orglen exch def     2
-            optimal_length_n 0 get latch_length_s 0 get add dup orglen lt {/orglen exch def pop 0} {pop} ifelse
-            optimal_length_n 4 get latch_length_s 4 get add dup orglen lt {/orglen exch def pop 4} {pop} ifelse
-            optimal_length_n 3 get latch_length_s 3 get add dup orglen lt {/orglen exch def pop 3} {pop} ifelse
-            optimal_length_n 1 get latch_length_s 1 get add dup orglen lt {/orglen exch def pop 1} {pop} ifelse
-            optimal_length_n 5 get latch_length_s 5 get add dup orglen lt {/orglen exch def pop 5} {pop} ifelse} def
+            /latch_length_s latch_length state get def
+            optimal_length_n 2 get latch_length_s 2 get add             /len exch def     2
+            optimal_length_n 0 get latch_length_s 0 get add dup len lt {/len exch def pop 0} {pop} ifelse
+            optimal_length_n 4 get latch_length_s 4 get add dup len lt {/len exch def pop 4} {pop} ifelse
+            optimal_length_n 3 get latch_length_s 3 get add dup len lt {/len exch def pop 3} {pop} ifelse
+            optimal_length_n 1 get latch_length_s 1 get add dup len lt {/len exch def pop 1} {pop} ifelse
+            optimal_length_n 5 get latch_length_s 5 get add dup len lt {/len exch def pop 5} {pop} ifelse
+        } def
 
         /populate_tables {
-            /c_is_digit false def
+            /num_digits 0 def
             0 1 msg length 1 sub {
                 /n exch def
                 /c msg n get def
+                /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
                 /optimal_length_n optimal_length n get def
                 /optimal_origin_n optimal_origin n get def
-                /c_was_digit c_is_digit def
-                /c_is_digit c is_digit def
-                0 1 5 {optimal_length_n exch dup get_optimal_length put} for
-                0 1 5 {optimal_origin_n exch dup get_optimal_origin put} for
+                0 1 5 {/state exch def get_optimal_length} for
+                0 1 5 {/state exch def optimal_origin_n state get_optimal_origin put} for
             } for
         } def
 
-        /map_c {msg n 1 sub get 48 sub 10 mul msg n get 48 sub add} def
-        /shift_code_range {c in_code_range not {shift_code state get} if} def
-        /shift_code_set   {c in_code_set   not {         98         } if} def
-        /map_a_and_b {c 127 and dup 32 lt {64 add} {32 sub} ifelse} def
-
-        /get_output {{  % Common exit
-            /c msg n get def
-            c 0 lt {[code_set state get c get] exit} if
-            code_set_is_c {[map_c] exit} if
-            [shift_code_range shift_code_set map_a_and_b]
-            exit
-        } loop} def
-
-        /get_latch {[latch_sequence state get origin get {} forall]} def % Convert string to array
-
-        /backtrack {    % Travel the path in the opposite direction to yield the optimal encoding
-            /n msg length 1 sub def             % Start from the end
-            /stage optimal_length n get def
+        /backtrack {
+            /n msg length 1 sub def
+            /optimal_length_n optimal_length n get def
             /state state_priority 0 get def
-            /len stage state get def            % Get output length
-            state_priority 1 5 getinterval {    % Get start state
-                dup stage exch get dup len lt
+            /len optimal_length_n state get def
+            state_priority 1 5 getinterval {
+                dup optimal_length_n exch get dup len lt
                 {/len exch def /state exch def} {pop pop} ifelse
             } forall
-            len array { % Put output array on the stack and iterate
+            len array {
                 n 0 lt {exit} if
-                /output get_output def
-                /n n code_set_is_c {is_double_digit {2} {1} ifelse} {1} ifelse sub def
-                /origin n 0 lt {start_origin} {optimal_origin n get} ifelse state get def
-                /orglen n 0 lt {     1      } {optimal_length n get        origin get} ifelse def
-                /latch get_latch def
-                /state origin def
-                dup orglen latch 3 copy putinterval length add output putinterval
+                /c msg n get def
+                encode state get exec /enc exch def n exch sub /n exch def
+                /latch_sequence_s latch_sequence state get def
+                /state n 0 lt {start_origin} {optimal_origin n get} ifelse state get def
+                dup n 0 lt {start_length} {optimal_length n get state get} ifelse
+                    [latch_sequence_s state get {} forall] 3 copy putinterval length add enc putinterval
             } loop
             dup 0 start_code state get put
         } def
