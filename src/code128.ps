@@ -62,6 +62,8 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /unlatchextbeforec false def    % Suppress extended ASCII with code set C
+    /suppressc false def            % Suppress code set C
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -82,7 +84,6 @@ begin
         /parse parse
         /parsefnc parsefnc
         (FNC1) fn1
-        (FNC1) fn1
         (FNC2) fn2
         (FNC3) fn3
 %        (FNC4) fn4    Not user accessible as encoded automatically
@@ -93,67 +94,11 @@ begin
     /msglen msg length def
 
     % Character maps for each state
-{
-    /charmaps [
-      %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
-      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
-      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
-      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
-      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
-      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
-      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
-      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
-      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
-      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
-      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
-      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
-      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
-      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
-      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
-      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
-      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
-      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
-      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
-      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
-      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
-      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
-      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
-      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
-      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
-      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
-      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
-      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
-      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
-      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
-      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
-      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
-      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sft  sft  (98) ]  % 96-98
-      [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
-      [ fn1  fn1  fn1  ]  [ sta  sta  sta  ]  [ stb  stb  stb  ]  % 102-104
-      [ stc  stc  stc  ]  [ stp  stp  stp  ]                      % 105-106
-    ] def
-
-    % Invert charmaps to give character to value maps for each state
-    /charvals [ 109 dict 109 dict 109 dict ] def
-    0 1 charmaps length 1 sub {
-        /i exch def
-        /encs charmaps i get def
-        0 1 2 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put
-        } for
-    } for
-    /seta charvals 0 get def
-    /setb charvals 1 get def
-    /setc charvals 2 get def
+{   % Include pseudo characters for GS1-128 Composite linkage identifiers -----------------here--v--and--v
+    /seta <<fn3 96 fn2 97 sft 98 swc 99 swb 100 fn4 101 fn1 102 sta 103 stb 104 stc 105 stp 106 lka 100 lkc  99>> def
+    /setb <<fn3 96 fn2 97 sft 98 swc 99 fn4 100 swa 101 fn1 102 sta 103 stb 104 stc 105 stp 106 lka  99 lkc 101>> def
+    /setc <<                            swb 100 swa 101 fn1 102 sta 103 stb 104 stc 105 stp 106 lka 101 lkc 100>> def
 } ctxdef
-
-    % Include pseudo characters for GS1-128 Composite linkage identifiers
-    seta lka seta swb get put  seta lkc seta swc get put
-    setb lka setb swc get put  setb lkc setb swa get put
-    setc lka setc swa get put  setc lkc setc swb get put
 
     raw {/encoding (raw) def} if
 
@@ -179,222 +124,133 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        % Standard and extended ASCII runlength at position
-        /numSA [ msglen {0} repeat 0 ] def
-        /numEA [ msglen {0} repeat 0 ] def
-        msglen 1 sub -1 0 {
-            /i exch def
-            msg i get 0 ge {
-                msg i get 128 ge {
-                    numEA i numEA i 1 add get 1 add put
-                } {
-                    numSA i numSA i 1 add get 1 add put
-                } ifelse
-            } if
-        } for
+        50 dict begin
+        %                       Origin
+        %          A0    A1    B0    B1    C0     C1
+        /latch_a0 [()    (ee)  (e)   (eee) (e)    (eee) ] def
+        /latch_a1 [(ee)  ()    (eee) (e)   (eee)  (e)   ] def
+        /latch_b0 [(d)   (ddd) ()    (dd)  (d)    (ddd) ] def
+        /latch_b1 [(ddd) (d)   (dd)  ()    (ddd)  (d)   ] def
+        /latch_c0 [(c)   (eec) (c)   (ddc) ()     (dddc)] def
+        /latch_c1 [(eec) (c)   (ddc) (c)   (dddc) ()    ] def
 
-        % FNC4 codeword insertion for extended ASCII
-        /ea false def /msgtmp [] def
-        0 1 msglen 1 sub {
-            /i exch def
-            /c msg i get def
-            ea c 128 lt xor not c 0 ge and {  % Other mode required
-                ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
-                i add msglen eq {3} {5} ifelse       % Does run terminate symbol
-                lt {  % Shift
-                    /msgtmp [ msgtmp aload pop fn4 ] def
-                } {   % Latch
-                    /msgtmp [ msgtmp aload pop fn4 fn4 ] def
-                    /ea ea not def
-                } ifelse
-            } if
-            /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
-        } for
-        /msg msgtmp def
-        /msglen msg length def
+        /latch_length_a0 [latch_a0 {length} forall] def
+        /latch_length_a1 [latch_a1 {length} forall] def
+        /latch_length_b0 [latch_b0 {length} forall] def
+        /latch_length_b1 [latch_b1 {length} forall] def
+        /latch_length_c0 [latch_c0 {length} forall] def
+        /latch_length_c1 [latch_c1 {length} forall] def
 
-        % Determine digit runlength from given position
-        /numsscr {
-            /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                dup -1 le {
-                    % FNC1 in odd position of run like two digits
-                    fn1 eq s 2 mod 0 eq and {/s s 1 add def} {exit} ifelse
-                } {
-                    pop
-                } ifelse
-                /s s 1 add def
-                /p p 1 add def
+        /latch_sequence [latch_a0 latch_a1 latch_b0 latch_b1 latch_c0 latch_c1] def
+
+        /state_priority [2 0 4 3 1 5] def % Configure encoder to conform with existing tests
+        /start_origin [0 0 2 2 4 4] def % Encoding starts in ASCII
+        /start_length [1 1 1 1 1 1] def
+        /start_code [103 0 104 0 105 0] def
+
+        /reverse_priority [[5 4 3 2 1 0] {state_priority exch get} forall] def
+        /prioritized_latch_length_a0 [reverse_priority {dup dup latch_length_a0 exch get exch} forall] def
+        /prioritized_latch_length_a1 [reverse_priority {dup dup latch_length_a1 exch get exch} forall] def
+        /prioritized_latch_length_b0 [reverse_priority {dup dup latch_length_b0 exch get exch} forall] def
+        /prioritized_latch_length_b1 [reverse_priority {dup dup latch_length_b1 exch get exch} forall] def
+        /prioritized_latch_length_c0 [reverse_priority {dup dup latch_length_c0 exch get exch} forall] def
+        /prioritized_latch_length_c1 [reverse_priority {dup dup latch_length_c1 exch get exch} forall] def
+
+        /max_int 666 def    % Make sure state doesn't get picked
+
+        /optimal_length [msg length {[6 {max_int} repeat]} repeat] def
+        /optimal_origin [msg length {[6 {   0   } repeat]} repeat] def
+
+        /can_a  {c          0 ge {true} {seta c known} ifelse} def
+        /can_b  {c          0 ge {true} {setb c known} ifelse} def
+        /can_c0 {num_digits 2 ge {true} {setc c known} ifelse} def
+        /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def
+
+        /out_a0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 96 ge {1 add} if} if} def
+        /out_a1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 96 ge {1 add} if} if} def
+        /out_b0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 32 lt {1 add} if} if} def
+        /out_b1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 32 lt {1 add} if} if} def
+
+        /map_ab {dup 32 lt {64 add} {32 sub} ifelse} def
+        /enc_a0 {1 [c 0 lt {seta c get} {c 128 ge {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_a1 {1 [c 0 lt {seta c get} {c 128 lt {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_b0 {1 [c 0 lt {setb c get} {c 128 ge {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_b1 {1 [c 0 lt {setb c get} {c 128 lt {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_c  {c 0 lt {1} {2} ifelse [c 0 lt {setc c get}
+                                        {msg n 1 sub get 48 sub 10 mul msg n get 48 sub add} ifelse]} def
+
+        /encode [{enc_a0} {enc_a1} {enc_b0} {enc_b1} {enc_c } {enc_c }] def
+
+        suppressc                      {/can_c0 {false} def} if    % Suppress C0..
+        suppressc unlatchextbeforec or {/can_c1 {false} def} if    % ..and C1 as required by options
+
+        /get_optimal_origin {
+            optimal_length_n exch get add             /len exch def /o exch def
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
+            optimal_length_n exch get add     len lt {              /o exch def} {    pop} ifelse
+            o
+        } def
+
+        /populate_tables {
+            /num_digits 0 def
+            /optimal_origin_n start_origin def
+            /optimal_origin_1 start_origin def
+            /optimal_length_n start_length def
+            /optimal_length_1 start_length def
+            0 1 msg length 1 sub {
+                /n exch def
+                /c msg n get def
+                /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
+                /optimal_length_2 optimal_length_1 def
+                /optimal_length_1 optimal_length_n def
+                /optimal_length_n optimal_length n get def
+                /optimal_origin_2 optimal_origin_1 def
+                /optimal_origin_1 optimal_origin_n def
+                /optimal_origin_n optimal_origin n get def
+                /optimal_origin_c num_digits 2 ge {optimal_origin_2} {optimal_origin_1} ifelse def
+                /optimal_length_c num_digits 2 ge {optimal_length_2} {optimal_length_1} ifelse def
+                can_a  {optimal_length_n 0 /o optimal_origin_1 0 get def optimal_length_1 o get latch_length_a0 o get add out_a0 add put
+                        optimal_length_n 1 /o optimal_origin_1 1 get def optimal_length_1 o get latch_length_a1 o get add out_a1 add put} if
+                can_b  {optimal_length_n 2 /o optimal_origin_1 2 get def optimal_length_1 o get latch_length_b0 o get add out_b0 add put
+                        optimal_length_n 3 /o optimal_origin_1 3 get def optimal_length_1 o get latch_length_b1 o get add out_b1 add put} if
+                can_c0 {optimal_length_n 4 /o optimal_origin_c 4 get def optimal_length_c o get latch_length_c0 o get add      1 add put} if
+                can_c1 {optimal_length_n 5 /o optimal_origin_c 5 get def optimal_length_c o get latch_length_c1 o get add      1 add put} if
+                optimal_origin_n 0 prioritized_latch_length_a0 aload pop get_optimal_origin put
+                optimal_origin_n 1 prioritized_latch_length_a1 aload pop get_optimal_origin put
+                optimal_origin_n 2 prioritized_latch_length_b0 aload pop get_optimal_origin put
+                optimal_origin_n 3 prioritized_latch_length_b1 aload pop get_optimal_origin put
+                optimal_origin_n 4 prioritized_latch_length_c0 aload pop get_optimal_origin put
+                optimal_origin_n 5 prioritized_latch_length_c1 aload pop get_optimal_origin put
+            } for
+        } def
+
+        /backtrack {
+            /n msg length 1 sub def
+            /optimal_length_n optimal_length n get def
+            /state state_priority 0 get def
+            /len optimal_length_n state get def
+            state_priority 1 5 getinterval {
+                dup optimal_length_n exch get dup len lt
+                {/len exch def /state exch def} {pop pop} ifelse
+            } forall
+            len array {
+                n 0 lt {exit} if
+                /c msg n get def
+                encode state get exec /enc exch def n exch sub /n exch def
+                /latch_sequence_s latch_sequence state get def
+                /state n 0 lt {start_origin} {optimal_origin n get} ifelse state get def
+                dup    n 0 lt {start_length} {optimal_length n get} ifelse state get
+                    [latch_sequence_s state get {} forall] 3 copy putinterval length add enc putinterval
             } loop
-            s
+            dup 0 start_code state get put
         } def
 
-        % Encoding for each alphabet
-        /enca {
-            seta exch get cws exch j exch put
-            /j j 1 add def
-        } def
-        /encb {
-            setb exch get cws exch j exch put
-            /j j 1 add def
-        } def
-        /encc {
-            dup type /arraytype ne {
-                setc exch get
-            } {
-                aload pop 48 sub exch 48 sub 10 mul add
-            } ifelse
-            cws exch j exch put
-            /j j 1 add def
-        } def
-
-        % Character exclusively in either alphabet A or B
-        /anotb {dup seta exch known exch setb exch known not and} def
-        /bnota {dup setb exch known exch seta exch known not and} def
-
-        % Pre-compute relative position of next anotb and next bnota characters
-        /nextanotb [ msg length {0} repeat 9999 ] def
-        /nextbnota [ msg length {0} repeat 9999 ] def
-        msg length 1 sub -1 0 {
-            /i exch def
-            msg i get anotb {
-                nextanotb i 0 put
-            } {
-                nextanotb i nextanotb i 1 add get 1 add put
-            } ifelse
-            msg i get bnota {
-                nextbnota i 0 put
-            } {
-                nextbnota i nextbnota i 1 add get 1 add put
-            } ifelse
-        } for
-
-        % Does a-only come before b-only after given position and vice versa
-        /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
-        /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
-
-        /cws barcode length 2 mul 3 add array def
-
-        % Select start character
-        /j 0 def
-        msglen 0 gt {0 numsscr} {-1} ifelse /nums exch def
-        {  % common exit
-            msglen 0 eq {
-                stb enca
-                /cset (setb) def
-                exit
-            } if
-            msglen 2 eq nums 2 eq and {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            nums 4 ge {
-                stc enca
-                /cset (setc) def
-                exit
-            } if
-            0 abeforeb {
-                sta enca
-                /cset (seta) def
-                exit
-            } if
-            stb enca
-            /cset (setb) def
-            exit
-        } loop
-
-        % Main encoding loop
-        /i 0 def {
-            i msglen eq {exit} if
-
-            i numsscr /nums exch def
-
-            % Determine switches and shifts
-            {  % common exit
-                cset (seta) eq cset (setb) eq or nums 4 ge and
-                msg i get fn1 ne and {
-                    nums 2 mod 0 eq {
-                        swc cset (seta) eq {enca} {encb} ifelse
-                        /cset (setc) def
-                        exit
-                    } {
-                        msg i get cset (seta) eq {enca} {encb} ifelse
-                        /i i 1 add def
-                        i numsscr 4 ge {
-                            swc cset (seta) eq {enca} {encb} ifelse
-                            /cset (setc) def
-                            exit
-                       } if
-                    } ifelse
-                } if
-                cset (setb) eq msg i get anotb and {
-                    i msglen 1 sub lt {
-                        i 1 add bbeforea {
-                            sft encb
-                            msg i get enca
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
-                    swa encb
-                    /cset (seta) def
-                    exit
-                } if
-                cset (seta) eq msg i get bnota and {
-                    i msglen 1 sub lt {
-                        i 1 add abeforeb {
-                            sft enca
-                            msg i get encb
-                            /i i 1 add def
-                            exit
-                        } if
-                    } if
-                    swb enca
-                    /cset (setb) def
-                    exit
-                } if
-                cset (setc) eq nums 2 lt and msg i get -1 gt msg i get fn4 eq or and {
-                    i abeforeb {
-                        swa encc
-                        /cset (seta) def
-                        exit
-                    } if
-                    swb encc
-                    /cset (setb) def
-                    exit
-                } if
-
-                % No switches or latches so encode
-                cset (seta) eq {
-                    msg i get enca
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setb) eq {
-                    msg i get encb
-                    /i i 1 add def
-                    exit
-                } if
-                cset (setc) eq {
-                    msg i get -1 le {
-                        msg i get encc
-                        /i i 1 add def
-                    } {
-                        msg i 2 getinterval encc
-                        /i i 2 add def
-                    } ifelse
-                    exit
-                } if
-
-                exit
-            } loop
-
-        } loop
-        /cws cws 0 j getinterval def
+        populate_tables backtrack
+        end
+        /cws exch def /j cws length def
     } if  % auto encoding
 
     % Derive checksum and place stop character
