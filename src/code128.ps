@@ -176,6 +176,16 @@ begin
         suppressc                      {/can_c0 {false} def} if    % Suppress C0..
         suppressc unlatchextbeforec or {/can_c1 {false} def} if    % ..and C1 as required by options
 
+        /get_optimal_origin {
+            optimal_length_n 2 get add             /len exch def /org 2 def
+            optimal_length_n 0 get add dup len lt {/len exch def /org 0 def} {pop} ifelse
+            optimal_length_n 4 get add dup len lt {/len exch def /org 4 def} {pop} ifelse
+            optimal_length_n 3 get add dup len lt {/len exch def /org 3 def} {pop} ifelse
+            optimal_length_n 1 get add dup len lt {/len exch def /org 1 def} {pop} ifelse
+            optimal_length_n 5 get add     len lt {              /org 5 def}       if
+            org
+        } def
+
         /populate_tables {
             /num_digits 0 def
             /optimal_origin_n start_origin def
@@ -214,48 +224,12 @@ begin
                        /o optimal_origin_c 5 get def
                           optimal_length_n 5 optimal_length_c  o get
                                                latch_length_c1 o get add 1 add put} if
-                optimal_length_n 2 get 1 add                 /org 2 def
-                optimal_length_n 0 get       2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get 1 add 2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get 3 add 2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get 2 add 2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get 3 add        gt {     /org 5 def} if
-                optimal_origin_n 0 org put
-                optimal_length_n 2 get 3 add                 /org 2 def
-                optimal_length_n 0 get 2 add 2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get 3 add 2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get 1 add 2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get       2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get 1 add        gt {     /org 5 def} if
-                optimal_origin_n 1 org put
-                optimal_length_n 2 get                       /org 2 def
-                optimal_length_n 0 get 1 add 2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get 1 add 2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get 2 add 2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get 3 add 2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get 3 add        gt {     /org 5 def} if
-                optimal_origin_n 2 org put
-                optimal_length_n 2 get 2 add                 /org 2 def
-                optimal_length_n 0 get 3 add 2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get 3 add 2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get       2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get 1 add 2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get 1 add        gt {     /org 5 def} if
-                optimal_origin_n 3 org put
-                optimal_length_n 2 get 1 add                 /org 2 def
-                optimal_length_n 0 get 1 add 2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get       2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get 3 add 2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get 3 add 2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get 4 add        gt {     /org 5 def} if
-                optimal_origin_n 4 org put
-                optimal_length_n 2 get 3 add                 /org 2 def
-                optimal_length_n 0 get 3 add 2 copy gt {exch /org 0 def} if pop
-                optimal_length_n 4 get 4 add 2 copy gt {exch /org 4 def} if pop
-                optimal_length_n 3 get 1 add 2 copy gt {exch /org 3 def} if pop
-                optimal_length_n 1 get 1 add 2 copy gt {exch /org 1 def} if pop
-                optimal_length_n 5 get              gt {     /org 5 def} if
-                optimal_origin_n 5 org put
+                optimal_origin_n 0 3 2 3 1 0 1 get_optimal_origin put
+                optimal_origin_n 1 1 0 1 3 2 3 get_optimal_origin put
+                optimal_origin_n 2 3 3 2 1 1 0 get_optimal_origin put
+                optimal_origin_n 3 1 1 0 3 3 2 get_optimal_origin put
+                optimal_origin_n 4 4 3 3 0 1 1 get_optimal_origin put
+                optimal_origin_n 5 0 1 1 4 3 3 get_optimal_origin put
             } for
         } def
 
