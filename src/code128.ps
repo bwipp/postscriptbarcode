@@ -148,6 +148,14 @@ begin
         /start_length [1 1 1 1 1 1] def
         /start_code [103 0 104 0 105 0] def
 
+        /reverse_priority [[5 4 3 2 1 0] {state_priority exch get} forall] def
+        /prioritized_latch_length_a0 [reverse_priority {dup dup latch_length_a0 exch get exch} forall] def
+        /prioritized_latch_length_a1 [reverse_priority {dup dup latch_length_a1 exch get exch} forall] def
+        /prioritized_latch_length_b0 [reverse_priority {dup dup latch_length_b0 exch get exch} forall] def
+        /prioritized_latch_length_b1 [reverse_priority {dup dup latch_length_b1 exch get exch} forall] def
+        /prioritized_latch_length_c0 [reverse_priority {dup dup latch_length_c0 exch get exch} forall] def
+        /prioritized_latch_length_c1 [reverse_priority {dup dup latch_length_c1 exch get exch} forall] def
+
         /max_int 666 def    % Make sure state doesn't get picked
 
         /optimal_length [msg length {[6 {max_int} repeat]} repeat] def
@@ -177,12 +185,12 @@ begin
         suppressc unlatchextbeforec or {/can_c1 {false} def} if    % ..and C1 as required by options
 
         /get_optimal_origin {
-            optimal_length_n 2 get add             /len exch def /org 2 def
-            optimal_length_n 0 get add dup len lt {/len exch def /org 0 def} {pop} ifelse
-            optimal_length_n 4 get add dup len lt {/len exch def /org 4 def} {pop} ifelse
-            optimal_length_n 3 get add dup len lt {/len exch def /org 3 def} {pop} ifelse
-            optimal_length_n 1 get add dup len lt {/len exch def /org 1 def} {pop} ifelse
-            optimal_length_n 5 get add     len lt {              /org 5 def}       if
+            optimal_length_n exch get add             /len exch def /org exch def
+            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
+            optimal_length_n exch get add dup len lt {/len exch def /org exch def} {pop pop} ifelse
+            optimal_length_n exch get add     len lt {              /org exch def} {    pop} ifelse
             org
         } def
 
@@ -224,12 +232,12 @@ begin
                        /o optimal_origin_c 5 get def
                           optimal_length_n 5 optimal_length_c  o get
                                                latch_length_c1 o get add 1 add put} if
-                optimal_origin_n 0 3 2 3 1 0 1 get_optimal_origin put
-                optimal_origin_n 1 1 0 1 3 2 3 get_optimal_origin put
-                optimal_origin_n 2 3 3 2 1 1 0 get_optimal_origin put
-                optimal_origin_n 3 1 1 0 3 3 2 get_optimal_origin put
-                optimal_origin_n 4 4 3 3 0 1 1 get_optimal_origin put
-                optimal_origin_n 5 0 1 1 4 3 3 get_optimal_origin put
+                optimal_origin_n 0 prioritized_latch_length_a0 aload pop get_optimal_origin put
+                optimal_origin_n 1 prioritized_latch_length_a1 aload pop get_optimal_origin put
+                optimal_origin_n 2 prioritized_latch_length_b0 aload pop get_optimal_origin put
+                optimal_origin_n 3 prioritized_latch_length_b1 aload pop get_optimal_origin put
+                optimal_origin_n 4 prioritized_latch_length_c0 aload pop get_optimal_origin put
+                optimal_origin_n 5 prioritized_latch_length_c1 aload pop get_optimal_origin put
             } for
         } def
 
