@@ -56,8 +56,8 @@ begin
     /textxoffset 0.0 def
     /textyoffset -7.0 def
     /height 1.0 def
-    /encoding (auto) def
     /raw false def
+    /newencoder false def
     /parse false def
     /parsefnc false def
 
@@ -90,7 +90,25 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
-    % Character maps for each state
+    /encoding (legacy) def
+    newencoder {/encoding (new) def} if
+    raw {/encoding (raw) def} if
+
+    encoding (raw) eq {
+        /cws barcode length array def
+        /i 0 def /j 0 def
+        { % loop
+            i barcode length eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            cws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /cws cws 0 j getinterval def
+        /text () def
+    } if
+
+    % Character maps for each state, used by the legacy encoder
 {
     /charmaps [
       %  A    B    C         A    B    C         A    B    C
@@ -143,33 +161,14 @@ begin
             charvals j get exch i put
         } for
     } for
-    /seta charvals 0 get def
-    /setb charvals 1 get def
-    /setc charvals 2 get def
 } ctxdef
 
-    % Include pseudo characters for GS1-128 Composite linkage identifiers
-    seta lka seta swb get put  seta lkc seta swc get put
-    setb lka setb swc get put  setb lkc setb swa get put
-    setc lka setc swa get put  setc lkc setc swb get put
+    encoding (legacy) eq {
 
-    raw {/encoding (raw) def} if
-
-    encoding (raw) eq {
-        /cws barcode length array def
-        /i 0 def /j 0 def
-        { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
-            cws j cw put
-            /i i 4 add def
-            /j j 1 add def
-        } loop
-        /cws cws 0 j getinterval def
-        /text () def
-    } if
-
-    encoding (auto) eq {
+        % Include pseudo characters for GS1-128 Composite linkage identifiers
+        /seta charvals 0 get def  seta lka seta swb get put  seta lkc seta swc get put
+        /setb charvals 1 get def  setb lka setb swc get put  setb lkc setb swa get put
+        /setc charvals 2 get def  setc lka setc swa get put  setc lkc setc swb get put
 
         /text msglen string def
         0 1 msglen 1 sub {
@@ -393,9 +392,15 @@ begin
 
         } loop
         /cws cws 0 j getinterval def
+
+    } if  % legacy encoder
+
+    encoding (new) eq {
+
     } if  % auto encoding
 
     % Derive checksum and place stop character
+    /j cws length def
     /cws j 2 add array dup 0 cws putinterval def
     /csum cws 0 get def
     1 1 j 1 sub {
