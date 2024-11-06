@@ -1,0 +1,206 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER msi--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear--
+% --DESC: MSI Modified Plessey
+% --EXAM: 0123456789
+% --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/msi {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+    /includecheck false def  % Enable/disable checkdigit
+    /includetext false def   % Enable/disable text
+    /includecheckintext false def
+    /checktype (unset) def
+    /badmod11 false def
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /height 1.0 def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    checktype (unset) ne includecheck not and {
+        /bwipp.msiCheckTypeWithoutCheck (checktype requires includecheck) //raiseerror exec
+    } if
+
+    badmod11 checktype (mod11) ne checktype (ncrmod11) ne and checktype (mod1110) ne and checktype (ncrmod1110) ne and and {
+        /bwipp.msiBadMod11Mismatch (badmod11 requires checktype with mod11) //raiseerror exec
+    } if
+
+    checktype (unset) eq { /checktype (mod10) def } if
+
+    /msi //loadctx exec
+
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.msiBadCharacter (MSI must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+{
+    % Create an array containing the character mappings
+    /encs
+    [ (12121212) (12121221) (12122112) (12122121) (12211212)
+      (12211221) (12212112) (12212121) (21121212) (21121221)
+      (21) (121)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (0123456789) def
+} ctxdef
+
+    /barlen barcode length def     % Length of the code
+    /txtlen barlen def
+
+    /mod10 {
+        /code exch def
+        0 0 code {48 sub exch 10 mul add exch} forall pop 2 mul
+        0 {1 index 10 mod add exch 10 idiv dup 0 eq {pop exit} if exch} loop
+        0 0 code {48 sub add exch} forall exch pop add
+        10 mod 10 exch sub 10 mod
+        code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+    } def
+
+    /mod11 {
+        /code exch def
+        code length 1 sub code {48 sub exch dup 1 sub exch 6 mod 2 add exch} forall pop
+        0 code length {3 1 roll mul add} repeat
+        11 mod 11 exch sub 11 mod
+        dup 10 eq {
+            badmod11 {
+                pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
+            } {
+                pop /bwipp.msiBadMod11NotSpecified (mod11 check digit is 10 but badmod11 not specified) //raiseerror exec
+            } ifelse
+        } {
+            code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+        } ifelse
+    } def
+
+    /ncrmod11 {
+        /code exch def
+        code length 1 sub code {48 sub exch dup 1 sub exch 8 mod 2 add exch} forall pop
+        0 code length {3 1 roll mul add} repeat
+        11 mod 11 exch sub 11 mod
+        dup 10 eq {
+            badmod11 {
+                pop code length 2 add string dup 0 code putinterval dup code length (10) putinterval
+            } {
+                pop /bwipp.msiBadMod11NotSpecified (mod11 check digit is 10 but badmod11 not specified) //raiseerror exec
+            } ifelse
+        } {
+            code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
+        } ifelse
+    } def
+
+{
+    /checkfunc <<
+        /mod10      { mod10 }
+        /mod1010    { mod10 mod10 }
+        /mod11      { mod11 }
+        /ncrmod11   { ncrmod11 }
+        /mod1110    { mod11 mod10 }
+        /ncrmod1110 { ncrmod11 mod10 }
+    >> def
+} ctxdef
+
+    % Calculate checksum
+    includecheck {
+        checkfunc checktype 2 copy known not {
+            pop pop /bwipp.msiBadCharacter (MSI checktype must be mod10, mod1010, mod11, ncrmod11, mod1110 or ncrmod1110) //raiseerror exec
+        } if
+        get barcode exch exec /barcode exch def
+        /barlen barcode length def
+        includecheckintext {/txtlen barlen def} if
+    } if
+
+    /sbs barlen 8 mul 5 add string def
+    /txt barlen array def
+
+    % Put start character
+    sbs 0 encs 10 get putinterval
+
+    0 1 barlen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                % Discard true leaving pre
+        length /indx exch def              % indx is the length of pre
+        pop pop                            % Discard seek and post
+        /enc encs indx get def             % Get the indxth encoding
+        sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 12 mul 3 add textyoffset textfont textsize] put
+    } for
+
+    % Put the end character
+    sbs barlen 8 mul 2 add encs 11 get putinterval
+
+    % Return the arguments
+    <<
+    /ren /renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt txt 0 txtlen getinterval
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/msi dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER msi--

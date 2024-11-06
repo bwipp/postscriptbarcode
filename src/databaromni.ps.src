@@ -1,0 +1,493 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER databaromni--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear renmatrix--
+% --DESC: GS1 DataBar Omnidirectional
+% --EXAM: (01)09521234543213
+% --EXOP:
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+20 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/databaromni {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /height 33.0 72 div def
+    /linkage false def
+    /format (omni) def
+    /barxmult 33 def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    barcode length 17 ne barcode length 18 ne and {
+        /bwipp.databaromniBadLength (GS1 DataBar Omnidirectional must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databaromniBadAI (GS1 DataBar Omnidirectional must begin with (01) application identifier) //raiseerror exec
+    } if
+    barcode 4 barcode length 4 sub getinterval {
+        dup 48 lt exch 57 gt or {
+            /bwipp.databaromniBadCharacter (GS1 DataBar Omnidirectional must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    barxmult 33 lt {
+        /bwipp.databarStackedOmniBarXmult (GS1 DataBar Stacked Omnidirectional must have a barxmult of at least 33) //raiseerror exec
+    } if
+
+    format (omni) ne format (stacked) ne and format (stackedomni) ne and format (truncated) ne and {
+        /bwipp.databaromniBadFormat (Valid formats are omni, stacked, stackedomni and truncated) //raiseerror exec
+    } if
+
+    format (truncated) eq {/height 13.0 72 div def} if
+
+    /databaromni //loadctx exec
+
+    % Calculate checksum and add to end of barcode
+    /checksum 0 def
+    0 1 12 {
+        /i exch def
+        /checksum checksum barcode i 4 add get 48 sub i 2 mod 0 eq {3 mul} if add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    barcode length 18 eq {
+        barcode 17 get checksum 48 add ne {
+            /bwipp.databaromniBadCheckDigit (Incorrect GS1 DataBar Omnidirectional check digit provided) //raiseerror exec
+        } if
+    } if
+    18 string
+    dup 0 barcode putinterval
+    dup 17 checksum 48 add put
+    /barcode exch def
+
+    % Create the human readable text
+    /txt barcode length array def
+    0 1 barcode length 1 sub {
+        /i exch def
+        txt i [barcode i 1 getinterval 0 0 () 0] put
+    } for
+
+    /ncr {  % n r
+        2 copy sub 2 copy lt {exch} if  % n r maxd mind
+        1 1 5 3 roll  % mind j=1 v=1 n maxd
+        1 add -1 exch {  % mind j v  n -1 maxd+1
+            mul  % mind j v*i
+            1 index 3 index le {
+                1 index idiv exch 1 add exch
+            } if
+        } for
+        {  % mind j v
+            1 index 3 index gt {exit} if
+            1 index idiv exch 1 add exch
+        } loop
+        exch pop exch pop
+    } def
+
+    /getRSSwidths {
+        /oe exch def
+        /el exch def
+        /mw exch def
+        /nm exch def
+        /val exch def
+        /out el array def
+        /mask 0 def
+        0 1 el 2 sub {
+            /bar exch def
+            /ew 1 def
+            /mask mask 1 bar bitshift or def {
+                /sval nm ew sub 1 sub el bar sub 2 sub ncr def
+                oe mask 0 eq and nm ew sub el 2 mul sub bar 2 mul add -2 ge and {
+                    /sval sval nm ew sub el sub bar add el bar sub 2 sub ncr sub def
+                } if
+                el bar sub 2 gt {
+                    /lval 0 def
+                    nm ew sub el sub bar add 2 add -1 mw 1 add {
+                        nm exch sub ew sub 1 sub el bar sub 3 sub ncr
+                        /lval exch lval add def
+                    } for
+                    /sval sval lval el bar sub 1 sub mul sub def
+                } {
+                    nm ew sub mw gt {/sval sval 1 sub def} if
+                } ifelse
+                /val val sval sub def
+                val 0 lt {exit} if
+                /ew ew 1 add def
+                /mask mask 1 bar bitshift not and def
+            } loop
+            /val val sval add def
+            /nm nm ew sub def
+            out bar ew put
+        } for
+        out el 1 sub nm put
+        out
+    } def
+
+    /binval [
+        linkage {1} {0} ifelse
+        barcode 4 13 getinterval {48 sub} forall
+    ] def
+
+    0 1 12 {
+        /i exch def
+        binval i 1 add 2 copy get binval i get 4537077 mod 10 mul add put
+        binval i binval i get 4537077 idiv put
+    } for
+    /right binval 13 get 4537077 mod def
+    binval 13 2 copy get 4537077 idiv put
+
+    /left 0 def
+    /i true def
+    0 1 13 {
+        /j exch def
+        binval j get
+        dup 0 eq i and {
+            pop
+        } {
+            /i false def
+            /left left 3 -1 roll 10 13 j sub exp cvi mul add def
+        } ifelse
+    } for
+
+    /d1 left 1597 idiv def
+    /d2 left 1597 mod def
+    /d3 right 1597 idiv def
+    /d4 right 1597 mod def
+
+{
+    /tab164 [
+        160   0     12 4   8 1  161   1
+        960   161   10 6   6 3  80   10
+        2014  961   8  8   4 5  31   34
+        2714  2015  6  10  3 6  10   70
+        2840  2715  4  12  1 8  1    126
+    ] def
+
+    /tab154 [
+        335   0     5  10  2 7  4   84
+        1035  336   7  8   4 5  20  35
+        1515  1036  9  6   6 3  48  10
+        1596  1516  11 4   8 1  81  1
+    ] def
+} ctxdef
+
+    /i 0 def {
+        d1 tab164 i get le {
+            tab164 i 1 add 7 getinterval aload pop
+            /d1te exch def /d1to exch def
+            /d1mwe exch def /d1mwo exch def
+            /d1ele exch def /d1elo exch def
+            /d1gs exch def
+            exit
+        } if
+        /i i 8 add def
+    } loop
+
+    /i 0 def {
+        d2 tab154 i get le {
+            tab154 i 1 add 7 getinterval aload pop
+            /d2te exch def /d2to exch def
+            /d2mwe exch def /d2mwo exch def
+            /d2ele exch def /d2elo exch def
+            /d2gs exch def
+            exit
+        } if
+        /i i 8 add def
+    } loop
+
+    /i 0 def {
+        d3 tab164 i get le {
+            tab164 i 1 add 7 getinterval aload pop
+            /d3te exch def /d3to exch def
+            /d3mwe exch def /d3mwo exch def
+            /d3ele exch def /d3elo exch def
+            /d3gs exch def
+            exit
+        } if
+        /i i 8 add def
+    } loop
+
+    /i 0 def {
+        d4 tab154 i get le {
+            tab154 i 1 add 7 getinterval aload pop
+            /d4te exch def /d4to exch def
+            /d4mwe exch def /d4mwo exch def
+            /d4ele exch def /d4elo exch def
+            /d4gs exch def
+            exit
+        } if
+        /i i 8 add def
+    } loop
+
+    /d1wo d1 d1gs sub d1te idiv d1elo d1mwo 4 false getRSSwidths def
+    /d1we d1 d1gs sub d1te mod  d1ele d1mwe 4 true  getRSSwidths def
+    /d2wo d2 d2gs sub d2to mod  d2elo d2mwo 4 true  getRSSwidths def
+    /d2we d2 d2gs sub d2to idiv d2ele d2mwe 4 false getRSSwidths def
+    /d3wo d3 d3gs sub d3te idiv d3elo d3mwo 4 false getRSSwidths def
+    /d3we d3 d3gs sub d3te mod  d3ele d3mwe 4 true  getRSSwidths def
+    /d4wo d4 d4gs sub d4to mod  d4elo d4mwo 4 true  getRSSwidths def
+    /d4we d4 d4gs sub d4to idiv d4ele d4mwe 4 false getRSSwidths def
+
+    /d1w 8 array def
+    0 1 3 {
+        /i exch def
+        d1w i 2 mul d1wo i get put
+        d1w i 2 mul 1 add d1we i get put
+    } for
+
+    /d2w 8 array def
+    0 1 3 {
+        /i exch def
+        d2w 7 i 2 mul sub d2wo i get put
+        d2w 6 i 2 mul sub d2we i get put
+    } for
+
+    /d3w 8 array def
+    0 1 3 {
+        /i exch def
+        d3w 7 i 2 mul sub d3wo i get put
+        d3w 6 i 2 mul sub d3we i get put
+    } for
+
+    /d4w 8 array def
+    0 1 3 {
+        /i exch def
+        d4w i 2 mul d4wo i get put
+        d4w i 2 mul 1 add d4we i get put
+    } for
+
+    /widths [
+        d1w aload pop
+        d2w aload pop
+        d3w aload pop
+        d4w aload pop
+    ] def
+
+{
+    /checkweights [
+        1   3   9   27  2   6   18  54
+        58  72  24  8   29  36  12  4
+        74  51  17  32  37  65  48  16
+        64  34  23  69  49  68  46  59
+    ] def
+
+    /checkwidths [
+        3 8 2 1 1   3 5 5 1 1   3 3 7 1 1
+        3 1 9 1 1   2 7 4 1 1   2 5 6 1 1
+        2 3 8 1 1   1 5 7 1 1   1 3 9 1 1
+    ] def
+} ctxdef
+
+    /checksum 0 def
+    0 1 31 {
+        /i exch def
+        /checksum checksum widths i get checkweights i get mul add def
+    } for
+    /checksum checksum 79 mod def
+    checksum 8 ge {/checksum checksum 1 add def} if
+    checksum 72 ge {/checksum checksum 1 add def} if
+    /checklt checkwidths checksum 9 idiv 5 mul 5 getinterval def
+    /checkrtrev checkwidths checksum 9 mod 5 mul 5 getinterval def
+    /checkrt 5 array def
+    0 1 4 {
+        /i exch def
+        checkrt i checkrtrev 4 i sub get put
+    } for
+
+    % Stacked format
+    format (omni) eq format (truncated) eq or {  % linear
+
+        /sbs [
+            1
+            d1w aload pop
+            checklt aload pop
+            d2w aload pop
+            d4w aload pop
+            checkrt aload pop
+            d3w aload pop
+            1 1
+        ] def
+
+        <<
+        /ren /renlinear
+        /sbs sbs
+        /bhs [sbs length 1 add 2 idiv {height} repeat]
+        /bbs [sbs length 1 add 2 idiv {0} repeat]
+        /txt txt
+        /textxalign (center)
+        /borderleft 0.0
+        /borderright 0.0
+        /opt options
+        >>
+
+        dontdraw not //renlinear if
+
+    } {  % 2D - stacked or stackedomni
+
+        /top [
+            1 1
+            d1w aload pop
+            checklt aload pop
+            d2w aload pop
+            1 1 0
+        ] def
+        /bot [
+            1 1
+            d4w aload pop
+            checkrt aload pop
+            d3w aload pop
+            1 1 0
+        ] def
+        0 2 24 {
+            /i exch def
+            top i get {0} repeat
+            top i 1 add get {1} repeat
+        } for
+        50 array astore /top exch def
+        0 2 24 {
+            /i exch def
+            bot i get {1} repeat
+            bot i 1 add get {0} repeat
+        } for
+        50 array astore /bot exch def
+
+        % Stacked
+        format (stacked) eq {
+            /sep 50 array def
+            sep 0 0 put
+            1 1 49 {
+                /i exch def
+                top i get bot i get eq {
+                    sep i 1 top i get sub put
+                } {
+                    sep i 1 sep i 1 sub get sub put
+                } ifelse
+            } for
+            sep 0  [ 0 0 0 0 ] putinterval
+            sep 46 [ 0 0 0 0 ] putinterval
+            /pixs [
+                5 {top aload pop} repeat
+                sep aload pop
+                7 {bot aload pop} repeat
+            ] def
+            /pixy pixs length 50 idiv def
+        } if
+
+        % Stacked omnidirectional
+        format (stackedomni) eq {
+            /sep1 [ top {1 exch sub} forall ] def
+            sep1 0  [ 0 0 0 0 ] putinterval
+            sep1 46 [ 0 0 0 0 ] putinterval
+            18 1 30 {
+                /i exch def
+                top i get 0 eq {
+                    top i 1 sub get 1 eq {
+                        1
+                    } {
+                        sep1 i 1 sub get 0 eq {1} {0} ifelse
+                    } ifelse
+                } {
+                    0
+                } ifelse
+                sep1 exch i exch put
+            } for
+            /sep2 [ 0 0 0 0 21 { 0 1 } repeat 0 0 0 0 ] def
+            /sep3 [ bot {1 exch sub} forall ] def
+            sep3 0  [ 0 0 0 0 ] putinterval
+            sep3 46 [ 0 0 0 0 ] putinterval
+            19 1 31 {
+                /i exch def
+                bot i get 0 eq {
+                    bot i 1 sub get 1 eq {
+                        1
+                    } {
+                        sep3 i 1 sub get 0 eq {1} {0} ifelse
+                    } ifelse
+                } {
+                    0
+                } ifelse
+                sep3 exch i exch put
+            } for
+            /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
+            true 0 1 12 {dup bot exch 19 add get exch f3 exch get eq and} for {
+                % Right shifted module for value 3 finder
+                sep3 19 [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+            } if
+            /pixs [
+                barxmult {top aload pop} repeat
+                sep1 aload pop
+                sep2 aload pop
+                sep3 aload pop
+                barxmult {bot aload pop} repeat
+            ] def
+            /pixy pixs length 50 idiv def
+        } if
+
+        % Return the arguments
+        <<
+        /ren /renmatrix
+        /pixs pixs
+        /pixx 50
+        /pixy pixy
+        /height pixy 72 div
+        /width 50 72 div
+        /borderleft 0.0
+        /borderright 0.0
+        /bordertop 0.0
+        /borderbottom 0.0
+        /opt options
+        >>
+
+        dontdraw not //renmatrix if
+
+    } ifelse
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/databaromni dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databaromni--

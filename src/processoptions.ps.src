@@ -1,0 +1,84 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE processoptions--
+% --REQUIRES preamble raiseerror--
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+/processoptions {
+
+    % Convert string to dict
+    dup type /stringtype eq {
+        << exch
+            {
+                dup () eq {pop exit} if
+                ( ) search not { () exch null exch } if exch pop
+                (=) search not { true exch null exch } if exch pop   % k => k = true
+                exch 3 -1 roll
+            } loop
+        >>
+    } if
+
+    % Apply options that exist in currentdict, converting values to existing types
+    mark exch dup
+    {
+        exch dup currentdict exch known {
+            dup load type 3 -1 roll exch <<
+                /booleantype { false or }                             % Force a type error if not boolean value
+                /stringtype  { dup length string cvs }                % Conversion to string to force a boolean to fail
+                /nametype    1 index                                  % Conversion original nametype to string is fine
+                /realtype    { dup cvr exch pop }
+                /nulltype    1 index                                  % We define "null" as the sentinal value of a realtype
+                /integertype { dup cvr dup cvi ne {dup not} if cvi }  % Force type error when precision is lost or boolean is given
+            >> exch get stopped {
+                pop pop
+                dup length string cvs dup length 24 add string
+                dup 0 (Invalid type for option ) putinterval
+                dup 24 4 -1 roll putinterval
+                counttomark {exch pop} repeat
+                /bwipp.invalidOptionType exch //raiseerror exec
+            } if
+            def
+        } {
+            pop pop  % Ignore unknown options
+        } ifelse
+    } forall
+    exch pop
+
+}
+[/barcode] {null def} forall
+bind def
+/processoptions dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END RESOURCE processoptions--

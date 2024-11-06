@@ -1,0 +1,120 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER flattermarken--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear--
+% --DESC: Flattermarken
+% --EXAM: 11099
+% --EXOP: inkspread=-0.25 showborder borderleft=0 borderright=0
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/flattermarken {
+
+    20 dict begin                 % Confine variable to local scope
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def   % Enable/disable text
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /height 0.3 def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    /flattermarken //loadctx exec
+
+    % Validate the input
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.flattermarkenBadCharacter (Flattermarken must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+{
+    % Create an array containing the character mappings
+    /encs
+    [ (0018) (0117) (0216) (0315) (0414) (0513) (0612) (0711) (0810)
+      (0900)
+    ] def
+
+    % Create a string of the available characters
+    /barchars (1234567890) def
+} ctxdef
+
+    /barlen barcode length def            % Length of the code
+
+    /sbs barlen 4 mul string def
+    /txt barlen array def
+
+    0 1 barlen 1 sub {
+        /i exch def
+        % Lookup the encoding for the each barcode character
+        barcode i 1 getinterval barchars exch search
+        pop                                 % Discard true leaving pre
+        length /indx exch def               % indx is the length of pre
+        pop pop                             % Discard seek and post
+        /enc encs indx get def              % Get the indxth encoding
+        sbs i 4 mul enc putinterval         % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 9 mul textyoffset textfont textsize] put
+    } for
+
+    % Return the arguments
+    <<
+    /ren /renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    /txt txt
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/flattermarken dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER flattermarken--

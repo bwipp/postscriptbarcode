@@ -27,8 +27,8 @@ print "% --BEGIN TEMPLATE--\n\n";
 
 while ($upr =~ /^(.*)=(.*)$/mg) {
 
-  my $srcfile = "src/$1.ps";
-  $srcfile = 'src/preamble.ps' if $1 eq 'uk.co.terryburton.bwipp';
+  my $srcfile = "src/$1.ps.src";
+  $srcfile = 'src/preamble.ps.src' if $1 eq 'uk.co.terryburton.bwipp';
   my $resfile = "$resourcedir/$2";
 
   open($fh, '<', $srcfile) || die "Unable to open source file: $srcfile";

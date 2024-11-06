@@ -1,0 +1,125 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER pzn--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear code39--
+% --DESC: Pharmazentralnummer (PZN)
+% --EXAM: 123456
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/pzn {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def  % Enable/disable code32 text
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /textxoffset 0.0 def
+    /height 1.0 def
+    /pzn8 false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Validate the input
+    pzn8 {
+        barcode length 7 ne barcode length 8 ne and {
+            /bwipp.pzn8badLength (PZN8 must be 7 or 8 digits) //raiseerror exec
+        } if
+    } {
+        barcode length 6 ne barcode length 7 ne and {
+            /bwipp.pzn7badLength (PZN7 must be 6 or 7 digits) //raiseerror exec
+        } if
+    } ifelse
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.pznBadCharacter (PZN must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate check digit
+    /msglen pzn8 {9} {8} ifelse def
+    /checksum 0 def
+    0 1 msglen 3 sub {
+        /i exch def
+        barcode i get 48 sub i pzn8 {1} {2} ifelse add mul
+        checksum add /checksum exch def
+    } for
+    /checksum checksum 11 mod def
+    checksum 10 eq {
+        /bwipp.pznBadInputSequence (Incorrect PZN input sequence provided) //raiseerror exec
+    } if
+    barcode length msglen 1 sub eq {
+        barcode msglen 2 sub get checksum 48 add ne {
+            /bwipp.pznBadCheckDigit (Incorrect PZN check digit provided) //raiseerror exec
+        } if
+    } if
+    msglen string
+    dup 0 45 put
+    dup 1 barcode putinterval
+    dup msglen 1 sub checksum 48 add put
+    /msg exch def
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    /args msg options //code39 exec def
+
+    % format HRI
+    /text msglen 5 add string def
+    text 0 (PZN - ) putinterval
+    text 6 msg 1 msglen 1 sub getinterval putinterval
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/pzn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER pzn--

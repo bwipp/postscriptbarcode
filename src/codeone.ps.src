@@ -1,0 +1,959 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER codeone--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
+% --DESC: Code One
+% --EXAM: Code One
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/codeone {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /version (unset) def
+    /parse false def
+    /parsefnc false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    false [ (unset) (T-16) (T-32) (T-48) (S-10) (S-20) (S-30) (A) (B) (C) (D) (E) (F) (G) (H) ]
+    { version eq or } forall not {
+        /bwipp.codeoneBadVersion (version must be A to H, T-16, T-32, T-48, S-10, S-20 or S-30) //raiseerror exec
+    } if
+
+    /codeone //loadctx exec
+
+    /stype version 0 1 getinterval (S) eq def
+    /ttype version 0 1 getinterval (T) eq def
+
+{
+    /stypevals [
+        (1)
+        (1010)
+        (1100100)
+        (1111101000)
+        (10011100010000)
+        (11000011010100000)
+        (11110100001001000000)
+        (100110001001011010000000)
+        (101111101011110000100000000)
+        (111011100110101100101000000000)
+        (1001010100000010111110010000000000)
+        (1011101001000011101101110100000000000)
+        (1110100011010100101001010001000000000000)
+        (10010001100001001110011100101010000000000000)
+        (10110101111001100010000011110100100000000000000)
+        (11100011010111111010100100110001101000000000000000)
+        (100011100001101111001001101111110000010000000000000000)
+        (101100011010001010111100001011101100010100000000000000000)
+    ] def
+
+    % Basic metrics for the each symbol
+    %     ver    row col dcol dcws rscw rsbl  ro ri rl
+    /stypemetrics [
+        [ (S-10)   8  11   10    4    4    1  99 99 99 ]
+        [ (S-20)   8  21   20    8    8    1  99 99 99 ]
+        [ (S-30)   8  31   30   12   12    1  99 99 99 ]
+    ] def
+
+    % Basic metrics for the each symbol
+    %     ver    row col dcol dcws rscw rsbl  ro ri rl
+    /nonstypemetrics [
+        [ (A)     16  18   16   10   10    1   4 99  6 ]
+        [ (B)     22  22   20   19   16    1   4 99  8 ]
+        [ (C)     28  32   28   44   26    1   4 22 11 ]
+        [ (D)     40  42   36   91   44    1   4 16 16 ]
+        [ (E)     52  54   48  182   70    1   4 22 22 ]
+        [ (F)     70  76   68  370  140    2   4 22 31 ]
+        [ (G)    104  98   88  732  280    4   6 21 47 ]
+        [ (H)    148 134  120 1480  560    8   6 20 69 ]
+        [ (T-16)  16  17   16   10   10    1  99 99 99 ]
+        [ (T-32)  16  33   32   24   16    1  99 99 99 ]
+        [ (T-48)  16  49   48   38   22    1  99 99 99 ]
+    ] def
+
+    % Special characters
+    /fnc1 -1 def  /fnc3 -2 def
+    /lC    -5 def  /lB    -6 def  /lX    -7 def  /lT    -8 def  /lD    -9 def  /unl -10 def
+    /fnc2 -11 def  /fnc4 -12 def  /sft1 -13 def  /sft2 -14 def  /sft3 -15 def  /eci -16 def  /pad -17 def  /fnc1lD -18 def
+    /unlcw 255 def
+
+    /Avals <<
+        0 1 128 {dup 1 add} for
+        pad 129
+        0 1 99 {  % Double digits
+            dup 10 2 string cvrs (00) 2 string copy dup 2 3 index length sub 4 -1 roll putinterval
+            exch 130 add
+        } for
+        229 [ lC lB fnc1 fnc2 fnc3 fnc4 fnc1lD ] {exch 1 add dup} forall pop
+        lX 238
+        lT 239
+        % 240-255 lD + 4 bits
+    >> def
+    /Avals <<
+        Avals {[exch]} forall
+    >> def
+
+    /CNvals <<
+        sft1 0
+        sft2 1
+        sft3 2
+        32   3
+        48 1 57 {dup 44 sub} for  % 0-9
+        65 1 90 {dup 51 sub} for  % A-Z
+    >> def
+    /C1vals << 0 1 31 {dup} for >> def
+    /C2vals <<
+        33 1 47 {dup 33 sub} for
+        58 1 64 {dup 43 sub} for
+        91 1 95 {dup 69 sub} for
+        fnc1 27
+        fnc2 28
+        fnc3 29
+        fnc4 30
+        pad  31
+    >> def
+    /C3vals << 96 1 127 {dup 96 sub} for >> def
+    /Cvals <<
+        CNvals {[exch]} forall
+        C1vals {[exch CNvals sft1 get exch]} forall
+        C2vals {[exch CNvals sft2 get exch]} forall
+        C3vals {[exch CNvals sft3 get exch]} forall
+    >> def
+
+    /TNvals <<
+        sft1 0
+        sft2 1
+        sft3 2
+        32   3
+        48 1  57 {dup 44 sub} for  % 0-9
+        97 1 122 {dup 83 sub} for  % a-z
+    >> def
+    /T1vals << 0 1 31 {dup} for >> def
+    /T2vals <<
+        33 1 47 {dup 33 sub} for
+        58 1 64 {dup 43 sub} for
+        91 1 95 {dup 69 sub} for
+        fnc1 27
+        fnc2 28
+        fnc3 29
+        fnc4 30
+        pad  31
+    >> def
+    /T3vals <<
+         96 0
+         65 1  90 {dup 64 sub} for
+        123 1 127 {dup 96 sub} for
+    >> def
+    /Tvals <<
+        TNvals {[exch]} forall
+        T1vals {[exch TNvals sft1 get exch]} forall
+        T2vals {[exch TNvals sft2 get exch]} forall
+        T3vals {[exch TNvals sft3 get exch]} forall
+    >> def
+
+    % Extended ASCII mappings
+    128 1 255 {
+        /i exch def
+        Avals i [ Avals fnc4 get aload pop Avals i 128 sub get aload pop ] put
+        Cvals i [ Cvals fnc4 get aload pop Cvals i 128 sub get aload pop ] put
+        Tvals i [ Tvals fnc4 get aload pop Tvals i 128 sub get aload pop ] put
+    } for
+
+    /Xvals <<
+        13 0
+        42 1
+        62 2
+        32 3
+        48 1 57 {dup 44 sub} for
+        65 1 90 {dup 51 sub} for
+    >> def
+    /Xvals <<
+        Xvals {[exch]} forall
+    >> def
+
+    /Bvals <<
+        0 1 255 {dup} for
+    >> def
+    /Bvals <<
+        Bvals {[exch]} forall
+    >> def
+
+    /encvals [ Avals Cvals Tvals Xvals -1 Bvals ] def
+
+    /A 0 def  /C 1 def  /T 2 def  /X 3 def  /D 4 def  /B 5 def
+} ctxdef
+
+    stype {
+
+        barcode {
+            dup 48 lt exch 57 gt or {
+                /bwipp.codeoneStypeNonDigit (S-Type symbols can only contain digits) //raiseerror exec
+            } if
+        } forall
+
+        /barlen barcode length def
+        barlen 18 gt {
+            /bwipp.codeoneStypeTooLong (Maximum length exceeded) //raiseerror exec
+        } if
+
+        /normalize {
+            /base exch def
+            /num exch def
+            num length 1 sub -1 1 {
+                /i exch def
+                num i 1 sub 2 copy get num i get base idiv add put
+                num i num i get base mod put
+            } for
+            { %loop - extend input as necessary
+                num 0 get base lt {exit} if
+                /num [0 num aload pop] def
+                num 0 num 0 get num 1 get base idiv add put
+                num 1 num 1 get base mod put
+            } loop
+            % Trim leading zeros
+            /num [/i true def num {dup 0 eq i and {pop} {/i false def} ifelse} forall] def
+            num length 0 eq {/num [0] def} if
+            num
+        } def
+
+        /bigadd {
+            2 copy length exch length
+            2 copy sub abs /offset exch def
+            lt {exch} if
+            /a exch def /b exch def
+            0 1 b length 1 sub {
+                dup a exch offset add 2 copy get b 5 -1 roll get add put
+            } for
+            a
+        } def
+
+        /barlen barcode length def
+
+        % Convert value plus one to binary
+        /v [ 1 ] def
+        0 1 barlen 1 sub {
+            /i exch def
+            [ stypevals i get {48 sub barcode barlen i sub 1 sub get 48 sub mul} forall ]
+            v bigadd /v exch def
+        } for
+        /v v 2 normalize def
+
+        % Split into 5-bit codewords
+        /v [ 5 v length 5 mod sub 5 mod {0} repeat v aload pop ] def
+        /cws v length 5 idiv array def
+        0 1 cws length 1 sub {
+            /i exch def
+            v i 5 mul 5 getinterval
+            0 exch {add 2 mul} forall 2 idiv
+            cws exch i exch put
+        } for
+
+        /metrics stypemetrics def
+
+    } {  % Standard and type-T
+
+        % Convert input into bytes accounting for FNC characters
+        /fncvals <<
+            /parse parse
+            /parsefnc parsefnc
+            /eci true
+            (FNC1) fnc1
+            (FNC3) fnc3
+        >> def
+        /msg barcode fncvals //parseinput exec def
+        /msglen msg length def
+
+        % Code One stores ECIs in data
+        /eciesc 16#5c def  % We choose \ as a typical default
+        /numecis 0 msg { -1000000 le {1 add} if } forall def
+        numecis 0 gt {
+            /msgtmp msg length 2 mul numecis 6 mul add 2 add array def
+            msgtmp 0 pad put
+            msgtmp 1 eciesc put
+            /j 2 def
+            0 1 msg length 1 sub {
+                msg exch get
+                dup -1000000 le {
+                    neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
+                    msgtmp exch j 1 add exch putinterval
+                    msgtmp j eciesc put
+                    /j j 7 add def
+                } {
+                    dup eciesc ne {
+                        msgtmp exch j exch put
+                        /j j 1 add def
+                    } {
+                        pop
+                        msgtmp j eciesc put
+                        msgtmp j 1 add eciesc put
+                        /j j 2 add def
+                    } ifelse
+                } ifelse
+            } for
+            /msg msgtmp 0 j getinterval def
+            /msglen msg length def
+        } if
+
+        /metrics nonstypemetrics def
+
+        % Select metrics of an appropriate symbol
+        /fullcws [] def
+        metrics {
+            /m exch def
+            /vers m 0 get def           % Version of symbol
+            /dcws m 4 get def           % Data codewords in symbol
+            /okay true def
+            version (unset) eq {
+                vers length 1 ne {/okay false def} if
+            } {
+                version vers ne {/okay false def} if
+            } ifelse
+            okay {/fullcws [ fullcws aload pop dcws ] def} if
+        } forall
+        /numremcws [ 1480 {10000} repeat ] def
+        fullcws {numremcws exch 1 sub 1 put} forall
+        1478 -1 0 {
+            /i exch def
+            numremcws i get 1 ne {
+                numremcws i numremcws i 1 add get 1 add put
+            } if
+        } for
+
+        /numD [ msglen {0} repeat 0 ] def
+        /nextXterm [ msglen {0} repeat 9999 ] def
+        /nextNonX  [ msglen {0} repeat 9999 ] def
+        msglen 1 sub -1 0 {
+            /i exch def
+            /barchar msg i get def
+            barchar 48 ge barchar 57 le and {
+                numD i numD i 1 add get 1 add put
+            } if
+            barchar 13 eq barchar 42 eq or barchar 62 eq or {
+                nextXterm i 0 put
+            } {
+                nextXterm i nextXterm i 1 add get 1 add put
+            } ifelse
+            Xvals barchar known not {
+                nextNonX i 0 put
+            } {
+                nextNonX i nextNonX i 1 add get 1 add put
+            } ifelse
+        } for
+        /nextXterm [nextXterm {dup 10000 gt {pop 10000} if} forall] def
+        /nextNonX  [nextNonX  {dup 10000 gt {pop 10000} if} forall] def
+
+        /isD  {char 48 ge char 57 le and} def
+        /isC  {CNvals char known} def
+        /isT  {TNvals char known} def
+        /isX  {Xvals char known} def
+        /isEA {char 127 gt} def
+        /isFN {char 0 lt} def
+        /XtermFirst {dup nextXterm exch get exch nextNonX exch get lt} def
+
+        /lookup {
+            /ac 1 def /cc 2 def /tc 2 def /xc 2 def /bc 3 def
+            mode A eq {/ac 0 def /cc 1 def /tc 1 def /xc 1 def /bc 2 def} if
+            mode C eq {/cc 0 def} if
+            mode T eq {/tc 0 def} if
+            mode X eq {/xc 0 def} if  % Assume mistake in spec
+            mode B eq {/bc 0 def} if
+            1 {  % common exit
+                /k 0 def {  % loop
+                    i k add msglen eq {
+                        true [ac cc tc xc   ] {bc         exch ceiling le and} forall {B exit} if
+                        true [   cc tc xc bc] {ac         exch ceiling le and} forall {A exit} if
+                        true [      tc xc   ] {cc ceiling exch ceiling le and} forall {C exit} if
+                        true [         xc   ] {tc ceiling exch ceiling le and} forall {T exit} if
+                        X exit
+                    } if
+                    /char msg i k add get def
+                    /ac ac isD {1 2 div add} {isEA {ceiling 2 add} {ceiling 1 add} ifelse} ifelse def
+                    /cc cc isC {2 3 div add} {isEA { 8 3 div add } { 4 3 div add } ifelse} ifelse def
+                    /tc tc isT {2 3 div add} {isEA { 8 3 div add } { 4 3 div add } ifelse} ifelse def
+                    /xc xc isX {2 3 div add} {isEA {13 3 div add } {10 3 div add } ifelse} ifelse def
+                    /bc bc isFN {3 add} {1 add} ifelse def
+                    k 3 ge {  % Checking after at least 4 characters (cf. Data Matrix), not 3 as in spec Step Q
+                        true [ac cc tc xc   ] {bc 1 add exch ceiling le and} forall {B exit} if
+                        true [   cc tc xc bc] {ac 1 add exch ceiling le and} forall {A exit} if
+                        true [ac cc    xc bc] {tc ceiling 1 add exch ceiling le and} forall {T exit} if
+                        true [ac    tc      ] {cc ceiling 1 add exch ceiling le and} forall {
+                            cc ceiling xc ceiling lt {C exit} if
+                            cc xc eq {i k add 1 add XtermFirst {X exit} {C exit} ifelse} if
+                        } if
+                        true [ac cc tc    bc] {xc ceiling 1 add exch ceiling le and} forall {X exit} if
+                    } if
+                    /k k 1 add def
+                } loop
+            } repeat
+        } def
+
+        /addtocws {
+            dup length j add 1480 gt {
+                pop /bwipp.codeoneTooLong (Maximum length exceeded) //raiseerror exec
+            } if
+            dup cws exch j exch putinterval
+            /j exch length j add def
+        } def
+
+        /tobin {
+            string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+            dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
+            [ exch {48 sub} forall ]
+        } def
+
+        /encA {
+            1 {  % Common exit
+                numD i get 21 ge {
+                    /Dbits [ 1 1 1 1 ] def
+                    /mode D def
+                    exit
+                } if
+                numD i get dup 13 ge exch i add msglen eq and {
+                    /Dbits [ 1 1 1 1 ] def
+                    /mode D def
+                    exit
+                } if
+                numD i get 2 ge {
+                    2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
+                    /i i 2 add def
+                    exit
+                } if
+                msg i get fnc1 eq {
+                    numD i 1 add get 15 ge {
+                        Avals fnc1lD get addtocws
+                        /i i 1 add def
+                        /Dbits [] def
+                        /mode D def
+                        exit
+                    } if
+                    numD i 1 add get dup 7 ge exch i add 1 add msglen eq and {
+                        Avals fnc1lD get addtocws
+                        /i i 1 add def
+                        /Dbits [] def
+                        /mode D def
+                        exit
+                    } if
+                } if
+                /newmode lookup def
+                newmode mode ne {
+                    Avals [-1 lC lT lX lD lB] newmode get get addtocws
+                    /mode newmode def
+                    exit
+                } if
+                Avals msg i get get addtocws
+                /i i 1 add def
+                exit
+            } repeat
+        } def
+
+        /CTXvalstocws {
+            /in exch def
+            mark
+            0 3 in length 1 sub {
+                in exch 3 getinterval 0 exch {add 40 mul} forall 40 idiv 1 add
+                dup 256 idiv exch 256 mod
+            } for
+            counttomark array astore exch pop
+        } def
+
+        /encCTX {
+            /p 0 def
+            /ctxvals 2220 array def
+
+            % Lookup the values for each character
+            {
+                i msglen eq {exit} if
+                p 3 mod 0 eq {
+                    numD i get 12 ge {
+                        ctxvals 0 p getinterval CTXvalstocws addtocws
+                        [unlcw] addtocws
+                        /mode A def
+                        exit
+                    } if
+                    numD i get dup 8 ge exch i add msglen eq and {
+                        ctxvals 0 p getinterval CTXvalstocws addtocws
+                        [unlcw] addtocws
+                        /mode A def
+                        exit
+                    } if
+                    mode X eq {  % Steps E1c, E2
+                        Xvals msg i get known not {
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            % Unlatch to ASCII unless one codeword left and single ASCII to encode
+                            numremcws j get 1 ne msg i get 127 gt or {
+                                [unlcw] addtocws
+                            } if
+                            /mode A def
+                            exit
+                        } if
+                        i 1 add msglen lt {
+                            Xvals msg i 1 add get known not {exit} if
+                            i 2 add msglen lt {
+                                Xvals msg i 2 add get known not {exit} if
+                            } if
+                        } if
+                    } {
+                        lookup mode ne {
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            [unlcw] addtocws
+                            /mode A def
+                            exit
+                        } if
+                    } ifelse
+                    msglen i sub 3 le {  % Check end of data conditions
+                        /remcws numremcws j p 3 idiv 2 mul add get def
+                        /remvals [
+                            msg i msglen i sub getinterval {
+                                dup encvals mode get exch known {
+                                    encvals mode get exch get aload pop
+                                } {  % Unencodable X12 characters
+                                    pop -1 -1 -1 -1
+                                } ifelse
+                            } forall
+                        ] def
+                        remcws 2 eq remvals length 3 eq and {
+                            % Encode and omit unlatch
+                            [
+                                ctxvals 0 p getinterval aload pop
+                                remvals aload pop
+                            ] CTXvalstocws addtocws
+                            /mode A def
+                            /i msglen def
+                            exit
+                        } if
+                        remcws 2 eq remvals length 2 eq and mode X ne and {
+                            % Encode with sft1 as third value, omit unlatch
+                            [
+                                ctxvals 0 p getinterval aload pop
+                                remvals aload pop
+                                encvals mode get sft1 get aload pop
+                            ] CTXvalstocws addtocws
+                            /mode A def
+                            /i msglen def
+                            exit
+                        } if
+                        remcws 2 eq remvals length 1 eq and {
+                            % Unlatch to ASCII
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            [unlcw] addtocws
+                            Avals msg i get get addtocws
+                            /mode A def
+                            /i msglen def
+                            exit
+                        } if
+                        remcws 1 eq remvals length 1 eq and {
+                            % Implied unlatch to ASCII
+                            ctxvals 0 p getinterval CTXvalstocws addtocws
+                            Avals msg i get get addtocws
+                            /mode A def
+                            /i msglen def
+                            exit
+                        } if
+                    } if
+                } if
+                encvals mode get msg i get get
+                dup ctxvals exch p exch putinterval
+                /p exch length p add def
+                /i i 1 add def
+            } loop
+
+            % Backtrack to a boundary and return to ASCII
+            mode A ne {
+                {
+                    p 3 mod 0 eq {exit} if
+                    /i i 1 sub def
+                    /p p encvals mode get msg i get get length sub def
+                } loop
+                [
+                    ctxvals 0 p getinterval aload pop
+                ] CTXvalstocws addtocws
+                [unlcw] addtocws
+                /mode A def
+                % Encode something to avoid latching immediately back
+                i msglen ne {
+                    numD i get 2 ge {
+                        2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
+                        /i i 2 add def
+                    } {
+                        Avals msg i get get addtocws
+                        /i i 1 add def
+                    } ifelse
+                } if
+            } if
+
+        } def
+
+        /encD {
+
+            {  % loop
+
+                numD i get 3 lt {
+
+                    /Drem 8 Dbits length 8 mod sub 8 mod def
+                    /remcws numremcws j Dbits length 8 idiv add get def
+
+                    % Final codeword with no data
+                    numremcws j Dbits length 8 idiv add 1 sub get 1 sub 0 eq Drem 0 eq and  % No remaining codewords and no bits
+                    remcws 1 eq Drem 0 ne and or  % Or 1 remaining codeword and some bits
+                    i msglen eq and {
+                        Drem 4 eq Drem 6 eq or { /Dbits [ Dbits aload pop 1 1 1 1 ] def } if
+                        Drem 2 eq Drem 6 eq or { /Dbits [ Dbits aload pop 0 1 ] def } if
+                        exit
+                    } if
+
+                    % Final digit or double-digit into final codeword as ASCII
+                    i msglen 1 sub eq numD i get 1 eq and
+                    i msglen 2 sub eq numD i get 2 eq and or
+                    remcws 1 eq and Drem 0 eq and {exit} if
+
+                    % Latch to ASCII unless 4 or 6 bits remain in final codeword
+                    i msglen 1 sub eq numD i get 1 eq and
+                    remcws 1 eq and Drem 4 eq Drem 6 eq or and not {
+                      /Dbits [ Dbits aload pop 1 1 1 1 1 1 ] def
+                      /Drem 8 Dbits length 8 mod sub 8 mod def
+                    } if
+
+                    % Try to encode a digit in remaining bits
+                    Drem 4 eq Drem 6 eq or {
+                        numD i get 1 ge {
+                            /Dbits [ Dbits aload pop msg i get 48 sub 1 add 4 tobin aload pop ] def
+                            /i i 1 add def
+                        } {
+                            /Dbits [ Dbits aload pop 1 1 1 1 ] def
+                        } ifelse
+                        /Drem Drem 4 sub def
+                    } if
+                    Drem 2 eq {
+                        /Dbits [ Dbits aload pop 0 1 ] def
+                        /Drem 0 def
+                    } if
+
+                    exit
+
+                } if
+
+                % Three digit value plus one to ten bits
+                /Dbits [
+                    Dbits aload pop
+                    0 msg i 3 getinterval {48 sub add 10 mul} forall 10 idiv
+                    1 add 10 tobin aload pop
+                ] def
+                /i i 3 add def
+
+            } loop
+
+            mark
+            0 8 Dbits length 1 sub {
+                Dbits exch 8 getinterval 0 exch {add 2 mul} forall 2 idiv
+            } for
+            counttomark array astore exch pop addtocws
+            /mode A def
+
+        } def
+
+        /encB {
+            /p 0 def /bvals 1480 array def {
+                i msglen eq {exit} if
+                msg i get 0 lt {exit} if  % Function character
+                lookup mode ne {exit} if
+                bvals p msg i get put
+                /p p 1 add def
+                /i i 1 add def
+            } loop
+            /remcws numremcws j p add get 1 sub def
+            /bvals [
+                remcws 0 eq i msglen eq and {  % Terminates symbol
+                    0
+                } {
+                    p 250 lt {p} {p 250 idiv 249 add p 250 mod} ifelse
+                } ifelse
+                bvals 0 p getinterval aload pop
+            ] def
+            bvals addtocws
+            /mode A def
+        } def
+
+        % Derive the codewords
+        /cws 1480 array def
+        /mode A def /i 0 def /j 0 def {
+            i msglen ge {exit} if
+            [ /encA /encCTX /encCTX /encCTX /encD /encB ] mode get load exec
+        } loop
+        /cws cws 0 j getinterval def
+
+    } ifelse
+
+    % Select metrics of an appropriate symbol
+    metrics {
+        /m exch def
+        /vers m 0 get def           % Version of symbol
+        /rows m 1 get def           % Rows in symbol
+        /cols m 2 get def           % Columns in symbol
+        /dcol m 3 get def           % Data columns in symbol
+        /dcws m 4 get def           % Data codewords in symbol
+        /rscw m 5 get def           % Error correction codewords
+        /rsbl m 6 get def           % Error correction blocks
+        /riso m 7 get def           % Riser offset
+        /risi m 8 get def           % Riser interval
+        /risl m 9 get def           % Riser length
+        /dcpb dcws rsbl idiv def    % Data codewords per block
+        /ecpb rscw rsbl idiv def    % Error codewords per block
+        /okay true def
+        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
+        cws length dcws gt {/okay false def} if
+        okay {exit} if
+    } forall
+
+    okay not {
+        /bwipp.codeoneNoValidSymbol (Maximum length exceeded) //raiseerror exec
+    } if
+
+    % Extend cws to ncws codewords by addition of pad characters
+    stype not {
+        /cws [ cws aload pop dcws cws length sub {129} repeat ] def
+    } {
+        /cws [ dcws cws length sub {0} repeat cws aload pop ] def
+    } ifelse
+
+    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+
+    % De-interleave the codewords into blocks
+    /cwbs rsbl array def  % Array of data codeword blocks
+    /ecbs rsbl array def  % Array of error correction blocks
+    0 1 rsbl 1 sub {
+        /i exch def
+        /cwb dcpb array def
+        0 1 dcpb 1 sub {
+            /j exch def
+            cwb j cws j rsbl mul i add get put
+        } for
+        cwbs i cwb put
+    } for
+
+    % Log and anti-log tables and function to calculate product in the field
+    /gf stype {32} {256} ifelse def
+    /gf-1 gf 1 sub def
+    /pm stype {37} {301} ifelse def
+    /rsalog [ 1 gf-1 { dup 2 mul dup gf ge {pm xor} if } repeat ] def
+    /rslog gf array def
+    1 1 gf-1 {dup rsalog exch get exch rslog 3 1 roll put} for
+    /rsprod {
+        2 copy 0 ne exch 0 ne and {
+            rslog exch get exch rslog exch get add gf-1 mod rsalog exch get
+        } {
+            pop pop 0
+        } ifelse
+    } def
+
+    % Generate the coefficients for the Reed-Solomon algorithm
+    /coeffs [ 1 ecpb {0} repeat ] def
+    0 1 ecpb 1 sub {
+        /i exch def
+        coeffs i 1 add coeffs i get put
+        i -1 1 {
+            /j exch def
+            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+        } for
+        coeffs 0 coeffs 0 get rsalog i get rsprod put
+    } for
+    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+
+    % Reed-Solomon algorithm to derive the error correction codewords
+    0 1 cwbs length 1 sub {
+        /i exch def
+        /rscws [ cwbs i get aload pop ecpb {0} repeat ] def
+        0 1 dcpb 1 sub {
+            /m exch def
+            /k rscws m get def
+            0 1 ecpb 1 sub {
+                /j exch def
+                rscws m j add 1 add coeffs ecpb j sub 1 sub get k rsprod rscws m j add 1 add get xor put
+            } for
+        } for
+        ecbs i rscws dcpb ecpb getinterval put
+    } for
+
+    % Extend codewords with the interleaved error correction codes
+    /cws [ cws aload pop rscw {0} repeat ] def
+    0 1 rscw 1 sub {
+        /i exch def
+        cws dcws i add ecbs i rsbl mod get i rsbl idiv get put
+    } for
+
+    % Module matrix for layout of the codewords
+    /mmat dcws rscw add stype {5} {8} ifelse mul array def
+    /r 0 def /c 0 def
+    0 stype {2} {1} ifelse cws length 1 sub {
+        /i exch def
+        stype not {
+            (00000000) 8 string copy dup cws i get 2 8 string cvrs
+            dup length 8 exch sub exch putinterval [ exch {48 sub} forall ]
+            dup 0 4 getinterval /top exch def
+            4 4 getinterval /bot exch def
+        } {
+            (00000) 5 string copy dup cws i get 2 5 string cvrs
+            dup length 5 exch sub exch putinterval [ exch {48 sub} forall ]
+            /c1 exch def
+            (00000) 5 string copy dup cws i 1 add get 2 5 string cvrs
+            dup length 5 exch sub exch putinterval [ exch {48 sub} forall ]
+            /c2 exch def
+            /top [ c1 0 3 getinterval aload pop c2 0 2 getinterval aload pop ] def
+            /bot [ c1 3 2 getinterval aload pop c2 2 3 getinterval aload pop ] def
+        } ifelse
+        mmat r dcol mul c add top putinterval
+        mmat r 1 add dcol mul c add bot putinterval
+        /c c top length add def
+        c dcol eq {/c 0 def /r r 2 add def} if
+    } for
+
+    % Create bitmap and add finder patterns
+    /mmv {cols mul add} def
+    /pixs [ rows cols mul {-1} repeat ] def
+
+    % Centre pattern
+    /artifact [
+        {cols {0} repeat}
+        {cols {1} repeat}
+        {0   cols 2 sub {1} repeat   0}
+        {0 1 cols 4 sub {0} repeat 1 0}
+        {cols 1 sub 2 idiv {-1} repeat 1 cols 1 sub 2 idiv {-1} repeat}
+        {cols 1 sub 2 idiv {-1} repeat 0 cols 1 sub 2 idiv {-1} repeat}
+        {1   cols 2 sub {0} repeat   1}
+        {1 0 cols 4 sub {1} repeat 0 1}
+    ] def
+{
+    /cpatmap <<
+        /A (121343)
+        /B (12134343)
+        /C (12121343)
+        /D (1213434343)
+        /E (1212134343)
+        /F (1212121343)
+        /G (121213434343)
+        /H (121212134343)
+        /S (56661278)
+        /T (5666666666127878)
+    >> def
+} ctxdef
+    /cpat cpatmap vers 0 1 getinterval get def
+    pixs 0 rows cpat length sub 2 idiv mmv
+    [ cpat {artifact exch 49 sub get exec} forall ] putinterval
+
+    % Risers
+    0 1 risl 1 sub {
+        /i exch def
+        riso risi cols 1 sub {
+            /j exch def
+            [ 1 i 12 mod 0 eq {1} {0} ifelse ] dup
+            pixs j i mmv
+            3 -1 roll putinterval
+            i risl 1 sub ne {
+                pixs cols j sub 2 sub rows i sub 1 sub mmv
+                3 -1 roll putinterval
+            } {pop} ifelse
+        } for
+    } for
+
+    % Black dots
+{
+    /blackdotmap <<
+        /A [ [12 5] ]
+        /B [ [16 7] ]
+        /C [ [26 12] ]
+        /D []
+        /E [ [26 23] ]
+        /F [ [26 32] [70 32] [26 34] [70 34] ]
+        /G [ [27 48] [69 48] ]
+        /H [ [26 70] [66 70] [106 70] [26 72] [66 72] [106 72] ]
+        /S-10 []
+        /S-20 [ [10 4] ]
+        /S-30 [ [15 4] [15 6] ]
+        /T-16 [ [8 10] ]
+        /T-32 [ [16 10] [16 12] ]
+        /T-48 [ [24 10] [24 12] [24 14] ]
+    >> def
+} ctxdef
+    blackdotmap vers get {pixs exch aload pop mmv 1 put} forall
+
+    % Place the modules onto a pixel map between alignment patterns
+    /j 0 def
+    0 1 pixs length 1 sub {
+        /i exch def
+        pixs i get -1 eq {
+            pixs i mmat j get put
+            /j j 1 add def
+        } if
+    } for
+
+    % Return the arguments
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx cols
+    /pixy rows
+    /height rows 72 div 2 mul
+    /width cols 72 div 2 mul
+    stype ttype or {
+        /borderleft 1.0
+        /borderright 1.0
+        /bordertop 0.0
+        /borderbottom 1.0
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renmatrix if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/codeone dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER codeone--

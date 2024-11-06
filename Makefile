@@ -12,10 +12,11 @@ DSTDIR = build
 CHANGES_FILE=CHANGES
 VERSION:=$(shell head -n 1 $(CHANGES_FILE))
 
-SOURCES:=$(wildcard $(SRCDIR)/*.ps)
+SOURCES:=$(wildcard $(SRCDIR)/*.ps.src)
+
 DOCNAMES:=$(notdir $(wildcard $(DOCDIR)/*))
 
-TARGETS:=$(basename $(notdir $(SOURCES)))
+TARGETS:=$(notdir $(SOURCES:.ps.src=))
 TARGETS:=$(filter-out preamble, $(TARGETS))
 
 UPR_FILE = $(SRCDIR)/uk.co.terryburton.bwipp.upr
@@ -124,12 +125,12 @@ clean:
 test: all
 	tests/run_tests
 
-$(SRCDIR)/%.d: $(SRCDIR)/%.ps $(UPR_FILE)
+$(SRCDIR)/%.ps.d: $(SRCDIR)/%.ps.src $(UPR_FILE)
 	$(DSTDIR)/make_deps.pl $< $(addsuffix /Resource,$(RESDIR) $(PACKAGEDIR)) >$@
-cleanlist += ${SOURCES:.ps=.d}
+cleanlist += ${SOURCES:.ps.src=.ps.d}
 
 ifneq "$(MAKECMDGOALS)" "clean"
--include ${SOURCES:.ps=.d}
+-include ${SOURCES:.ps.src=.ps.d}
 endif
 
 #------------------------------------------------------------
@@ -140,10 +141,10 @@ $(RESMKDIRSTAMP):
 	mkdir -p $(RESMKDIRS)
 	touch $@
 
-$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
+$(RESDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
-$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
+$(RESDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(RESMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
 $(RESDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(RESMKDIRSTAMP)
@@ -167,10 +168,10 @@ $(PACKAGEMKDIRSTAMP):
 	mkdir -p $(PACKAGEMKDIRS)
 	touch $@
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
-$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(PACKAGEMKDIRSTAMP)
@@ -234,7 +235,7 @@ $(STANDALONE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_MKDIRS)
 	touch $@
 
-$(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
+$(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
 	$(DSTDIR)/make_standalone.pl $< $@
 
 #------------------------------------------------------------
@@ -243,7 +244,7 @@ $(STANDALONE_PACKAGE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_PACKAGE_MKDIRS)
 	touch $@
 
-$(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
+$(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
 	$(DSTDIR)/make_standalone.pl $< $@
 
 #------------------------------------------------------------

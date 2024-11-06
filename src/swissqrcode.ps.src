@@ -1,0 +1,155 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER swissqrcode--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix qrcode--
+% --DESC: Swiss QR Code
+% --EXAM:
+% --EXOP:
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /qrcode dup /uk.co.terryburton.bwipp findresource put
+begin
+/swissqrcode {
+
+    20 dict begin            % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+    /parse false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Parse ordinals of the form ^NNN to ASCII
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    /barcode barcode fncvals //parseinput exec def
+    /barlen barcode length def
+    options (parse) undef
+
+    % Validate the input length
+    barcode length 997 gt {
+        /bwipp.swissqrcodeBadLength (Swiss QR Code input must not exceed 997 digits) //raiseerror exec
+    } if
+
+    % Get the result of encoding with qrcode
+    options (dontdraw) true put
+    /args barcode options //qrcode exec def
+
+    args (opt) options put
+    args
+
+    % The 7mm-wide Swiss Cross is defined by the specification as being an
+    % overlaid image, i.e. not made out of "modules", so very likely a
+    % different pitch. It cannot therefore be represented by our standard image
+    % dictionary and would be a nightmare to gridfit. The application assumes a
+    % sufficient high-resolution print process that such issues do not matter.
+    %
+    % So for now we simply do as we're told and paint over the top of the
+    % barcode image that has been scaled to 46mm, user be damned!
+    %
+    dontdraw not {
+
+        gsave
+        currentpoint translate
+        72 25.4 div dup scale  % pt to mm
+
+        % Clipping path with 7mm hole for the Swiss Cross
+        gsave
+        newpath
+         0  0 moveto
+        46  0 lineto
+        46 46 lineto
+         0 46 lineto
+        closepath
+        19.5 19.5 moveto
+        19.5 26.5 lineto
+        26.5 26.5 lineto
+        26.5 19.5 lineto
+        closepath
+        clip
+
+        % Scale the QR Code to fit within 46mm
+        gsave
+        0 0 moveto
+        46 args (pixx) get div 2 div dup scale
+        //renmatrix exec
+        grestore
+
+        grestore  % Clipping
+
+        % Draw Swiss Cross
+        19.5 dup translate
+        7 83 div dup scale
+
+        newpath
+         6  6 moveto
+         6 77 lineto
+        77 77 lineto
+        77  6 lineto
+        closepath
+        49 18 moveto
+        49 34 lineto
+        65 34 lineto
+        65 49 lineto
+        49 49 lineto
+        49 65 lineto
+        34 65 lineto
+        34 49 lineto
+        18 49 lineto
+        18 34 lineto
+        34 34 lineto
+        34 18 lineto
+        closepath
+        0 0 0 setrgbcolor fill
+
+        grestore
+
+    } if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/swissqrcode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER swissqrcode--

@@ -1,0 +1,125 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER code32--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear code39--
+% --DESC: Italian Pharmacode
+% --EXAM: 01234567
+% --EXOP: includetext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+/code32 {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def  % Enable/disable code32 text
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /textxoffset 0.0 def
+    /height 1.0 def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Validate the input
+    barcode length 8 ne barcode length 9 ne and {
+        /bwipp.code32badLength (Italian Pharmacode must be 8 or 9 digits) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.code32badCharacter (Italian Pharmacode must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    % Calculate check digit
+    /checksum 0 def
+    0 1 7 {
+        /i exch def
+        barcode i get 48 sub i 2 mod 0 ne {2 mul} if dup 9 gt {9 sub} if
+        checksum add /checksum exch def
+    } for
+    /checksum checksum 10 mod def
+    barcode length 9 eq {
+        barcode 8 get checksum 48 add ne {
+            /bwipp.code32badCheckDigit (Incorrect Italian Pharmacode check digit provided) //raiseerror exec
+        } if
+    } if
+    10 string
+    dup 0 barcode putinterval
+    dup 8 checksum 48 add put
+    /text exch def
+
+    % convert number from base10 to base32
+    /val text cvi 32 6 string cvrs def
+    /barcode 6 string def
+    0 1 5 {barcode exch 48 put} for
+    barcode 6 val length sub val putinterval
+
+    % convert base32 number to specified character set
+    0 1 5 {
+        dup barcode exch get
+        dup (AEIO) {ge {1 add} if dup} forall pop
+        barcode 3 1 roll put
+    } for
+
+    % format HRI
+    text 1 text 0 9 getinterval putinterval
+    text 0 65 put
+
+    % Get the result of encoding with code39
+    options (dontdraw) true put
+    /args barcode options //code39 exec def
+
+    args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
+    args (textxalign) (center) put
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/code32 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER code32--

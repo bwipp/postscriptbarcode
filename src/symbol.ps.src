@@ -1,0 +1,125 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER symbol--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear renmatrix--
+% --DESC: Miscellaneous symbols
+% --EXAM: fima
+% --EXOP: backgroundcolor=DD000011
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/symbol {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    /symbol //loadctx exec
+
+{  % context
+
+    /fimasbs [2.25 2.25 2.25 11.25 2.25 11.25 2.25 2.25 2.25] def
+    /fimabhs [fimasbs length 2 idiv 1 add {.625} repeat] def
+    /fimabbs [fimasbs length 2 idiv 1 add {0   } repeat] def
+
+    /fimbsbs [2.25 6.75 2.25 2.25 2.25 6.25 2.25 2.25 2.25 6.75 2.25] def
+    /fimbbhs [fimbsbs length 2 idiv 1 add {.625} repeat] def
+    /fimbbbs [fimbsbs length 2 idiv 1 add {0   } repeat] def
+
+    /fimcsbs [2.25 2.25 2.25 6.75 2.25 6.75 2.25 6.75 2.25 2.25 2.25] def
+    /fimcbhs [fimcsbs length 2 idiv 1 add {.625} repeat] def
+    /fimcbbs [fimcsbs length 2 idiv 1 add {0   } repeat] def
+
+    /fimdsbs [2.25 2.25 2.25 2.25 2.25 6.75 2.25 6.75 2.25 2.25 2.25 2.25 2.25] def
+    /fimdbhs [fimdsbs length 2 idiv 1 add {.625} repeat] def
+    /fimdbbs [fimdsbs length 2 idiv 1 add {0   } repeat] def
+
+    /fimesbs [2.25 6.75 2.25 15.75 2.25 6.75 2.25] def
+    /fimebhs [fimesbs length 2 idiv 1 add {.625} repeat] def
+    /fimebbs [fimesbs length 2 idiv 1 add {0   } repeat] def
+
+    /zebrasbs [100 { 1 1 } repeat 1] def
+    /zebrabhs [zebrasbs length 2 idiv 1 add {1} repeat] def
+    /zebrabbs [zebrasbs length 2 idiv 1 add {0} repeat] def
+
+    /checksize 199 def
+    /checkpixs [ checksize dup mul 2 idiv {1 0} repeat 1 ] def
+
+    /renmap <<
+        /renlinear //renlinear
+        /renmatrix //renmatrix
+    >> def
+
+} ctxdef
+
+    /symbols <<
+        /fima  { << /ren /renlinear  /sbs fimasbs   /bhs fimabhs   /bbs fimabbs >>  }
+        /fimb  { << /ren /renlinear  /sbs fimbsbs   /bhs fimbbhs   /bbs fimbbbs >>  }
+        /fimc  { << /ren /renlinear  /sbs fimcsbs   /bhs fimcbhs   /bbs fimcbbs >>  }
+        /fimd  { << /ren /renlinear  /sbs fimdsbs   /bhs fimdbhs   /bbs fimdbbs >>  }
+        /fime  { << /ren /renlinear  /sbs fimesbs   /bhs fimebhs   /bbs fimebbs >>  }
+        /zebra { << /ren /renlinear  /sbs zebrasbs  /bhs zebrabhs  /bbs zebrabbs >> }
+        /check { << /ren /renmatrix  /pixs checkpixs  /pixx checksize  /pixy checksize  /height checksize 72 div  /width checksize 72 div >> }
+    >> def
+
+    % Valiate input
+    symbols barcode known not {
+        /bwipp.symbolUnknownSymbol (Unknown symbol name provided) //raiseerror exec
+    } if
+
+    symbols barcode get exec
+    dup /opt options put
+
+    dontdraw not { dup /ren get renmap exch get exec } if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/symbol dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER symbol--

@@ -1,0 +1,175 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER planet--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear--
+% --DESC: USPS PLANET
+% --EXAM: 01234567890
+% --EXOP: includetext includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+/planet {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def          % Enable/disable text
+    /validatecheck false def
+    /includecheckintext false def
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /height 0.125 def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    /planet //loadctx exec
+
+    /barlen barcode length validatecheck {1 sub} if def
+
+    % Validate the input
+    barlen 11 ne barlen 13 ne and {
+        /bwipp.planetBadLength (USPS PLANET must be 11 or 13 digits excluding check digit) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.planetBadCharacter (USPS PLANET must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+{
+    % Create a string of the available characters
+    /barchars (0123456789) def
+
+    % Create an array containing the character mappings
+    /encs
+    [ (22555) (55522) (55252) (55225) (52552)
+      (52525) (52255) (25552) (25525) (25255)
+      (5) (5)
+    ] def
+} ctxdef
+
+    % Calculate the checksum
+    /checksum 0 def
+    0 1 barlen 1 sub {
+        /i exch def
+        /checksum checksum barcode i get 48 sub add def
+    } for
+    /checksum 10 checksum 10 mod sub 10 mod def
+    validatecheck {
+        barcode barlen get barchars checksum get ne {
+            /bwipp.planetBadCheckDigit (Incorrect USPS PLANET check digit provided) //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+    } if
+
+    /bhs barlen 5 mul 7 add array def
+    /txt barlen 1 add array def
+
+    % Put start character
+    /enc encs 10 get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs 0 heights putinterval   % Put encoded digit into sbs
+
+    0 1 barlen 1 sub {
+        /i exch def
+        /enc encs barcode i get 48 sub get def
+        /heights enc length array def
+        0 1 enc length 1 sub {
+            /j exch def
+            heights j enc j 1 getinterval cvi height mul 5 div put
+        } for
+        bhs i 5 mul 1 add heights putinterval   % Put encoded digit into sbs
+        txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+    } for
+
+    % Put the checksum character
+    /enc encs checksum get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs barlen 5 mul 1 add heights putinterval
+
+    includecheckintext {
+        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+    } {
+        txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textyoffset textfont textsize] put
+    } ifelse
+
+    % Put end character
+    /enc encs 11 get def
+    /heights enc length array def
+    0 1 enc length 1 sub {
+        /j exch def
+        heights j enc j 1 getinterval cvi height mul 5 div put
+    } for
+    bhs barlen 5 mul 6 add heights putinterval
+
+    % Return the arguments
+    <<
+    /ren /renlinear
+    /bhs bhs
+    /bbs [bhs length {0} repeat]
+    /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    includetext {
+        /txt txt
+    } if
+    /opt options
+    >>
+
+    dontdraw not //renlinear if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/planet dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER planet--

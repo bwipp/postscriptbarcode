@@ -1,0 +1,74 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER coop2of5--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear code2of5--
+% --DESC: COOP 2 of 5
+% --EXAM: 01234567
+% --EXOP: includetext includecheck includecheckintext
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code2of5 dup /uk.co.terryburton.bwipp findresource put
+begin
+/coop2of5 {
+
+    20 dict begin            % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Get the result of encoding with code2of5 with version=coop
+    options (dontdraw) true put
+    options (version) (coop) put
+
+    /args barcode options //code2of5 exec def
+
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/coop2of5 dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER coop2of5--

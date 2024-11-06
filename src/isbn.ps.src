@@ -1,0 +1,276 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER isbn--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions renlinear ean5 ean2 ean13--
+% --DESC: ISBN
+% --EXAM: 978-1-56581-231-4 90000
+% --EXOP: includetext guardwhitespace
+% --RNDR: renlinear
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+begin
+/isbn {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def  % Enable/disable ISBN text
+    /isbntextfont /Courier def
+    /isbntextsize 9.0 def
+    /isbntextxoffset null def  % sentinal realtype
+    /isbntextyoffset null def  % sentinal realtype
+    /height 1.0 def
+    /addongap 12.0 def
+    /legacy false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Split off the addon
+    barcode ( ) search {
+        /barcode exch def
+        pop
+        /addon exch def
+    } {
+        pop
+        /addon () def
+    } ifelse
+
+    % Validate the input
+    barcode length 15 ne barcode length 17 ne and
+    barcode length 11 ne barcode length 13 ne and and {
+        /bwipp.isbnBadLength (ISBN-13 must be 15 or 17 characters including dashes. ISBN-10 must be 11 or 13 characters including dashes) //raiseerror exec
+    } if
+    addon length 0 ne addon length 2 ne and addon length 5 ne and {
+        /bwipp.isbnBadAddOnLength (Add-on for ISBN must be 2 or 5 digits) //raiseerror exec
+    } if
+    barcode length 15 ge {  % ISBN-13
+        barcode 0 4 getinterval dup (978-) ne exch (979-) ne and {
+            /bwipp.isbn13badPrefix (ISBN-13 prefix must be 978- or 979-) //raiseerror exec
+        } if
+        /wasdash false def /numdash 0 def /numdigit 0 def
+        barcode 5 9 getinterval {
+            dup
+            45 eq {
+                wasdash {
+                    /bwipp.isbn13adjacentDashes (ISBN-13 does not permit adjacent dashes) //raiseerror exec
+                } if
+                /wasdash true def
+                /numdash numdash 1 add def
+            } if
+            dup 48 ge exch 57 le and {
+                /wasdash false def
+                /numdigit numdigit 1 add def
+            } if
+        } forall
+        numdash 2 ne numdigit 7 ne or {
+            /bwipp.isbn13numDashesDigits (Incorrect number of dashes and digits for ISBN-13) //raiseerror exec
+        } if
+        barcode 14 get dup 48 lt exch 57 gt or {
+            /bwipp.isbn13character15 (ISBN-13 character 15 must be a digit) //raiseerror exec
+        } if
+        barcode length 17 eq {
+            barcode 15 1 getinterval (-) ne {
+                /bwipp.isbn13character16 (ISBN-13 penultimate character must be a dash) //raiseerror exec
+            } if
+            barcode 16 get dup 48 lt exch 57 gt or {
+                /bwipp.isbn13character17 (ISBN-13 final character must be a digit) //raiseerror exec
+            } if
+        } if
+    } {  % ISBN-10
+        barcode 0 get dup 48 lt exch 57 gt or {
+            /bwipp.isbn10FirstDigit (ISBN-10 first character must be a digit) //raiseerror exec
+        } if
+        /wasdash false def /numdash 0 def /numdigit 0 def
+        barcode 1 9 getinterval {
+            dup
+            45 eq {
+                wasdash {
+                    /bwipp.isbn10adjacentDashes (ISBN-10 does not permit adjacent dashes) //raiseerror exec
+                } if
+                /wasdash true def
+                /numdash numdash 1 add def
+            } if
+            dup 48 ge exch 57 le and {
+                /wasdash false def
+                /numdigit numdigit 1 add def
+            } if
+        } forall
+        numdash 2 ne numdigit 7 ne or {
+            /bwipp.isbn10numDashesDigits (Incorrect number of dashes and digits for ISBN-10) //raiseerror exec
+        } if
+        barcode 10 get dup 48 lt exch 57 gt or {
+            /bwipp.isbn10character11 (ISBN-10 character 11 must be a digit) //raiseerror exec
+        } if
+        barcode length 13 eq {
+            barcode 11 1 getinterval (-) ne {
+                /bwipp.isbn10character12 (ISBN-10 penultimate character must be a dash) //raiseerror exec
+            } if
+            barcode 12 get dup dup 48 lt exch 57 gt or exch 88 ne and {
+                /bwipp.isbn10character13 (ISBN-10 final character must be a digit or X) //raiseerror exec
+            } if
+        } if
+    } ifelse
+
+    /isbntxt barcode def
+
+    % Read the digits from isbntxt and validate checksum for ISBN-10
+    isbntxt length 13 le {
+        /isbn 10 string def
+        /checksum 0 def
+        /i 0 def /n 0 def
+        { % loop
+            /isbnchar isbntxt i get 48 sub def
+            isbnchar -3 ne {     % Ignore dashes
+                isbn n isbnchar 48 add put
+                n 9 lt {
+                    /checksum checksum 10 n sub isbnchar mul add def
+                } if
+                /n n 1 add def
+            } if
+            /i i 1 add def
+            i isbntxt length eq {exit} if
+        } loop
+        /checksum 11 checksum 11 mod sub 11 mod dup 10 eq {pop 40} if 48 add def
+        /isbn isbn 0 9 getinterval def
+        isbntxt length 13 eq {
+            isbntxt 12 get checksum ne {
+                /bwipp.isbn10badCheckDigit (Incorrect ISBN-10 check digit provided) //raiseerror exec
+            } if
+        } if
+    } if
+
+    legacy not isbntxt length 15 ge or {
+
+        % Convert ISBN-10 to ISBN-13
+        isbntxt length 13 le {
+            /pad 15 string def
+            pad 0 (978-) putinterval
+            pad 4 isbntxt 0 11 getinterval putinterval
+            /isbntxt pad def
+        } if
+
+        % Read the digits from isbntxt and validate checksum for ISBN-13
+        /isbn 13 string def
+        /checksum 0 def
+        /i 0 def /n 0 def
+        { % loop
+            /isbnchar isbntxt i get 48 sub def
+            isbnchar -3 ne {     % Ignore dashes
+                isbn n isbnchar 48 add put
+                n 12 lt {
+                    /checksum isbnchar n 2 mod 0 ne {3 mul} if checksum add def
+                } if
+                /n n 1 add def
+            } if
+            /i i 1 add def
+            i isbntxt length eq {exit} if
+        } loop
+        /checksum 10 checksum 10 mod sub 10 mod 48 add def
+        /isbn isbn 0 12 getinterval def
+        isbntxt length 17 eq {
+            isbntxt 16 get checksum ne {
+                /bwipp.isbn13badCheckDigit (Incorrect ISBN-13 check digit provided) //raiseerror exec
+            } if
+        } if
+
+    } if
+
+    % Add the ISBN header to the isbntxt
+    /pad isbn length 12 eq {22} {18} ifelse string def
+    pad 0 (ISBN ) putinterval
+    pad 5 isbntxt putinterval
+    pad pad length 2 sub 45 put
+    pad pad length 1 sub checksum put
+    /isbntxt pad def
+
+    % Convert ISBN digits to EAN-13
+    /barcode 12 string def
+    isbn length 9 eq {
+        barcode 0 (978) putinterval
+        barcode 3 isbn putinterval
+    } {
+        barcode 0 isbn putinterval
+    } ifelse
+
+    % Append the addon
+    addon () ne {
+        12 addon length add 1 add string
+        dup 0 barcode putinterval
+        dup 12 ( ) putinterval
+        dup 13 addon putinterval
+        /barcode exch def
+    } if
+
+    % Get the result of encoding with ean13
+    options (dontdraw) true put
+    options (addongap) addongap put
+    /args barcode options //ean13 exec def
+
+    % Add the ISBN text
+    includetext {
+        isbntextxoffset null eq {
+            /isbntextxoffset isbn length 9 eq {-1.0} {-12.0} ifelse def
+        } if
+        isbntextyoffset null eq {
+            /isbntextyoffset height 72 mul 3 add def
+        } if
+        args (txt) known {
+            /txt args (txt) get def
+            /newtxt txt length 1 add array def
+            newtxt 0 txt putinterval
+            newtxt newtxt length 1 sub [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] put
+            args (txt) newtxt put
+        } {
+            args (txt) [ [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] ] put
+        } ifelse
+    } if
+
+    args (opt) options put
+    args
+
+    dontdraw not //renlinear if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/isbn dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER isbn--

@@ -1,0 +1,127 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER gs1northamericancoupon--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear renmatrix databarexpanded databarexpandedstacked--
+% --DESC: GS1 North American Coupon
+% --EXAM: (8110)106141416543213500110000310123196000
+% --EXOP: includetext segments=8
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
+begin
+/gs1northamericancoupon {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+    /includetext false def  % Enable/disable coupon text
+    /coupontextfont /Helvetica def
+    /coupontextsize 9.0 def
+    /coupontextxoffset null def
+    /coupontextyoffset null def
+    /parse false def
+    /dontlint false def
+    /lintreqs true def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    barcode /ai //gs1process exec
+    pop
+    /vals exch def
+    /ais exch def
+
+    % Validate the AI structure
+    ais length 1 ne {
+      /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
+    } if
+    ais 0 get (8110) ne {
+      /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
+    } if
+
+    % Parse out the Company Prefix and Offer Code
+    /val vals 0 get def
+    /vli val 0 get 48 sub def
+    vli 0 lt vli 6 gt or {
+      /bwipp.gs1northamericancouponBadVLI (The AI (8110) data should start with a Company Prefix length indicator in the range 0 to 6) //raiseerror exec
+    } if
+    /gcp val 1 vli 6 add getinterval def
+    /cod val vli 7 add 6 getinterval def
+    /coupontext gcp length 7 add string def
+    coupontext 0 gcp putinterval
+    coupontext gcp length (-) putinterval
+    coupontext gcp length 1 add cod putinterval
+
+    % Get the result of encoding with databarexpandedstacked
+    options (dontdraw) true put
+
+    /args barcode options //databarexpandedstacked exec def
+
+    % Add the coupon text
+    includetext {
+        coupontextxoffset null eq {
+            /coupontextxoffset 0.0 def
+        } if
+        coupontextyoffset null eq {
+            /coupontextyoffset args (height) get 72 mul 3 add def
+        } if
+        args (txt) known {
+            /txt args (txt) get def
+            /newtxt txt length 1 add array def
+            newtxt 0 txt putinterval
+            newtxt newtxt length 1 sub [coupontext coupontextxoffset coupontextyoffset coupontextfont coupontextsize] put
+            args (txt) newtxt put
+        } {
+            args (txt) [ [coupontext coupontextxoffset coupontextyoffset coupontextfont coupontextsize] ] put
+        } ifelse
+    } if
+
+    args (opt) options put
+    args
+
+    dontdraw not //renmatrix if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/gs1northamericancoupon dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER gs1northamericancoupon--

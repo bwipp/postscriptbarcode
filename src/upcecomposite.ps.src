@@ -1,0 +1,189 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER upcecomposite--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear renmatrix ean5 ean2 upce micropdf417 pdf417 gs1-cc--
+% --DESC: UPC-E Composite
+% --EXAM: 01234558|(15)021231
+% --EXOP: includetext
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /upce dup /uk.co.terryburton.bwipp findresource put
+dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
+dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/upcecomposite {
+
+    20 dict begin            % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+    /usematrix false def
+    /parse false def
+    /dontlint false def
+    /lintreqs true def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    dontdraw { /usematrix true def } if
+
+    % Split the linear and composite parts
+    barcode (|) search {
+        /linear exch def
+        pop
+        /comp exch def
+    } {
+        pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
+    } ifelse
+
+    options (lintype) (upce) put
+    options (inkspreadv) 0.0 put
+    options (dontdraw) true put
+    options (dontlint) true put
+
+    % Lint with a fake AI (01)
+    comp length 18 add string
+    dup 0 ((01)00000000000000) putinterval
+    dup 18 comp putinterval
+    /ai //gs1process exec pop pop pop
+
+    % Plot the linear part
+    linear options //upce exec
+    usematrix not {
+        gsave
+
+        //renlinear exec
+
+        currentpoint
+
+        % Plot the 2D part
+        -3 78 rmoveto comp options //gs1-cc exec //renmatrix exec
+
+        % Plot the separator
+        72 add exch 1 sub exch moveto <<
+            /ren /renmatrix
+            /pixs [
+                0 1  49 {0} repeat  1 0
+                1 0  49 {0} repeat  0 1
+                0 1  49 {0} repeat  1 0
+            ]
+            /pixx 53
+            /pixy 3
+            /height 6 72 div
+            /width 53 72 div
+            /opt options
+        >> //renmatrix exec
+
+        grestore
+    } {
+        /linsym exch def
+        /sbs linsym /sbs get def
+        /bhs linsym /bhs get def
+        /bbs linsym /bbs get def
+        /linwidth 0 sbs {cvi add} forall def
+
+        /compsym comp options //gs1-cc exec def
+        /ccpixs compsym /pixs get def
+        /ccpixx compsym /pixx get def
+
+        /linpad [ ccpixx 53 sub {0} repeat ] def
+
+        /diff linwidth linpad length add 1 add ccpixx sub def  % An add-on can make linear wider than composite
+        diff 0 gt {  % Left align composite
+            /ccrpad [ diff {0} repeat ] def
+            /pixx ccpixx diff add def
+        } {
+            /ccrpad 0 array def
+            /pixx ccpixx def
+        } ifelse
+
+        /pixs [
+            0 ccpixx ccpixs length 1 sub {
+                /i exch def
+                ccpixs i ccpixx getinterval aload pop ccrpad aload pop
+            } for
+            2 { linpad aload pop 0 1  49 {0} repeat  1 0 ccrpad aload pop } repeat
+            2 { linpad aload pop 1 0  49 {0} repeat  0 1 ccrpad aload pop } repeat
+            2 { linpad aload pop 0 1  49 {0} repeat  1 0 ccrpad aload pop } repeat
+            71 -1 0 {
+                /y exch def
+                linpad aload pop
+                0
+                0 1 sbs length 1 sub {
+                    /i exch def
+                    i 2 mod 0 eq {
+                        % Don't print when bbs > y || (bbs + bhs) < y (i.e. add-on or includetext offsets)
+                        bbs i 2 idiv get 72 mul dup y gt exch bhs i 2 idiv get 72 mul add y lt or {
+                            sbs i get cvi {0} repeat
+                        } {
+                            sbs i get cvi {1} repeat
+                        } ifelse
+                    } {
+                        sbs i get cvi {0} repeat
+                    } ifelse
+                } for
+                diff 0 lt {0} if  % Allow for middle separator overhang on RHS if no add-on
+            } for
+        ] def
+
+        /pixy pixs length pixx idiv def
+        <<
+        /ren /renmatrix
+        /pixs pixs
+        /pixx pixx
+        /pixy pixy
+        /height pixy 72 div
+        /width pixx 72 div
+        /opt options
+        >>
+
+        dontdraw not {
+            gsave
+            //renmatrix exec
+            grestore
+        } if
+    } ifelse
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/upcecomposite dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER upcecomposite--

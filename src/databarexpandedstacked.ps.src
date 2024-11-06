@@ -1,0 +1,74 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER databarexpandedstacked--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput gs1process renlinear renmatrix databarexpanded--
+% --DESC: GS1 DataBar Expanded Stacked
+% --EXAM: (01)09521234543213(3103)000123
+% --EXOP: segments=4
+% --RNDR: renlinear renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /databarexpanded dup /uk.co.terryburton.bwipp findresource put
+begin
+/databarexpandedstacked {
+
+    20 dict begin                 % Confine variables to local scope
+
+    /ctx null def
+    /dontdraw false def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    % Get the result of encoding with databarexpanded with format=expandedstacked
+    options (dontdraw) true put
+    options (format) (expandedstacked) put
+
+    /args barcode options //databarexpanded exec def
+
+    args (opt) options put
+    args
+
+    dontdraw not //renmatrix if
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/databarexpandedstacked dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER databarexpandedstacked--

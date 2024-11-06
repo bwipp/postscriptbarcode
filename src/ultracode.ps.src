@@ -1,0 +1,395 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER ultracode--
+% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput renmatrix--
+% --DESC: Ultracode
+% --EXAM: Awesome colours!
+% --EXOP: eclevel=EC2
+% --RNDR: renmatrix
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+dup /loadctx dup /uk.co.terryburton.bwipp findresource put
+dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+/ultracode {
+
+    20 dict begin
+
+    /ctx null def
+    /dontdraw false def
+    /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
+    /parse false def
+    /parsefnc false def
+    /start 257 def         % 8-bit ISO-8859-1, until we write high-level encoders
+    /link1 0 def
+    /raw false def
+    /rev 2 def             % Ultracode specification revision
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    rev dup 1 ne exch 2 ne and {
+        /bwipp.ultracodeInvalidRevision (Valid revisions are 1 and 2) //raiseerror exec
+    } if
+
+    eclevel length 3 eq dup {
+       pop eclevel 0 2 getinterval (EC) dup eq {
+           pop eclevel 2 get 48 sub dup rev 2 eq {1} {0} ifelse ge exch 5 le and
+       } if
+    } if
+    not {
+        /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
+    } if
+
+    /ultracode //loadctx exec
+
+    raw {
+
+        /dcws barcode length array def
+        /i 0 def /j 0 def
+        { % loop
+            i barcode length eq {exit} if
+            /cw barcode i 1 add 3 getinterval cvi def
+            dcws j cw put
+            /i i 4 add def
+            /j j 1 add def
+        } loop
+        /dcws dcws 0 j getinterval def
+
+    } {
+
+        % Parse the input
+        /fn1 -1 def  /fn3 -2 def
+        /fncvals <<
+            /parse parse
+            /parsefnc parsefnc
+            (FNC1) fn1
+            (FNC3) fn3
+        >> def
+        /msg barcode fncvals //parseinput exec def
+        /msglen msg length def
+
+        /scr [] def     % Empty symbol control region
+        /scp [] def     % Empty start sequence parameters
+        /dcws [
+            scr aload pop
+            scp aload pop
+            msg {
+                dup fn1 eq {pop 268} if
+                dup fn3 eq {pop 269} if
+            } forall
+        ] def
+
+    } ifelse
+
+    options /debugcws known { /bwipp.debugcws dcws //raiseerror exec } if
+
+    /mcc dcws length 3 add def  % Message codewords: start mcc acc [dcws ...]
+
+    /eclval eclevel 2 get 48 sub def
+    eclval 0 ne {
+        /qcc [0 1 2 4 6 8] eclval get mcc 25 idiv mcc 25 mod 0 ne {1 add} if mul 5 add def
+    } {
+        /qcc 3 def
+    } ifelse
+    /acc qcc 3 sub 78 link1 mul add def
+    /tcc mcc qcc add def
+
+    % Lookup the most appropriate symbol specification
+{
+    /metrics [
+        % rows  minc  maxc  mcol
+        [   2     7    37     5  ]
+        [   3    36    84    13  ]
+        [   4    85   161    22  ]
+        [   5   142   282    29  ]
+    ] def
+} ctxdef
+
+    metrics {
+        /m exch def
+        /rows m 0 get def
+        /minc m 1 get def  % Minimum permissible codewords
+        /maxc m 2 get def  % Maximum permissible codewords
+        /mcol m 3 get def  % Minimum tile columns
+        /okay true def
+        tcc minc lt tcc maxc gt or {/okay false def} if
+        okay {exit} if
+    } forall
+
+    okay not {
+        /bwipp.ultracodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+    } if
+
+    % Determine required number of columns and pads
+    mcol 1 61 {
+        /columns exch def
+        columns
+        columns 15 ge {1 sub} if
+        columns 31 ge {1 sub} if
+        columns 47 ge {1 sub} if
+        rows mul 3 sub tcc sub dup 0 ge {
+            /pads exch def
+            exit
+        } if
+        pop
+    } for
+    /dcc columns mcol sub def
+
+    % Reed-Solomon error correction
+    /rsseq [
+        start
+        mcc
+        acc
+        dcws aload pop
+        qcc {0} repeat
+        0  % Working space
+    ] def
+
+    % Calculate the log and anti-log tables
+{
+    /rsalog [ 1 282 {dup 3 mul 283 mod} repeat ] def
+    /rslog 283 array def
+    1 1 282 {dup rsalog exch get exch rslog 3 1 roll put} for
+} ctxdef
+
+    % Function to calculate the product in the field
+    /rsprod {
+        2 copy 0 ne exch 0 ne and {
+            rslog exch get exch rslog exch get add 282 mod rsalog exch get
+        } {
+            pop pop 0
+        } ifelse
+    } def
+
+    % Generate the coefficients
+    /n mcc def  /k qcc def
+    /coeffs [ 1 k {0} repeat ] def
+    1 1 k {
+        /i exch def
+        coeffs i coeffs i 1 sub get put
+        i 1 sub -1 1 {
+            /j exch def
+            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod add 283 mod put
+        } for
+        coeffs 0 coeffs 0 get rsalog i get rsprod put
+    } for
+    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+    coeffs length 1 sub -2 0 {coeffs exch 2 copy get 283 exch sub put} for
+
+    % Derive the error codewords
+    0 1 n 1 sub {
+        /t exch rsseq exch get rsseq n get add 283 mod def
+        0 1 k 1 sub {
+            /j exch def
+            rsseq n j add rsseq n j add 1 add get 283 t coeffs k j sub 1 sub get mul 283 mod sub add 283 mod put
+        } for
+    } for
+    n 1 n k add { dup rsseq exch 283 rsseq 5 -1 roll get sub 283 mod put } for
+    /ecws rsseq n k getinterval def
+
+    options /debugecc known { /bwipp.debugecc ecws //raiseerror exec } if
+
+{
+    /tiles [
+        13135  13136  13153  13156  13163  13165  13513  13515  13516  13531  %   0-9
+        13535  13536  13561  13563  13565  13613  13615  13616  13631  13635  %  10-19
+        13636  13651  13653  13656  15135  15136  15153  15163  15165  15313  %  20-29
+        15315  15316  15351  15353  15356  15361  15363  15365  15613  15615  %  30-39
+        15616  15631  15635  15636  15651  15653  15656  16135  16136  16153  %  40-49
+        16156  16165  16313  16315  16316  16351  16353  16356  16361  16363  %  50-59
+        16365  16513  16515  16516  16531  16535  16536  16561  16563  16565  %  60-69
+        31315  31316  31351  31356  31361  31365  31513  31515  31516  31531  %  70-79
+        31535  31536  31561  31563  31565  31613  31615  31631  31635  31636  %  80-89
+        31651  31653  31656  35131  35135  35136  35151  35153  35156  35161  %  90-99
+        35163  35165  35315  35316  35351  35356  35361  35365  35613  35615  % 100-109
+        35616  35631  35635  35636  35651  35653  35656  36131  36135  36136  % 110-119
+        36151  36153  36156  36163  36165  36315  36316  36351  36356  36361  % 120-129
+        36365  36513  36515  36516  36531  36535  36536  36561  36563  36565  % 130-139
+        51313  51315  51316  51351  51353  51356  51361  51363  51365  51513  % 140-149
+        51516  51531  51536  51561  51563  51613  51615  51616  51631  51635  % 150-159
+        51636  51651  51653  51656  53131  53135  53136  53151  53153  53156  % 160-169
+        53161  53163  53165  53513  53516  53531  53536  53561  53563  53613  % 170-179
+        53615  53616  53631  53635  53636  53651  53653  53656  56131  56135  % 180-189
+        56136  56151  56153  56156  56161  56163  56165  56313  56315  56316  % 190-199
+        56351  56353  56356  56361  56363  56365  56513  56516  56531  56536  % 200-209
+        56561  56563  61313  61315  61316  61351  61353  61356  61361  61363  % 210-219
+        61365  61513  61515  61516  61531  61535  61536  61561  61563  61565  % 220-229
+        61615  61631  61635  61651  61653  63131  63135  63136  63151  63153  % 230-239
+        63156  63161  63163  63165  63513  63515  63516  63531  63535  63536  % 240-249
+        63561  63563  63565  63613  63615  63631  63635  63651  63653  65131  % 250-259
+        65135  65136  65151  65153  65156  65161  65163  65165  65313  65315  % 260-269
+        65316  65351  65353  65356  65361  65363  65365  65613  65615  65631  % 270-279
+        65635  65651  65653  56565  51515                                     % 280-284
+    ] def
+
+    /dccurev1 [
+        51363  51563  51653  53153  53163  53513  53563  53613  %  0-7
+        53653  56153  56163  56313  56353  56363  56513  56563  %  8-15
+        51316  51356  51536  51616  53156  53516  53536  53616  % 16-23
+        53636  53656  56136  56156  56316  56356  56516  56536  % 24-31
+    ] def
+    /dcclrev1 [
+        61351  61361  61531  61561  61631  61651  63131  63151  %  0-7
+        63161  63531  63561  63631  65131  65161  65351  65631  %  8-15
+        31351  31361  31531  31561  31631  31651  35131  35151  % 16-23
+        35161  35361  35631  35651  36131  36151  36351  36531  % 24-31
+    ] def
+    /dccurev2 [
+        15316  16316  13516  16516  13616  15616  13136  15136  %  0-7
+        16136  13536  16536  13636  13156  16156  15356  13656  %  8-15
+        15313  16313  13513  16513  13613  15613  13153  15153  % 16-23
+        16153  16353  13653  15653  13163  15163  15363  13563  % 24-31
+    ] def
+    /dcclrev2 [
+        36315  36515  35615  35135  36135  31535  36535  31635  %  0-7
+        35635  35165  36165  31365  35365  36365  31565  36565  %  8-15
+        61315  65315  63515  61615  65135  61535  63535  61635  % 16-23
+        63635  65635  63165  65165  61365  65365  61565  63565  % 24-31
+    ] def
+} ctxdef
+
+    /dccu rev 1 eq {dccurev1} {dccurev2} ifelse def
+    /dccl rev 1 eq {dcclrev1} {dcclrev2} ifelse def
+
+    % Create the bitmap
+    /rows rows 6 mul 1 add def
+    /columns columns 6 add def
+    /pixs [ rows columns mul {-1} repeat ] def
+    /qmv {columns mul add} def
+    0 1 columns 1 sub {
+        /i exch def
+        0 6 rows 1 sub {
+            /j exch def
+            i 5 ge {pixs i j qmv i 2 mod 9 mul put} if
+        } for
+        pixs i 0 qmv 9 put
+        pixs i rows 1 sub qmv 9 put
+    } for
+    1 1 rows 2 sub {
+        /i exch def
+        3 16 columns 1 sub {
+            /j exch def
+            pixs j i qmv 1 i 2 mod sub 9 mul put
+        } for
+        pixs 0 i qmv 9 put
+        pixs 1 i qmv 1 i 2 mod sub 9 mul put
+        pixs 2 i qmv 0 put
+        pixs 3 i qmv 9 put
+        pixs 4 i qmv 0 put
+        pixs columns 1 sub i qmv 9 put
+    } for
+
+    % DCCU and DCCL tiles
+    /i rows 2 idiv 5 sub def
+    [
+        dccu dcc get 10 5 string cvrs {48 sub} forall
+        0
+        dccl dcc get 10 5 string cvrs {48 sub} forall
+    ] {
+        pixs 2 i qmv 3 -1 roll put
+        /i i 1 add def
+    } forall
+
+    % Data tiles
+    /tileseq [
+        start
+        mcc
+        ecws aload pop
+        tcc
+        283  % SEP
+        acc
+        dcws aload pop
+        pads {284} repeat
+        qcc
+    ] def
+
+    /x 5 def /y 1 def
+    tileseq {
+         tiles exch get 10 5 string cvrs {
+              pixs x y qmv 3 -1 roll 48 sub put
+              /y y 1 add def
+         } forall
+         y rows 1 sub ne {
+              /y y 1 add def      % Jump horizontal timing pattern
+         } {
+              /x x 1 add def  /y 1 def
+              pixs x y qmv get -1 ne {
+                  /x x 1 add def  % Jump vertical timing pattern
+              } if
+         } ifelse
+    } forall
+
+{
+    /colormap <<
+        0 (FFFFFF)  % W
+        9 (000000)  % K
+        1 (00FFFF)  % C
+        3 (FF00FF)  % M
+        5 (FFFF00)  % Y
+        6 (00FF00)  % G
+    >> def
+} ctxdef
+
+    % Return the arguments
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx columns
+    /pixy rows
+    /height rows 72 div 2 mul
+    /width columns 72 div 2 mul
+    /colormap colormap
+    /borderleft 1.0
+    /borderright 1.0
+    /bordertop 1.0
+    /borderbottom 1.0
+    /opt options
+    >>
+
+    dontdraw not //renmatrix if
+
+    //unloadctx exec
+
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/ultracode dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+% --END ENCODER ultracode--
