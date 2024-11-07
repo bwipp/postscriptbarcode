@@ -409,7 +409,6 @@ begin
             text i msg i get dup 0 lt { pop 32 } if put
         } for
 
-        65 dict begin
         % Encoder states are named A0, B0, C0, A1, B1, and C1.
         % A, B, and C are the Code 128 code sets.
         % 0 is for ASCII and 1 is for extended ASCII range.
@@ -418,7 +417,7 @@ begin
         % Strings are a convenient way of defining latch
         % sequences. The strings map to Code 128 instructions.
         % The (dddc) sequences are never inserted, but they
-        % are in the lists to provide the correct length:
+        % are in the lists to provide the correct length.
         %                      Prior state
         %          A0    B0    C0     A1    B1    C1
         /latch_a0 [()    (e)   (e)    (ee)  (eee) (eee) ] def
@@ -435,7 +434,7 @@ begin
         /latch_length_c0 [latch_c0 {length} forall] def
         /latch_length_c1 [latch_c1 {length} forall] def
 
-        % Backtracking needs a way of mapping states to sequences:
+        % Backtracking needs a way of mapping states to sequences
         /latch_sequence [latch_a0 latch_b0 latch_c0 latch_a1 latch_b1 latch_c1] def
         /encode         [{enc_a0} {enc_b0} {enc_c } {enc_a1} {enc_b1} {enc_c }] def
         /start_code     [103 104 105] def
@@ -444,10 +443,10 @@ begin
         /start_state    [0 1 2 0 1 2] def   % Encoding starts in ASCII
         /start_length   [1 1 1 1 1 1] def   % Room for start code
 
-        % A reverse priority list is handy for preprocessing latch lengths and final state:
+        % A reverse priority list is handy for preprocessing latch lengths and final state
         /reverse_priority [[5 4 3 2 1 0] {state_priority exch get} forall] def
 
-        % Preprocessed latch lengths help satisfy the need for speed:
+        % Preprocessed latch lengths help satisfy the need for speed
         /prioritized_latch_length_a0 [reverse_priority {dup dup latch_length_a0 exch get exch} forall] def
         /prioritized_latch_length_a1 [reverse_priority {dup dup latch_length_a1 exch get exch} forall] def
         /prioritized_latch_length_b0 [reverse_priority {dup dup latch_length_b0 exch get exch} forall] def
@@ -455,25 +454,25 @@ begin
         /prioritized_latch_length_c0 [reverse_priority {dup dup latch_length_c0 exch get exch} forall] def
         /prioritized_latch_length_c1 [reverse_priority {dup dup latch_length_c1 exch get exch} forall] def
 
-        /max_int 2147483647 def    % Make sure state doesn't get picked.
+        /max_int 16#7FFFFFFF def    % Make sure state doesn't get picked.
 
-        % Predicates for ability to encode:
+        % Predicates for ability to encode
         /can_a  {c          0 ge {true} {seta c known} ifelse} def
         /can_b  {c          0 ge {true} {setb c known} ifelse} def
         /can_c0 {num_digits 2 ge {true} {setc c known} ifelse} def
         /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def
 
-        % Predicates overruled by options:
+        % Predicates overruled by options
         suppressc                      {/can_c0 {false} def} if
         suppressc unlatchextbeforec or {/can_c1 {false} def} if
 
-        % Output length:
+        % Output length
         /out_a0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 96 ge {1 add} if} if} def
         /out_a1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 96 ge {1 add} if} if} def
         /out_b0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 32 lt {1 add} if} if} def
         /out_b1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 32 lt {1 add} if} if} def
 
-        % Encode:
+        % Encode
         /map_ab {dup 32 lt {64 add} {32 sub} ifelse} def
         /enc_a0 {[c 0 lt {seta c get} {c 128 ge {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
         /enc_a1 {[c 0 lt {seta c get} {c 128 lt {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
@@ -482,7 +481,7 @@ begin
         /enc_c  {[c 0 lt {setc c get} {msg n get 48 sub 10 mul msg n 1 add get 48 sub add       } ifelse]} def
 
         % Get best prior state based on a prior row of lengths and a row of latch
-        % lengths (unrolled and with preprocessed latch lengths on the stack):
+        % lengths (unrolled and with preprocessed latch lengths on the stack)
         /get_best_prior_state {
             bln_0 exch get add             /len exch def /o exch def
             bln_0 exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
@@ -495,11 +494,11 @@ begin
 
         % The encoder considers the current row and two rows back.
         % The circular history buffer size is 4 for convenience.
-        % The names are short to keep the lines below reasonable:
-        /bln_0 start_length def /bln_1 start_length def /bln [4 {[0 0 0 0 0 0]} repeat] def % Best Length
-        /bps_0 start_state  def /bps_1 start_state  def /bps [4 {[0 0 0 0 0 0]} repeat] def % Best Prior State
+        % The names are short to keep the lines below reasonable
+        /bln_0 start_length def /bln_1 start_length def /bln [4 {[0 0 0 0 0 0]} repeat] def     %  Best Length
+        /bps_0 start_state  def /bps_1 start_state  def /bps [4 {[0 0 0 0 0 0]} repeat] def     %  Best Prior State
 
-        % Path for backtracking (could make path a string if it makes a difference):
+        % Path for backtracking
         /path [msg length {[0 0 0 0 0 0]} repeat] def
 
         /make_tables {
@@ -508,18 +507,18 @@ begin
                 /n exch def
                 /c msg n get def
 
-                % Keep a tab on digits:
+                % Keep a tab on digits
                 /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
 
-                % Circular history buffer machinery:
+                % Circular history buffer machinery
                 /bln_2 bln_1 def /bln_1 bln_0 def /bln_0 bln n 3 and get def
                 /bps_2 bps_1 def /bps_1 bps_0 def /bps_0 bps n 3 and get def
 
-                % Pick history rows for code set c depending on digits:
+                % Pick history rows for code set c depending on digits
                 /bps_c num_digits 2 ge {bps_2} {bps_1} ifelse def
                 /bln_c num_digits 2 ge {bln_2} {bln_1} ifelse def
 
-                % Use the best prior states and the prior best lengths to determine new best lengths and plot the path:
+                % Use the best prior states and the prior best lengths to determine new best lengths and plot the path
                 bln_0 0 can_a  {/p bps_1 0 get def path n get 0 p put bln_1 p get latch_length_a0 p get add out_a0 add} {max_int} ifelse put
                 bln_0 3 can_a  {/p bps_1 3 get def path n get 3 p put bln_1 p get latch_length_a1 p get add out_a1 add} {max_int} ifelse put
                 bln_0 1 can_b  {/p bps_1 1 get def path n get 1 p put bln_1 p get latch_length_b0 p get add out_b0 add} {max_int} ifelse put
@@ -527,7 +526,7 @@ begin
                 bln_0 2 can_c0 {/p bps_c 2 get def path n get 2 p put bln_c p get latch_length_c0 p get add      1 add} {max_int} ifelse put
                 bln_0 5 can_c1 {/p bps_c 5 get def path n get 5 p put bln_c p get latch_length_c1 p get add      1 add} {max_int} ifelse put
 
-                % Use the new best lengths to determine new best prior states:
+                % Use the new best lengths to determine new best prior states
                 bps_0 0 prioritized_latch_length_a0 aload pop get_best_prior_state put
                 bps_0 3 prioritized_latch_length_a1 aload pop get_best_prior_state put
                 bps_0 1 prioritized_latch_length_b0 aload pop get_best_prior_state put
@@ -540,7 +539,7 @@ begin
         /backtrack {
             /n msg length def
 
-            % Get best final state and final length:
+            % Get best final state and final length
             reverse_priority {dup bln_0 exch get dup} forall
             pop        /len exch def /state exch def
             5 {len lt {/len exch def /state exch def} {pop pop} ifelse} repeat
@@ -561,8 +560,9 @@ begin
         } def
 
         make_tables backtrack
-        end
+
         /cws exch def
+
     } if  % auto encoding
 
     % Derive checksum and place stop character
