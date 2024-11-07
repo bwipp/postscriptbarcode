@@ -457,26 +457,33 @@ begin
 
         /max_int 2147483647 def    % Make sure state doesn't get picked.
 
-        /can_a  {c          0 ge {true} {seta c known} ifelse} def  % Predicates
-        /can_b  {c          0 ge {true} {setb c known} ifelse} def  %
-        /can_c0 {num_digits 2 ge {true} {setc c known} ifelse} def  %
-        /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def  %
-        suppressc                      {/can_c0 {false} def} if     % Overruled
-        suppressc unlatchextbeforec or {/can_c1 {false} def} if     % by options
+        % Predicates for ability to encode:
+        /can_a  {c          0 ge {true} {seta c known} ifelse} def
+        /can_b  {c          0 ge {true} {setb c known} ifelse} def
+        /can_c0 {num_digits 2 ge {true} {setc c known} ifelse} def
+        /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def
 
+        % Predicates overruled by options:
+        suppressc                      {/can_c0 {false} def} if
+        suppressc unlatchextbeforec or {/can_c1 {false} def} if
+
+        % Output length:
         /out_a0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 96 ge {1 add} if} if} def
         /out_a1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 96 ge {1 add} if} if} def
         /out_b0 {1 c 0 ge {c 128 ge {1 add} if c 127 and 32 lt {1 add} if} if} def
         /out_b1 {1 c 0 ge {c 128 lt {1 add} if c 127 and 32 lt {1 add} if} if} def
 
-        /map_ab {dup 32 lt {64 add} {32 sub} ifelse} def    % Map A and B for the encoding functions below:
-        /enc_a0 {[c 0 lt {seta c get} {c 128 ge {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def  % 1   1-3
-        /enc_a1 {[c 0 lt {seta c get} {c 128 lt {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def  % 1   1-3
-        /enc_b0 {[c 0 lt {setb c get} {c 128 ge {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def  % 1   1-3
-        /enc_b1 {[c 0 lt {setb c get} {c 128 lt {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def  % 1   1-3
-        /enc_c  {[c 0 lt {setc c get} {msg n get 48 sub 10 mul msg n 1 add get 48 sub add       } ifelse]} def  % 1-2 1
+        % Encode:
+        /map_ab {dup 32 lt {64 add} {32 sub} ifelse} def
+        /enc_a0 {[c 0 lt {seta c get} {c 128 ge {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_a1 {[c 0 lt {seta c get} {c 128 lt {101} if c 127 and dup 96 ge {98 exch} if map_ab} ifelse]} def
+        /enc_b0 {[c 0 lt {setb c get} {c 128 ge {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_b1 {[c 0 lt {setb c get} {c 128 lt {100} if c 127 and dup 32 lt {98 exch} if map_ab} ifelse]} def
+        /enc_c  {[c 0 lt {setc c get} {msg n get 48 sub 10 mul msg n 1 add get 48 sub add       } ifelse]} def
 
-        /get_best_prior_state {   % Unrolled loop helps satisfy the need for speed. Preprocessed input on the stack.
+        % Get best prior state based on a prior row of lengths and a row of latch
+        % lengths (unrolled and with preprocessed latch lengths on the stack):
+        /get_best_prior_state {
             bln_0 exch get add             /len exch def /o exch def
             bln_0 exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
             bln_0 exch get add dup len lt {/len exch def /o exch def} {pop pop} ifelse
@@ -486,11 +493,13 @@ begin
             o
         } def
 
-        % The Code 128 encoder considers the current row and two rows back (circular buffer size is 4 for convenience):
+        % The encoder considers the current row and two rows back.
+        % The circular history buffer size is 4 for convenience.
+        % The names are short to keep the lines below reasonable:
         /bln_0 start_length def /bln_1 start_length def /bln [4 {[0 0 0 0 0 0]} repeat] def % Best Length
         /bps_0 start_state  def /bps_1 start_state  def /bps [4 {[0 0 0 0 0 0]} repeat] def % Best Prior State
 
-        % Path for backtracking
+        % Path for backtracking (could make path a string if it makes a difference):
         /path [msg length {[0 0 0 0 0 0]} repeat] def
 
         /make_tables {
@@ -498,21 +507,19 @@ begin
             0 1 msg length 1 sub {
                 /n exch def
                 /c msg n get def
+
+                % Keep a tab on digits:
                 /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
 
-                % Circular buffer machinery:
+                % Circular history buffer machinery:
                 /bln_2 bln_1 def /bln_1 bln_0 def /bln_0 bln n 3 and get def
                 /bps_2 bps_1 def /bps_1 bps_0 def /bps_0 bps n 3 and get def
 
-                % Pick rows for code set c depending on the number of digits encountered:
+                % Pick history rows for code set c depending on digits:
                 /bps_c num_digits 2 ge {bps_2} {bps_1} ifelse def
                 /bln_c num_digits 2 ge {bln_2} {bln_1} ifelse def
 
-                % Use the best prior states and the prior best lengths to determine new best lengths. Also, plot the path.
-                % For example for A and B, pick the best prior state from the previous row, get its length, add latch length and output length.
-                % Output length for A and B can be 1, 2, or 3 depending on the amount of shifting necessary.
-                % For C the best prior state may come from the previous row or two rows back depending on input.
-                % Output length in code set C is always one.
+                % Use the best prior states and the prior best lengths to determine new best lengths and plot the path:
                 bln_0 0 can_a  {/p bps_1 0 get def path n get 0 p put bln_1 p get latch_length_a0 p get add out_a0 add} {max_int} ifelse put
                 bln_0 3 can_a  {/p bps_1 3 get def path n get 3 p put bln_1 p get latch_length_a1 p get add out_a1 add} {max_int} ifelse put
                 bln_0 1 can_b  {/p bps_1 1 get def path n get 1 p put bln_1 p get latch_length_b0 p get add out_b0 add} {max_int} ifelse put
@@ -520,8 +527,7 @@ begin
                 bln_0 2 can_c0 {/p bps_c 2 get def path n get 2 p put bln_c p get latch_length_c0 p get add      1 add} {max_int} ifelse put
                 bln_0 5 can_c1 {/p bps_c 5 get def path n get 5 p put bln_c p get latch_length_c1 p get add      1 add} {max_int} ifelse put
 
-                % Use the new best lengths to determine new best prior states.
-                % This is a sort of ping-pong between finding the best length and the best prior states.
+                % Use the new best lengths to determine new best prior states:
                 bps_0 0 prioritized_latch_length_a0 aload pop get_best_prior_state put
                 bps_0 3 prioritized_latch_length_a1 aload pop get_best_prior_state put
                 bps_0 1 prioritized_latch_length_b0 aload pop get_best_prior_state put
