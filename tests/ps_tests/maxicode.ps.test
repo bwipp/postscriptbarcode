@@ -26,18 +26,18 @@
 
 {  % With zeroing on input
     ([\)>^03001^02996152380000^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^004)
-    (mode=2 parse debugcws) maxicode
+    (mode=2 parse debugcws newencoder) maxicode
 } uszeropad debugIsEqual
 
 {  % Without
     ([\)>^03001^0299615238^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^004)
-    (mode=2 parse debugcws) maxicode
+    (mode=2 parse debugcws newencoder) maxicode
 } uszeropad debugIsEqual
 
     % props to gitlost:
 {   % A pure A/B example that could be one codeword less (should SHB instead of LCHB then SHA):
     (b..A)
-    (mode=4 parse debugcws) maxicode
+    (mode=4 parse debugcws newencoder) maxicode
 } [ 4 59  2 46 46  1 33 33 33 33 17 28 48 20 45 62 22 14 12 49 33 33 33 33 33 33 33 33 33 33 33 33
    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
@@ -47,7 +47,7 @@
 {   % Here's an A/B (and NS) example which could be one codeword less (immediate LCHB on "b" between NS segments instead of SHB and then LCHB after 2nd NS):
     % (props to gitlost for this one)
     (A123456789b123456789bbbA)
-    (mode=4 parse debugcws) maxicode
+    (mode=4 parse debugcws newencoder) maxicode
 } [ 4  1 31  7 22 60 52 21 63  2 16 27 40 34 32 50 55 12 11 42 31  7 22 60 52 21  2  2  2 63  1 33
    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
@@ -56,7 +56,7 @@
 
 { % Don't stay in mode A when mode D or even C would be more efficient.
     (^192^224^224^224^192^224^224^224^192^224^224^224^192^224^224^224^192^224^224^224^192)
-    (mode=4 parse debugcws) maxicode
+    (mode=4 parse debugcws newencoder) maxicode
 } [ 4 60  0 61 61  0  0  0 60  0 52 57 14 53 29 37  0 27 40  3  0  0  0 60  0  0  0  0 60  0  0  0
     0 60  0  0  0  0 60  0 58 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
@@ -66,7 +66,7 @@
 
 % Figures
 
-(THIS IS A 93 CHARACTER CODE SET A MESSAGE THAT FILLS A MODE 4, UNAPPENDED, MAXICODE SYMBOL...) (mode=4 dontdraw)  % Figure 2 (and L1), same
+(THIS IS A 93 CHARACTER CODE SET A MESSAGE THAT FILLS A MODE 4, UNAPPENDED, MAXICODE SYMBOL...) (mode=4 dontdraw newencoder)  % Figure 2 (and L1), same
 [
     0 1 1 1 1 1 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 1 0 0 1 1 1
     0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0
@@ -103,7 +103,7 @@
     0 0 1 0 1 1 0 0 0 0 0 0 1 1 1 1 0 1 1 0 0 1 0 0 0 0 1 0 0 0
 ] eq_tmpl
 
-([\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^004) (mode=2 parse dontdraw)  % Figure B2, not same, different encodation
+([\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^030^004) (mode=2 parse dontdraw newencoder)  % Figure B2, not same, different encodation
 [
     1 1 0 1 0 1 1 1 0 1 1 0 1 1 1 1 1 0 1 1 1 1 1 1 1 0 1 1 1 1
     0 1 0 1 0 1 0 1 0 1 1 1 0 0 0 0 1 1 0 1 1 0 0 0 0 1 0 0 1 0
