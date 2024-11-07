@@ -278,7 +278,8 @@ begin
     /sete charvals 4 get def
 } ctxdef
 
-    encoding (legacy) eq { % feature toggle
+    encoding (legacy) eq {
+
     % Compute numeric runlengths
     /nseq [ msglen 1 add {0} repeat ] def
     msglen 1 sub -1 0 {
@@ -461,91 +462,162 @@ begin
     } loop
     /encmsg out 0 j getinterval def
     /padval cset load pad get def
-    } if % feature toggle
 
-    encoding (new) eq { % feature toggle
-        50 dict begin
-        %                              Origin                      Target
+    } if
+
+    encoding (new) eq {
+
+        %                           Former code set                 Latter code set
         %                   A      B      C      D      E
-        /latch_sequence [[[     ][63   ][58   ][58   ][58   ]]      % A
-                        [[63   ][     ][63   ][63   ][63   ]]      % B
-                        [[60 60][60 60][     ][60 60][60 60]]      % C
-                        [[61 61][61 61][61 61][     ][61 61]]      % D
-                        [[62 62][62 62][62 62][62 62][     ]]] def % E
+        /latch_sequence [[[     ][63   ][58   ][58   ][58   ]]          % A
+                         [[63   ][     ][63   ][63   ][63   ]]          % B
+                         [[60 60][60 60][     ][60 60][60 60]]          % C
+                         [[61 61][61 61][61 61][     ][61 61]]          % D
+                         [[62 62][62 62][62 62][62 62][     ]]] def     % E
 
-        /latch_length   [[   0      1      1      1      1   ]      % A
-                        [   1      0      1      1      1   ]      % B
-                        [   2      2      0      2      2   ]      % C
-                        [   2      2      2      0      2   ]      % D
-                        [   2      2      2      2      0   ]] def % E
+        /latch_length   [[   0      1      1      1      1   ]          % A
+                         [   1      0      1      1      1   ]          % B
+                         [   2      2      0      2      2   ]          % C
+                         [   2      2      2      0      2   ]          % D
+                         [   2      2      2      2      0   ]] def     % E
 
         /code_sets [seta setb setc setd sete] def
         /set {code_sets state get} def
 
-        /mint 2147483647 def % max int should make sure a state doesn't get picked
-        /optimal_length [msglen {[5 {mint} repeat]} repeat] def
-        /optimal_origin [msglen {[5 { 0  } repeat]} repeat] def
-        /optimal_encode [msglen {[5 {null} repeat]} repeat] def
+        /max_int 16#7FFFFFFF def     % max int should make sure a state doesn't get picked
+        /best_length [msglen {[5 {max_int} repeat]} repeat] def
+        /best_origin [msglen {[5 {   0   } repeat]} repeat] def
 
-        /num_digits 0 def
+        /prior_set [msglen {[5 {0} repeat]} repeat] def
+        /path_op [msglen {[5 {0} repeat]} repeat] def
+
+        /digits 0 def
         /num_a 0 def
 
-        % Operation viability predicates:
-        /can_eci  {c -1000000 le} def       % Extended Channel Interpretation: -1000000 or below
-        /can_ns   {num_digits 9 ge} def     % Numeric Sequence: 9 digits
-        /can_map  {set  c known} def        % Map current code set
-        /can_sha1 {num_a 1 ge} def          % Shift 1 to A (B only)
-        /can_sha2 {num_a 2 ge} def          % Shift 2 to A (B only)
-        /can_sha3 {num_a 3 ge} def          % Shift 3 to A (B only)
-        /can_shb  {setb c known} def        % Shift 1 to B (A only)
-        /can_shc  {setc c known} def        % Shift 1 to C
-        /can_shd  {setd c known} def        % Shift 1 to D
-        /can_she  {sete c known} def        % Shift 1 to E
+        % Operation viability predicates
+        /can_eci  {c -1000000 le} def     % Extended Channel Interpretation: -1000000 or below
+        /can_ns   {digits 9 ge  } def     % Numeric Sequence: 9 digits
+        /can_map  {set  c known } def     % Map current code set
+        /can_sha1 {num_a 1 ge   } def     % Shift 1 to A (B only)
+        /can_sha2 {num_a 2 ge   } def     % Shift 2 to A (B only)
+        /can_sha3 {num_a 3 ge   } def     % Shift 3 to A (B only)
+        /can_shb  {setb c known } def     % Shift 1 to B (A only)
+        /can_shc  {setc c known } def     % Shift 1 to C
+        /can_shd  {setd c known } def     % Shift 1 to D
+        /can_she  {sete c known } def     % Shift 1 to E
 
-        % Operation encoding (returns intake number and output sequence):
-        /enc_ici  {1 [27 msg n get neg 1000000 sub dup 32 ge  {dup  1024 lt {
+        % Operation encoding (returns intake number and output sequence)
+        /enc_ici  {msg n get neg 1000000 sub dup 32 ge  {dup  1024 lt {
                         dup  -6 bitshift 32 or  exch 63 and} {dup 32768 lt {
                         dup -12 bitshift 48 or  exch
                         dup  -6 bitshift 63 and exch 63 and} {
                         dup -18 bitshift 56 or  exch
                         dup -12 bitshift 63 and exch
-                        dup  -6 bitshift 63 and exch 63 and} ifelse} ifelse} if]} def
-        /enc_ns   {9 [31 0 msg n 8 sub 9 getinterval {48 sub exch 10 mul add} forall
-                        dup -24 bitshift        exch
-                        dup -18 bitshift 63 and exch
-                        dup -12 bitshift 63 and exch
-                        dup  -6 bitshift 63 and exch 63 and]} def
+                        dup  -6 bitshift 63 and exch 63 and} ifelse} ifelse} if} def
+
         /enc_map  {1 [   set  msg n       get get]} def
         /enc_sha1 {1 [59 seta msg n       get get]} def
-        /enc_sha2 {2 [56 seta msg n 1 sub get get
-                        seta msg n       get get]} def
-        /enc_sha3 {3 [57 seta msg n 2 sub get get
-                        seta msg n 1 sub get get
-                        seta msg n       get get]} def
+        /enc_sha2 {seta msg n       get get
+                   seta msg n 1 add get get} def
+        /enc_sha3 {seta msg n       get get
+                   seta msg n 1 add get get
+                   seta msg n 2 add get get} def
         /enc_shb  {1 [59 setb msg n       get get]} def
         /enc_shc  {1 [60 setc msg n       get get]} def
         /enc_shd  {1 [61 setd msg n       get get]} def
         /enc_she  {1 [62 sete msg n       get get]} def
 
-        % Operation output calculation (only ECI needs this - ECI could be split into 4):
-        /out_eci  {c neg 1000000 sub dup 32 lt {2} {dup 1024 lt {3} {
-                    dup 32768 lt {4} {5} ifelse} ifelse} ifelse } def
+        % Operation output calculation (only ECI needs this - ECI could be split into 4)
+        /out_eci  {c neg 1000000 sub dup 1024 lt {   32 lt {2} {3} ifelse}
+                                                 {32768 lt {4} {5} ifelse} ifelse} def
 
-        % Table of operations:
-        /op_tab [ % predicate                              applicability encoding
-            << /can {can_eci } /intake 1 /output {out_eci} /sets 2#11111 /enc {enc_eci } >>
-            << /can {can_ns  } /intake 9 /output {   6   } /sets 2#11111 /enc {enc_ns  } >>
-            << /can {can_map } /intake 1 /output {   1   } /sets 2#11111 /enc {enc_map } >>
-            << /can {can_sha1} /intake 1 /output {   2   } /sets 2#00010 /enc {enc_sha1} >>
-            << /can {can_sha2} /intake 2 /output {   3   } /sets 2#00010 /enc {enc_sha2} >>
-            << /can {can_sha3} /intake 3 /output {   4   } /sets 2#00010 /enc {enc_sha3} >>
-            << /can {can_shb } /intake 1 /output {   2   } /sets 2#00001 /enc {enc_shb } >>
-            << /can {can_shc } /intake 1 /output {   2   } /sets 2#11011 /enc {enc_shc } >>
-            << /can {can_shd } /intake 1 /output {   2   } /sets 2#10111 /enc {enc_shd } >>
-            << /can {can_she } /intake 1 /output {   2   } /sets 2#01111 /enc {enc_she } >>
+        %           ECI1 ECI2 ECI3 ECI4 NS A B C D  E SHA1 SHA2 SHA3 SHB  SHC  SHD  SHE
+        /op_intake [  1    1    1    1   9 1 1 1 1  1   1    2    3    1    1    1    1] def
+        /op_output [  2    3    4    5   6 1 1 1 1  1   2    3    4    2    2    2    2] def
+        /op_mask   [ 31   31   31   31  31 1 2 4 8 16   2    2    2    1   27   23   15] def
+
+        /op_predicate [           % Name Sets  I O
+            {2 eci eq    }     % ECI1 ABCDE 1 2
+            {3 eci eq    }     % ECI2 ABCDE 1 3
+            {4 eci eq    }     % ECI3 ABCDE 1 4
+            {5 eci eq    }     % ECI4 ABCDE 1 5
+            {digits 9 ge }     % NS   ABCDE 9 6
+            {seta c known}     % A    A     1 1
+            {setb c known}     % B     B    1 1
+            {setc c known}     % C      C   1 1
+            {setd c known}     % D       D  1 1
+            {sete c known}     % E        E 1 1
+            {num_a 1 ge  }     % SHA   B    1 2
+            {num_a 2 ge  }     % SHA2  B    2 3
+            {num_a 3 ge  }     % SHA3  B    3 4
+            {setb c known}     % SHB  A     1 2
+            {setc c known}     % SHC  ABCDE 1 2
+            {setd c known}     % SHD  ABCDE 1 2
+            {sete c known}     % SHE  ABCDE 1 2
         ] def
 
-        % Filter table of operations into lists of operations that apply in each code set:
+        /enc_eci1 {c neg 1000000 sub                                    } def
+        /enc_eci2 {c neg 1000000 sub dup  -6 bitshift 32 or  exch 63 and} def
+        /enc_eci3 {c neg 1000000 sub dup -12 bitshift 48 or  exch
+                                     dup  -6 bitshift 63 and exch 63 and} def
+        /enc_eci4 {c neg 1000000 sub dup -18 bitshift 56 or  exch
+                                     dup -12 bitshift 63 and exch
+                                     dup  -6 bitshift 63 and exch 63 and} def
+        /enc_ns   {0 msg n 9 getinterval {48 sub exch 10 mul add} forall
+                                     dup -24 bitshift        exch
+                                     dup -18 bitshift 63 and exch
+                                     dup -12 bitshift 63 and exch
+                                     dup  -6 bitshift 63 and exch 63 and} def
+
+        /op_encode [
+            {[27 c neg 1000000 sub                                           ]}     % ECI1
+            {[27 c neg 1000000 sub dup  -6 bitshift 32 or        exch 63 and ]}     % ECI2
+            {[27 c neg 1000000 sub dup -12 bitshift 48 or        exch dup
+                                              -6 bitshift 63 and exch 63 and ]}     % ECI3
+            {[27 c neg 1000000 sub dup -18 bitshift 56 or        exch dup
+                -12 bitshift 63 and exch dup  -6 bitshift 63 and exch 63 and ]}     % ECI4
+            {[31 0 msg n 9 getinterval {48 sub exch 10 mul add} forall dup
+                -24 bitshift        exch dup -18 bitshift 63 and exch dup
+                -12 bitshift 63 and exch dup  -6 bitshift 63 and exch 63 and ]}     % NS
+            {[   seta c get                                                  ]}     % A
+            {[   setb c get                                                  ]}     % B
+            {[   setc c get                                                  ]}     % C
+            {[   setd c get                                                  ]}     % D
+            {[   sete c get                                                  ]}     % E
+            {[59 seta c get                                                  ]}     % SHA
+            {[56 seta c get seta msg n 1 add get get                         ]}     % SHA2
+            {[57 seta c get seta msg n 1 add get get seta msg n 2 add get get]}     % SHA3
+            {[59 setb c get                                                  ]}     % SHB
+            {[60 setc c get                                                  ]}     % SHC
+            {[61 setd c get                                                  ]}     % SHD
+            {[62 sete c get                                                  ]}     % SHE
+        ] def
+
+        % Table of operations - operating table?
+        /op_tab [   % predicate                        applicable sets      encoding
+            << /can {2 eci eq    } /intake 1 /output 2 /sets 2#11111 /enc {27 enc_eci1  } >> % ECI1 ABCDE
+            << /can {3 eci eq    } /intake 1 /output 3 /sets 2#11111 /enc {27 enc_eci2  } >> % ECI2 ABCDE
+            << /can {4 eci eq    } /intake 1 /output 4 /sets 2#11111 /enc {27 enc_eci3  } >> % ECI3 ABCDE
+            << /can {5 eci eq    } /intake 1 /output 5 /sets 2#11111 /enc {27 enc_eci4  } >> % ECI4 ABCDE
+            << /can {digits 9 ge } /intake 9 /output 6 /sets 2#11111 /enc {31 enc_ns    } >> % NS   ABCDE
+            << /can {seta c known} /intake 1 /output 1 /sets 2#00001 /enc {   seta c get} >> % A    A
+            << /can {setb c known} /intake 1 /output 1 /sets 2#00010 /enc {   setb c get} >> % B     B
+            << /can {setc c known} /intake 1 /output 1 /sets 2#00100 /enc {   setc c get} >> % C      C
+            << /can {setd c known} /intake 1 /output 1 /sets 2#01000 /enc {   setd c get} >> % D       D
+            << /can {sete c known} /intake 1 /output 1 /sets 2#10000 /enc {   sete c get} >> % E        E
+            << /can {num_a 1 ge  } /intake 1 /output 2 /sets 2#00010 /enc {59 seta c get} >> % SHA   B
+            << /can {num_a 2 ge  } /intake 2 /output 3 /sets 2#00010 /enc {56 enc_sha2  } >> % SHA2  B
+            << /can {num_a 3 ge  } /intake 3 /output 4 /sets 2#00010 /enc {57 enc_sha3  } >> % SHA3  B
+            << /can {setb c known} /intake 1 /output 2 /sets 2#00001 /enc {59 setb c get} >> % SHB  A
+            << /can {setc c known} /intake 1 /output 2 /sets 2#11011 /enc {60 setc c get} >> % SHC  ABCDE
+            << /can {setd c known} /intake 1 /output 2 /sets 2#10111 /enc {61 setd c get} >> % SHD  ABCDE
+            << /can {sete c known} /intake 1 /output 2 /sets 2#01111 /enc {62 sete c get} >> % SHE  ABCDE
+        ] def
+
+        % Add idx to each entry
+        0 op_tab {/idx 2 index put 1 add} forall pop
+
+        % Filter table of operations into lists of operations that apply in each code set
         /operations [[1 2 4 8 16] {/n exch def [op_tab {dup /sets get n and 0 eq {pop} if} forall]} forall] def
 
         /start_origin 0 def % Encoding always starts in code set A
@@ -553,76 +625,96 @@ begin
 
         /get_len {
             /m n op_ /intake get sub def
-            /org_ m 0 lt {start_origin} {optimal_origin m get state get} ifelse def
-            m 0 lt {start_length} {optimal_length m get org_  get} ifelse
-                latch_length_s org_ get add op_ /output get exec add
+            /org_ m 0 lt {start_origin} {best_origin m get state get} ifelse def
+            m 0 lt {start_length} {best_length m get org_  get} ifelse
+                latch_length_s org_ get add op_ /output get add
         } def
 
-        /get_optimal_operation {
+        % Pick the operation that yields the shortest encoded length
+        /get_best_operation {
             /latch_length_s latch_length state get def
-            /op_ ops 0 get def get_len /op op_ def
+            /op_ ops 0 get def get_len /op op_ def /org org_ def
             ops 1 ops length 1 sub getinterval {
-                /op_ exch def get_len 2 copy gt {exch /op op_ def} if pop
+                /op_ exch def get_len 2 copy gt {exch /op op_ def /org org_ def} if pop
             } forall
-            optimal_encode_n state op /enc get put
-            optimal_length_n state 3 2 roll put
+            prior_set n get state org put
+            path_op_n state op /idx get put
+            best_length_n state 3 2 roll put
         } def
 
+        % Filter out operations that won't work given the input
         /get_viable_operations {
             [exch {dup /intake get n 1 add gt {pop} {dup /can get exec not {pop} if} ifelse} forall]
         } def
 
-        /get_optimal_length {
+        /get_best_length {
             /state exch def
             /ops operations state get get_viable_operations def
-            ops length 0 gt {get_optimal_operation} if
+            ops length 0 gt {get_best_operation} if
         } def
 
-        /get_optimal_origin {
+        % Unrolled loop to get the best prior code set using a row of
+        % best encoded lengths and a row of latch sequence lengths.
+        /get_best_origin {
             /state exch def
             /latch_length_s latch_length state get def
-            optimal_length_n 0 get latch_length_s 0 get add                /orglen exch def     0
-            optimal_length_n 1 get latch_length_s 1 get add dup orglen lt {/orglen exch def pop 1} {pop} ifelse
-            optimal_length_n 2 get latch_length_s 2 get add dup orglen lt {/orglen exch def pop 2} {pop} ifelse
-            optimal_length_n 3 get latch_length_s 3 get add dup orglen lt {/orglen exch def pop 3} {pop} ifelse
-            optimal_length_n 4 get latch_length_s 4 get add dup orglen lt {/orglen exch def pop 4} {pop} ifelse
+            best_length_n 0 get latch_length_s 0 get add                /orglen exch def     0
+            best_length_n 1 get latch_length_s 1 get add dup orglen lt {/orglen exch def pop 1} {pop} ifelse
+            best_length_n 2 get latch_length_s 2 get add dup orglen lt {/orglen exch def pop 2} {pop} ifelse
+            best_length_n 3 get latch_length_s 3 get add dup orglen lt {/orglen exch def pop 3} {pop} ifelse
+            best_length_n 4 get latch_length_s 4 get add dup orglen lt {/orglen exch def pop 4} {pop} ifelse
         } def
 
-        /populate_tables {0 1 msglen 1 sub {
+        % Make a table of best path options
+        0 1 msglen 1 sub {
             /n exch def
             /c msg n get def
+
+            % Keep tabs on digits, characters in code set a, and ECI type
             /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
-            /num_a seta c known {num_a 1 add} {0} ifelse def
-            /optimal_encode_n optimal_encode n get def
-            /optimal_length_n optimal_length n get def
-                                0 1 4 {get_optimal_length} for
-            optimal_origin n [0 1 4 {get_optimal_origin} for] put
-        } for} def
+            /num_a seta c known             {num_a      1 add} {0} ifelse def
+            /eci c 0 lt {out_eci} {0} ifelse def
 
-        /backtrack {
-            /n msglen 1 sub def
-                0 dup optimal_length n get exch get
-            1 1 4 {dup optimal_length n get exch get dup 3 index lt {4 2 roll} if pop pop} for
-            /j exch def
-            /state exch def
-            % State D would be okay too, right? It has its own pad character. Could save a code word.
-            state 2 ge {j 1 add array dup j 58 put} {j array} ifelse
-            {
-                n 0 lt {exit} if
-                optimal_encode n get state get exec /output exch def n exch sub /n exch def
-                /latch_sequence_s latch_sequence state get def
-                /state n 0 lt {start_origin} {optimal_origin n get state get} ifelse def
-                dup    n 0 lt {start_length} {optimal_length n get state get} ifelse
-                latch_sequence_s state get 3 copy putinterval length add
-                output putinterval
-            } loop
-        } def
+            /path_op_n path_op n get def
+            /best_length_n best_length n get def
+                                0 1 4 {get_best_length} for
+            best_origin n [0 1 4 {get_best_origin} for] put
+        } for
 
-        populate_tables backtrack
-        end
+        % Get the best code set to end with
+        /n msglen def
+             0 dup best_length n 1 sub get exch get
+        1 1 4 {dup best_length n 1 sub get exch get dup 3 index lt {4 2 roll} if pop pop} for
+        /j exch def
+        /state exch def
+        /len j def
+
+        % Latch to a code set which has a pad character.
+        % Code set D would be okay, right? Could save a code word
+        state 2 ge {j 1 add array dup j 58 put} {j array} ifelse
+
+        % Follow the best path back to the start of the message
+        {
+            n 0 le {exit} if
+            /ps prior_set n 1 sub get state get def
+            /op_idx path_op n 1 sub get state get def
+            /op op_tab op_idx get def
+            /intake op /intake get def
+            /n n intake sub def
+            /c msg n get def
+            /enc op /enc get def
+            /output [enc exec] def
+            /latch latch_sequence state get ps get def
+            /len len latch length sub output length sub def
+            dup len latch 3 copy putinterval length add output putinterval
+            /state ps def
+        } loop
+
+        % Name the result
         /encmsg exch def
         /padval 33 def
-    } if % feature toggle
+
+    } if
 
     % Prefix the encoded message with the structured append insert
     /sami sam -1 ne { [ seta pad get sam 10 idiv 1 sub 8 mul sam 10 mod 1 sub add ] } { [] } ifelse def
