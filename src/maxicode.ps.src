@@ -515,33 +515,27 @@ begin
 
         % Table of operations - operating table?
         /op_tab [   % predicate                        applicable sets      encoding
-            << /can {2 eci eq    } /intake 1 /output 2 /sets 2#11111 /enc {27 enc_eci1  } >> % ECI1 ABCDE
-            << /can {3 eci eq    } /intake 1 /output 3 /sets 2#11111 /enc {27 enc_eci2  } >> % ECI2 ABCDE
-            << /can {4 eci eq    } /intake 1 /output 4 /sets 2#11111 /enc {27 enc_eci3  } >> % ECI3 ABCDE
-            << /can {5 eci eq    } /intake 1 /output 5 /sets 2#11111 /enc {27 enc_eci4  } >> % ECI4 ABCDE
-            << /can {digits 9 ge } /intake 9 /output 6 /sets 2#11111 /enc {31 enc_ns    } >> % NS   ABCDE
-            << /can {seta c known} /intake 1 /output 1 /sets 2#00001 /enc {   seta c get} >> % A    A
-            << /can {setb c known} /intake 1 /output 1 /sets 2#00010 /enc {   setb c get} >> % B     B
-            << /can {setc c known} /intake 1 /output 1 /sets 2#00100 /enc {   setc c get} >> % C      C
-            << /can {setd c known} /intake 1 /output 1 /sets 2#01000 /enc {   setd c get} >> % D       D
-            << /can {sete c known} /intake 1 /output 1 /sets 2#10000 /enc {   sete c get} >> % E        E
-            << /can {num_a 1 ge  } /intake 1 /output 2 /sets 2#00010 /enc {59 seta c get} >> % SHA   B
-            << /can {num_a 2 ge  } /intake 2 /output 3 /sets 2#00010 /enc {56 enc_sha2  } >> % SHA2  B
-            << /can {num_a 3 ge  } /intake 3 /output 4 /sets 2#00010 /enc {57 enc_sha3  } >> % SHA3  B
-            << /can {setb c known} /intake 1 /output 2 /sets 2#00001 /enc {59 setb c get} >> % SHB  A
-            << /can {setc c known} /intake 1 /output 2 /sets 2#11011 /enc {60 setc c get} >> % SHC  ABCDE
-            << /can {setd c known} /intake 1 /output 2 /sets 2#10111 /enc {61 setd c get} >> % SHD  ABCDE
-            << /can {sete c known} /intake 1 /output 2 /sets 2#01111 /enc {62 sete c get} >> % SHE  ABCDE
+            << /can {2 eci eq    } /intake 1 /output 2 /sets 2#11111 /enc {27 enc_eci1  } >>    % ECI1 ABCDE
+            << /can {3 eci eq    } /intake 1 /output 3 /sets 2#11111 /enc {27 enc_eci2  } >>    % ECI2 ABCDE
+            << /can {4 eci eq    } /intake 1 /output 4 /sets 2#11111 /enc {27 enc_eci3  } >>    % ECI3 ABCDE
+            << /can {5 eci eq    } /intake 1 /output 5 /sets 2#11111 /enc {27 enc_eci4  } >>    % ECI4 ABCDE
+            << /can {digits 9 ge } /intake 9 /output 6 /sets 2#11111 /enc {31 enc_ns    } >>    % NS   ABCDE
+            << /can {seta c known} /intake 1 /output 1 /sets 2#00001 /enc {   seta c get} >>    % A    A
+            << /can {setb c known} /intake 1 /output 1 /sets 2#00010 /enc {   setb c get} >>    % B     B
+            << /can {setc c known} /intake 1 /output 1 /sets 2#00100 /enc {   setc c get} >>    % C      C
+            << /can {setd c known} /intake 1 /output 1 /sets 2#01000 /enc {   setd c get} >>    % D       D
+            << /can {sete c known} /intake 1 /output 1 /sets 2#10000 /enc {   sete c get} >>    % E        E
+            << /can {num_a 1 ge  } /intake 1 /output 2 /sets 2#00010 /enc {59 seta c get} >>    % SHA   B
+            << /can {num_a 2 ge  } /intake 2 /output 3 /sets 2#00010 /enc {56 enc_sha2  } >>    % SHA2  B
+            << /can {num_a 3 ge  } /intake 3 /output 4 /sets 2#00010 /enc {57 enc_sha3  } >>    % SHA3  B
+            << /can {setb c known} /intake 1 /output 2 /sets 2#00001 /enc {59 setb c get} >>    % SHB  A
+            << /can {setc c known} /intake 1 /output 2 /sets 2#11011 /enc {60 setc c get} >>    % SHC  ABCDE
+            << /can {setd c known} /intake 1 /output 2 /sets 2#10111 /enc {61 setd c get} >>    % SHD  ABCDE
+            << /can {sete c known} /intake 1 /output 2 /sets 2#01111 /enc {62 sete c get} >>    % SHE  ABCDE
         ] def
 
         % Add idx to each entry
         0 op_tab {/idx 2 index put 1 add} forall pop
-
-        % Arrays from master table
-        /op_intake    [op_tab {/intake get} forall] def
-        /op_output    [op_tab {/output get} forall] def
-        /op_predicate [op_tab {/can    get} forall] def
-        /op_encode    [op_tab {/enc    get} forall] def
 
         % Filter table of operations into lists of operations that apply in each code set
         /code_set_operations [[1 2 4 8 16] {/n exch def [op_tab {dup /sets get n and 0 eq {pop} if} forall]} forall] def
@@ -597,7 +591,7 @@ begin
             % Keep tabs on digits, characters in code set a, and ECI type
             /digits c 48 ge c 58 lt and {digits 1 add} {0} ifelse def
             /num_a  seta c known        {num_a  1 add} {0} ifelse def
-            /eci    c 0 lt              {out_eci     } {0} ifelse def
+            /eci    c 1000000 le        {out_eci     } {0} ifelse def
 
             % Get rows of interest
             /path_op_0 path_op n get def
