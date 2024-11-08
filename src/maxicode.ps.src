@@ -483,11 +483,12 @@ begin
 
         /max_int 16#7FFFFFFF def     % max int should make sure a state doesn't get picked
 
-        % The encoder needs 10 history rows. The circular history buffers are 16 long for convenience.
+        % The encoder needs 10 history rows.
+        % The circular history buffers are 16 long for convenience
         /best_length [16 {[0 0 0 0 0]} repeat] def
         /best_origin [16 {[0 0 0 0 0]} repeat] def
 
-        % Backtracking information.
+        % Backtracking information
         /prior_code_set [msglen {[5 {0} repeat]} repeat] def
         /path_op [msglen {[5 {0} repeat]} repeat] def
 
@@ -533,21 +534,19 @@ begin
             << /can {sete c known} /intake 1 /output 2 /sets 2#01111 /enc {62 sete c get} >> % SHE  ABCDE
         ] def
 
+        % Add idx to each entry
+        0 op_tab {/idx 2 index put 1 add} forall pop
+
         % Arrays from master table
         /op_intake    [op_tab {/intake get} forall] def
         /op_output    [op_tab {/output get} forall] def
         /op_predicate [op_tab {/can    get} forall] def
         /op_encode    [op_tab {/enc    get} forall] def
 
-        % Add idx to each entry
-        0 op_tab {/idx 2 index put 1 add} forall pop
-
         % Filter table of operations into lists of operations that apply in each code set
         /code_set_operations [[1 2 4 8 16] {/n exch def [op_tab {dup /sets get n and 0 eq {pop} if} forall]} forall] def
 
-        /start_origin 0 def % Encoding always starts in code set A
-        /start_length 0 def % Potentially reserve space for intro sequence here
-
+        % Get the best encoded length after the operation
         /get_len {
             /m n op_ /intake get sub 15 and def
             /org_ best_origin m get state get def
@@ -570,6 +569,7 @@ begin
             [exch {dup /intake get n 1 add gt {pop} {dup /can get exec not {pop} if} ifelse} forall]
         } def
 
+        % Get the shortest encoded length for the code set
         /get_best_length {
             /ops code_set_operations state get get_viable_operations def
             ops length 0 gt {get_best_operation} {max_int} ifelse
@@ -587,7 +587,7 @@ begin
         } def
 
         /digits 0 def           % Number of contiguous digits seen
-        /num_a 0 def            % Number of contiguous characters encodable in code set A seen
+        /num_a 0 def            % Number of contiguous characters seen that are encodable in code set A
 
         % Make a table of best path options
         0 1 msglen 1 sub {
@@ -595,9 +595,9 @@ begin
             /c msg n get def    % Input character
 
             % Keep tabs on digits, characters in code set a, and ECI type
-            /num_digits c 48 ge c 58 lt and {num_digits 1 add} {0} ifelse def
-            /num_a seta c known             {num_a      1 add} {0} ifelse def
-            /eci c 0 lt {out_eci} {0} ifelse def
+            /digits c 48 ge c 58 lt and {digits 1 add} {0} ifelse def
+            /num_a  seta c known        {num_a  1 add} {0} ifelse def
+            /eci    c 0 lt              {out_eci     } {0} ifelse def
 
             % Get rows of interest
             /path_op_0 path_op n get def
@@ -622,7 +622,7 @@ begin
         /pad_code [33 33 0 0 28] def
         /final_code_set pad_code state get 0 eq {0} {state} ifelse def
 
-        % Insert at latch to A if the code set does not have a pad code.
+        % Insert a latch to A if the code set does not have a pad code.
         % There is something about this that doesn't seem right.
         % To paraphrase the standard:
         % If the message codewords exactly fill out all the message
