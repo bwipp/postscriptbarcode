@@ -540,33 +540,26 @@ begin
         % Filter table of operations into lists of operations that apply in each code set
         /code_set_operations [[1 2 4 8 16] {/n exch def [op_tab {dup /sets get n and 0 eq {pop} if} forall]} forall] def
 
-        % Get the best encoded length after the operation
-        /get_len {
-            /m n op_ /intake get sub 15 and def
-            /org_ best_origin m get state get def
-                  best_length m get org_  get latch_length_s org_ get add op_ /output get add
-        } def
-
-        % Pick the operation that yields the shortest encoded length
-        /get_best_operation {
-            /latch_length_s latch_length state get def
-            /op_ ops 0 get def get_len /op op_ def /org org_ def
-            ops 1 ops length 1 sub getinterval {
-                /op_ exch def get_len 2 copy gt {exch /op op_ def /org org_ def} if pop
-            } forall
-            prior_code_set n get state org put
-            path_op_0 state op /idx get put
-        } def
-
-        % Filter out operations that won't work given the input
-        /get_viable_operations {
-            [exch {dup /intake get n 1 add gt {pop} {dup /can get exec not {pop} if} ifelse} forall]
-        } def
-
-        % Get the shortest encoded length for the code set
+        % Get the shortest encoded length for the code set (state) and plot the path
         /get_best_length {
-            /ops code_set_operations state get get_viable_operations def
-            ops length 0 gt {get_best_operation} {max_int} ifelse
+            /latch_length_s latch_length state get def      % Get latch length row targetting the code set
+            max_int /op op_tab 0 get def /org 0 def         % Values used if this is not a viable code set
+            code_set_operations state get {                 % Loop over operations that apply to this code set
+                /op_ exch def op_ /can get exec {           % Execute predicate to see if the operation applies to input
+                    /m n op_ /intake get sub 15 and def     % Use intake to index back into circular history buffers
+                    /org_ best_origin m get state get def   % Get the best prior code set
+                    best_length m get org_ get              % Get the corresponding length of encoding
+                    latch_length_s org_ get add             % Add latch length
+                    op_ /output get add                     % Add output length to yield resulting length
+                    2 copy gt {
+                        exch /op op_ def /org org_ def      % Pick the shortest length and make a note of it
+                    } if pop                                % Pop off the longer (or equal) length
+                } if
+            } forall
+
+            % Plot the path
+            prior_code_set_0 state org put
+            path_op_0 state op /idx get put
         } def
 
         % Unrolled loop to get the best prior code set using a row of
@@ -595,6 +588,7 @@ begin
 
             % Get rows of interest
             /path_op_0 path_op n get def
+            /prior_code_set_0 prior_code_set n get def
             /best_length_0 best_length n 15 and get def
             /best_origin_0 best_origin n 15 and get def
 
