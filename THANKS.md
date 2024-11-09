@@ -16,6 +16,7 @@ Many thanks for the technical contributions from:
 * Matthew Harmon
 * Adrian Head
 * Christian Hitz
+* Bue Jensen
 * Ray Johnson
 * Janos Juhasz
 * Reinhold Kainhofer
