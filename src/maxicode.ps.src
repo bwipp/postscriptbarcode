@@ -223,7 +223,7 @@ begin
         [ (Z)  (z)  218  250   26 ]  % 26
         [ eci  eci  eci  eci  eci ]  % 27
         [  28   28   28   28  pad ]  % 28
-        [  29   29   29   29  pad ]  % 29
+        [  29   29   29   29  pd2 ]  % 29
         [  30   30   30   30   27 ]  % 30
         [  ns   ns   ns   ns   ns ]  % 31
         [ ( )  ({)  219  251   28 ]  % 32
@@ -469,6 +469,27 @@ begin
 
     encoding (new) eq {
 
+        % Check states needed (apart from A, which for typical data is always used)
+        /haveb false def /havec false def /haved false def /havee false def
+        /havei false def  % ECI
+        0 1 msglen 1 sub {
+            msg exch get /c exch def
+            c -1000000 le {
+                /havei true def
+            } { c 28 lt c 30 gt or c 32 ne and {  % FS, GS, RS and space in all code sets
+                    setb c known { /haveb true def } if
+                    setc c known { /havec true def } if
+                    setd c known { /haved true def } if
+                    sete c known { /havee true def } if
+                } if
+            } ifelse
+        } for
+
+        % Code sets with a pad code are first pick
+        %          A        B            E            C            D
+        /priority [0 haveb {1} if havee {4} if havec {2} if haved {3} if] def
+        /priority_rest priority 1 priority length 1 sub getinterval def  % May be empty
+
         %                           Prior code set                  Later code set
         %                   A      B      C      D      E
         /latch_sequence [[[     ][63   ][58   ][58   ][58   ]]          % A
@@ -516,21 +537,21 @@ begin
                               seta msg n 2 add get get} def                     % Shift 3 A
 
         % Table of operations - operating table?
-        /op_tab [   % predicate                                 applicable sets      encoding
-            << /can {eci 1 ge    } /intake 1 /output {out_eci} /sets 2#11111 /enc {27 enc_eci   } >>    % ECI  ABCDE
-            << /can {digits 9 ge } /intake 9 /output {6      } /sets 2#11111 /enc {31 enc_ns    } >>    % NS   ABCDE
-            << /can {seta c known} /intake 1 /output {1      } /sets 2#00001 /enc {   seta c get} >>    % A    A
-            << /can {setb c known} /intake 1 /output {1      } /sets 2#00010 /enc {   setb c get} >>    % B     B
-            << /can {setc c known} /intake 1 /output {1      } /sets 2#00100 /enc {   setc c get} >>    % C      C
-            << /can {setd c known} /intake 1 /output {1      } /sets 2#01000 /enc {   setd c get} >>    % D       D
-            << /can {sete c known} /intake 1 /output {1      } /sets 2#10000 /enc {   sete c get} >>    % E        E
-            << /can {num_a 1 ge  } /intake 1 /output {2      } /sets 2#00010 /enc {59 seta c get} >>    % SHA   B
-            << /can {num_a 2 ge  } /intake 2 /output {3      } /sets 2#00010 /enc {56 enc_sha2  } >>    % SHA2  B
-            << /can {num_a 3 ge  } /intake 3 /output {4      } /sets 2#00010 /enc {57 enc_sha3  } >>    % SHA3  B
-            << /can {setb c known} /intake 1 /output {2      } /sets 2#00001 /enc {59 setb c get} >>    % SHB  A
-            << /can {setc c known} /intake 1 /output {2      } /sets 2#11011 /enc {60 setc c get} >>    % SHC  ABCDE
-            << /can {setd c known} /intake 1 /output {2      } /sets 2#10111 /enc {61 setd c get} >>    % SHD  ABCDE
-            << /can {sete c known} /intake 1 /output {2      } /sets 2#01111 /enc {62 sete c get} >>    % SHE  ABCDE
+        /op_tab [   %          predicate                                 applicable sets      encoding
+            havei { << /can {c -1000000 le} /intake 1 /output {out_eci} /sets 2#11111 /enc {27 enc_eci   } >> } if  % ECI1 ABCDE
+                    << /can {digits 9 ge  } /intake 9 /output {6      } /sets 2#11111 /enc {31 enc_ns    } >>       % NS   ABCDE
+                    << /can {seta c known } /intake 1 /output {1      } /sets 2#00001 /enc {   seta c get} >>       % A    A
+            haveb { << /can {setb c known } /intake 1 /output {1      } /sets 2#00010 /enc {   setb c get} >> } if  % B     B
+            havec { << /can {setc c known } /intake 1 /output {1      } /sets 2#00100 /enc {   setc c get} >> } if  % C      C
+            haved { << /can {setd c known } /intake 1 /output {1      } /sets 2#01000 /enc {   setd c get} >> } if  % D       D
+            havee { << /can {sete c known } /intake 1 /output {1      } /sets 2#10000 /enc {   sete c get} >> } if  % E        E
+                    << /can {num_a 1 ge   } /intake 1 /output {2      } /sets 2#00010 /enc {59 seta c get} >>       % SHA   B
+                    << /can {num_a 2 ge   } /intake 2 /output {3      } /sets 2#00010 /enc {56 enc_sha2  } >>       % SHA2  B
+                    << /can {num_a 3 ge   } /intake 3 /output {4      } /sets 2#00010 /enc {57 enc_sha3  } >>       % SHA3  B
+            haveb { << /can {setb c known } /intake 1 /output {2      } /sets 2#00001 /enc {59 setb c get} >> } if  % SHB  A
+            havec { << /can {setc c known } /intake 1 /output {2      } /sets 2#11011 /enc {60 setc c get} >> } if  % SHC  ABCDE
+            haved { << /can {setd c known } /intake 1 /output {2      } /sets 2#10111 /enc {61 setd c get} >> } if  % SHD  ABCDE
+            havee { << /can {sete c known } /intake 1 /output {2      } /sets 2#01111 /enc {62 sete c get} >> } if  % SHE  ABCDE
         ] def
 
         % Add idx to each entry
@@ -560,15 +581,14 @@ begin
             } forall
         } def
 
-        % Unrolled loop to get the best prior code set using a row of
+        % Loop to get the best prior code set using a row of
         % best encoded lengths and a row of latch sequence lengths.
         /get_best_origin {
             /latch_length_s latch_length state get def
-            best_length_0 0 get latch_length_s 0 get add                /orglen exch def     0
-            best_length_0 1 get latch_length_s 1 get add dup orglen lt {/orglen exch def pop 1} {pop} ifelse
-            best_length_0 2 get latch_length_s 2 get add dup orglen lt {/orglen exch def pop 2} {pop} ifelse
-            best_length_0 3 get latch_length_s 3 get add dup orglen lt {/orglen exch def pop 3} {pop} ifelse
-            best_length_0 4 get latch_length_s 4 get add dup orglen lt {/orglen exch def pop 4} {pop} ifelse
+            best_length_0                 0 get latch_length_s 0 get add                /orglen exch def     0
+            priority_rest {
+                /p exch def best_length_0 p get latch_length_s p get add dup orglen lt {/orglen exch def pop p} {pop} ifelse
+            } forall
         } def
 
         /digits 0 def           % Number of contiguous digits seen
@@ -579,10 +599,9 @@ begin
             /n exch def         % Input index
             /c msg n get def    % Input character
 
-            % Keep tabs on digits, characters in code set a, and ECI type
+            % Keep tabs on digits and characters in code set A
             /digits c 48 ge c 58 lt and {digits 1 add} {0} ifelse def
             /num_a  seta c known        {num_a  1 add} {0} ifelse def
-            /eci    c -1000000 le       {out_eci     } {0} ifelse def
 
             % Get rows of interest
             /path_op_0 path_op n get def
@@ -591,14 +610,13 @@ begin
             /best_origin_0 best_origin n 15 and get def
 
             % Get best encoded lengths, then best prior code sets
-            0 1 4 {/state exch def best_length_0 state get_best_length put} for
-            0 1 4 {/state exch def best_origin_0 state get_best_origin put} for
+            priority {/state exch def best_length_0 state get_best_length put} forall
+            priority {/state exch def best_origin_0 state get_best_origin put} forall
         } for
 
         /n msglen def
 
         % Get the best code set to end with. Code sets with a pad code are first pick
-        /priority [0 1 4 2 3] def
         0 max_int priority {dup best_length_0 exch get dup 3 index lt {4 2 roll} if pop pop} forall
         /j exch def
         /state exch def
