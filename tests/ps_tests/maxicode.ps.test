@@ -16,6 +16,13 @@
     isEqual
 } def
 
+/er_tmpl {
+    3 1 roll { 0 0 maxicode /pixs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
 
 % Zero-pad US postcodes that lack "+4" (Annex B.1.4a)
 /uszeropad  % Expected codewords
@@ -132,6 +139,43 @@
    28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28 28
    28 28 28 28 28 28 28 28 26 26 45 45 49 49 38 38 31 31  5  5 44 44 43 43  7  7 12 12  1  1 62 62
    58 58 43 43 57 57 13 13 31 31 29 29 53 53 45 45] debugIsEqual
+
+{ % Exit SCM loop on first ECI and add remaining back later to avoid ECIs being replaced with NUL
+    ([^041>^03001^02996999999999^029840^029333^029^ECI000003A)
+    (mode=2 parse parsefnc debugcws newencoder) maxicode
+} [50 63  9 43 57 30  2 18 55 20 47 30  3 41 62 27 45 42  6 32 59 42 41 59 40 30 48 49 29 57 54 27
+    3  1 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+   33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+   33 33 33 33 33 33 33 33 59 62  7 62 19 52 10 28  8 60 12 40 47 51 37 47 29 49 19 46 47 52 56 44
+   32 51 45 42 40 49 14 32 37  2 16 26  1  6 51 37] debugIsEqual
+
+% Too short field identifier [)>{RS}01{GS}y (was causing rangecheck)
+([^041>^03001^0299) (mode=2 parse dontdraw) /bwipp.maxicodeBadMode2PostCode er_tmpl
+
+% Field identifier with non-numeric yy (will be ignored and parsed as post code)
+([^041>^03001^0299A) (mode=2 parse dontdraw) /bwipp.maxicodeBadMode2PostCode er_tmpl
+
+% Exercise the error checks
+() (mode=2 dontdraw) /bwipp.maxicodeEmptyData er_tmpl
+(A) (mode=1 dontdraw) /bwipp.maxicodeBadMode er_tmpl
+(A) (mode=4 sam=11 dontdraw) /bwipp.maxicodeBadSAM er_tmpl
+(A) (mode=4 sam=32 dontdraw) /bwipp.maxicodeBadSAM er_tmpl
+(123456789) (mode=2 dontdraw) /bwipp.maxicodeExpectedPostCode er_tmpl
+(^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadMode2PostCode er_tmpl
+(^029) (mode=3 parse dontdraw) /bwipp.maxicodeBadMode3PostCode er_tmpl
+(1234567890^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadMode2PostCode er_tmpl
+(12345678A^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadMode2PostCode er_tmpl
+(ABCDEFG^029) (mode=3 parse dontdraw) /bwipp.maxicodeBadMode3PostCode er_tmpl
+(ABCDEa^029) (mode=3 parse dontdraw) /bwipp.maxicodeBadMode3PostCode er_tmpl
+(123456789^029) (mode=2 parse dontdraw) /bwipp.maxicodeExpectedCountryCode er_tmpl
+(ABCDEF^029) (mode=3 parse dontdraw) /bwipp.maxicodeExpectedCountryCode er_tmpl
+(123456789^029^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadCountryCode er_tmpl
+(123456789^02984^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadCountryCode er_tmpl
+(123456789^02984A^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadCountryCode er_tmpl
+(123456789^029840^029) (mode=2 parse dontdraw) /bwipp.maxicodeExpectedServiceClass er_tmpl
+(123456789^029840^029^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
+(123456789^029840^0291^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
+(123456789^029840^02912A^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
 
 % Figures
 

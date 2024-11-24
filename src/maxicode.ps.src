@@ -97,20 +97,22 @@ begin
     % Special message handling for modes 2 and 3
     mode 2 eq mode 3 eq or {
 
-        % Convert to a string for extracting the structured data
+        % Convert to a string (up to first ECI) for extracting the structured data
         /barcode msglen string def
+        /barlen msglen def
         0 1 msglen 1 sub {
             /i exch def
-            msg i get 0 gt {
-                barcode i msg i get put
-            } if
+            msg i get 0 lt {/barlen i def exit} if
+            barcode i msg i get put
         } for
-        /barlen barcode length def
+        /difflen msglen barlen sub def
 
         % Normalise messages that begin with a field identifier [)>{RS}01{GS}yy
         /fid () def
-        barlen 7 ge {
-            barcode 0 7 getinterval <5b293e1e30311d> eq {
+        barlen 9 ge {
+            barcode dup 0 7 getinterval <5b293e1e30311d> eq
+            exch    dup 7 get dup 48 ge exch 57 le and
+            exch        8 get dup 48 ge exch 57 le and and and {
                 /fid barcode 0 9 getinterval def
                 /barcode barcode 9 barlen 9 sub getinterval def
             } if
@@ -123,21 +125,26 @@ begin
             mode 2 eq {
                 true
                 1 {
-                    pcode length 9 gt { pop false exit } if
+                    pcode length dup 9 gt exch 0 eq or { pop false exit } if
                     pcode { dup 48 lt exch 57 gt or { pop false exit } if } forall
                 } repeat
                 not {
-                    pop /bwipp.maxicodeBadMode2PostCode (A mode 2 postcode must not exceed 9 digits) //raiseerror exec
+                    pop /bwipp.maxicodeBadMode2PostCode (A mode 2 postcode must not be empty or exceed 9 digits) //raiseerror exec
                 } if
             } {  % mode=3
-                pcode {
-                         dup     32 eq                    % SP
-                    exch dup dup 34 ge exch 58 le and     % punct, 0-9, :
-                    exch dup 65 ge exch 90 le and         % A-Z
-                    or or not {
-                        pop /bwipp.maxicodeBadMode3PostCode (A mode 3 postcode must not exceed 6 characters) //raiseerror exec
-                    } if
-                } forall
+                true
+                1 {
+                    pcode length dup 6 gt exch 0 eq or { pop false exit } if
+                    pcode {
+                             dup     32 eq                    % SP
+                        exch dup dup 34 ge exch 58 le and     % punct, 0-9, :
+                        exch dup 65 ge exch 90 le and         % A-Z
+                        or or not { pop false exit } if
+                    } forall
+                } repeat
+                not {
+                    pop /bwipp.maxicodeBadMode3PostCode (A mode 3 postcode must not be empty or exceed 6 characters) //raiseerror exec
+                } if
             } ifelse
         } {
             pop /bwipp.maxicodeExpectedPostCode (Expected postcode followed by group separator character) //raiseerror exec
@@ -177,7 +184,7 @@ begin
         /barcode exch def
         /barlen barcode length def
 
-        /msg [ barcode {} forall ] def
+        /msg [ barcode {} forall msg msglen difflen sub difflen getinterval aload pop ] def
         /msglen msg length def
 
     } if
