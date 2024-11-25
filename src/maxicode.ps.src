@@ -54,7 +54,7 @@ begin
     /sam -1 def
     /parse false def
     /parsefnc false def
-    /newencoder false def
+    /legacyencoder false def
 
     //processoptions exec /options exch def
     /barcode exch def
@@ -79,8 +79,8 @@ begin
         } if
     } if
 
-    /encoding (legacy) def
-    newencoder {/encoding (new) def} if
+    /encoding (new) def
+    legacyencoder {/encoding (legacy) def} if
 
     /maxicode //loadctx exec
 
@@ -287,190 +287,194 @@ begin
 
     /maxlen mode 5 eq {77} {mode 3 le {84} {93} ifelse} ifelse def
 
+    %
+    %  TODO: Support for this encoder will be dropped in the near future. If
+    %  you require it then let your reason be known.
+    %
     encoding (legacy) eq {
 
-    % Compute numeric runlengths
-    /nseq [ msglen 1 add {0} repeat ] def
-    msglen 1 sub -1 0 {
-        /i exch def
-        msg i get dup 48 ge exch 57 le and {
-            nseq i nseq i 1 add get 1 add put
-        } {
-            nseq i 0 put
-        } ifelse
-    } for
-    /nseq nseq 0 msglen getinterval def
+        % Compute numeric runlengths
+        /nseq [ msglen 1 add {0} repeat ] def
+        msglen 1 sub -1 0 {
+            /i exch def
+            msg i get dup 48 ge exch 57 le and {
+                nseq i nseq i 1 add get 1 add put
+            } {
+                nseq i 0 put
+            } ifelse
+        } for
+        /nseq nseq 0 msglen getinterval def
 
-    % Encode the message from ASCII to codewords
-    /prefixinset {
-        0 {
-            2 copy exch length ge {exit} if
-            2 copy get 3 index exch known {1 add} {exit} ifelse
-        } loop
-        exch pop exch pop
-    } def
+        % Encode the message from ASCII to codewords
+        /prefixinset {
+            0 {
+                2 copy exch length ge {exit} if
+                2 copy get 3 index exch known {1 add} {exit} ifelse
+            } loop
+            exch pop exch pop
+        } def
 
-    /enc {
-        exch get out exch j exch put
-        /j j 1 add def
-    } def
+        /enc {
+            exch get out exch j exch put
+            /j j 1 add def
+        } def
 
-    /out 144 array def
-    /i 0 def /j 0 def /cset (seta) def
-    { % loop
-        % Exit when no characters remain latching back to A if necessary
-        i msglen eq {
-            cset (seta) ne cset (setb) ne and out length maxlen lt and {
-                la cset load enc
-                /cset (seta) def
-            } if
-            exit
-        } if
-        { % not a loop but common exit point
-            % Immediately encode an ECI
-            msg i get -1000000 le {
-                eci cset load enc
-                msg i get neg 1000000 sub
-                    dup 000031 le {  % ECI 000000 - 000031
-                                         63 and
-                        1 array astore
-                } { dup 001023 le {  % ECI 000032 - 001023
-                        dup  -6 bitshift 31 and 32 or exch
-                                         63 and
-                        2 array astore
-                } { dup 032767 le {  % ECI 001024 - 032767
-                        dup -12 bitshift 47 and 48 or exch
-                        dup  -6 bitshift 63 and       exch
-                                         63 and
-                        3 array astore
-                } {                  % ECI 032768 - 999999
-                        dup -18 bitshift 55 and 56 or exch
-                        dup -12 bitshift 63 and       exch
-                        dup  -6 bitshift 63 and       exch
-                                         63 and
-                        4 array astore
-                } ifelse } ifelse } ifelse
-                dup out exch j exch putinterval
-                length j add /j exch def
-                /i i 1 add def
-                exit
-            } if
-
-            % If 9 numerals available then use NS
-            nseq i get 9 ge {
-                msg i 9 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
-                4 { dup 63 and exch -6 bitshift } repeat cset load ns get
-                0 2 10 {index} for 6 array astore 7 1 roll 6 {pop} repeat
-                out exch j exch putinterval
-                /i i 9 add def
-                /j j 6 add def
-                exit
-            } if
-
-            % Read next three characters
-            /char1 msg i get def
-            /char2 i 1 add msglen lt {msg i 1 add get} {-99} ifelse def
-            /char3 i 2 add msglen lt {msg i 2 add get} {-99} ifelse def
-
-            % If current mode is sufficient then directly encode
-            cset load char1 known {
-                char1 cset load enc
-                /i i 1 add def
-                exit
-            } if
-
-            % For switching from A to B
-            cset (seta) eq setb char1 known and {
-                setb char2 known {
-                    lb seta enc
-                    /cset (setb) def
-                } {
-                    sb seta enc
-                    char1 setb enc
-                    /i i 1 add def
-                } ifelse
-                exit
-            } if
-
-            % For switching from B to A encode according to length of prefix
-            cset (setb) eq seta char1 known and {
-                /p seta msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
-                p 1 eq {
-                    sa setb enc
-                    char1 seta enc
-                    /i i 1 add def
-                } if
-                p 2 eq {
-                    sa2 setb enc
-                    char1 seta enc
-                    char2 seta enc
-                    /i i 2 add def
-                } if
-                p 3 eq {
-                    sa3 setb enc
-                    char1 seta enc
-                    char2 seta enc
-                    char3 seta enc
-                    /i i 3 add def
-                } if
-                p 4 ge {
-                    la setb enc
+        /out 144 array def
+        /i 0 def /j 0 def /cset (seta) def
+        { % loop
+            % Exit when no characters remain latching back to A if necessary
+            i msglen eq {
+                cset (seta) ne cset (setb) ne and out length maxlen lt and {
+                    la cset load enc
                     /cset (seta) def
                 } if
                 exit
             } if
+            { % not a loop but common exit point
+                % Immediately encode an ECI
+                msg i get -1000000 le {
+                    eci cset load enc
+                    msg i get neg 1000000 sub
+                        dup 000031 le {  % ECI 000000 - 000031
+                                             63 and
+                            1 array astore
+                    } { dup 001023 le {  % ECI 000032 - 001023
+                            dup  -6 bitshift 31 and 32 or exch
+                                             63 and
+                            2 array astore
+                    } { dup 032767 le {  % ECI 001024 - 032767
+                            dup -12 bitshift 47 and 48 or exch
+                            dup  -6 bitshift 63 and       exch
+                                             63 and
+                            3 array astore
+                    } {                  % ECI 032768 - 999999
+                            dup -18 bitshift 55 and 56 or exch
+                            dup -12 bitshift 63 and       exch
+                            dup  -6 bitshift 63 and       exch
+                                             63 and
+                            4 array astore
+                    } ifelse } ifelse } ifelse
+                    dup out exch j exch putinterval
+                    length j add /j exch def
+                    /i i 1 add def
+                    exit
+                } if
 
-            % If character is in A or B then directly latch
-            seta char1 known {
-                la cset load enc
-                /cset (seta) def
+                % If 9 numerals available then use NS
+                nseq i get 9 ge {
+                    msg i 9 getinterval 0 exch {48 sub add 10 mul} forall 10 idiv
+                    4 { dup 63 and exch -6 bitshift } repeat cset load ns get
+                    0 2 10 {index} for 6 array astore 7 1 roll 6 {pop} repeat
+                    out exch j exch putinterval
+                    /i i 9 add def
+                    /j j 6 add def
+                    exit
+                } if
+
+                % Read next three characters
+                /char1 msg i get def
+                /char2 i 1 add msglen lt {msg i 1 add get} {-99} ifelse def
+                /char3 i 2 add msglen lt {msg i 2 add get} {-99} ifelse def
+
+                % If current mode is sufficient then directly encode
+                cset load char1 known {
+                    char1 cset load enc
+                    /i i 1 add def
+                    exit
+                } if
+
+                % For switching from A to B
+                cset (seta) eq setb char1 known and {
+                    setb char2 known {
+                        lb seta enc
+                        /cset (setb) def
+                    } {
+                        sb seta enc
+                        char1 setb enc
+                        /i i 1 add def
+                    } ifelse
+                    exit
+                } if
+
+                % For switching from B to A encode according to length of prefix
+                cset (setb) eq seta char1 known and {
+                    /p seta msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+                    p 1 eq {
+                        sa setb enc
+                        char1 seta enc
+                        /i i 1 add def
+                    } if
+                    p 2 eq {
+                        sa2 setb enc
+                        char1 seta enc
+                        char2 seta enc
+                        /i i 2 add def
+                    } if
+                    p 3 eq {
+                        sa3 setb enc
+                        char1 seta enc
+                        char2 seta enc
+                        char3 seta enc
+                        /i i 3 add def
+                    } if
+                    p 4 ge {
+                        la setb enc
+                        /cset (seta) def
+                    } if
+                    exit
+                } if
+
+                % If character is in A or B then directly latch
+                seta char1 known {
+                    la cset load enc
+                    /cset (seta) def
+                    exit
+                } if
+                setb char1 known {
+                    lb cset load enc
+                    /cset (setb) def
+                    exit
+                } if
+
+                % Determine which one of sets C, D or E the character is in
+                setc char1 known {/setx (setc) def /sx sc def /lkx lkc def} if
+                setd char1 known {/setx (setd) def /sx sd def /lkx lkd def} if
+                sete char1 known {/setx (sete) def /sx se def /lkx lke def} if
+
+                % Encode according to the length of the prefix
+                /p setx load msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
+                p 1 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    /i i 1 add def
+                } if
+                p 2 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    sx cset load enc
+                    char2 setx load enc
+                    /i i 2 add def
+                } if
+                p 3 eq {
+                    sx cset load enc
+                    char1 setx load enc
+                    sx cset load enc
+                    char2 setx load enc
+                    sx cset load enc
+                    char3 setx load enc
+                    /i i 3 add def
+                } if
+                p 4 ge {
+                    sx cset load enc
+                    lkx setx load enc
+                    /cset setx def
+                } if
+
                 exit
-            } if
-            setb char1 known {
-                lb cset load enc
-                /cset (setb) def
-                exit
-            } if
-
-            % Determine which one of sets C, D or E the character is in
-            setc char1 known {/setx (setc) def /sx sc def /lkx lkc def} if
-            setd char1 known {/setx (setd) def /sx sd def /lkx lkd def} if
-            sete char1 known {/setx (sete) def /sx se def /lkx lke def} if
-
-            % Encode according to the length of the prefix
-            /p setx load msg i 4 msglen i sub 2 copy gt {exch} if pop getinterval prefixinset def
-            p 1 eq {
-                sx cset load enc
-                char1 setx load enc
-                /i i 1 add def
-            } if
-            p 2 eq {
-                sx cset load enc
-                char1 setx load enc
-                sx cset load enc
-                char2 setx load enc
-                /i i 2 add def
-            } if
-            p 3 eq {
-                sx cset load enc
-                char1 setx load enc
-                sx cset load enc
-                char2 setx load enc
-                sx cset load enc
-                char3 setx load enc
-                /i i 3 add def
-            } if
-            p 4 ge {
-                sx cset load enc
-                lkx setx load enc
-                /cset setx def
-            } if
-
-            exit
-        } loop  % out
-    } loop
-    /encmsg out 0 j getinterval def
-    /padval cset load pad get def
+            } loop  % out
+        } loop
+        /encmsg out 0 j getinterval def
+        /padval cset load pad get def
 
     } if
 
