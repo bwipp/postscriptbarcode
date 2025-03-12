@@ -25,7 +25,7 @@
 } def
 
 
-% Punctuation-space combinations
+% Punctuation-space combinations (PR #161)
 
 {
     (. ) (debugcws) azteccode
@@ -172,22 +172,34 @@
 } [60 31 29 60 16 33 2 4] debugIsEqual  % D/L "1" U/L M/L P/L <,SP>(x5)
 
 
-% Regression tests
+% #284 (BWIP-JS #354) - binary wasn't considered in PR #161 (now does nothing if in B/S)
 
-%{
-%    <6A 3E E8 AD F2 EF 17 99 3A 20 53 94 9F C3 1D 87> (debugcws) azteccode  % BWIP-JS #354
-%} [62 16 53 7 55 17 22 62 11 47 5 57 36 5 15 37 37 9 62 33 35 44 15] debugIsEqual
+{
+    <6A 3E E8 AD F2 EF 17 99 3A 20 53 94 9F C3 1D 87> (debugcws) azteccode  % BWIP-JS #354
+} [62 32 53 7 55 17 22 62 11 47 5 57 36 58 8 5 14 20 39 60 12 29 33 62] debugIsEqual
 
-%{
-%    <1D CE A4 2E 20 44 04 BD 19 7D A4 C9 18 1D 3E 74> (debugcws) azteccode  % BWIP-JS #354
-%} [62 6 14 57 53 8 1 23 58 32 18 61 6 23 54 36 50 17 32 29 15 39 19] debugIsEqual
+{
+    <1D CE A4 2E 20 44 04 BD 19 7D A4 C9 18 1D 3E 74> (debugcws) azteccode  % BWIP-JS #354
+} [62 32 14 57 53 8 23 4 2 8 2 23 40 50 62 26 19 9 6 1 58 31 14 39] debugIsEqual
 
-%
-%  Binary before punct compression seems to have a problem
-%
-%{
-%    <6A 99 3A 20 53>    % "j<99>: S"
-%} [?? ?? ?? ...] debugIsEqual
+%  Binary before punct compression had a problem
+
+{
+    <6A 99 3A 20 53> (debugcws) azteccode  % "j<99>: S"
+} [62 6 53 19 9 52 6 39] debugIsEqual
+
+{ (^153. ) (parse debugcws) azteccode } [62 5 12 37 48 31] debugIsEqual
+{ (.^153 ) (parse debugcws) azteccode } [62 4 23 19 8 31] debugIsEqual
+{ (. ^153. ) (parse debugcws) azteccode } [1 7 60 20 50 23 1 62] debugIsEqual
+{ (.^153 . ) (parse debugcws) azteccode } [62 4 23 19 8 16 3] debugIsEqual
+{ (@@. ^153. ) (parse debugcws) azteccode } [59 18 32 1 62 48 51 15 33 62] debugIsEqual
+{ (@@.^153 . ) (parse debugcws) azteccode } [59 18 39 49 5 52 50 4 1 31] debugIsEqual
+{ (@@. ^153. A) (parse debugcws) azteccode } [59 18 32 1 62 48 51 15 33 62 34] debugIsEqual
+{ (@@.^153 . A) (parse debugcws) azteccode } [59 18 39 49 5 52 51 52 8 1 49 31] debugIsEqual
+{ (. . ^153. . . ) (parse debugcws) azteccode } [1 6 1 15 56 25 39 47 33 35 7] debugIsEqual
+{ (. . .^153 . . ) (parse debugcws) azteccode } [1 6 1 15 56 34 58 25 2 1 12 1 31] debugIsEqual
+{ (123^153. . . . . ) (parse debugcws) azteccode } [60 26 11 55 48 51 15 31 3 6 12 24 62] debugIsEqual
+{ (123.^153 . . . . ) (parse debugcws) azteccode } [60 26 11 47 31 3 12 33 59 56 24 49 35] debugIsEqual
 
 
 % Figures
