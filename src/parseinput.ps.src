@@ -138,15 +138,19 @@ begin
 
                 % parsefnc
                 /j j 1 sub def
-                dup length 3 lt {
+                dup length 1 lt {
                     pop
-                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
+                    /bwipp.truncatedCaret (Caret character truncated) //raiseerror exec
                 } if
                 dup 0 get 94 eq {  % "^^" -> "^"
                     msg j 94 put
                     /j j 1 add def
                     dup length 1 sub 1 exch getinterval
                     exit
+                } if
+                dup length 3 lt {
+                    pop
+                    /bwipp.truncatedFNC (Function character truncated) //raiseerror exec
                 } if
                 dup 0 3 getinterval (ECI) eq eci and {  % "^ECInnnnnn" -> -1nnnnnn
                     dup length 9 lt {
