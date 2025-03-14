@@ -158,9 +158,21 @@
     (AB^^FNC1C) << /parse false /parsefnc true (FNC1) -1 >> parseinput
 } [ 65 66 94 70 78 67 49 67 ]  isEqual
 
-{  % Truncated
+{  % Escaped "^^" -> "^" at end
+    (AB^^) << /parse false /parsefnc true (FNC1) -1 >> parseinput
+} [ 65 66 94 ]  isEqual
+
+{  % Truncated FNC
     (ABC^FNC) << /parse false /parsefnc true (FNC1) -1 >> parseinput
 } /bwipp.truncatedFNC isError
+
+{  % Truncated FNC
+    (ABC^F) << /parse false /parsefnc true (FNC1) -1 >> parseinput
+} /bwipp.truncatedFNC isError
+
+{  % Truncated caret
+    (ABC^) << /parse false /parsefnc true (FNC1) -1 >> parseinput
+} /bwipp.truncatedCaret isError
 
 {  % No such FNC
     (A^FNC2BC) << /parse false /parsefnc true (FNC1) -1 >> parseinput
