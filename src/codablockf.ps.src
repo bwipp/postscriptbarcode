@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -170,6 +170,9 @@ begin
         /n 0 def /s 0 def
         /p exch def {
             p msglen ge {exit} if
+            p 0 ne {  % Check not 2nd byte of FNC4
+                msg p 1 sub get fn4 eq {exit} if
+            } if
             msg p get
             dup setc exch known not {pop exit} if
             fn1 eq {
