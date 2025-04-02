@@ -1,7 +1,7 @@
 Named Resource Flavours
 =======================
 
-The contents of the `Resource` directory provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources split into seperate files structured for ease of deployment.
+The contents of the `Resource` directory provides Barcode Writer in Pure PostScript as generic PostScript Level 2 named resources split into separate files structured for ease of deployment.
 
 This standard delivery mechanism allows BWIPP resources to be added to a PostScript virtual machine's resource search path, or pre-downloaded to a printer's memory or permanent storage, or supplied by a document manager, all without any change in the code an application generates to use the resources.
 

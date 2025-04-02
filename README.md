@@ -69,7 +69,7 @@ For production use:
 
 For BWIPP development:
 
-* `postscriptbarcode-resource` – Unpackaged; Seperate files.
+* `postscriptbarcode-resource` – Unpackaged; Separate files.
 * `postscriptbarcode-monolithic` – Unpackaged; Monolithic file.
 
 
