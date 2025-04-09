@@ -57,6 +57,7 @@ begin
     /textxoffset 4.0 def
     /textyoffset -4.0 def
     /height 1.0 def
+    /permitaddon false def
     /addongap 12.0 def
     /addontextfont (unset) def
     /addontextsize null def
@@ -89,6 +90,9 @@ begin
     } forall
     addon length 0 ne addon length 2 ne and addon length 5 ne and {
         /bwipp.ean8badAddOnLength (Add-on for EAN-8 must be 2 or 5 digits) //raiseerror exec
+    } if
+    permitaddon not addon length 0 ne and {
+        /bwipp.ean8badAddOnLength (Non-standard use of add-on for EAN-8 requires "permitaddon" option) //raiseerror exec
     } if
 
     % Add checksum digit
