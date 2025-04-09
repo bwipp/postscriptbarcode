@@ -49,7 +49,8 @@ override_dh_auto_install:
 	dh_auto_install --sourcedirectory=libs/bindings/perl --destdir=debian/libpostscriptbarcode-perl
 	dh_auto_install --sourcedirectory=libs/bindings/python --buildsystem=pybuild
 	# Hack for broken expectations of Swig with recent Ubuntu
-	[ ! -e /usr/bin/mkdir ] && sed -i -e 's/\/usr\/bin\/mkdir/mkdir/' libs/bindings/ruby/Makefile || :
+	pwd
+	[ ! -e /usr/bin/mkdir ] && sed -i -e 's/\/usr\/bin\/mkdir/mkdir/' ../libs/bindings/ruby/Makefile || :
 	LD_LIBRARY_PATH=libs/c:$(LD_LIBRARY_PATH) dh_auto_install --buildsystem=ruby
 
 override_dh_auto_clean:
