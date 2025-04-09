@@ -3,8 +3,8 @@
 use strict;
 use postscriptbarcode;
 
-my $bwipp1 = postscriptbarcode::BWIPP("../../../build/monolithic_package/barcode.ps")->new() || die 'Failed to load resource\n';
-my $bwipp2 = postscriptbarcode::BWIPP("../../../build/monolithic/barcode.ps")->new() || die 'Failed to load resource\n';
+my $bwipp1 = new postscriptbarcode::BWIPP("../../../build/monolithic_package/barcode.ps") || die 'Failed to load resource\n';
+my $bwipp2 = new postscriptbarcode::BWIPP("../../../build/monolithic/barcode.ps") || die 'Failed to load resource\n';
 
 my $ver = $bwipp1->get_version() || die 'Failed to get version\n';
 print "Packaged version: $ver\n";
