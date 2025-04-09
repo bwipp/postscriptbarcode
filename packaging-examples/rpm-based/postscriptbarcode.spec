@@ -91,7 +91,7 @@ BuildRequires:  python2-devel
 %endif
 
 %if 0%{?with_python3}
-BuildRequires:  python3-devel
+BuildRequires:  python3-devel python3-distutils
 %endif
 
 
