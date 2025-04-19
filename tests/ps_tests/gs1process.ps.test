@@ -24,7 +24,7 @@
 /lintreqs true def
 
 
-% N18,csum,key
+% N18,csum,keyoff1
 ((00)123456789012345675) good_tmpl
 ((00)) /bwipp.GS1valueTooShort er_tmpl
 ((00)12345678901234567) /bwipp.GS1valueTooShort er_tmpl
@@ -233,14 +233,14 @@
 ((01)12312312312319(7030)850) /bwipp.GS1valueTooShort er_tmpl
 ((01)12312312312319(7030)8501234567890123456789012345678) /bwipp.GS1valueTooLong er_tmpl
 
-% ... N..15,iso3166list
+% ... N3,iso3166 [N3],iso3166 [N3],iso3166 [N3],iso3166 [N3],iso3166
 ((01)12312312312319(423)850) good_tmpl
 ((01)12312312312319(423)004100400850894) good_tmpl
-((01)12312312312319(423)8501) /bwipp.GS1BadCountryListLength er_tmpl
-((01)12312312312319(423)85012) /bwipp.GS1BadCountryListLength er_tmpl
+((01)12312312312319(423)8501) /bwipp.GS1valueTooShort er_tmpl
+((01)12312312312319(423)85012) /bwipp.GS1valueTooShort er_tmpl
 ((01)12312312312319(423)) /bwipp.GS1valueTooShort er_tmpl
-((01)12312312312319(423)1) /bwipp.GS1BadCountryListLength er_tmpl
-((01)12312312312319(423)12) /bwipp.GS1BadCountryListLength er_tmpl
+((01)12312312312319(423)1) /bwipp.GS1valueTooShort er_tmpl
+((01)12312312312319(423)12) /bwipp.GS1valueTooShort er_tmpl
 
 
 % Note: In reality, almost all GCPs are six or more numeric digits so the
@@ -303,7 +303,7 @@
 ((00)123456789012345675(4321)8) /bwipp.GS1badBoolean er_tmpl
 ((00)123456789012345675(4321)9) /bwipp.GS1badBoolean er_tmpl
 
-% ... N6,yymmd0 N4,hhmm
+% ... N6,yymmd0 N4,hhmi
 ((00)123456789012345675(4324)2006150015) good_tmpl
 ((00)123456789012345675(4324)2006152359) good_tmpl
 ((00)123456789012345675(4324)2006152400) /bwipp.GS1badHour er_tmpl
@@ -369,7 +369,7 @@
 ((415)1231231231232(8020)A(8007)LC14BOSLxx3456789012345678901230) /bwipp.GS1badIBANcharacter er_tmpl
 ((415)1231231231232(8020)A(8007)XX361234567890) /bwipp.GS1UnknownCountryAlpha er_tmpl
 
-% ... N8,yymmddhh [N..4],optmmss
+% ... N6,yymmdd N2,hh [N2],mi [N2],ss
 ((01)12312312312319(8008)200615121530) good_tmpl
 ((01)12312312312319(8008)2006151215) good_tmpl
 ((01)12312312312319(8008)20061512) good_tmpl
@@ -377,8 +377,8 @@
 ((01)12312312312319(8008)200615126030) /bwipp.GS1badMinute er_tmpl
 ((01)12312312312319(8008)200615125960) /bwipp.GS1badSecond er_tmpl
 ((01)12312312312319(8008)2006151) /bwipp.GS1valueTooShort er_tmpl
-((01)12312312312319(8008)200615123) /bwipp.GS1badTimeLength er_tmpl
-((01)12312312312319(8008)20061512345) /bwipp.GS1badTimeLength er_tmpl
+((01)12312312312319(8008)200615123) /bwipp.GS1valueTooShort er_tmpl
+((01)12312312312319(8008)20061512345) /bwipp.GS1valueTooShort er_tmpl
 
 % C..30,key
 ((8010)12345ABC) good_tmpl
@@ -933,6 +933,11 @@
 ((8018)123123123123123121(7259)NAME(7258)1/0) /bwipp.endZeroPrefix er_tmpl
 ((8018)123123123123123121(7259)NAME(7258)2/1) /bwipp.positionExceedsEnd er_tmpl
 ((8018)123123123123123121(7259)NAME(7258)9/8) /bwipp.positionExceedsEnd er_tmpl
+
+% X..4,packagetype
+((00)123456789012345675(7041)9) good_tmpl
+((00)123456789012345675(7041)AA) good_tmpl
+((00)123456789012345675(7041)AZ) /bwipp.GS1unknownPackageType /bwipp.er_tmpl
 
 % Unknown
 ((89)ABC) /bwipp.GS1unknownAI er_tmpl
