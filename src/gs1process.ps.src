@@ -2433,13 +2433,22 @@ begin
 
     /lintcset39 {
         true exch { cset39 exch known not { pop false exit } if } forall
-        not { pop /bwipp.GS1badCSET39character  (Invalid CSET 39 character) false exit } if
+        not { pop /bwipp.GS1badCSET39character (Invalid CSET 39 character) false exit } if
     } def
 
     /lintcset64 {
-        % TODO Validate base64 padding rules
-        true exch { dup cset64 exch known not exch 61 ne and { pop false exit } if } forall
-        not { pop /bwipp.GS1badCSET64character  (Invalid CSET 64 character) false exit } if
+        % Trim and validate any padding. Padding is not compulsory.
+        dup (=) search {
+           exch pop dup length 3 mod exch 3 1 roll false
+           1 index 1 eq 3 index (=) eq and {pop true} if
+           1 index 2 eq 3 index ()  eq and {pop true} if
+           not { pop pop pop pop pop /bwipp.GS1badCSET64padding (Invalid CSET 64 padding) false exit } if
+           pop pop exch
+        } if
+        pop
+        % Verify the character set of the remainder
+        true exch { cset64 exch known not { pop false exit } if } forall
+        not { pop /bwipp.GS1badCSET64character (Invalid CSET 64 character) false exit } if
     } def
 
     /lintkey {
