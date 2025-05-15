@@ -40,7 +40,7 @@ There is a web-based demonstration of the project here:
 This project is dedicated to the memory of Craig K. Harmon.
 
 
-"Flavours" of Named Resources
+"Flavors" of Named Resources
 -----------------------------
 
 BWIPP is essentially a set of generic PostScript Level 2 named resources that
