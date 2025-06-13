@@ -61,7 +61,9 @@ begin
     /textxoffset 0.0 def
     /textyoffset 0.0 def
     /textgaps 0.0 def
+    /textlinegaps 1.2 def
     /alttext () def
+    /alttextsplit () def
     /alttextsubspace () def
     /extratext () def
     /extratextsubspace () def
@@ -385,7 +387,20 @@ begin
                 } if
             } ifelse
             /textascent exch def
-            /textwidth tstr stringwidth pop tstr length 1 sub textgaps mul add def
+
+            alttext () ne alttextsplit () ne and {
+                alttextsplit length 1 ne {
+                    /bwipp.alttextsplitBad (The alttextsplit option must be a single character) //raiseerror exec
+                } if
+                /textlines [
+                    tstr { alttextsplit search { exch pop exch } { exit } ifelse } loop
+                ] def
+            } {
+                /textlines [ tstr ] def
+            } ifelse
+
+            /textwidth 0 textlines { stringwidth pop 2 copy lt {exch} if pop } forall tstr length 1 sub textgaps mul add def
+            /textheight textlines length dup textascent mul exch 1 sub textlinegaps mul add def
 
             /textxpos textxoffset pixx textwidth sub 2 div add def
             textxalign (left)     eq { /textxpos textxoffset def } if
@@ -396,10 +411,16 @@ begin
                 /textxpos 0.0 def
                 /textgaps pixx textwidth sub tstr length 1 sub div def
             } if
-            /textypos textyoffset textascent add 1 add neg def
+            /textypos textyoffset textheight add 1 add neg def
             textyalign (above)  eq { /textypos textyoffset pixy add 1 add def } if
-            textyalign (center) eq { /textypos textyoffset pixy textascent sub 2 div add def } if
-            textxpos textypos moveto textgaps 0 tstr ashow
+            textyalign (center) eq { /textypos textyoffset pixy textheight sub 2 div add def } if
+
+            0 1 textlines length 1 sub {
+                /i exch def
+                textxpos textypos textascent textlinegaps add i mul add moveto
+                textgaps 0 textlines dup length i sub 1 sub get ashow
+            } for
+
         } ifelse
     } if
 
