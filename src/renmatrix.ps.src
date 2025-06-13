@@ -62,7 +62,9 @@ begin
     /textyoffset 0.0 def
     /textgaps 0.0 def
     /alttext () def
+    /alttextsubspace () def
     /extratext () def
+    /extratextsubspace () def
     /extratextcolor (unset) def
     /extratextxalign (left) def
     /extratextyalign (above) def
@@ -357,6 +359,13 @@ begin
                 0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
             } {
                 /tstr alttext def
+                0 1 alttext length 1 sub {
+                    dup
+                    alttext exch 1 getinterval alttextsubspace exch search {
+                        alttext 4 index 32 put pop pop
+                    } if
+                    pop pop
+                } for
             } ifelse
 
             % Find true ascent of font
@@ -396,6 +405,14 @@ begin
 
     % Render any extratext
     extratext () ne {
+        0 1 extratext length 1 sub {
+            dup
+            extratext exch 1 getinterval extratextsubspace exch search {
+                extratext 4 index 32 put pop pop
+            } if
+            pop pop
+        } for
+
         extratextcolor (unset) ne { extratextcolor setanycolor } if
         extratextfont extratextsize selectfont
 
