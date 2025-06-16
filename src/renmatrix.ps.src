@@ -67,6 +67,8 @@ begin
     /alttextsubspace () def
     /extratext () def
     /extratextsubspace () def
+    /extratextsplit () def
+    /extratextlinegaps 1.2 def
     /extratextcolor (unset) def
     /extratextxalign (left) def
     /extratextyalign (above) def
@@ -450,7 +452,20 @@ begin
             add
         } if
         /textascent exch def
-        /textwidth extratext stringwidth pop extratext length 1 sub extratextgaps mul add def
+
+        extratextsplit () ne {
+            extratextsplit length 1 ne {
+                /bwipp.extratextsplitBad (The extratextsplit option must be a single character) //raiseerror exec
+            } if
+            /textlines [
+                extratext { extratextsplit search { exch pop exch } { exit } ifelse } loop
+            ] def
+        } {
+            /textlines [ extratext ] def
+        } ifelse
+
+        /textwidth 0 textlines { stringwidth pop 2 copy lt {exch} if pop } forall extratext length 1 sub extratextgaps mul add def
+        /textheight textlines length dup textascent mul exch 1 sub extratextlinegaps mul add def
 
         /extratextxpos extratextxoffset pixx textwidth sub 2 div add def
         extratextxalign (left)     eq { /textxpos extratextxoffset def } if
@@ -461,10 +476,16 @@ begin
             /textxpos 0.0 def
             /extratextgaps pixx textwidth sub extratext length 1 sub div def
         } if
-        /textypos extratextyoffset textascent add 1 add neg def
+        /textypos extratextyoffset textheight add 1 add neg def
         extratextyalign (above)  eq { /textypos extratextyoffset pixy add 1 add def } if
-        extratextyalign (center) eq { /textypos extratextyoffset pixy textascent sub 2 div add def } if
-        textxpos textypos moveto extratextgaps 0 extratext ashow
+        extratextyalign (center) eq { /textypos extratextyoffset pixy textheight sub 2 div add def } if
+
+        0 1 textlines length 1 sub {
+            /i exch def
+            textxpos textypos textascent extratextlinegaps add i mul add moveto
+            extratextgaps 0 textlines dup length i sub 1 sub get ashow
+        } for
+
     } if
 
     grestore
