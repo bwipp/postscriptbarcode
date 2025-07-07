@@ -24,7 +24,7 @@
 /lintreqs true def
 
 
-% N18,csum,keyoff1
+% N18,csum,gcppos2
 ((00)123456789012345675) good_tmpl
 ((00)) /bwipp.GS1valueTooShort er_tmpl
 ((00)12345678901234567) /bwipp.GS1valueTooShort er_tmpl
@@ -70,7 +70,7 @@
 ((01)12312312312319(21)ABC123(8030)12345==) /bwipp.GS1badCSET64padding er_tmpl
 ((01)12312312312319(21)ABC123(8030)12345===) /bwipp.GS1badCSET64padding er_tmpl
 
-% N1,zero N13,csum,key [X..16]
+% N1,zero N13,csum,gcppos1 [X..16]
 ((8003)01234567890128) good_tmpl
 ((8003)012345678901281) good_tmpl
 ((8003)012345678901281234567890123456) good_tmpl
@@ -205,7 +205,7 @@
 ((01)12312312312319(20)1) /bwipp.GS1valueTooShort er_tmpl
 ((01)12312312312319(20)123) /bwipp.GS1valueTooLong er_tmpl
 
-% N13,csum,key [X..17]
+% N13,csum,gcppos1 [X..17]
 ((253)1234567890128) good_tmpl
 ((253)1234567890128A) good_tmpl
 ((253)1234567890128ABCDEFGHIJKLMNOPQ) good_tmpl
@@ -250,11 +250,11 @@
 
 
 % Note: In reality, almost all GCPs are six or more numeric digits so the
-% restriction for "key" could be tightened
+% restriction for "gcp" could be tightened
 %
-% X..30,key
+% X..30,gcppos1
 ((401)12) good_tmpl
-((401)1) /bwipp.GS1keyTooShort er_tmpl
+((401)1) /bwipp.GS1gcpTooShort er_tmpl
 ((401)) /bwipp.GS1valueTooShort er_tmpl
 ((401)A1) /bwipp.GS1badGCP er_tmpl
 ((401)1A) /bwipp.GS1badGCP er_tmpl
@@ -386,7 +386,7 @@
 ((01)12312312312319(8008)200615123) /bwipp.GS1valueTooShort er_tmpl
 ((01)12312312312319(8008)20061512345) /bwipp.GS1valueTooShort er_tmpl
 
-% C..30,key
+% C..30,gcppos1
 ((8010)12345ABC) good_tmpl
 ((8010)12#-/0123456789ABCDEFGHIJK) good_tmpl  % "#" is acceptable in CSET32
 ((8010)12CDEFGHIJKLMNOPQRSTUVWXYZ) good_tmpl
@@ -397,7 +397,7 @@
 ((8010)12345ABC(8011)0) good_tmpl
 ((8010)12345ABC(8011)01) /bwipp.GS1badZeroPrefix er_tmpl
 
-% X..25,csumalpha,key
+% X..25,csumalpha,gcppos1
 ((8013)1987654Ad4X4bL5ttr2310c2K) good_tmpl
 ((8013)12345678901234567890123NT) good_tmpl
 ((8013)12345_ABCDEFGHIJKLMCP) good_tmpl
