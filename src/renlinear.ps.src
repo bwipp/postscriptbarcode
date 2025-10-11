@@ -299,7 +299,7 @@ begin
             /textwidth 0 textlines { stringwidth pop 2 copy lt {exch} if pop } forall tstr length 1 sub textgaps mul add def
             /textheight textlines length dup textascent mul exch 1 sub textlinegaps mul add def
 
-            /textxpos textxoffset pixx textwidth sub 2 div add def
+            /textxpos textxoffset pixx textwidth sub 2 div add def  % center
             textxalign (left)     eq { /textxpos textxoffset def } if
             textxalign (right)    eq { /textxpos pixx textxoffset sub textwidth sub def } if
             textxalign (offleft)  eq { /textxpos textwidth textxoffset add neg def } if
@@ -308,10 +308,11 @@ begin
                 /textxpos 0.0 def
                 /textgaps pixx textwidth sub tstr length 1 sub div def
             } if
-            /textypos textyoffset textheight add 1 add neg def
+            /textypos textyoffset textheight add 1 add neg def  % below
             textyalign (above)  eq { /textypos textyoffset pixy add 1 add def } if
+            textyalign (top)    eq { /textypos textyoffset pixy add textheight sub def } if
             textyalign (center) eq { /textypos textyoffset pixy textheight sub 2 div add def } if
-
+            textyalign (bottom) eq { /textypos textyoffset def } if
             0 1 textlines length 1 sub {
                 /i exch def
                 textxpos textypos textascent textlinegaps add i mul add moveto
@@ -381,7 +382,7 @@ begin
         /textwidth 0 textlines { stringwidth pop 2 copy lt {exch} if pop } forall extratext length 1 sub extratextgaps mul add def
         /textheight textlines length dup textascent mul exch 1 sub extratextlinegaps mul add def
 
-        /extratextxpos extratextxoffset pixx textwidth sub 2 div add def
+        /extratextxpos extratextxoffset pixx textwidth sub 2 div add def  % center
         extratextxalign (left)     eq { /textxpos extratextxoffset def } if
         extratextxalign (right)    eq { /textxpos pixx extratextxoffset sub textwidth sub def } if
         extratextxalign (offleft)  eq { /textxpos textwidth extratextxoffset add neg def } if
@@ -390,9 +391,11 @@ begin
             /textxpos 0.0 def
             /extratextgaps pixx textwidth sub extratext length 1 sub div def
         } if
-        /textypos extratextyoffset textheight add 1 add neg def
+        /textypos extratextyoffset textheight add 1 add neg def  % below
         extratextyalign (above)  eq { /textypos extratextyoffset pixy add 1 add def } if
+        extratextyalign (top)    eq { /textypos extratextyoffset pixy add textheight sub def } if
         extratextyalign (center) eq { /textypos extratextyoffset pixy textheight sub 2 div add def } if
+        extratextyalign (bottom) eq { /textypos extratextyoffset def } if
 
         0 1 textlines length 1 sub {
             /i exch def
