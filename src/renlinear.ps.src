@@ -97,16 +97,50 @@ begin
     {def} forall
     opt currentdict /opt undef //processoptions exec pop
 
-    textsize 0 le {
-        /bwipp.renlinearBadTextsize (The font size must be greater than zero) //raiseerror exec
-    } if
-
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /ctx exch def
         barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    % Input validation
+
+    textxalign (unset) ne {
+        << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> textxalign known not {
+            /bwipp.renmatrixBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
+        } if
+    } if
+
+    textyalign (unset) ne {
+        << /above dup  /top dup  /center dup  /bottom dup  /below dup >> textyalign known not {
+            /bwipp.renmatrixBadTextyalign (textyalign must be above, top, center, bottom or below) //raiseerror exec
+        } if
+    } if
+
+    << /forward dup  /backward dup  /upward dup  /downward dup >> textdirection known not {
+        /bwipp.renmatrixBadTextdirection (textdirection must be forward, backward, upward or downward) //raiseerror exec
+    } if
+
+    textsize 0 le textsize 25 ge or {
+        /bwipp.renmatrixBadTextsize (textsize must be greater than zero and less that 25) //raiseerror exec
+    } if
+
+    << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> extratextxalign known not {
+        /bwipp.renmatrixBadExtratextxalign (extratextxalign must be offleft, left, center, right or offright) //raiseerror exec
+    } if
+
+    << /above dup  /top dup  /center dup  /bottom dup  /below dup >> extratextyalign known not {
+        /bwipp.renmatrixBadExtratextyalign (extratextyalign must be above, top, center, bottom or below) //raiseerror exec
+    } if
+
+    << /forward dup  /backward dup  /upward dup  /downward dup >> extratextdirection known not {
+        /bwipp.renmatrixBadExtratextdirection (extratextdirection must be forward, backward, upward or downward) //raiseerror exec
+    } if
+
+    extratextsize 0 le extratextsize 25 ge or {
+        /bwipp.renmatrixBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
+    } if
 
     % Create bar elements and put them into the bars array
     /bars sbs length 1 add 2 idiv array def
