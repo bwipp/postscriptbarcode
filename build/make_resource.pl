@@ -3,12 +3,14 @@
 # $Id$
 
 use strict;
-use File::Temp;
 use warnings;
 use File::Basename;
 use Cwd qw(abs_path getcwd);
+use IPC::Cmd qw(can_run);
 
-$ENV{PATH} = '/usr/bin';
+$ENV{PATH} = '/usr/local/bin:/usr/bin';
+
+my $gs = can_run('gs') or die 'gs not installed in path';
 
 (my $abspath) = abs_path(getcwd()) =~ /(.*)/;
 
@@ -68,19 +70,35 @@ if ($resource eq 'preamble') {
 }
 
 my $vmusage = '0 0';
-my $vmusagefile = mktemp('/tmp/vmusage.XXXXXX');
 
 (my $yyyy, my $mm, my $dd, $_, my $rr) = $version =~ /^(\d{4})-(\d{2})-(\d{2})(-(\d{1,2}))?$/ or die 'Malformed version';
 my $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
 
-print `cd $resdir/Resource && gs -P -dNOSAFER -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -sInputFilename='$abspath/$outfile.tmp' -sOutputFilename='$abspath/$outfile' -sVMusageFilename='$vmusagefile' -sCategory='$category' -sKey='$key' -sVMusage='$vmusage' -sQualifier='$qualifier' -sVersion='$version' -sNeededResources='$neededresources' -sPostWatermark='$category/$key $qualifier' ../../$packager`;
-die 'GS create resource error' if $?;
-unlink("$outfile.tmp");
+{
+  use File::Temp qw(tempfile);
+  my ($vmusage_fh, $vmusagefile) = tempfile('vmusage.XXXXXX', DIR => '/tmp', UNLINK => 1);
+  ($vmusagefile) = $vmusagefile =~ /(.*)/;  # Untaint
 
-my $vmout = `gs -dQUIET -dNOPAUSE -dBATCH -sDEVICE=nullpage -- $vmusagefile`;
-die 'GS measure VMusage error' if $?;
-($vmusage) = $vmout =~ /VMusage \((\d+ \d+)\) def/ or die 'Failed to determine VMusage';
-unlink($vmusagefile);
+  my $oldpwd = getcwd();
+  ($oldpwd) = $oldpwd =~ /(.*)/;  # Untaint
+  chdir("$resdir/Resource") or die "Cannot chdir to $resdir/Resource: $!";
+
+  open(my $gs_fh, '-|', $gs, '-P', '-dNOSAFER', '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', "-sInputFilename=$abspath/$outfile.tmp", "-sOutputFilename=$abspath/$outfile", "-sVMusageFilename=$vmusagefile", "-sCategory=$category", "-sKey=$key", "-sVMusage=$vmusage", "-sQualifier=$qualifier", "-sVersion=$version", "-sNeededResources=$neededresources", "-sPostWatermark=$category/$key $qualifier", "../../$packager")
+    or die "Cannot execute gs: $!";
+  print while <$gs_fh>;
+  close $gs_fh or die 'GS create resource error';
+
+  chdir($oldpwd) or die "Cannot chdir back to $oldpwd: $!";
+  unlink("$outfile.tmp");
+
+  open(my $vm_fh, '-|', $gs, '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', '--', $vmusagefile)
+    or die "Cannot execute gs for VMusage: $!";
+  my $vmout = do { local $/; <$vm_fh> };
+  close $vm_fh or die 'GS measure VMusage error';
+  ($vmusage) = $vmout =~ /VMusage \((\d+ \d+)\) def/ or die 'Failed to determine VMusage';
+
+  # $vmusagefile auto-deleted when $vmusage_fh goes out of scope
+}
 
 # Stamp VMusage into the resource
 {
