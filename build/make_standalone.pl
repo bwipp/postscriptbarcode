@@ -1,7 +1,7 @@
-#!/usr/bin/perl -Tw
+#!/usr/bin/perl -T
 
 use strict;
-use File::Temp;
+use warnings;
 use File::Basename;
 
 if ($#ARGV < 1) {
@@ -75,3 +75,5 @@ for my $encoder (@encoders) {
 }
 
 close($fh);
+
+exit 0;

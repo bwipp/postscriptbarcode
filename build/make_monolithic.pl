@@ -1,8 +1,9 @@
-#!/usr/bin/perl -Tw
+#!/usr/bin/perl -T
 
 # $Id$
 
 use strict;
+use warnings;
 
 my $resourcedir = $ARGV[0] || '';
 
@@ -62,3 +63,5 @@ while ($upr =~ /^(.*)=(.*)$/mg) {
 }
 
 print "% --END TEMPLATE--\n";
+
+exit 0;

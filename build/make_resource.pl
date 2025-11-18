@@ -1,9 +1,10 @@
-#!/usr/bin/perl -Tw
+#!/usr/bin/perl -T
 
 # $Id$
 
 use strict;
 use File::Temp;
+use warnings;
 use File::Basename;
 use Cwd qw(abs_path getcwd);
 
@@ -91,3 +92,5 @@ unlink($vmusagefile);
     print;
   }
 }
+
+exit 0;

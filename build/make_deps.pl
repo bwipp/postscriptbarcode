@@ -1,8 +1,9 @@
-#!/usr/bin/perl -Tw
+#!/usr/bin/perl -T
 
 # $Id$
 
 use strict;
+use warnings;
 
 my $srcfile = shift @ARGV || '';
 
@@ -39,3 +40,5 @@ while (my $targetdir = shift @ARGV) {
   }
   print "$reqfiles\n";
 }
+
+exit 0;
