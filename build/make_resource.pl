@@ -8,7 +8,7 @@ use File::Basename;
 use Cwd qw(abs_path getcwd);
 use IPC::Cmd qw(can_run);
 
-$ENV{PATH} = '/usr/local/bin:/usr/bin';
+$ENV{PATH} = '/usr/bin';
 
 my $gs = can_run('gs') or die 'gs not installed in path';
 
