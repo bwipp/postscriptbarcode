@@ -161,6 +161,20 @@ $(RESDIR)/docs/%: $(DOCDIR)/% $(RESMKDIRSTAMP)
 	cp $< $@
 
 #------------------------------------------------------------
+#
+# Auto-generate atload names list for packaged resources
+#
+
+$(DSTDIR)/make_packaged_resource.ps: $(DSTDIR)/make_packaged_resource.ps.template $(SOURCES)
+	@grep -rh '^[^%]*//[a-z][a-z0-9-]*' $(SRCDIR)/*.ps.src | \
+	  grep -oh '//[a-z][a-z0-9-]*' | \
+	  sed 's|^//||' | sort -u | tr '\n' ' ' | \
+	  sed 's/ $$//' | \
+	  { read names; sed "s/@@ATLOAD_NAMES@@/$$names/" $< > $@; }
+
+cleanlist += $(DSTDIR)/make_packaged_resource.ps
+
+#------------------------------------------------------------
 
 packaged_resource: $(TARGETS_PACKAGE)
 
@@ -168,10 +182,10 @@ $(PACKAGEMKDIRSTAMP):
 	mkdir -p $(PACKAGEMKDIRS)
 	touch $@
 
-$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp/%: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(DSTDIR)/make_packaged_resource.ps $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
-$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(PACKAGEMKDIRSTAMP)
+$(PACKAGEDIR)/Resource/Category/uk.co.terryburton.bwipp: $(SRCDIR)/preamble.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(DSTDIR)/make_packaged_resource.ps $(PACKAGEMKDIRSTAMP)
 	$(DSTDIR)/make_resource.pl $< $@
 
 $(PACKAGEDIR)/Resource/uk.co.terryburton.bwipp.upr: $(UPR_FILE) $(PACKAGEMKDIRSTAMP)
@@ -305,7 +319,7 @@ tag:
 YEAR:=$(shell date +%Y)
 
 copyright:
-	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps $(DSTDIR)/make_resource.ps libs/bindings/postscriptbarcode.i libs/c/*.[ch]
+	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps.template $(DSTDIR)/make_resource.ps libs/bindings/postscriptbarcode.i libs/c/*.[ch]
 
 whitespace:
 	perl -p -i -e 's/\s+$$/\n/;' $(SOURCES)
