@@ -19,6 +19,13 @@ my $outfile = $ARGV[1];
 
 ($outfile) = $outfile =~ /(.*)/;  # Untaint
 
+END {
+  if ($? != 0) {
+    unlink("$outfile.tmp");
+    unlink($outfile);
+  }
+}
+
 (my $resdir) = $outfile =~ m#^(build/[^/]+)/#;
 my $packager = $resdir eq 'build/packaged_resource' ? 'make_packaged_resource.ps' : 'make_resource.ps';
 
@@ -58,7 +65,7 @@ foreach (split /\s+/, $reqs) {
 }
 $neededresources =~ s/\s+$//;
 
-open($fh, '>', "$outfile.tmp") || die "Failed to write $outfile";
+open($fh, '>', "$outfile.tmp") || die "Failed to write $outfile.tmp";
 print $fh $body;
 close $fh;
 
@@ -111,4 +118,5 @@ my $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
   }
 }
 
+$? = 0;  # Mark successful completion
 exit 0;
