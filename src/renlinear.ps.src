@@ -39,6 +39,19 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /rendertext dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/renlinear.xalignopts <<
+    /offleft dup  /left dup  /center dup  /right dup  /offright dup
+>> readonly def
+
+/renlinear.yalignopts <<
+    /above dup  /top dup  /center dup  /bottom dup  /below dup
+>> readonly def
+
+/renlinear.directionoptions <<
+    /forward dup  /backward dup  /upward dup  /downward dup
+>> readonly def
+
 /renlinear {
 
     20 dict begin          % Confine variables to local scope
@@ -110,18 +123,18 @@ begin
     % Input validation
 
     textxalign (unset) ne {
-        << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> textxalign known not {
+        //renlinear.xalignopts textxalign known not {
             /bwipp.renlinearBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
         } if
     } if
 
     textyalign (unset) ne {
-        << /above dup  /top dup  /center dup  /bottom dup  /below dup >> textyalign known not {
+        //renlinear.yalignopts textyalign known not {
             /bwipp.renlinearBadTextyalign (textyalign must be above, top, center, bottom or below) //raiseerror exec
         } if
     } if
 
-    << /forward dup  /backward dup  /upward dup  /downward dup >> textdirection known not {
+    //renlinear.directionoptions textdirection known not {
         /bwipp.renlinearBadTextdirection (textdirection must be forward, backward, upward or downward) //raiseerror exec
     } if
 
@@ -129,15 +142,15 @@ begin
         /bwipp.renlinearBadTextsize (textsize must be greater than zero and less that 25) //raiseerror exec
     } if
 
-    << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> extratextxalign known not {
+    //renlinear.xalignopts extratextxalign known not {
         /bwipp.renlinearBadExtratextxalign (extratextxalign must be offleft, left, center, right or offright) //raiseerror exec
     } if
 
-    << /above dup  /top dup  /center dup  /bottom dup  /below dup >> extratextyalign known not {
+    //renlinear.yalignopts extratextyalign known not {
         /bwipp.renlinearBadExtratextyalign (extratextyalign must be above, top, center, bottom or below) //raiseerror exec
     } if
 
-    << /forward dup  /backward dup  /upward dup  /downward dup >> extratextdirection known not {
+    //renlinear.directionoptions extratextdirection known not {
         /bwipp.renlinearBadExtratextdirection (extratextdirection must be forward, backward, upward or downward) //raiseerror exec
     } if
 
