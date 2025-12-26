@@ -38,50 +38,50 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
 
-/rendertextpositions <<
+/rendertext.positions <<
 %   direction
-%       x-align                                y-align
+%       x-align                                     y-align
     (forward) <<
-        (offleft)  {      tw neg nudge sub }   (below)   {      th neg nudge sub }
-        (left)     {      0                }   (bottom)  {      0                }
-        (xcenter)  { pixx tw sub 2 div     }   (ycenter) { pixy th sub 2 div     }
-        (right)    { pixx tw sub           }   (top)     { pixy th sub           }
-        (offright) { pixx        nudge add }   (above)   { pixy        nudge add }
+        (offleft)  {      tw neg nudge sub } bind   (below)   {      th neg nudge sub } bind
+        (left)     {      0                } bind   (bottom)  {      0                } bind
+        (xcenter)  { pixx tw sub 2 div     } bind   (ycenter) { pixy th sub 2 div     } bind
+        (right)    { pixx tw sub           } bind   (top)     { pixy th sub           } bind
+        (offright) { pixx        nudge add } bind   (above)   { pixy        nudge add } bind
     >>
     (backward) <<
-        (offleft)  {      0      nudge sub }   (below)   {      0      nudge sub }
-        (left)     {      tw               }   (bottom)  {      th               }
-        (xcenter)  { pixx tw add 2 div     }   (ycenter) { pixy th add 2 div     }
-        (right)    { pixx                  }   (top)     { pixy                  }
-        (offright) { pixx tw add nudge add }   (above)   { pixy th add nudge add }
+        (offleft)  {      0      nudge sub } bind   (below)   {      0      nudge sub } bind
+        (left)     {      tw               } bind   (bottom)  {      th               } bind
+        (xcenter)  { pixx tw add 2 div     } bind   (ycenter) { pixy th add 2 div     } bind
+        (right)    { pixx                  } bind   (top)     { pixy                  } bind
+        (offright) { pixx tw add nudge add } bind   (above)   { pixy th add nudge add } bind
     >>
     (upward) <<
-        (offleft)  {      0      nudge sub }   (below)   {      tw neg nudge sub }
-        (left)     {      th               }   (bottom)  {      0                }
-        (xcenter)  { pixx th add 2 div     }   (ycenter) { pixy tw sub 2 div     }
-        (right)    { pixx                  }   (top)     { pixy tw sub           }
-        (offright) { pixx th add nudge add }   (above)   { pixy        nudge add }
+        (offleft)  {      0      nudge sub } bind   (below)   {      tw neg nudge sub } bind
+        (left)     {      th               } bind   (bottom)  {      0                } bind
+        (xcenter)  { pixx th add 2 div     } bind   (ycenter) { pixy tw sub 2 div     } bind
+        (right)    { pixx                  } bind   (top)     { pixy tw sub           } bind
+        (offright) { pixx th add nudge add } bind   (above)   { pixy        nudge add } bind
     >>
     (downward) <<
-        (offleft)  {      th neg nudge sub }   (below)   {      0      nudge sub }
-        (left)     {      0                }   (bottom)  {      tw               }
-        (xcenter)  { pixx th sub 2 div     }   (ycenter) { pixy tw add 2 div     }
-        (right)    { pixx th sub           }   (top)     { pixy                  }
-        (offright) { pixx        nudge add }   (above)   { pixy tw add nudge add }
+        (offleft)  {      th neg nudge sub } bind   (below)   {      0      nudge sub } bind
+        (left)     {      0                } bind   (bottom)  {      tw               } bind
+        (xcenter)  { pixx th sub 2 div     } bind   (ycenter) { pixy tw add 2 div     } bind
+        (right)    { pixx th sub           } bind   (top)     { pixy                  } bind
+        (offright) { pixx        nudge add } bind   (above)   { pixy tw add nudge add } bind
     >>
 >> def
 
-% x-align y-align direction text-width text-height
-/rendertextpositiontext {
-    /th exch def
-    /tw exch def
-    /nudge 1 def
-    //rendertextpositions exch get dup
-    4 -1 roll dup (center) eq {pop (xcenter)} if get exec exch
-    3 -1 roll dup (center) eq {pop (ycenter)} if get exec
-} bind def
-
 /rendertext {
+
+    % x-align y-align direction text-width text-height
+    /positiontext {
+        /th exch def
+        /tw exch def
+        /nudge 1 def
+        //rendertext.positions exch get dup
+        4 -1 roll dup (center) eq {pop (xcenter)} if get exec exch
+        3 -1 roll dup (center) eq {pop (ycenter)} if get exec
+    } def
 
     % Display the text for elements in the text array
     includetext {
@@ -184,7 +184,7 @@ begin
                 } ifelse
             } if
 
-            textxalign textyalign textdirection textwidth textheight //rendertextpositiontext exec moveto
+            textxalign textyalign textdirection textwidth textheight positiontext exec moveto
             textxoffset textyoffset rmoveto
             gsave
             << (forward) 0  (upward) 90  (backward) 180  (downward) 270 >> textdirection get rotate
@@ -268,7 +268,7 @@ begin
             } ifelse
         } if
 
-        extratextxalign extratextyalign extratextdirection textwidth textheight //rendertextpositiontext exec moveto
+        extratextxalign extratextyalign extratextdirection textwidth textheight positiontext exec moveto
         extratextxoffset extratextyoffset rmoveto
         gsave
         << (forward) 0  (upward) 90  (backward) 180  (downward) 270 >> extratextdirection get rotate
@@ -286,7 +286,6 @@ begin
 [/barcode] {null def} forall
 bind def
 /rendertext dup load /uk.co.terryburton.bwipp defineresource pop
-
 end
 /setpacking where {pop setpacking} if
 setglobal
