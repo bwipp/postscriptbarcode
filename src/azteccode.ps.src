@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,14 +38,217 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+%
+% State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
+%
+/azteccode.u 0 def  /azteccode.l 1 def  /azteccode.m 2 def  /azteccode.p 3 def  /azteccode.d 4 def  /azteccode.b 5 def
+
+%
+% Special function characters
+%
+/azteccode.lu  -2 def  /azteccode.ll  -3 def  /azteccode.lm  -4 def
+/azteccode.lp  -5 def  /azteccode.ld  -6 def  /azteccode.su  -7 def
+/azteccode.sp  -8 def  /azteccode.sb  -9 def  /azteccode.fl -10 def
+/azteccode.p2 -11 def  /azteccode.p3 -12 def  /azteccode.p4 -13 def  /azteccode.p5 -14 def
+
+/lu azteccode.lu def  /ll azteccode.ll def  /lm azteccode.lm def
+/lp azteccode.lp def  /ld azteccode.ld def  /su azteccode.su def
+/sp azteccode.sp def  /sb azteccode.sb def  /fl azteccode.fl def
+/p2 azteccode.p2 def  /p3 azteccode.p3 def  /p4 azteccode.p4 def  /p5 azteccode.p5 def
+
+%
+% Character maps for each state
+%
+/azteccode.charmaps [
+    %  U    L    M    P    D
+    [  sp   sp   sp   fl   sp ]  % 0
+    [  32   32   32   13   32 ]  % 1
+    [ (A)  (a)    1   p2  (0) ]  % 2     p2 = CR LF
+    [ (B)  (b)    2   p3  (1) ]  % 3     p3 = ". "
+    [ (C)  (c)    3   p4  (2) ]  % 4     p4 = ", "
+    [ (D)  (d)    4   p5  (3) ]  % 5     p5 = ": "
+    [ (E)  (e)    5  (!)  (4) ]  % 6
+    [ (F)  (f)    6  (")  (5) ]  % 7
+    [ (G)  (g)    7  (#)  (6) ]  % 8
+    [ (H)  (h)    8  ($)  (7) ]  % 9
+    [ (I)  (i)    9  (%)  (8) ]  % 10
+    [ (J)  (j)   10  (&)  (9) ]  % 11
+    [ (K)  (k)   11  (')  (,) ]  % 12
+    [ (L)  (l)   12   40  (.) ]  % 13
+    [ (M)  (m)   13   41   lu ]  % 14
+    [ (N)  (n)   27  (*)   su ]  % 15
+    [ (O)  (o)   28  (+)  -99 ]  % 16
+    [ (P)  (p)   29  (,)  -99 ]  % 17
+    [ (Q)  (q)   30  (-)  -99 ]  % 18
+    [ (R)  (r)   31  (.)  -99 ]  % 19
+    [ (S)  (s)  (@)  (/)  -99 ]  % 20
+    [ (T)  (t)   92  (:)  -99 ]  % 21
+    [ (U)  (u)  (^)  (;)  -99 ]  % 22
+    [ (V)  (v)  (_)  (<)  -99 ]  % 23
+    [ (W)  (w)  (`)  (=)  -99 ]  % 24
+    [ (X)  (x)  (|)  (>)  -99 ]  % 25
+    [ (Y)  (y)  (~)  (?)  -99 ]  % 26
+    [ (Z)  (z)  127  ([)  -99 ]  % 27
+    [  ll   su   ll  (])  -99 ]  % 28
+    [  lm   lm   lu  ({)  -99 ]  % 29
+    [  ld   ld   lp  (})  -99 ]  % 30
+    [  sb   sb   sb   lu  -99 ]  % 31
+] readonly def
+
+%
+% Punctuation compression
+%
+/azteccode.pcomp <<
+    <0d0a> p2   % CR LF
+    (. )   p3
+    (, )   p4
+    (: )   p5
+>> readonly def
+
+%
+% Bit length of latch between states
+%
+/azteccode.latlen [
+% To:  U  L  M  P  D  B      From
+    [  0  5  5 10  5 10 ]  % U
+    [  9  0  5 10  5 10 ]  % L
+    [  5  5  0  5 10 10 ]  % M
+    [  5 10 10  0 10 15 ]  % P
+    [  4  9  9 14  0 14 ]  % D
+    [  0  0  0  0  0  0 ]  % B
+] readonly def
+
+%
+% Latch sequences between states
+%
+/azteccode.latseq [
+% To: U       L       M       P          D       B          From
+    [ []      [ll]    [lm]    [lm lp]    [ld]    [sb]    ]  % U
+    [ [ld lu] []      [lm]    [lm lp]    [ld]    [sb]    ]  % L
+    [ [lu]    [ll]    []      [lp]       [lu ld] [sb]    ]  % M
+    [ [lu]    [lu ll] [lu lm] []         [lu ld] [lu sb] ]  % P
+    [ [lu]    [lu ll] [lu lm] [lu lm lp] []      [lu sb] ]  % D
+    [ [lu]    [ll]    [lm]    []         []      []      ]  % B
+] readonly def
+
+/azteccode.e 1000000 def  % "Empty"
+/e azteccode.e def
+
+%
+% Bit length of shift to state
+%
+/azteccode.shftlen [
+% To:  U  L  M  P  D      From
+    [  e  e  e  5  e ]  % U
+    [  5  e  e  5  e ]  % L
+    [  e  e  e  5  e ]  % M
+    [  e  e  e  e  e ]  % P
+    [  4  e  e  4  e ]  % D
+] readonly def
+
+/azteccode.metrics [
+    [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
+    [ (compact)  1 1   17  6 ] [ (full)     1 1   21  6 ] [ (compact)  2 0   40  6 ]
+    [ (full)     2 1   48  6 ] [ (compact)  3 0   51  8 ] [ (full)     3 1   60  8 ]
+    [ (compact)  4 0   76  8 ] [ (full)     4 1   88  8 ] [ (full)     5 1  120  8 ]
+    [ (full)     6 1  156  8 ] [ (full)     7 1  196  8 ] [ (full)     8 1  240  8 ]
+    [ (full)     9 1  230 10 ] [ (full)    10 1  272 10 ] [ (full)    11 1  316 10 ]
+    [ (full)    12 1  364 10 ] [ (full)    13 1  416 10 ] [ (full)    14 1  470 10 ]
+    [ (full)    15 1  528 10 ] [ (full)    16 1  588 10 ] [ (full)    17 1  652 10 ]
+    [ (full)    18 1  720 10 ] [ (full)    19 1  790 10 ] [ (full)    20 1  864 10 ]
+    [ (full)    21 1  940 10 ] [ (full)    22 1 1020 10 ] [ (full)    23 0  920 12 ]
+    [ (full)    24 0  992 12 ] [ (full)    25 0 1066 12 ] [ (full)    26 0 1144 12 ]
+    [ (full)    27 0 1224 12 ] [ (full)    28 0 1306 12 ] [ (full)    29 0 1392 12 ]
+    [ (full)    30 0 1480 12 ] [ (full)    31 0 1570 12 ] [ (full)    32 0 1664 12 ]
+] readonly def
+
+/azteccode.rsparams [
+    [] [] [] []
+    [ 16 19 ]      % 4-bit codewords for mode message
+    []
+    [ 64 67 ]      % 6-bit codewords
+    []
+    [ 256 301 ]    % 8-bit codewords
+    []
+    [ 1024 1033 ]  % 10-bit codewords
+    []
+    [ 4096 4201 ]  % 12-bit codewords
+] readonly def
+
+/azteccode.modemapfull [
+    [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
+    [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
+    [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]
+    [-7 -5] [-7 -4] [-7 -3] [-7 -2] [-7 -1] [-7  1] [-7  2] [-7  3] [-7  4] [-7  5]
+] readonly def
+
+/azteccode.modemapcompact [
+    [-3  5] [-2  5] [-1  5] [ 0  5] [ 1  5] [ 2  5] [ 3  5]
+    [ 5  3] [ 5  2] [ 5  1] [ 5  0] [ 5 -1] [ 5 -2] [ 5 -3]
+    [ 3 -5] [ 2 -5] [ 1 -5] [ 0 -5] [-1 -5] [-2 -5] [-3 -5]
+    [-5 -3] [-5 -2] [-5 -1] [-5  0] [-5  1] [-5  2] [-5  3]
+] readonly def
+
+/azteccode.encfuncs [ /encu /encl /encm /encp /encd ] readonly def
+/azteccode.states [ //azteccode.u //azteccode.l //azteccode.m //azteccode.p //azteccode.d //azteccode.b ] readonly def
+/azteccode.charsizes [ 5 5 5 5 4 8 ] readonly def
+
+/azteccode.latevars dup 5 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //azteccode.latevars begin
+
+    %
+    % Invert charmaps to give character to value maps for each state
+    %
+    /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
+    0 1 //azteccode.charmaps length 1 sub {
+        /i exch def
+        /encs //azteccode.charmaps i get def
+        0 1 4 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put
+        } for
+    } for
+    /charvals charvals readonly def
+
+    %
+    % Calculate the log and anti-log tables for each GF
+    %
+    /rstables [
+        //azteccode.rsparams {
+            dup length 0 ne {
+                aload pop /rspm exch def /rsgf exch def
+                /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
+                /rslog rsgf array def
+                1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
+                [ rslog rsalog ]
+            } {
+                pop []
+            } ifelse
+        } forall
+    ] readonly def
+
+    /init { //azteccode.latevars {def} forall } def
+
+    end
+
+    //azteccode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /azteccode {
 
     20 dict begin
@@ -64,7 +267,7 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /azteccode //loadctx exec
+    //azteccode.latevars /init get exec
 
     barcode () eq {
         /bwipp.aztecEmptyData (The data must not be empty) //raiseerror exec
@@ -123,7 +326,9 @@ begin
         } if
     } if
 
+    %
     % Parse the input
+    %
     /fn1 -1 def
     /fncvals <<
         /parse parse
@@ -134,115 +339,16 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
-{
-    % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
-    /U 0 def  /L 1 def  /M 2 def  /P 3 def  /D 4 def  /B 5 def
-
-    % Special function characters
-    /lu -2 def  /ll -3 def  /lm -4 def
-    /lp -5 def  /ld -6 def  /su -7 def
-    /sp -8 def  /sb -9 def  /fl -10 def
-    /p2 -11 def /p3 -12 def /p4 -13 def /p5 -14 def
-
-    % Character maps for each state
-    /charmaps [
-        %  U    L    M    P    D
-        [  sp   sp   sp   fl   sp ]  % 0
-        [  32   32   32   13   32 ]  % 1
-        [ (A)  (a)    1   p2  (0) ]  % 2     p2 = CR LF
-        [ (B)  (b)    2   p3  (1) ]  % 3     p3 = ". "
-        [ (C)  (c)    3   p4  (2) ]  % 4     p4 = ", "
-        [ (D)  (d)    4   p5  (3) ]  % 5     p5 = ": "
-        [ (E)  (e)    5  (!)  (4) ]  % 6
-        [ (F)  (f)    6  (")  (5) ]  % 7
-        [ (G)  (g)    7  (#)  (6) ]  % 8
-        [ (H)  (h)    8  ($)  (7) ]  % 9
-        [ (I)  (i)    9  (%)  (8) ]  % 10
-        [ (J)  (j)   10  (&)  (9) ]  % 11
-        [ (K)  (k)   11  (')  (,) ]  % 12
-        [ (L)  (l)   12   40  (.) ]  % 13
-        [ (M)  (m)   13   41   lu ]  % 14
-        [ (N)  (n)   27  (*)   su ]  % 15
-        [ (O)  (o)   28  (+)  -99 ]  % 16
-        [ (P)  (p)   29  (,)  -99 ]  % 17
-        [ (Q)  (q)   30  (-)  -99 ]  % 18
-        [ (R)  (r)   31  (.)  -99 ]  % 19
-        [ (S)  (s)  (@)  (/)  -99 ]  % 20
-        [ (T)  (t)   92  (:)  -99 ]  % 21
-        [ (U)  (u)  (^)  (;)  -99 ]  % 22
-        [ (V)  (v)  (_)  (<)  -99 ]  % 23
-        [ (W)  (w)  (`)  (=)  -99 ]  % 24
-        [ (X)  (x)  (|)  (>)  -99 ]  % 25
-        [ (Y)  (y)  (~)  (?)  -99 ]  % 26
-        [ (Z)  (z)  127  ([)  -99 ]  % 27
-        [  ll   su   ll  (])  -99 ]  % 28
-        [  lm   lm   lu  ({)  -99 ]  % 29
-        [  ld   ld   lp  (})  -99 ]  % 30
-        [  sb   sb   sb   lu  -99 ]  % 31
-    ] def
-
-    % Invert charmaps to give character to value maps for each state
-    /charvals [ 32 dict 32 dict 32 dict 32 dict 16 dict ] def
-    0 1 charmaps length 1 sub {
-        /i exch def
-        /encs charmaps i get def
-        0 1 4 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put
-        } for
-    } for
-
-    % Punctuation compression
-    /pcomp <<
-        <0d0a> p2   % CR LF
-        (. )   p3
-        (, )   p4
-        (: )   p5
-    >> def
-
-    /e 1000000 def  % "Empty"
-
-    /latlen [  % Bit length of latch between states
-    % To:  U  L  M  P  D  B      From
-        [  0  5  5 10  5 10 ]  % U
-        [  9  0  5 10  5 10 ]  % L
-        [  5  5  0  5 10 10 ]  % M
-        [  5 10 10  0 10 15 ]  % P
-        [  4  9  9 14  0 14 ]  % D
-        [  0  0  0  0  0  0 ]  % B
-    ] def
-
-    /latseq [  % Latch sequences between states
-    % To: U       L       M       P          D       B          From
-        [ []      [ll]    [lm]    [lm lp]    [ld]    [sb]    ]  % U
-        [ [ld lu] []      [lm]    [lm lp]    [ld]    [sb]    ]  % L
-        [ [lu]    [ll]    []      [lp]       [lu ld] [sb]    ]  % M
-        [ [lu]    [lu ll] [lu lm] []         [lu ld] [lu sb] ]  % P
-        [ [lu]    [lu ll] [lu lm] [lu lm lp] []      [lu sb] ]  % D
-        [ [lu]    [ll]    [lm]    []         []      []      ]  % B
-    ] def
-
-    /shftlen [  % Bit length of shift to state
-    % To:  U  L  M  P  D      From
-        [  e  e  e  5  e ]  % U
-        [  5  e  e  5  e ]  % L
-        [  e  e  e  5  e ]  % M
-        [  e  e  e  e  e ]  % P
-        [  4  e  e  4  e ]  % D
-    ] def
-
-} ctxdef
-
+    %
     % Convert from input into message bitstream
+    %
     /msgbits () def
     format (rune) ne raw and {/msgbits barcode def} if
     format (rune) ne raw not and {
 
         /charsize {
             dup 0 ge {
-                %      U   L   M   P   D   B
-                pop [  5   5   5   5   4   8 ] exch get
+                pop //azteccode.charsizes exch get
             } {  % FNC or ECI in P
                 exch pop
                 dup fn1 eq {  % FNC1: PS{Flg(0)} + 3
@@ -254,11 +360,13 @@ begin
             } ifelse
         } def
 
+        /e //azteccode.e def
+
         %          U  L  M  P  D  B
         /curlen [  0  e  e  e  e  e ] def
         /curseq [ [] [] [] [] [] [] ] def
 
-        /backto U def  % U
+        /backto //azteccode.u def  % U
         /lastchar () def
 
         % Derive the optimal sequences ending in each state
@@ -266,23 +374,25 @@ begin
 
             /char exch def
 
+            %
             % Check for optimisations in the current sequences by latching from x to y
+            %
             {  % loop
                 /imp false def
-                [ U L M P D B ] {
+                //azteccode.states {
                     /x exch def
-                    [ U L M P D B ] {
+                    //azteccode.states {
                         /y exch def
-                        x B ne y backto eq or {  % Only B -> backto
-                            /cost curlen x get latlen x get y get add def
+                        x //azteccode.b ne y backto eq or {  % Only B -> backto
+                            /cost curlen x get //azteccode.latlen x get y get add def
                             cost curlen y get lt {
                                 curlen y cost put
                                 curseq y [
                                     curseq x get aload pop
-                                    latseq x get y get aload pop
+                                    //azteccode.latseq x get y get aload pop
                                 ] put
-                                y B eq {  % Set backto to previous state
-                                    /backto x P eq x D eq or {U} {x} ifelse def
+                                y //azteccode.b eq {  % Set backto to previous state
+                                    /backto x //azteccode.p eq x //azteccode.d eq or {//azteccode.u} {x} ifelse def
                                 } if
                                 /imp true def
                             } if
@@ -292,40 +402,50 @@ begin
                 imp not {exit} if  % Repeat unless no improvement
             } loop
 
+            %
             % Determine optimal next sequences for each valid encoding
-            /nxtlen [ e e e e e e ] def
+            %
+            %          U  L  M  P  D  B
+            /nxtlen [  e  e  e  e  e  e ] def
             /nxtseq 6 array def
 
-            [ U L M P D B ] {
+            //azteccode.states {
                 /x exch def
 
                 { % loop for common exit
 
+                    %
                     % Skip states that cannot encode character
+                    %
                     char 0 ge {
-                        x B ne {charvals x get char known not {exit} if} if
+                        x //azteccode.b ne {charvals x get char known not {exit} if} if
                     } {
-                        x P ne {exit} if  % Only P can encode FNC1 and ECI
+                        x //azteccode.p ne {exit} if  % Only P can encode FNC1 and ECI
                     } ifelse
 
+                    %
                     % Extend directly
+                    %
                     /cost curlen x get x char charsize add def
                     cost nxtlen x get lt {
                         nxtlen x cost put
                         nxtseq x [ curseq x get aload pop char ] put
                     } if
 
+                    %
                     % Optimise for direct shifts from y to x
-                    x B eq {exit} if  % B is treated as a latch
-                    [ U L M P D ] {
+                    %
+                    x //azteccode.b eq {exit} if  % B is treated as a latch
+                    //azteccode.states {
                         /y exch def
+                        y //azteccode.b eq {exit} if
                         x y ne {
-                            /cost curlen y get shftlen y get x get add x char charsize add def
+                            /cost curlen y get //azteccode.shftlen y get x get add x char charsize add def
                             cost nxtlen y get lt {
                                 nxtlen y cost put
                                 nxtseq y [
                                     curseq y get aload pop
-                                    x U eq {su} {sp} ifelse
+                                    x //azteccode.u eq {//azteccode.su} {//azteccode.sp} ifelse
                                     char
                                 ] put
                             } if
@@ -337,17 +457,20 @@ begin
 
             } forall
 
+            %
             % Optimise using P compression
+            %
             lastchar () ne char 0 ge and {
                 /pchars 2 string dup 0 lastchar put dup 1 char put def
-                pcomp pchars known {
-                    [ U L M P D ] {
+                //azteccode.pcomp pchars known {
+                    //azteccode.states {
                         /i exch def
+                        i //azteccode.b eq {exit} if
                         /inP true def  % U and L can't encode CR, comma, dot or colon
-                        i M eq {  % M can encode CR
+                        i //azteccode.m eq {  % M can encode CR
                             lastchar 13 eq { /inP false def } if
                         } {
-                            i D eq {  % D can encode comma and dot
+                            i //azteccode.d eq {  % D can encode comma and dot
                                 lastchar 44 eq lastchar 46 eq or { /inP false def } if
                             } if
                         } ifelse
@@ -363,19 +486,19 @@ begin
                                     ch lastchar eq {
                                         /lastidx idx def
                                         idx 0 gt {
-                                            curseqi idx 1 sub get sp eq { /lastsp true def } if  % Preceded by P/S
+                                            curseqi idx 1 sub get //azteccode.sp eq { /lastsp true def } if  % Preceded by P/S
                                         } if
                                     } if
                                 } {  % Found lastchar, check latch
-                                    ch sb eq {  % In B/S, do nothing
+                                    ch //azteccode.sb eq {  % In B/S, do nothing
                                         /lastidx -1 def
                                         exit
                                     } if
-                                    ch 0 lt ch ld ge and {  % If have latch
-                                        i P eq {
-                                            ch ld eq { /lastld true def } if  % Set flag if D/L for adjustment below
+                                    ch 0 lt ch //azteccode.ld ge and {  % If have latch
+                                        i //azteccode.p eq {
+                                            ch //azteccode.ld eq { /lastld true def } if  % Set flag if D/L for adjustment below
                                         } {
-                                            ch lp ne { /inP lastsp def } if  % If not P/L only in P if have P/S
+                                            ch //azteccode.lp ne { /inP lastsp def } if  % If not P/L only in P if have P/S
                                         } ifelse
                                         exit
                                     } if
@@ -384,17 +507,17 @@ begin
                             inP lastidx 0 ge and {
                                 nxtlen i curlen i get put
                                 lastidx curseqi length 1 sub lt {  % If lastchar not at end of sequence
-                                    i P eq {
+                                    i //azteccode.p eq {
                                         lastld { nxtlen i nxtlen i get 1 add put } if  % Adjust count if D/L
                                         % Move lastchar to end and replace
-                                        nxtseq i [ curseqi aload pop curseqi length lastidx sub -1 roll pop pcomp pchars get ] put
+                                        nxtseq i [ curseqi aload pop curseqi length lastidx sub -1 roll pop //azteccode.pcomp pchars get ] put
                                     } {
                                         % Replace lastchar in situ
                                         nxtseq i [ curseqi aload pop ] put
-                                        nxtseq i get lastidx pcomp pchars get put
+                                        nxtseq i get lastidx //azteccode.pcomp pchars get put
                                     } ifelse
                                 } {
-                                    nxtseq i [ curseqi aload pop pop pcomp pchars get ] put
+                                    nxtseq i [ curseqi aload pop pop //azteccode.pcomp pchars get ] put
                                 } ifelse
                             } if
                         } if
@@ -402,13 +525,15 @@ begin
                 } if
             } if
 
+            %
             % Account for binary extension for 32 or more bytes
-            nxtseq B get null ne {
+            %
+            nxtseq //azteccode.b get null ne {
                 /numbytes 0 def
-                nxtseq B get {
-                    sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
+                nxtseq //azteccode.b get {
+                    //azteccode.sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
                 } forall
-                numbytes 32 eq {nxtlen B nxtlen B get 11 add put} if
+                numbytes 32 eq {nxtlen //azteccode.b nxtlen //azteccode.b get 11 add put} if
             } if
 
             /curlen nxtlen def
@@ -417,9 +542,11 @@ begin
 
         } forall
 
+        %
         % Select the optimal sequence
-        /minseq e def
-        [ U L M P D B ] {
+        %
+        /minseq //azteccode.e def
+        //azteccode.states {
             /i exch def
             curlen i get minseq lt {
                 /minseq curlen i get def
@@ -427,16 +554,18 @@ begin
             } if
         } forall
 
+        %
         % Encoding functions
+        %
         /tobin {
             string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
             dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
         } def
 
-        /encu {charvals U get exch get 5 tobin} def
-        /encl {charvals L get exch get 5 tobin} def
-        /encm {charvals M get exch get 5 tobin} def
-        /encd {charvals D get exch get 4 tobin} def
+        /encu {charvals //azteccode.u get exch get 5 tobin} def
+        /encl {charvals //azteccode.l get exch get 5 tobin} def
+        /encm {charvals //azteccode.m get exch get 5 tobin} def
+        /encd {charvals //azteccode.d get exch get 4 tobin} def
 
         /encp {
             dup fn1 eq {  % FNC1: Flg(0)
@@ -455,11 +584,9 @@ begin
                 } for
                 pop
             } {
-                charvals P get exch get 5 tobin
+                charvals //azteccode.p get exch get 5 tobin
             } ifelse } ifelse
         } def
-
-        /encfuncs [ /encu /encl /encm /encp /encd ] def
 
         /addtomsgbits {
             /v exch def
@@ -467,33 +594,35 @@ begin
             /j j v length add def
         } def
 
+        %
         % Encode the sequence
-        /state U def
+        %
+        /state //azteccode.u def
         /msgbits minseq string def
         /i 0 def /j 0 def {
             i seq length ge {exit} if
 
-            state B ne {
+            state //azteccode.b ne {
 
                 /char seq i get def
 
                 % Encode character
-                char encfuncs state get load exec addtomsgbits
+                char //azteccode.encfuncs state get load exec addtomsgbits
                 /i i 1 add def
 
                 % Encode shifted next character
-                char su eq char sp eq or {
-                    seq i get char su eq {encu} {encp} ifelse addtomsgbits
+                char //azteccode.su eq char //azteccode.sp eq or {
+                    seq i get char //azteccode.su eq {encu} {encp} ifelse addtomsgbits
                     /i i 1 add def
                 } if
 
                 % Latches to new state
-                char lu eq {/state U def} if
-                char ll eq {/state L def} if
-                char lm eq {/state M def} if
-                char lp eq {/state P def} if
-                char ld eq {/state D def} if
-                char sb eq {/state B def} if
+                char //azteccode.lu eq {/state //azteccode.u def} if
+                char //azteccode.ll eq {/state //azteccode.l def} if
+                char //azteccode.lm eq {/state //azteccode.m def} if
+                char //azteccode.lp eq {/state //azteccode.p def} if
+                char //azteccode.ld eq {/state //azteccode.d def} if
+                char //azteccode.sb eq {/state //azteccode.b def} if
 
             } {  % Binary
 
@@ -522,9 +651,9 @@ begin
                 i seq length lt {
                     /char seq i get def
                     /i i 1 add def
-                    char lu eq {/state U def} if
-                    char ll eq {/state L def} if
-                    char lm eq {/state M def} if
+                    char //azteccode.lu eq {/state //azteccode.u def} if
+                    char //azteccode.ll eq {/state //azteccode.l def} if
+                    char //azteccode.lm eq {/state //azteccode.m def} if
                 } if
 
             } ifelse
@@ -534,26 +663,10 @@ begin
 
     } if
 
+    %
     % Lookup the most appropriate symbol specification
-{
-    /metrics [
-        [ (rune)     0 0    0  6 ]  % Special metric for rune symbols
-        [ (compact)  1 1   17  6 ] [ (full)     1 1   21  6 ] [ (compact)  2 0   40  6 ]
-        [ (full)     2 1   48  6 ] [ (compact)  3 0   51  8 ] [ (full)     3 1   60  8 ]
-        [ (compact)  4 0   76  8 ] [ (full)     4 1   88  8 ] [ (full)     5 1  120  8 ]
-        [ (full)     6 1  156  8 ] [ (full)     7 1  196  8 ] [ (full)     8 1  240  8 ]
-        [ (full)     9 1  230 10 ] [ (full)    10 1  272 10 ] [ (full)    11 1  316 10 ]
-        [ (full)    12 1  364 10 ] [ (full)    13 1  416 10 ] [ (full)    14 1  470 10 ]
-        [ (full)    15 1  528 10 ] [ (full)    16 1  588 10 ] [ (full)    17 1  652 10 ]
-        [ (full)    18 1  720 10 ] [ (full)    19 1  790 10 ] [ (full)    20 1  864 10 ]
-        [ (full)    21 1  940 10 ] [ (full)    22 1 1020 10 ] [ (full)    23 0  920 12 ]
-        [ (full)    24 0  992 12 ] [ (full)    25 0 1066 12 ] [ (full)    26 0 1144 12 ]
-        [ (full)    27 0 1224 12 ] [ (full)    28 0 1306 12 ] [ (full)    29 0 1392 12 ]
-        [ (full)    30 0 1480 12 ] [ (full)    31 0 1570 12 ] [ (full)    32 0 1664 12 ]
-    ] def
-} ctxdef
-
-    metrics {
+    %
+    //azteccode.metrics {
         /m exch def
         /frmt m 0 get def                          % Format of the symbol
         /mlyr m 1 get def                          % Data layers
@@ -577,7 +690,9 @@ begin
 
     /layers mlyr def
 
+    %
     % Expand message bits into codewords avoiding codewords with all zeros or all ones
+    %
     /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} def
     /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} def
     /cws ncws array def
@@ -613,20 +728,24 @@ begin
 
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
+    %
     % Reed-Solomon algorithm
+    %
     /rscodes {
 
-        /rspm exch def
-        /rsgf exch def
+        /rsbt exch def
         /rsnc exch def
         /rscws exch def
 
-        % Calculate the log and anti-log tables
-        /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
-        /rslog rsgf array def
-        1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
+        %
+        % Lookup the Reed Solomon error correction parameters for the codeword size
+        %
+        //azteccode.rsparams rsbt get aload pop /rspm exch def /rsgf exch def
+        rstables rsbt get aload pop /rsalog exch def /rslog exch def
 
+        %
         % Function to calculate the product in the field
+        %
         /rsprod {
             2 copy 0 ne exch 0 ne and {
                 rslog exch get exch rslog exch get add rsgf 1 sub mod rsalog exch get
@@ -635,7 +754,9 @@ begin
             } ifelse
         } def
 
+        %
         % Generate the coefficients
+        %
         /coeffs [ 1 rsnc {0} repeat ] def
         1 1 rsnc {
             /i exch def
@@ -647,7 +768,9 @@ begin
             coeffs 0 coeffs 0 get rsalog i get rsprod put
         } for
 
+        %
         % Extend the input with the error correction values
+        %
         /nd rscws length def
         /rscws [ rscws aload pop rsnc {0} repeat 0 ] def
         0 1 nd 1 sub {
@@ -658,12 +781,16 @@ begin
             } for
         } for
 
+        %
         % Return all but the last codeword
+        %
         rscws 0 rscws length 1 sub getinterval
 
     } def
 
+    %
     % Create the codewords and bit string for the mode
+    %
     format (full) eq {
         /mode layers 1 sub 11 bitshift cws length 1 sub add def
         readerinit {/mode mode 2#0000010000000000 or def} if
@@ -673,7 +800,7 @@ begin
             mode 2#0000000011110000 and -4 bitshift
             mode 2#0000000000001111 and
         ] def
-        /mode mode 6 16 19 rscodes def
+        /mode mode 6 4 rscodes def
     } if
     format (compact) eq {
         /mode layers 1 sub 6 bitshift cws length 1 sub add def
@@ -682,7 +809,7 @@ begin
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
         ] def
-        /mode mode 5 16 19 rscodes def
+        /mode mode 5 4 rscodes def
     } if
     format (rune) eq {
         /mode barcode cvi def
@@ -690,7 +817,7 @@ begin
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
         ] def
-        /mode mode 5 16 19 rscodes def
+        /mode mode 5 4 rscodes def
         /mode [mode {2#1010 xor} forall] def  % Invert alternate bits
     } if
     /modebits mode length 4 mul string def
@@ -700,20 +827,10 @@ begin
         modebits mode i get 2 4 string cvrs dup length 4 exch sub 4 i mul add exch putinterval
     } for
 
+    %
     % Extend the data codewords with error correction codewords to create the bit string for the data
-{
-    /rsparams [
-        [] [] [] [] [] []
-        [ 64 67 ]      % 6-bit codewords
-        []
-        [ 256 301 ]    % 8-bit codewords
-        []
-        [ 1024 1033 ]  % 10-bit codewords
-        []
-        [ 4096 4201 ]  % 12-bit codewords
-    ] def
-} ctxdef
-    /cws cws ncws cws length sub rsparams bpcw get aload pop rscodes def
+    %
+    /cws cws ncws cws length sub bpcw rscodes def
     format (full) eq {
         /databits layers layers mul 16 mul layers 112 mul add string def
     } {
@@ -727,10 +844,14 @@ begin
         exch putinterval
     } for
 
+    %
     % Move to a point in the cartesian plane centered on the bullseye
+    %
     /cmv {size mul sub mid add} def
 
+    %
     % Move to a bit position within a layer
+    %
     /lmv {
         /lbit exch def
         /llyr exch def
@@ -758,8 +879,11 @@ begin
         } if
     } def
 
+    %
     % Create the pixel map
+    %
     % For full symbols we disregard the reference grid at this stage
+    %
     format (full) eq {/fw 12 def} {/fw 9 def} ifelse
     /size fw layers 4 mul add 2 add def
     /pixs [size size mul {-1} repeat] def
@@ -776,7 +900,9 @@ begin
         } for
     } for
 
+    %
     % For full symbols expand the pixel map by inserting the reference grid
+    %
     format (full) eq {
         /fw 13 def
         /size fw layers 4 mul add 2 add layers 10.5 add 7.5 div 1 sub cvi 2 mul add def
@@ -803,7 +929,9 @@ begin
         /pixs npixs def
     } if
 
+    %
     % Finder pattern
+    %
     /fw fw 2 idiv def
     fw neg 1 fw {
         /i exch def
@@ -815,7 +943,9 @@ begin
         } for
     } for
 
+    %
     % Orientation bits
+    %
     [ [ fw 1 add neg   fw             1 ] [ fw 1 add neg   fw 1 add       1 ]
       [ fw neg         fw 1 add       1 ] [ fw 1 add       fw 1 add       1 ]
       [ fw 1 add       fw             1 ] [ fw 1 add       fw neg         1 ]
@@ -824,22 +954,10 @@ begin
       [ fw 1 add neg   fw 1 add neg   0 ] [ fw 1 add neg   fw neg         0 ]
     ] {pixs exch aload pop 3 1 roll cmv exch put} forall
 
+    %
     % Mode ring
-{
-    /modemapfull [
-        [-5  7] [-4  7] [-3  7] [-2  7] [-1  7] [ 1  7] [ 2  7] [ 3  7] [ 4  7] [ 5  7]
-        [ 7  5] [ 7  4] [ 7  3] [ 7  2] [ 7  1] [ 7 -1] [ 7 -2] [ 7 -3] [ 7 -4] [ 7 -5]
-        [ 5 -7] [ 4 -7] [ 3 -7] [ 2 -7] [ 1 -7] [-1 -7] [-2 -7] [-3 -7] [-4 -7] [-5 -7]
-        [-7 -5] [-7 -4] [-7 -3] [-7 -2] [-7 -1] [-7  1] [-7  2] [-7  3] [-7  4] [-7  5]
-    ] def
-    /modemapcompact [
-        [-3  5] [-2  5] [-1  5] [ 0  5] [ 1  5] [ 2  5] [ 3  5]
-        [ 5  3] [ 5  2] [ 5  1] [ 5  0] [ 5 -1] [ 5 -2] [ 5 -3]
-        [ 3 -5] [ 2 -5] [ 1 -5] [ 0 -5] [-1 -5] [-2 -5] [-3 -5]
-        [-5 -3] [-5 -2] [-5 -1] [-5  0] [-5  1] [-5  2] [-5  3]
-    ] def
-} ctxdef
-    /modemap format (full) eq {modemapfull} {modemapcompact} ifelse def
+    %
+    /modemap format (full) eq {//azteccode.modemapfull} {//azteccode.modemapcompact} ifelse def
     0 1 modemap length 1 sub {
         pixs modemap 2 index get aload pop cmv modebits 3 index get 48 sub put
         pop
@@ -856,8 +974,6 @@ begin
     >>
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
