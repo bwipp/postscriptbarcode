@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -35,18 +35,19 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
-/gs1process {
 
-    20 dict begin
+/gs1process.primes [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 ] readonly def
 
-    /gs1process //loadctx exec
+/gs1process.latevars dup 11 dict def load /init {
 
-{
+    currentglobal
+    true setglobal
+
+    //gs1process.latevars begin
+
     % Extracted from the GS1 Syntax Dictionary
     /gs1syntax <<
 
@@ -2140,8 +2141,169 @@ begin
         (99) exch dup
         pop
 
-    >> def
-} ctxdef
+    >> readonly def
+
+    /aifixed << [
+        (00) (01) (02) (03) (04)
+        (11) (12) (13) (14) (15) (16) (17) (18) (19) (20)
+        % (23)   % Reassigned to variable-length AI (235)!
+        (31) (32) (33) (34) (35) (36)
+        (41)
+    ] {dup} forall >> readonly def
+
+    /cset82 <<
+        0 (!"%&'\(\)*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
+        { exch dup 1 add } forall pop
+    >> readonly def
+
+    /cset39 <<
+        0 (#-/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+        { exch dup 1 add } forall pop
+    >> readonly def
+
+    /cset32 <<
+        0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
+        { exch dup 1 add } forall pop
+    >> readonly def
+
+    /cset64 <<
+        0 (ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_)
+        { exch dup 1 add } forall pop
+    >> readonly def
+
+    /iso3166 << [
+        /004 /008 /010 /012 /016 /020 /024 /028 /031 /032 /036 /040 /044 /048
+        /050 /051 /052 /056 /060 /064 /068 /070 /072 /074 /076 /084 /086 /090 /092 /096
+        /100 /104 /108 /112 /116 /120 /124 /132 /136 /140 /144 /148
+        /152 /156 /158 /162 /166 /170 /174 /175 /178 /180 /184 /188 /191 /192 /196
+        /203 /204 /208 /212 /214 /218 /222 /226 /231 /232 /233 /234 /238 /239 /242 /246 /248
+        /250 /254 /258 /260 /262 /266 /268 /270 /275 /276 /288 /292 /296
+        /300 /304 /308 /312 /316 /320 /324 /328 /332 /334 /336 /340 /344 /348
+        /352 /356 /360 /364 /368 /372 /376 /380 /384 /388 /392 /398
+        /400 /404 /408 /410 /414 /417 /418 /422 /426 /428 /430 /434 /438 /440 /442 /446
+        /450 /454 /458 /462 /466 /470 /474 /478 /480 /484 /492 /496 /498 /499
+        /500 /504 /508 /512 /516 /520 /524 /528 /531 /533 /534 /535 /540 /548
+        /554 /558 /562 /566 /570 /574 /578 /580 /581 /583 /584 /585 /586 /591 /598
+        /600 /604 /608 /612 /616 /620 /624 /626 /630 /634 /638 /642 /643 /646
+        /652 /654 /659 /660 /662 /663 /666 /670 /674 /678 /682 /686 /688 /690 /694
+        /702 /703 /704 /705 /706 /710 /716 /724 /728 /729 /732 /740 /744 /748
+        /752 /756 /760 /762 /764 /768 /772 /776 /780 /784 /788 /792 /795 /796 /798
+        /800 /804 /807 /818 /826 /831 /832 /833 /834 /840
+        /850 /854 /858 /860 /862 /876 /882 /887 /894
+    ] {dup} forall >> readonly def
+
+    /iso3166alpha2 << [
+        /AD /AE /AF /AG /AI /AL /AM /AO /AQ /AR /AS /AT /AU /AW /AX /AZ
+        /BA /BB /BD /BE /BF /BG /BH /BI /BJ /BL /BM /BN /BO /BQ /BR /BS /BT /BV /BW /BY /BZ
+        /CA /CC /CD /CF /CG /CH /CI /CK /CL /CM /CN /CO /CR /CU /CV /CW /CX /CY /CZ
+        /DE /DJ /DK /DM /DO /DZ
+        /EC /EE /EG /EH /ER /ES /ET
+        /FI /FJ /FK /FM /FO /FR
+        /GA /GB /GD /GE /GF /GG /GH /GI /GL /GM /GN /GP /GQ /GR /GS /GT /GU /GW /GY
+        /HK /HM /HN /HR /HT /HU
+        /ID /IE /IL /IM /IN /IO /IQ /IR /IS /IT /JE /JM /JO /JP
+        /KE /KG /KH /KI /KM /KN /KP /KR /KW /KY /KZ
+        /LA /LB /LC /LI /LK /LR /LS /LT /LU /LV /LY
+        /MA /MC /MD /ME /MF /MG /MH /MK /ML /MM /MN /MO /MP /MQ /MR /MS /MT /MU /MV /MW /MX /MY /MZ
+        /NA /NC /NE /NF /NG /NI /NL /NO /NP /NR /NU /NZ
+        /OM
+        /PA /PE /PF /PG /PH /PK /PL /PM /PN /PR /PS /PT /PW /PY
+        /QA
+        /RE /RO /RS /RU /RW
+        /SA /SB /SC /SD /SE /SG /SH /SI /SJ /SK /SL /SM /SN /SO /SR /SS /ST /SV /SX /SY /SZ
+        /TC /TD /TF /TG /TH /TJ /TK /TL /TM /TN /TO /TR /TT /TV /TW /TZ
+        /UA /UG /UM /US /UY /UZ
+        /VA /VC /VE /VG /VI /VN /VU
+        /WF /WS
+        /YE /YT
+        /ZA /ZM /ZW
+    ] {dup} forall >> readonly def
+
+    /iso4217 << [
+        /008 /012 /032 /036 /044 /048
+        /050 /051 /052 /060 /064 /068 /072 /084 /090 /096
+        /104 /108 /116 /124 /132 /136 /144
+        /152 /156 /170 /174 /188 /191 /192
+        /203 /208 /214 /222 /230 /232 /238 /242 /262 /270 /292
+        /320 /324 /328 /332 /340 /344 /348
+        /352 /356 /360 /364 /368 /376 /388 /392 /396 /398
+        /400 /404 /408 /410 /414 /417 /418
+        /422 /426 /430 /434 /446
+        /454 /458 /462 /480 /484 /496 /498
+        /504 /512 /516 /524 /532 /533 /548
+        /554 /558 /566 /578 /586 /590 /598
+        /600 /604 /608 /634 /643 /646 /654 /682 /690 /694
+        /702 /704 /706 /710 /728 /748
+        /752 /756 /760 /764 /776 /780 /784 /788
+        /800 /807 /818 /826 /834 /840 /858 /860 /882 /886
+        /901 /925 /927 /928 /929 /930 /931 /932 /933 /934 /936 /938
+        /940 /941 /943 /944 /946 /947 /948 /949
+        /950 /951 /952 /953 /955 /956 /957 /958 /959
+        /960 /961 /962 /963 /964 /965 /967 /968 /969
+        /970 /971 /972 /973 /975 /976 /977 /978 /979
+        /980 /981 /984 /985 /986 /990 /994 /997 /999
+    ] {dup} forall >> readonly def
+
+    /aidcmediatype << [
+        /01 /02 /03 /04 /05 /06 /07 /08 /09 /10
+        /80 /81 /82 /83 /84 /85 /86 /87 /88 /89
+        /90 /91 /92 /93 /94 /95 /96 /97 /98 /99
+    ] {dup} forall >> readonly def
+
+    /packagetype << [
+        /1A /1B /1D /1F /1G /1W
+        /200 /201 /202 /203 /204 /205 /206 /210 /211 /212 /2C
+        /3A /3H
+        /43 /44 /4A /4B /4C /4D /4F /4G /4H
+        /5H /5L /5M
+        /6H /6P
+        /7A /7B
+        /8 /8A /8B /8C
+        /9
+        /AA /AB /AC /AD /AF /AG /AH /AI /AJ /AL /AM /AP /APE/AT /AV
+        /B4 /BB /BC /BD /BE /BF /BG /BGE /BH /BI /BJ /BK /BL /BM /BME /BN /BO /BP /BQ /BR /BRI /BS /BT /BU /BV /BW /BX /BY /BZ
+        /CA /CB /CBL /CC /CCE /CD /CE /CF /CG /CH /CI /CJ /CK /CL /CM /CN /CO /CP /CQ /CR /CS /CT /CU /CV /CW /CX /CY /CZ
+        /DA /DB /DC /DG /DH /DI /DJ /DK /DL /DM /DN /DP /DPE /DR /DS /DT /DU /DV /DW /DX /DY
+        /E1 /E2 /E3 /EC /ED /EE /EF /EG /EH /EI /EN
+        /FB /FC /FD /FE /FI /FL /FO /FOB /FP /FPE /FR /FT /FW /FX
+        /GB /GI /GL /GR /GU /GY /GZ
+        /HA /HB /HC /HG /HN /HR
+        /IA /IB /IC /ID /IE /IF /IG /IH /IK /IL /IN /IZ
+        /JB /JC /JG /JR /JT /JY
+        /KG /KI
+        /LAB /LE /LG /LT /LU /LV /LZ
+        /MA /MB /MC /ME /MPE /MR /MS /MT /MW /MX
+        /NA /NE /NF /NG /NS /NT /NU /NV
+        /OA /OB /OC /OD /OE /OF /OK /OPE /OT /OU
+        /P2 /PA /PAE /PB /PC /PD /PE /PF /PG /PH /PI /PJ /PK /PL /PLP /PN /PO /POP /PP /PPE /PR /PT /PU /PUE /PV /PX /PY /PZ
+        /QA /QB /QC /QD /QF /QG /QH /QJ /QK /QL /QM /QN /QP /QQ /QR /QS
+        /RB1 /RB2 /RB3 /RCB /RD /RG /RJ /RK /RL /RO /RT /RZ
+        /S1 /SA /SB /SC /SD /SE /SEC /SH /SI /SK /SL /SM /SO /SP /SS /ST /STL /SU /SV /SW /SX /SY /SZ
+        /T1 /TB /TC /TD /TE /TEV /TG /THE /TI /TK /TL /TN /TO /TR /TRE /TS /TT /TTE /TU /TV /TW /TWE /TY /TZ
+        /UC /UN /UUE
+        /VA /VG /VI /VK /VL /VN /VO /VP /VQ /VR /VS /VY
+        /WA /WB /WC /WD /WF /WG /WH /WJ /WK /WL /WM /WN /WP /WQ /WR /WRP /WS /WT /WU /WV /WW /WX /WY /WZ
+        /X11 /X12 /X15 /X16 /X17 /X18 /X19 /X20 /X3 /XA /XB /XC /XD /XF /XG /XH /XJ /XK
+        /YA /YB /YC /YD /YF /YG /YH /YJ /YK /YL /YM /YN /YP /YQ /YR /YS /YT /YV /YW /YX /YY /YZ
+        /ZA /ZB /ZC /ZD /ZF /ZG /ZH /ZJ /ZK /ZL /ZM /ZN /ZP /ZQ /ZR /ZS /ZT /ZU /ZV /ZW /ZX /ZY /ZZ
+    ] {dup} forall >> readonly def
+
+    /init { //gs1process.latevars {def} forall } def
+
+    end
+
+    //gs1process.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+
+/gs1process {
+
+    20 dict begin
+
+    //gs1process.latevars /init get exec
 
     % Extract AIs and vals from provided GS1 data in the indicated format
 
@@ -2378,16 +2540,6 @@ begin
     } ifelse
 
     % Two-digit AI prefixes not requiring FNC1 separation
-{
-    /aifixed << [
-        (00) (01) (02) (03) (04)
-        (11) (12) (13) (14) (15) (16) (17) (18) (19) (20)
-        % (23)   % Reassigned to variable-length AI (235)!
-        (31) (32) (33) (34) (35) (36)
-        (41)
-    ] {dup} forall >> def
-} ctxdef
-
     /fncs [
         ais {
             true exch
@@ -2401,28 +2553,6 @@ begin
 
 
     % Linter routines for validating AI components
-{
-    /cset82 <<
-        0 (!"%&'\(\)*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz)
-        { exch dup 1 add } forall pop
-    >> def
-
-    /cset39 <<
-        0 (#-/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ)
-        { exch dup 1 add } forall pop
-    >> def
-
-    /cset32 <<
-        0 (23456789ABCDEFGHJKLMNPQRSTUVWXYZ)
-        { exch dup 1 add } forall pop
-    >> def
-
-    /cset64 <<
-        0 (ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_)
-        { exch dup 1 add } forall pop
-    >> def
-} ctxdef
-
     /lintnumeric {
         true exch { dup 48 lt exch 57 gt or { pop false exit } if } forall
         not { pop /bwipp.GS1notNumeric (Not numeric) false exit } if
@@ -2496,36 +2626,13 @@ begin
         dup -1 eq { cleartomark pop pop /bwipp.GS1UnknownCSET32Character (Unknown CSET 32 character) false exit} if
         counttomark array astore exch pop
         dup 0 get 5 bitshift exch 1 get add exch
-        [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 ]
+        //gs1process.primes
         1 index length
         dup 2 index length gt { pop pop pop pop pop /bwipp.GS1alphaTooLong (Alphanumeric string is too long to check) false exit} if
         0 exch getinterval {exch} forall
         0 exch { 3 -1 roll exch mul add } forall 1021 mod
         ne { pop /bwipp.GS1badAlphaCheckCharacters (Bad alphanumeric check characters) false exit} if
     } def
-
-{
-    /iso3166 << [
-        /004 /008 /010 /012 /016 /020 /024 /028 /031 /032 /036 /040 /044 /048
-        /050 /051 /052 /056 /060 /064 /068 /070 /072 /074 /076 /084 /086 /090 /092 /096
-        /100 /104 /108 /112 /116 /120 /124 /132 /136 /140 /144 /148
-        /152 /156 /158 /162 /166 /170 /174 /175 /178 /180 /184 /188 /191 /192 /196
-        /203 /204 /208 /212 /214 /218 /222 /226 /231 /232 /233 /234 /238 /239 /242 /246 /248
-        /250 /254 /258 /260 /262 /266 /268 /270 /275 /276 /288 /292 /296
-        /300 /304 /308 /312 /316 /320 /324 /328 /332 /334 /336 /340 /344 /348
-        /352 /356 /360 /364 /368 /372 /376 /380 /384 /388 /392 /398
-        /400 /404 /408 /410 /414 /417 /418 /422 /426 /428 /430 /434 /438 /440 /442 /446
-        /450 /454 /458 /462 /466 /470 /474 /478 /480 /484 /492 /496 /498 /499
-        /500 /504 /508 /512 /516 /520 /524 /528 /531 /533 /534 /535 /540 /548
-        /554 /558 /562 /566 /570 /574 /578 /580 /581 /583 /584 /585 /586 /591 /598
-        /600 /604 /608 /612 /616 /620 /624 /626 /630 /634 /638 /642 /643 /646
-        /652 /654 /659 /660 /662 /663 /666 /670 /674 /678 /682 /686 /688 /690 /694
-        /702 /703 /704 /705 /706 /710 /716 /724 /728 /729 /732 /740 /744 /748
-        /752 /756 /760 /762 /764 /768 /772 /776 /780 /784 /788 /792 /795 /796 /798
-        /800 /804 /807 /818 /826 /831 /832 /833 /834 /840
-        /850 /854 /858 /860 /862 /876 /882 /887 /894
-    ] {dup} forall >> def
-} ctxdef
 
     /lintiso3166 {
         iso3166 exch known not { pop /bwipp.GS1UnknownCountry (Unknown country code) false exit } if
@@ -2539,65 +2646,9 @@ begin
         } ifelse
     } def
 
-{
-    /iso3166alpha2 << [
-        /AD /AE /AF /AG /AI /AL /AM /AO /AQ /AR /AS /AT /AU /AW /AX /AZ
-        /BA /BB /BD /BE /BF /BG /BH /BI /BJ /BL /BM /BN /BO /BQ /BR /BS /BT /BV /BW /BY /BZ
-        /CA /CC /CD /CF /CG /CH /CI /CK /CL /CM /CN /CO /CR /CU /CV /CW /CX /CY /CZ
-        /DE /DJ /DK /DM /DO /DZ
-        /EC /EE /EG /EH /ER /ES /ET
-        /FI /FJ /FK /FM /FO /FR
-        /GA /GB /GD /GE /GF /GG /GH /GI /GL /GM /GN /GP /GQ /GR /GS /GT /GU /GW /GY
-        /HK /HM /HN /HR /HT /HU
-        /ID /IE /IL /IM /IN /IO /IQ /IR /IS /IT /JE /JM /JO /JP
-        /KE /KG /KH /KI /KM /KN /KP /KR /KW /KY /KZ
-        /LA /LB /LC /LI /LK /LR /LS /LT /LU /LV /LY
-        /MA /MC /MD /ME /MF /MG /MH /MK /ML /MM /MN /MO /MP /MQ /MR /MS /MT /MU /MV /MW /MX /MY /MZ
-        /NA /NC /NE /NF /NG /NI /NL /NO /NP /NR /NU /NZ
-        /OM
-        /PA /PE /PF /PG /PH /PK /PL /PM /PN /PR /PS /PT /PW /PY
-        /QA
-        /RE /RO /RS /RU /RW
-        /SA /SB /SC /SD /SE /SG /SH /SI /SJ /SK /SL /SM /SN /SO /SR /SS /ST /SV /SX /SY /SZ
-        /TC /TD /TF /TG /TH /TJ /TK /TL /TM /TN /TO /TR /TT /TV /TW /TZ
-        /UA /UG /UM /US /UY /UZ
-        /VA /VC /VE /VG /VI /VN /VU
-        /WF /WS
-        /YE /YT
-        /ZA /ZM /ZW
-    ] {dup} forall >> def
-} ctxdef
-
     /lintiso3166alpha2 {
         iso3166alpha2 exch known not { pop /bwipp.GS1UnknownCountryAlpha (Unknown country alpha code) false exit } if
     } def
-
-{
-    /iso4217 << [
-        /008 /012 /032 /036 /044 /048
-        /050 /051 /052 /060 /064 /068 /072 /084 /090 /096
-        /104 /108 /116 /124 /132 /136 /144
-        /152 /156 /170 /174 /188 /191 /192
-        /203 /208 /214 /222 /230 /232 /238 /242 /262 /270 /292
-        /320 /324 /328 /332 /340 /344 /348
-        /352 /356 /360 /364 /368 /376 /388 /392 /396 /398
-        /400 /404 /408 /410 /414 /417 /418
-        /422 /426 /430 /434 /446
-        /454 /458 /462 /480 /484 /496 /498
-        /504 /512 /516 /524 /532 /533 /548
-        /554 /558 /566 /578 /586 /590 /598
-        /600 /604 /608 /634 /643 /646 /654 /682 /690 /694
-        /702 /704 /706 /710 /728 /748
-        /752 /756 /760 /764 /776 /780 /784 /788
-        /800 /807 /818 /826 /834 /840 /858 /860 /882 /886
-        /901 /925 /927 /928 /929 /930 /931 /932 /933 /934 /936 /938
-        /940 /941 /943 /944 /946 /947 /948 /949
-        /950 /951 /952 /953 /955 /956 /957 /958 /959
-        /960 /961 /962 /963 /964 /965 /967 /968 /969
-        /970 /971 /972 /973 /975 /976 /977 /978 /979
-        /980 /981 /984 /985 /986 /990 /994 /997 /999
-    ] {dup} forall >> def
-} ctxdef
 
     /lintiso4217 {
         iso4217 exch known not { pop /bwipp.GS1UnknownCurrency (Unknown currency code) false exit } if
@@ -3125,57 +3176,9 @@ begin
         gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
     } def
 
-{
-    /aidcmediatype << [
-        /01 /02 /03 /04 /05 /06 /07 /08 /09 /10
-        /80 /81 /82 /83 /84 /85 /86 /87 /88 /89
-        /90 /91 /92 /93 /94 /95 /96 /97 /98 /99
-    ] {dup} forall >> def
-} ctxdef
-
     /lintmediatype {
         aidcmediatype exch known not { pop /bwipp.GS1UnknownMediaType (Unknown AIDC media type) false exit } if
     } def
-
-{
-    /packagetype << [
-        /1A /1B /1D /1F /1G /1W
-        /200 /201 /202 /203 /204 /205 /206 /210 /211 /212 /2C
-        /3A /3H
-        /43 /44 /4A /4B /4C /4D /4F /4G /4H
-        /5H /5L /5M
-        /6H /6P
-        /7A /7B
-        /8 /8A /8B /8C
-        /9
-        /AA /AB /AC /AD /AF /AG /AH /AI /AJ /AL /AM /AP /APE/AT /AV
-        /B4 /BB /BC /BD /BE /BF /BG /BGE /BH /BI /BJ /BK /BL /BM /BME /BN /BO /BP /BQ /BR /BRI /BS /BT /BU /BV /BW /BX /BY /BZ
-        /CA /CB /CBL /CC /CCE /CD /CE /CF /CG /CH /CI /CJ /CK /CL /CM /CN /CO /CP /CQ /CR /CS /CT /CU /CV /CW /CX /CY /CZ
-        /DA /DB /DC /DG /DH /DI /DJ /DK /DL /DM /DN /DP /DPE /DR /DS /DT /DU /DV /DW /DX /DY
-        /E1 /E2 /E3 /EC /ED /EE /EF /EG /EH /EI /EN
-        /FB /FC /FD /FE /FI /FL /FO /FOB /FP /FPE /FR /FT /FW /FX
-        /GB /GI /GL /GR /GU /GY /GZ
-        /HA /HB /HC /HG /HN /HR
-        /IA /IB /IC /ID /IE /IF /IG /IH /IK /IL /IN /IZ
-        /JB /JC /JG /JR /JT /JY
-        /KG /KI
-        /LAB /LE /LG /LT /LU /LV /LZ
-        /MA /MB /MC /ME /MPE /MR /MS /MT /MW /MX
-        /NA /NE /NF /NG /NS /NT /NU /NV
-        /OA /OB /OC /OD /OE /OF /OK /OPE /OT /OU
-        /P2 /PA /PAE /PB /PC /PD /PE /PF /PG /PH /PI /PJ /PK /PL /PLP /PN /PO /POP /PP /PPE /PR /PT /PU /PUE /PV /PX /PY /PZ
-        /QA /QB /QC /QD /QF /QG /QH /QJ /QK /QL /QM /QN /QP /QQ /QR /QS
-        /RB1 /RB2 /RB3 /RCB /RD /RG /RJ /RK /RL /RO /RT /RZ
-        /S1 /SA /SB /SC /SD /SE /SEC /SH /SI /SK /SL /SM /SO /SP /SS /ST /STL /SU /SV /SW /SX /SY /SZ
-        /T1 /TB /TC /TD /TE /TEV /TG /THE /TI /TK /TL /TN /TO /TR /TRE /TS /TT /TTE /TU /TV /TW /TWE /TY /TZ
-        /UC /UN /UUE
-        /VA /VG /VI /VK /VL /VN /VO /VP /VQ /VR /VS /VY
-        /WA /WB /WC /WD /WF /WG /WH /WJ /WK /WL /WM /WN /WP /WQ /WR /WRP /WS /WT /WU /WV /WW /WX /WY /WZ
-        /X11 /X12 /X15 /X16 /X17 /X18 /X19 /X20 /X3 /XA /XB /XC /XD /XF /XG /XH /XJ /XK
-        /YA /YB /YC /YD /YF /YG /YH /YJ /YK /YL /YM /YN /YP /YQ /YR /YS /YT /YV /YW /YX /YY /YZ
-        /ZA /ZB /ZC /ZD /ZF /ZG /ZH /ZJ /ZK /ZL /ZM /ZN /ZP /ZQ /ZR /ZS /ZT /ZU /ZV /ZW /ZX /ZY /ZZ
-    ] {dup} forall >> def
-} ctxdef
 
     /lintpackagetype {
         packagetype exch known not { pop /bwipp.GS1unknownPackageType (Unknown package type) false exit } if
@@ -3329,8 +3332,6 @@ begin
     } if  % dontlint
 
     ais vals fncs
-
-    //unloadctx exec
 
     end
 
