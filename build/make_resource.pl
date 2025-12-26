@@ -98,10 +98,10 @@ my $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
   chdir($oldpwd) or die "Cannot chdir back to $oldpwd: $!";
   unlink("$outfile.tmp");
 
-  open(my $vm_fh, '-|', $gs, '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', '--', $vmusagefile)
+  open(my $vm_fh, '-|', $gs, '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', '--', $vmusagefile, '2>&1')
     or die "Cannot execute gs for VMusage: $!";
   my $vmout = do { local $/; <$vm_fh> };
-  close $vm_fh or die 'GS measure VMusage error';
+  close $vm_fh or die "GS measure VMusage error: $vmout";
   ($vmusage) = $vmout =~ /VMusage \((\d+ \d+)\) def/ or die 'Failed to determine VMusage';
 
   # $vmusagefile auto-deleted when $vmusage_fh goes out of scope
