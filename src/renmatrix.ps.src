@@ -39,6 +39,19 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /rendertext dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/renmatrix.xalignopts <<
+    /offleft dup  /left dup  /center dup  /right dup  /offright dup
+>> readonly def
+
+/renmatrix.yalignopts <<
+    /above dup  /top dup  /center dup  /bottom dup  /below dup
+>> readonly def
+
+/renmatrix.directionoptions <<
+    /forward dup  /backward dup  /upward dup  /downward dup
+>> readonly def
+
 /renmatrix {
 
     20 dict begin
@@ -106,18 +119,18 @@ begin
     % Input validation
 
     textxalign (unset) ne {
-        << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> textxalign known not {
+        //renmatrix.xalignopts textxalign known not {
             /bwipp.renmatrixBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
         } if
     } if
 
     textyalign (unset) ne {
-        << /above dup  /top dup  /center dup  /bottom dup  /below dup >> textyalign known not {
+        //renmatrix.yalignopts textyalign known not {
             /bwipp.renmatrixBadTextyalign (textyalign must be above, top, center, bottom or below) //raiseerror exec
         } if
     } if
 
-    << /forward dup  /backward dup  /upward dup  /downward dup >> textdirection known not {
+    //renmatrix.directionoptions textdirection known not {
         /bwipp.renmatrixBadTextdirection (textdirection must be forward, backward, upward or downward) //raiseerror exec
     } if
 
@@ -125,15 +138,15 @@ begin
         /bwipp.renmatrixBadTextsize (textsize must be greater than zero and less that 25) //raiseerror exec
     } if
 
-    << /offleft dup  /left dup  /center dup  /right dup  /offright dup >> extratextxalign known not {
+    //renmatrix.xalignopts extratextxalign known not {
         /bwipp.renmatrixBadExtratextxalign (extratextxalign must be offleft, left, center, right or offright) //raiseerror exec
     } if
 
-    << /above dup  /top dup  /center dup  /bottom dup  /below dup >> extratextyalign known not {
+    //renmatrix.yalignopts extratextyalign known not {
         /bwipp.renmatrixBadExtratextyalign (extratextyalign must be above, top, center, bottom or below) //raiseerror exec
     } if
 
-    << /forward dup  /backward dup  /upward dup  /downward dup >> extratextdirection known not {
+    //renmatrix.directionoptions extratextdirection known not {
         /bwipp.renmatrixBadExtratextdirection (extratextdirection must be forward, backward, upward or downward) //raiseerror exec
     } if
 
