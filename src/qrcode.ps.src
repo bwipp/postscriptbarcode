@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -39,13 +39,562 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+%
+% Enumerate vergrps
+%
+[
+    /qrcode.v1to9    /qrcode.v10to26  /qrcode.v27to40
+    /qrcode.vM1      /qrcode.vM2      /qrcode.vM3      /qrcode.vM4
+    /qrcode.vR7x43   /qrcode.vR7x59   /qrcode.vR7x77   /qrcode.vR7x99   /qrcode.vR7x139
+    /qrcode.vR9x43   /qrcode.vR9x59   /qrcode.vR9x77   /qrcode.vR9x99   /qrcode.vR9x139
+    /qrcode.vR11x27  /qrcode.vR11x43  /qrcode.vR11x59  /qrcode.vR11x77  /qrcode.vR11x99   /qrcode.vR11x139
+    /qrcode.vR13x27  /qrcode.vR13x43  /qrcode.vR13x59  /qrcode.vR13x77  /qrcode.vR13x99   /qrcode.vR13x139
+    /qrcode.vR15x43  /qrcode.vR15x59  /qrcode.vR15x77  /qrcode.vR15x99  /qrcode.vR15x139
+    /qrcode.vR17x43  /qrcode.vR17x59  /qrcode.vR17x77  /qrcode.vR17x99  /qrcode.vR17x139
+] 0 exch {1 index def 1 add} bind forall pop
+
+%
+% Encoding modes: (N)umeric, (A)lphanumeric, (B)yte, (K)anji, (E)CI
+%
+/qrcode.N 0 def  /qrcode.A 1 def  /qrcode.B 2 def  /qrcode.K 3 def  /qrcode.E 4 def
+
+%
+% Encoding function names
+%
+/qrcode.encfuncs [ /encN /encA /encB /encK /encE ] def
+
+/qrcode.fn1 -1 def
+
+%
+% Characters exclusive to each encoding mode
+%
+/qrcode.Nexcl <<
+   [
+       16#30 1 16#39 {} for
+   ] {-1} forall
+>> readonly def
+
+/qrcode.Aexcl <<
+    [
+        16#20 16#24 16#25 16#2A 16#2B 16#2D 16#2E 16#2F 16#3A
+        16#41 1 16#5A {} for
+        //qrcode.fn1
+    ] {-1} forall
+>> readonly def
+
+/qrcode.Kexcl <<
+    [
+        16#81 1 16#9F {} for
+        16#E0 1 16#EB {} for
+    ] {-1} forall
+>> readonly def
+
+% Note: Binary exclusives are calculated from "not others"
+
+%
+% Mode identifiers
+%
+/qrcode.mids [
+    %           N      A      B      K      E
+           [ (0001) (0010) (0100) (1000) (0111) ]  % v1to9
+    dup  % [ (0001) (0010) (0100) (1000) (0111) ]  % v10to26
+    dup  % [ (0001) (0010) (0100) (1000) (0111) ]  % v27to40
+           [     ()   -1     -1     -1     -1   ]  % vM1
+           [    (0)    (1)   -1     -1     -1   ]  % vM2
+           [   (00)   (01)   (10)   (11)   -1   ]  % vM3
+           [  (000)  (001)  (010)  (011)   -1   ]  % vM4
+           [  (001)  (010)  (011)  (100)  (111) ]  % vR7x43 ...
+    31 { dup } repeat                              % ... vR17x139
+] readonly def
+
+%
+% Character counts for each mode for each version
+%
+/qrcode.cclens [
+    % N  A  B  K
+    [ 10  9  8  8 ]  % v1to9
+    [ 12 11 16 10 ]  % v10to26
+    [ 14 13 16 12 ]  % v27to40
+    [  3 -1 -1 -1 ]  % vM1
+    [  4  3 -1 -1 ]  % vM2
+    [  5  4  4  3 ]  % vM3
+    [  6  5  5  4 ]  % vM4
+    [  4  3  3  2 ]  % vR7x43
+    [  5  5  4  3 ]  % vR7x59
+    [  6  5  5  4 ]  % vR7x77
+    [  7  6  5  5 ]  % vR7x99
+    [  7  6  6  5 ]  % vR7x139
+    [  5  5  4  3 ]  % vR9x43
+    [  6  5  5  4 ]  % vR9x59
+    [  7  6  5  5 ]  % vR9x77
+    [  7  6  6  5 ]  % vR9x99
+    [  8  7  6  6 ]  % vR9x139
+    [  4  4  3  2 ]  % vR11x27
+    [  6  5  5  4 ]  % vR11x43
+    [  7  6  5  5 ]  % vR11x59
+    [  7  6  6  5 ]  % vR11x77
+    [  8  7  6  6 ]  % vR11x99
+    [  8  7  7  6 ]  % vR11x139
+    [  5  5  4  3 ]  % vR13x27
+    [  6  6  5  5 ]  % vR13x43
+    [  7  6  6  5 ]  % vR13x59
+    [  7  7  6  6 ]  % vR13x77
+    [  8  7  7  6 ]  % vR13x99
+    [  8  8  7  7 ]  % vR13x139
+    [  7  6  6  5 ]  % vR15x43
+    [  7  7  6  5 ]  % vR15x59
+    [  8  7  7  6 ]  % vR15x77
+    [  8  7  7  6 ]  % vR15x99
+    [  9  8  7  7 ]  % vR15x139
+    [  7  6  6  5 ]  % vR17x43
+    [  8  7  6  6 ]  % vR17x59
+    [  8  7  7  6 ]  % vR17x77
+    [  8  8  7  6 ]  % vR17x99
+    [  9  8  8  7 ]  % vR17x139
+] readonly def
+
+%
+% Terminiator length for each version
+%
+/qrcode.termlens [
+  3 {
+    4  % v1to9 ... v27to40
+  } repeat
+    3  % vM1
+    5  % vM2
+    7  % vM3
+    9  % vM4
+  32 {
+    3  % vR7x43 ... vR17x139
+  } repeat
+] readonly def
+
+%
+% Padding sequences
+%
+/qrcode.padstrs [ (11101100) (00010001) ] readonly def
+
+%
+% Alphanumeric character to value map
+%
+/qrcode.charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
+
+%
+% Version group mapping for each symbol size
+%
+/qrcode.versetmap <<
+    (full) <<
+         0 1  9 { 10 2 string cvrs //qrcode.v1to9   } bind for
+        10 1 26 { 10 2 string cvrs //qrcode.v10to26 } bind for
+        27 1 40 { 10 2 string cvrs //qrcode.v27to40 } bind for
+    >>
+    (micro) <<
+        (M1) //qrcode.vM1  (M2) //qrcode.vM2  (M3) //qrcode.vM3  (M4) //qrcode.vM4
+    >>
+    (rmqr) <<
+                                   (R7x43)  //qrcode.vR7x43   (R7x59)  //qrcode.vR7x59   (R7x77)  //qrcode.vR7x77   (R7x99)  //qrcode.vR7x99   (R7x139)  //qrcode.vR7x139
+                                   (R9x43)  //qrcode.vR9x43   (R9x59)  //qrcode.vR9x59   (R9x77)  //qrcode.vR9x77   (R9x99)  //qrcode.vR9x99   (R9x139)  //qrcode.vR9x139
+        (R11x27) //qrcode.vR11x27  (R11x43) //qrcode.vR11x43  (R11x59) //qrcode.vR11x59  (R11x77) //qrcode.vR11x77  (R11x99) //qrcode.vR11x99  (R11x139) //qrcode.vR11x139
+        (R13x27) //qrcode.vR13x27  (R13x43) //qrcode.vR13x43  (R13x59) //qrcode.vR13x59  (R13x77) //qrcode.vR13x77  (R13x99) //qrcode.vR13x99  (R13x139) //qrcode.vR13x139
+                                   (R15x43) //qrcode.vR15x43  (R15x59) //qrcode.vR15x59  (R15x77) //qrcode.vR15x77  (R15x99) //qrcode.vR15x99  (R15x139) //qrcode.vR15x139
+                                   (R17x43) //qrcode.vR17x43  (R17x59) //qrcode.vR17x59  (R17x77) //qrcode.vR17x77  (R17x99) //qrcode.vR17x99  (R17x139) //qrcode.vR17x139
+    >>
+>> readonly def
+
+/qrcode.versetfull  [ //qrcode.v1to9 //qrcode.v10to26 //qrcode.v27to40 ] readonly def
+/qrcode.versetmicro [ //qrcode.vM1 //qrcode.vM2 //qrcode.vM3 //qrcode.vM4 ] readonly def
+
+%
+% Symbol specification table
+%
+/qrcode.metrics [
+    % format   vers       vergrp           rows cols align modules    error codewords        error correction blocks
+    %                                                                 L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
+    [ (micro)  (M1)       //qrcode.vM1       11  11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
+    [ (micro)  (M2)       //qrcode.vM2       13  13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+    [ (micro)  (M3)       //qrcode.vM3       15  15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
+    [ (micro)  (M4)       //qrcode.vM4       17  17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 -1 -1 ] ]
+    [ (full)   (1)        //qrcode.v1to9     21  21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
+    [ (full)   (2)        //qrcode.v1to9     25  25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
+    [ (full)   (3)        //qrcode.v1to9     29  29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
+    [ (full)   (4)        //qrcode.v1to9     33  33  26 99    807  [  20   36   52   64 ]  [  1  0  2  0  2  0  4  0 ] ]
+    [ (full)   (5)        //qrcode.v1to9     37  37  30 99   1079  [  26   48   72   88 ]  [  1  0  2  0  2  2  2  2 ] ]
+    [ (full)   (6)        //qrcode.v1to9     41  41  34 99   1383  [  36   64   96  112 ]  [  2  0  4  0  4  0  4  0 ] ]
+    [ (full)   (7)        //qrcode.v1to9     45  45  22 38   1568  [  40   72  108  130 ]  [  2  0  4  0  2  4  4  1 ] ]
+    [ (full)   (8)        //qrcode.v1to9     49  49  24 42   1936  [  48   88  132  156 ]  [  2  0  2  2  4  2  4  2 ] ]
+    [ (full)   (9)        //qrcode.v1to9     53  53  26 46   2336  [  60  110  160  192 ]  [  2  0  3  2  4  4  4  4 ] ]
+    [ (full)   (10)       //qrcode.v10to26   57  57  28 50   2768  [  72  130  192  224 ]  [  2  2  4  1  6  2  6  2 ] ]
+    [ (full)   (11)       //qrcode.v10to26   61  61  30 54   3232  [  80  150  224  264 ]  [  4  0  1  4  4  4  3  8 ] ]
+    [ (full)   (12)       //qrcode.v10to26   65  65  32 58   3728  [  96  176  260  308 ]  [  2  2  6  2  4  6  7  4 ] ]
+    [ (full)   (13)       //qrcode.v10to26   69  69  34 62   4256  [ 104  198  288  352 ]  [  4  0  8  1  8  4 12  4 ] ]
+    [ (full)   (14)       //qrcode.v10to26   73  73  26 46   4651  [ 120  216  320  384 ]  [  3  1  4  5 11  5 11  5 ] ]
+    [ (full)   (15)       //qrcode.v10to26   77  77  26 48   5243  [ 132  240  360  432 ]  [  5  1  5  5  5  7 11  7 ] ]
+    [ (full)   (16)       //qrcode.v10to26   81  81  26 50   5867  [ 144  280  408  480 ]  [  5  1  7  3 15  2  3 13 ] ]
+    [ (full)   (17)       //qrcode.v10to26   85  85  30 54   6523  [ 168  308  448  532 ]  [  1  5 10  1  1 15  2 17 ] ]
+    [ (full)   (18)       //qrcode.v10to26   89  89  30 56   7211  [ 180  338  504  588 ]  [  5  1  9  4 17  1  2 19 ] ]
+    [ (full)   (19)       //qrcode.v10to26   93  93  30 58   7931  [ 196  364  546  650 ]  [  3  4  3 11 17  4  9 16 ] ]
+    [ (full)   (20)       //qrcode.v10to26   97  97  34 62   8683  [ 224  416  600  700 ]  [  3  5  3 13 15  5 15 10 ] ]
+    [ (full)   (21)       //qrcode.v10to26  101 101  28 50   9252  [ 224  442  644  750 ]  [  4  4 17  0 17  6 19  6 ] ]
+    [ (full)   (22)       //qrcode.v10to26  105 105  26 50  10068  [ 252  476  690  816 ]  [  2  7 17  0  7 16 34  0 ] ]
+    [ (full)   (23)       //qrcode.v10to26  109 109  30 54  10916  [ 270  504  750  900 ]  [  4  5  4 14 11 14 16 14 ] ]
+    [ (full)   (24)       //qrcode.v10to26  113 113  28 54  11796  [ 300  560  810  960 ]  [  6  4  6 14 11 16 30  2 ] ]
+    [ (full)   (25)       //qrcode.v10to26  117 117  32 58  12708  [ 312  588  870 1050 ]  [  8  4  8 13  7 22 22 13 ] ]
+    [ (full)   (26)       //qrcode.v10to26  121 121  30 58  13652  [ 336  644  952 1110 ]  [ 10  2 19  4 28  6 33  4 ] ]
+    [ (full)   (27)       //qrcode.v27to40  125 125  34 62  14628  [ 360  700 1020 1200 ]  [  8  4 22  3  8 26 12 28 ] ]
+    [ (full)   (28)       //qrcode.v27to40  129 129  26 50  15371  [ 390  728 1050 1260 ]  [  3 10  3 23  4 31 11 31 ] ]
+    [ (full)   (29)       //qrcode.v27to40  133 133  30 54  16411  [ 420  784 1140 1350 ]  [  7  7 21  7  1 37 19 26 ] ]
+    [ (full)   (30)       //qrcode.v27to40  137 137  26 52  17483  [ 450  812 1200 1440 ]  [  5 10 19 10 15 25 23 25 ] ]
+    [ (full)   (31)       //qrcode.v27to40  141 141  30 56  18587  [ 480  868 1290 1530 ]  [ 13  3  2 29 42  1 23 28 ] ]
+    [ (full)   (32)       //qrcode.v27to40  145 145  34 60  19723  [ 510  924 1350 1620 ]  [ 17  0 10 23 10 35 19 35 ] ]
+    [ (full)   (33)       //qrcode.v27to40  149 149  30 58  20891  [ 540  980 1440 1710 ]  [ 17  1 14 21 29 19 11 46 ] ]
+    [ (full)   (34)       //qrcode.v27to40  153 153  34 62  22091  [ 570 1036 1530 1800 ]  [ 13  6 14 23 44  7 59  1 ] ]
+    [ (full)   (35)       //qrcode.v27to40  157 157  30 54  23008  [ 570 1064 1590 1890 ]  [ 12  7 12 26 39 14 22 41 ] ]
+    [ (full)   (36)       //qrcode.v27to40  161 161  24 50  24272  [ 600 1120 1680 1980 ]  [  6 14  6 34 46 10  2 64 ] ]
+    [ (full)   (37)       //qrcode.v27to40  165 165  28 54  25568  [ 630 1204 1770 2100 ]  [ 17  4 29 14 49 10 24 46 ] ]
+    [ (full)   (38)       //qrcode.v27to40  169 169  32 58  26896  [ 660 1260 1860 2220 ]  [  4 18 13 32 48 14 42 32 ] ]
+    [ (full)   (39)       //qrcode.v27to40  173 173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
+    [ (full)   (40)       //qrcode.v27to40  177 177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
+    [ (rmqr)   (R7x43)    //qrcode.vR7x43     7  43  22 99    104  [  99    7   99   10 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R7x59)    //qrcode.vR7x59     7  59  20 40    171  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R7x77)    //qrcode.vR7x77     7  77  26 52    261  [  99   12   99   22 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R7x99)    //qrcode.vR7x99     7  99  24 50    358  [  99   16   99   30 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R7x139)   //qrcode.vR7x139    7 139  28 56    545  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
+    [ (rmqr)   (R9x43)    //qrcode.vR9x43     9  43  22 99    170  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R9x59)    //qrcode.vR9x59     9  59  20 40    267  [  99   12   99   22 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R9x77)    //qrcode.vR9x77     9  77  26 52    393  [  99   18   99   32 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
+    [ (rmqr)   (R9x99)    //qrcode.vR9x99     9  99  24 50    532  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
+    [ (rmqr)   (R9x139)   //qrcode.vR9x139    9 139  28 56    797  [  99   36   99   66 ]  [ -1 -1  1  1 -1 -1  3  0 ] ]
+    [ (rmqr)   (R11x27)   //qrcode.vR11x27   11  27  98 99    122  [  99    8   99   10 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R11x43)   //qrcode.vR11x43   11  43  22 99    249  [  99   12   99   20 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R11x59)   //qrcode.vR11x59   11  59  20 40    376  [  99   16   99   32 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
+    [ (rmqr)   (R11x77)   //qrcode.vR11x77   11  77  26 52    538  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
+    [ (rmqr)   (R11x99)   //qrcode.vR11x99   11  99  24 50    719  [  99   32   99   60 ]  [ -1 -1  1  1 -1 -1  1  1 ] ]
+    [ (rmqr)   (R11x139)  //qrcode.vR11x139  11 139  28 56   1062  [  99   48   99   90 ]  [ -1 -1  2  0 -1 -1  3  0 ] ]
+    [ (rmqr)   (R13x27)   //qrcode.vR13x27   13  27  98 99    172  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R13x43)   //qrcode.vR13x43   13  43  22 99    329  [  99   14   99   28 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
+    [ (rmqr)   (R13x59)   //qrcode.vR13x59   13  59  20 40    486  [  99   22   99   40 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
+    [ (rmqr)   (R13x77)   //qrcode.vR13x77   13  77  26 52    684  [  99   32   99   56 ]  [ -1 -1  1  1 -1 -1  1  1 ] ]
+    [ (rmqr)   (R13x99)   //qrcode.vR13x99   13  99  24 50    907  [  99   40   99   78 ]  [ -1 -1  1  1 -1 -1  1  2 ] ]
+    [ (rmqr)   (R13x139)  //qrcode.vR13x139  13 139  28 56   1328  [  99   60   99  112 ]  [ -1 -1  2  1 -1 -1  2  2 ] ]
+    [ (rmqr)   (R15x43)   //qrcode.vR15x43   15  43  22 99    409  [  99   18   99   36 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
+    [ (rmqr)   (R15x59)   //qrcode.vR15x59   15  59  20 40    596  [  99   26   99   48 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
+    [ (rmqr)   (R15x77)   //qrcode.vR15x77   15  77  26 52    830  [  99   36   99   72 ]  [ -1 -1  1  1 -1 -1  2  1 ] ]
+    [ (rmqr)   (R15x99)   //qrcode.vR15x99   15  99  24 50   1095  [  99   48   99   88 ]  [ -1 -1  2  0 -1 -1  4  0 ] ]
+    [ (rmqr)   (R15x139)  //qrcode.vR15x139  15 139  28 56   1594  [  99   72   99  130 ]  [ -1 -1  2  1 -1 -1  1  4 ] ]
+    [ (rmqr)   (R17x43)   //qrcode.vR17x43   17  43  22 99    489  [  99   22   99   40 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
+    [ (rmqr)   (R17x59)   //qrcode.vR17x59   17  59  20 40    706  [  99   32   99   60 ]  [ -1 -1  2  0 -1 -1  2  0 ] ]
+    [ (rmqr)   (R17x77)   //qrcode.vR17x77   17  77  26 52    976  [  99   44   99   84 ]  [ -1 -1  2  0 -1 -1  1  2 ] ]
+    [ (rmqr)   (R17x99)   //qrcode.vR17x99   17  99  24 50   1283  [  99   60   99  104 ]  [ -1 -1  2  1 -1 -1  4  0 ] ]
+    [ (rmqr)   (R17x139)  //qrcode.vR17x139  17 139  28 56   1860  [  99   80   99  156 ]  [ -1 -1  4  0 -1 -1  2  4 ] ]
+] readonly def
+
+%
+% Finder patterns
+%
+/qrcode.fpat [
+               [ 1 1 1 1 1 1 1 0 ]
+               [ 1 0 0 0 0 0 1 0 ]
+               [ 1 0 1 1 1 0 1 0 ]
+    dup      % [ 1 0 1 1 1 0 1 0 ]
+    dup      % [ 1 0 1 1 1 0 1 0 ]
+    3 index  % [ 1 0 0 0 0 0 1 0 ]
+    5 index  % [ 1 1 1 1 1 1 1 0 ]
+               [ 0 0 0 0 0 0 0 0 ]
+] readonly def
+
+/qrcode.fsubpat [
+               [ 1 1 1 1 1 9 9 9 ]
+               [ 1 0 0 0 1 9 9 9 ]
+               [ 1 0 1 0 1 9 9 9 ]
+    1 index  % [ 1 0 0 0 1 9 9 9 ]
+    3 index  % [ 1 1 1 1 1 9 9 9 ]
+               [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+] readonly def
+
+/qrcode.fcorpat [
+               [ 1 1 1 9 9 9 9 9 ]
+               [ 1 0 9 9 9 9 9 9 ]
+               [ 1 9 9 9 9 9 9 9 ]
+               [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+] readonly def
+
+/qrcode.fnullpat [
+               [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 9 9 9 ]
+] readonly def
+
+%
+% Finder pattern layout
+%
+/qrcode.fpatmap <<
+    %               TL             TR                 BL                 BR
+    (full)  [ //qrcode.fpat  //qrcode.fpat      //qrcode.fpat      //qrcode.fnullpat ]
+    (micro) [ //qrcode.fpat  //qrcode.fnullpat  //qrcode.fnullpat  //qrcode.fnullpat ]
+    (rmqr)  [ //qrcode.fpat  //qrcode.fcorpat   //qrcode.fcorpat   //qrcode.fsubpat  ]
+>> readonly def
+
+%
+% Alignment patterns
+%
+/qrcode.algnpatfull [
+               [ 1 1 1 1 1 ]
+               [ 1 0 0 0 1 ]
+               [ 1 0 1 0 1 ]
+    1 index  % [ 1 0 0 0 1 ]
+    3 index  % [ 1 1 1 1 1 ]
+] readonly def
+
+/qrcode.algnpatrmqr [
+               [ 1 1 1 9 9 ]
+               [ 1 0 1 9 9 ]
+    1 index  % [ 1 1 1 9 9 ]
+               [ 9 9 9 9 9 ]
+    dup      % [ 9 9 9 9 9 ]
+] readonly def
+
+%
+% Format information module map
+%
+/qrcode.formatfimmap <<
+    (full) [
+        [ { pop pop 0 8 } bind  { pop 8 exch 1 sub } bind ]
+        [ { pop pop 1 8 } bind  { pop 8 exch 2 sub } bind ]
+        [ { pop pop 2 8 } bind  { pop 8 exch 3 sub } bind ]
+        [ { pop pop 3 8 } bind  { pop 8 exch 4 sub } bind ]
+        [ { pop pop 4 8 } bind  { pop 8 exch 5 sub } bind ]
+        [ { pop pop 5 8 } bind  { pop 8 exch 6 sub } bind ]
+        [ { pop pop 7 8 } bind  { pop 8 exch 7 sub } bind ]
+        [ { pop pop 8 8 } bind  { pop 8 sub  8     } bind ]
+        [ { pop pop 8 7 } bind  { pop 7 sub  8     } bind ]
+        [ { pop pop 8 5 } bind  { pop 6 sub  8     } bind ]
+        [ { pop pop 8 4 } bind  { pop 5 sub  8     } bind ]
+        [ { pop pop 8 3 } bind  { pop 4 sub  8     } bind ]
+        [ { pop pop 8 2 } bind  { pop 3 sub  8     } bind ]
+        [ { pop pop 8 1 } bind  { pop 2 sub  8     } bind ]
+        [ { pop pop 8 0 } bind  { pop 1 sub  8     } bind ]
+    ]
+    (micro) [
+        [ { pop pop 1 8 } bind ]
+        [ { pop pop 2 8 } bind ]
+        [ { pop pop 3 8 } bind ]
+        [ { pop pop 4 8 } bind ]
+        [ { pop pop 5 8 } bind ]
+        [ { pop pop 6 8 } bind ]
+        [ { pop pop 7 8 } bind ]
+        [ { pop pop 8 8 } bind ]
+        [ { pop pop 8 7 } bind ]
+        [ { pop pop 8 6 } bind ]
+        [ { pop pop 8 5 } bind ]
+        [ { pop pop 8 4 } bind ]
+        [ { pop pop 8 3 } bind ]
+        [ { pop pop 8 2 } bind ]
+        [ { pop pop 8 1 } bind ]
+    ]
+    (rmqr) [
+        [ { pop pop 11 3 } bind  { 3 sub exch 6 sub } bind ]
+        [ { pop pop 11 2 } bind  { 4 sub exch 6 sub } bind ]
+        [ { pop pop 11 1 } bind  { 5 sub exch 6 sub } bind ]
+        [ { pop pop 10 5 } bind  { 6 sub exch 2 sub } bind ]
+        [ { pop pop 10 4 } bind  { 6 sub exch 3 sub } bind ]
+        [ { pop pop 10 3 } bind  { 6 sub exch 4 sub } bind ]
+        [ { pop pop 10 2 } bind  { 6 sub exch 5 sub } bind ]
+        [ { pop pop 10 1 } bind  { 6 sub exch 6 sub } bind ]
+        [ { pop pop  9 5 } bind  { 7 sub exch 2 sub } bind ]
+        [ { pop pop  9 4 } bind  { 7 sub exch 3 sub } bind ]
+        [ { pop pop  9 3 } bind  { 7 sub exch 4 sub } bind ]
+        [ { pop pop  9 2 } bind  { 7 sub exch 5 sub } bind ]
+        [ { pop pop  9 1 } bind  { 7 sub exch 6 sub } bind ]
+        [ { pop pop  8 5 } bind  { 8 sub exch 2 sub } bind ]
+        [ { pop pop  8 4 } bind  { 8 sub exch 3 sub } bind ]
+        [ { pop pop  8 3 } bind  { 8 sub exch 4 sub } bind ]
+        [ { pop pop  8 2 } bind  { 8 sub exch 5 sub } bind ]
+        [ { pop pop  8 1 } bind  { 8 sub exch 6 sub } bind ]
+    ]
+>> readonly def
+
+%
+% ECC values for generating format information
+%
+/qrcode.ecidfull [ 1 0 3 2 ] readonly def
+/qrcode.ecidrmqr [ -1 0 -1 1 ] readonly def
+/qrcode.ecidmicrosym [ [0] [1 2] [3 4] [5 6 7] ] readonly def
+
+%
+% Format information value tables
+%
+/qrcode.fmtvalsfull [
+    16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
+    16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
+    16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
+    16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
+] readonly def
+
+/qrcode.fmtvalsmicro [
+    16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
+    16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
+    16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
+    16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
+] readonly def
+
+/qrcode.fmtvalsrmqr1 [
+    16#1fab2 16#1e597 16#1dbdd 16#1c4f8 16#1b86c 16#1a749 16#19903 16#18626
+    16#17f0e 16#1602b 16#15e61 16#14144 16#13dd0 16#122f5 16#11cbf 16#1039a
+    16#0f1ca 16#0eeef 16#0d0a5 16#0cf80 16#0b314 16#0ac31 16#0927b 16#08d5e
+    16#07476 16#06b53 16#05519 16#04a3c 16#036a8 16#0298d 16#017c7 16#008e2
+    16#3f367 16#3ec42 16#3d208 16#3cd2d 16#3b1b9 16#3ae9c 16#390d6 16#38ff3
+    16#376db 16#369fe 16#357b4 16#34891 16#33405 16#32b20 16#3156a 16#30a4f
+    16#2f81f 16#2e73a 16#2d970 16#2c655 16#2bac1 16#2a5e4 16#29bae 16#2848b
+    16#27da3 16#26286 16#25ccc 16#243e9 16#23f7d 16#22058 16#21e12 16#20137
+] readonly def
+
+/qrcode.fmtvalsrmqr2 [
+    16#20a7b 16#2155e 16#22b14 16#23431 16#248a5 16#25780 16#269ca 16#276ef
+    16#28fc7 16#290e2 16#2aea8 16#2b18d 16#2cd19 16#2d23c 16#2ec76 16#2f353
+    16#30103 16#31e26 16#3206c 16#33f49 16#343dd 16#35cf8 16#362b2 16#37d97
+    16#384bf 16#39b9a 16#3a5d0 16#3baf5 16#3c661 16#3d944 16#3e70e 16#3f82b
+    16#003ae 16#01c8b 16#022c1 16#03de4 16#04170 16#05e55 16#0601f 16#07f3a
+    16#08612 16#09937 16#0a77d 16#0b858 16#0c4cc 16#0dbe9 16#0e5a3 16#0fa86
+    16#108d6 16#117f3 16#129b9 16#1369c 16#14a08 16#1552d 16#16b67 16#17442
+    16#18d6a 16#1924f 16#1ac05 16#1b320 16#1cfb4 16#1d091 16#1eedb 16#1f1fe
+] readonly def
+
+%
+% Version information module map (QR Code only)
+%
+/qrcode.vimmap [
+    [ {  9 sub 5 } bind  { 5 exch  9 sub } bind ]
+    [ { 10 sub 5 } bind  { 5 exch 10 sub } bind ]
+    [ { 11 sub 5 } bind  { 5 exch 11 sub } bind ]
+    [ {  9 sub 4 } bind  { 4 exch  9 sub } bind ]
+    [ { 10 sub 4 } bind  { 4 exch 10 sub } bind ]
+    [ { 11 sub 4 } bind  { 4 exch 11 sub } bind ]
+    [ {  9 sub 3 } bind  { 3 exch  9 sub } bind ]
+    [ { 10 sub 3 } bind  { 3 exch 10 sub } bind ]
+    [ { 11 sub 3 } bind  { 3 exch 11 sub } bind ]
+    [ {  9 sub 2 } bind  { 2 exch  9 sub } bind ]
+    [ { 10 sub 2 } bind  { 2 exch 10 sub } bind ]
+    [ { 11 sub 2 } bind  { 2 exch 11 sub } bind ]
+    [ {  9 sub 1 } bind  { 1 exch  9 sub } bind ]
+    [ { 10 sub 1 } bind  { 1 exch 10 sub } bind ]
+    [ { 11 sub 1 } bind  { 1 exch 11 sub } bind ]
+    [ {  9 sub 0 } bind  { 0 exch  9 sub } bind ]
+    [ { 10 sub 0 } bind  { 0 exch 10 sub } bind ]
+    [ { 11 sub 0 } bind  { 0 exch 11 sub } bind ]
+] readonly def
+
+%
+% Version information value table
+%
+/qrcode.vervals [
+    16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
+    16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
+    16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
+    16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216f0 16#228ba
+    16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
+] readonly def
+
+%
+% Mode optimization arrays
+%
+% Number of before characters per vergrp, depending on current mode, for optimising modes
+% Generated by contrib/development/build-qr-mode-optim-arrs.php
+%
+/e 10000 def
+
+%                        Full     Micro    R7         R9           R11             R13              R15             R17
+/qrcode.mode0forceKB  [  1  1  1  e e 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1 ] readonly def
+/qrcode.mode0forceA   [  1  1  1  e 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1 ] readonly def
+/qrcode.mode0forceN   [  1  1  1  1 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1 ] readonly def
+/qrcode.mode0NbeforeB [  4  4  5  e e 2 3  2 2 3 3 3  2 3 3 3  3   2 3 3 3  3  3   2 3 3  3  3  3   3  3  3  3  3   3  3  3  3  3 ] readonly def
+/qrcode.modeBKbeforeB [  9 12 13  e e 4 6  4 5 6 6 6  5 6 6 6  7   4 6 6 6  7  7   5 6 6  7  7  7   6  6  7  7  7   6  7  7  7  8 ] readonly def
+/qrcode.modeBKbeforeA [  8 10 11  e e 4 5  4 5 5 6 6  5 5 6 6  6   4 5 6 6  6  6   5 6 6  6  6  7   6  6  6  6  7   6  6  6  7  7 ] readonly def
+/qrcode.modeBKbeforeN [  8  9 11  e e 3 5  3 4 5 5 5  4 5 5 5  6   3 5 5 5  6  6   4 5 5  6  6  6   5  5  6  6  7   5  6  6  6  7 ] readonly def
+/qrcode.modeBKbeforeE [  5  5  6  e e 2 3  2 3 3 3 3  3 3 3 3  4   2 3 3 3  4  4   3 3 3  4  4  4   3  3  4  4  4   3  4  4  4  4 ] readonly def
+/qrcode.modeBAbeforeK [ 11 12 14  e e 5 7  5 6 7 8 8  6 7 8 8  8   6 7 8 8  8  8   6 8 8  8  8  9   8  8  8  8  9   8  8  8  9  9 ] readonly def
+/qrcode.modeBAbeforeB [ 11 15 16  e e 6 7  6 7 7 8 8  7 7 8 8  8   6 7 8 8  8  9   7 8 8  8  9  9   8  8  9  9  9   8  8  9  9 10 ] readonly def
+/qrcode.modeBAbeforeN [ 12 13 15  e e 6 8  6 7 8 8 8  7 8 8 8  9   6 8 8 8  9  9   7 8 8  9  9 10   8  9  9  9 10   8  9  9 10 10 ] readonly def
+/qrcode.modeBAbeforeE [  6  7  8  e e 3 4  3 4 4 4 4  4 4 4 4  5   4 4 4 4  5  5   4 4 4  5  5  5   4  5  5  5  5   4  5  5  5  5 ] readonly def
+/qrcode.modeBNbeforeK [  6  7  8  e e 3 4  3 4 4 5 5  4 4 5 5  5   3 4 5 5  5  5   4 4 5  5  5  5   5  5  5  5  5   5  5  5  5  5 ] readonly def
+/qrcode.modeBNbeforeB [  6  8  9  e e 3 4  3 4 4 5 5  4 4 5 5  5   3 4 5 5  5  5   4 4 5  5  5  5   5  5  5  5  5   5  5  5  5  6 ] readonly def
+/qrcode.modeBNbeforeA [  6  7  8  e e 3 4  3 4 4 5 5  4 4 5 5  5   4 4 5 5  5  5   4 5 5  5  5  5   5  5  5  5  6   5  5  5  5  6 ] readonly def
+/qrcode.modeBNbeforeE [  3  4  4  e e 2 3  2 2 3 3 3  2 3 3 3  3   2 3 3 3  3  3   2 3 3  3  3  3   3  3  3  3  3   3  3  3  3  3 ] readonly def
+/qrcode.modeANbeforeA [ 13 15 17  e 5 7 9  7 8 9 9 9  8 9 9 9 11   7 9 9 9 11 11   8 9 9 10 11 11   9 10 11 11 11   9 11 11 11 11 ] readonly def
+/qrcode.modeANbeforeB [ 13 17 18  e e 7 9  7 8 9 9 9  8 9 9 9 10   7 9 9 9 10 11   8 9 9  9 11 11   9  9 11 11 11   9 10 11 11 11 ] readonly def
+/qrcode.modeANbeforeE [  7  8  9  e 3 4 5  4 5 5 5 5  5 5 5 5  6   4 5 5 5  6  6   5 5 5  5  6  6   5  5  6  6  6   5  6  6  6  6 ] readonly def
+
+%
+% Mask functions for each symbol format
+%
+/qrcode.formatmaskfuncs <<
+    (full) [
+        {add 2 mod} bind
+        {exch pop 2 mod} bind
+        {pop 3 mod} bind
+        {add 3 mod} bind
+        {2 idiv exch 3 idiv add 2 mod} bind
+        {mul dup 2 mod exch 3 mod add} bind
+        {mul dup 2 mod exch 3 mod add 2 mod} bind
+        {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
+    ]
+    (micro) [
+        {exch pop 2 mod} bind
+        {2 idiv exch 3 idiv add 2 mod} bind
+        {mul dup 2 mod exch 3 mod add 2 mod} bind
+        {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
+    ]
+    (rmqr) [
+        {2 idiv exch 3 idiv add 2 mod} bind
+    ]
+>> readonly def
+
+/qrcode.latevars dup 3 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //qrcode.latevars begin
+
+    %
+    % Invert charmap to give character to value map
+    %
+    /charvals 44 dict def
+    0 1 44 {dup //qrcode.charmap exch get exch charvals 3 1 roll put} for
+
+    %
+    % Calculate the Reed-Solomon log and anti-log tables
+    %
+    /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
+    /rslog 256 array def
+    1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
+
+    /init { //qrcode.latevars {def} forall } def
+
+    end
+
+    //qrcode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /qrcode {
 
     20 dict begin
@@ -64,7 +613,7 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /qrcode //loadctx exec
+    //qrcode.latevars /init get exec
 
     barcode () eq {
         /bwipp.qrcodeEmptyData (The data must not be empty) //raiseerror exec
@@ -75,7 +624,7 @@ begin
         format (unset) eq {
             (full)
             version 0 1 getinterval (M) eq { pop (micro) } if
-            version 0 1 getinterval (R) eq { pop (rmqr) } if
+            version 0 1 getinterval (R) eq { pop (rmqr)  } if
             /format exch def
         } if
     } {
@@ -108,12 +657,11 @@ begin
     } if
 
     % Parse the input
-    /fn1 -1 def
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
         /eci true
-        (FNC1) fn1
+        (FNC1) //qrcode.fn1
     >> def
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
@@ -121,133 +669,12 @@ begin
     % If FNC1 in first position then escape % as %%
     /fnc1first false def
     msglen 0 gt {
-        msg 0 get fn1 eq {
+        msg 0 get //qrcode.fn1 eq {
             /fnc1first true def
             /msg [ msg 1 msglen 1 sub getinterval { dup 37 eq {dup} if } forall ] def
             /msglen msg length def
         } if
     } if
-
-{  % context
-
-    % Enumerate vergrps
-    [
-        /v1to9    /v10to26  /v27to40
-        /vM1      /vM2      /vM3      /vM4
-        /vR7x43   /vR7x59   /vR7x77   /vR7x99   /vR7x139
-        /vR9x43   /vR9x59   /vR9x77   /vR9x99   /vR9x139
-        /vR11x27  /vR11x43  /vR11x59  /vR11x77  /vR11x99   /vR11x139
-        /vR13x27  /vR13x43  /vR13x59  /vR13x77  /vR13x99   /vR13x139
-        /vR15x43  /vR15x59  /vR15x77  /vR15x99  /vR15x139
-        /vR17x43  /vR17x59  /vR17x77  /vR17x99  /vR17x139
-    ] 0 exch {1 index def 1 add} forall pop
-
-    % Convert from input into message bitstream
-    %
-    % Modes: (N)umeric, (A)lphanumeric, (B)yte, (K)anji, (E)CI
-    %
-    /N 0 def  /A 1 def  /B 2 def  /K 3 def  /E 4 def
-
-    /Nexcl <<
-       [
-           16#30 1 16#39 {} for
-       ] {-1} forall
-    >> def
-
-    /Aexcl <<
-        [
-            16#20 16#24 16#25 16#2A 16#2B 16#2D 16#2E 16#2F 16#3A
-            16#41 1 16#5A {} for
-            fn1
-        ] {-1} forall
-    >> def
-
-    % Binary exclusives calculated from "not others"
-
-    /Kexcl <<
-        [
-            16#81 1 16#9F {} for
-            16#E0 1 16#EB {} for
-        ] {-1} forall
-    >> def
-
-    /mids [
-        %    N      A      B      K      E
-        [ (0001) (0010) (0100) (1000) (0111) ]  % v1to9
-        [ (0001) (0010) (0100) (1000) (0111) ]  % v10to26
-        [ (0001) (0010) (0100) (1000) (0111) ]  % v27to40
-        [     ()   -1     -1     -1     -1   ]  % vM1
-        [    (0)    (1)   -1     -1     -1   ]  % vM2
-        [   (00)   (01)   (10)   (11)   -1   ]  % vM3
-        [  (000)  (001)  (010)  (011)   -1   ]  % vM4
-      32 {
-        [  (001)  (010)  (011)  (100)  (111) ]  % rMQR
-      } repeat
-    ] def
-
-    /cclens [  % N  A  B  K
-        [ 10  9  8  8 ]  % v1to9
-        [ 12 11 16 10 ]  % v10to26
-        [ 14 13 16 12 ]  % v27to40
-        [  3 -1 -1 -1 ]  % vM1
-        [  4  3 -1 -1 ]  % vM2
-        [  5  4  4  3 ]  % vM3
-        [  6  5  5  4 ]  % vM4
-        [  4  3  3  2 ]  % vR7x43
-        [  5  5  4  3 ]  % vR7x59
-        [  6  5  5  4 ]  % vR7x77
-        [  7  6  5  5 ]  % vR7x99
-        [  7  6  6  5 ]  % vR7x139
-        [  5  5  4  3 ]  % vR9x43
-        [  6  5  5  4 ]  % vR9x59
-        [  7  6  5  5 ]  % vR9x77
-        [  7  6  6  5 ]  % vR9x99
-        [  8  7  6  6 ]  % vR9x139
-        [  4  4  3  2 ]  % vR11x27
-        [  6  5  5  4 ]  % vR11x43
-        [  7  6  5  5 ]  % vR11x59
-        [  7  6  6  5 ]  % vR11x77
-        [  8  7  6  6 ]  % vR11x99
-        [  8  7  7  6 ]  % vR11x139
-        [  5  5  4  3 ]  % vR13x27
-        [  6  6  5  5 ]  % vR13x43
-        [  7  6  6  5 ]  % vR13x59
-        [  7  7  6  6 ]  % vR13x77
-        [  8  7  7  6 ]  % vR13x99
-        [  8  8  7  7 ]  % vR13x139
-        [  7  6  6  5 ]  % vR15x43
-        [  7  7  6  5 ]  % vR15x59
-        [  8  7  7  6 ]  % vR15x77
-        [  8  7  7  6 ]  % vR15x99
-        [  9  8  7  7 ]  % vR15x139
-        [  7  6  6  5 ]  % vR17x43
-        [  8  7  6  6 ]  % vR17x59
-        [  8  7  7  6 ]  % vR17x77
-        [  8  8  7  6 ]  % vR17x99
-        [  9  8  8  7 ]  % vR17x139
-    ] def
-
-    /termlens [
-      3 {
-        4  % Full
-      } repeat
-        3  % vM1
-        5  % vM2
-        7  % vM3
-        9  % vM4
-      32 {
-        3  % rMQR
-      } repeat
-    ] def
-
-    /padstrs [ (11101100) (00010001) ] def
-
-    % Alphanumeric character to value map
-    /charmap (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:) def
-    /charvals 44 dict def
-    0 1 44 {dup charmap exch get exch charvals 3 1 roll put} for
-
-} ctxdef
 
     % Encoding functions
     /tobin {
@@ -258,7 +685,7 @@ begin
     /encA {
         /in exch def
         fnc1first {  % FNC1 as %
-            /in [ in { dup fn1 eq {pop 37} if } forall ] def
+            /in [ in { dup //qrcode.fn1 eq {pop 37} if } forall ] def
         } if
         /out in length 11 mul 2 idiv 1 add string def
         /k 0 def /m 0 def {
@@ -302,7 +729,7 @@ begin
     /encB {
         /in exch def
         fnc1first {  % FNC1 as GS
-            /in [ in { dup fn1 eq {pop 29} if } forall ] def
+            /in [ in { dup //qrcode.fn1 eq {pop 29} if } forall ] def
         } if
         /out in length 8 mul string def
         0 1 in length 1 sub {
@@ -339,8 +766,6 @@ begin
         } ifelse } ifelse
     } def
 
-    /encfuncs [ /encN /encA /encB /encK /encE ] def
-
     /addtobits {
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
@@ -359,7 +784,7 @@ begin
     msglen 1 sub -1 0 {
         /i exch def
         /barchar msg i get def
-        Kexcl barchar known suppresskanjimode not and {
+        //qrcode.Kexcl barchar known suppresskanjimode not and {
             i 1 add msglen lt { barchar 256 mul msg i 1 add get add } { 0 } ifelse
             dup                                               % Double byte:
             dup dup 16#8140 ge exch 16#9FFC le and exch       % 8140-9FFC or
@@ -375,14 +800,14 @@ begin
         } {
             nextKs i nextKs i 1 add get 1 add put
         } ifelse
-        Nexcl barchar known {
+        //qrcode.Nexcl barchar known {
             nextNs i 0 put
             numNs i numNs i 1 add get 1 add put
             numAorNs i numAorNs i 1 add get 1 add put
         } {
             nextNs i nextNs i 1 add get 1 add put
         } ifelse
-        Aexcl barchar known {
+        //qrcode.Aexcl barchar known {
             nextAs i 0 put
             numAs i numAs i 1 add get 1 add put
             numAorNs i numAorNs i 1 add get 1 add put
@@ -425,38 +850,18 @@ begin
 
     /nextNslt { nextNs i get msglen ge { pop true } { numNs nextNs i get i add get exch ver get lt } ifelse } def
 
+    %
+    % Determine which groups we need to encode
+    %
     % Elements of the encoded message have differing lengths based on the
     % resulting symbol size. The symbol sizes with different element lengths
     % are batched into vergrps. To pick the smallest symbol that holds our
     % content we encode the message according to each available vergrp, based
     % on the format of symbol.
-
-    % Determine which groups we need to encode
-{
-    /versetmap <<
-        (full) <<
-             0 1  9 { 10 2 string cvrs v1to9   } for
-            10 1 26 { 10 2 string cvrs v10to26 } for
-            27 1 40 { 10 2 string cvrs v27to40 } for
-        >>
-        (micro) <<
-            (M1) vM1  (M2) vM2  (M3) vM3  (M4) vM4
-        >>
-        (rmqr) <<
-                              (R7x43)  vR7x43   (R7x59)  vR7x59   (R7x77)  vR7x77   (R7x99)  vR7x99   (R7x139)  vR7x139
-                              (R9x43)  vR9x43   (R9x59)  vR9x59   (R9x77)  vR9x77   (R9x99)  vR9x99   (R9x139)  vR9x139
-            (R11x27) vR11x27  (R11x43) vR11x43  (R11x59) vR11x59  (R11x77) vR11x77  (R11x99) vR11x99  (R11x139) vR11x139
-            (R13x27) vR13x27  (R13x43) vR13x43  (R13x59) vR13x59  (R13x77) vR13x77  (R13x99) vR13x99  (R13x139) vR13x139
-                              (R15x43) vR15x43  (R15x59) vR15x59  (R15x77) vR15x77  (R15x99) vR15x99  (R15x139) vR15x139
-                              (R17x43) vR17x43  (R17x59) vR17x59  (R17x77) vR17x77  (R17x99) vR17x99  (R17x139) vR17x139
-        >>
-    >> def
-    /versetfull  [v1to9 v10to26 v27to40] def
-    /versetmicro [vM1 vM2 vM3 vM4] def
-} ctxdef
+    %
     version (unset) ne {
         % A specific version of symbol is given so encode in just the corresponding vergrp
-        versetmap format get version 2 copy known not {
+        //qrcode.versetmap format get version 2 copy known not {
             pop pop
             format (full) eq {
                 /bwipp.qrcodeInvalidFullVersion (Valid versions for QR Code symbols are 1 to 40) //raiseerror exec
@@ -470,44 +875,15 @@ begin
         get [ exch ] /verset exch def
     } {
         % Just the format is specified so encode in each vergrp for the type of symbol
-        format (full)  eq { /verset versetfull  def } if
-        format (micro) eq { /verset versetmicro def } if
+        format (full)  eq { /verset //qrcode.versetfull  def } if
+        format (micro) eq { /verset //qrcode.versetmicro def } if
         % rMQR symbols are accessed with an explicit version
     } ifelse
 
+    %
     % Encode unterminated bitstream for each compatible vergrp separately
+    %
     /msgbits [ 39 {-1} repeat ] def
-    /e 10000 def
-
-    % Number of before characters per vergrp, depending on current mode, for optimising modes
-    % Generated by contrib/development/build-qr-mode-optim-arrs.php
-    %                Full     Micro    R7         R9           R11             R13              R15             R17
-{
-    /mode0forceKB  [ 1  1  1  e e 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
-    /mode0forceA   [ 1  1  1  e 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
-    /mode0forceN   [ 1  1  1  1 1 1 1  1 1 1 1 1  1 1 1 1  1   1 1 1 1  1  1   1 1 1  1  1  1   1  1  1  1  1   1  1  1  1  1] def
-
-    /mode0NbeforeB [ 4  4  5  e e 2 3  2 2 3 3 3  2 3 3 3  3   2 3 3 3  3  3   2 3 3  3  3  3   3  3  3  3  3   3  3  3  3  3] def
-
-    /modeBKbeforeB [ 9 12 13  e e 4 6  4 5 6 6 6  5 6 6 6  7   4 6 6 6  7  7   5 6 6  7  7  7   6  6  7  7  7   6  7  7  7  8] def
-    /modeBKbeforeA [ 8 10 11  e e 4 5  4 5 5 6 6  5 5 6 6  6   4 5 6 6  6  6   5 6 6  6  6  7   6  6  6  6  7   6  6  6  7  7] def
-    /modeBKbeforeN [ 8  9 11  e e 3 5  3 4 5 5 5  4 5 5 5  6   3 5 5 5  6  6   4 5 5  6  6  6   5  5  6  6  7   5  6  6  6  7] def
-    /modeBKbeforeE [ 5  5  6  e e 2 3  2 3 3 3 3  3 3 3 3  4   2 3 3 3  4  4   3 3 3  4  4  4   3  3  4  4  4   3  4  4  4  4] def
-
-    /modeBAbeforeK [11 12 14  e e 5 7  5 6 7 8 8  6 7 8 8  8   6 7 8 8  8  8   6 8 8  8  8  9   8  8  8  8  9   8  8  8  9  9] def
-    /modeBAbeforeB [11 15 16  e e 6 7  6 7 7 8 8  7 7 8 8  8   6 7 8 8  8  9   7 8 8  8  9  9   8  8  9  9  9   8  8  9  9 10] def
-    /modeBAbeforeN [12 13 15  e e 6 8  6 7 8 8 8  7 8 8 8  9   6 8 8 8  9  9   7 8 8  9  9 10   8  9  9  9 10   8  9  9 10 10] def
-    /modeBAbeforeE [ 6  7  8  e e 3 4  3 4 4 4 4  4 4 4 4  5   4 4 4 4  5  5   4 4 4  5  5  5   4  5  5  5  5   4  5  5  5  5] def
-
-    /modeBNbeforeK [ 6  7  8  e e 3 4  3 4 4 5 5  4 4 5 5  5   3 4 5 5  5  5   4 4 5  5  5  5   5  5  5  5  5   5  5  5  5  5] def
-    /modeBNbeforeB [ 6  8  9  e e 3 4  3 4 4 5 5  4 4 5 5  5   3 4 5 5  5  5   4 4 5  5  5  5   5  5  5  5  5   5  5  5  5  6] def
-    /modeBNbeforeA [ 6  7  8  e e 3 4  3 4 4 5 5  4 4 5 5  5   4 4 5 5  5  5   4 5 5  5  5  5   5  5  5  5  6   5  5  5  5  6] def
-    /modeBNbeforeE [ 3  4  4  e e 2 3  2 2 3 3 3  2 3 3 3  3   2 3 3 3  3  3   2 3 3  3  3  3   3  3  3  3  3   3  3  3  3  3] def
-
-    /modeANbeforeA [13 15 17  e 5 7 9  7 8 9 9 9  8 9 9 9 11   7 9 9 9 11 11   8 9 9 10 11 11   9 10 11 11 11   9 11 11 11 11] def
-    /modeANbeforeB [13 17 18  e e 7 9  7 8 9 9 9  8 9 9 9 10   7 9 9 9 10 11   8 9 9  9 11 11   9  9 11 11 11   9 10 11 11 11] def
-    /modeANbeforeE [ 7  8  9  e 3 4 5  4 5 5 5 5  5 5 5 5  6   4 5 5 5  6  6   5 5 5  5  6  6   5  5  6  6  6   5  6  6  6  6] def
-} ctxdef
 
     verset {
         /ver exch def
@@ -521,121 +897,123 @@ begin
             /numN numNs i get def
             /numAorN numAorNs i get def
             /eci isECI i get def
-            ver vM1 eq numA 1 ge and {/seq -1 def exit} if
-            ver vM1 eq numB 1 ge and {/seq -1 def exit} if
-            ver vM1 eq numK 1 ge and {/seq -1 def exit} if
-            ver vM1 eq eci and       {/seq -1 def exit} if
-            ver vM2 eq numB 1 ge and {/seq -1 def exit} if
-            ver vM2 eq numK 1 ge and {/seq -1 def exit} if
-            ver vM2 eq eci and       {/seq -1 def exit} if
-            ver vM3 eq eci and       {/seq -1 def exit} if
-            ver vM4 eq eci and       {/seq -1 def exit} if
+            ver //qrcode.vM1 eq numA 1 ge and {/seq -1 def exit} if
+            ver //qrcode.vM1 eq numB 1 ge and {/seq -1 def exit} if
+            ver //qrcode.vM1 eq numK 1 ge and {/seq -1 def exit} if
+            ver //qrcode.vM1 eq eci and       {/seq -1 def exit} if
+            ver //qrcode.vM2 eq numB 1 ge and {/seq -1 def exit} if
+            ver //qrcode.vM2 eq numK 1 ge and {/seq -1 def exit} if
+            ver //qrcode.vM2 eq eci and       {/seq -1 def exit} if
+            ver //qrcode.vM3 eq eci and       {/seq -1 def exit} if
+            ver //qrcode.vM4 eq eci and       {/seq -1 def exit} if
             {  % common exit
                 eci {
-                    E exit
+                    //qrcode.E exit
                 } if
                 mode -1 eq {  % Set initial mode (or mode after ECI)
-                    mode0forceKB  KbeforeA {K exit} if
-                    mode0forceKB  KbeforeN {K exit} if
-                    modeBKbeforeE KbeforeB {K exit} if  % Re-using modeB KbeforeE array
-                    mode0forceKB  KbeforeE {K exit} if
-                    numK 1 ge {B exit} if
-                    mode0NbeforeB NbeforeK {N exit} if
-                    mode0NbeforeB NbeforeB {N exit} if
-                    mode0forceKB  NbeforeB {B exit} if
-                    modeANbeforeE NbeforeA {N exit} if  % Re-using modeA NbeforeE array
-                    mode0forceN   NbeforeE {N exit} if
-                    modeBAbeforeE AbeforeK {A exit} if  % Re-using modeB AbeforeE array
-                    modeBAbeforeE AorNbeforeB {A exit} if  % Re-using modeB AbeforeE array
-                    mode0forceA   AorNbeforeE {A exit} if
-                    B exit
+                    //qrcode.mode0forceKB  KbeforeA {//qrcode.K exit} if
+                    //qrcode.mode0forceKB  KbeforeN {//qrcode.K exit} if
+                    //qrcode.modeBKbeforeE KbeforeB {//qrcode.K exit} if  % Re-using modeB KbeforeE array
+                    //qrcode.mode0forceKB  KbeforeE {//qrcode.K exit} if
+                    numK 1 ge {//qrcode.B exit} if
+                    //qrcode.mode0NbeforeB NbeforeK {//qrcode.N exit} if
+                    //qrcode.mode0NbeforeB NbeforeB {//qrcode.N exit} if
+                    //qrcode.mode0forceKB  NbeforeB {//qrcode.B exit} if
+                    //qrcode.modeANbeforeE NbeforeA {//qrcode.N exit} if  % Re-using modeA NbeforeE array
+                    //qrcode.mode0forceN   NbeforeE {//qrcode.N exit} if
+                    //qrcode.modeBAbeforeE AbeforeK {//qrcode.A exit} if  % Re-using modeB AbeforeE array
+                    //qrcode.modeBAbeforeE AorNbeforeB {//qrcode.A exit} if  % Re-using modeB AbeforeE array
+                    //qrcode.mode0forceA   AorNbeforeE {//qrcode.A exit} if
+                    //qrcode.B exit
                 } if
-                mode B eq {
-                    modeBKbeforeB KbeforeB {K exit} if
-                    modeBKbeforeA KbeforeA {K exit} if
-                    modeBKbeforeN KbeforeN {K exit} if
-                    modeBKbeforeE KbeforeE {K exit} if
-                    modeBAbeforeK AbeforeK {A exit} if
-                    modeBAbeforeB AbeforeB {A exit} if
-                    modeBAbeforeN AbeforeN {A exit} if
-                    modeBAbeforeE AbeforeE {A exit} if
-                    modeBNbeforeK NbeforeK {N exit} if
-                    modeBNbeforeB NbeforeB {N exit} if
-                    modeBNbeforeA NbeforeA {N exit} if
-                    modeBNbeforeE NbeforeE {N exit} if
-                    modeBAbeforeE AorNbeforeE numAorN modeBAbeforeN ver get le and {  % If A/N sequence at end and short
-                        modeBNbeforeA nextNslt {A exit} if  % And next N sequence shorter than NbeforeA
+                mode //qrcode.B eq {
+                    //qrcode.modeBKbeforeB KbeforeB {//qrcode.K exit} if
+                    //qrcode.modeBKbeforeA KbeforeA {//qrcode.K exit} if
+                    //qrcode.modeBKbeforeN KbeforeN {//qrcode.K exit} if
+                    //qrcode.modeBKbeforeE KbeforeE {//qrcode.K exit} if
+                    //qrcode.modeBAbeforeK AbeforeK {//qrcode.A exit} if
+                    //qrcode.modeBAbeforeB AbeforeB {//qrcode.A exit} if
+                    //qrcode.modeBAbeforeN AbeforeN {//qrcode.A exit} if
+                    //qrcode.modeBAbeforeE AbeforeE {//qrcode.A exit} if
+                    //qrcode.modeBNbeforeK NbeforeK {//qrcode.N exit} if
+                    //qrcode.modeBNbeforeB NbeforeB {//qrcode.N exit} if
+                    //qrcode.modeBNbeforeA NbeforeA {//qrcode.N exit} if
+                    //qrcode.modeBNbeforeE NbeforeE {//qrcode.N exit} if
+                    //qrcode.modeBAbeforeE AorNbeforeE numAorN //qrcode.modeBAbeforeN ver get le and {  % If A/N sequence at end and short
+                        //qrcode.modeBNbeforeA nextNslt {//qrcode.A exit} if  % And next N sequence shorter than NbeforeA
                     } if
-                    B exit
+                    //qrcode.B exit
                 } if
-                mode A eq {
-                    numK 1 ge {K exit} if
-                    numB 1 ge {B exit} if
-                    modeANbeforeA NbeforeA {N exit} if
-                    modeANbeforeB NbeforeB {N exit} if
-                    modeANbeforeE NbeforeE {N exit} if
-                    numA 1 ge numN 1 ge or {A exit} if
-                    B exit
+                mode //qrcode.A eq {
+                    numK 1 ge {//qrcode.K exit} if
+                    numB 1 ge {//qrcode.B exit} if
+                    //qrcode.modeANbeforeA NbeforeA {//qrcode.N exit} if
+                    //qrcode.modeANbeforeB NbeforeB {//qrcode.N exit} if
+                    //qrcode.modeANbeforeE NbeforeE {//qrcode.N exit} if
+                    numA 1 ge numN 1 ge or {//qrcode.A exit} if
+                    //qrcode.B exit
                 } if
-                mode N eq {
-                    numK 1 ge {K exit} if
-                    numB 1 ge {B exit} if
-                    numA 1 ge {A exit} if
-                    numN 1 ge {N exit} if
-                    B exit
+                mode //qrcode.N eq {
+                    numK 1 ge {//qrcode.K exit} if
+                    numB 1 ge {//qrcode.B exit} if
+                    numA 1 ge {//qrcode.A exit} if
+                    numN 1 ge {//qrcode.N exit} if
+                    //qrcode.B exit
                 } if
-                mode K eq {
-                    numB 1 ge {B exit} if
-                    numA 1 ge {A exit} if
-                    numN 1 ge {N exit} if
-                    numK 1 ge {K exit} if
-                    B exit
+                mode //qrcode.K eq {
+                    numB 1 ge {//qrcode.B exit} if
+                    numA 1 ge {//qrcode.A exit} if
+                    numN 1 ge {//qrcode.N exit} if
+                    numK 1 ge {//qrcode.K exit} if
+                    //qrcode.B exit
                 } if
             } loop
-            dup K eq fnc1first and {pop B} if  % No kanji with fnc1first
+            dup //qrcode.K eq fnc1first and {pop //qrcode.B} if  % No kanji with fnc1first
             dup mode eq {  % Same mode encode directly
                 pop
-                /dat msg i mode K eq {2} {1} ifelse getinterval def
+                /dat msg i mode //qrcode.K eq {2} {1} ifelse getinterval def
                 /seq [
                     seq aload pop
                     [ exch aload pop dat aload pop ]
                 ] def
             } {  % Change mode
                 /mode exch def
-                mode K eq {K msg i numK 2 mul getinterval} if
-                mode B eq {B msg i numB getinterval} if
-                mode A eq {A msg i numA getinterval} if
-                mode N eq {N msg i numN getinterval} if
-                mode E eq {E msg i 1 getinterval  /mode -1 def} if
+                mode //qrcode.K eq {//qrcode.K msg i numK 2 mul getinterval} if
+                mode //qrcode.B eq {//qrcode.B msg i numB getinterval} if
+                mode //qrcode.A eq {//qrcode.A msg i numA getinterval} if
+                mode //qrcode.N eq {//qrcode.N msg i numN getinterval} if
+                mode //qrcode.E eq {//qrcode.E msg i 1 getinterval  /mode -1 def} if
                 /dat exch def /sw exch def
                 /seq [ seq aload pop sw dat ] def
             } ifelse
             /i i dat length add def
         } loop
 
+        %
         % Encode the sequence
+        %
         {  % common exit
             seq -1 eq {exit} if  % Sequence not available
             /bits 23648 string def
             /j 0 def
             fnc1first {
-                ver vR7x43 lt { (0101) } { (101) } ifelse addtobits
+                ver //qrcode.vR7x43 lt { (0101) } { (101) } ifelse addtobits
             } if
             /abort false def
             0 2 seq length 1 sub {
                 /i exch def
                 /mode seq i get def
-                mids ver get mode get addtobits
+                //qrcode.mids ver get mode get addtobits
                 /chars seq i 1 add get def
-                /charslen chars length mode K eq {2 idiv} if def
-                mode E ne {
-                    /cclen cclens ver get mode get def
+                /charslen chars length mode //qrcode.K eq {2 idiv} if def
+                mode //qrcode.E ne {
+                    /cclen //qrcode.cclens ver get mode get def
                     charslen 2 cclen exp cvi ge {  % Too many characters for cc indicator
                         /abort true def exit
                     } if
                     charslen cclen tobin addtobits
                 } if
-                chars encfuncs mode get load exec addtobits
+                chars //qrcode.encfuncs mode get load exec addtobits
             } for
             abort {exit} if
             /bits bits 0 j getinterval def
@@ -644,94 +1022,13 @@ begin
         } loop
     } forall
 
+    %
     % Lookup the most appropriate symbol specification
-{
-    /metrics [
-        % format   vers       vergrp  rows cols align modules    error codewords        error correction blocks
-        %                                                        L    M    Q    H       L1 L2 M1 M2 Q1 Q2 H1 H2
-        [ (micro)  (M1)       vM1       11  11  98 99     36  [   2   99   99   99 ]  [  1  0 -1 -1 -1 -1 -1 -1 ] ]
-        [ (micro)  (M2)       vM2       13  13  98 99     80  [   5    6   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
-        [ (micro)  (M3)       vM3       15  15  98 99    132  [   6    8   99   99 ]  [  1  0  1  0 -1 -1 -1 -1 ] ]
-        [ (micro)  (M4)       vM4       17  17  98 99    192  [   8   10   14   99 ]  [  1  0  1  0  1  0 -1 -1 ] ]
-        [ (full)   (1)        v1to9     21  21  98 99    208  [   7   10   13   17 ]  [  1  0  1  0  1  0  1  0 ] ]
-        [ (full)   (2)        v1to9     25  25  18 99    359  [  10   16   22   28 ]  [  1  0  1  0  1  0  1  0 ] ]
-        [ (full)   (3)        v1to9     29  29  22 99    567  [  15   26   36   44 ]  [  1  0  1  0  2  0  2  0 ] ]
-        [ (full)   (4)        v1to9     33  33  26 99    807  [  20   36   52   64 ]  [  1  0  2  0  2  0  4  0 ] ]
-        [ (full)   (5)        v1to9     37  37  30 99   1079  [  26   48   72   88 ]  [  1  0  2  0  2  2  2  2 ] ]
-        [ (full)   (6)        v1to9     41  41  34 99   1383  [  36   64   96  112 ]  [  2  0  4  0  4  0  4  0 ] ]
-        [ (full)   (7)        v1to9     45  45  22 38   1568  [  40   72  108  130 ]  [  2  0  4  0  2  4  4  1 ] ]
-        [ (full)   (8)        v1to9     49  49  24 42   1936  [  48   88  132  156 ]  [  2  0  2  2  4  2  4  2 ] ]
-        [ (full)   (9)        v1to9     53  53  26 46   2336  [  60  110  160  192 ]  [  2  0  3  2  4  4  4  4 ] ]
-        [ (full)   (10)       v10to26   57  57  28 50   2768  [  72  130  192  224 ]  [  2  2  4  1  6  2  6  2 ] ]
-        [ (full)   (11)       v10to26   61  61  30 54   3232  [  80  150  224  264 ]  [  4  0  1  4  4  4  3  8 ] ]
-        [ (full)   (12)       v10to26   65  65  32 58   3728  [  96  176  260  308 ]  [  2  2  6  2  4  6  7  4 ] ]
-        [ (full)   (13)       v10to26   69  69  34 62   4256  [ 104  198  288  352 ]  [  4  0  8  1  8  4 12  4 ] ]
-        [ (full)   (14)       v10to26   73  73  26 46   4651  [ 120  216  320  384 ]  [  3  1  4  5 11  5 11  5 ] ]
-        [ (full)   (15)       v10to26   77  77  26 48   5243  [ 132  240  360  432 ]  [  5  1  5  5  5  7 11  7 ] ]
-        [ (full)   (16)       v10to26   81  81  26 50   5867  [ 144  280  408  480 ]  [  5  1  7  3 15  2  3 13 ] ]
-        [ (full)   (17)       v10to26   85  85  30 54   6523  [ 168  308  448  532 ]  [  1  5 10  1  1 15  2 17 ] ]
-        [ (full)   (18)       v10to26   89  89  30 56   7211  [ 180  338  504  588 ]  [  5  1  9  4 17  1  2 19 ] ]
-        [ (full)   (19)       v10to26   93  93  30 58   7931  [ 196  364  546  650 ]  [  3  4  3 11 17  4  9 16 ] ]
-        [ (full)   (20)       v10to26   97  97  34 62   8683  [ 224  416  600  700 ]  [  3  5  3 13 15  5 15 10 ] ]
-        [ (full)   (21)       v10to26  101 101  28 50   9252  [ 224  442  644  750 ]  [  4  4 17  0 17  6 19  6 ] ]
-        [ (full)   (22)       v10to26  105 105  26 50  10068  [ 252  476  690  816 ]  [  2  7 17  0  7 16 34  0 ] ]
-        [ (full)   (23)       v10to26  109 109  30 54  10916  [ 270  504  750  900 ]  [  4  5  4 14 11 14 16 14 ] ]
-        [ (full)   (24)       v10to26  113 113  28 54  11796  [ 300  560  810  960 ]  [  6  4  6 14 11 16 30  2 ] ]
-        [ (full)   (25)       v10to26  117 117  32 58  12708  [ 312  588  870 1050 ]  [  8  4  8 13  7 22 22 13 ] ]
-        [ (full)   (26)       v10to26  121 121  30 58  13652  [ 336  644  952 1110 ]  [ 10  2 19  4 28  6 33  4 ] ]
-        [ (full)   (27)       v27to40  125 125  34 62  14628  [ 360  700 1020 1200 ]  [  8  4 22  3  8 26 12 28 ] ]
-        [ (full)   (28)       v27to40  129 129  26 50  15371  [ 390  728 1050 1260 ]  [  3 10  3 23  4 31 11 31 ] ]
-        [ (full)   (29)       v27to40  133 133  30 54  16411  [ 420  784 1140 1350 ]  [  7  7 21  7  1 37 19 26 ] ]
-        [ (full)   (30)       v27to40  137 137  26 52  17483  [ 450  812 1200 1440 ]  [  5 10 19 10 15 25 23 25 ] ]
-        [ (full)   (31)       v27to40  141 141  30 56  18587  [ 480  868 1290 1530 ]  [ 13  3  2 29 42  1 23 28 ] ]
-        [ (full)   (32)       v27to40  145 145  34 60  19723  [ 510  924 1350 1620 ]  [ 17  0 10 23 10 35 19 35 ] ]
-        [ (full)   (33)       v27to40  149 149  30 58  20891  [ 540  980 1440 1710 ]  [ 17  1 14 21 29 19 11 46 ] ]
-        [ (full)   (34)       v27to40  153 153  34 62  22091  [ 570 1036 1530 1800 ]  [ 13  6 14 23 44  7 59  1 ] ]
-        [ (full)   (35)       v27to40  157 157  30 54  23008  [ 570 1064 1590 1890 ]  [ 12  7 12 26 39 14 22 41 ] ]
-        [ (full)   (36)       v27to40  161 161  24 50  24272  [ 600 1120 1680 1980 ]  [  6 14  6 34 46 10  2 64 ] ]
-        [ (full)   (37)       v27to40  165 165  28 54  25568  [ 630 1204 1770 2100 ]  [ 17  4 29 14 49 10 24 46 ] ]
-        [ (full)   (38)       v27to40  169 169  32 58  26896  [ 660 1260 1860 2220 ]  [  4 18 13 32 48 14 42 32 ] ]
-        [ (full)   (39)       v27to40  173 173  26 54  28256  [ 720 1316 1950 2310 ]  [ 20  4 40  7 43 22 10 67 ] ]
-        [ (full)   (40)       v27to40  177 177  30 58  29648  [ 750 1372 2040 2430 ]  [ 19  6 18 31 34 34 20 61 ] ]
-        [ (rmqr)   (R7x43)    vR7x43     7  43  22 99    104  [  99    7   99   10 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R7x59)    vR7x59     7  59  20 40    171  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R7x77)    vR7x77     7  77  26 52    261  [  99   12   99   22 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R7x99)    vR7x99     7  99  24 50    358  [  99   16   99   30 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R7x139)   vR7x139    7 139  28 56    545  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
-        [ (rmqr)   (R9x43)    vR9x43     9  43  22 99    170  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R9x59)    vR9x59     9  59  20 40    267  [  99   12   99   22 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R9x77)    vR9x77     9  77  26 52    393  [  99   18   99   32 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
-        [ (rmqr)   (R9x99)    vR9x99     9  99  24 50    532  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
-        [ (rmqr)   (R9x139)   vR9x139    9 139  28 56    797  [  99   36   99   66 ]  [ -1 -1  1  1 -1 -1  3  0 ] ]
-        [ (rmqr)   (R11x27)   vR11x27   11  27  98 99    122  [  99    8   99   10 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R11x43)   vR11x43   11  43  22 99    249  [  99   12   99   20 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R11x59)   vR11x59   11  59  20 40    376  [  99   16   99   32 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
-        [ (rmqr)   (R11x77)   vR11x77   11  77  26 52    538  [  99   24   99   44 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
-        [ (rmqr)   (R11x99)   vR11x99   11  99  24 50    719  [  99   32   99   60 ]  [ -1 -1  1  1 -1 -1  1  1 ] ]
-        [ (rmqr)   (R11x139)  vR11x139  11 139  28 56   1062  [  99   48   99   90 ]  [ -1 -1  2  0 -1 -1  3  0 ] ]
-        [ (rmqr)   (R13x27)   vR13x27   13  27  98 99    172  [  99    9   99   14 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R13x43)   vR13x43   13  43  22 99    329  [  99   14   99   28 ]  [ -1 -1  1  0 -1 -1  1  0 ] ]
-        [ (rmqr)   (R13x59)   vR13x59   13  59  20 40    486  [  99   22   99   40 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
-        [ (rmqr)   (R13x77)   vR13x77   13  77  26 52    684  [  99   32   99   56 ]  [ -1 -1  1  1 -1 -1  1  1 ] ]
-        [ (rmqr)   (R13x99)   vR13x99   13  99  24 50    907  [  99   40   99   78 ]  [ -1 -1  1  1 -1 -1  1  2 ] ]
-        [ (rmqr)   (R13x139)  vR13x139  13 139  28 56   1328  [  99   60   99  112 ]  [ -1 -1  2  1 -1 -1  2  2 ] ]
-        [ (rmqr)   (R15x43)   vR15x43   15  43  22 99    409  [  99   18   99   36 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
-        [ (rmqr)   (R15x59)   vR15x59   15  59  20 40    596  [  99   26   99   48 ]  [ -1 -1  1  0 -1 -1  2  0 ] ]
-        [ (rmqr)   (R15x77)   vR15x77   15  77  26 52    830  [  99   36   99   72 ]  [ -1 -1  1  1 -1 -1  2  1 ] ]
-        [ (rmqr)   (R15x99)   vR15x99   15  99  24 50   1095  [  99   48   99   88 ]  [ -1 -1  2  0 -1 -1  4  0 ] ]
-        [ (rmqr)   (R15x139)  vR15x139  15 139  28 56   1594  [  99   72   99  130 ]  [ -1 -1  2  1 -1 -1  1  4 ] ]
-        [ (rmqr)   (R17x43)   vR17x43   17  43  22 99    489  [  99   22   99   40 ]  [ -1 -1  1  0 -1 -1  1  1 ] ]
-        [ (rmqr)   (R17x59)   vR17x59   17  59  20 40    706  [  99   32   99   60 ]  [ -1 -1  2  0 -1 -1  2  0 ] ]
-        [ (rmqr)   (R17x77)   vR17x77   17  77  26 52    976  [  99   44   99   84 ]  [ -1 -1  2  0 -1 -1  1  2 ] ]
-        [ (rmqr)   (R17x99)   vR17x99   17  99  24 50   1283  [  99   60   99  104 ]  [ -1 -1  2  1 -1 -1  4  0 ] ]
-        [ (rmqr)   (R17x139)  vR17x139  17 139  28 56   1860  [  99   80   99  156 ]  [ -1 -1  4  0 -1 -1  2  4 ] ]
-    ] def
-} ctxdef
-
+    %
     /eclval (LMQH) eclevel search pop length exch pop exch pop def
-    0 1 metrics length 1 sub {
+    0 1 //qrcode.metrics length 1 sub {
         /i exch def
-        /m metrics i get def
+        /m //qrcode.metrics i get def
         /frmt m 0 get def                             % Format of the symbol
         /vers m 1 get def                             % Version of symbol
         /vergrp m 2 get def                           % Version group
@@ -765,7 +1062,7 @@ begin
         } {
             verbits length dmod gt {/okay false def} if  % and fit into data modules
         } ifelse
-        /term (000000000) 0 termlens vergrp get getinterval def
+        /term (000000000) 0 //qrcode.termlens vergrp get getinterval def
         okay {exit} if
     } for
 
@@ -777,7 +1074,9 @@ begin
     /version vers def
     /msgbits verbits def
 
+    %
     % Opportunistically raise the error level if a better fit to the matrix is possible
+    %
     fixedeclevel not {
         eclval 1 add 1 3 {
             /eclval_ exch def
@@ -802,24 +1101,30 @@ begin
     /dcpb dcws ecb1 ecb2 add idiv def                 % Base data codewords per block
     /ecpb ncws ecb1 ecb2 add idiv dcpb sub def        % Error correction codewords per block
 
+    %
     % Complete the message bits by adding the terminator, truncated if necessary
+    %
     /term term 0 dmod msgbits length sub term length 2 copy gt {exch} if pop getinterval def
     msgbits length term length add string
     dup 0 msgbits putinterval
     dup msgbits length term putinterval
     /msgbits exch def
 
+    %
     % Expand the message bits by adding padding as necessary
+    %
     /pad dmod string def
     0 1 pad length 1 sub {pad exch 48 put} for
     pad 0 msgbits putinterval
     /padnum 0 def
     msgbits length 8 div ceiling 8 mul cvi 8 dmod lc4b {5} {1} ifelse sub {
-        pad exch padstrs padnum get putinterval
+        pad exch //qrcode.padstrs padnum get putinterval
         /padnum padnum 1 add 2 mod def
     } for
 
+    %
     % Evaluate the padded message into codewords
+    %
     /cws dcws array def
     0 1 cws length 1 sub {
         /c exch def
@@ -834,19 +1139,13 @@ begin
         cws c cw put
     } for
 
+    %
     % Short final data byte in M1 and M3 symbols has high-order value
+    %
     lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
 
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
-    % Calculate the log and anti-log tables
-{
-    /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
-    /rslog 256 array def
-    1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
-} ctxdef
-
-    % Function to calculate the product in the field
     /rsprod {
         2 copy 0 ne exch 0 ne and {
             rslog exch get exch rslog exch get add 255 mod rsalog exch get
@@ -855,20 +1154,25 @@ begin
         } ifelse
     } def
 
+    %
     % Generate the coefficients for the Reed-Solomon algorithm
+    %
     /coeffs [ 1 ecpb {0} repeat ] def
     0 1 ecpb 1 sub {
         /i exch def
+        /ai rsalog i get def
         coeffs i 1 add coeffs i get put
         i -1 1 {
             /j exch def
-            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+            coeffs j coeffs j 1 sub get coeffs j get ai rsprod xor put
         } for
-        coeffs 0 coeffs 0 get rsalog i get rsprod put
+        coeffs 0 coeffs 0 get ai rsprod put
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
 
+    %
     % Reed-Solomon algorithm to derive the error correction codewords
+    %
     /rscodes {
         /rscws exch def
         /rsnd rscws length def
@@ -884,7 +1188,9 @@ begin
         rscws rsnd ecpb getinterval
     } def
 
+    %
     % Divide codewords into two groups of blocks and calculate the error correction codewords
+    %
     /dcwsb ecb1 ecb2 add array def
     /ecwsb ecb1 ecb2 add array def
     0 1 ecb1 1 sub {  % First group of blocks has smaller number of data codewords
@@ -898,7 +1204,9 @@ begin
         ecwsb ecb1 i add dcwsb ecb1 i add get rscodes put
     } for
 
+    %
     % Reassemble the codewords
+    %
     /cws ncws array def
     /cw 0 def
     0 1 dcpb {  % Interleave the data codeword blocks
@@ -920,7 +1228,9 @@ begin
         } for
     } for
 
+    %
     % Extend codewords by one if there are remainder bits
+    %
     rbit 0 gt {
         /pad cws length 1 add array def
         pad 0 cws putinterval
@@ -928,7 +1238,9 @@ begin
         /cws pad def
     } if
 
+    %
     % Fixups for the short final data byte in M1 and M3 symbols
+    %
     lc4b {
         cws dcws 1 sub 2 copy get -4 bitshift put
         dcws 1 sub 1 ncws 2 sub {
@@ -941,11 +1253,15 @@ begin
 
     options /debugecc known { /bwipp.debugecc cws //raiseerror exec } if
 
+    %
     % Create the bitmap
+    %
     /pixs [ rows cols mul {-1} repeat ] def
     /qmv {cols mul add} def
 
+    %
     % Timing patterns
+    %
     format (full) eq {
         8 1 cols 9 sub {
             /i exch def
@@ -980,56 +1296,10 @@ begin
         } for
     } if
 
-    % Finder patterns
-{
-    /fpat [
-        [ 1 1 1 1 1 1 1 0 ]
-        [ 1 0 0 0 0 0 1 0 ]
-        [ 1 0 1 1 1 0 1 0 ]
-        [ 1 0 1 1 1 0 1 0 ]
-        [ 1 0 1 1 1 0 1 0 ]
-        [ 1 0 0 0 0 0 1 0 ]
-        [ 1 1 1 1 1 1 1 0 ]
-        [ 0 0 0 0 0 0 0 0 ]
-    ] def
-    /fsubpat [
-        [ 1 1 1 1 1 9 9 9 ]
-        [ 1 0 0 0 1 9 9 9 ]
-        [ 1 0 1 0 1 9 9 9 ]
-        [ 1 0 0 0 1 9 9 9 ]
-        [ 1 1 1 1 1 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-    ] def
-    /fcorpat [
-        [ 1 1 1 9 9 9 9 9 ]
-        [ 1 0 9 9 9 9 9 9 ]
-        [ 1 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-    ] def
-    /fnullpat [
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-        [ 9 9 9 9 9 9 9 9 ]
-    ] def
-    /fpatmap <<
-        %          TL     TR       BL       BR
-        (full)  [ fpat fpat     fpat     fnullpat ]
-        (micro) [ fpat fnullpat fnullpat fnullpat ]
-        (rmqr)  [ fpat fcorpat  fcorpat  fsubpat  ]
-    >> def
-} ctxdef
-    /fpats fpatmap format get def
+    %
+    % Place finder patterns
+    %
+    /fpats //qrcode.fpatmap format get def
     0 1 7 {
       /y exch def
       0 1 7 {
@@ -1045,24 +1315,6 @@ begin
       } for
     } for
 
-    % Alignment patterns
-{
-    /algnpatfull [
-        [ 1 1 1 1 1 ]
-        [ 1 0 0 0 1 ]
-        [ 1 0 1 0 1 ]
-        [ 1 0 0 0 1 ]
-        [ 1 1 1 1 1 ]
-    ] def
-    /algnpatrmqr [
-        [ 1 1 1 9 9 ]
-        [ 1 0 1 9 9 ]
-        [ 1 1 1 9 9 ]
-        [ 9 9 9 9 9 ]
-        [ 9 9 9 9 9 ]
-    ] def
-} ctxdef
-
     /putalgnpat {
         /py exch def
         /px exch def
@@ -1077,8 +1329,12 @@ begin
             } for
         } for
     } def
+
+    %
+    % Place alignment patterns
+    %
     format (full) eq {
-        /algnpat algnpatfull def
+        /algnpat //qrcode.algnpatfull def
         asp2 2 sub asp3 asp2 sub cols 13 sub {
             /i exch def
             i 4 putalgnpat
@@ -1093,7 +1349,7 @@ begin
         } for
     } if
     format (rmqr) eq {
-        /algnpat algnpatrmqr def
+        /algnpat //qrcode.algnpatrmqr def
         asp2 2 sub asp3 asp2 sub cols 13 sub {
             /i exch def
             i 0 putalgnpat
@@ -1101,83 +1357,53 @@ begin
         } for
     } if
 
-    % Format information modules
-{
-    /formatmapmicro [
-            [ [ 1 8 ] ]  [ [ 2 8 ] ]  [ [ 3 8 ] ]  [ [ 4 8 ] ]  [ [ 5 8 ] ]
-            [ [ 6 8 ] ]  [ [ 7 8 ] ]  [ [ 8 8 ] ]  [ [ 8 7 ] ]  [ [ 8 6 ] ]
-            [ [ 8 5 ] ]  [ [ 8 4 ] ]  [ [ 8 3 ] ]  [ [ 8 2 ] ]  [ [ 8 1 ] ]
+    %
+    % Derive the format information module map
+    %
+    /formatmap [
+        //qrcode.formatfimmap format get {
+            [ exch { rows exch cols exch exec 2 array astore } forall ]
+        } forall
     ] def
-} ctxdef
-    /formatmap <<
-        (full) [
-            [ [ 0 8 ] [ 8 cols 1 sub ] ]  [ [ 1 8 ] [ 8 cols 2 sub ] ]  [ [ 2 8 ] [ 8 cols 3 sub ] ]
-            [ [ 3 8 ] [ 8 cols 4 sub ] ]  [ [ 4 8 ] [ 8 cols 5 sub ] ]  [ [ 5 8 ] [ 8 cols 6 sub ] ]
-            [ [ 7 8 ] [ 8 cols 7 sub ] ]  [ [ 8 8 ] [ cols 8 sub 8 ] ]  [ [ 8 7 ] [ cols 7 sub 8 ] ]
-            [ [ 8 5 ] [ cols 6 sub 8 ] ]  [ [ 8 4 ] [ cols 5 sub 8 ] ]  [ [ 8 3 ] [ cols 4 sub 8 ] ]
-            [ [ 8 2 ] [ cols 3 sub 8 ] ]  [ [ 8 1 ] [ cols 2 sub 8 ] ]  [ [ 8 0 ] [ cols 1 sub 8 ] ]
-        ]
-        (micro) formatmapmicro
-        (rmqr) [
-            [ [ 11 3 ] [ cols 3 sub rows 6 sub ] ]  [ [ 11 2 ] [ cols 4 sub rows 6 sub ] ]  [ [ 11 1 ] [ cols 5 sub rows 6 sub ] ]
-            [ [ 10 5 ] [ cols 6 sub rows 2 sub ] ]  [ [ 10 4 ] [ cols 6 sub rows 3 sub ] ]  [ [ 10 3 ] [ cols 6 sub rows 4 sub ] ]
-            [ [ 10 2 ] [ cols 6 sub rows 5 sub ] ]  [ [ 10 1 ] [ cols 6 sub rows 6 sub ] ]  [ [  9 5 ] [ cols 7 sub rows 2 sub ] ]
-            [ [  9 4 ] [ cols 7 sub rows 3 sub ] ]  [ [  9 3 ] [ cols 7 sub rows 4 sub ] ]  [ [  9 2 ] [ cols 7 sub rows 5 sub ] ]
-            [ [  9 1 ] [ cols 7 sub rows 6 sub ] ]  [ [  8 5 ] [ cols 8 sub rows 2 sub ] ]  [ [  8 4 ] [ cols 8 sub rows 3 sub ] ]
-            [ [  8 3 ] [ cols 8 sub rows 4 sub ] ]  [ [  8 2 ] [ cols 8 sub rows 5 sub ] ]  [ [  8 1 ] [ cols 8 sub rows 6 sub ] ]
-        ]
-    >> format get def
+
+    %
+    % Reserve the format information modules
+    %
     formatmap {
         { aload pop qmv pixs exch 1 put } forall
     } forall
 
-    % Version information modules
+    %
+    % Derive the version information module map
+    %
     format (full) eq cols 45 ge and {
         /versionmap [
-            [ [ cols  9 sub 5 ] [ 5 cols  9 sub ] ]  [ [ cols 10 sub 5 ] [ 5 cols 10 sub ] ]
-            [ [ cols 11 sub 5 ] [ 5 cols 11 sub ] ]  [ [ cols  9 sub 4 ] [ 4 cols  9 sub ] ]
-            [ [ cols 10 sub 4 ] [ 4 cols 10 sub ] ]  [ [ cols 11 sub 4 ] [ 4 cols 11 sub ] ]
-            [ [ cols  9 sub 3 ] [ 3 cols  9 sub ] ]  [ [ cols 10 sub 3 ] [ 3 cols 10 sub ] ]
-            [ [ cols 11 sub 3 ] [ 3 cols 11 sub ] ]  [ [ cols  9 sub 2 ] [ 2 cols  9 sub ] ]
-            [ [ cols 10 sub 2 ] [ 2 cols 10 sub ] ]  [ [ cols 11 sub 2 ] [ 2 cols 11 sub ] ]
-            [ [ cols  9 sub 1 ] [ 1 cols  9 sub ] ]  [ [ cols 10 sub 1 ] [ 1 cols 10 sub ] ]
-            [ [ cols 11 sub 1 ] [ 1 cols 11 sub ] ]  [ [ cols  9 sub 0 ] [ 0 cols  9 sub ] ]
-            [ [ cols 10 sub 0 ] [ 0 cols 10 sub ] ]  [ [ cols 11 sub 0 ] [ 0 cols 11 sub ] ]
+            //qrcode.vimmap {
+                [ exch { cols exch exec 2 array astore } forall ]
+            } forall
         ] def
     } {
         /versionmap [] def
     } ifelse
+
+    %
+    % Reserve the version information modules
+    %
     versionmap {
         { aload pop qmv pixs exch 0 put } forall
     } forall
 
+    %
     % Reserve the solitary dark module in full symbols
+    %
     format (full) eq {
         pixs 8 rows 8 sub qmv 0 put
     } if
 
+    %
     % Calculate the mask patterns
-    /maskfuncs <<
-        (full) [
-            {add 2 mod}
-            {exch pop 2 mod}
-            {pop 3 mod}
-            {add 3 mod}
-            {2 idiv exch 3 idiv add 2 mod}
-            {mul dup 2 mod exch 3 mod add}
-            {mul dup 2 mod exch 3 mod add 2 mod}
-            {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod}
-        ]
-        (micro) [
-            {exch pop 2 mod}
-            {2 idiv exch 3 idiv add 2 mod}
-            {mul dup 2 mod exch 3 mod add 2 mod}
-            {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod}
-        ]
-        (rmqr) [
-            {2 idiv exch 3 idiv add 2 mod}
-        ]
-    >> format get def
+    %
+    /maskfuncs //qrcode.formatmaskfuncs format get def
     mask -1 ne {  % User specifies a mask
         /maskfuncs [maskfuncs mask 1 sub get] def
         /bestmaskval mask 1 sub def
@@ -1198,7 +1424,9 @@ begin
         masks m mask put
     } for
 
+    %
     % Walk the symbol placing the bitstream
+    %
     /posx cols format (rmqr) ne {1} {2} ifelse sub def
     /posy rows 1 sub def
     /dir -1 def  % -1 is upwards, 1 is downwards
@@ -1228,7 +1456,9 @@ begin
         } ifelse
     } loop
 
+    %
     % Evaluate runlength encoded rows or columns in full symbols
+    %
     /evalfulln1n3 {
         /scrle exch def
         % Detect runs of 5 or more like modules
@@ -1253,7 +1483,9 @@ begin
         scr1 scr3
     } def
 
+    %
     % Evaluation algorithm for full symbols
+    %
     /evalfull {
         /sym exch def
 
@@ -1309,7 +1541,9 @@ begin
         n1 n2 add n3 add n4 add
     } def
 
+    %
     % Evaluation algorithm for micro symbols
+    %
     /evalmicro {
         /sym exch def
         /dkrhs 0 def /dkbot 0 def
@@ -1325,7 +1559,9 @@ begin
         } ifelse
     } def
 
+    %
     % Evaluate the masked symbols to find the most suitable
+    %
     /bestscore 999999999 def
     0 1 masks length 1 sub {
         /m exch def
@@ -1335,11 +1571,7 @@ begin
             masksym i pixs i get masks m get i get xor put
         } for
         masks length 1 ne {  % Not rMQR nor user-specified mask
-            format (full) eq {
-                masksym evalfull /score exch def
-            } {
-                masksym evalmicro /score exch def
-            } ifelse
+            /score masksym format (full) eq {evalfull} {evalmicro} ifelse def
             score bestscore lt {
                 /bestsym masksym def
                 /bestmaskval m def
@@ -1351,49 +1583,19 @@ begin
     } for
     /pixs bestsym def
 
+    %
     % Set the solitary dark module in full symbols
+    %
     format (full) eq {
         pixs 8 cols 8 sub qmv 1 put
     } if
 
+    %
     % Add the format information
-{
-    /fmtvalsfull [
-        16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
-        16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
-        16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
-        16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
-    ] def
-    /fmtvalsmicro [
-        16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
-        16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
-        16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
-        16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
-    ] def
-    /fmtvalsrmqr1 [
-        16#1fab2 16#1e597 16#1dbdd 16#1c4f8 16#1b86c 16#1a749 16#19903 16#18626
-        16#17f0e 16#1602b 16#15e61 16#14144 16#13dd0 16#122f5 16#11cbf 16#1039a
-        16#0f1ca 16#0eeef 16#0d0a5 16#0cf80 16#0b314 16#0ac31 16#0927b 16#08d5e
-        16#07476 16#06b53 16#05519 16#04a3c 16#036a8 16#0298d 16#017c7 16#008e2
-        16#3f367 16#3ec42 16#3d208 16#3cd2d 16#3b1b9 16#3ae9c 16#390d6 16#38ff3
-        16#376db 16#369fe 16#357b4 16#34891 16#33405 16#32b20 16#3156a 16#30a4f
-        16#2f81f 16#2e73a 16#2d970 16#2c655 16#2bac1 16#2a5e4 16#29bae 16#2848b
-        16#27da3 16#26286 16#25ccc 16#243e9 16#23f7d 16#22058 16#21e12 16#20137
-    ] def
-    /fmtvalsrmqr2 [
-        16#20a7b 16#2155e 16#22b14 16#23431 16#248a5 16#25780 16#269ca 16#276ef
-        16#28fc7 16#290e2 16#2aea8 16#2b18d 16#2cd19 16#2d23c 16#2ec76 16#2f353
-        16#30103 16#31e26 16#3206c 16#33f49 16#343dd 16#35cf8 16#362b2 16#37d97
-        16#384bf 16#39b9a 16#3a5d0 16#3baf5 16#3c661 16#3d944 16#3e70e 16#3f82b
-        16#003ae 16#01c8b 16#022c1 16#03de4 16#04170 16#05e55 16#0601f 16#07f3a
-        16#08612 16#09937 16#0a77d 16#0b858 16#0c4cc 16#0dbe9 16#0e5a3 16#0fa86
-        16#108d6 16#117f3 16#129b9 16#1369c 16#14a08 16#1552d 16#16b67 16#17442
-        16#18d6a 16#1924f 16#1ac05 16#1b320 16#1cfb4 16#1d091 16#1eedb 16#1f1fe
-    ] def
-} ctxdef
+    %
     format (full) eq {
-        /ecid [ 1 0 3 2 ] eclval get def
-        /fmtval fmtvalsfull ecid 3 bitshift bestmaskval add get def
+        /ecid //qrcode.ecidfull eclval get def
+        /fmtval //qrcode.fmtvalsfull ecid 3 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             formatmap i get {
@@ -1402,17 +1604,17 @@ begin
         } for
     } if
     format (micro) eq {
-        /symid [ [0] [1 2] [3 4] [5 6 7] ] cols 11 sub 2 idiv get eclval get def
-        /fmtval fmtvalsmicro symid 2 bitshift bestmaskval add get def
+        /symid //qrcode.ecidmicrosym cols 11 sub 2 idiv get eclval get def
+        /fmtval //qrcode.fmtvalsmicro symid 2 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval 14 i sub neg bitshift 1 and put
         } for
     } if
     format (rmqr) eq {
-        /fmtvalu [ -1 0 -1 1 ] eclval get 5 bitshift verind add def
-        /fmtval1 fmtvalsrmqr1 fmtvalu get def
-        /fmtval2 fmtvalsrmqr2 fmtvalu get def
+        /fmtvalu //qrcode.ecidrmqr eclval get 5 bitshift verind add def
+        /fmtval1 //qrcode.fmtvalsrmqr1 fmtvalu get def
+        /fmtval2 //qrcode.fmtvalsrmqr2 fmtvalu get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval1 17 i sub neg bitshift 1 and put
@@ -1420,27 +1622,22 @@ begin
         } for
     } if
 
+    %
     % Add the version information
-{
-    /vervals [
-        16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
-        16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
-        16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
-        16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216f0 16#228ba
-        16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
-    ] def
-} ctxdef
+    %
     format (full) eq cols 45 ge and {
-        /verval vervals cols 17 sub 4 idiv 7 sub get def
+        /verval //qrcode.vervals cols 17 sub 4 idiv 7 sub get def
         0 1 versionmap length 1 sub {
             /i exch def
             versionmap i get {
-                pixs exch {} forall qmv verval 17 i sub neg bitshift 1 and put
+                pixs exch aload pop qmv verval 17 i sub neg bitshift 1 and put
             } forall
         } for
     } if
 
+    %
     % Return the arguments
+    %
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1456,8 +1653,6 @@ begin
     >>
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
