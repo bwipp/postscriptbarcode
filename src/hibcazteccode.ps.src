@@ -30,7 +30,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hibcazteccode--
-% --REQUIRES preamble loadctx unloadctx raiseerror processoptions parseinput rendertext renmatrix azteccode--
+% --REQUIRES preamble raiseerror processoptions parseinput rendertext renmatrix azteccode--
 % --DESC: HIBC Aztec Code
 % --EXAM: A999BJC5D6E71
 % --EXOP:
@@ -38,39 +38,57 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /azteccode dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/hibcazteccode.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/hibcazteccode.latevars dup 3 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //hibcazteccode.latevars begin
+
+    /charvals 43 dict def
+    0 1 42 {
+        charvals exch dup //hibcazteccode.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //hibcazteccode.latevars {def} forall } def
+
+    end
+
+    //hibcazteccode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /hibcazteccode {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
-    /ctx null def
     /dontdraw false def
     /validatecheck false def
 
     //processoptions exec /options exch def
     /barcode exch def
 
+    //hibcazteccode.latevars /init get exec
+
     barcode () eq {
         /bwipp.hibcazteccodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /hibcazteccode //loadctx exec
-
-    % Create a string of the available characters
-{
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
-    /charvals 43 dict def
-    0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcazteccodeBadCharacter (HIBC Aztec Code must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
@@ -86,7 +104,7 @@ begin
     } for
     /checksum checksum 43 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //hibcazteccode.barchars checksum get ne {
             /bwipp.hibcazteccodeBadCheckDigit (Incorrect HIBC Aztec Code check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -94,9 +112,11 @@ begin
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
     barcode 0 43 put
-    barcode barlen 1 add barchars checksum get put
+    barcode barlen 1 add //hibcazteccode.barchars checksum get put
 
+    %
     % Get the result of encoding with azteccode
+    %
     options (dontdraw) true put
     options (validatecheck) false put
     /args barcode options //azteccode exec def
@@ -105,8 +125,6 @@ begin
     args
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
