@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -39,16 +39,40 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/hibcqrcode.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/hibcqrcode.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //hibcqrcode.latevars begin
+
+    /charvals 43 dict def
+    0 1 42 {
+        charvals exch dup //hibcqrcode.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //hibcqrcode.latevars {def} forall } def
+
+    end
+
+    //hibcqrcode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /hibcqrcode {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -57,20 +81,13 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //hibcqrcode.latevars /init get exec
+
+    % Validate the input
     barcode () eq {
         /bwipp.hibcqrcodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /hibcqrcode //loadctx exec
-
-    % Create a string of the available characters
-{
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
-    /charvals 43 dict def
-    0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
-    % Validate the input
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcqrcodeBadCharacter (HIBC QR Code must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
@@ -86,7 +103,7 @@ begin
     } for
     /checksum checksum 43 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //hibcqrcode.barchars checksum get ne {
             /bwipp.hibcqrcodeBadCheckDigit (Incorrect HIBC QR Code check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -94,7 +111,7 @@ begin
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
     barcode 0 43 put
-    barcode barlen 1 add barchars checksum get put
+    barcode barlen 1 add //hibcqrcode.barchars checksum get put
 
     % Get the result of encoding with qrcode
     options (dontdraw) true put
@@ -105,8 +122,6 @@ begin
     args
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
