@@ -165,9 +165,9 @@ $(RESDIR)/docs/%: $(DOCDIR)/% $(RESMKDIRSTAMP)
 # Auto-generate atload names list for packaged resources
 #
 
-	@grep -rh '^[^%]*//[a-z][a-z0-9-]*' $(SRCDIR)/*.ps.src | \
-	  grep -oh '//[a-z][a-z0-9-]*' | \
 $(DSTDIR)/make_packaged_resource.ps: $(DSTDIR)/make_packaged_resource.ps.in $(SOURCES)
+	@grep -rh '^[^%]*//[a-zA-Z][a-zA-Z0-9.-]*' $(SRCDIR)/*.ps.src | \
+	  grep -oh '//[a-zA-Z][a-zA-Z0-9.-]*' | \
 	  sed 's|^//||' | sort -u | tr '\n' ' ' | \
 	  sed 's/ $$//' | \
 	  { read names; sed "s/@@ATLOAD_NAMES@@/$$names/" $< > $@; }
