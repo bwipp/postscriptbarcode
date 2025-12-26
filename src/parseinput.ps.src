@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -35,27 +35,20 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
-/parseinput {
 
-    20 dict begin
+/parseinput.latevars dup 3 dict def load /init {
 
-    /parseinput //loadctx exec
+    currentglobal
+    true setglobal
 
-    /fncvals exch def
-    /barcode exch def
+    //parseinput.latevars begin
 
-    /parse     dup dup fncvals exch get def fncvals exch undef
-    /parsefnc  dup dup fncvals exch get def fncvals exch undef
-    /parseonly dup dup fncvals exch known def fncvals exch undef
-    /eci       dup dup fncvals exch known def fncvals exch undef
-
-    % Control character names to ordinals
-{
-    <<
+    %
+    % Identifiers for ASCII control characters
+    %
+    /ctrl <<
         [
             /NUL /SOH /STX /ETX /EOT /ENQ /ACK /BEL
             /BS  /TAB /LF  /VT  /FF  /CR  ()   ()    % SO and SI prefix clash with SOH
@@ -65,8 +58,31 @@ begin
         0 exch {
             1 index 1 add 3 1 roll exch 3 -1 roll
         } forall pop
-    >> /ctrl exch def
-} ctxdef
+    >> def
+
+    /init { //parseinput.latevars {def} forall } def
+
+    end
+
+    //parseinput.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/parseinput {
+
+    20 dict begin
+
+    /fncvals exch def
+    /barcode exch def
+
+    /parse     dup dup fncvals exch get def fncvals exch undef
+    /parsefnc  dup dup fncvals exch get def fncvals exch undef
+    /parseonly dup dup fncvals exch known def fncvals exch undef
+    /eci       dup dup fncvals exch known def fncvals exch undef
+
+    //parseinput.latevars /init get exec
 
     /msg barcode length array def
     /j 0 def
@@ -200,8 +216,6 @@ begin
         j string
         0 1 j 1 sub { 1 index exch dup msg exch get put } for
     } ifelse
-
-    //unloadctx exec
 
     end
 
