@@ -166,8 +166,8 @@ $(RESDIR)/docs/%: $(DOCDIR)/% $(RESMKDIRSTAMP)
 #
 
 $(DSTDIR)/make_packaged_resource.ps: $(DSTDIR)/make_packaged_resource.ps.in $(SOURCES)
-	@grep -rh '^[^%]*//[a-zA-Z][a-zA-Z0-9.-]*' $(SRCDIR)/*.ps.src | \
-	  grep -oh '//[a-zA-Z][a-zA-Z0-9.-]*' | \
+	@grep -rh '^[^%]*//[a-zA-Z][a-zA-Z0-9._-]*' $(SRCDIR)/*.ps.src | \
+	  grep -oh '//[a-zA-Z][a-zA-Z0-9._-]*' | \
 	  sed 's|^//||' | sort -u | tr '\n' ' ' | \
 	  sed 's/ $$//' | \
 	  { read names; sed "s/@@ATLOAD_NAMES@@/$$names/" $< > $@; }
