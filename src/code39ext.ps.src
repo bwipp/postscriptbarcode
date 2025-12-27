@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,15 +38,26 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code39 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+% Extended alphabet to non-extended alphabet
+/code39ext.extencs [
+    (%U) ($A) ($B) ($C) ($D) ($E) ($F) ($G) ($H) ($I) ($J) ($K) ($L) ($M) ($N) ($O)
+    ($P) ($Q) ($R) ($S) ($T) ($U) ($V) ($W) ($X) ($Y) ($Z) (%A) (%B) (%C) (%D) (%E)
+    ( )  (/A) (/B) (/C) (/D) (/E) (/F) (/G) (/H) (/I) (/J) (/K) (/L) (-)  (.)  (/O)
+    (0)  (1)  (2)  (3)  (4)  (5)  (6)  (7)  (8)  (9)  (/Z) (%F) (%G) (%H) (%I) (%J)
+    (%V) (A)  (B)  (C)  (D)  (E)  (F)  (G)  (H)  (I)  (J)  (K)  (L)  (M)  (N)  (O)
+    (P)  (Q)  (R)  (S)  (T)  (U)  (V)  (W)  (X)  (Y)  (Z)  (%K) (%L) (%M) (%N) (%O)
+    (%W) (+A) (+B) (+C) (+D) (+E) (+F) (+G) (+H) (+I) (+J) (+K) (+L) (+M) (+N) (+O)
+    (+P) (+Q) (+R) (+S) (+T) (+U) (+V) (+W) (+X) (+Y) (+Z) (%P) (%Q) (%R) (%S) (%T)
+] readonly def
+
 /code39ext {
 
     20 dict begin
@@ -59,45 +70,35 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /code39ext //loadctx exec
-
+    %
     % Parse ordinals of the form ^NNN to ASCII
+    %
     /fncvals <<
         /parse parse
         /parseonly true
         /parsefnc false
     >> def
     /barcode barcode fncvals //parseinput exec def
+
     /barlen barcode length def
+
     options (parse) undef
 
+    %
     % Validate the input
+    %
     barcode {
         128 ge {
             /bwipp.code39extBadCharacter (Code 39 Extended must contain only ASCII characters) //raiseerror exec
         } if
     } forall
 
-    % Extended alphabet to non-extended alphabet
-{
-    /extencs
-    [ (%U) ($A) ($B) ($C) ($D) ($E) ($F) ($G) ($H) ($I) ($J) ($K) ($L) ($M) ($N) ($O)
-      ($P) ($Q) ($R) ($S) ($T) ($U) ($V) ($W) ($X) ($Y) ($Z) (%A) (%B) (%C) (%D) (%E)
-      ( )  (/A) (/B) (/C) (/D) (/E) (/F) (/G) (/H) (/I) (/J) (/K) (/L) (-)  (.)  (/O)
-      (0)  (1)  (2)  (3)  (4)  (5)  (6)  (7)  (8)  (9)  (/Z) (%F) (%G) (%H) (%I) (%J)
-      (%V) (A)  (B)  (C)  (D)  (E)  (F)  (G)  (H)  (I)  (J)  (K)  (L)  (M)  (N)  (O)
-      (P)  (Q)  (R)  (S)  (T)  (U)  (V)  (W)  (X)  (Y)  (Z)  (%K) (%L) (%M) (%N) (%O)
-      (%W) (+A) (+B) (+C) (+D) (+E) (+F) (+G) (+H) (+I) (+J) (+K) (+L) (+M) (+N) (+O)
-      (+P) (+Q) (+R) (+S) (+T) (+U) (+V) (+W) (+X) (+Y) (+Z) (%P) (%Q) (%R) (%S) (%T)
-    ] def
-} ctxdef
-
     /newcode barlen 2 mul string def
     /newtext barlen 2 mul string def
     /j 0 def
     0 1 barlen 1 sub {
         /i exch def
-        /extchar extencs barcode i get get def
+        /extchar //code39ext.extencs barcode i get get def
         newcode j extchar putinterval
         newtext j barcode i get dup dup 32 lt exch 127 eq or { pop 32 } if put
         extchar length 1 ne { newtext j 1 add 32 put } if
@@ -106,11 +107,15 @@ begin
     /newcode newcode 0 j getinterval def
     /newtext newtext 0 j getinterval def
 
+    %
     % Get the result of encoding with code39
+    %
     options (dontdraw) true put
     /args newcode options //code39 exec def
 
+    %
     % Replace chars in /txt with chars in newtext
+    %
     includetext {
         /txt args (txt) get def
         0 1 newtext length 1 sub {
@@ -125,8 +130,6 @@ begin
     args
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
