@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,16 +38,52 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/code39.encs [
+    (1113313111) (3113111131) (1133111131) (3133111111) (1113311131)
+    (3113311111) (1133311111) (1113113131) (3113113111) (1133113111)
+    (3111131131) (1131131131) (3131131111) (1111331131) (3111331111)
+    (1131331111) (1111133131) (3111133111) (1131133111) (1111333111)
+    (3111111331) (1131111331) (3131111311) (1111311331) (3111311311)
+    (1131311311) (1111113331) (3111113311) (1131113311) (1111313311)
+    (3311111131) (1331111131) (3331111111) (1311311131) (3311311111)
+    (1331311111) (1311113131) (3311113111) (1331113111) (1313131111)
+    (1313111311) (1311131311) (1113131311) (1311313111)
+] readonly def
+
+/code39.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/code39.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //code39.latevars begin
+
+    /charvals 43 dict def
+    0 1 42 {
+        charvals exch dup //code39.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //code39.latevars {def} forall } def
+
+    end
+
+    //code39.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /code39 {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -64,33 +100,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //code39.latevars /init get exec
+
     barcode () eq {
         /bwipp.code39emptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /code39 //loadctx exec
-
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (1113313111) (3113111131) (1133111131) (3133111111) (1113311131)
-      (3113311111) (1133311111) (1113113131) (3113113111) (1133113111)
-      (3111131131) (1131131131) (3131131111) (1111331131) (3111331111)
-      (1131331111) (1111133131) (3111133111) (1131133111) (1111333111)
-      (3111111331) (1131111331) (3131111311) (1111311331) (3111311311)
-      (1131311311) (1111113331) (3111113311) (1131113311) (1111313311)
-      (3311111131) (1331111131) (3331111111) (1311311131) (3311311111)
-      (1331311111) (1311113131) (3311113111) (1331113111) (1313131111)
-      (1313111311) (1311131311) (1113131311) (1311313111)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
-    /charvals 43 dict def
-    0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.code39badCharacter (Code 39 must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
@@ -106,7 +124,7 @@ begin
     } for
     /checksum checksum 43 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //code39.barchars checksum get ne {
             /bwipp.code39badCheckDigit (Incorrect Code 39 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -116,8 +134,10 @@ begin
     /sbs barlen includecheck {3} {2} ifelse add 10 mul string def
     /txt barlen includecheck {3} {2} ifelse add array def
 
+    %
     % Put the start character
-    sbs 0 encs 43 get putinterval
+    %
+    sbs 0 //code39.encs 43 get putinterval
     hidestars not {
         txt 0 [(*) 0 textyoffset textfont textsize] put
     } {
@@ -127,26 +147,28 @@ begin
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        sbs i 10 mul 10 add encs indx get putinterval
+        sbs i 10 mul 10 add //code39.encs indx get putinterval
         txt i 1 add [barcode i 1 getinterval i 1 add 16 mul textyoffset textfont textsize] put
     } for
 
+    %
     % Put the checksum and end characters
+    %
     includecheck {
-        sbs barlen 10 mul 10 add encs checksum get putinterval
+        sbs barlen 10 mul 10 add //code39.encs checksum get putinterval
         includecheckintext {
-            txt barlen 1 add [barchars checksum 1 getinterval barlen 1 add 16 mul textyoffset textfont textsize] put
+            txt barlen 1 add [//code39.barchars checksum 1 getinterval barlen 1 add 16 mul textyoffset textfont textsize] put
         } {
             txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
         } ifelse
-        sbs barlen 10 mul 20 add encs 43 get putinterval
+        sbs barlen 10 mul 20 add //code39.encs 43 get putinterval
         hidestars not {
             txt barlen 2 add [(*) barlen 2 add 16 mul textyoffset textfont textsize] put
         } {
             txt barlen 2 add [() barlen 2 add 16 mul textyoffset textfont textsize] put
         } ifelse
     } {
-        sbs barlen 10 mul 10 add encs 43 get putinterval
+        sbs barlen 10 mul 10 add //code39.encs 43 get putinterval
         hidestars not {
             txt barlen 1 add [(*) barlen 1 add 16 mul textyoffset textfont textsize] put
         } {
@@ -154,7 +176,6 @@ begin
         } ifelse
     } ifelse
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -167,8 +188,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
