@@ -38,141 +38,43 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
-/auspost {
 
-    20 dict begin
+/auspost.encs [
+    (000) (001) (002) (010) (011) (012) (020) (021)
+    (022) (100) (101) (102) (110) (111) (112) (120)
+    (121) (122) (200) (201) (202) (210) (211) (212)
+    (220) (221) (222) (300) (301) (302) (310) (311)
+    (312) (320) (321) (322) (023) (030) (031) (032)
+    (033) (103) (113) (123) (130) (131) (132) (133)
+    (203) (213) (223) (230) (231) (232) (233) (303)
+    (313) (323) (330) (331) (332) (333) (003) (013)
+    (00) (01) (02) (10) (11) (12) (20) (21) (22) (30)
+    (13) (3)
+] readonly def
 
-    /ctx null def
-    /dontdraw false def
-    /includetext false def         % Enable/disable text
-    /textfont /Courier def
-    /textsize 10.0 def
-    /textyoffset -7.0 def
-    /height 0.175 def
-    /custinfoenc (character) def
+/auspost.barchars (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz #) readonly def
 
-    //processoptions exec /options exch def
-    /barcode exch def
+/auspost.fcclen <<
+    (11) 37  (45) 37  (59) 52  (62) 67
+>> readonly def
 
-    custinfoenc (character) ne custinfoenc (numeric) ne and {
-        /bwipp.auspostBadCustinfoEncoding (Customer information encoding must be either character or numeric) //raiseerror exec
-    } if
+/auspost.rspoly [ 48 17 29 30 1 ] readonly def
 
-    /auspost //loadctx exec
+/auspost.latevars dup 1 dict def load /init {
 
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (000) (001) (002) (010) (011) (012) (020) (021)
-      (022) (100) (101) (102) (110) (111) (112) (120)
-      (121) (122) (200) (201) (202) (210) (211) (212)
-      (220) (221) (222) (300) (301) (302) (310) (311)
-      (312) (320) (321) (322) (023) (030) (031) (032)
-      (033) (103) (113) (123) (130) (131) (132) (133)
-      (203) (213) (223) (230) (231) (232) (233) (303)
-      (313) (323) (330) (331) (332) (333) (003) (013)
-      (00) (01) (02) (10) (11) (12) (20) (21) (22) (30)
-      (13) (3)
-    ] def
+    currentglobal
+    true setglobal
 
-    % Create a string of the available characters
-    /barchars (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz #) def
+    //auspost.latevars begin
 
-    % FCC lengths
-    /fcclen << (11) 37  (45) 37  (59) 52  (62) 67 >> def
-
-} ctxdef
-
-    /barlen barcode length def
-    barlen 10 lt {
-        /bwipp.auspostTooShort (The data length must be at least 10) //raiseerror exec
-    } if
-
-    /txt barlen 2 sub array def
-
-    fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
-    2 copy known not {
-        pop pop /bwipp.auspostBadFCC (Must begin with an FCC, either 11, 45, 59 or 62) //raiseerror exec
-    } if
-    get /encstr exch string def
-
-    % Validate that the message has a complete, numeric DPID
-    true
-    1 {
-        barlen 10 lt { pop false exit } if
-        barcode 2 8 getinterval { dup 48 lt exch 57 gt or { pop false exit } if } forall
-    } repeat
-    not {
-        /bwipp.auspostIncompleteDPID (The DPID must be 8 digits) //raiseerror exec
-    } if
-
-    % Validate that the message will fit
-    barlen 10 sub custinfoenc (numeric) eq {2} {3} ifelse mul
-    encstr length 22 sub 14 sub gt {
-        /bwipp.auspostTooLong (The message is too long) //raiseerror exec
-    } if
-
-    % Put start character
-    encstr 0 encs 74 get putinterval
-
-    % Encode the FCC
-    0 1 1 {
-        /i exch def
-        encs barcode i 1 getinterval cvi 64 add get
-        encstr i 2 mul 2 add 3 2 roll putinterval
-    } for
-
-    % Encode the DPID
-    2 1 9 {
-        /i exch def
-        encs barcode i 1 getinterval cvi 64 add get
-        encstr i 2 mul 2 add 3 2 roll putinterval
-        txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textyoffset textfont textsize] put
-    } for
-
-    % Encode the customer information
-    custinfoenc (numeric) eq {
-        0 1 barlen 11 sub {
-            /i exch def
-            encs barcode i 10 add get
-            dup dup 48 lt exch 57 gt or {
-                /bwipp.auspostInvalidCustinfoDigit (The customer information data contains a non-digit character) //raiseerror exec
-            } if
-            48 sub 64 add get
-            encstr i 2 mul 22 add 3 2 roll putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
-        } for
-        /ciflen barlen 10 sub 2 mul def
-    } {
-        0 1 barlen 11 sub {
-            /i exch def
-            barcode i 10 add 1 getinterval barchars exch search
-            not {
-                pop /bwipp.auspostInvalidCustinfoCharacter (The customer information contains an invalid character) //raiseerror exec
-            } if
-            length /indx exch def
-            pop pop
-            /enc encs indx get def
-            encstr i 3 mul 22 add enc putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textyoffset textfont textsize] put
-        } for
-        /ciflen barlen 10 sub 3 mul def
-    } ifelse
-
-    % Add any filler characters
-    22 ciflen add 1 encstr length 14 sub {
-        encstr exch encs 75 get putinterval
-    } for
-
-    % Create the 64x64 Reed-Solomon table
-{
+    %
+    % Calculate the Reed-Solomon table for error correction
+    %
     /rstable 64 64 mul array def
     rstable 0 [ 64 {0} repeat ] putinterval
     rstable 64 [ 0 1 63 {} for ] putinterval
@@ -192,9 +94,137 @@ begin
         } for
         /prev next def
     } repeat
-} ctxdef
+    /rstable rstable readonly def
 
+    /init { //auspost.latevars {def} forall } def
+
+    end
+
+    //auspost.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/auspost {
+
+    20 dict begin
+
+    /dontdraw false def
+    /includetext false def
+    /textfont /Courier def
+    /textsize 10.0 def
+    /textyoffset -7.0 def
+    /height 0.175 def
+    /custinfoenc (character) def
+
+    //processoptions exec /options exch def
+    /barcode exch def
+
+    //auspost.latevars /init get exec
+
+    custinfoenc (character) ne custinfoenc (numeric) ne and {
+        /bwipp.auspostBadCustinfoEncoding (Customer information encoding must be either character or numeric) //raiseerror exec
+    } if
+
+    /barlen barcode length def
+    barlen 10 lt {
+        /bwipp.auspostTooShort (The data length must be at least 10) //raiseerror exec
+    } if
+
+    /txt barlen 2 sub array def
+
+    //auspost.fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
+    2 copy known not {
+        pop pop /bwipp.auspostBadFCC (Must begin with an FCC, either 11, 45, 59 or 62) //raiseerror exec
+    } if
+    get /encstr exch string def
+
+    %
+    % Validate that the message has a complete, numeric DPID
+    %
+    true
+    1 {
+        barlen 10 lt { pop false exit } if
+        barcode 2 8 getinterval { dup 48 lt exch 57 gt or { pop false exit } if } forall
+    } repeat
+    not {
+        /bwipp.auspostIncompleteDPID (The DPID must be 8 digits) //raiseerror exec
+    } if
+
+    %
+    % Validate that the message will fit
+    %
+    barlen 10 sub custinfoenc (numeric) eq {2} {3} ifelse mul
+    encstr length 22 sub 14 sub gt {
+        /bwipp.auspostTooLong (The message is too long) //raiseerror exec
+    } if
+
+    %
+    % Put start character
+    %
+    encstr 0 //auspost.encs 74 get putinterval
+
+    %
+    % Encode the FCC
+    %
+    0 1 1 {
+        /i exch def
+        //auspost.encs barcode i 1 getinterval cvi 64 add get
+        encstr i 2 mul 2 add 3 2 roll putinterval
+    } for
+
+    %
+    % Encode the DPID
+    %
+    2 1 9 {
+        /i exch def
+        //auspost.encs barcode i 1 getinterval cvi 64 add get
+        encstr i 2 mul 2 add 3 2 roll putinterval
+        txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textyoffset textfont textsize] put
+    } for
+
+    %
+    % Encode the customer information
+    %
+    custinfoenc (numeric) eq {
+        0 1 barlen 11 sub {
+            /i exch def
+            //auspost.encs barcode i 10 add get
+            dup dup 48 lt exch 57 gt or {
+                /bwipp.auspostInvalidCustinfoDigit (The customer information data contains a non-digit character) //raiseerror exec
+            } if
+            48 sub 64 add get
+            encstr i 2 mul 22 add 3 2 roll putinterval
+            txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
+        } for
+        /ciflen barlen 10 sub 2 mul def
+    } {
+        0 1 barlen 11 sub {
+            /i exch def
+            barcode i 10 add 1 getinterval //auspost.barchars exch search
+            not {
+                pop /bwipp.auspostInvalidCustinfoCharacter (The customer information contains an invalid character) //raiseerror exec
+            } if
+            length /indx exch def
+            pop pop
+            /enc //auspost.encs indx get def
+            encstr i 3 mul 22 add enc putinterval
+            txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textyoffset textfont textsize] put
+        } for
+        /ciflen barlen 10 sub 3 mul def
+    } ifelse
+
+    %
+    % Add any filler characters
+    %
+    22 ciflen add 1 encstr length 14 sub {
+        encstr exch //auspost.encs 75 get putinterval
+    } for
+
+    %
     % Calculate the Reed-Solomon codes for triples
+    %
     /rscodes encstr length 16 sub 3 idiv 4 add array def
     rscodes 0 [ 4 {0} repeat ] putinterval
     2 3 encstr length 16 sub {
@@ -210,7 +240,7 @@ begin
        0 1 4 {
            /j exch def
            rscodes i j add rscodes i j add get
-           rstable 64 [48 17 29 30 1] j get mul rscodes i 4 add get add get
+           rstable 64 //auspost.rspoly j get mul rscodes i 4 add get add get
            xor put
        } for
     } for
@@ -221,9 +251,11 @@ begin
         checkcode i 3 mul 3 enc length sub add enc putinterval
     } for
 
+    %
     % Put checkcode and end characters
+    %
     encstr encstr length 14 sub checkcode putinterval
-    encstr encstr length 2 sub encs 74 get putinterval
+    encstr encstr length 2 sub //auspost.encs 74 get putinterval
 
     /bbs encstr length array def
     /bhs encstr length array def
@@ -248,7 +280,6 @@ begin
         } if
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /bbs bbs
@@ -261,8 +292,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
