@@ -38,19 +38,171 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/code16k.swa  -1 def  /code16k.swb  -2 def  /code16k.swc  -3 def
+/code16k.sa1  -4 def  /code16k.sb1  -5 def  /code16k.sc1  -6 def
+/code16k.sa2  -7 def  /code16k.sb2  -8 def  /code16k.sc2  -9 def
+/code16k.pad -10 def  /code16k.sb3 -11 def  /code16k.sc3 -12 def
+/code16k.fn1 -13 def  /code16k.fn2 -14 def  /code16k.fn3 -15 def  /code16k.fn4 -16 def
+
+/swa //code16k.swa def  /swb //code16k.swb def  /swc //code16k.swc def
+/sa1 //code16k.sa1 def  /sb1 //code16k.sb1 def  /sc1 //code16k.sc1 def
+/sa2 //code16k.sa2 def  /sb2 //code16k.sb2 def  /sc2 //code16k.sc2 def
+/pad //code16k.pad def  /sb3 //code16k.sb3 def  /sc3 //code16k.sc3 def
+/fn1 //code16k.fn1 def  /fn2 //code16k.fn2 def  /fn3 //code16k.fn3 def  /fn4 //code16k.fn4 def
+
+%
+% Character maps for each state
+%
+/code16k.charmaps [
+    %  A    B    C         A    B    C         A    B    C
+    [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
+    [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
+    [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
+    [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
+    [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
+    [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
+    [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
+    [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
+    [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
+    [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
+    [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
+    [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
+    [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
+    [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
+    [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
+    [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
+    [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
+    [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
+    [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
+    [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
+    [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
+    [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
+    [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
+    [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
+    [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
+    [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
+    [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
+    [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
+    [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
+    [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
+    [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
+    [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
+    [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sb1  sa1  (98) ]  % 96-98
+    [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
+    [ fn1  fn1  fn1  ]  [ pad  pad  pad  ]  [ sb2  sa2  sb1  ]  % 102-104
+    [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]                      % 105-106
+] readonly def
+
+%
+% Basic metrics for the each symbol
+%
+%     r  dcws
+/code16k.metrics [
+    [  2    7 ]
+    [  3   12 ]
+    [  4   17 ]
+    [  5   22 ]
+    [  6   27 ]
+    [  7   32 ]
+    [  8   37 ]
+    [  9   42 ]
+    [ 10   47 ]
+    [ 11   52 ]
+    [ 12   57 ]
+    [ 13   62 ]
+    [ 14   67 ]
+    [ 15   72 ]
+    [ 16   77 ]
+] readonly def
+
+%
+% Character mappings
+%
+/code16k.encs [
+    (212222) (222122) (222221) (121223) (121322) (131222) (122213)
+    (122312) (132212) (221213) (221312) (231212) (112232) (122132)
+    (122231) (113222) (123122) (123221) (223211) (221132) (221231)
+    (213212) (223112) (312131) (311222) (321122) (321221) (312212)
+    (322112) (322211) (212123) (212321) (232121) (111323) (131123)
+    (131321) (112313) (132113) (132311) (211313) (231113) (231311)
+    (112133) (112331) (132131) (113123) (113321) (133121) (313121)
+    (211331) (231131) (213113) (213311) (213131) (311123) (311321)
+    (331121) (312113) (312311) (332111) (314111) (221411) (431111)
+    (111224) (111422) (121124) (121421) (141122) (141221) (112214)
+    (112412) (122114) (122411) (142112) (142211) (241211) (221114)
+    (413111) (241112) (134111) (111242) (121142) (121241) (114212)
+    (124112) (124211) (411212) (421112) (421211) (212141) (214121)
+    (412121) (111143) (111341) (131141) (114113) (114311) (411113)
+    (411311) (113141) (114131) (311141) (411131) (211412) (211214)
+    (211232) (211133)
+] readonly def
+
+%
+% Start/stop character encodings
+%
+/code16k.startencs [
+    (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+    (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+] readonly def
+
+/code16k.stopencsodd [
+    (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
+    (1132) (1231) (1114) (3112) (3211) (2221) (2122) (1411)
+] readonly def
+
+/code16k.stopencseven [
+    (2122) (1411) (1132) (1231) (1114) (3112) (1132) (1231)
+    (1114) (3112) (3211) (2221) (2122) (1411) (3211) (2221)
+] readonly def
+
+/code16k.latevars dup 3 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //code16k.latevars begin
+
+    %
+    % Invert charmaps to give character to value maps for each state
+    %
+    /charvals [ 109 dict 109 dict 109 dict ] def
+    0 1 //code16k.charmaps length 1 sub {
+        /i exch def
+        /encs //code16k.charmaps i get def
+        0 1 2 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put
+        } for
+    } for
+    /charvals charvals readonly def
+    /seta charvals 0 get readonly def
+    /setb charvals 1 get readonly def
+    /setc charvals 2 get readonly def
+
+    /init { //code16k.latevars {def} forall } def
+
+    end
+
+    //code16k.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /code16k {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /sam -1 def
     /rows 0 def
@@ -62,6 +214,8 @@ begin
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    //code16k.latevars /init get exec
 
     rows 0 ne rows 2 lt rows 16 gt or and {
         /bwipp.code16kBadRows (Code 16K must have 2 to 16 rows) //raiseerror exec
@@ -87,74 +241,7 @@ begin
         } if
     } if
 
-    /code16k //loadctx exec
-
     sam -1 ne {/rows 16 def} if
-
-    % Convert input into bytes accounting for FNC characters
-{
-    /swa  -1 def  /swb  -2 def  /swc  -3 def
-    /sa1  -4 def  /sb1  -5 def  /sc1  -6 def
-    /sa2  -7 def  /sb2  -8 def  /sc2  -9 def
-    /pad -10 def  /sb3 -11 def  /sc3 -12 def
-    /fn1 -13 def  /fn2 -14 def  /fn3 -15 def  /fn4 -16 def
-
-    % Character maps for each state
-    /charmaps [
-      %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
-      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
-      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
-      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
-      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
-      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
-      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
-      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
-      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
-      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
-      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
-      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
-      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
-      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
-      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
-      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
-      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
-      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
-      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
-      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
-      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
-      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
-      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
-      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
-      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
-      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
-      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
-      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
-      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
-      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
-      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
-      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
-      [ fn3  fn3  (96) ]  [ fn2  fn2  (97) ]  [ sb1  sa1  (98) ]  % 96-98
-      [ swc  swc  (99) ]  [ swb  fn4  swb  ]  [ fn4  swa  swa  ]  % 99-101
-      [ fn1  fn1  fn1  ]  [ pad  pad  pad  ]  [ sb2  sa2  sb1  ]  % 102-104
-      [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]                      % 105-106
-    ] def
-
-    % Invert charmaps to give character to value maps for each state
-    /charvals [ 109 dict 109 dict 109 dict ] def
-    0 1 charmaps length 1 sub {
-        /i exch def
-        /encs charmaps i get def
-        0 1 2 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put
-        } for
-    } for
-    /seta charvals 0 get def
-    /setb charvals 1 get def
-    /setc charvals 2 get def
-} ctxdef
 
     raw {
 
@@ -178,20 +265,24 @@ begin
 
     } {
 
+        %
         % Parse the input
+        %
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
             /eci true
-            (FNC1) fn1
-            (FNC2) fn2
-            (FNC3) fn3
+            (FNC1) //code16k.fn1
+            (FNC2) //code16k.fn2
+            (FNC3) //code16k.fn3
 %            (FNC4) fn4        Not user accessible as encoded automatically
         >> def
         /msg barcode fncvals //parseinput exec def
         /msglen msg length def
 
+        %
         % Standard and extended ASCII runlength at position
+        %
         /numSA [ msglen {0} repeat 0 ] def
         /numEA [ msglen {0} repeat 0 ] def
         msglen 1 sub -1 0 {
@@ -205,7 +296,9 @@ begin
             } if
         } for
 
+        %
         % FNC4 codeword insertion for extended ASCII
+        %
         /ea false def /msgtmp [] def
         0 1 msglen 1 sub {
             /i exch def
@@ -214,9 +307,9 @@ begin
                 ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
                 i add msglen eq {3} {5} ifelse       % Does run terminate symbol
                 lt {  % Shift
-                    /msgtmp [ msgtmp aload pop fn4 ] def
+                    /msgtmp [ msgtmp aload pop //code16k.fn4 ] def
                 } {   % Latch
-                    /msgtmp [ msgtmp aload pop fn4 fn4 ] def
+                    /msgtmp [ msgtmp aload pop //code16k.fn4 //code16k.fn4 ] def
                     /ea ea not def
                 } ifelse
             } if
@@ -225,14 +318,16 @@ begin
         /msg msgtmp def
         /msglen msg length def
 
+        %
         % Determine digit runlength and characters from given position
+        %
         /numsscr {
             /n 0 def /s 0 def
             /p exch def {
                 p msglen ge {exit} if
                 msg p get
                 dup setc exch known not {pop exit} if
-                fn1 eq {
+                //code16k.fn1 eq {
                     % FNC1 in odd position of run like two digits
                     s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
                 } if
@@ -243,7 +338,9 @@ begin
             n s
         } def
 
+        %
         % Encoding for each alphabet
+        %
         /enca {
             seta exch get cws exch j exch put
             /j j 1 add def
@@ -262,11 +359,15 @@ begin
             /j j 1 add def
         } def
 
+        %
         % Character exclusively in either alphabet A or B
+        %
         /anotb {dup seta exch known exch setb exch known not and} def
         /bnota {dup setb exch known exch seta exch known not and} def
 
+        %
         % Pre-compute relative position of next anotb and next bnota characters
+        %
         /nextanotb [ msg length {0} repeat 9999 ] def
         /nextbnota [ msg length {0} repeat 9999 ] def
         msg length 1 sub -1 0 {
@@ -283,7 +384,9 @@ begin
             } ifelse
         } for
 
+        %
         % Does a-only come before b-only after given position and vice versa
+        %
         /abeforeb {dup nextanotb exch get exch nextbnota exch get lt} def
         /bbeforea {dup nextbnota exch get exch nextanotb exch get lt} def
 
@@ -310,7 +413,7 @@ begin
             } if
             % FNC1 . 2+ nums => c fnc1
             msglen 2 ge {
-                msg 0 get fn1 eq 1 numsscr exch pop 2 ge and {
+                msg 0 get //code16k.fn1 eq 1 numsscr exch pop 2 ge and {
                     /cset (setc) def
                     /mode 4 def
                     /i 1 def
@@ -318,7 +421,7 @@ begin
                 } if
             } if
             % FNC1 => b fnc1
-            msg 0 get fn1 eq {
+            msg 0 get //code16k.fn1 eq {
                 /cset (setb) def
                 /mode 3 def
                 /i 1 def
@@ -387,14 +490,16 @@ begin
 
             i numsscr /nums exch def /nchars exch def
 
+            %
             % Determine switches and shifts
+            %
             {  % common exit
                 cset (seta) eq {
                     % bnota . anotb before bnota => sb1 encode
                     i msglen 1 sub lt {
                         msg i get bnota
                         i 1 add abeforeb and {
-                            sb1 enca
+                            //code16k.sb1 enca
                             msg i get encb
                             /i i 1 add def
                             exit
@@ -405,7 +510,7 @@ begin
                         msg i get bnota
                         msg i 1 add get bnota and
                         i 2 add abeforeb and {
-                            sb2 enca
+                            //code16k.sb2 enca
                             msg i get encb
                             msg i 1 add get encb
                             /i i 2 add def
@@ -414,7 +519,7 @@ begin
                     } if
                     % bnota => swb
                     msg i get bnota {
-                        swb enca
+                        //code16k.swb enca
                         /cset (setb) def
                         exit
                     } if
@@ -422,10 +527,10 @@ begin
                     i msglen 4 sub lt {
                         nums 4 eq
                         seta msg i 4 add get known and {
-                            sc2 enca
+                            //code16k.sc2 enca
                             2 {
-                                msg i get fn1 eq {
-                                    fn1 encc
+                                msg i get //code16k.fn1 eq {
+                                    //code16k.fn1 encc
                                     /i i 1 add def
                                 } {
                                     msg i 2 getinterval encc
@@ -439,10 +544,10 @@ begin
                     i msglen 6 sub lt {
                         nums 6 eq
                         seta msg i 6 add get known and {
-                            sc3 enca
+                            //code16k.sc3 enca
                             3 {
-                                msg i get fn1 eq {
-                                    fn1 encc
+                                msg i get //code16k.fn1 eq {
+                                    //code16k.fn1 encc
                                     /i i 1 add def
                                 } {
                                     msg i 2 getinterval encc
@@ -454,7 +559,7 @@ begin
                     } if
                     % 4+ even nums => swc
                     nums 4 ge nums 2 mod 0 eq and {
-                        swc enca
+                        //code16k.swc enca
                         /cset (setc) def
                         exit
                     } if
@@ -468,7 +573,7 @@ begin
                     i msglen 1 sub lt {
                         msg i get anotb
                         i 1 add bbeforea and {
-                            sa1 encb
+                            //code16k.sa1 encb
                             msg i get enca
                             /i i 1 add def
                             exit
@@ -479,7 +584,7 @@ begin
                         msg i get anotb
                         msg i 1 add get anotb and
                         i 2 add bbeforea and {
-                            sa2 encb
+                            //code16k.sa2 encb
                             msg i get enca
                             msg i 1 add get enca
                             /i i 2 add def
@@ -488,7 +593,7 @@ begin
                     } if
                     % anotb => swa
                     msg i get anotb {
-                        swa encb
+                        //code16k.swa encb
                         /cset (seta) def
                         exit
                     } if
@@ -496,10 +601,10 @@ begin
                     i msglen 4 sub lt {
                         nums 4 eq
                         setb msg i 4 add get known and {
-                            sc2 encb
+                            //code16k.sc2 encb
                             2 {
-                                msg i get fn1 eq {
-                                    fn1 encc
+                                msg i get //code16k.fn1 eq {
+                                    //code16k.fn1 encc
                                     /i i 1 add def
                                 } {
                                     msg i 2 getinterval encc
@@ -513,10 +618,10 @@ begin
                     i msglen 6 sub lt {
                         nums 6 eq
                         setb msg i 6 add get known and {
-                            sc3 encb
+                            //code16k.sc3 encb
                             3 {
-                                msg i get fn1 eq {
-                                    fn1 encc
+                                msg i get //code16k.fn1 eq {
+                                    //code16k.fn1 encc
                                     /i i 1 add def
                                 } {
                                     msg i 2 getinterval encc
@@ -528,7 +633,7 @@ begin
                     } if
                     % 4+ even nums => swc
                     nums 4 ge nums 2 mod 0 eq and {
-                        swc encb
+                        //code16k.swc encb
                         /cset (setc) def
                         exit
                     } if
@@ -540,8 +645,8 @@ begin
                 cset (setc) eq {
                     % 2+ nums => encode
                     nums 2 ge {
-                        msg i get fn1 eq {
-                            fn1 encc
+                        msg i get //code16k.fn1 eq {
+                            //code16k.fn1 encc
                             /i i 1 add def
                         } {
                             msg i 2 getinterval encc
@@ -553,7 +658,7 @@ begin
                     i msglen 1 sub lt {
                         setb msg i get known
                         i 1 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
-                            sb1 encc
+                            //code16k.sb1 encc
                             msg i get encb
                             /i i 1 add def
                             exit
@@ -563,7 +668,7 @@ begin
                     i msglen 1 sub lt {
                         setb msg i get known
                         i 1 add numsscr exch pop dup 3 ge exch 2 mod 1 eq and and {
-                            sb2 encc
+                            //code16k.sb2 encc
                             msg i get encb
                             msg i 1 add get encb
                             /i i 2 add def
@@ -575,7 +680,7 @@ begin
                         setb msg i get known
                         setb msg i 1 add get known and
                         i 2 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
-                            sb2 encc
+                            //code16k.sb2 encc
                             msg i get encb
                             msg i 1 add get encb
                             /i i 2 add def
@@ -587,7 +692,7 @@ begin
                         setb msg i get known
                         setb msg i 1 add get known and
                         i 2 add numsscr exch pop dup 3 ge exch 2 mod 1 eq and and {
-                            sb3 encc
+                            //code16k.sb3 encc
                             msg i get encb
                             msg i 1 add get encb
                             msg i 2 add get encb
@@ -601,7 +706,7 @@ begin
                         setb msg i 1 add get known and
                         setb msg i 2 add get known and
                         i 3 add numsscr exch pop dup 2 ge exch 2 mod 0 eq and and {
-                            sb3 encc
+                            //code16k.sb3 encc
                             msg i get encb
                             msg i 1 add get encb
                             msg i 2 add get encb
@@ -611,12 +716,12 @@ begin
                     } if
                     % anotb before bnota => swa
                     i abeforeb {
-                        swa encc
+                        //code16k.swa encc
                         /cset (seta) def
                         exit
                     } if
                     % otherwise => swb
-                    swb encc
+                    //code16k.swb encc
                     /cset (setb) def
                     exit
                 } if
@@ -627,31 +732,11 @@ begin
         /cws cws 0 j getinterval def
     } ifelse
 
-    % Basic metrics for the each symbol
-    %     r  dcws
-{
-    /metrics [
-        [  2    7 ]
-        [  3   12 ]
-        [  4   17 ]
-        [  5   22 ]
-        [  6   27 ]
-        [  7   32 ]
-        [  8   37 ]
-        [  9   42 ]
-        [ 10   47 ]
-        [ 11   52 ]
-        [ 12   57 ]
-        [ 13   62 ]
-        [ 14   67 ]
-        [ 15   72 ]
-        [ 16   77 ]
-    ] def
-} ctxdef
-
+    %
     % Select metrics of an appropriate symbol
+    %
     /urows rows def
-    metrics {
+    //code16k.metrics {
         /m exch def
         /r    m 0 get def        % Columns in symbol
         /dcws m 1 get def        % Data codewords in symbol
@@ -665,13 +750,19 @@ begin
         /bwipp.code16kNoValidSymbol (Maximum length exceeded or data too large for given options) //raiseerror exec
     } if
 
+    %
     % Extend cws to ncws codewords by addition of pad characters
+    %
     /cws [ cws aload pop dcws cws length sub {103} repeat ] def
 
+    %
     % Add the start character
+    %
     /cws [ r 2 sub 7 mul mode add cws aload pop ] def
 
+    %
     % Calculate the check characters
+    %
     0 0 1 dcws {dup 2 add exch cws exch get mul add} for
     107 mod /c1 exch def
     0 0 1 dcws {dup 1 add exch cws exch get mul add} for
@@ -680,58 +771,24 @@ begin
 
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (212222) (222122) (222221) (121223) (121322) (131222) (122213)
-      (122312) (132212) (221213) (221312) (231212) (112232) (122132)
-      (122231) (113222) (123122) (123221) (223211) (221132) (221231)
-      (213212) (223112) (312131) (311222) (321122) (321221) (312212)
-      (322112) (322211) (212123) (212321) (232121) (111323) (131123)
-      (131321) (112313) (132113) (132311) (211313) (231113) (231311)
-      (112133) (112331) (132131) (113123) (113321) (133121) (313121)
-      (211331) (231131) (213113) (213311) (213131) (311123) (311321)
-      (331121) (312113) (312311) (332111) (314111) (221411) (431111)
-      (111224) (111422) (121124) (121421) (141122) (141221) (112214)
-      (112412) (122114) (122411) (142112) (142211) (241211) (221114)
-      (413111) (241112) (134111) (111242) (121142) (121241) (114212)
-      (124112) (124211) (411212) (421112) (421211) (212141) (214121)
-      (412121) (111143) (111341) (131141) (114113) (114311) (411113)
-      (411311) (113141) (114131) (311141) (411131) (211412) (211214)
-      (211232) (211133)
-    ] def
-
-    % Start/stop character encodings
-    /startencs [
-        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
-        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
-    ] def
-    /stopencsodd [
-        (3211) (2221) (2122) (1411) (1132) (1231) (1114) (3112)
-        (1132) (1231) (1114) (3112) (3211) (2221) (2122) (1411)
-    ] def
-    /stopencseven [
-        (2122) (1411) (1132) (1231) (1114) (3112) (1132) (1231)
-        (1114) (3112) (3211) (2221) (2122) (1411) (3211) (2221)
-    ] def
-} ctxdef
-
     sam -1 eq sam 10 idiv 2 mod 1 eq or {
-        /stopencs stopencsodd def
+        /stopencs //code16k.stopencsodd def
     } {
-        /stopencs stopencseven def
+        /stopencs //code16k.stopencseven def
     } ifelse
 
+    %
     % Derive the bits for each row
+    %
     /rowbits r array def
     0 1 r 1 sub {
         /i exch def
         /sbs [
             10
-            startencs i get {48 sub} forall
+            //code16k.startencs i get {48 sub} forall
             1
             cws i 5 mul 5 getinterval {
-                encs exch get {48 sub} forall
+                //code16k.encs exch get {48 sub} forall
             } forall
             stopencs i get {48 sub} forall
             1
@@ -742,7 +799,9 @@ begin
         rowbits i 3 -1 roll put
     } for
 
+    %
     % Populate the bitmap
+    %
     /pixs [
         81 sepheight mul {1} repeat
         0 1 r 2 sub {
@@ -754,7 +813,6 @@ begin
         81 sepheight mul {1} repeat
     ] def
 
-    % Return the arguments
     <<
     /ren /renmatrix
     /pixs pixs
@@ -766,8 +824,6 @@ begin
     >>
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
