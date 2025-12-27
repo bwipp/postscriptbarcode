@@ -38,16 +38,42 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/code2of5.versions <<
+    /industrial [
+        (1111313111) (3111111131) (1131111131) (3131111111)
+        (1111311131) (3111311111) (1131311111) (1111113131)
+        (3111113111) (1131113111) (313111)     (31113)
+    ]
+    /iata [
+        (1111313111) (3111111131) (1131111131) (3131111111)
+        (1111311131) (3111311111) (1131311111) (1111113131)
+        (3111113111) (1131113111) (1111)       (311)
+    ]
+    /matrix [
+        (113311) (311131) (131131) (331111) (113131) (313111)
+        (133111) (111331) (311311) (131311) (311111) (31111)
+    ]
+    /coop [
+        (331111) (111331) (113131) (113311) (131131) (131311)
+        (133111) (311131) (311311) (313111) (3131)   (133)
+    ]
+    /datalogic [
+        (113311) (311131) (131131) (331111) (113131) (313111)
+        (133111) (111331) (311311) (131311) (1111)   (311)
+    ]
+>> readonly def
+
+/code2of5.barchars (0123456789) readonly def
+
 /code2of5 {
 
-    20 dict begin                 % Confine variable to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -68,9 +94,9 @@ begin
         /bwipp.code2of5emptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /code2of5 //loadctx exec
-
+    %
     % Validate input
+    %
     barcode {
         dup 48 lt exch 57 gt or {
             /bwipp.code2of5badCharacter (Code 25 must contain only digits) //raiseerror exec
@@ -93,38 +119,10 @@ begin
         /includecheck true def
     } if
 
-    % Create an array containing the character mappings
-{
-    /versions <<
-    /industrial
-        [ (1111313111) (3111111131) (1131111131) (3131111111)
-          (1111311131) (3111311111) (1131311111) (1111113131)
-          (3111113111) (1131113111) (313111)     (31113)
-        ]
-    /iata
-        [ (1111313111) (3111111131) (1131111131) (3131111111)
-          (1111311131) (3111311111) (1131311111) (1111113131)
-          (3111113111) (1131113111) (1111)       (311)
-        ]
-    /matrix
-        [ (113311) (311131) (131131) (331111) (113131) (313111)
-          (133111) (111331) (311311) (131311) (311111) (31111)
-        ]
-    /coop
-        [ (331111) (111331) (113131) (113311) (131131) (131311)
-          (133111) (311131) (311311) (313111) (3131)   (133)
-        ]
-    /datalogic
-        [ (113311) (311131) (131131) (331111) (113131) (313111)
-          (133111) (111331) (311311) (131311) (1111)   (311)
-        ]
-    >> def
-} ctxdef
-
-    versions version known not {
+    //code2of5.versions version known not {
         /bwipp.code2of5badVersion (Unrecognised Code 25 version) //raiseerror exec
     } if
-    /encs versions version get def
+    /encs //code2of5.versions version get def
 
     /cs encs 0 get length def
     /cw 0 encs 0 get {48 sub add} forall def
@@ -132,20 +130,17 @@ begin
     /sw 0 encs 10 get {48 sub add} forall def
     /es encs 11 get length def
 
-    % Create a string of the available characters
-{
-    /barchars (0123456789) def
-} ctxdef
-
     /sbs barlen includecheck {1 add} if cs mul ss add es add string def
     /txt barlen includecheck {1 add} if array def
 
+    %
     % Put the start character
+    %
     sbs 0 encs 10 get putinterval
     0 1 barlen 1 sub {
         /i exch def
         % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //code2of5.barchars exch search
         pop                                 % Discard true leaving pre
         length /indx exch def               % indx is the length of pre
         pop pop                             % Discard seek and post
@@ -154,12 +149,14 @@ begin
         txt i [barcode i 1 getinterval i cw mul sw add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the checksum and end characters
+    %
     includecheck {
         sbs barlen cs mul ss add encs checksum get putinterval
         sbs barlen cs mul cs add ss add encs 11 get putinterval
         includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen cw mul sw add textyoffset textfont textsize] put
+            txt barlen [//code2of5.barchars checksum 1 getinterval barlen cw mul sw add textyoffset textfont textsize] put
         } {
             txt barlen [( ) barlen cw mul sw add textyoffset textfont textsize] put
         } ifelse
@@ -167,7 +164,6 @@ begin
         sbs barlen cs mul ss add encs 11 get putinterval
     } ifelse
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -180,8 +176,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
