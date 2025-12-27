@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,16 +38,51 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/bc412.barchars (0R9GLVHA8EZ4NTS1J2Q6C7DYKBUIX3FWP5M) readonly def
+
+/bc412.encs [
+    (11111115) (13111212) (11131113) (12111213) (12121311)  % 0R9GL
+    (13131111) (12111312) (11131212) (11121411) (11151111)  % VHA8E
+    (15111111) (11111511) (12131211) (13121112) (13111311)  % Z4NTS
+    (11111214) (12121113) (11111313) (13111113) (11121213)  % 1J2Q6
+    (11141112) (11121312) (11141211) (14121111) (12121212)  % C7DYK
+    (11131311) (13121211) (12111411) (14111211) (11111412)  % BUIX3
+    (12111114) (14111112) (12141111) (11121114) (12131112)  % FWP5M
+    (12) (111)  % Start Stop
+] readonly def
+
+/bc412.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //bc412.latevars begin
+
+    /charvals 35 dict def
+    0 1 34 {
+        charvals exch dup //bc412.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //bc412.latevars {def} forall } def
+
+    end
+
+    //bc412.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /bc412 {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -65,6 +100,8 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //bc412.latevars /init get exec
+
     barcode () eq {
         /bwipp.bc412emptyData (The data must not be empty) //raiseerror exec
     } if
@@ -74,16 +111,9 @@ begin
         /includestartstop true def
     } if
 
-    /bc412 //loadctx exec
-
-    % Create a string of the available characters
-{
-    /barchars (0R9GLVHA8EZ4NTS1J2Q6C7DYKBUIX3FWP5M) def
-    /charvals 35 dict def
-    0 1 34 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.bc412badCharacter (BC412 must contain only digits and capital letters except O) //raiseerror exec
@@ -91,7 +121,9 @@ begin
     } for
 
     semi {
+        %
         % Validate length
+        %
         validatecheck {
             barcode length 8 lt barcode length 19 gt or {
                 /bwipp.bc412semivalidateBadLength (BC412 semi with check digit must be 8 to 19 characters long) //raiseerror exec
@@ -128,7 +160,7 @@ begin
             } if
         } {
             /checksum checksum 17 mul 35 mod def  % CD = Mod35( 17 * F )
-            barcode 1 barchars checksum get put
+            barcode 1 //bc412.barchars checksum get put
         } ifelse
     } {
         /barlen barcode length validatecheck {1 sub} if def
@@ -140,27 +172,13 @@ begin
         } for
         /checksum checksum 35 mod def
         validatecheck {
-            barcode barlen get barchars checksum get ne {
+            barcode barlen get //bc412.barchars checksum get ne {
                 /bwipp.bc412badCheckDigit (Incorrect BC412 check digit provided) //raiseerror exec
             } if
             /barcode barcode 0 barlen getinterval def
             /includecheck true def
         } if
     } ifelse
-
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (11111115) (13111212) (11131113) (12111213) (12121311)  % 0R9GL
-      (13131111) (12111312) (11131212) (11121411) (11151111)  % VHA8E
-      (15111111) (11111511) (12131211) (13121112) (13111311)  % Z4NTS
-      (11111214) (12121113) (11111313) (13111113) (11121213)  % 1J2Q6
-      (11141112) (11121312) (11141211) (14121111) (12121212)  % C7DYK
-      (11131311) (13121211) (12111411) (14111211) (11111412)  % BUIX3
-      (12111114) (14111112) (12141111) (11121114) (12131112)  % FWP5M
-      (12) (111)  % Start Stop
-    ] def
-} ctxdef
 
     /sbs barlen 1 add 8 mul 5 add string def
     includecheck {
@@ -169,9 +187,11 @@ begin
         /txt barlen array def
     } ifelse
 
+    %
     % Put the start character
+    %
     includestartstop {
-        sbs 0 encs 35 get putinterval
+        sbs 0 //bc412.encs 35 get putinterval
         /pos 2 def
         /txtpos 3.0 def
     } {
@@ -182,29 +202,32 @@ begin
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        sbs pos encs indx get putinterval
+        sbs pos //bc412.encs indx get putinterval
         txt i [barcode i 1 getinterval i 12 mul txtpos add textyoffset textfont textsize] put
         /pos pos 8 add def
     } for
 
+    %
     % Put the checksum
+    %
     includecheck {
-        sbs pos encs checksum get putinterval
+        sbs pos //bc412.encs checksum get putinterval
         includecheckintext {
-            txt barlen [barchars checksum 1 getinterval barlen 12 mul txtpos add textyoffset textfont textsize] put
+            txt barlen [//bc412.barchars checksum 1 getinterval barlen 12 mul txtpos add textyoffset textfont textsize] put
         } {
             txt barlen [() barlen 12 mul txtpos add textyoffset textfont textsize] put
         } ifelse
         /pos pos 8 add def
     } if
 
+    %
     % Put the stop character
+    %
     includestartstop {
-        sbs pos encs 36 get putinterval
+        sbs pos //bc412.encs 36 get putinterval
         /pos pos 3 add def
     } if
 
-    % Return the arguments
     /sbs sbs 0 pos getinterval def
     <<
     /ren /renlinear
@@ -218,8 +241,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
