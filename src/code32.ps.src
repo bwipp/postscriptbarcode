@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -60,7 +60,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate the input
+    %
     barcode length 8 ne barcode length 9 ne and {
         /bwipp.code32badLength (Italian Pharmacode must be 8 or 9 digits) //raiseerror exec
     } if
@@ -70,7 +72,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate check digit
+    %
     /checksum 0 def
     0 1 7 {
         /i exch def
@@ -88,24 +92,31 @@ begin
     dup 8 checksum 48 add put
     /text exch def
 
-    % convert number from base10 to base32
+    %
+    % Convert number from base10 to base32
     /val text cvi 32 6 string cvrs def
     /barcode 6 string def
     0 1 5 {barcode exch 48 put} for
     barcode 6 val length sub val putinterval
 
-    % convert base32 number to specified character set
+    %
+    % Convert base32 number to specified character set
+    %
     0 1 5 {
         dup barcode exch get
         dup (AEIO) {ge {1 add} if dup} forall pop
         barcode 3 1 roll put
     } for
 
-    % format HRI
+    %
+    % Format HRI
+    %
     text 1 text 0 9 getinterval putinterval
     text 0 65 put
 
+    %
     % Get the result of encoding with code39
+    %
     options (dontdraw) true put
     /args barcode options //code39 exec def
 
