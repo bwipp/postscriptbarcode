@@ -41,6 +41,11 @@ begin
 
 /gs1process.primes [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 ] readonly def
 
+%
+% Note: Leap year is dealt with exceptionally
+%
+/gs1process.daysinmonth [ 31 -1 31 30 31 30 31 31 30 31 30 31 ] readonly def
+
 /gs1process.latevars dup 11 dict def load /init {
 
     currentglobal
@@ -2551,7 +2556,6 @@ begin
         } forall
     ] def
 
-
     % Linter routines for validating AI components
     /lintnumeric {
         true exch { dup 48 lt exch 57 gt or { pop false exit } if } forall
@@ -2702,10 +2706,12 @@ begin
     } def
 
     /lintyyyymmd0 {
-        dup 4 2 getinterval cvi dup 1 lt exch 12 gt or { pop /bwipp.GS1badMonth (Invalid month) false exit } if
-        dup 0 4 getinterval cvi dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or  % Leap year?
-        [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
-        1 index 4 2 getinterval cvi 1 sub get
+        dup 4 2 getinterval cvi dup dup 1 lt exch 12 gt or { pop pop /bwipp.GS1badMonth (Invalid month) false exit } if
+        2 eq {  % Leap year?
+            dup 0 4 getinterval cvi dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or { 29 } { 28 } ifelse
+        } {
+            //gs1process.daysinmonth 1 index 4 2 getinterval cvi 1 sub get
+        } ifelse
         exch 6 2 getinterval cvi lt { pop /bwipp.GS1badDay (Invalid day of month) false exit } if
     } def
 
@@ -2994,12 +3000,14 @@ begin
             dup length 6 lt {
                 pop pop /bwipp.GS1couponTooShortExpirationDate (Coupon too short: Expiration date) false exit
             } if
-            dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop pop /bwipp.GS1couponExpirationDateBadMonth (Invalid month in expiration date) false exit } if
-            dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
-            dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
-            dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or           % Leap year?
-            [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
-            1 index 2 2 getinterval cvi 1 sub get
+            dup 2 2 getinterval cvi dup dup 1 lt exch 12 gt or { pop pop pop /bwipp.GS1couponExpirationDateBadMonth (Invalid month in expiration date) false exit } if
+            2 eq {  % Leap year?
+                dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
+                dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
+                dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or { 29 } { 28 } ifelse
+            } {
+                //gs1process.daysinmonth 1 index 2 2 getinterval cvi 1 sub get
+            } ifelse
             1 index 4 2 getinterval cvi dup 3 1 roll lt
             exch 1 lt or { pop pop /bwipp.GS1couponExpirationDateBadDay (Invalid day of month in expiration date) false exit } if
             dup 0 6 getinterval cvi /couponexpire exch def
@@ -3015,12 +3023,14 @@ begin
             dup length 6 lt {
                 pop pop /bwipp.GS1couponTooShortStartDate (Coupon too short: Start date) false exit
             } if
-            dup 2 2 getinterval cvi dup 1 lt exch 12 gt or { pop pop /bwipp.GS1couponStartDateBadMonth (Invalid month in start date) false exit } if
-            dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
-            dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
-            dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or           % Leap year?
-            [ 31  3 -1 roll {29} {28} ifelse  31 30 31 30 31 31 30 31 30 31 ]
-            1 index 2 2 getinterval cvi 1 sub get
+            dup 2 2 getinterval cvi dup dup 1 lt exch 12 gt or { pop pop pop /bwipp.GS1couponStartDateBadMonth (Invalid month in start date) false exit } if
+            2 eq {  % Leap year?
+                dup 0 2 getinterval cvi dup 21 sub  % Update 20YY periodically for century calculation
+                dup 51 ge {pop 1900 add} { -50 le {2100 add} {2000 add} ifelse} ifelse  % YYYY
+                dup 400 mod 0 eq exch dup 4 mod 0 eq exch 100 mod 0 ne and or { 29 } { 28 } ifelse
+            } {
+                //gs1process.daysinmonth 1 index 2 2 getinterval cvi 1 sub get
+            } ifelse
             1 index 4 2 getinterval cvi dup 3 1 roll lt
             exch 1 lt or { pop pop /bwipp.GS1couponStartDateBadDay (Invalid day of month in start date) false exit } if
             dup 0 6 getinterval cvi /couponstart exch def
