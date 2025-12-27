@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,47 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/code11.encs [
+    (111131) (311131) (131131) (331111) (113131)
+    (313111) (133111) (111331) (311311) (311111)
+    (113111) (113311)
+] readonly def
+
+/code11.barchars (0123456789-) readonly def
+
+/code11.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //code11.latevars begin
+
+    /charvals 11 dict def
+    0 1 10 {
+        charvals exch dup //code11.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //code11.latevars {def} forall } def
+
+    end
+
+    //code11.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /code11 {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
-    /ctx null def
     /dontdraw false def
     /includecheck false def
     /validatecheck false def
@@ -63,27 +92,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //code11.latevars /init get exec
+
     barcode () eq {
         /bwipp.code11emptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /code11 //loadctx exec
-
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (111131) (311131) (131131) (331111) (113131)
-      (313111) (133111) (111331) (311311) (311111)
-      (113111) (113311)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789-) def
-    /charvals 11 dict def
-    0 1 10 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.code11badCharacter (Code 11 must contain only digits and dashes) //raiseerror exec
@@ -110,12 +127,12 @@ begin
     /checksum2 checksum2 checksum1 add 11 mod def
     validatecheck {
         numchecks 1 eq {
-            barcode barlen get barchars checksum1 get ne {
+            barcode barlen get //code11.barchars checksum1 get ne {
                 /bwipp.code11badCheckDigit (Incorrect Code 11 check digit provided) //raiseerror exec
             } if
         } {
-            barcode barlen get barchars checksum1 get ne
-            barcode barlen 1 add get barchars checksum2 get ne or {
+            barcode barlen get //code11.barchars checksum1 get ne
+            barcode barlen 1 add get //code11.barchars checksum2 get ne or {
                 /bwipp.code11badCheckDigits (Incorrect Code 11 check digits provided) //raiseerror exec
             } if
         } ifelse
@@ -126,14 +143,16 @@ begin
     /sbs barlen numchecks add 6 mul 12 add string def
     /txt barlen numchecks add array def
 
+    %
     % Put the start character
-    sbs 0 encs 11 get putinterval
+    %
+    sbs 0 //code11.encs 11 get putinterval
 
     /xpos 8 def
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        /enc encs indx get def
+        /enc //code11.encs indx get def
         sbs i 6 mul 6 add enc putinterval
         txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
         0 1 5 {       % xpos+=width of the character
@@ -141,37 +160,38 @@ begin
         } for
     } for
 
+    %
     % Put the checksum and end characters
+    %
     includecheck {
         barlen 10 ge {
-            sbs barlen 6 mul 6 add encs checksum1 get putinterval
-            sbs barlen 6 mul 12 add encs checksum2 get putinterval
+            sbs barlen 6 mul 6 add //code11.encs checksum1 get putinterval
+            sbs barlen 6 mul 12 add //code11.encs checksum2 get putinterval
             includecheckintext {
-                txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
-                /enc encs checksum1 get def
+                txt barlen [//code11.barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
+                /enc //code11.encs checksum1 get def
                 0 1 5 {       % xpos+=width of the character
                     /xpos exch enc exch get 48 sub xpos add def
                 } for
-                txt barlen 1 add [barchars checksum2 1 getinterval xpos textyoffset textfont textsize] put
+                txt barlen 1 add [//code11.barchars checksum2 1 getinterval xpos textyoffset textfont textsize] put
             } {
                 txt barlen [() xpos textyoffset textfont textsize] put
                 txt barlen 1 add [() xpos textyoffset textfont textsize] put
             } ifelse
-            sbs barlen 6 mul 18 add encs 11 get putinterval
+            sbs barlen 6 mul 18 add //code11.encs 11 get putinterval
         } {
-            sbs barlen 6 mul 6 add encs checksum1 get putinterval
+            sbs barlen 6 mul 6 add //code11.encs checksum1 get putinterval
             includecheckintext {
-                txt barlen [barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
+                txt barlen [//code11.barchars checksum1 1 getinterval xpos textyoffset textfont textsize] put
             } {
                 txt barlen [() xpos textyoffset textfont textsize] put
             } ifelse
-            sbs barlen 6 mul 12 add encs 11 get putinterval
+            sbs barlen 6 mul 12 add //code11.encs 11 get putinterval
         } ifelse
     } {
-        sbs barlen 6 mul 6 add encs 11 get putinterval
+        sbs barlen 6 mul 6 add //code11.encs 11 get putinterval
     } ifelse
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -184,8 +204,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
