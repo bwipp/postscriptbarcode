@@ -39,18 +39,50 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 20 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/databaromni.tab164 [
+    160   0     12 4   8 1  161   1
+    960   161   10 6   6 3  80   10
+    2014  961   8  8   4 5  31   34
+    2714  2015  6  10  3 6  10   70
+    2840  2715  4  12  1 8  1    126
+] readonly def
+
+/databaromni.tab154 [
+    335   0     5  10  2 7  4   84
+    1035  336   7  8   4 5  20  35
+    1515  1036  9  6   6 3  48  10
+    1596  1516  11 4   8 1  81  1
+] readonly def
+
+/databaromni.checkweights [
+    1   3   9   27  2   6   18  54
+    58  72  24  8   29  36  12  4
+    74  51  17  32  37  65  48  16
+    64  34  23  69  49  68  46  59
+] readonly def
+
+/databaromni.checkwidths [
+    3 8 2 1 1   3 5 5 1 1   3 3 7 1 1
+    3 1 9 1 1   2 7 4 1 1   2 5 6 1 1
+    2 3 8 1 1   1 5 7 1 1   1 3 9 1 1
+] readonly def
+
+/databaromni.seppad [ 0 0 0 0 ] readonly def
+/databaromni.findersep [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] readonly def
+/databaromni.f3pat [ 1 1 1 1 1 1 1 1 1 0 1 1 1 ] readonly def
+
 /databaromni {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /height 33.0 72 div def
     /linkage false def
@@ -82,9 +114,9 @@ begin
 
     format (truncated) eq {/height 13.0 72 div def} if
 
-    /databaromni //loadctx exec
-
+    %
     % Calculate checksum and add to end of barcode
+    %
     /checksum 0 def
     0 1 12 {
         /i exch def
@@ -101,7 +133,9 @@ begin
     dup 17 checksum 48 add put
     /barcode exch def
 
+    %
     % Create the human readable text
+    %
     /txt barcode length array def
     0 1 barcode length 1 sub {
         /i exch def
@@ -194,26 +228,9 @@ begin
     /d3 right 1597 idiv def
     /d4 right 1597 mod def
 
-{
-    /tab164 [
-        160   0     12 4   8 1  161   1
-        960   161   10 6   6 3  80   10
-        2014  961   8  8   4 5  31   34
-        2714  2015  6  10  3 6  10   70
-        2840  2715  4  12  1 8  1    126
-    ] def
-
-    /tab154 [
-        335   0     5  10  2 7  4   84
-        1035  336   7  8   4 5  20  35
-        1515  1036  9  6   6 3  48  10
-        1596  1516  11 4   8 1  81  1
-    ] def
-} ctxdef
-
     /i 0 def {
-        d1 tab164 i get le {
-            tab164 i 1 add 7 getinterval aload pop
+        d1 //databaromni.tab164 i get le {
+            //databaromni.tab164 i 1 add 7 getinterval aload pop
             /d1te exch def /d1to exch def
             /d1mwe exch def /d1mwo exch def
             /d1ele exch def /d1elo exch def
@@ -224,8 +241,8 @@ begin
     } loop
 
     /i 0 def {
-        d2 tab154 i get le {
-            tab154 i 1 add 7 getinterval aload pop
+        d2 //databaromni.tab154 i get le {
+            //databaromni.tab154 i 1 add 7 getinterval aload pop
             /d2te exch def /d2to exch def
             /d2mwe exch def /d2mwo exch def
             /d2ele exch def /d2elo exch def
@@ -236,8 +253,8 @@ begin
     } loop
 
     /i 0 def {
-        d3 tab164 i get le {
-            tab164 i 1 add 7 getinterval aload pop
+        d3 //databaromni.tab164 i get le {
+            //databaromni.tab164 i 1 add 7 getinterval aload pop
             /d3te exch def /d3to exch def
             /d3mwe exch def /d3mwo exch def
             /d3ele exch def /d3elo exch def
@@ -248,8 +265,8 @@ begin
     } loop
 
     /i 0 def {
-        d4 tab154 i get le {
-            tab154 i 1 add 7 getinterval aload pop
+        d4 //databaromni.tab154 i get le {
+            //databaromni.tab154 i 1 add 7 getinterval aload pop
             /d4te exch def /d4to exch def
             /d4mwe exch def /d4mwo exch def
             /d4ele exch def /d4elo exch def
@@ -303,38 +320,25 @@ begin
         d4w aload pop
     ] def
 
-{
-    /checkweights [
-        1   3   9   27  2   6   18  54
-        58  72  24  8   29  36  12  4
-        74  51  17  32  37  65  48  16
-        64  34  23  69  49  68  46  59
-    ] def
-
-    /checkwidths [
-        3 8 2 1 1   3 5 5 1 1   3 3 7 1 1
-        3 1 9 1 1   2 7 4 1 1   2 5 6 1 1
-        2 3 8 1 1   1 5 7 1 1   1 3 9 1 1
-    ] def
-} ctxdef
-
     /checksum 0 def
     0 1 31 {
         /i exch def
-        /checksum checksum widths i get checkweights i get mul add def
+        /checksum checksum widths i get //databaromni.checkweights i get mul add def
     } for
     /checksum checksum 79 mod def
     checksum 8 ge {/checksum checksum 1 add def} if
     checksum 72 ge {/checksum checksum 1 add def} if
-    /checklt checkwidths checksum 9 idiv 5 mul 5 getinterval def
-    /checkrtrev checkwidths checksum 9 mod 5 mul 5 getinterval def
+    /checklt //databaromni.checkwidths checksum 9 idiv 5 mul 5 getinterval def
+    /checkrtrev //databaromni.checkwidths checksum 9 mod 5 mul 5 getinterval def
     /checkrt 5 array def
     0 1 4 {
         /i exch def
         checkrt i checkrtrev 4 i sub get put
     } for
 
+    %
     % Stacked format
+    %
     format (omni) eq format (truncated) eq or {  % linear
 
         /sbs [
@@ -391,7 +395,9 @@ begin
         } for
         50 array astore /bot exch def
 
+        %
         % Stacked
+        %
         format (stacked) eq {
             /sep 50 array def
             sep 0 0 put
@@ -403,8 +409,8 @@ begin
                     sep i 1 sep i 1 sub get sub put
                 } ifelse
             } for
-            sep 0  [ 0 0 0 0 ] putinterval
-            sep 46 [ 0 0 0 0 ] putinterval
+            sep 0  //databaromni.seppad putinterval
+            sep 46 //databaromni.seppad putinterval
             /pixs [
                 5 {top aload pop} repeat
                 sep aload pop
@@ -413,11 +419,13 @@ begin
             /pixy pixs length 50 idiv def
         } if
 
+        %
         % Stacked omnidirectional
+        %
         format (stackedomni) eq {
             /sep1 [ top {1 exch sub} forall ] def
-            sep1 0  [ 0 0 0 0 ] putinterval
-            sep1 46 [ 0 0 0 0 ] putinterval
+            sep1 0  //databaromni.seppad putinterval
+            sep1 46 //databaromni.seppad putinterval
             18 1 30 {
                 /i exch def
                 top i get 0 eq {
@@ -433,8 +441,8 @@ begin
             } for
             /sep2 [ 0 0 0 0 21 { 0 1 } repeat 0 0 0 0 ] def
             /sep3 [ bot {1 exch sub} forall ] def
-            sep3 0  [ 0 0 0 0 ] putinterval
-            sep3 46 [ 0 0 0 0 ] putinterval
+            sep3 0  //databaromni.seppad putinterval
+            sep3 46 //databaromni.seppad putinterval
             19 1 31 {
                 /i exch def
                 bot i get 0 eq {
@@ -448,10 +456,9 @@ begin
                 } ifelse
                 sep3 exch i exch put
             } for
-            /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
-            true 0 1 12 {dup bot exch 19 add get exch f3 exch get eq and} for {
+            true 0 1 12 {dup bot exch 19 add get exch //databaromni.f3pat exch get eq and} for {
                 % Right shifted module for value 3 finder
-                sep3 19 [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+                sep3 19 //databaromni.findersep putinterval
             } if
             /pixs [
                 barxmult {top aload pop} repeat
@@ -463,7 +470,6 @@ begin
             /pixy pixs length 50 idiv def
         } if
 
-        % Return the arguments
         <<
         /ren /renmatrix
         /pixs pixs
@@ -481,8 +487,6 @@ begin
         dontdraw not //renmatrix if
 
     } ifelse
-
-    //unloadctx exec
 
     end
 
