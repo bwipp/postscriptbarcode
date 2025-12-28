@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -46,11 +46,15 @@ dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/databarexpandedstackedcomposite.seppad [ 0 0 0 0 ] readonly def
+
 /databarexpandedstackedcomposite {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /usematrix false def
     /parse false def
@@ -62,7 +66,9 @@ begin
 
     dontdraw { /usematrix true def } if
 
+    %
     % Split the linear and composite parts
+    %
     barcode (|) search {
         /linear exch def
         pop
@@ -79,19 +85,25 @@ begin
     options (dontdraw) true put
     options (dontlint) true put
 
+    %
     % Lint the combined AI element strings
+    %
     linear length comp length add string
     dup 0 linear putinterval
     dup linear length comp putinterval
     /ai //gs1process exec pop pop pop
 
+    %
     % Plot the linear part
+    %
     linear options //databarexpandedstacked exec
     dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
     dup (pixy) get /linheight exch def
     usematrix not { //renmatrix exec } { /pixs get /linpixs exch def } ifelse
 
+    %
     % Plot the separator
+    %
     /sepfinder {
         /fp exch def
         fp 1 fp 12 add {
@@ -109,8 +121,8 @@ begin
         } for
     } def
     /sep [ bot {1 exch sub} forall ] def
-    sep 0 [ 0 0 0 0 ] putinterval
-    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    sep 0 //databarexpandedstackedcomposite.seppad putinterval
+    sep sep length 4 sub //databarexpandedstackedcomposite.seppad putinterval
     [  % Finder pattern module positions
         19 98 bot length 13 sub {} for
         70 98 bot length 13 sub {} for
@@ -120,7 +132,9 @@ begin
 
         currentpoint
 
+        %
         % Plot the 2D part
+        %
         bot 0 get 0 eq {2} {0} ifelse linheight 1 add rmoveto
         comp options //gs1-cc exec //renmatrix exec
 
