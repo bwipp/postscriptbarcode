@@ -39,27 +39,44 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code93 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/code93ext.extencs [
+    (^SFT%U) (^SFT$A) (^SFT$B) (^SFT$C) (^SFT$D) (^SFT$E) (^SFT$F) (^SFT$G)
+    (^SFT$H) (^SFT$I) (^SFT$J) (^SFT$K) (^SFT$L) (^SFT$M) (^SFT$N) (^SFT$O)
+    (^SFT$P) (^SFT$Q) (^SFT$R) (^SFT$S) (^SFT$T) (^SFT$U) (^SFT$V) (^SFT$W)
+    (^SFT$X) (^SFT$Y) (^SFT$Z) (^SFT%A) (^SFT%B) (^SFT%C) (^SFT%D) (^SFT%E)
+    ( )      (^SFT/A) (^SFT/B) (^SFT/C) ($)      (%)      (^SFT/F) (^SFT/G)
+    (^SFT/H) (^SFT/I) (^SFT/J) (+)      (^SFT/L) (-)      (.)      (/)
+    (0)      (1)      (2)      (3)      (4)      (5)      (6)      (7)
+    (8)      (9)      (^SFT/Z) (^SFT%F) (^SFT%G) (^SFT%H) (^SFT%I) (^SFT%J)
+    (^SFT%V) (A)      (B)      (C)      (D)      (E)      (F)      (G)
+    (H)      (I)      (J)      (K)      (L)      (M)      (N)      (O)
+    (P)      (Q)      (R)      (S)      (T)      (U)      (V)      (W)
+    (X)      (Y)      (Z)      (^SFT%K) (^SFT%L) (^SFT%M) (^SFT%N) (^SFT%O)
+    (^SFT%W) (^SFT+A) (^SFT+B) (^SFT+C) (^SFT+D) (^SFT+E) (^SFT+F) (^SFT+G)
+    (^SFT+H) (^SFT+I) (^SFT+J) (^SFT+K) (^SFT+L) (^SFT+M) (^SFT+N) (^SFT+O)
+    (^SFT+P) (^SFT+Q) (^SFT+R) (^SFT+S) (^SFT+T) (^SFT+U) (^SFT+V) (^SFT+W)
+    (^SFT+X) (^SFT+Y) (^SFT+Z) (^SFT%P) (^SFT%Q) (^SFT%R) (^SFT%S) (^SFT%T)
+] readonly def
+
 /code93ext {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /parse false def
 
     //processoptions exec /options exch def
     /barcode exch def
-
-    /code93ext //loadctx exec
 
     % Parse ordinals of the form ^NNN to ASCII
     /fncvals <<
@@ -69,29 +86,8 @@ begin
     >> def
     /barcode barcode fncvals //parseinput exec def
     /barlen barcode length def
-    options (parse) undef
 
-    % Extended alphabet to non-extended alphabet
-{
-    /extencs
-    [ (^SFT%U) (^SFT$A) (^SFT$B) (^SFT$C) (^SFT$D) (^SFT$E) (^SFT$F) (^SFT$G)
-      (^SFT$H) (^SFT$I) (^SFT$J) (^SFT$K) (^SFT$L) (^SFT$M) (^SFT$N) (^SFT$O)
-      (^SFT$P) (^SFT$Q) (^SFT$R) (^SFT$S) (^SFT$T) (^SFT$U) (^SFT$V) (^SFT$W)
-      (^SFT$X) (^SFT$Y) (^SFT$Z) (^SFT%A) (^SFT%B) (^SFT%C) (^SFT%D) (^SFT%E)
-      ( )      (^SFT/A) (^SFT/B) (^SFT/C) ($)      (%)      (^SFT/F) (^SFT/G)
-      (^SFT/H) (^SFT/I) (^SFT/J) (+)      (^SFT/L) (-)      (.)      (/)
-      (0)      (1)      (2)      (3)      (4)      (5)      (6)      (7)
-      (8)      (9)      (^SFT/Z) (^SFT%F) (^SFT%G) (^SFT%H) (^SFT%I) (^SFT%J)
-      (^SFT%V) (A)      (B)      (C)      (D)      (E)      (F)      (G)
-      (H)      (I)      (J)      (K)      (L)      (M)      (N)      (O)
-      (P)      (Q)      (R)      (S)      (T)      (U)      (V)      (W)
-      (X)      (Y)      (Z)      (^SFT%K) (^SFT%L) (^SFT%M) (^SFT%N) (^SFT%O)
-      (^SFT%W) (^SFT+A) (^SFT+B) (^SFT+C) (^SFT+D) (^SFT+E) (^SFT+F) (^SFT+G)
-      (^SFT+H) (^SFT+I) (^SFT+J) (^SFT+K) (^SFT+L) (^SFT+M) (^SFT+N) (^SFT+O)
-      (^SFT+P) (^SFT+Q) (^SFT+R) (^SFT+S) (^SFT+T) (^SFT+U) (^SFT+V) (^SFT+W)
-      (^SFT+X) (^SFT+Y) (^SFT+Z) (^SFT%P) (^SFT%Q) (^SFT%R) (^SFT%S) (^SFT%T)
-    ] def
-} ctxdef
+    options (parse) undef
 
     /newcode barlen 6 mul string def
     /newtext barlen 6 mul string def
@@ -102,7 +98,7 @@ begin
         dup 127 gt {
             pop /bwipp.code93extbadCharacter (Code 93 Extended only support ASCII characters with values 0 to 127) //raiseerror exec
         } if
-        extencs exch get /extchar exch def
+        //code93ext.extencs exch get /extchar exch def
         /extlen extchar length def
         newcode j extchar putinterval
         newtext k barcode i get dup dup 32 lt exch 127 eq or { pop 32 } if put
@@ -133,8 +129,6 @@ begin
     args
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
