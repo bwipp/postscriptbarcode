@@ -46,6 +46,11 @@ dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/databarstackedcomposite.seppad [ 0 0 0 0 ] readonly def
+/databarstackedcomposite.findersep [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] readonly def
+/databarstackedcomposite.f3pat [ 1 1 1 1 1 1 1 1 1 0 1 1 1 ] readonly def
+
 /databarstackedcomposite {
 
     20 dict begin
@@ -115,15 +120,14 @@ begin
             } ifelse
             sep exch i exch put
         } for
-        /f3 [1 1 1 1 1 1 1 1 1 0 1 1 1] def
-        true 0 1 12 {dup bot exch fp add get exch f3 exch get eq and} for {
+        true 0 1 12 {dup bot exch fp add get exch //databarstackedcomposite.f3pat exch get eq and} for {
             % Right shifted module for value 3 finder
-            sep fp [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] putinterval
+            sep fp //databarstackedcomposite.findersep putinterval
         } if
     } def
     /sep [ bot {1 exch sub} forall ] def
-    sep 0 [ 0 0 0 0 ] putinterval
-    sep sep length 4 sub [ 0 0 0 0 ] putinterval
+    sep 0 //databarstackedcomposite.seppad putinterval
+    sep sep length 4 sub //databarstackedcomposite.seppad putinterval
     18 sepfinder
 
     usematrix not {
