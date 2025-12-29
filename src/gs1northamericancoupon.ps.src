@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -47,9 +47,10 @@ dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1northamericancoupon {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def  % Enable/disable coupon text
     /coupontextfont /Helvetica def
@@ -70,17 +71,17 @@ begin
 
     % Validate the AI structure
     ais length 1 ne {
-      /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
+        /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
     } if
     ais 0 get (8110) ne {
-      /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
+        /bwipp.gs1northamericancouponBadAIStructure (A GS1 North American Coupon should consist of a single AI (8110)) //raiseerror exec
     } if
 
     % Parse out the Company Prefix and Offer Code
     /val vals 0 get def
     /vli val 0 get 48 sub def
     vli 0 lt vli 6 gt or {
-      /bwipp.gs1northamericancouponBadVLI (The AI (8110) data should start with a Company Prefix length indicator in the range 0 to 6) //raiseerror exec
+        /bwipp.gs1northamericancouponBadVLI (The AI (8110) data should start with a Company Prefix length indicator in the range 0 to 6) //raiseerror exec
     } if
     /gcp val 1 vli 6 add getinterval def
     /cod val vli 7 add 6 getinterval def
