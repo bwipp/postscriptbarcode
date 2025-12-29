@@ -39,17 +39,67 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 20 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/databarlimited.linkval [ 2 0 1 5 1 3 3 5 3 1 0 9 6 ] readonly def
+
+/databarlimited.tab267 [
+    183063   0        17 9   6 3  6538   28
+    820063   183064   13 13  5 4  875    728
+    1000775  820064   9  17  3 6  28     6454
+    1491020  1000776  15 11  5 4  2415   203
+    1979844  1491021  11 15  4 5  203    2408
+    1996938  1979845  19 7   8 1  17094  1
+    2013570  1996939  7  19  1 8  1      16632
+] readonly def
+
+/databarlimited.checkweights [
+    1  3  9  27 81 65 17 51 64 14 42 37 22 66
+    20 60 2  6  18 54 73 41 34 13 39 28 84 74
+] readonly def
+
+/databarlimited.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //databarlimited.latevars begin
+
+    /checkseq [
+        0 1 43 {} for
+        45 52 57
+        63 1 66 {} for
+        73 1 79 {} for
+        82
+        126 1 130 {} for
+        132
+        141 1 146 {} for
+        210 1 217 {} for
+        220
+        316 1 320 {} for
+        322 323
+        326 337
+    ] readonly def
+
+    /init { //databarlimited.latevars {def} forall } def
+
+    end
+
+    //databarlimited.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /databarlimited {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /height 10.0 72 div def
     /linkage false def
@@ -57,9 +107,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /databarlimited //loadctx exec
+    //databarlimited.latevars /init get exec
 
+    %
     % Validate the input
+    %
     barcode length 17 ne barcode length 18 ne and {
         /bwipp.databarlimitedBadLength (GS1 DataBar Limited must be 13 or 14 digits) //raiseerror exec
     } if
@@ -75,7 +127,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate checksum and add to end of barcode
+    %
     /checksum 0 def
     0 1 12 {
         /i exch def
@@ -92,21 +146,22 @@ begin
     dup 17 checksum 48 add put
     /barcode exch def
 
+    %
     % Strip the AI and optional check digit
-{
-    /linkval [ 2 0 1 5 1 3 3 5 3 1 0 9 6 ] def
-} ctxdef
+    %
     /binval [
         barcode 4 13 getinterval {48 sub} forall
     ] def
     linkage {
         0 1 binval length 1 sub {
             /i exch def
-            binval i binval i get linkval i get add put
+            binval i binval i get //databarlimited.linkval i get add put
         } for
     } if
 
+    %
     % Create the human readable text
+    %
     /txt barcode length array def
     0 1 barcode length 1 sub {
         /i exch def
@@ -189,21 +244,9 @@ begin
         } ifelse
     } for
 
-{
-    /tab267 [
-        183063   0        17 9   6 3  6538   28
-        820063   183064   13 13  5 4  875    728
-        1000775  820064   9  17  3 6  28     6454
-        1491020  1000776  15 11  5 4  2415   203
-        1979844  1491021  11 15  4 5  203    2408
-        1996938  1979845  19 7   8 1  17094  1
-        2013570  1996939  7  19  1 8  1      16632
-    ] def
-} ctxdef
-
     /i 0 def {
-        d1 tab267 i get le {
-            tab267 i 1 add 7 getinterval aload pop
+        d1 //databarlimited.tab267 i get le {
+            //databarlimited.tab267 i 1 add 7 getinterval aload pop
             /d1te exch def /d1to exch def
             /d1mwe exch def /d1mwo exch def
             /d1ele exch def /d1elo exch def
@@ -214,8 +257,8 @@ begin
     } loop
 
     /i 0 def {
-        d2 tab267 i get le {
-            tab267 i 1 add 7 getinterval aload pop
+        d2 //databarlimited.tab267 i get le {
+            //databarlimited.tab267 i 1 add 7 getinterval aload pop
             /d2te exch def /d2to exch def
             /d2mwe exch def /d2mwo exch def
             /d2ele exch def /d2elo exch def
@@ -249,33 +292,10 @@ begin
         d2w aload pop
     ] def
 
-{
-    /checkweights [
-        1  3  9  27 81 65 17 51 64 14 42 37 22 66
-        20 60 2  6  18 54 73 41 34 13 39 28 84 74
-    ] def
-
-    /checkseq [
-        0 1 43 {} for
-        45 52 57
-        63 1 66 {} for
-        73 1 79 {} for
-        82
-        126 1 130 {} for
-        132
-        141 1 146 {} for
-        210 1 217 {} for
-        220
-        316 1 320 {} for
-        322 323
-        326 337
-    ] def
-} ctxdef
-
     /checksum 0 def
     0 1 27 {
         /i exch def
-        /checksum checksum widths i get checkweights i get mul add def
+        /checksum checksum widths i get //databarlimited.checkweights i get mul add def
     } for
     /checksum checksum 89 mod def
     /seq checkseq checksum get def
@@ -297,7 +317,6 @@ begin
         1 1 5
     ] def
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs
@@ -311,8 +330,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
