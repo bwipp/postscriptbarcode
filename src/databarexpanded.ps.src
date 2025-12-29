@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -39,17 +39,136 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/databarexpanded.tab174 [
+    347   0     12 5   7 2  87  4
+    1387  348   10 7   5 4  52  20
+    2947  1388  8  9   4 5  30  52
+    3987  2948  6  11  3 6  10  104
+    4191  3988  4  13  1 8  1   204
+] readonly def
+
+/databarexpanded.finderwidths [
+    1 8 4 1 1    1 1 4 8 1
+    3 6 4 1 1    1 1 4 6 3
+    3 4 6 1 1    1 1 6 4 3
+    3 2 8 1 1    1 1 8 2 3
+    2 6 5 1 1    1 1 5 6 2
+    2 2 9 1 1    1 1 9 2 2
+] readonly def
+
+/databarexpanded.finderseq [
+    [0 1]
+    [0 3 2]
+    [0 5 2 7]
+    [0 9 2 7 4]
+    [0 9 2 7 6 11]
+    [0 9 2 7 8 11 10]
+    [0 1 2 3 4 5 6 7]
+    [0 1 2 3 4 5 6 9 8]
+    [0 1 2 3 4 5 6 9 10 11]
+    [0 1 2 3 4 7 6 9 8 11 10]
+] readonly def
+
+/databarexpanded.checkweights [
+    -1   -1   -1   -1   -1   -1   -1   -1   % A1L
+    77   96   32   81   27   9    3    1    % A1R
+    20   60   180  118  143  7    21   63   % A2L
+    205  209  140  117  39   13   145  189  % A2R
+    193  157  49   147  19   57   171  91   % B1L
+    132  44   85   169  197  136  186  62   % B1R
+    185  133  188  142  4    12   36   108  % B2L
+    50   87   29   80   97   173  128  113  % B2R
+    150  28   84   41   123  158  52   156  % C1L
+    166  196  206  139  187  203  138  46   % C1R
+    76   17   51   153  37   111  122  155  % C2L
+    146  119  110  107  106  176  129  43   % C2R
+    16   48   144  10   30   90   59   177  % D1L
+    164  125  112  178  200  137  116  109  % D1R
+    70   210  208  202  184  130  179  115  % D2L
+    190  204  68   93   31   151  191  134  % D2R
+    148  22   66   198  172  94   71   2    % E1L
+    40   154  192  64   162  54   18   6    % E1R
+    120  149  25   75   14   42   126  167  % E2L
+    175  199  207  69   23   78   26   79   % E2R
+    103  98   83   38   114  131  182  124  % F1L
+    159  53   88   170  127  183  61   161  % F1R
+    55   165  73   8    24   72   5    15   % F2L
+    89   100  174  58   160  194  135  45   % F2R
+] readonly def
+
+/databarexpanded.fillpat [ 0 0 1 0 0 ] readonly def
+/databarexpanded.seppad [ 0 0 0 0 ] readonly def
+
+/databarexpanded.fnc1 -1 def
+/databarexpanded.lnumeric -2 def
+/databarexpanded.lalphanumeric -3 def
+/databarexpanded.liso646 -4 def
+
+/databarexpanded.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //databarexpanded.latevars begin
+
+    /numeric <<
+        0 1 119 {
+            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
+            dup length 2 exch sub exch putinterval
+            dup 0 get 65 eq {dup 0 94 put} if
+            dup 1 get 65 eq {dup 1 94 put} if
+            exch 8 add
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
+            dup length 7 exch sub exch putinterval
+        } for
+        //databarexpanded.lalphanumeric (0000)
+    >> readonly def
+
+    /alphanumeric <<
+        48 1 57 {dup 43 sub (00000) 5 string copy dup 3 -1 roll 2 5 string cvrs dup length 5 exch sub exch putinterval} for
+        //databarexpanded.fnc1 (01111)
+        65 1 90 {dup 33 sub (000000) 6 string copy dup 3 -1 roll 2 6 string cvrs dup length 6 exch sub exch putinterval} for
+        42 (111010)
+        44 1 47 {dup 15 add (000000) 6 string copy dup 3 -1 roll 2 6 string cvrs dup length 6 exch sub exch putinterval} for
+        //databarexpanded.lnumeric (000)
+        //databarexpanded.liso646 (00100)
+    >> readonly def
+
+    /iso646 <<
+        48 1 57 {dup 43 sub (00000) 5 string copy dup 3 -1 roll 2 5 string cvrs dup length 5 exch sub exch putinterval} for
+        //databarexpanded.fnc1 (01111)
+        65 1 90 {dup 1 sub (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs dup length 7 exch sub exch putinterval} for
+        97 1 122 {dup 7 sub (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs dup length 7 exch sub exch putinterval} for
+        33 (11101000)
+        34 (11101001)
+        37 1 47 {dup 197 add (00000000) 8 string copy dup 3 -1 roll 2 8 string cvrs dup length 8 exch sub exch putinterval} for
+        58 1 63 {dup 187 add (00000000) 8 string copy dup 3 -1 roll 2 8 string cvrs dup length 8 exch sub exch putinterval} for
+        95 (11111011)
+        32 (11111100)
+        //databarexpanded.lnumeric (000)
+        //databarexpanded.lalphanumeric (00100)
+    >> readonly def
+
+    /init { //databarexpanded.latevars {def} forall } def
+
+    end
+
+    //databarexpanded.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /databarexpanded {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /parse false def
@@ -65,7 +184,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /databarexpanded //loadctx exec
+    //databarexpanded.latevars /init get exec
+
+    /fnc1 //databarexpanded.fnc1 def
 
     barxmult 34 lt {
         /bwipp.databarStackedOmniBarXmult (GS1 DataBar Expanded Stacked must have a barxmult of at least 34) //raiseerror exec
@@ -88,7 +209,9 @@ begin
     /vals exch def
     /ais exch def
 
+    %
     % Method selection
+    %
     {  % common exit
 
         % (01)9...(3103)...
@@ -198,8 +321,6 @@ begin
         dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
     } def
 
-    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
-
     method (00) eq {
         /cdf [] def
         /gpf [] def
@@ -286,54 +407,18 @@ begin
         /fncs fncs 2 fncs length 2 sub getinterval def
     } if
 
+    %
     % Variable length symbol field
+    %
     gpfallow {
         /vlf 2 array def
     } {
         /vlf [] def
     } ifelse
 
-{
-    /numeric <<
-        0 1 119 {
-            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
-            dup length 2 exch sub exch putinterval
-            dup 0 get 65 eq {dup 0 94 put} if
-            dup 1 get 65 eq {dup 1 94 put} if
-            exch 8 add
-            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
-            dup length 7 exch sub exch putinterval
-        } for
-        lalphanumeric (0000)
-    >> def
-
-    /alphanumeric <<
-        48 1 57 {dup 43 sub 5 tobin} for
-        fnc1 (01111)
-        65 1 90 {dup 33 sub 6 tobin} for
-        42 (111010)
-        44 1 47 {dup 15 add 6 tobin} for
-        lnumeric (000)
-        liso646 (00100)
-    >> def
-
-    /iso646 <<
-        48 1 57 {dup 43 sub 5 tobin} for
-        fnc1 (01111)
-        65 1 90 {dup 1 sub 7 tobin} for
-        97 1 122 {dup 7 sub 7 tobin} for
-        33 (11101000)
-        34 (11101001)
-        37 1 47 {dup 197 add 8 tobin} for
-        58 1 63 {dup 187 add 8 tobin} for
-        95 (11111011)
-        32 (11111100)
-        lnumeric (000)
-        lalphanumeric (00100)
-    >> def
-} ctxdef
-
+    %
     % Append the remaining AI data
+    %
     0 1 ais length 1 sub {
         /i exch def
         /ai ais i get def
@@ -351,7 +436,9 @@ begin
         } if
     } for
 
+    %
     % Calculate the number of bits remaining to the next valid symbol size
+    %
     /rembits {
         dup
         12 div ceiling cvi 12 mul            % Round up to multiple of 12
@@ -375,7 +462,9 @@ begin
         /j exch j add def
     } def
 
+    %
     % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
+    %
     /numericruns [ gpf length {0} repeat 0 -1 ] def
     /alphanumericruns [ gpf length {0} repeat 0 ] def
     /nextiso646only [ gpf length {0} repeat 9999 ] def
@@ -402,7 +491,9 @@ begin
         } ifelse
     } for
 
+    %
     % Encode the general purpose field
+    %
     /gpfenc 252 array def
     /i 0 def /j 0 def /mode (numeric) def
     {  % loop
@@ -420,12 +511,12 @@ begin
                         exit
                     } if
                     pop
-                    lalphanumeric numeric encode
+                    //databarexpanded.lalphanumeric numeric encode
                     /mode (alphanumeric) def
                     exit
                 } {
                     gpf i get dup 48 lt exch 57 gt or {
-                        lalphanumeric numeric encode
+                        //databarexpanded.lalphanumeric numeric encode
                         /mode (alphanumeric) def
                         exit
                     } if
@@ -452,17 +543,17 @@ begin
                     exit
                 } if
                 gpf i get dup iso646 exch known exch alphanumeric exch known not and {
-                     liso646 alphanumeric encode
+                     //databarexpanded.liso646 alphanumeric encode
                      /mode (iso646) def
                      exit
                 } if
                 numericruns i get 6 ge {
-                    lnumeric alphanumeric encode
+                    //databarexpanded.lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
                 numericruns i get dup 4 ge exch i add gpf length eq and {
-                    lnumeric alphanumeric encode
+                    //databarexpanded.lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
@@ -479,12 +570,12 @@ begin
                     exit
                 } if
                 numericruns i get 4 ge nextiso646only i get 10 ge and {
-                    lnumeric iso646 encode
+                    //databarexpanded.lnumeric iso646 encode
                     /mode (numeric) def
                     exit
                 } if
                 alphanumericruns i get 5 ge nextiso646only i get 10 ge and {
-                    lalphanumeric iso646 encode
+                    //databarexpanded.lalphanumeric iso646 encode
                     /mode (alphanumeric) def
                     exit
                 } if
@@ -497,7 +588,9 @@ begin
     } loop
     /gpf gpfenc 0 j getinterval def
 
+    %
     % Complete the variable length field and create pad
+    %
     1 12 add method length add vlf length add cdf length add gpf length add
     dup rembits dup array /pad exch def
     vlf length 0 ne {
@@ -510,14 +603,16 @@ begin
     pad length 0 gt {
         0 5 pad length 1 sub {  % Fill with 00100
             /i exch def
-            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
+            pad i //databarexpanded.fillpat 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
         } for
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
             /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
         } if
     } if
 
+    %
     % Concatenate fields
+    %
     /binval [
         linkage {1} {0} ifelse
         method {48 sub} forall
@@ -583,16 +678,6 @@ begin
         out
     } def
 
-{
-    /tab174 [
-        347   0     12 5   7 2  87  4
-        1387  348   10 7   5 4  52  20
-        2947  1388  8  9   4 5  30  52
-        3987  2948  6  11  3 6  10  104
-        4191  3988  4  13  1 8  1   204
-    ] def
-} ctxdef
-
     /dxw datalen array def
 
     0 1 datalen 1 sub {
@@ -603,8 +688,8 @@ begin
         /d 0 0 1 11 {/j exch def 2 11 j sub exp cvi d j get mul add} for def
 
         /j 0 def {
-            d tab174 j get le {
-                tab174 j 1 add 7 getinterval aload pop
+            d //databarexpanded.tab174 j get le {
+                //databarexpanded.tab174 j 1 add 7 getinterval aload pop
                 /dte exch def /dto exch def
                 /dmwe exch def /dmwo exch def
                 /dele exch def /delo exch def
@@ -636,68 +721,15 @@ begin
 
     } for
 
-{
-    /finderwidths [
-        1 8 4 1 1    1 1 4 8 1
-        3 6 4 1 1    1 1 4 6 3
-        3 4 6 1 1    1 1 6 4 3
-        3 2 8 1 1    1 1 8 2 3
-        2 6 5 1 1    1 1 5 6 2
-        2 2 9 1 1    1 1 9 2 2
-    ] def
-
-    /finderseq [
-        [0 1]
-        [0 3 2]
-        [0 5 2 7]
-        [0 9 2 7 4]
-        [0 9 2 7 6 11]
-        [0 9 2 7 8 11 10]
-        [0 1 2 3 4 5 6 7]
-        [0 1 2 3 4 5 6 9 8]
-        [0 1 2 3 4 5 6 9 10 11]
-        [0 1 2 3 4 7 6 9 8 11 10]
-    ] def
-} ctxdef
-
-    /seq finderseq datalen 2 sub 2 idiv get def
+    /seq //databarexpanded.finderseq datalen 2 sub 2 idiv get def
     /fxw seq length array def
     0 1 seq length 1 sub {
         /x exch def
-        fxw x finderwidths seq x get 5 mul 5 getinterval put
+        fxw x //databarexpanded.finderwidths seq x get 5 mul 5 getinterval put
     } for
 
-{
-    /checkweights [
-        -1   -1   -1   -1   -1   -1   -1   -1   % A1L
-        77   96   32   81   27   9    3    1    % A1R
-        20   60   180  118  143  7    21   63   % A2L
-        205  209  140  117  39   13   145  189  % A2R
-        193  157  49   147  19   57   171  91   % B1L
-        132  44   85   169  197  136  186  62   % B1R
-        185  133  188  142  4    12   36   108  % B2L
-        50   87   29   80   97   173  128  113  % B2R
-        150  28   84   41   123  158  52   156  % C1L
-        166  196  206  139  187  203  138  46   % C1R
-        76   17   51   153  37   111  122  155  % C2L
-        146  119  110  107  106  176  129  43   % C2R
-        16   48   144  10   30   90   59   177  % D1L
-        164  125  112  178  200  137  116  109  % D1R
-        70   210  208  202  184  130  179  115  % D2L
-        190  204  68   93   31   151  191  134  % D2R
-        148  22   66   198  172  94   71   2    % E1L
-        40   154  192  64   162  54   18   6    % E1R
-        120  149  25   75   14   42   126  167  % E2L
-        175  199  207  69   23   78   26   79   % E2R
-        103  98   83   38   114  131  182  124  % F1L
-        159  53   88   170  127  183  61   161  % F1R
-        55   165  73   8    24   72   5    15   % F2L
-        89   100  174  58   160  194  135  45   % F2R
-    ] def
-} ctxdef
-
     /checkweightseq [
-       seq {16 mul checkweights exch 16 getinterval aload pop} forall
+       seq {16 mul //databarexpanded.checkweights exch 16 getinterval aload pop} forall
     ] dup length 8 sub 8 exch getinterval def
 
     /widths [
@@ -712,8 +744,8 @@ begin
     /checksum checksum 211 mod datalen 3 sub 211 mul add def
 
     /i 0 def {
-        checksum tab174 i get le {
-            tab174 i 1 add 7 getinterval aload pop
+        checksum //databarexpanded.tab174 i get le {
+            //databarexpanded.tab174 i 1 add 7 getinterval aload pop
             /cte exch def /cto exch def
             /cmwe exch def /cmwo exch def
             /cele exch def /celo exch def
@@ -738,7 +770,9 @@ begin
     /dxw exch def
     /datalen dxw length def
 
+    %
     % Encode row runlengths
+    %
     /rows datalen segments div ceiling cvi array def
     /numrows rows length def
     0 1 numrows 1 sub {
@@ -759,7 +793,9 @@ begin
 
     format (expandedstacked) ne {  % Linear
 
+        %
         % Remove leading space
+        %
         /sbs rows 0 get dup length 1 sub 1 exch getinterval def
 
         /sbs [
@@ -794,7 +830,9 @@ begin
             /r exch def
             /row rows r get def
 
+            %
             % Sample runlengths into bitmap
+            %
             mark
             0 2 row length 1 sub {
                 /i exch def
@@ -803,7 +841,9 @@ begin
             } for
             counttomark array astore /row exch def pop
 
+            %
             % Derive the separator pattern
+            %
             /sep [ row {1 exch sub} forall ] def
             /finderpos [  % Finder pattern module positions
                 19 98 row length 13 sub {} for
@@ -824,10 +864,12 @@ begin
                     sep exch i exch put
                 } for
             } forall
-            sep 0 [ 0 0 0 0 ] putinterval
-            sep row length 4 sub [ 0 0 0 0 ] putinterval
+            sep 0 //databarexpanded.seppad putinterval
+            sep row length 4 sub //databarexpanded.seppad putinterval
 
+            %
             % For even segment-pair symbols reverse alternate rows
+            %
             segments 4 mod 0 eq r 2 mod 1 eq and {
                 rows r get length rows 0 get length ne  % Except partial width last row
                 finderpos length 2 mod 1 eq and {       % with odd finders
@@ -846,19 +888,25 @@ begin
 
         } for
 
+        %
         % Extend last row and separator to fill width of symbol
+        %
         /pixx rows 0 get length def
         [ pixx {0} repeat ] dup 0 rows numrows 1 sub get putinterval
         rows exch numrows 1 sub exch put
         [ pixx {0} repeat ] dup 0 seps numrows 1 sub get putinterval
         seps exch numrows 1 sub exch put
 
+        %
         % Middle separator pattern
+        %
         /sep [ pixx 2 idiv 1 add { 0 1 } repeat ] 0 pixx getinterval def
-        sep 0 [0 0 0 0] putinterval
-        sep pixx 4 sub [0 0 0 0] putinterval
+        sep 0 //databarexpanded.seppad putinterval
+        sep pixx 4 sub //databarexpanded.seppad putinterval
 
+        %
         % Compose the symbol
+        %
         /pixs [
             0 1 numrows 1 sub {
                 /r exch def
@@ -890,8 +938,6 @@ begin
         dontdraw not //renmatrix if
 
     } ifelse
-
-    //unloadctx exec
 
     end
 
