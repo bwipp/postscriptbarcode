@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,9 +49,10 @@ dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1-128composite {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /usematrix false def
     /parse false def
@@ -63,7 +64,9 @@ begin
 
     dontdraw { /usematrix true def } if
 
+    %
     % Split the linear and composite parts
+    %
     barcode (|) search {
         /linear exch def
         pop
@@ -78,25 +81,33 @@ begin
     options (dontdraw) true put
     options (dontlint) true put
 
+    %
     % Lint the combined AI element strings
+    %
     linear length comp length add string
     dup 0 linear putinterval
     dup linear length comp putinterval
     /ai //gs1process exec pop pop pop
 
+    %
     % Dummy plot of linear part with CC-A to get width
+    %
     options (linkagea) true put
     linear << options {} forall >> //gs1-128 exec
     (sbs) get 0 exch {add} forall /linwidth exch def
 
+    %
     % Create 2D part and determine type
+    %
     options (lintype) (gs1-128) put
     options (linwidth) linwidth put
     comp << options {} forall >> //gs1-cc exec /compsym exch def
     compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def
     compsym (borderbottom) 0 put
 
+    %
     % Plot linear part
+    %
     linktype (a) eq {
         options (linkagea) true put
         options (linkagec) false put
@@ -109,12 +120,16 @@ begin
     dup (bhs) get 0 get 72 mul /linheight exch def
     usematrix not { //renlinear exec } { pop } ifelse
 
+    %
     % Plot the separator
+    %
     mark
     1 linsbs {1 index 0 eq {{1}} {{0}} ifelse repeat} forall
     counttomark 1 sub array astore /sep exch def pop pop
 
+    %
     % Plot the 2D part
+    %
     linktype (a) eq {
         /s linwidth 2 sub 11 idiv def
         /p s 9 sub 2 idiv def
