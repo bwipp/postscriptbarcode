@@ -38,18 +38,25 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/flattermarken.encs [
+    (0018) (0117) (0216) (0315) (0414) (0513) (0612) (0711) (0810)
+    (0900)
+] readonly def
+
+/flattermarken.barchars (1234567890) readonly def
+
 /flattermarken {
 
-    20 dict begin                 % Confine variable to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def   % Enable/disable text
     /textfont /Courier def
@@ -60,44 +67,31 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /flattermarken //loadctx exec
-
+    %
     % Validate the input
+    %
     barcode {
         dup 48 lt exch 57 gt or {
             /bwipp.flattermarkenBadCharacter (Flattermarken must contain only digits) //raiseerror exec
         } if
     } forall
 
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (0018) (0117) (0216) (0315) (0414) (0513) (0612) (0711) (0810)
-      (0900)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (1234567890) def
-} ctxdef
-
-    /barlen barcode length def            % Length of the code
+    /barlen barcode length def
 
     /sbs barlen 4 mul string def
     /txt barlen array def
 
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                                 % Discard true leaving pre
-        length /indx exch def               % indx is the length of pre
-        pop pop                             % Discard seek and post
-        /enc encs indx get def              % Get the indxth encoding
-        sbs i 4 mul enc putinterval         % Put encoded digit into sbs
+        barcode i 1 getinterval //flattermarken.barchars exch search
+        pop
+        length /indx exch def
+        pop pop
+        /enc //flattermarken.encs indx get def
+        sbs i 4 mul enc putinterval
         txt i [barcode i 1 getinterval i 9 mul textyoffset textfont textsize] put
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -108,8 +102,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
