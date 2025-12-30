@@ -38,20 +38,33 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/upce.encs [
+    (3211) (2221) (2122) (1411) (1132)
+    (1231) (1114) (1312) (1213) (3112)
+    (111) (111111)
+] readonly def
+
+/upce.barchars (0123456789) readonly def
+
+/upce.mirrormaps [
+    (000111) (001011) (001101) (001110) (010011)
+    (011001) (011100) (010101) (010110) (011010)
+] readonly def
+
 /upce {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def               % Enable/disable text
     /textfont /Helvetica def
@@ -68,9 +81,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /upce //loadctx exec
-
+    %
     % Split off the addon
+    %
     barcode ( ) search {
         /barcode exch def
         pop
@@ -80,9 +93,13 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Compress a given UPC-A
+    %
     barcode length 11 eq barcode length 12 eq or {
+        %
         % Validate the input
+        %
         barcode {
             dup 48 lt exch 57 gt or {
                 /bwipp.upcEupcAbadCharacter (UPC-A must contain only digits) //raiseerror exec
@@ -121,7 +138,9 @@ begin
         /barcode upcecode def
     } if
 
+    %
     % Validate the input
+    %
     barcode length 7 ne barcode length 8 ne and {
         /bwipp.upcEbadLength (UPC-E must be 7 or 8 digits) //raiseerror exec
     } if
@@ -134,29 +153,16 @@ begin
         /bwipp.upcEbadAddOnLength (Add-on for UPC-E must be 2 or 5 digits) //raiseerror exec
     } if
 
+    %
     % Ensure 0 or 1 number systems
+    %
     barcode 0 get dup 48 ne exch 49 ne and {
         /bwipp.upcEbadNumberSystem (UPC-E must have number system 0 or 1) //raiseerror exec
     } if
 
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (111) (111111)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    /mirrormaps
-    [ (000111) (001011) (001101) (001110) (010011)
-      (011001) (011100) (010101) (010110) (011010)
-    ] def
-} ctxdef
-
+    %
     % Derive the equivalent UPC-A for its checksum
+    %
     1 {  % Common exit
         /upcacode 11 string def
         barcode 6 get 48 sub 2 le {
@@ -208,10 +214,14 @@ begin
     /txt 8 array def
     txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize 2 sub] put
 
+    %
     % Determine the mirror map based on checksum
-    /mirrormap mirrormaps checksum get def
+    %
+    /mirrormap //upce.mirrormaps checksum get def
 
+    %
     % Invert the mirrormap if we are using a non-zero number system
+    %
     barcode 0 get 48 eq {
         /invt mirrormap length string def
         0 1 mirrormap length 1 sub {
@@ -227,17 +237,18 @@ begin
 
     /sbs 33 string def
 
+    %
     % Put the start character
-    sbs 0 encs 10 get putinterval
+    %
+    sbs 0 //upce.encs 10 get putinterval
 
     1 1 6 {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //upce.barchars exch search
         pop                            % Discard true leaving pre
         length /indx exch def          % indx is the length of pre
         pop pop                        % Discard seek and post
-        /enc encs indx get def         % Get the indxth encoding
+        /enc //upce.encs indx get def  % Get the indxth encoding
         mirrormap i 1 sub get 49 eq {  % Reverse enc if 1 in this position in mirrormap
             /enclen enc length def
             /revenc enclen string def
@@ -254,8 +265,10 @@ begin
 
     txt 7 [barcode 7 1 getinterval 6 7 mul 21 add textxoffset add textyoffset textfont textsize 2 sub] put
 
+    %
     % Put the end character
-    sbs 27 encs 11 get putinterval
+    %
+    sbs 27 //upce.encs 11 get putinterval
 
     /sbs [sbs {48 sub} forall] def
     includetext {
@@ -268,7 +281,9 @@ begin
     } ifelse
     /guardrightypos 0.0 def
 
+    %
     % Append the addon
+    %
     addon () ne {
         /addopts <<
             /dontdraw true
@@ -289,7 +304,6 @@ begin
         /guardrightypos height 72 mul 6 sub def
     } if
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs
@@ -306,8 +320,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
