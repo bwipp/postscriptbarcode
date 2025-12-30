@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,9 +49,10 @@ dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean8composite {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /usematrix false def
     /parse false def
@@ -63,7 +64,9 @@ begin
 
     dontdraw { /usematrix true def } if
 
+    %
     % Split the linear and composite parts
+    %
     barcode (|) search {
         /linear exch def
         pop
@@ -72,19 +75,25 @@ begin
         pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
     } ifelse
 
+    %
     % Get the result of encoding with ean8 and gs1-cc
+    %
     options (lintype) (ean8) put
     options (inkspreadv) 0.0 put
     options (dontdraw) true put
     options (dontlint) true put
 
+    %
     % Lint with a fake AI (01)
+    %
     comp length 18 add string
     dup 0 ((01)00000000000000) putinterval
     dup 18 comp putinterval
     /ai //gs1process exec pop pop pop
 
+    %
     % Plot the linear part
+    %
     linear options //ean8 exec
     usematrix not {
         gsave
@@ -93,12 +102,16 @@ begin
 
         currentpoint
 
+        %
         % Plot the 2D part
+        %
         comp options //gs1-cc exec
         dup (pixx) get 70 exch sub 78 rmoveto
         //renmatrix exec
 
+        %
         % Plot the separator
+        %
         72 add exch 1 sub exch moveto <<
             /ren /renmatrix
             /pixs [

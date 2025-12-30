@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,9 +49,10 @@ dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 /upcecomposite {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /usematrix false def
     /parse false def
@@ -63,7 +64,9 @@ begin
 
     dontdraw { /usematrix true def } if
 
+    %
     % Split the linear and composite parts
+    %
     barcode (|) search {
         /linear exch def
         pop
@@ -77,13 +80,17 @@ begin
     options (dontdraw) true put
     options (dontlint) true put
 
+    %
     % Lint with a fake AI (01)
+    %
     comp length 18 add string
     dup 0 ((01)00000000000000) putinterval
     dup 18 comp putinterval
     /ai //gs1process exec pop pop pop
 
+    %
     % Plot the linear part
+    %
     linear options //upce exec
     usematrix not {
         gsave
@@ -92,10 +99,14 @@ begin
 
         currentpoint
 
+        %
         % Plot the 2D part
+        %
         -3 78 rmoveto comp options //gs1-cc exec //renmatrix exec
 
+        %
         % Plot the separator
+        %
         72 add exch 1 sub exch moveto <<
             /ren /renmatrix
             /pixs [
