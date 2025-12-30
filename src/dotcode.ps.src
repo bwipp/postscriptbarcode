@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,14 +38,149 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/dotcode.laa  -1 def  /dotcode.lab  -2 def  /dotcode.lac  -3 def  /dotcode.bin  -4 def
+/dotcode.sfa  -5 def  /dotcode.sfb  -6 def  /dotcode.sb2  -7 def  /dotcode.sb3  -8 def
+/dotcode.sb4  -9 def  /dotcode.sb5 -10 def  /dotcode.sb6 -11 def  /dotcode.sfc -12 def
+/dotcode.sc2 -13 def  /dotcode.sc3 -14 def  /dotcode.sc4 -15 def  /dotcode.sc5 -16 def
+/dotcode.sc6 -17 def  /dotcode.sc7 -18 def  /dotcode.bsa -19 def  /dotcode.bsb -20 def
+/dotcode.tma -21 def  /dotcode.tmb -22 def  /dotcode.tmc -23 def  /dotcode.tms -24 def
+/dotcode.fn1 -25 def  /dotcode.fn2 -26 def  /dotcode.fn3 -27 def  /dotcode.crl -28 def
+/dotcode.aim -29 def  /dotcode.m05 -30 def  /dotcode.m06 -31 def  /dotcode.m12 -32 def
+/dotcode.mac -33 def
+
+/laa //dotcode.laa def  /lab //dotcode.lab def  /lac //dotcode.lac def  /bin //dotcode.bin def
+/sfa //dotcode.sfa def  /sfb //dotcode.sfb def  /sb2 //dotcode.sb2 def  /sb3 //dotcode.sb3 def
+/sb4 //dotcode.sb4 def  /sb5 //dotcode.sb5 def  /sb6 //dotcode.sb6 def  /sfc //dotcode.sfc def
+/sc2 //dotcode.sc2 def  /sc3 //dotcode.sc3 def  /sc4 //dotcode.sc4 def  /sc5 //dotcode.sc5 def
+/sc6 //dotcode.sc6 def  /sc7 //dotcode.sc7 def  /bsa //dotcode.bsa def  /bsb //dotcode.bsb def
+/tma //dotcode.tma def  /tmb //dotcode.tmb def  /tmc //dotcode.tmc def  /tms //dotcode.tms def
+/fn1 //dotcode.fn1 def  /fn2 //dotcode.fn2 def  /fn3 //dotcode.fn3 def  /crl //dotcode.crl def
+/aim //dotcode.aim def  /m05 //dotcode.m05 def  /m06 //dotcode.m06 def  /m12 //dotcode.m12 def
+/mac //dotcode.mac def
+
+/dotcode.charmaps [
+    %  A    B    C         A    B    C         A    B    C
+    [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
+    [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
+    [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
+    [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
+    [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
+    [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
+    [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
+    [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
+    [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
+    [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
+    [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
+    [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
+    [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
+    [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
+    [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
+    [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
+    [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
+    [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
+    [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
+    [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
+    [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
+    [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
+    [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
+    [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
+    [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
+    [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
+    [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
+    [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
+    [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
+    [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
+    [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
+    [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
+    [ sfb  crl  (96) ]  [ sb2    9  (97) ]  [ sb3   28  (98) ]  % 96-98
+    [ sb4   29  (99) ]  [ sb5   30  aim  ]  [ sb6  sfa  laa  ]  % 99-101
+    [ lab  laa  sfb  ]  [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]  % 102-104
+    [ sc4  sc4  sb4  ]  [ lac  lac  lab  ]  [ fn1  fn1  fn1  ]  % 105-107
+    [ fn2  fn2  fn2  ]  [ fn3  fn3  fn3  ]  [ bsa  bsa  bsa  ]  % 108-110
+    [ bsb  bsb  bsb  ]  [ bin  bin  bin  ]                      % 111-112
+] readonly def
+
+/dotcode.encs [
+    (101010101) (010101011) (010101101) (010110101) (011010101)
+    (101010110) (101011010) (101101010) (110101010) (010101110)
+    (010110110) (010111010) (011010110) (011011010) (011101010)
+    (100101011) (100101101) (100110101) (101001011) (101001101)
+    (101010011) (101011001) (101100101) (101101001) (110010101)
+    (110100101) (110101001) (001010111) (001011011) (001011101)
+    (001101011) (001101101) (001110101) (010010111) (010011011)
+    (010011101) (010100111) (010110011) (010111001) (011001011)
+    (011001101) (011010011) (011011001) (011100101) (011101001)
+    (100101110) (100110110) (100111010) (101001110) (101011100)
+    (101100110) (101101100) (101110010) (101110100) (110010110)
+    (110011010) (110100110) (110101100) (110110010) (110110100)
+    (111001010) (111010010) (111010100) (001011110) (001101110)
+    (001110110) (001111010) (010011110) (010111100) (011001110)
+    (011011100) (011100110) (011101100) (011110010) (011110100)
+    (100010111) (100011011) (100011101) (100100111) (100110011)
+    (100111001) (101000111) (101100011) (101110001) (110001011)
+    (110001101) (110010011) (110011001) (110100011) (110110001)
+    (111000101) (111001001) (111010001) (000101111) (000110111)
+    (000111011) (000111101) (001001111) (001100111) (001110011)
+    (001111001) (010001111) (011000111) (011100011) (011110001)
+    (100011110) (100111100) (101111000) (110001110) (110011100)
+    (110111000) (111000110) (111001100)
+] readonly def
+
+/dotcode.encfuncs [ /encA /encB /encC /encBIN ] readonly def
+/dotcode.maskvals [ 0 3 7 17 ] readonly def
+/dotcode.maskbits [ (00) (01) (10) (11) ] readonly def
+
+/dotcode.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //dotcode.latevars begin
+
+    /rsalog [ 1 112 { dup 3 mul 113 mod } repeat ] def
+
+    % Invert charmaps to give character to value maps for each state
+    /charvals [ 113 dict 117 dict 113 dict ] def
+    0 1 //dotcode.charmaps length 1 sub {
+        /i exch def
+        /encs //dotcode.charmaps i get def
+        0 1 2 {
+            /j exch def
+            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
+            charvals j get exch i put
+        } for
+    } for
+
+    /Avals charvals 0 get readonly def
+    /Bvals charvals 1 get def
+    Bvals //dotcode.m05  97 put
+    Bvals //dotcode.m06  98 put
+    Bvals //dotcode.m12  99 put
+    Bvals //dotcode.mac 100 put
+    /Bvals Bvals readonly def
+    /Cvals charvals 2 get readonly def
+
+    /BINvals <<
+        102 [ //dotcode.sc2 //dotcode.sc3 //dotcode.sc4 //dotcode.sc5 //dotcode.sc6 //dotcode.sc7 //dotcode.tma //dotcode.tmb //dotcode.tmc //dotcode.tms ] {exch 1 add dup} forall pop
+    >> readonly def
+
+    /init { //dotcode.latevars {def} forall } def
+
+    end
+
+    //dotcode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /dotcode {
 
     20 dict begin
@@ -64,6 +199,8 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //dotcode.latevars /init get exec
+
     rows -1 ne {
         rows 5 lt {
             /bwipp.dotcodeBadRows (There must be at least 5 rows) //raiseerror exec
@@ -80,7 +217,9 @@ begin
         /bwipp.dotcodeRowsColumnsBadParity (Sum of rows and columns must be odd) //raiseerror exec
     } if
 
+    %
     % Set the ratio to 3:2 if no size is specified
+    %
     ratio -1 eq rows -1 eq and columns -1 eq and {
         /ratio 3 2 div def
     } if
@@ -96,34 +235,23 @@ begin
         } if
     } if
 
-    /dotcode //loadctx exec
-
-    % Convert input into bytes accounting for FNC characters
-{
-    /laa  -1 def  /lab  -2 def  /lac  -3 def  /bin  -4 def
-    /sfa  -5 def  /sfb  -6 def  /sb2  -7 def  /sb3  -8 def
-    /sb4  -9 def  /sb5 -10 def  /sb6 -11 def  /sfc -12 def
-    /sc2 -13 def  /sc3 -14 def  /sc4 -15 def  /sc5 -16 def
-    /sc6 -17 def  /sc7 -18 def  /bsa -19 def  /bsb -20 def
-    /tma -21 def  /tmb -22 def  /tmc -23 def  /tms -24 def
-    /fn1 -25 def  /fn2 -26 def  /fn3 -27 def  /crl -28 def
-    /aim -29 def  /m05 -30 def  /m06 -31 def  /m12 -32 def
-    /mac -33 def
-} ctxdef
-
+    %
     % Parse the input
+    %
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
         /eci true
-        (FNC1) fn1
+        (FNC1) //dotcode.fn1
         % (FNC2) fn2  %  Use ^ECInnnnnn for ECI; Structured append not supported
-        (FNC3) fn3
+        (FNC3) //dotcode.fn3
     >> def
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+    %
     % Special FNC2 semantics: Expand ECI characters into ^FNC2nnnnnn
+    %
     /numecis 0 msg { -1000000 le {1 add} if } forall def
     /msgtmp msg length numecis 6 mul add array def
     /j 0 def
@@ -131,7 +259,7 @@ begin
         msg exch get dup -1000000 le {
             neg 10 7 string cvrs 1 6 getinterval {} forall 6 array astore
             msgtmp exch j 1 add exch putinterval
-            msgtmp j fn2 put
+            msgtmp j //dotcode.fn2 put
             /j j 7 add def
         } {
             msgtmp exch j exch put
@@ -141,76 +269,11 @@ begin
     /msg msgtmp def
     /msglen msg length def
 
-    % Character maps for each state
-{
-   /charmaps [
-      %  A    B    C         A    B    C         A    B    C
-      [  32   32  (00) ]  [ (!)  (!)  (01) ]  [ (")  (")  (02) ]  % 0-2
-      [ (#)  (#)  (03) ]  [ ($)  ($)  (04) ]  [ (%)  (%)  (05) ]  % 3-5
-      [ (&)  (&)  (06) ]  [ (')  (')  (07) ]  [  40   40  (08) ]  % 6-8
-      [  41   41  (09) ]  [ (*)  (*)  (10) ]  [ (+)  (+)  (11) ]  % 9-11
-      [ (,)  (,)  (12) ]  [ (-)  (-)  (13) ]  [ (.)  (.)  (14) ]  % 12-14
-      [ (/)  (/)  (15) ]  [ (0)  (0)  (16) ]  [ (1)  (1)  (17) ]  % 15-17
-      [ (2)  (2)  (18) ]  [ (3)  (3)  (19) ]  [ (4)  (4)  (20) ]  % 18-20
-      [ (5)  (5)  (21) ]  [ (6)  (6)  (22) ]  [ (7)  (7)  (23) ]  % 21-23
-      [ (8)  (8)  (24) ]  [ (9)  (9)  (25) ]  [ (:)  (:)  (26) ]  % 24-26
-      [ (;)  (;)  (27) ]  [ (<)  (<)  (28) ]  [ (=)  (=)  (29) ]  % 27-29
-      [ (>)  (>)  (30) ]  [ (?)  (?)  (31) ]  [ (@)  (@)  (32) ]  % 30-32
-      [ (A)  (A)  (33) ]  [ (B)  (B)  (34) ]  [ (C)  (C)  (35) ]  % 33-35
-      [ (D)  (D)  (36) ]  [ (E)  (E)  (37) ]  [ (F)  (F)  (38) ]  % 36-38
-      [ (G)  (G)  (39) ]  [ (H)  (H)  (40) ]  [ (I)  (I)  (41) ]  % 39-41
-      [ (J)  (J)  (42) ]  [ (K)  (K)  (43) ]  [ (L)  (L)  (44) ]  % 42-44
-      [ (M)  (M)  (45) ]  [ (N)  (N)  (46) ]  [ (O)  (O)  (47) ]  % 45-47
-      [ (P)  (P)  (48) ]  [ (Q)  (Q)  (49) ]  [ (R)  (R)  (50) ]  % 48-50
-      [ (S)  (S)  (51) ]  [ (T)  (T)  (52) ]  [ (U)  (U)  (53) ]  % 51-53
-      [ (V)  (V)  (54) ]  [ (W)  (W)  (55) ]  [ (X)  (X)  (56) ]  % 54-56
-      [ (Y)  (Y)  (57) ]  [ (Z)  (Z)  (58) ]  [ ([)  ([)  (59) ]  % 57-59
-      [  92   92  (60) ]  [ (])  (])  (61) ]  [ (^)  (^)  (62) ]  % 60-62
-      [ (_)  (_)  (63) ]  [   0  (`)  (64) ]  [   1  (a)  (65) ]  % 63-65
-      [   2  (b)  (66) ]  [   3  (c)  (67) ]  [   4  (d)  (68) ]  % 66-68
-      [   5  (e)  (69) ]  [   6  (f)  (70) ]  [   7  (g)  (71) ]  % 69-71
-      [   8  (h)  (72) ]  [   9  (i)  (73) ]  [  10  (j)  (74) ]  % 72-74
-      [  11  (k)  (75) ]  [  12  (l)  (76) ]  [  13  (m)  (77) ]  % 75-77
-      [  14  (n)  (78) ]  [  15  (o)  (79) ]  [  16  (p)  (80) ]  % 78-80
-      [  17  (q)  (81) ]  [  18  (r)  (82) ]  [  19  (s)  (83) ]  % 81-83
-      [  20  (t)  (84) ]  [  21  (u)  (85) ]  [  22  (v)  (86) ]  % 84-86
-      [  23  (w)  (87) ]  [  24  (x)  (88) ]  [  25  (y)  (89) ]  % 87-89
-      [  26  (z)  (90) ]  [  27  ({)  (91) ]  [  28  (|)  (92) ]  % 90-92
-      [  29  (})  (93) ]  [  30  (~)  (94) ]  [  31  127  (95) ]  % 93-95
-      [ sfb  crl  (96) ]  [ sb2    9  (97) ]  [ sb3   28  (98) ]  % 96-98
-      [ sb4   29  (99) ]  [ sb5   30  aim  ]  [ sb6  sfa  laa  ]  % 99-101
-      [ lab  laa  sfb  ]  [ sc2  sc2  sb2  ]  [ sc3  sc3  sb3  ]  % 102-104
-      [ sc4  sc4  sb4  ]  [ lac  lac  lab  ]  [ fn1  fn1  fn1  ]  % 105-107
-      [ fn2  fn2  fn2  ]  [ fn3  fn3  fn3  ]  [ bsa  bsa  bsa  ]  % 108-110
-      [ bsb  bsb  bsb  ]  [ bin  bin  bin  ]                      % 111-112
-    ] def
-
-    % Invert charmaps to give character to value maps for each state
-    /charvals [ 113 dict 117 dict 113 dict ] def
-    0 1 charmaps length 1 sub {
-        /i exch def
-        /encs charmaps i get def
-        0 1 2 {
-            /j exch def
-            encs j get dup type /stringtype eq {0 get} if  % convert string to ASCII if required
-            charvals j get exch i put
-        } for
-    } for
-    /Avals charvals 0 get def
-    /Bvals charvals 1 get def
-    Bvals m05  97 put
-    Bvals m06  98 put
-    Bvals m12  99 put
-    Bvals mac 100 put
-    /Cvals charvals 2 get def
-    /BINvals <<
-        102 [ sc2 sc3 sc4 sc5 sc6 sc7 tma tmb tmc tms ] {exch 1 add dup} forall pop
-    >> def
-
     /A 0 def  /B 1 def  /C 2 def  /BIN 3 def
-} ctxdef
 
+    %
     % Pre-compute properties of the input at each point
+    %
     /nDigits      [ msglen 1 add {0} repeat     ] def
     /SeventeenTen [ msglen 1 add {false} repeat ] def
     /ECI          [ msglen 1 add {false} repeat ] def
@@ -253,10 +316,10 @@ begin
             SeventeenTen i 3 -1 roll put
             cleartomark
         } if
-        nDigits i 1 add get 6 ge msg i get fn2 eq and {  % ^FNC2xxxxxx
+        nDigits i 1 add get 6 ge msg i get //dotcode.fn2 eq and {  % ^FNC2xxxxxx
             ECI i true put
         } if
-        barchar 0 lt barchar fn3 ne and {  % FNCx, except FNC3
+        barchar 0 lt barchar //dotcode.fn3 ne and {  % FNCx, except FNC3
             AheadC i AheadC i 1 add get 1 add put
         } {
             nDigits i get 1 le {
@@ -268,13 +331,13 @@ begin
         nDigits i get 0 gt AheadC i get AheadC i 1 add get gt and {
             TryC i AheadC i get put
         } if
-        DatumA i get TryC i get 2 lt and barchar fn3 ne and {
+        DatumA i get TryC i get 2 lt and barchar //dotcode.fn3 ne and {
             AheadA i AheadA i 1 add get 1 add put
         } if
-        DatumB i get TryC i get 2 lt and barchar fn3 ne and {
+        DatumB i get TryC i get 2 lt and barchar //dotcode.fn3 ne and {
             AheadB i AheadB i 1 add CRLF {1 add} if get 1 add put
         } if
-        barchar fn3 ne {
+        barchar //dotcode.fn3 ne {
             UntilEndSeg i UntilEndSeg i 1 add get 1 add put
         } if
     } for
@@ -284,7 +347,9 @@ begin
         /j exch length j add def
     } def
 
+    %
     % Base 259 to one more in base 103
+    %
     /base259to103 {
         /in exch def
         /inlen in length def
@@ -367,19 +432,19 @@ begin
                     msg segstart 5 add get dup 48 lt exch 57 gt or {0 exit} if  % digit
                     msg segend   1 sub get  4 ne {0 exit} if                    % End: {EOT}
                     msg segstart 4 add get 48 sub 10 mul msg segstart 5 add get 48 sub add
-                    dup dup 05 ne exch dup 06 ne exch 12 ne and and {pop mac exit} if
+                    dup dup 05 ne exch dup 06 ne exch 12 ne and and {pop //dotcode.mac exit} if
                     msg segstart 6 add get 29 ne {pop 0 exit} if                % {GS}
                     msg segend   2 sub get 30 ne {pop 0 exit} if                % End: {RS}
-                    dup 05 eq {pop m05 exit} if
-                        06 eq {    m06 exit} if
-                                   m12 exit
+                    dup 05 eq {pop //dotcode.m05 exit} if
+                        06 eq {    //dotcode.m06 exit} if
+                                   //dotcode.m12 exit
                 } repeat
                 /inmac exch def
                 inmac 0 ne {
-                    [ Cvals lab get ] addtocws
+                    [ Cvals //dotcode.lab get ] addtocws
                     /mode B def
                     [ Bvals inmac get ] addtocws
-                    inmac mac eq {
+                    inmac //dotcode.mac eq {
                         [ Bvals msg segstart 4 add get get ] addtocws
                         [ Bvals msg segstart 5 add get get ] addtocws
                         /i i 6 add def
@@ -393,16 +458,16 @@ begin
             i segstart eq {
                 % Encode an FNC1 if two digits start a segment
                 nDigits i get 2 ge {
-                    [ Cvals fn1 get ] addtocws
+                    [ Cvals //dotcode.fn1 get ] addtocws
                 } if
                 % Skip an FNC1 if followed by two digits at start of segment
-                msg i get fn1 eq nDigits i 1 add get 2 ge and {
+                msg i get //dotcode.fn1 eq nDigits i 1 add get 2 ge and {
                     /i i 1 add def
                 } if
             } if
             SeventeenTen i get {
                 [  % 17xxxxxx10 macro
-                    Cvals aim get
+                    Cvals //dotcode.aim get
                     msg i 2 add get 48 sub 10 mul msg i 3 add get 48 sub add
                     msg i 4 add get 48 sub 10 mul msg i 5 add get 48 sub add
                     msg i 6 add get 48 sub 10 mul msg i 7 add get 48 sub add
@@ -411,14 +476,14 @@ begin
                 exit
             } if
             DatumC i get {
-                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                msg i get dup //dotcode.fn1 eq exch dup //dotcode.fn2 eq exch //dotcode.fn3 eq or or {  % FNCx
                     [ Cvals msg i get get ] addtocws
                     ECI i get {  % FNC2 then 6 digits
                         [ ECIabc ] addtocws
                         /i i 7 add def
                         exit
                     } if
-                    msg i get fn3 eq segstart i ne and {  % FNC3
+                    msg i get //dotcode.fn3 eq segstart i ne and {  % FNC3
                         /i i 1 add def
                         /inmac 0 def
                         /segstart i def
@@ -435,39 +500,39 @@ begin
             Binary i get {  % Binary
                 nDigits i 1 add get 0 gt {
                     msg i get 160 lt {
-                        [ Cvals bsa get Avals msg i get 128 sub get ] addtocws
+                        [ Cvals //dotcode.bsa get Avals msg i get 128 sub get ] addtocws
                     } {
-                        [ Cvals bsb get Bvals msg i get 128 sub get ] addtocws
+                        [ Cvals //dotcode.bsb get Bvals msg i get 128 sub get ] addtocws
                     } ifelse
                     /i i 1 add def
                     exit
                 } if
-                [ Cvals bin get ] addtocws
+                [ Cvals //dotcode.bin get ] addtocws
                 /mode BIN def
                 exit
             } if
             /m AheadA i get def  /n AheadB i get def
             m n gt {
-                [ Cvals laa get ] addtocws
+                [ Cvals //dotcode.laa get ] addtocws
                 /mode A def
                 exit
             } if
             i segstart eq {
                 msg i get dup 9 eq exch dup 28 eq exch dup 29 eq exch 30 eq or or or {
-                    [ Cvals laa get ] addtocws
+                    [ Cvals //dotcode.laa get ] addtocws
                     /mode A def
                     exit
                 } if
             } if
             n 4 gt {
-                [ Cvals lab get ] addtocws
+                [ Cvals //dotcode.lab get ] addtocws
                 /mode B def
                 exit
             } if
-            [ Cvals [ sfb sb2 sb3 sb4 ] n 1 sub get get ] addtocws
+            [ Cvals [ //dotcode.sfb //dotcode.sb2 //dotcode.sb3 //dotcode.sb4 ] n 1 sub get get ] addtocws
             n {
                 msg i get 13 eq {
-                    [ Bvals crl get ] addtocws
+                    [ Bvals //dotcode.crl get ] addtocws
                     /i i 2 add def
                 } {
                     [ Bvals msg i get get ] addtocws
@@ -483,11 +548,11 @@ begin
             /n TryC i get def
             n 2 ge {
                 n 4 gt {
-                    [ Bvals lac get ] addtocws
+                    [ Bvals //dotcode.lac get ] addtocws
                     /mode C def
                     exit
                 } if
-                [ Bvals [ sfc sc2 sc3 sc4 ] n 1 sub get get ] addtocws
+                [ Bvals [ //dotcode.sfc //dotcode.sc2 //dotcode.sc3 //dotcode.sc4 ] n 1 sub get get ] addtocws
                 n {
                     msg i get 0 lt {
                         [ Cvals msg i get get ] addtocws
@@ -500,14 +565,14 @@ begin
                 exit
             } if
             DatumB i get {
-                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                msg i get dup //dotcode.fn1 eq exch dup //dotcode.fn2 eq exch //dotcode.fn3 eq or or {  % FNCx
                     [ Bvals msg i get get ] addtocws
                     ECI i get {  % FNC2 then 6 digits
                         [ ECIabc ] addtocws
                         /i i 7 add def
                         exit
                     } if
-                    msg i get fn3 eq i segstart ne and {  % FNC3
+                    msg i get //dotcode.fn3 eq i segstart ne and {  % FNC3
                         /i i 1 add def
                         /mode C def
                         /inmac 0 def
@@ -520,7 +585,7 @@ begin
                 } if
                 msg i get 13 eq i msglen 1 sub lt and {
                     msg i 1 add get 10 eq {  % CRLF
-                        [ Bvals crl get ] addtocws
+                        [ Bvals //dotcode.crl get ] addtocws
                         /i i 2 add def
                         exit
                     } if
@@ -532,23 +597,23 @@ begin
             Binary i get {  % Binary
                 DatumB i 1 add get {
                     msg i get 160 lt {
-                        [ Bvals bsa get Avals msg i get 128 sub get ] addtocws
+                        [ Bvals //dotcode.bsa get Avals msg i get 128 sub get ] addtocws
                     } {
-                        [ Bvals bsb get Bvals msg i get 128 sub get ] addtocws
+                        [ Bvals //dotcode.bsb get Bvals msg i get 128 sub get ] addtocws
                     } ifelse
                     /i i 1 add def
                     exit
                 } if
-                [ Bvals bin get ] addtocws
+                [ Bvals //dotcode.bin get ] addtocws
                 /mode BIN def
                 exit
             } if
             AheadA i get 1 eq {
-                [ Bvals sfa get Avals msg i get get ] addtocws
+                [ Bvals //dotcode.sfa get Avals msg i get get ] addtocws
                 /i i 1 add def
                 exit
             } if
-            [ Bvals laa get ] addtocws
+            [ Bvals //dotcode.laa get ] addtocws
             /mode A def
             exit
         } repeat
@@ -559,11 +624,11 @@ begin
             /n TryC i get def
             n 2 ge {
                 n 4 gt {
-                    [ Avals lac get ] addtocws
+                    [ Avals //dotcode.lac get ] addtocws
                     /mode C def
                     exit
                 } if
-                [ Avals [ sfc sc2 sc3 sc4 ] n 1 sub get get ] addtocws
+                [ Avals [ //dotcode.sfc //dotcode.sc2 //dotcode.sc3 //dotcode.sc4 ] n 1 sub get get ] addtocws
                 n {
                     msg i get 0 lt {
                         [ Cvals msg i get get ] addtocws
@@ -576,14 +641,14 @@ begin
                 exit
             } if
             DatumA i get {
-                msg i get dup fn1 eq exch dup fn2 eq exch fn3 eq or or {  % FNCx
+                msg i get dup //dotcode.fn1 eq exch dup //dotcode.fn2 eq exch //dotcode.fn3 eq or or {  % FNCx
                     [ Avals msg i get get ] addtocws
                     ECI i get {  % FNC2 then 6 digits
                         [ ECIabc ] addtocws
                         /i i 7 add def
                         exit
                     } if
-                    msg i get fn3 eq i segstart ne and {  % FNC3
+                    msg i get //dotcode.fn3 eq i segstart ne and {  % FNC3
                         /i i 1 add def
                         /mode C def
                         /inmac 0 def
@@ -601,27 +666,27 @@ begin
             Binary i get {  % Binary
                 DatumA i 1 add get {
                     msg i get 160 lt {
-                        [ Avals bsa get Avals msg i get 128 sub get ] addtocws
+                        [ Avals //dotcode.bsa get Avals msg i get 128 sub get ] addtocws
                     } {
-                        [ Avals bsb get Bvals msg i get 128 sub get ] addtocws
+                        [ Avals //dotcode.bsb get Bvals msg i get 128 sub get ] addtocws
                     } ifelse
                     /i i 1 add def
                     exit
                 } if
-                [ Avals bin get ] addtocws
+                [ Avals //dotcode.bin get ] addtocws
                 /mode BIN def
                 exit
             } if
             /n AheadB i get def
             n 6 gt {
-                [ Avals lab get ] addtocws
+                [ Avals //dotcode.lab get ] addtocws
                 /mode B def
                 exit
             } if
-            [ Avals [ sfb sb2 sb3 sb4 sb5 sb6 ] n 1 sub get get ] addtocws
+            [ Avals [ //dotcode.sfb //dotcode.sb2 //dotcode.sb3 //dotcode.sb4 //dotcode.sb5 //dotcode.sb6 ] n 1 sub get get ] addtocws
             n {
                 msg i get 13 eq {
-                    [ Bvals crl get ] addtocws
+                    [ Bvals //dotcode.crl get ] addtocws
                     /i i 2 add def
                 } {
                     [ Bvals msg i get get ] addtocws
@@ -638,11 +703,11 @@ begin
             n 2 ge {
                 [ finaliseBIN ] addtocws
                 n 7 gt {  % Terminate to C
-                    [ BINvals tmc get ] addtocws
+                    [ BINvals //dotcode.tmc get ] addtocws
                     /mode C def
                     exit
                 } if
-                [ BINvals [ sc2 sc3 sc4 sc5 sc6 sc7 ] n 2 sub get get ] addtocws
+                [ BINvals [ //dotcode.sc2 //dotcode.sc3 //dotcode.sc4 //dotcode.sc5 //dotcode.sc6 //dotcode.sc7 ] n 2 sub get get ] addtocws
                 n {
                     msg i get 0 lt {
                         [ Cvals msg i get get ] addtocws
@@ -672,8 +737,8 @@ begin
             } if
             [ finaliseBIN ] addtocws
             i msglen 1 sub ne {  % Not last character
-                msg i get fn3 eq i segstart ne and {  % FNC3
-                    [ BINvals tms get ] addtocws
+                msg i get //dotcode.fn3 eq i segstart ne and {  % FNC3
+                    [ BINvals //dotcode.tms get ] addtocws
                     /i i 1 add def
                     /mode C def
                     /inmac 0 def
@@ -682,10 +747,10 @@ begin
                     exit
                 } if
                 AheadA i get AheadB i get gt {
-                    [ BINvals tma get ] addtocws
+                    [ BINvals //dotcode.tma get ] addtocws
                     /mode A def
                 } {
-                    [ BINvals tmb get ] addtocws
+                    [ BINvals //dotcode.tmb get ] addtocws
                     /mode B def
                 } ifelse
                 exit
@@ -701,20 +766,22 @@ begin
     /i 0 def  /j 0 def  {
         i msglen ge {exit} if
         inmac 0 ne {  % Jump over macro trailers
-            inmac mac ne i segend 2 sub eq and {  % {RS}{EOT}
+            inmac //dotcode.mac ne i segend 2 sub eq and {  % {RS}{EOT}
                 /i i 2 add def
                 i msglen ge {exit} if
             } if
-            inmac mac eq i segend 1 sub eq and {  % {EOT}
+            inmac //dotcode.mac eq i segend 1 sub eq and {  % {EOT}
                 /i i 1 add def
                 i msglen ge {exit} if
             } if
         } if
-        [ /encA /encB /encC /encBIN ] mode get load exec
+        //dotcode.encfuncs mode get load exec
     } loop
     /cws cws 0 j getinterval def
 
+    %
     % Determine the symbol size
+    %
     /nd cws length def
     /minarea nd 3 add nd 2 idiv add 9 mul 2 add 2 mul def
     ratio -1 ne {        % Fixed ratio
@@ -748,7 +815,9 @@ begin
         } if
     } ifelse
 
+    %
     % Extend the codewords with padding
+    %
     /ndots rows columns mul 2 idiv def
     {
         nd 1 add dup 2 idiv 3 add add 9 mul 2 add ndots gt {exit} if
@@ -767,41 +836,16 @@ begin
 
     options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
 
+    %
     % Check that the codewords will fit in the symbol
+    %
     nw 9 mul ndots 2 sub gt {
         /bwipp.dotcodeTooLong (Maximum length exceeded) //raiseerror exec
     } if
 
-    % Create an array containing the character mappings
-{
-    /encs [
-        (101010101) (010101011) (010101101) (010110101) (011010101)
-        (101010110) (101011010) (101101010) (110101010) (010101110)
-        (010110110) (010111010) (011010110) (011011010) (011101010)
-        (100101011) (100101101) (100110101) (101001011) (101001101)
-        (101010011) (101011001) (101100101) (101101001) (110010101)
-        (110100101) (110101001) (001010111) (001011011) (001011101)
-        (001101011) (001101101) (001110101) (010010111) (010011011)
-        (010011101) (010100111) (010110011) (010111001) (011001011)
-        (011001101) (011010011) (011011001) (011100101) (011101001)
-        (100101110) (100110110) (100111010) (101001110) (101011100)
-        (101100110) (101101100) (101110010) (101110100) (110010110)
-        (110011010) (110100110) (110101100) (110110010) (110110100)
-        (111001010) (111010010) (111010100) (001011110) (001101110)
-        (001110110) (001111010) (010011110) (010111100) (011001110)
-        (011011100) (011100110) (011101100) (011110010) (011110100)
-        (100010111) (100011011) (100011101) (100100111) (100110011)
-        (100111001) (101000111) (101100011) (101110001) (110001011)
-        (110001101) (110010011) (110011001) (110100011) (110110001)
-        (111000101) (111001001) (111010001) (000101111) (000110111)
-        (000111011) (000111101) (001001111) (001100111) (001110011)
-        (001111001) (010001111) (011000111) (011100011) (011110001)
-        (100011110) (100111100) (101111000) (110001110) (110011100)
-        (110111000) (111000110) (111001100)
-    ] def
-} ctxdef
-
+    %
     % Final six dots arranged at edges
+    %
     rows 2 mod 0 eq {
         /sixedges [
             [ columns 1 sub  rows 2 sub ]
@@ -824,7 +868,9 @@ begin
 
     /dmv {columns mul add} def
 
+    %
     % Construct the template
+    %
     /outline rows columns mul array def
     0 1 rows 1 sub {
         /y exch def
@@ -853,11 +899,15 @@ begin
         } for
     } def
 
+    %
     % Evaluate the symbol
+    %
     /evalsymbol {
         /sym exch def
 
+        %
         % Identify the worst side
+        %
         /worst 9999999 def
         [ [ /x 0 ] [ /x 1 ] [ /y 0 ] [ /y 1 ] ] {  % Top Bottom Left Right
             aload pop  /fl exch def  /dir exch def
@@ -881,9 +931,11 @@ begin
 
         /pen 0 def
 
+        %
         % Check for groups of blank columns unless data is encoded vertically
         % in a symbol of sufficient height to overcome up to six consecutive 0s
         % in two neighbouring 5 of 9 dot patterns
+        %
         rows 2 mod 1 eq rows 12 le or {
             /sum 0 def  /p 0 def
             1 1 columns 2 sub {
@@ -899,9 +951,11 @@ begin
             /pen pen p add def
         } if
 
+        %
         % Check for groups of blank rows unless data is encoded horizontally
         % in a symbol of sufficient width to overcome up to six consecutive 0s
         % in two neighbouring 5 of 9 dot patterns
+        %
         rows 2 mod 0 eq columns 12 le or {
             /sum 0 def  /p 0 def
             1 1 rows 2 sub {
@@ -917,7 +971,9 @@ begin
             /pen pen p add def
         } if
 
+        %
         % Pad twice on all sides
+        %
         /symp [
             columns 4 add 2 mul {0} repeat
             0 columns sym length 1 sub {
@@ -928,7 +984,9 @@ begin
             columns 4 add 2 mul {0} repeat
         ] def
 
+        %
         % Count voids and isolated dots
+        %
         /columns columns 4 add def
         /rows    rows    4 add def
         /sum 0 def
@@ -961,19 +1019,17 @@ begin
 
     } def
 
-    % Reed Solomon antilog table
-{
-    /rsalog [ 1 112 { dup 3 mul 113 mod } repeat ] def
-} ctxdef
     /step nw 112 idiv 1 add def
     /offset {step mul start add} def
 
+    %
     % Evaluate the symbols in the following order:
     % fast mode: m3 -> m3' -> m2 -> m2' -> m1 -> m1' -> m0 -> m0'
     % dflt mode: (m0 m1 m2 m3) -> (m0' m1' m2' m3')
     % -> : Test if we have met the HxW/2 threshold
     % m' : Symbols with six edge dots forcibly lit
     % () : Best of
+    %
     /bestscore -99999999 def
     /masks mask -1 ne {
         [ mask ]
@@ -985,10 +1041,12 @@ begin
 
         /mask exch def
 
+        %
         % Calculate the error correction codewords for each block
+        %
         /rscws [
              mask
-             [ 0 3 7 17 ] mask get 0 cws {1 index add 113 mod exch 2 index add exch 3 1 roll} forall pop pop
+             //dotcode.maskvals mask get 0 cws {1 index add 113 mod exch 2 index add exch 3 1 roll} forall pop pop
              nc {0} repeat
         ] def
         0 1 step 1 sub {
@@ -1015,18 +1073,22 @@ begin
             ND 1 NW 1 sub { dup rscws exch offset 113 rscws 5 -1 roll offset get sub 113 mod put } for
         } for
 
+        %
         % Create the bitstream
+        %
         /bits ndots string def
-        bits 0 [ (00) (01) (10) (11) ] mask get putinterval
+        bits 0 //dotcode.maskbits mask get putinterval
         1 1 nw {
             /i exch def
-            bits i 1 sub 9 mul 2 add encs rscws i get get putinterval
+            bits i 1 sub 9 mul 2 add //dotcode.encs rscws i get get putinterval
         } for
         rembits 0 gt {
             bits nw 9 mul 2 add (11111111111111111) 0 rembits getinterval putinterval
         } if
 
+        %
         % Walk the symbol placing the bitstream
+        %
         /pixs outline dup length array copy def
         /posx 0 def
         /posy rows 2 mod 0 eq {0} {rows 1 sub} ifelse def
@@ -1055,7 +1117,9 @@ begin
             bits bits length 6 sub i add get 48 sub put
         } for
 
+        %
         % Evaluate the symbol to find the most suitable mask
+        %
         /score pixs evalsymbol def
         score bestscore gt {
             /bestsym pixs def
@@ -1063,7 +1127,9 @@ begin
             fast bestscore rows columns mul 2 idiv gt and {exit} if
         } if
 
+        %
         % Make a copy with lit edges for possible later evaluation
+        %
         /litmask pixs dup length array copy def
         0 1 5 {  % Light last six edge dots
             /i exch def
@@ -1072,7 +1138,9 @@ begin
         } for
         litmasks mask litmask put
 
+        %
         % In fast mode immediately score the lit symbol
+        %
         fast {
             /score litmask evalsymbol def
             score bestscore gt {
@@ -1085,7 +1153,9 @@ begin
     } forall
     /pixs bestsym def
 
+    %
     % For default mode, if best mask fails threshold then recalculate with lit corners and pick best
+    %
     fast not bestscore rows columns mul 2 idiv le and {
         /bestscore -99999999 def
         masks {
@@ -1099,7 +1169,6 @@ begin
         /pixs bestsym def
     } if
 
-    % Return the arguments
     <<
     /ren /renmatrix
     /dotty true
@@ -1116,8 +1185,6 @@ begin
     >>
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
