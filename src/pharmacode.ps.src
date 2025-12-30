@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -48,6 +48,7 @@ begin
     20 dict begin                 % Confine variables to local scope
 
     /ctx null def
+
     /dontdraw false def
     /height 8.0 2.835 mul 72 div def
     /nwidth 0.5 2.835 mul def
@@ -57,7 +58,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate the input
+    %
     barcode length 1 lt barcode length 6 gt or {
         /bwipp.pharmacodeBadLength (Pharmacode must be 1 to 6 digits) //raiseerror exec
     } if
@@ -70,14 +73,18 @@ begin
         /bwipp.pharmacodeBadValue (Pharmacode value must be between 3 and 131070) //raiseerror exec
     } if
 
+    %
     % Create the human readable text
+    %
     /txt barcode length array def
     0 1 barcode length 1 sub {
         /i exch def
         txt i [barcode i 1 getinterval 0 0 () 0] put
     } for
 
+    %
     % Convert the integer into the paramacode string
+    %
     /barcode barcode cvi 1 add 2 17 string cvrs def
     /barcode barcode 1 barcode length 1 sub getinterval def
 
@@ -95,7 +102,6 @@ begin
         sbs i 2 mul 1 add swidth put
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs

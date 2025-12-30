@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -45,7 +45,7 @@ dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /raw {
 
-    20 dict begin                  % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -54,14 +54,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate input
+    %
     barcode {
         dup 49 lt exch 57 gt or {
             /bwipp.rawBadCharacter (Raw must contain only digits 1 to 9) //raiseerror exec
         } if
     } forall
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [barcode {48 sub} forall]

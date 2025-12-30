@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -46,9 +46,10 @@ dup /code128 dup /uk.co.terryburton.bwipp findresource put
 begin
 /sscc18 {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /textfont /Courier def
@@ -60,14 +61,18 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Strip spaces from the given data
+    %
     /text barcode def
     barcode dup length string exch 0 exch
     {dup 32 ne {3 copy put pop 1 add} {pop} ifelse} forall
     0 exch getinterval /barcode exch def
     /hasspace text length barcode length ne def
 
+    %
     % Validate the input
+    %
     barcode length 21 ne barcode length 22 ne and {
         /bwipp.sscc18badLength (SSCC-18 must be 17 or 18 digits) //raiseerror exec
     } if
@@ -80,7 +85,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate checksum and add to end of barcode
+    %
     /checksum 0 def
     0 1 16 {
         /i exch def
@@ -104,12 +111,16 @@ begin
     } ifelse
     /sscc barcode 4 18 getinterval def
 
+    %
     % Compose input to code128
+    %
     /barcode 25 string def
     barcode 0 (^FNC100) putinterval
     barcode 7 sscc putinterval
 
+    %
     % Get the result of encoding with code128
+    %
     options (dontdraw) true put
     options (parsefnc) true put
     /args barcode options //code128 exec def

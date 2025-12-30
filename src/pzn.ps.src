@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,6 +49,7 @@ begin
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def  % Enable/disable code32 text
     /textfont /Courier def
@@ -61,7 +62,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate the input
+    %
     pzn8 {
         barcode length 7 ne barcode length 8 ne and {
             /bwipp.pzn8badLength (PZN8 must be 7 or 8 digits) //raiseerror exec
@@ -77,7 +80,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate check digit
+    %
     /msglen pzn8 {9} {8} ifelse def
     /checksum 0 def
     0 1 msglen 3 sub {
@@ -100,11 +105,15 @@ begin
     dup msglen 1 sub checksum 48 add put
     /msg exch def
 
+    %
     % Get the result of encoding with code39
+    %
     options (dontdraw) true put
     /args msg options //code39 exec def
 
-    % format HRI
+    %
+    % Format HRI
+    %
     /text msglen 5 add string def
     text 0 (PZN - ) putinterval
     text 6 msg 1 msglen 1 sub getinterval putinterval

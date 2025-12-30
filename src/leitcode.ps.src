@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -46,7 +46,7 @@ dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
 begin
 /leitcode {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /dontdraw false def
@@ -60,7 +60,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate the input
+    %
     barcode length 13 ne barcode length 14 ne and {
         /bwipp.leitcodeBadLength (Deutsche Post Leitcode must be 13 or 14 digits) //raiseerror exec
     } if
@@ -70,7 +72,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate checksum and add to end of barcode
+    %
     /checksum 0 def
     0 1 12 {
         /i exch def
@@ -87,7 +91,9 @@ begin
     dup 13 checksum 48 add put
     /barcode exch def
 
+    %
     % Compose the human readable text
+    %
     /text (     .   .   .    ) 18 string copy def
     text  0 barcode  0 5 getinterval putinterval
     text  6 barcode  5 3 getinterval putinterval
@@ -95,7 +101,9 @@ begin
     text 14 barcode 11 2 getinterval putinterval
     text 17 barcode 13 1 getinterval putinterval
 
+    %
     % Get the result of encoding with interleaved2of5
+    %
     options (dontdraw) true put
     options (includecheck) false put
     /args barcode options //interleaved2of5 exec def

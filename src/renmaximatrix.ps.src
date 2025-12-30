@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -42,7 +42,9 @@ begin
 
     20 dict begin
 
+    %
     % Default options
+    %
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /bordercolor (unset) def
@@ -64,7 +66,9 @@ begin
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
 
+    %
     % Set RGB or CMYK color, or some other color by name
+    %
     /setanycolor {
         /anycolor exch def
         anycolor length 1 lt {
@@ -108,7 +112,9 @@ begin
 
     2.4945 dup scale  % from 1pt to 0.88mm
 
+    %
     % Display the border and background
+    %
     showborder {
         /tl [ borderleft borderwidth 2 div add neg      29 bordertop add borderwidth 2 div add ] def
         /tr [ 30 borderright add borderwidth 2 div add  29 bordertop add borderwidth 2 div add ] def
@@ -159,7 +165,9 @@ begin
     } forall
     fill
 
+    %
     % Plot the locator symbol
+    %
     newpath 14 13.8576 0.5774 inkspread add 0 360 arc closepath
             14 13.8576 1.3359 inkspread sub 360 0 arcn closepath fill
     newpath 14 13.8576 2.1058 inkspread add 0 360 arc closepath

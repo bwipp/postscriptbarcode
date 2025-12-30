@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,6 +49,7 @@ begin
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
 
@@ -57,7 +58,9 @@ begin
 
     /barlen barcode length def
 
+    %
     % Validate the input
+    %
     barlen 7 ne barlen 8 ne and {
         /bwipp.MandSbadLength (M&S barcode must be 7 or 8 characters) //raiseerror exec
     } if
@@ -66,11 +69,15 @@ begin
         /barcode (00000000) 8 string copy dup 1 barcode putinterval def
     } if
 
+    %
     % Get the result of encoding with ean8
+    %
     options (dontdraw) true put
     /args barcode options //ean8 exec def
 
+    %
     % Remove the centre guard
+    %
     args (bbs) get dup
     dup 2 get 10 exch put
     dup 2 get 11 exch put
@@ -78,7 +85,9 @@ begin
     dup 2 get 10 exch put
     dup 2 get 11 exch put
 
+    %
     % Fix up the text for 7-digit inputs
+    %
     /txt args (txt) get def
     barlen 7 eq {
         0 1 6 {
@@ -89,7 +98,9 @@ begin
         txt 7 get 0 get 0 ( ) putinterval
     } if
 
+    %
     % Add the M and S guards
+    %
     10 array dup 0 txt putinterval /txt exch def
     txt 0 get dup length array copy txt exch 8 exch put
     txt 0 get dup length array copy txt exch 9 exch put
