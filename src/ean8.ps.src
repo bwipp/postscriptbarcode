@@ -38,20 +38,28 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/ean8.encs [
+    (3211) (2221) (2122) (1411) (1132)
+    (1231) (1114) (1312) (1213) (3112)
+    (111) (11111) (111)
+] readonly def
+
+/ean8.barchars (0123456789) readonly def
+
 /ean8 {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def              % Enable/disable text
     /textfont /Helvetica def
@@ -69,9 +77,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /ean8 //loadctx exec
-
+    %
     % Split off the addon
+    %
     barcode ( ) search {
         /barcode exch def
         pop
@@ -81,7 +89,9 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Validate the input
+    %
     barcode length 7 ne barcode length 8 ne and {
         /bwipp.ean8badLength (EAN-8 must be 7 or 8 digits) //raiseerror exec
     } if
@@ -97,7 +107,9 @@ begin
         /bwipp.ean8badAddOnLength (Non-standard use of add-on for EAN-8 requires "permitaddon" option) //raiseerror exec
     } if
 
+    %
     % Add checksum digit
+    %
     /pad 8 string def
     /checksum 0 def
     0 1 6 {
@@ -119,55 +131,51 @@ begin
     pad 7 checksum 48 add put      % Put ascii for checksum at end of pad
     /barcode pad def
 
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (111) (11111) (111)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-} ctxdef
-
     /sbs 43 string def
     /txt 8 array def
 
+    %
     % Put the start character
-    sbs 0 encs 10 get putinterval
+    %
+    sbs 0 //ean8.encs 10 get putinterval
 
+    %
     % Left side
+    %
     0 1 3 {
-        % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //ean8.barchars exch search
         pop                                % Discard true leaving pre
         length /indx exch def              % indx is the length of pre
         pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
+        /enc //ean8.encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 7 mul textxoffset add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the middle character
-    sbs 4 4 mul 3 add encs 11 get putinterval
+    %
+    sbs 4 4 mul 3 add //ean8.encs 11 get putinterval
 
+    %
     % Right side
+    %
     4 1 7 {
-        % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //ean8.barchars exch search
         pop                                % Discard true leaving pre
         length /indx exch def              % indx is the length of pre
         pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
+        /enc //ean8.encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 7 mul textxoffset add 4 add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the end character
-    sbs 40 encs 12 get putinterval
+    %
+    sbs 40 //ean8.encs 12 get putinterval
 
     /sbs [sbs {48 sub} forall] def
     includetext {
@@ -180,7 +188,9 @@ begin
     } ifelse
     /guardrightypos 0.0 def
 
+    %
     % Append the addon
+    %
     addon () ne {
         /addopts <<
             /dontdraw true
@@ -201,7 +211,6 @@ begin
         /guardrightypos height 72 mul 6 sub def
     } if
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs
@@ -219,8 +228,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
