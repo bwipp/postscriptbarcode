@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,20 +38,28 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/upca.encs [
+    (3211) (2221) (2122) (1411) (1132)
+    (1231) (1114) (1312) (1213) (3112)
+    (111) (11111) (111)
+] readonly def
+
+/upca.barchars (0123456789) readonly def
+
 /upca {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /textfont /Helvetica def
@@ -68,9 +76,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /upca //loadctx exec
-
+    %
     % Split off the addon
+    %
     barcode ( ) search {
         /barcode exch def
         pop
@@ -80,9 +88,13 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Expand a given UPC-E
+    %
     barcode length 7 eq barcode length 8 eq or {
+        %
         % Validate the input
+        %
         barcode {
             dup 48 lt exch 57 gt or {
                 /bwipp.upcAupcEbadCharacter (UPC-E must contain only digits) //raiseerror exec
@@ -125,7 +137,9 @@ begin
         /barcode upcacode def
     } if
 
+    %
     % Validate the input
+    %
     barcode length 11 ne barcode length 12 ne and {
         /bwipp.upcAbadLength (UPC-A must be 11 or 12 digits) //raiseerror exec
     } if
@@ -138,7 +152,9 @@ begin
         /bwipp.upcAbadAddOnLength (Add-on for UPC-A must be 2 or 5 digits) //raiseerror exec
     } if
 
+    %
     % Add checksum digit to barcode
+    %
     /pad 12 string def   % Create pad one bigger than barcode
     /checksum 0 def
     0 1 10 {
@@ -160,33 +176,24 @@ begin
     pad 11 checksum 48 add put      % Put ascii for checksum at end of pad
     /barcode pad def
 
-    % Create an array containing the character mappings
-{
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (111) (11111) (111)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-} ctxdef
-
     /sbs 59 string def
     /txt 12 array def
 
+    %
     % Put the start character
-    sbs 0 encs 10 get putinterval
+    %
+    sbs 0 //upca.encs 10 get putinterval
 
+    %
     % Left side
+    %
     0 1 5 {
-        % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //upca.barchars exch search
         pop                                % Discard true leaving pre
         length /indx exch def              % indx is the length of pre
         pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
+        /enc //upca.encs indx get def      % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
         i 0 eq {      % First digit is before the guard bars
             txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize 2 sub] put
@@ -195,18 +202,21 @@ begin
         } ifelse
     } for
 
+    %
     % Put the middle character
-    sbs 6 4 mul 3 add encs 11 get putinterval
+    %
+    sbs 6 4 mul 3 add //upca.encs 11 get putinterval
 
+    %
     % Right side
+    %
     6 1 11 {
-        % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //upca.barchars exch search
         pop                                % Discard true leaving pre
         length /indx exch def              % indx is the length of pre
         pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
+        /enc //upca.encs indx get def      % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
         i 11 eq {       % Last digit is after guard bars
             txt 11 [barcode 11 1 getinterval textxoffset 107 add textyoffset textfont textsize 2 sub] put
@@ -215,8 +225,10 @@ begin
         } ifelse
     } for
 
+    %
     % Put the end character
-    sbs 56 encs 12 get putinterval
+    %
+    sbs 56 //upca.encs 12 get putinterval
 
     /sbs [sbs {48 sub} forall] def
     includetext {
@@ -229,7 +241,9 @@ begin
     } ifelse
     /guardrightypos 0.0 def
 
+    %
     % Append the addon
+    %
     addon () ne {
         /addopts <<
             /dontdraw true
@@ -250,7 +264,6 @@ begin
         /guardrightypos height 72 mul 6 sub def
     } if
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs
@@ -267,8 +280,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
