@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,19 +38,44 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/hibcmicropdf417.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/hibcmicropdf417.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //hibcmicropdf417.latevars begin
+
+    /charvals 43 dict def
+    0 1 42 {
+        charvals exch dup //hibcmicropdf417.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //hibcmicropdf417.latevars {def} forall } def
+
+    end
+
+    //hibcmicropdf417.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /hibcmicropdf417 {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /columns 2 def
     /validatecheck false def
@@ -58,20 +83,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //hibcmicropdf417.latevars /init get exec
+
     barcode () eq {
         /bwipp.hibcmicropdf417EmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /hibcmicropdf417 //loadctx exec
-
-    % Create a string of the available characters
-{
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) def
-    /charvals 43 dict def
-    0 1 42 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcmicropdf417BadCharacter (HIBC MicroPDF417 must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
@@ -87,7 +107,7 @@ begin
     } for
     /checksum checksum 43 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //hibcmicropdf417.barchars checksum get ne {
             /bwipp.hibcmicropdf417BadCheckDigit (Incorrect HIBC MicroPDF417 check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -95,9 +115,11 @@ begin
 
     /barcode barlen 2 add string dup 1 barcode putinterval def
     barcode 0 43 put
-    barcode barlen 1 add barchars checksum get put
+    barcode barlen 1 add //hibcmicropdf417.barchars checksum get put
 
+    %
     % Get the result of encoding with micropdf417
+    %
     options (dontdraw) true put
     options (columns) columns put
     options (validatecheck) false put
@@ -107,8 +129,6 @@ begin
     args
 
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
