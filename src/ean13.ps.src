@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,20 +38,30 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/ean13.encs [
+    (3211) (2221) (2122) (1411) (1132) (1231) (1114) (1312) (1213) (3112) (111) (11111) (111)
+] readonly def
+
+/ean13.barchars (0123456789) readonly def
+
+/ean13.mirrormaps [
+    (000000) (001011) (001101) (001110) (010011) (011001) (011100) (010101) (010110) (011010)
+] readonly def
+
 /ean13 {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /textfont /Helvetica def
@@ -68,9 +78,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /ean13 //loadctx exec
-
+    %
     % Split off the addon
+    %
     barcode ( ) search {
         /barcode exch def
         pop
@@ -80,7 +90,9 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Validate the input
+    %
     barcode length 12 ne barcode length 13 ne and {
         /bwipp.ean13badLength (EAN-13 must be 12 or 13 digits) //raiseerror exec
     } if
@@ -93,7 +105,9 @@ begin
         /bwipp.ean13badAddOnLength (Add-on for EAN-13 must be 2 or 5 digits) //raiseerror exec
     } if
 
+    %
     % Add checksum digit
+    %
     /pad 13 string def
     /checksum 0 def
     0 1 11 {
@@ -115,43 +129,31 @@ begin
     pad 12 checksum 48 add put      % Put ascii for checksum at end of pad
     /barcode pad def
 
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (111) (11111) (111)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Digits to mirror on left side
-    /mirrormaps
-    [ (000000) (001011) (001101) (001110) (010011)
-      (011001) (011100) (010101) (010110) (011010)
-    ] def
-} ctxdef
-
     /sbs 59 string def
     /txt 13 array def
 
+    %
     % Put the start character
-    sbs 0 encs 10 get putinterval
+    %
+    sbs 0 //ean13.encs 10 get putinterval
 
+    %
     % First digit - determine mirrormap by this and show before guard bars
-    /mirrormap mirrormaps barcode 0 get 48 sub get def
+    %
+    /mirrormap //ean13.mirrormaps barcode 0 get 48 sub get def
     txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize] put
 
+    %
     % Left side - performs mirroring
+    %
     1 1 6 {
         % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //ean13.barchars exch search
         pop                            % Discard true leaving pre
         length /indx exch def          % indx is the length of pre
         pop pop                        % Discard seek and post
-        /enc encs indx get def         % Get the indxth encoding
+        /enc //ean13.encs indx get def       % Get the indxth encoding
         mirrormap i 1 sub get 49 eq {   % Reverse enc if 1 in this position in mirrormap
             /enclen enc length def
             /revenc enclen string def
@@ -166,24 +168,30 @@ begin
         txt i [barcode i 1 getinterval i 1 sub 7 mul 15 add textxoffset add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the middle character
-    sbs 7 1 sub 4 mul 3 add encs 11 get putinterval
+    %
+    sbs 7 1 sub 4 mul 3 add //ean13.encs 11 get putinterval
 
+    %
     % Right side
+    %
     7 1 12 {
         % Lookup the encoding for the each barcode character
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //ean13.barchars exch search
         pop                            % Discard true leaving pre
         length /indx exch def          % indx is the length of pre
         pop pop                        % Discard seek and post
-        /enc encs indx get def         % Get the indxth encoding
+        /enc //ean13.encs indx get def       % Get the indxth encoding
         sbs i 1 sub 4 mul 8 add enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 1 sub 7 mul 19 add textxoffset add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the end character
-    sbs 56 encs 12 get putinterval
+    %
+    sbs 56 //ean13.encs 12 get putinterval
 
     /sbs [sbs {48 sub} forall] def
     includetext {
@@ -196,7 +204,9 @@ begin
     } ifelse
     /guardrightypos 0.0 def
 
+    %
     % Append the addon
+    %
     addon () ne {
         /addopts <<
             /dontdraw true
@@ -217,7 +227,6 @@ begin
         /guardrightypos height 72 mul 6 sub def
     } if
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs sbs
@@ -234,8 +243,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
