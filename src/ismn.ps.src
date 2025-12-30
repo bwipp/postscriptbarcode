@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,6 +49,7 @@ begin
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /ismntextfont /Courier def
@@ -62,7 +63,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Split off the addon
+    %
     barcode ( ) search {
         /barcode exch def
         pop
@@ -72,7 +75,9 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Validate the input
+    %
     barcode length 15 ne barcode length 17 ne and
     barcode length 11 ne barcode length 13 ne and and {
         /bwipp.ismnBadLength (ISMN-13 must be 15 or 17 characters including dashes. ISMN-10 must be 11 or 13 characters including dashes) //raiseerror exec
@@ -153,7 +158,9 @@ begin
 
     /ismntxt barcode def
 
+    %
     % Convert old ISMN to ISMN-13
+    %
     /legacytxt () def
     ismntxt length 13 le {
         /legacytxt ismntxt def
@@ -163,7 +170,9 @@ begin
         /ismntxt pad def
     } if
 
+    %
     % Read the digits from ismntxt and calculate checksums
+    %
     /ismn 13 string def
     /checksum 0 def
     /i 0 def /n 0 def
@@ -185,14 +194,18 @@ begin
     } loop
     /checksum 10 checksum 10 mod sub 10 mod 48 add def
 
+    %
     % Validate the checksum
+    %
     barcode length 13 eq barcode length 17 eq or {
         barcode dup length 1 sub get checksum ne {
             /bwipp.ismnBadCheckDigit (Incorrect ISMN check digit provided) //raiseerror exec
         } if
     } if
 
+    %
     % Add the ISMN header and checksum to the ismntxt
+    %
     legacy legacytxt () ne and {
         /ismntxt legacytxt def
         /pad 18 string def
@@ -205,10 +218,14 @@ begin
     pad pad length 1 sub checksum put
     /ismntxt pad def
 
+    %
     % Convert ISMN digits to EAN-13
+    %
     /barcode ismn 0 12 getinterval def
 
+    %
     % Append the addon
+    %
     addon () ne {
         12 addon length add 1 add string
         dup 0 barcode putinterval
@@ -217,12 +234,16 @@ begin
         /barcode exch def
     } if
 
+    %
     % Get the result of encoding with ean13
+    %
     options (dontdraw) true put
     options (addongap) addongap put
     /args barcode options //ean13 exec def
 
+    %
     % Add the ISMN text
+    %
     includetext {
         ismntextxoffset null eq {
             /ismntextxoffset ismntxt length 18 eq {-1.0} {-12.0} ifelse def

@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -49,6 +49,7 @@ begin
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /issntextfont /Courier def
@@ -61,7 +62,9 @@ begin
     //processoptions exec /options exch def
     /issntxt exch def
 
+    %
     % Split off the ISSN
+    %
     issntxt ( ) search {
         /issntxt exch def
         pop
@@ -71,7 +74,9 @@ begin
         /seqvar (00) def
     } ifelse
 
+    %
     % Split off the sequence variant and addon
+    %
     seqvar ( ) search {
         /seqvar exch def
         pop
@@ -81,7 +86,9 @@ begin
         /addon () def
     } ifelse
 
+    %
     % Validate the input
+    %
     issntxt length 8 ne issntxt length 9 ne and {
         /bwipp.issnBadLength (ISSN must be 8 or 9 characters including dash, in the format XXXX-XXXX) //raiseerror exec
     } if
@@ -115,7 +122,9 @@ begin
         /bwipp.issnBadAddOnLength (Add-on for ISSN must be 2 or 5 digits) //raiseerror exec
     } if
 
+    %
     % Read the digits from issntxt and calculate checksums
+    %
     /issn 8 string def
     /checksum 0 def
     /i 0 def /n 0 def
@@ -139,23 +148,31 @@ begin
         } if
     } if
 
+    %
     % Add the ISSN header and checksum to the issntxt
+    %
     /pad 14 string def
     pad 0 (ISSN ) putinterval
     pad 5 issntxt putinterval  % Add issntxt to the pad
     pad 13 checksum put
     /issntxt pad def
 
+    %
     % Convert ISSN digits to EAN-13
+    %
     /barcode issn 0 7 getinterval def
 
+    %
     % Append the sequence variant
+    %
     /barcode 12 string def
     barcode 0 (977) putinterval
     barcode 3 issn putinterval
     barcode 10 seqvar putinterval
 
+    %
     % Append the addon
+    %
     addon () ne {
         12 addon length add 1 add string
         dup 0 barcode putinterval
@@ -164,12 +181,16 @@ begin
         /barcode exch def
     } if
 
+    %
     % Get the result of encoding with ean13
+    %
     options (dontdraw) true put
     options (addongap) addongap put
     /args barcode options //ean13 exec def
 
+    %
     % Add the ISSN text
+    %
     includetext {
         issntextxoffset null eq {/issntextxoffset 10.0 def} if
         issntextyoffset null eq {/issntextyoffset height 72 mul 3 add def} if
