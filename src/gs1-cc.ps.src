@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -39,8 +39,6 @@ currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
@@ -48,6 +46,39 @@ dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/gs1-cc.lintypecccolumns <<
+    /ean13                  4
+    /upca                   4
+    /ean8                   3
+    /upce                   2
+    /gs1-128                4
+    /databaromni            4
+    /databarstacked         2
+    /databarstackedomni     2
+    /databartruncated       4
+    /databarlimited         3
+    /databarexpanded        4
+    /databarexpandedstacked 4
+>> readonly def
+
+/gs1-cc.bitcapsmaps <<
+    /a [
+        [167 138 118 108 88 78 59]
+        [167 138 118  98 78]
+        [197 167 138 108 78]
+    ]
+    /b [
+        [ 336  296 256 208 160 104  56]
+        [ 768  648 536 416 304 208 152 112  72 32]
+        [1184 1016 840 672 496 352 264 208 152 96 56]
+    ]
+>> readonly def
+
+/gs1-cc.fillpat [ 0 0 1 0 0 ] readonly def
+
+/gs1-cc.pwr928init [ 0 0 0 0 0 0 1 ] readonly def
+
 /gs1-cc {
 
     20 dict begin            % Confine variables to local scope
@@ -65,8 +96,6 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /gs1-cc //loadctx exec
-
     ccversion (a) ne ccversion (b) ne and ccversion (c) ne and {
         /bwipp.gs1ccBadCCversion (ccversion must be a, b or c) //raiseerror exec
     } if
@@ -75,30 +104,15 @@ begin
         /bwipp.gs1ccColumnsTooBig (The maximum number of composite component columns is 30) //raiseerror exec
     } if
 
-{
-    /lintypecccolumns <<
-        /ean13                  4
-        /upca                   4
-        /ean8                   3
-        /upce                   2
-        /gs1-128                4
-        /databaromni            4
-        /databarstacked         2
-        /databarstackedomni     2
-        /databartruncated       4
-        /databarlimited         3
-        /databarexpanded        4
-        /databarexpandedstacked 4
-    >> def
-} ctxdef
-
     lintype () ne {
-        lintypecccolumns lintype known not {
+        //gs1-cc.lintypecccolumns lintype known not {
             /bwipp.gs1ccBadLinType (The lintype is not recognised) //raiseerror exec
         } if
     } if
 
+    %
     % Select columns based on linear type
+    %
     cccolumns -1 eq {
         lintype (gs1-128) eq ccversion (c) eq and {
             linwidth 0 lt {
@@ -109,7 +123,7 @@ begin
             } if
             linwidth 68 eq { 1 } { linwidth 52 sub 17 idiv } ifelse  % Ensure cccolumns != 0 if minimum linwidth
         } {
-            lintype () ne { lintypecccolumns lintype get } {2} ifelse
+            lintype () ne { //gs1-cc.lintypecccolumns lintype get } {2} ifelse
         } ifelse
         /cccolumns exch def
     } if
@@ -119,7 +133,9 @@ begin
     /vals exch def
     /ais exch def
 
+    %
     % Method selection
+    %
     /isupper {dup 65 ge exch 90 le and} def  % A-Z
     /isnum0  {dup 48 ge exch 57 le and} def  % 0-9
     /isnum1  {dup 49 ge exch 57 le and} def  % 1-9
@@ -177,8 +193,6 @@ begin
         dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
     } def
 
-{
-
     /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
 
     /alpha <<
@@ -224,8 +238,6 @@ begin
         lnumeric (000)
         lalphanumeric (00100)
     >> def
-
-} ctxdef
 
     method (10) eq {  % TODO: fixme
         ais 0 get (11) eq ais 0 get (17) eq or {
@@ -362,7 +374,9 @@ begin
         /mode (numeric) def
     } if
 
+    %
     % Append the remaining AI data
+    %
     0 1 ais length 1 sub {
         /i exch def
         /ai ais i get def
@@ -380,26 +394,13 @@ begin
         } if
     } for
 
+    %
     % Calculate the number of bits remaining to the next valid symbol size
-{
-    /bitcapsmaps <<
-        /a [
-            [167 138 118 108 88 78 59]
-            [167 138 118  98 78]
-            [197 167 138 108 78]
-        ]
-        /b [
-            [ 336  296 256 208 160 104  56]
-            [ 768  648 536 416 304 208 152 112  72 32]
-            [1184 1016 840 672 496 352 264 208 152 96 56]
-        ]
-    >> def
-} ctxdef
-
+    %
     /rembits {
         /used exch def
         ccversion (c) ne {  % cc-a or cc-b
-            /bitcaps bitcapsmaps ccversion get cccolumns 2 sub get def
+            /bitcaps //gs1-cc.bitcapsmaps ccversion get cccolumns 2 sub get def
             -1 bitcaps {dup used ge {exch} if pop} forall
             dup -1 ne {used sub} if
         } {
@@ -446,7 +447,9 @@ begin
         /j exch j add def
     } def
 
+    %
     % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
+    %
     /numericruns [ gpf length {0} repeat 0 -1 ] def
     /alphanumericruns [ gpf length {0} repeat 0 ] def
     /nextiso646only [ gpf length {0} repeat 9999 ] def
@@ -473,7 +476,9 @@ begin
         } ifelse
     } for
 
+    %
     % Encode the general purpose field
+    %
     /gpfenc 8304 array def  % 8304 = (865 / 5) * 6 * 8, where 865 = 900 - 3 - 32
     /i 0 def /j 0 def
     {  % loop
@@ -568,12 +573,14 @@ begin
     } loop
     /gpf gpfenc 0 j getinterval def
 
+    %
     % Create pad
+    %
     /pad cdf length gpf length add rembits array def
     pad length 0 gt {
         0 5 pad length 1 sub {  % Fill with 00100
             /i exch def
-            pad i [ 0 0 1 0 0 ] 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
+            pad i //gs1-cc.fillpat 0 pad length i sub 5 2 copy gt {exch} if pop getinterval putinterval
         } for
         mode (numeric) eq {  % Prefix shift from numeric to ASCII
             /pad [ 0 0 0 0 pad aload pop ] 0 pad length getinterval def
@@ -583,16 +590,17 @@ begin
         } if
     } if
 
+    %
     % Concatenate fields
+    %
     /bits [
         cdf aload pop
         gpf aload pop
         pad aload pop
     ] def
 
-{
     /pwr928 [
-        [ 0 0 0 0 0 0 1 ]
+        //gs1-cc.pwr928init
         68 {7 array} repeat
     ] def
     1 1 68 {
@@ -605,7 +613,6 @@ begin
         } for
         pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
     } for
-} ctxdef
 
     ccversion (a) eq {
         /cws [ 28 {0} repeat ] def
@@ -680,8 +687,6 @@ begin
 
     args
     dontdraw not //renmatrix if
-
-    //unloadctx exec
 
     end
 
