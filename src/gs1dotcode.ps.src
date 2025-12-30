@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -47,9 +47,10 @@ dup /dotcode dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1dotcode {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /parse false def
     /dontlint false def
@@ -63,7 +64,9 @@ begin
     /vals exch def
     /ais exch def
 
+    %
     % Create the dotcode data
+    %
     /fnc1 -1 def
     /dmtx [ fnc1 ] def
     0 1 ais length 1 sub {
@@ -83,7 +86,9 @@ begin
         } if
     } for
 
+    %
     % Compose input to dotcode
+    %
     /barcode dmtx length 1 add 5 mul string def
     /i 0 def /j 0 def {
         i dmtx length eq {exit} if
@@ -98,7 +103,9 @@ begin
     } loop
     /barcode barcode 0 j getinterval def
 
+    %
     % Get the result of encoding with dotcode
+    %
     options (parse) undef
     options (dontdraw) true put
     options (parsefnc) true put
