@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,28 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/ean2.encs [
+    (3211) (2221) (2122) (1411) (1132)
+    (1231) (1114) (1312) (1213) (3112)
+    (112) (11)
+] readonly def
+
+/ean2.barchars (0123456789) readonly def
+
+/ean2.mirrormaps [(00) (01) (10) (11)] readonly def
+
 /ean2 {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def
     /textfont /Helvetica def
@@ -65,9 +75,9 @@ begin
         /textyoffset height 72 mul 1 add def
     } if
 
-    /ean2 //loadctx exec
-
+    %
     % Validate input
+    %
     barcode length 2 ne {
       /bwipp.ean2badLength (EAN-2 add-on must be 2 digits) //raiseerror exec
     } if
@@ -77,22 +87,7 @@ begin
         } if
     } forall
 
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (3211) (2221) (2122) (1411) (1132)
-      (1231) (1114) (1312) (1213) (3112)
-      (112) (11)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Determine the mirror map based on mod 4 checksum
-    /mirrormaps [(00) (01) (10) (11)] def
-} ctxdef
-
-    /mirrormap mirrormaps barcode 0 2 getinterval cvi 4 mod get def
+    /mirrormap //ean2.mirrormaps barcode 0 2 getinterval cvi 4 mod get def
 
     /sbs 13 string def
     /txt 2 array def
@@ -100,20 +95,24 @@ begin
     0 1 1 {
         /i exch def
 
+        %
         % Prefix with either a start character or separator character
+        %
         i 0 eq {
-            sbs 0 encs 10 get putinterval
+            sbs 0 //ean2.encs 10 get putinterval
         } {
-            sbs i 1 sub 6 mul 7 add encs 11 get putinterval
+            sbs i 1 sub 6 mul 7 add //ean2.encs 11 get putinterval
         } ifelse
 
+        %
         % Lookup the encoding for the barcode character
-        barcode i 1 getinterval barchars exch search
-        pop                     % Discard true leaving pre
-        length /indx exch def   % indx is the length of pre
-        pop pop                 % Discard seek and post
-        /enc encs indx get def  % Get the indxth encoding
-        mirrormap i get 49 eq { % Reverse enc if 1 in this position in mirrormap
+        %
+        barcode i 1 getinterval //ean2.barchars exch search
+        pop
+        length /indx exch def
+        pop pop
+        /enc //ean2.encs indx get def
+        mirrormap i get 49 eq {
             /enclen enc length def
             /revenc enclen string def
             0 1 enclen 1 sub {
@@ -127,7 +126,6 @@ begin
         txt i [barcode i 1 getinterval i 1 sub 9 mul 10 add textxoffset add textyoffset textfont textsize] put
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -145,8 +143,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
