@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -46,15 +46,18 @@ dup /databaromni dup /uk.co.terryburton.bwipp findresource put
 begin
 /databarstackedomni {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
 
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Validate the input
+    %
     barcode 0 4 getinterval (\(01\)) ne {
         /bwipp.databarstackedomniBadAI (GS1 DataBar Stacked Omnidirectional must begin with (01) application identifier) //raiseerror exec
     } if
@@ -67,7 +70,9 @@ begin
         } if
     } forall
 
+    %
     % Calculate checksum and add to end of barcode
+    %
     /checksum 0 def
     0 1 12 {
         /i exch def
@@ -84,7 +89,9 @@ begin
     dup 17 checksum 48 add put
     /barcode exch def
 
+    %
     % Get the result of encoding with databaromni with format=stackedomni
+    %
     options (dontdraw) true put
     options (format) (stackedomni) put
 
