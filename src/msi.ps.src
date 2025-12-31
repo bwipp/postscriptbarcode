@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,38 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/msi.encs [
+    (12121212) (12121221) (12122112) (12122121) (12211212)
+    (12211221) (12212112) (12212121) (21121212) (21121221)
+    (21) (121)
+] readonly def
+
+/msi.barchars (0123456789) readonly def
+
+%
+% Checksum function lookup dictionary
+%
+/msi.checkfunc <<
+    /mod10      { mod10          } bind
+    /mod1010    { mod10    mod10 } bind
+    /mod11      { mod11          } bind
+    /ncrmod11   { ncrmod11       } bind
+    /mod1110    { mod11    mod10 } bind
+    /ncrmod1110 { ncrmod11 mod10 } bind
+>> def
+
 /msi {
 
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
     /includetext false def   % Enable/disable text
@@ -74,26 +94,14 @@ begin
 
     checktype (unset) eq { /checktype (mod10) def } if
 
-    /msi //loadctx exec
-
+    %
     % Validate the input
+    %
     barcode {
         dup 48 lt exch 57 gt or {
             /bwipp.msiBadCharacter (MSI must contain only digits) //raiseerror exec
         } if
     } forall
-
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (12121212) (12121221) (12122112) (12122121) (12211212)
-      (12211221) (12212112) (12212121) (21121212) (21121221)
-      (21) (121)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789) def
-} ctxdef
 
     /barlen barcode length def     % Length of the code
     /txtlen barlen def
@@ -139,20 +147,11 @@ begin
         } ifelse
     } def
 
-{
-    /checkfunc <<
-        /mod10      { mod10 }
-        /mod1010    { mod10 mod10 }
-        /mod11      { mod11 }
-        /ncrmod11   { ncrmod11 }
-        /mod1110    { mod11 mod10 }
-        /ncrmod1110 { ncrmod11 mod10 }
-    >> def
-} ctxdef
-
+    %
     % Calculate checksum
+    %
     includecheck {
-        checkfunc checktype 2 copy known not {
+        //msi.checkfunc checktype 2 copy known not {
             pop pop /bwipp.msiBadCharacter (MSI checktype must be mod10, mod1010, mod11, ncrmod11, mod1110 or ncrmod1110) //raiseerror exec
         } if
         get barcode exch exec /barcode exch def
@@ -163,25 +162,27 @@ begin
     /sbs barlen 8 mul 5 add string def
     /txt barlen array def
 
+    %
     % Put start character
-    sbs 0 encs 10 get putinterval
+    %
+    sbs 0 //msi.encs 10 get putinterval
 
     0 1 barlen 1 sub {
         /i exch def
-        % Lookup the encoding for the each barcode character
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //msi.barchars exch search
         pop                                % Discard true leaving pre
         length /indx exch def              % indx is the length of pre
         pop pop                            % Discard seek and post
-        /enc encs indx get def             % Get the indxth encoding
+        /enc //msi.encs indx get def       % Get the indxth encoding
         sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 12 mul 3 add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the end character
-    sbs barlen 8 mul 2 add encs 11 get putinterval
+    %
+    sbs barlen 8 mul 2 add //msi.encs 11 get putinterval
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -194,8 +195,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
