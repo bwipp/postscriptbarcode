@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -54,9 +54,11 @@ begin
 
 /renlinear {
 
-    20 dict begin          % Confine variables to local scope
+    20 dict begin
 
+    %
     % Default options
+    %
     /sbs [] def
     /bhs [] def
     /bbs [] def
@@ -120,8 +122,9 @@ begin
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
 
+    %
     % Input validation
-
+    %
     textxalign (unset) ne {
         //renlinear.xalignopts textxalign known not {
             /bwipp.renlinearBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
@@ -158,7 +161,9 @@ begin
         /bwipp.renlinearBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
     } if
 
+    %
     % Create bar elements and put them into the bars array
+    %
     /bars sbs length 1 add 2 idiv array def
     /pixx 0 def /pixy 0 def
     0 1 sbs length 1 add 2 idiv 2 mul 2 sub {
@@ -185,12 +190,16 @@ begin
 
     currentpoint translate
 
+    %
     % Force symbol to given width
+    %
     width 0 ne {
         width 72 mul pixx div 1 scale
     } if
 
+    %
     % Set RGB or CMYK color, or some other color by name
+    %
     /setanycolor {
         /anycolor exch def
         anycolor length 1 lt {
@@ -228,7 +237,9 @@ begin
         } if
     } def
 
+    %
     % Display the border and background
+    %
     showborder showbearer or {
         /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
         /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
@@ -263,7 +274,9 @@ begin
         grestore
     } if } ifelse
 
+    %
     % Display the bars for elements in the bars array
+    %
     gsave
     barcolor (unset) ne { barcolor setanycolor } if
     newpath
@@ -283,10 +296,14 @@ begin
     fill
     grestore
 
+    %
     % Display the text
+    %
     //rendertext exec
 
+    %
     % Display the guard elements
+    %
     guardwhitespace {
         0.75 setlinewidth
         guardleftpos 0 ne {

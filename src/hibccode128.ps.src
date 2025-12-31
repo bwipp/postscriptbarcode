@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -45,10 +45,8 @@ dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code128 dup /uk.co.terryburton.bwipp findresource put
 begin
 
-% Module-level definitions for hibccode128
 /hibccode128.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
 
-% Lazy initialization of lookup dictionaries
 /hibccode128.latevars dup 1 dict def load /init {
 
     currentglobal
@@ -74,11 +72,10 @@ begin
 
 /hibccode128 {
 
-    //hibccode128.latevars /init get exec
-
-    20 dict begin                 % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /textfont /Courier def
     /textsize 10.0 def
@@ -89,11 +86,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //hibccode128.latevars /init get exec
+
     barcode () eq {
         /bwipp.hibccode128emptyData (The data must not be empty) //raiseerror exec
     } if
 
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibccode128badCharacter (HIBC Code 128 must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
@@ -125,7 +126,9 @@ begin
     text barlen 2 add barcode barlen 1 add get dup 32 eq {pop 95} if put
     text barlen 3 add 42 put
 
+    %
     % Get the result of encoding with code128
+    %
     options (dontdraw) true put
     options (validatecheck) false put
     /args barcode options //code128 exec def

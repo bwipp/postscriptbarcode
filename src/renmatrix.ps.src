@@ -116,8 +116,9 @@ begin
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
 
+    %
     % Input validation
-
+    %
     textxalign (unset) ne {
         //renmatrix.xalignopts textxalign known not {
             /bwipp.renmatrixBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
@@ -178,8 +179,10 @@ begin
     /left  {dir 4 ne {x y dir cput [x y]} if  /x x 1 sub def  /dir 4 def} def
     /up    {dir 8 ne {x y dir cput [x y]} if  /y y 1 sub def  /dir 8 def} def
 
+    %
+    % Walk the outline of a region emitting edge coordinates of the path
+    %
     /trace {
-        % Walk the outline of a region emitting edge coordinates of the path
         /y exch def  /x exch def
         % dir 1:right 2:down 4:left 8:up
         /dir x 1 add y 1 add xyget 1 eq {8} {4} ifelse def
@@ -206,7 +209,9 @@ begin
 
     } def
 
+    %
     % Set RGB or CMYK color, or some other color by name
+    %
     /setanycolor {
         /anycolor exch def
         anycolor length 1 lt {
@@ -244,7 +249,9 @@ begin
         } if
     } def
 
+    %
     % Plot a layer of single colour
+    %
     /drawlayer {
 
         /pixsorig pixs def
@@ -263,10 +270,14 @@ begin
         /pixx pixx 2 add def
         /pixy pixy 2 add def
 
+        %
         % Cache of visited corners for each direction
+        %
         /cache [ pixs length {0} repeat ] def
 
+        %
         % Construct paths by tracing regions avoiding duplication by using the cache
+        %
         /paths [
             0 1 pixy 2 sub {
                 /j exch def
@@ -287,11 +298,15 @@ begin
             } for
         ] def
 
+        %
         % Revert the bitmap size
+        %
         /pixx pixx 2 sub def
         /pixy pixy 2 sub def
 
+        %
         % Draw the image
+        %
         newpath
         paths {
             /p exch def
@@ -346,10 +361,14 @@ begin
     /inkspreadh inkspreadh 2 div def
     /inkspreadv inkspreadv 2 div def
 
+    %
     % Force symbol to given width
+    %
     width pixx div 72 mul height pixy div 72 mul scale
 
+    %
     % Display the border and background
+    %
     showborder {
         /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
         /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
@@ -375,7 +394,9 @@ begin
         grestore
     } if
 
+    %
     % Display the matrix
+    %
     colormap (unset) eq {
         /colormap << 1 barcolor >> def
     } if
@@ -388,7 +409,9 @@ begin
         ] dotty {drawlayerdots} {drawlayer} ifelse
     } forall
 
+    %
     % Display the text
+    %
     //rendertext exec
 
     grestore
