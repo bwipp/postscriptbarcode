@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,26 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/japanpost.encs [
+    (300) (330) (312) (132) (321) (303) (123) (231) (213) (033) (030)  % 0-9 and "-"
+    (120) (102) (210) (012) (201) (021) (003) (333)                    % C1-C8
+    (31) (13)                                                          % ST EN
+] readonly def
+
+/japanpost.barchars (0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+
 /japanpost {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
@@ -65,9 +73,9 @@ begin
         /bwipp.japanpostEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /japanpost //loadctx exec
-
+    %
     % Validate the input
+    %
     barcode {
         dup dup 48 ge exch 57 le and exch  % 0-9
         dup dup 65 ge exch 90 le and exch  % A-Z
@@ -76,33 +84,23 @@ begin
         } if
     } forall
 
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (300) (330) (312) (132) (321) (303) (123) (231) (213) (033) (030)  % 0-9 and "-"
-      (120) (102) (210) (012) (201) (021) (003) (333)                    % C1-C8
-      (31) (13)                                                          % ST EN
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
-} ctxdef
-
     /barlen barcode length def
 
     /encstr 20 1 add 3 mul 4 add string def
     /digits 20 array def
     /txt barlen 1 add array def
 
+    %
     % Put start character
-    encstr 0 encs 19 get putinterval
+    %
+    encstr 0 //japanpost.encs 19 get putinterval
 
     /checksum 0 def
     /j 0 def /i 0 def
     true
     0 1 barlen 1 sub {
         /i exch def
-        barcode i 1 getinterval barchars exch search
+        barcode i 1 getinterval //japanpost.barchars exch search
         pop                                  % Discard true leaving pre
         length /indx exch def                % indx is the length of pre
         pop pop                              % Discard match and post
@@ -112,7 +110,7 @@ begin
                                              % 21-30: C2 (12)
                                              % 31-36: C3 (13)
             /digit indx 1 sub 10 idiv 10 add def
-            encstr j 3 mul 2 add encs digit get putinterval
+            encstr j 3 mul 2 add //japanpost.encs digit get putinterval
             /checksum checksum digit add def
             digits j digit put
             /j j 1 add def
@@ -128,7 +126,7 @@ begin
         indx 11 lt {
             /digit indx def
         } if
-        encstr j 3 mul 2 add encs digit get putinterval % space
+        encstr j 3 mul 2 add //japanpost.encs digit get putinterval % space
         /checksum checksum digit add def
         digits j digit put
         txt i [barcode i 1 getinterval j 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
@@ -139,28 +137,36 @@ begin
         /bwipp.japanpostTooLong (The input is too long) //raiseerror exec
     } if
 
+    %
     % Fill spaces (c14) at right end
+    %
     j 1 20 1 sub {
         /k exch def
-        encstr k 3 mul 2 add encs 14 get putinterval
+        encstr k 3 mul 2 add //japanpost.encs 14 get putinterval
         /checksum checksum 14 add def
         digits k 14 put
     } for
 
+    %
     % Put the checksum character
+    %
     /checksum checksum 19 mod 19 exch sub def
-    encstr 2 20 3 mul add encs checksum get putinterval
+    encstr 2 20 3 mul add //japanpost.encs checksum get putinterval
 
+    %
     % Put end character
-    encstr 2 21 3 mul add encs 20 get putinterval
+    %
+    encstr 2 21 3 mul add //japanpost.encs 20 get putinterval
     /checkdigit ( ) def
     includecheckintext {
-        /checkdigit barchars checksum 1 getinterval def
+        /checkdigit //japanpost.barchars checksum 1 getinterval def
     } if
     txt i 1 add [ checkdigit 20 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
 
+    %
     % Put end character
-    encstr 20 1 add 3 mul 2 add encs 20 get putinterval
+    %
+    encstr 20 1 add 3 mul 2 add //japanpost.encs 20 get putinterval
 
     /bbs 21 3 mul 4 add array def
     /bhs bbs length array def
@@ -189,7 +195,6 @@ begin
         bhs i hunit height mul 8 div put
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /bbs bbs
@@ -202,8 +207,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
