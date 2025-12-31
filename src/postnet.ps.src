@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,26 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/postnet.barchars (0123456789) readonly def
+
+/postnet.encs [
+    (55222) (22255) (22525) (22552) (25225)
+    (25252) (25522) (52225) (52252) (52522)
+    (5) (5)
+] readonly def
+
 /postnet {
 
     20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def          % Enable/disable text
     /validatecheck false def
@@ -62,11 +70,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /postnet //loadctx exec
-
     /barlen barcode length validatecheck {1 sub} if def
 
+    %
     % Validate the input
+    %
     barlen 5 ne barlen 9 ne and barlen 11 ne and {
         /bwipp.postnetBadLength (USPS POSTNET must be 5, 9 or 11 digits excluding check digit) //raiseerror exec
     } if
@@ -76,18 +84,6 @@ begin
         } if
     } forall
 
-{
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Create an array containing the character mappings
-    /encs
-    [ (55222) (22255) (22525) (22552) (25225)
-      (25252) (25522) (52225) (52252) (52522)
-      (5) (5)
-    ] def
-} ctxdef
-
     /checksum 0 def
     0 1 barlen 1 sub {
         /i exch def
@@ -95,7 +91,7 @@ begin
     } for
     /checksum 10 checksum 10 mod sub 10 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //postnet.barchars checksum get ne {
             /bwipp.postnetBadCheckDigit (Incorrect USPS POSTNET check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -104,8 +100,10 @@ begin
     /bhs barlen 5 mul 7 add array def
     /txt barlen 1 add array def
 
+    %
     % Put start character
-    /enc encs 10 get def
+    %
+    /enc //postnet.encs 10 get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -115,7 +113,7 @@ begin
 
     0 1 barlen 1 sub {
         /i exch def
-        /enc encs barcode i get 48 sub get def
+        /enc //postnet.encs barcode i get 48 sub get def
         /heights enc length array def
         0 1 enc length 1 sub {
             /j exch def
@@ -125,8 +123,10 @@ begin
         txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } for
 
+    %
     % Put the checksum character
-    /enc encs checksum get def
+    %
+    /enc //postnet.encs checksum get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -135,13 +135,15 @@ begin
     bhs barlen 5 mul 1 add heights putinterval
 
     includecheckintext {
-        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+        txt barlen [//postnet.barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } {
         txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textyoffset textfont textsize] put
     } ifelse
 
+    %
     % Put end character
-    /enc encs 11 get def
+    %
+    /enc //postnet.encs 11 get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -149,7 +151,6 @@ begin
     } for
     bhs barlen 5 mul 6 add heights putinterval
 
-    % Return the arguments
     <<
     /ren /renlinear
     /bhs bhs
@@ -162,8 +163,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
