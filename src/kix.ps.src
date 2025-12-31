@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,20 +38,53 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/kix.encs [
+    (0033) (0123) (0132) (1023) (1032) (1122)
+    (0213) (0303) (0312) (1203) (1212) (1302)
+    (0231) (0321) (0330) (1221) (1230) (1320)
+    (2013) (2103) (2112) (3003) (3012) (3102)
+    (2031) (2121) (2130) (3021) (3030) (3120)
+    (2211) (2301) (2310) (3201) (3210) (3300)
+] readonly def
+
+/kix.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+
+/kix.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //kix.latevars begin
+
+    /charvals 36 dict def
+    0 1 35 {
+        charvals exch dup //kix.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //kix.latevars {def} forall } def
+
+    end
+
+    //kix.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /kix {
+
 
     20 dict begin
 
-    /ctx null def
     /dontdraw false def
-    /includetext false def          % Enable/disable text
+    /includetext false def
     /textfont /Courier def
     /textsize 10.0 def
     /textyoffset -7.0 def
@@ -60,30 +93,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //kix.latevars /init get exec
+
     barcode () eq {
         /bwipp.kixEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /kix //loadctx exec
-
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (0033) (0123) (0132) (1023) (1032) (1122)
-      (0213) (0303) (0312) (1203) (1212) (1302)
-      (0231) (0321) (0330) (1221) (1230) (1320)
-      (2013) (2103) (2112) (3003) (3012) (3102)
-      (2031) (2121) (2130) (3021) (3030) (3120)
-      (2211) (2301) (2310) (3201) (3210) (3300)
-    ] def
-
-    % Create a string of the available characters
-    /barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) def
-    /charvals 36 dict def
-    0 1 35 {charvals exch dup barchars exch 1 getinterval exch put} for
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.kixBadCharacter (KIX must contain only capital letters and digits) //raiseerror exec
@@ -97,7 +115,7 @@ begin
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        encstr i 4 mul encs indx get putinterval
+        encstr i 4 mul //kix.encs indx get putinterval
         txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
     } for
 
@@ -124,7 +142,6 @@ begin
         } if
     } for
 
-    % Return the arguments
     <<
     /ren /renlinear
     /bbs bbs
@@ -137,8 +154,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
