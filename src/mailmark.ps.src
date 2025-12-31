@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -45,9 +45,22 @@ dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/mailmark.typetoversion <<
+    (7)  (24x24)
+    (9)  (32x32)
+    (29) (16x48)
+>> readonly def
+
+/mailmark.typetoformat <<
+    (7)  (square)
+    (9)  (square)
+    (29) (rectangle)
+>> readonly def
+
 /mailmark {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
     /type (unset) def  % 7, 9 or 29
@@ -57,7 +70,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Parse ordinals of the form ^NNN to ASCII
+    %
     /fncvals <<
         /parse parse
         /parseonly true
@@ -67,23 +82,18 @@ begin
     /barlen barcode length def
     options (parse) undef
 
+    %
     % Map the given type to a format and version of Data Matrix
+    %
     /type load dup (7) ne exch dup (9) ne exch (29) ne and and {
         /bwipp.mailmarkBadType (Royal Mail Mailmark type must be 7, 9 or 29) //raiseerror exec
     } if
-    <<
-        (7)  (24x24)
-        (9)  (32x32)
-        (29) (16x48)
-    >> /type load get /version exch def
+    //mailmark.typetoversion /type load get /version exch def
+    //mailmark.typetoformat  /type load get /format exch def
 
-    <<
-        (7)  (square)
-        (9)  (square)
-        (29) (rectangle)
-    >> /type load get /format exch def
-
+    %
     % Validate the input
+    %
     barcode length 45 lt {
         /bwipp.mailmarkBadLength (Royal Mail Mailmark must contain at least 45 characters of Mailmark formatted data, including any required space padding) //raiseerror exec
     } if
@@ -91,7 +101,9 @@ begin
         /bwipp.mailmarkBadIndicator (Royal Mail Mailmark must begin with JGB<space> identifier) //raiseerror exec
     } if
 
+    %
     % Get the result of encoding with datamatrix
+    %
     options (dontdraw) true put
     options (version) version put
     options (format) format put
