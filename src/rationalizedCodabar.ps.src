@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,28 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/rationalizedCodabar.encs [
+    (11111331) (11113311) (11131131) (33111111) (11311311)
+    (31111311) (13111131) (13113111) (13311111) (31131111)
+    (11133111) (11331111) (31113131) (31311131) (31313111)
+    (11313131) (11331311) (13131131) (11131331) (11133311)
+] readonly def
+
+/rationalizedCodabar.barchars (0123456789-$:/.+ABCD) readonly def
+/rationalizedCodabar.barcharsalt (0123456789-$:/.+TN*E) readonly def
+
 /rationalizedCodabar {
 
-    20 dict begin                    % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /altstartstop false def
     /includecheck false def     % Enable/disable checkdigit
@@ -68,23 +78,7 @@ begin
         /bwipp.rationalizedCodabarBadLength (Codabar must be at least 2 characters in length excluding any check digit) //raiseerror exec
     } if
 
-    /rationalizedCodabar //loadctx exec
-
-{
-    % Create an array containing the character mappings
-    /encs
-    [ (11111331) (11113311) (11131131) (33111111) (11311311)
-      (31111311) (13111131) (13113111) (13311111) (31131111)
-      (11133111) (11331111) (31113131) (31311131) (31313111)
-      (11313131) (11331311) (13131131) (11131331) (11133311)
-    ] def
-
-    % Create a string of the available characters
-    /barcharsnormal (0123456789-$:/.+ABCD) def
-    /barcharsalt (0123456789-$:/.+TN*E) def
-} ctxdef
-
-    /barchars altstartstop {barcharsalt} {barcharsnormal} ifelse def
+    /barchars altstartstop {//rationalizedCodabar.barcharsalt} {//rationalizedCodabar.barchars} ifelse def
 
     /charvals 20 dict def
     0 1 19 {charvals exch dup barchars exch 1 getinterval exch put} for
@@ -93,7 +87,9 @@ begin
     /ssvals 4 dict def
     16 1 19 {ssvals exch dup barchars exch 1 getinterval exch put} for
 
+    %
     % Validate the input
+    %
     barcode 0 1 getinterval ssvals exch known not
     barcode barcode length 1 sub 1 getinterval ssvals exch known not or {
         altstartstop {
@@ -136,7 +132,7 @@ begin
     0 1 barlen 2 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        /enc encs indx get def
+        /enc //rationalizedCodabar.encs indx get def
         sbs i 8 mul enc putinterval  % Put encoded digit into sbs
         txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
         0 1 7 {       % xpos+=width of the character
@@ -144,32 +140,40 @@ begin
         } for
     } for
 
+    %
     % Put the checksum character and stop character
+    %
     includecheck {
+        %
         % Put the checksum character
-        sbs barlen 8 mul 8 sub encs checksum get putinterval
+        %
+        sbs barlen 8 mul 8 sub //rationalizedCodabar.encs checksum get putinterval
         includecheckintext {
             txt barlen 1 sub [barchars checksum 1 getinterval xpos textyoffset textfont textsize] put
         } {
             txt barlen 1 sub [( ) xpos textyoffset textfont textsize] put
         } ifelse
         0 1 7 {       % xpos+=width of the character
-            /xpos exch encs checksum get exch get 48 sub xpos add def
+            /xpos exch //rationalizedCodabar.encs checksum get exch get 48 sub xpos add def
         } for
+
+        %
         % Put the end character
+        %
         /indx charvals barcode barlen 1 sub 1 getinterval get def
-        /enc encs indx get def            % Get the indxth encoding
+        /enc //rationalizedCodabar.encs indx get def            % Get the indxth encoding
         sbs barlen 8 mul enc putinterval  % Put encoded digit into sbs
         txt barlen [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
     } {
+        %
         % Put the end character
+        %
         /indx charvals barcode barlen 1 sub 1 getinterval get def
-        /enc encs indx get def                  % Get the indxth encoding
+        /enc //rationalizedCodabar.encs indx get def                  % Get the indxth encoding
         sbs barlen 8 mul 8 sub enc putinterval  % Put encoded digit into sbs
         txt barlen 1 sub [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
     } ifelse
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -182,8 +186,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
