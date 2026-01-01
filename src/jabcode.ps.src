@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,12 +38,279 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/jabcode.metavfmap [ 0 1 2 2 3 3 3 3 ] readonly def
+/jabcode.metavlensq [ 2 2 3 4 ] readonly def
+/jabcode.metavlenrect [ 4 6 8 10 ] readonly def
+/jabcode.slavemetamap [ 10 12 14 14 16 16 16 16 ] readonly def
+/jabcode.coderates [ 0.67 0.63 0.57 0.55 0.50 0.43 0.34 0.25 0.20 0.17 0.14 ] readonly def
+/jabcode.metavfadj [ 0 4 8 16 ] readonly def
+
+/jabcode.fpat.master [
+    [ 1 1 1 0 0 ]
+    [ 1 2 2 0 0 ]
+    [ 1 2 1 2 1 ]
+    [ 0 0 2 2 1 ]
+    [ 0 0 1 1 1 ]
+] readonly def
+
+/jabcode.fpat.slave [
+    [ 0 0 0 0 0 ]
+    [ 0 2 2 0 0 ]
+    [ 0 2 1 2 0 ]
+    [ 0 0 2 2 0 ]
+    [ 0 0 0 0 0 ]
+] readonly def
+
+%
+% Master palette maps
+%
+/jabcode.palettemap1.master [
+    [  4  1 ] [  4  2 ] [  5  1 ] [  5  2 ] [  2  4 ] [  2  5 ] [  1  4 ] [  1  5 ]  % 0-7
+    [ -2  1 ] [ -2  2 ] [ -1  1 ] [ -1  2 ] [ -4  4 ] [ -4  5 ] [ -5  4 ] [ -5  5 ]  % 8-15
+] readonly def
+
+/jabcode.palettemap2.master [
+    [ -4 -5 ] [ -4 -4 ] [ -5 -5 ] [ -5 -4 ] [ -2 -2 ] [ -2 -1 ] [ -1 -2 ] [ -1 -1 ]  % 0-7
+    [  2 -5 ] [  2 -4 ] [  1 -5 ] [  1 -4 ] [  4 -2 ] [  4 -1 ] [  5 -2 ] [  5 -1 ]  % 8-15
+] readonly def
+
+/jabcode.latevars dup 20 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //jabcode.latevars begin
+
+    %
+    % Build color-dependent data for each color mode
+    %
+    /coloridx 7 dict def
+    /palettes 7 dict def
+    /palettelayouts 7 dict def
+
+    %
+    % Special case: 4 colors
+    %
+    coloridx 4 << /bi 0 /gi 1 /mi 2 /yi 3 /ki 4 /wi 5 >> put
+    palettes 4 << 0 (0000FF) 1 (00FF00) 2 (FF00FF) 3 (FFFF00) 4 (000000) 5 (FFFFFF) >> put
+    palettelayouts 4 [0 1 2 3] put
+
+    %
+    % 8 - 256 color cases
+    %
+    /rgbres <<
+             % r g b   Graduations
+          8  [ 2 2 2 ]
+         16  [ 4 2 2 ]
+         32  [ 4 4 2 ]
+         64  [ 4 4 4 ]
+        128  [ 8 4 4 ]
+        256  [ 8 8 4 ]
+    >> readonly def
+
+    [ 8 16 32 64 128 256 ] {
+
+        /ncolors exch def
+
+        /rvals rgbres ncolors get 0 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
+        /gvals rgbres ncolors get 1 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
+        /bvals rgbres ncolors get 2 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
+
+        /idx 8 dict def
+
+        /palette ncolors dict def
+        /layout 64 ncolors 2 copy gt {exch} if pop array def
+        /i 0 def /j 8 def
+
+        rvals { /r exch def gvals { /g exch def bvals { /b exch def
+            /rgb r 16 bitshift g 8 bitshift or b or def
+
+            %
+            % Build coloridx
+            %
+            rgb 16#000000 eq {idx /ki i put} if
+            rgb 16#0000FF eq {idx /bi i put} if
+            rgb 16#00FF00 eq {idx /gi i put} if
+            rgb 16#00FFFF eq {idx /ci i put} if
+            rgb 16#FF0000 eq {idx /ri i put} if
+            rgb 16#FF00FF eq {idx /mi i put} if
+            rgb 16#FFFF00 eq {idx /yi i put} if
+            rgb 16#FFFFFF eq {idx /wi i put} if
+
+            %
+            % Build palette
+            %
+            rgb (000000) 6 string copy dup 3 -1 roll 16 6 string cvrs
+            dup length 6 exch sub exch putinterval
+            palette exch i exch put
+
+            %
+            % Build palettelayout (non-primary colors for slots 8+)
+            %
+            rgb 16#000000 ne rgb 16#0000FF ne and rgb 16#00FF00 ne and
+            rgb 16#00FFFF ne and rgb 16#FF0000 ne and rgb 16#FF00FF ne and
+            rgb 16#FFFF00 ne and rgb 16#FFFFFF ne and {
+                ncolors 64 le
+                ncolors 128 eq r 0 eq r 73 eq or r 182 eq or r 255 eq or and
+                ncolors 256 eq r 0 eq r 73 eq or r 182 eq or r 255 eq or and
+                    g 0 eq g 73 eq or g 182 eq or g 255 eq or and
+                or or {
+                    layout j i put
+                    /j j 1 add def
+                } if
+            } if
+
+            /i i 1 add def
+        } forall } forall } forall
+
+        %
+        % Fill primary color slots in palettelayout
+        %
+        layout 0 [idx /ki get idx /bi get idx /gi get idx /ci get
+                  idx /ri get idx /mi get idx /yi get idx /wi get] putinterval
+
+        coloridx ncolors idx put
+        palettes ncolors palette put
+        palettelayouts ncolors layout put
+
+    } forall
+
+    %
+    % Build remaining color-dependent arrays from coloridx
+    %
+    /fmapmaster <<
+        coloridx {
+            /idx exch def
+            /c exch def
+            c [
+                [-1 idx /bi get idx /yi get]
+                [-1 idx /yi get idx /bi get]
+                [-1 idx /gi get idx /mi get]
+                [-1 idx /mi get idx /gi get]
+            ]
+        } forall
+    >> def
+
+    /fmapslave <<
+        coloridx {
+            /idx exch def
+            /c exch def
+            /ki idx /ki get def
+            /wi idx /wi get def
+            c [
+                [-1 ki wi]
+                [-1 ki wi]
+                [-1 ki wi]
+                [-1 ki wi]
+            ]
+        } forall
+    >> def
+
+    /algnpat0s <<
+        coloridx {
+            /idx exch def
+            /c exch def
+            /ki idx /ki get def
+            /wi idx /wi get def
+            c [
+                [ki ki -1]
+                [ki wi ki]
+                [-1 ki ki]
+            ]
+        } forall
+    >> def
+
+    /algnpat1s <<
+        coloridx {
+            /idx exch def
+            /c exch def
+            /ki idx /ki get def
+            /wi idx /wi get def
+            c [
+                [-1 ki ki]
+                [ki wi ki]
+                [ki ki -1]
+            ]
+        } forall
+    >> def
+
+    /metacoloridxs <<
+        coloridx {
+            /idx exch def
+            /c exch def
+            c c 4 eq {
+                [idx /bi get idx /gi get idx /mi get idx /yi get]
+            } {
+                [
+                    idx /ki get idx /bi get idx /gi get idx /ci get
+                    idx /ri get idx /mi get idx /yi get idx /wi get
+                ]
+            } ifelse
+        } forall
+    >> def
+
+    %
+    % Metadata and palette coordinate maps
+    %
+    /metadatamap.master [
+        [  % Expanded to [ x y ] [ -x y ] [ -x -y ] [ x -y ]
+            % Metadata and palette
+            [ 6 1 ] [ 6 2 ] [ 6 3 ] [ 6 4 ] [ 6 5 ] [ 6 6 ] [ 5 6 ] [ 4 6 ] [ 3 6 ] [ 2 6 ]  %  0-39
+            [ 1 6 ] [ 7 1 ] [ 7 2 ] [ 7 3 ] [ 7 4 ] [ 7 5 ] [ 7 6 ] [ 7 7 ] [ 6 7 ] [ 5 7 ]  % 40-79
+            % Palette only
+            [  4  7 ] [  3  7 ] [  2  7 ] [  1  7 ] [  8  1 ] [  8  2 ] [  8  3 ] [  8  4 ]  % 16-31
+            [  8  5 ] [  8  6 ] [  8  7 ] [  8  8 ] [  7  8 ] [  6  8 ] [  5  8 ] [  4  8 ]  % 32-47
+            [  3  8 ] [  2  8 ] [  1  8 ] [  9  1 ] [  9  2 ] [  9  3 ] [  9  4 ] [  9  5 ]  % 48-63
+        ] {
+            aload pop /y exch def /x exch def
+            [ x y ] [ x neg y ] [ x neg y neg ] [ x y neg ]
+        } forall
+    ] def
+
+    %
+    % Slave metadatamap
+    %
+    /metadatamap.slave [
+        1 1 19 {
+            /i exch def
+            [ 0 i ] [ 1 i ]
+        } for
+        5 1 12 {
+            /i exch def
+            [ 2 i ] [ 3 i ]
+        } for
+    ] def
+
+    %
+    % Slave palette maps
+    %
+    /palettemap1.slave [
+         5  1 12 { [ exch 4 exch ] } for
+        12 -1  5 { [ exch 5 exch ] } for
+         5  1 12 { [ exch 6 exch ] } for
+        12 -1  5 { [ exch 7 exch ] } for
+    ] def
+    /palettemap2.slave [
+        palettemap1.slave { [ exch aload pop neg exch neg exch ] } forall
+    ] def
+
+    /init { //jabcode.latevars {def} forall } def
+
+    end
+
+    //jabcode.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /jabcode {
 
     20 dict begin
@@ -63,10 +330,14 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //jabcode.latevars /init get exec
+
     /databpm colors ln 2 ln div round cvi def
     /metabpm colors dup 8 gt {pop 8} if ln 2 ln div round cvi def
 
-     % Parse the input
+    %
+    % Parse the input
+    %
     /fn1 -1 def
     /fncvals <<
         /parse parse
@@ -76,7 +347,9 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+    %
     % Wide array support, as needed
+    %
     {65536 array} stopped {
         pop
         /arrayw {
@@ -105,7 +378,9 @@ begin
         0 3 -1 roll getinterval
     } def
 
+    %
     % Encode the data using byte mode encoding and terminate with EOM
+    %
     /bits 7 msglen 15 le {4} {17} ifelse add msglen 8 mul add 12 add string def
     /j 0 def
     31 5 tofixedbits addtobits  % MS
@@ -124,12 +399,18 @@ begin
     (11) addtobits              % EOM
 
     % TODO Cascade
+    options /debugbits known {
+        /bwipp.debugbits [ bits {48 sub} forall ] //raiseerror exec
+    } if
+
     /diffside 21 def
     /sameshape false def
     /sameecc false def
     /hasslaves false def
 
+    %
     % Determine the metrics for a symbol of a given size
+    %
     /metrics {
         /mc exch def  /mr exch def
         mc mr mul                                      % All modules
@@ -138,12 +419,14 @@ begin
         64 colors 2 copy gt {exch} if pop 2 mul        % Palette modules
         slave {7} {17} ifelse 4 mul                    % Finder modules
 
+        %
         % Metadata bits and modules
+        %
         slave not {  % Master
             /metass mr mc eq {0} {1} ifelse def
             mr mc 2 copy lt {exch} if pop
-            21 sub 16 idiv [ 0 1 2 2 3 3 3 3 ] exch get  /metavf exch def
-            /metavlen metass 0 eq {[2 2 3 4]} {[4 6 8 10]} ifelse metavf get def
+            21 sub 16 idiv //jabcode.metavfmap exch get  /metavf exch def
+            /metavlen metass 0 eq {//jabcode.metavlensq} {//jabcode.metavlenrect} ifelse metavf get def
             /metaelen metavf 2 mul 10 add def
             7                                          % II:  SS VF MSK SF
             metavlen add metaelen add                  % III: V E
@@ -158,7 +441,7 @@ begin
             hasslaves     {3 add} if                   % II:  S
             sameecc not {
                 mr mc 2 copy lt {exch} if pop
-                21 sub 16 idiv [ 10 12 14 14 16 16 16 16 ] exch get
+                21 sub 16 idiv //jabcode.slavemetamap exch get
                 add                                    % III: E
             } if
             2 mul                                      % LDPC
@@ -171,8 +454,10 @@ begin
         /numdatabits numdatamodules databpm mul def
     } def
 
+    %
     % Select a symbol size sufficient to carry the message
-    /coderate [ 0.67 0.63 0.57 0.55 0.50 0.43 0.34 0.25 0.20 0.17 0.14 ] eclevel get def
+    %
+    /coderate //jabcode.coderates eclevel get def
     /grosslen bits length coderate div ceiling cvi def
     /snapsize {ceiling cvi 18 sub dup 0 lt {pop 0} if 4 idiv 4 mul 21 add} def
 
@@ -214,7 +499,9 @@ begin
         /bwipp.jabcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
     } if
 
+    %
     % Pick ECC params to maximally fill symbol
+    %
     /min C def
     3 1 8 {
         /i exch def
@@ -229,7 +516,9 @@ begin
         } for
     } for
 
+    %
     % Extend the encoded data to fill the required data length
+    %
     /tmpbits C datawr idiv datawr mul C datawr idiv datawc mul sub string def
     tmpbits 0 bits putinterval
     bits length 1 tmpbits length 1 sub {
@@ -238,14 +527,17 @@ begin
     } for
     /bits tmpbits def
 
+    %
     % Avoid 15-bit overflow when multiplying the digits by stealing from the second digit
     % m = 6364136223846793005 = 0x 5851 f42d 4c95 7f2d
+    %
     /m0 16#5851 16#1 add def  /m1 16#f42d 16#10000 sub def  /m2 16#4c95 def  /m3 16#7f2d def
 
     /lcg64_temper {
 
+        %
         % Multiply seed by 6364136223846793005 then add 1
-
+        %
         /p00 m0 s0 mul def  /p01 m0 s1 mul def  /p02 m0 s2 mul def  /p03 m0 s3 mul def
         /p10 m1 s0 mul def  /p11 m1 s1 mul def  /p12 m1 s2 mul def  /p13 m1 s3 mul def
         /p20 m2 s0 mul def  /p21 m2 s1 mul def  /p22 m2 s2 mul def  /p23 m2 s3 mul def
@@ -262,19 +554,24 @@ begin
             p12 16#10000 mod p13 16#10000 idiv add add
             p03 16#10000 mod                       add def
 
+        %
         % Simplify carry by making each digit positive by borrowing from more significant digit
+        %
         /s3 s3 16#10000 add def
         /s2 s2 16#ffff  add def
         /s1 s1 16#ffff  add def
         /s0 s0 16#ffff  add def
 
+        %
         % Carry
+        %
         /s2 s3 16#10000 idiv s2 add def  /s3 s3 16#10000 mod def
         /s1 s2 16#10000 idiv s1 add def  /s2 s2 16#10000 mod def
         /s0 s1 16#10000 idiv s0 add def  /s1 s1 16#10000 mod def
                                          /s0 s0 16#10000 mod def
-
+        %
         % Temper most significant 32 bits
+        %
         s0 16#8000 sub 16#10000 mul s1 add 16#80000000 xor
         16#ffffffff and
         dup -11 bitshift xor
@@ -304,7 +601,9 @@ begin
             } for
         } for
 
+        %
         % Pseudorandom permutation
+        %
         /s0 16#0000 def  /s1 16#0000 def  /s2 16#000B def  /s3 16#FC39 def  % s=785465
         1 1 wc 1 sub {
             /i exch def
@@ -341,7 +640,9 @@ begin
         /permutation Pg_sub_block array def
         0 1 Pg_sub_block 1 sub {permutation exch dup put} for
 
+        %
         % Pseudorandom permutation
+        %
         /s0 16#0000 def  /s1 16#0000 def  /s2 16#0000 def  /s3 16#9691 def  % s=38545
         /nb_once nb_pcb wc div Pg_sub_block mul 3 add cvi nb_pcb idiv def
         0 1 nb_pcb 1 sub {
@@ -607,10 +908,14 @@ begin
 
     } def
 
+    %
     % Replace data bitstream with LDPC error correction stream
+    %
     /bits bits datawc datawr ldpc def
 
+    %
     % Interleave via pseudorandom permutation
+    %
     /s0 16#0000 def  /s1 16#0000 def  /s2 16#0003 def  /s3 16#75C7 def  % s=226759
     bits length 1 sub -1 1 {
         /l exch def
@@ -623,7 +928,9 @@ begin
         bits exch r exch put
     } for
 
+    %
     % Append padding bits to the interleaved, ECC encoded data up to capacity
+    %
     /tmpbits C string def
     tmpbits 0 bits putinterval
     /j bits length def
@@ -634,106 +941,28 @@ begin
     } repeat
     /bits tmpbits def
 
-    % Define the color palette
-    colors 4 eq {
-        /bi 0 def  /gi 1 def  /mi 2 def  /yi 3 def
-        /ki 4 def  /wi 5 def  % Extended
-        /palette <<
-            bi (0000FF)  gi (00FF00)  mi (FF00FF)  yi (FFFF00)
-            ki (000000)  wi (FFFFFF)
-        >> def
-        /metacolorindex [bi gi mi yi] def
-        /palettelayout  [bi gi mi yi] def
-    } {
-        /rgbres <<
-              % r g b   Graduations
-           8  [ 2 2 2 ]
-          16  [ 4 2 2 ]
-          32  [ 4 4 2 ]
-          64  [ 4 4 4 ]
-         128  [ 8 4 4 ]
-         256  [ 8 8 4 ]
-        >> colors get def
+    %
+    % Define the color palette from precomputed data
+    %
+    /cidx coloridx colors get def
+    /bi cidx /bi get def  /gi cidx /gi get def
+    /mi cidx /mi get def  /yi cidx /yi get def
+    /ki cidx /ki get def  /wi cidx /wi get def
+    /palette palettes colors get def
+    /palettelayout palettelayouts colors get def
+    /metacolorindex metacoloridxs colors get def
 
-        /rvals rgbres 0 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
-        /gvals rgbres 1 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
-        /bvals rgbres 2 get [ exch 1 sub dup 0 exch 1 exch {255 2 index div mul round cvi exch} for pop ] def
-
-        /palette colors dict def
-        /palettelayout 64 colors 2 copy gt {exch} if pop array def
-        /i 0 def  /j 8 def
-        rvals {
-            /r exch def
-            gvals {
-                /g exch def
-                bvals {
-                    /b exch def
-                    r 16 bitshift g 8 bitshift or b or
-                    (000000) 6 string copy dup 3 -1 roll 16 6 string cvrs dup length 6 exch sub exch putinterval
-                    false
-                    1 index (000000) eq {/ki i def  pop true} if
-                    1 index (0000FF) eq {/bi i def  pop true} if
-                    1 index (00FF00) eq {/gi i def  pop true} if
-                    1 index (00FFFF) eq {/ci i def  pop true} if
-                    1 index (FF0000) eq {/ri i def  pop true} if
-                    1 index (FF00FF) eq {/mi i def  pop true} if
-                    1 index (FFFF00) eq {/yi i def  pop true} if
-                    1 index (FFFFFF) eq {/wi i def  pop true} if
-                    not {
-                        colors 64 le
-                        colors 128 eq
-                            r 0 eq r 73 eq or r 182 eq or r 255 eq or and
-                        colors 256 eq
-                            r 0 eq r 73 eq or r 182 eq or r 255 eq or and
-                            g 0 eq g 73 eq or g 182 eq or g 255 eq or and
-                        or or {  % RGB space is sampled into 64 slots
-                            palettelayout j i put
-                            /j j 1 add def
-                        } if
-                    } if
-                    palette exch i exch put
-                    /i i 1 add def
-                } forall
-            } forall
-        } forall
-        palettelayout 0 [ki bi gi ci ri mi yi wi] putinterval
-        /metacolorindex [ki bi gi ci ri mi yi wi] def
-    } ifelse
-
+    %
     % Create the pixel map
+    %
     /pixs [rows cols mul {-1} repeat] def
     /jmv {cols mul add} def
 
+    %
     % Finder patterns
-    slave not {  % Master alignment pattern
-        /fpat [
-            [ 1 1 1 0 0 ]
-            [ 1 2 2 0 0 ]
-            [ 1 2 1 2 1 ]
-            [ 0 0 2 2 1 ]
-            [ 0 0 1 1 1 ]
-        ] def
-        /fmap [
-            [ -1 bi yi ]  % UL
-            [ -1 yi bi ]  % LL
-            [ -1 gi mi ]  % UR
-            [ -1 mi gi ]  % LR
-        ] def
-    } {  % Slave alignment pattern
-        /fpat [
-            [ 0 0 0 0 0 ]
-            [ 0 2 2 0 0 ]
-            [ 0 2 1 2 0 ]
-            [ 0 0 2 2 0 ]
-            [ 0 0 0 0 0 ]
-        ] def
-        /fmap [
-            [ -1 ki wi ]  % UL
-            [ -1 ki wi ]  % LL
-            [ -1 ki wi ]  % UR
-            [ -1 ki wi ]  % LR
-        ] def
-    } ifelse
+    %
+    /fpat slave {//jabcode.fpat.slave} {//jabcode.fpat.master} ifelse def
+    /fmap slave {fmapslave} {fmapmaster} ifelse colors get def
     0 1 4 {
       /y exch def
       0 1 4 {
@@ -746,17 +975,12 @@ begin
       } for
     } for
 
+    %
     % Alignment patterns
-    /algnpat0 [
-        [ ki ki -1 ]
-        [ ki wi ki ]
-        [ -1 ki ki ]
-    ] def
-    /algnpat1 [
-        [ -1 ki ki ]
-        [ ki wi ki ]
-        [ ki ki -1 ]
-    ] def
+    %
+    /algnpat0 algnpat0s colors get def
+    /algnpat1 algnpat1s colors get def
+
     /num cols 16 div round cvi 1 sub def
     /algnrpos [ 3 17 ] def
     num 0 gt {
@@ -791,61 +1015,23 @@ begin
         } for
     } for
 
+    %
+    % Copy precomputed maps for normalisation
+    %
+    /normalisemap { [ exch { aload pop 2 array astore } forall ] } def
     slave not {
-
-        [  % Expanded to [ x y ] [ x -y ] [ -x -y ] [ x -y ]
-            % Metadata and palette
-            [ 6 1 ] [ 6 2 ] [ 6 3 ] [ 6 4 ] [ 6 5 ] [ 6 6 ] [ 5 6 ] [ 4 6 ] [ 3 6 ] [ 2 6 ]  %  0-39
-            [ 1 6 ] [ 7 1 ] [ 7 2 ] [ 7 3 ] [ 7 4 ] [ 7 5 ] [ 7 6 ] [ 7 7 ] [ 6 7 ] [ 5 7 ]  % 40-79
-            % Palette only
-            [  4  7 ] [  3  7 ] [  2  7 ] [  1  7 ] [  8  1 ] [  8  2 ] [  8  3 ] [  8  4 ]  % 16-31
-            [  8  5 ] [  8  6 ] [  8  7 ] [  8  8 ] [  7  8 ] [  6  8 ] [  5  8 ] [  4  8 ]  % 32-47
-            [  3  8 ] [  2  8 ] [  1  8 ] [  9  1 ] [  9  2 ] [  9  3 ] [  9  4 ] [  9  5 ]  % 48-63
-        ] {
-            aload pop /y exch def /x exch def
-            [ x y ] [ x neg y ] [ x neg y neg ] [ x y neg ]
-        } forall
-        176 array astore /metadatamap exch def
-
-        /palettemap1 [
-            [  4  1 ] [  4  2 ] [  5  1 ] [  5  2 ] [  2  4 ] [  2  5 ] [  1  4 ] [  1  5 ]  %  0-7
-            [ -2  1 ] [ -2  2 ] [ -1  1 ] [ -1  2 ] [ -4  4 ] [ -4  5 ] [ -5  4 ] [ -5  5 ]  %  8-15
-        ] def
-
-        /palettemap2 [
-            [ -4 -5 ] [ -4 -4 ] [ -5 -5 ] [ -5 -4 ] [ -2 -2 ] [ -2 -1 ] [ -1 -2 ] [ -1 -1 ]  %  0-7
-            [  2 -5 ] [  2 -4 ] [  1 -5 ] [  1 -4 ] [  4 -2 ] [  4 -1 ] [  5 -2 ] [  5 -1 ]  %  8-15
-        ] def
-
+        /metadatamap metadatamap.master normalisemap def
+        /palettemap1 //jabcode.palettemap1.master normalisemap def
+        /palettemap2 //jabcode.palettemap2.master normalisemap def
     } {  % Slave
-
-        % TODO Cascade
-
-        /metadatamap [
-            1 1 19 {
-                /i exch def
-                [ 0 i ] [ 1 i ]
-            } for
-            5 1 12 {
-                /i exch def
-                [ 2 i ] [ 3 i ]
-            } for
-        ] def
-
-        /palettemap1 [
-             5  1 12 { [ exch 4 exch ] } for
-            12 -1  5 { [ exch 5 exch ] } for
-             5  1 12 { [ exch 6 exch ] } for
-            12 -1  5 { [ exch 7 exch ] } for
-        ] def
-
-        /palettemap2 [
-            palettemap1 {[ exch aload pop neg exch neg exch]} forall
-        ] def
-
+        /metadatamap metadatamap.slave normalisemap def
+        /palettemap1 palettemap1.slave normalisemap def
+        /palettemap2 palettemap2.slave normalisemap def
     } ifelse
 
+    %
     % Normalise wrapping
+    %
     metadatamap {
         dup 0 get dup 0 lt {cols add 1 sub 1 index 0 3 -1 roll put} {pop} ifelse
         dup 1 get dup 0 lt {rows add 1 sub 1 index 1 3 -1 roll put} {pop} ifelse
@@ -862,12 +1048,16 @@ begin
         pop
     } forall
 
+    %
     % Reserve the metadata modules to be placed once mask is determined
+    %
     0 1 nummetamodules 1 sub {
         pixs exch metadatamap exch get aload pop jmv 0 put
     } for
 
+    %
     % Place the color palette
+    %
     slave not {
         % Up to first 16 colors into finder slots
         0 1 16 colors 2 copy gt {exch} if pop 1 sub {
@@ -881,7 +1071,9 @@ begin
         /i 0 def
     } ifelse
 
+    %
     % Continue palette placement after end of metadata modules
+    %
     /j nummetamodules def
     i 2 palettelayout length 1 sub {
         /i exch def
@@ -894,7 +1086,9 @@ begin
         /j j 4 add def
     } for
 
+    %
     % Calculate the mask patterns applied to data modules
+    %
     /maskfuncs [
         {add colors mod}
         {pop colors mod}
@@ -924,7 +1118,9 @@ begin
         masks m mask put
     } for
 
+    %
     % Walk the symbol placing the data bitstream
+    %
     /posx 0 def  /posy 0 def
     /i 0 def
     { % loop
@@ -938,7 +1134,9 @@ begin
         posy rows eq {/posy 0 def /posx posx 1 add def} if
     } loop
 
+    %
     % Evaluate runlength encoded rows or columns in full symbols
+    %
     /evalrle {
         /scrle exch def
         /scr1 0 def  /scr3 0 def
@@ -975,7 +1173,9 @@ begin
         /lastpairs cols array def
         /thispairs cols array def
 
+        %
         % Runlength encode and evaluate each column
+        %
         0 1 cols 1 sub {
             /i exch def
             mark 0 -1
@@ -990,7 +1190,9 @@ begin
         0 1 rows 1 sub {
             /i exch def
 
+            %
             % Runlength encode and evaluate each row
+            %
             /symrow sym i cols mul cols getinterval def
             mark 0 -1
             symrow {
@@ -1000,7 +1202,9 @@ begin
             evalrle n3 add /n3 exch def n1 add /n1 exch def
             pop
 
+            %
             % Count and score same coloured blocks
+            %
             /lastpairs thispairs /thispairs lastpairs def def
             -1 symrow {exch 2 copy ne {pop -1 exch} if} forall
             pop
@@ -1017,7 +1221,9 @@ begin
         n1 n2 add n3 add
     } def
 
+    %
     % Evaluate the masked symbols to find the most suitable
+    %
     /bestscore 999999999 def
     0 1 masks length 1 sub {
         /m exch def
@@ -1040,7 +1246,9 @@ begin
     /pixs bestsym def
     /metamask bestmaskval def
 
+    %
     % Derive the metadata bitstream
+    %
     /addtometapart {
         dup metapart p 3 -1 roll putinterval
         length p add /p exch def
@@ -1056,21 +1264,27 @@ begin
     /p 0 def  /q 0 def
     slave not {
 
+        %
         % Part I
+        %
         colors ln 2 ln div round cvi 1 sub
         3 tofixedbits addtometapart                                 % Nc
         metapart 0 p getinterval 2 -1 ldpc addtometabits  /p 0 def
 
+        %
         % Part II
+        %
         metass   1 tofixedbits addtometapart                        % SS
         metavf   2 tofixedbits addtometapart                        % VF
         metamask 3 tofixedbits addtometapart                        % MSK
         hasslaves {(1)} {(0)} ifelse addtometapart                  % SF
         metapart 0 p getinterval 2 -1 ldpc addtometabits  /p 0 def
 
+        %
         % Part III
+        %
         metass 0 eq {  % Square
-            cols 17 sub 4 idiv [ 0 4 8 16 ] metavf get sub 1 sub
+            cols 17 sub 4 idiv //jabcode.metavfadj metavf get sub 1 sub
             metavlen tofixedbits addtometapart                      % V
         } {  % Rectangular
             cols 17 sub 4 idiv 1 sub
@@ -1087,13 +1301,17 @@ begin
 
     } {  % slave
 
+        %
         % Part I
+        %
         sameshape {0} {1} ifelse 1 tofixedbits addtometapart        % SS
         sameecc   {0} {1} ifelse 1 tofixedbits addtometapart        % SE
         hasslaves {1} {0} ifelse 1 tofixedbits addtometapart        % SF
         metapart 0 p getinterval 2 -1 ldpc addtometabits  /p 0 def
 
+        %
         % Part II
+        %
         sameshape not {
             diffside 17 sub 4 idiv 1 sub
             5 tofixedbits addtometapart                             % V
@@ -1103,7 +1321,9 @@ begin
         } if
         metapart 0 p getinterval 2 -1 ldpc addtometabits  /p 0 def
 
+        %
         % Part III
+        %
         sameecc not {
             datawc 3 sub metaelen 2 idiv tofixedbits addtometapart  % E1
             datawr 4 sub metaelen 2 idiv tofixedbits addtometapart  % E2
@@ -1115,7 +1335,9 @@ begin
         metabits exch 48 put
     } for
 
+    %
     % Place the metadata
+    %
     /i 0 def  /j 0 def
     slave not {  % Two-color encoding of Part I (Nc) in master symbols
         metabits i 6 getinterval {
