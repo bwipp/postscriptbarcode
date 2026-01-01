@@ -577,6 +577,7 @@ begin
     %
     /charvals 44 dict def
     0 1 44 {dup //qrcode.charmap exch get exch charvals 3 1 roll put} for
+    /charvals charvals readonly def
 
     %
     % Calculate the Reed-Solomon log and anti-log tables
@@ -584,6 +585,7 @@ begin
     /rsalog [ 1 255 { dup 2 mul dup 256 ge {285 xor} if } repeat ] def
     /rslog 256 array def
     1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
+    /rslog rslog readonly def
 
     /init { //qrcode.latevars {def} forall } def
 
