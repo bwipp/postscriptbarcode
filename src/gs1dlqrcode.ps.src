@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -47,9 +47,10 @@ dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1dlqrcode {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -58,7 +59,9 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    %
     % Parse the input
+    %
     /fncvals <<
         /parse parse
         /parseonly true
@@ -76,7 +79,9 @@ begin
     hri key length 1 add 41 put
     hri key length 2 add val putinterval
 
+    %
     % Get the result of encoding with qrcode
+    %
     options (parse) undef
     options (dontdraw) true put
     /args barcode options //qrcode exec def

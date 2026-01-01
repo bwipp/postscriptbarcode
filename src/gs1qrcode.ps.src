@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -46,9 +46,10 @@ dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1qrcode {
 
-    20 dict begin            % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -62,7 +63,9 @@ begin
     /vals exch def
     /ais exch def
 
+    %
     % Create the qrcode data
+    %
     /fnc1 -1 def
     /qrc [ fnc1 ] def
     0 1 ais length 1 sub {
@@ -82,7 +85,9 @@ begin
         } if
     } for
 
+    %
     % Compose input to qrcode
+    %
     /barcode qrc length 1 add 5 mul string def
     /i 0 def /j 0 def {
         i qrc length eq {exit} if
@@ -97,7 +102,9 @@ begin
     } loop
     /barcode barcode 0 j getinterval def
 
+    %
     % Get the result of encoding with qrcode
+    %
     options (parse) undef
     options (dontdraw) true put
     options (parsefnc) true put
