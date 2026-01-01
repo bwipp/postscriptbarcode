@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,18 +38,55 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/plessey.barchars (0123456789ABCDEF) readonly def
+
+/plessey.encs [
+    (14141414) (32141414) (14321414) (32321414)
+    (14143214) (32143214) (14323214) (32323214)
+    (14141432) (32141432) (14321432) (32321432)
+    (14143232) (32143232) (14323232) (32323232)
+    (32321432) (541412323) (323)
+] readonly def
+
+/plessey.checksalt [ 1 1 1 1 0 1 0 0 1 ] readonly def
+
+/plessey.checkinit [ 0 0 0 0 0 0 0 0 ] readonly def
+
+/plessey.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //plessey.latevars begin
+
+    /charvals 16 dict def
+    0 1 15 {
+        charvals exch dup //plessey.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //plessey.latevars {def} forall } def
+
+    end
+
+    //plessey.latevars /init get exec
+
+    setglobal
+
+} bind put
+
 /plessey {
 
-    20 dict begin                  % Confine variables to local scope
+    20 dict begin
 
     /ctx null def
+
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /validatecheck false def
@@ -63,29 +100,15 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //plessey.latevars /init get exec
+
     barcode () eq {
         /bwipp.plesseyEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    /plessey //loadctx exec
-
-    % Create a string of the available characters
-{
-    /barchars (0123456789ABCDEF) def
-    /charvals 16 dict def
-    0 1 15 {charvals exch dup barchars exch 1 getinterval exch put} for
-
-    % Create an array containing the character mappings
-    /encs
-    [ (14141414) (32141414) (14321414) (32321414)
-      (14143214) (32143214) (14323214) (32323214)
-      (14141432) (32141432) (14321432) (32321432)
-      (14143232) (32143232) (14323232) (32323232)
-      (32321432) (541412323) (323)
-    ] def
-} ctxdef
-
+    %
     % Validate the input
+    %
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.plesseyBadCharacter (Plessey must contain only digits and letters A B C D E F) //raiseerror exec
@@ -94,9 +117,11 @@ begin
 
     /barlen barcode length validatecheck {2 sub} if def
 
+    %
     % Calculate the checksums
+    %
     /checkbits barlen 4 mul 8 add array def
-    checkbits barlen 4 mul [ 0 0 0 0 0 0 0 0 ] putinterval
+    checkbits barlen 4 mul //plessey.checkinit putinterval
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
@@ -107,13 +132,12 @@ begin
                 indx -3 bitshift
         ] putinterval
     } for
-    /checksalt [ 1 1 1 1 0 1 0 0 1 ] def
     0 1 barlen 4 mul 1 sub {
         /i exch def
         checkbits i get 1 eq {
             0 1 8 {
                 /j exch def
-                checkbits i j add checkbits i j add get checksalt j get xor put
+                checkbits i j add checkbits i j add get //plessey.checksalt j get xor put
             } for
         } if
     } for
@@ -125,8 +149,8 @@ begin
     /checksum1 checkval 15 and def
     /checksum2 checkval -4 bitshift def
     validatecheck {
-        barcode barlen get barchars checksum1 get ne
-        barcode barlen 1 add get barchars checksum2 get ne or {
+        barcode barlen get //plessey.barchars checksum1 get ne
+        barcode barlen 1 add get //plessey.barchars checksum2 get ne or {
             /bwipp.plesseyBadCheckDigits (Incorrect Plessey check digits provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -135,31 +159,36 @@ begin
     /sbs barlen 8 mul unidirectional {27} {33} ifelse add string def
     /txt barlen 2 add array def
 
+    %
     % Put start character
-    sbs 0 encs 16 get putinterval
+    %
+    sbs 0 //plessey.encs 16 get putinterval
 
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
-        sbs i 8 mul 8 add encs indx get putinterval
+        sbs i 8 mul 8 add //plessey.encs indx get putinterval
         txt i [barcode i 1 getinterval i 20 mul 20 add textyoffset textfont textsize] put
     } for
 
+    %
     % Put the checksum characters
-    sbs barlen 8 mul 8 add encs checksum1 get putinterval
-    sbs barlen 8 mul 16 add encs checksum2 get putinterval
+    %
+    sbs barlen 8 mul 8 add //plessey.encs checksum1 get putinterval
+    sbs barlen 8 mul 16 add //plessey.encs checksum2 get putinterval
     includecheckintext {
-        txt barlen [barchars checksum1 1 getinterval barlen 20 mul 20 add textyoffset textfont textsize] put
-        txt barlen 1 add [barchars checksum2 1 getinterval barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
+        txt barlen [//plessey.barchars checksum1 1 getinterval barlen 20 mul 20 add textyoffset textfont textsize] put
+        txt barlen 1 add [//plessey.barchars checksum2 1 getinterval barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
     } {
         txt barlen [( ) barlen 20 mul 20 add textyoffset textfont textsize] put
         txt barlen 1 add [( ) barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
     } ifelse
 
+    %
     % Put end character
-    sbs barlen 8 mul 24 add encs unidirectional {18} {17} ifelse get putinterval
+    %
+    sbs barlen 8 mul 24 add //plessey.encs unidirectional {18} {17} ifelse get putinterval
 
-    % Return the arguments
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -172,8 +201,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
