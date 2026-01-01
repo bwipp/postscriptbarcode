@@ -1,7 +1,7 @@
 % Barcode Writer in Pure PostScript
 % https://bwipp.terryburton.co.uk
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2025 Terry Burton
 %
 % $Id$
 %
@@ -38,13 +38,20 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-10 dict
-dup /loadctx dup /uk.co.terryburton.bwipp findresource put
-dup /unloadctx dup /uk.co.terryburton.bwipp findresource put
+50 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/planet.barchars (0123456789) readonly def
+
+/planet.encs [
+    (22555) (55522) (55252) (55225) (52552)
+    (52525) (52255) (25552) (25525) (25255)
+    (5) (5)
+] readonly def
+
 /planet {
 
     20 dict begin
@@ -62,11 +69,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
-    /planet //loadctx exec
-
     /barlen barcode length validatecheck {1 sub} if def
 
+    %
     % Validate the input
+    %
     barlen 11 ne barlen 13 ne and {
         /bwipp.planetBadLength (USPS PLANET must be 11 or 13 digits excluding check digit) //raiseerror exec
     } if
@@ -76,19 +83,9 @@ begin
         } if
     } forall
 
-{
-    % Create a string of the available characters
-    /barchars (0123456789) def
-
-    % Create an array containing the character mappings
-    /encs
-    [ (22555) (55522) (55252) (55225) (52552)
-      (52525) (52255) (25552) (25525) (25255)
-      (5) (5)
-    ] def
-} ctxdef
-
+    %
     % Calculate the checksum
+    %
     /checksum 0 def
     0 1 barlen 1 sub {
         /i exch def
@@ -96,7 +93,7 @@ begin
     } for
     /checksum 10 checksum 10 mod sub 10 mod def
     validatecheck {
-        barcode barlen get barchars checksum get ne {
+        barcode barlen get //planet.barchars checksum get ne {
             /bwipp.planetBadCheckDigit (Incorrect USPS PLANET check digit provided) //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
@@ -105,8 +102,10 @@ begin
     /bhs barlen 5 mul 7 add array def
     /txt barlen 1 add array def
 
+    %
     % Put start character
-    /enc encs 10 get def
+    %
+    /enc //planet.encs 10 get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -116,7 +115,7 @@ begin
 
     0 1 barlen 1 sub {
         /i exch def
-        /enc encs barcode i get 48 sub get def
+        /enc //planet.encs barcode i get 48 sub get def
         /heights enc length array def
         0 1 enc length 1 sub {
             /j exch def
@@ -126,8 +125,10 @@ begin
         txt i [barcode i 1 getinterval i 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } for
 
+    %
     % Put the checksum character
-    /enc encs checksum get def
+    %
+    /enc //planet.encs checksum get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -136,13 +137,15 @@ begin
     bhs barlen 5 mul 1 add heights putinterval
 
     includecheckintext {
-        txt barlen [barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
+        txt barlen [//planet.barchars checksum 1 getinterval barlen 5 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } {
         txt barlen [( ) barlen 5 mul 1 add 72 mul 25 div textyoffset textfont textsize] put
     } ifelse
 
+    %
     % Put end character
-    /enc encs 11 get def
+    %
+    /enc //planet.encs 11 get def
     /heights enc length array def
     0 1 enc length 1 sub {
         /j exch def
@@ -150,7 +153,6 @@ begin
     } for
     bhs barlen 5 mul 6 add heights putinterval
 
-    % Return the arguments
     <<
     /ren /renlinear
     /bhs bhs
@@ -163,8 +165,6 @@ begin
     >>
 
     dontdraw not //renlinear if
-
-    //unloadctx exec
 
     end
 
