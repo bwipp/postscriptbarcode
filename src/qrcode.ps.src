@@ -541,31 +541,31 @@ begin
 /qrcode.modeANbeforeE [  7  8  9  e 3 4 5  4 5 5 5 5  5 5 5 5  6   4 5 5 5  6  6   5 5 5  5  6  6   5  5  6  6  6   5  6  6  6  6 ] readonly def
 
 %
-% Mask functions for each symbol format
+% Mask functions
 %
-/qrcode.formatmaskfuncs <<
-    (full) [
-        {add 2 mod} bind
-        {exch pop 2 mod} bind
-        {pop 3 mod} bind
-        {add 3 mod} bind
-        {2 idiv exch 3 idiv add 2 mod} bind
-        {mul dup 2 mod exch 3 mod add} bind
-        {mul dup 2 mod exch 3 mod add 2 mod} bind
-        {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
-    ]
-    (micro) [
-        {exch pop 2 mod} bind
-        {2 idiv exch 3 idiv add 2 mod} bind
-        {mul dup 2 mod exch 3 mod add 2 mod} bind
-        {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind
-    ]
-    (rmqr) [
-        {2 idiv exch 3 idiv add 2 mod} bind
-    ]
+/qrcode.maskfuncs [
+    {add 2 mod} bind                                      % 0: (i+j) % 2
+    {exch pop 2 mod} bind                                 % 1: j % 2
+    {pop 3 mod} bind                                      % 2: i % 3
+    {add 3 mod} bind                                      % 3: (i+j) % 3
+    {2 idiv exch 3 idiv add 2 mod} bind                   % 4: (j/2 + i/3) % 2
+    {mul dup 2 mod exch 3 mod add} bind                   % 5: (i*j) % 2 + (i*j) % 3
+    {mul dup 2 mod exch 3 mod add 2 mod} bind             % 6: ((i*j) % 2 + (i*j) % 3) % 2
+    {2 copy mul 3 mod 3 1 roll add 2 mod add 2 mod} bind  % 7: ((i*j) % 3 + (i+j) % 2) % 2
+] readonly def
+
+%
+% Mask bit positions in funcpatlayers for each format
+%
+% Entries relate to the numbered mask functions above.
+%
+/qrcode.formatmaskbits <<
+    (full)  [ 0 1 2 3 4 5 6 7 ]
+    (micro) [ 1 4 6 7 ]
+    (rmqr)  [ 4 ]
 >> readonly def
 
-/qrcode.latevars dup 3 dict def load /init {
+/qrcode.latevars dup 4 dict def load /init {
 
     currentglobal
     true setglobal
@@ -586,6 +586,25 @@ begin
     /rslog 256 array def
     1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
     /rslog rslog readonly def
+
+    %
+    % The mask functions have 6x12 periodicity, so we compute an 8-layer array
+    % representing all mask function patterns at bit positions
+    %
+    /funcpatlayers 6 12 mul array def
+    0 1 11 {
+        /j exch def
+        0 1 5 {
+            /i exch def
+            /bits 0 def
+            0 1 7 {
+                /m exch def
+                i j //qrcode.maskfuncs m get exec 0 eq { /bits bits 1 m bitshift or def } if
+            } for
+            funcpatlayers j 6 mul i add bits put
+        } for
+    } for
+    /funcpatlayers funcpatlayers readonly def
 
     /init { //qrcode.latevars {def} forall } def
 
@@ -624,7 +643,9 @@ begin
         /bwipp.qrcodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
+    %
     % If version is supplied and format is not given then set format to correspond
+    %
     version (unset) ne {
         format (unset) eq {
             (full)
@@ -644,7 +665,9 @@ begin
         /bwipp.qrcodeRMQRwithoutVersion (A version must be provided for RMQR) //raiseerror exec
     } if
 
+    %
     % Default error correction level
+    %
     eclevel (unset) eq {/eclevel format (micro) ne {(M)} {(L)} ifelse def} if
 
     eclevel (L) ne eclevel (M) ne eclevel (Q) ne eclevel (H) ne and and and {
@@ -661,7 +684,9 @@ begin
         } if
     } if
 
+    %
     % Parse the input
+    %
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -671,7 +696,9 @@ begin
     /msg barcode fncvals //parseinput exec def
     /msglen msg length def
 
+    %
     % If FNC1 in first position then escape % as %%
+    %
     /fnc1first false def
     msglen 0 gt {
         msg 0 get //qrcode.fn1 eq {
@@ -681,7 +708,9 @@ begin
         } if
     } if
 
+    %
     % Encoding functions
+    %
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
         dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
@@ -1406,31 +1435,37 @@ begin
     } if
 
     %
-    % Calculate the mask patterns
+    % Lookup the mask bits corresponding to the mask functions applicable to
+    % this format
     %
-    /maskfuncs //qrcode.formatmaskfuncs format get def
-    mask -1 ne {  % User specifies a mask
-        /maskfuncs [maskfuncs mask 1 sub get] def
+    mask -1 eq {
+        /maskbits //qrcode.formatmaskbits format get def
+    } {  % Just the indicated function when given a user-specified mask
+        /maskbits [ //qrcode.formatmaskbits format get mask 1 sub get ] def
         /bestmaskval mask 1 sub def
-    } if
-    /masks maskfuncs length array def
-    0 1 masks length 1 sub {
-        /m exch def
-        /mask rows cols mul array def
-        0 1 rows 1 sub {
-            /j exch def
-            0 1 cols 1 sub {
-                /i exch def
-                i j maskfuncs m get exec 0 eq
-                pixs i j qmv get -1 eq and {1} {0} ifelse
-                mask i j qmv 3 -1 roll put
-            } for
+    } ifelse
+    /nmasks maskbits length def
+
+    %
+    % Build masklayers from the extruded funcpatlayers, with function cell
+    % values included (as 0 or 255)
+    %
+    /masklayers rows cols mul array def
+    0 1 rows 1 sub {
+        /j exch def
+        0 1 cols 1 sub {
+            /i exch def
+            /pos i j qmv def
+            masklayers pos pixs pos get dup -1 eq {
+                pop funcpatlayers j 6 mul 72 mod i 6 mod add get
+            } {
+                255 mul
+            } ifelse put
         } for
-        masks m mask put
     } for
 
     %
-    % Walk the symbol placing the bitstream
+    % Walk the symbol placing the bitstream by merging it into masklayers
     %
     /posx cols format (rmqr) ne {1} {2} ifelse sub def
     /posy rows 1 sub def
@@ -1439,9 +1474,10 @@ begin
     /num 0 def
     { % loop
         posx 0 lt {exit} if
-        pixs posx posy qmv get -1 eq {
-            cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and
-            pixs posx posy qmv 3 -1 roll put
+        /pos posx posy qmv def
+        pixs pos get -1 eq {
+            /bit cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and def
+            masklayers pos masklayers pos get bit 255 mul xor put
             /num num 1 add def
         } if
         col 1 eq {
@@ -1565,17 +1601,19 @@ begin
     } def
 
     %
-    % Evaluate the masked symbols to find the most suitable
+    % Extract each masked symbol from the required set and evaluate them to
+    % find the most suitable
     %
     /bestscore 999999999 def
-    0 1 masks length 1 sub {
+    0 1 nmasks 1 sub {
         /m exch def
+        /maskbit maskbits m get def
         /masksym rows cols mul array def
         0 1 rows cols mul 1 sub {
             /i exch def
-            masksym i pixs i get masks m get i get xor put
+            masksym i masklayers i get maskbit neg bitshift 1 and put
         } for
-        masks length 1 ne {  % Not rMQR nor user-specified mask
+        nmasks 1 ne {  % Not rMQR nor user-specified mask
             /score masksym format (full) eq {evalfull} {evalmicro} ifelse def
             score bestscore lt {
                 /bestsym masksym def
@@ -1584,6 +1622,7 @@ begin
             } if
         } {
             /bestsym masksym def
+            % Note: bestmaskval never set for rMQR, but is not required
         } ifelse
     } for
     /pixs bestsym def
