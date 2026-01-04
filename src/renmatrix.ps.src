@@ -52,6 +52,88 @@ begin
     /forward dup  /backward dup  /upward dup  /downward dup
 >> readonly def
 
+/renmatrix.left  1 def
+/renmatrix.right 2 def
+/renmatrix.up    4 def
+/renmatrix.down  8 def
+
+%
+% Direction lookup table indexed by 2x2 neighbourhood:
+%
+%   +---+---+
+%   |A=8|B=4|
+%   +---*---+
+%   |C=2|D=1|
+%   +---+---+
+%
+/renmatrix.tracestep [
+
+                                                           %  0 0
+    null                                                   %   ?
+                                                           %  0 0
+
+                                                           %  0 0
+    {right}                                                %   +>
+                                                           %  0|1
+
+                                                           %  0 0
+    {down}                                                 %  -+
+                                                           %  1v0
+
+                                                           %  0 0
+    {right}                                                %  -->
+                                                           %  1 1
+
+                                                           %  0^1
+    {up}                                                   %   +-
+                                                           %  0 0
+
+                                                           %  0^1
+    {up}                                                   %   |
+                                                           %  0|1
+
+                                                           %  0 1      0^1
+    {dir //renmatrix.right eq {down} {up} ifelse} bind     %  -+   or   +-
+                                                           %  1v0      1 0
+
+                                                           %  0^1
+    {up}                                                   %  -+
+                                                           %  1 1
+
+                                                           %  1|0
+    {left}                                                 %  <+
+                                                           %  0 0
+
+                                                           %  1|0      1 0
+    {dir //renmatrix.down eq {left} {right} ifelse} bind   %  <+   or   +>
+                                                           %  0 1      0|1
+
+                                                           %  1|0
+    {down}                                                 %   |
+                                                           %  1v0
+
+                                                           %  1|0
+    {right}                                                %   +>
+                                                           %  1 1
+
+                                                           %  1 1
+    {left}                                                 %  <--
+                                                           %  0 0
+
+                                                           %  1 1
+    {left}                                                 %  <+
+                                                           %  0|1
+
+                                                           %  1 1
+    {down}                                                 %   +-
+                                                           %  1v0
+
+                                                           %  1 1
+    null                                                   %   ?
+                                                           %  1 1
+
+] readonly def
+
 /renmatrix {
 
     128 dict begin
@@ -155,10 +237,10 @@ begin
         /bwipp.renmatrixBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
     } if
 
-    /xyget { pixx mul add pixs exch get} def
-    /cget { pixx mul add cache exch get and} def
+    /xyget { pixx mul add pixs exch get } def
+    /cget { pixx mul add cache exch get and } def
     /cput {  % Optimise by only storing "stem" corners
-        dup 4 mod 0 eq { % dir is up or left
+        dup dup //renmatrix.up eq exch //renmatrix.left eq or {  % dir is up or left
             3 1 roll pixx mul add cache exch 2 copy get 4 -1 roll or put
         } {
             pop pop pop
@@ -166,43 +248,29 @@ begin
     } def
 
     /abcd {
-        4 string 0 [
-            5 -2 roll
-            pixx mul add dup
-            pixs exch 2 getinterval aload pop 3 -1 roll  % A B
-            pixs exch pixx add 2 getinterval aload pop   % C D
-        ] {3 copy 48 add put pop 1 add} forall pop
+        pixx mul add      dup 1 add  % A B
+        1 index pixx add  dup 1 add  % C D
+             pixs exch get
+        exch pixs exch get 2 mul add
+        exch pixs exch get 4 mul add
+        exch pixs exch get 8 mul add
     } def
 
-    /right {dir 1 ne {x y dir cput [x y]} if  /x x 1 add def  /dir 1 def} def
-    /down  {dir 2 ne {x y dir cput [x y]} if  /y y 1 add def  /dir 2 def} def
-    /left  {dir 4 ne {x y dir cput [x y]} if  /x x 1 sub def  /dir 4 def} def
-    /up    {dir 8 ne {x y dir cput [x y]} if  /y y 1 sub def  /dir 8 def} def
+    /left  {dir //renmatrix.left  ne {x y dir cput [x y]} if  /x x 1 sub def  /dir //renmatrix.left  def} def
+    /right {dir //renmatrix.right ne {x y dir cput [x y]} if  /x x 1 add def  /dir //renmatrix.right def} def
+    /up    {dir //renmatrix.up    ne {x y dir cput [x y]} if  /y y 1 sub def  /dir //renmatrix.up    def} def
+    /down  {dir //renmatrix.down  ne {x y dir cput [x y]} if  /y y 1 add def  /dir //renmatrix.down  def} def
 
     %
     % Walk the outline of a region emitting edge coordinates of the path
     %
     /trace {
         /y exch def  /x exch def
-        % dir 1:right 2:down 4:left 8:up
-        /dir x 1 add y 1 add xyget 1 eq {8} {4} ifelse def
+        /dir x 1 add y 1 add xyget 1 eq {//renmatrix.up} {//renmatrix.left} ifelse def
         /sx x def  /sy y def  /sdir dir def
 
-        % A B
-        % C D
         mark {
-            x y abcd
-            1 {  % Common exit
-                dup dup (0001) eq exch dup (0011) eq exch (1011) eq or or {pop right exit} if
-                dup dup (0010) eq exch dup (1010) eq exch (1110) eq or or {pop down  exit} if
-                dup dup (1000) eq exch dup (1100) eq exch (1101) eq or or {pop left  exit} if
-                dup dup (0100) eq exch dup (0101) eq exch (0111) eq or or {pop up    exit} if
-                dup (1001) eq {
-                    dir 2 eq {pop left exit} {pop right exit} ifelse
-                } {  % 0110
-                    dir 1 eq {pop down exit} {pop up exit} ifelse
-                } ifelse
-            } repeat
+            //renmatrix.tracestep x y abcd get exec
             x sx eq y sy eq and dir sdir eq and {exit} if
         } loop
         counttomark array astore exch pop
@@ -284,16 +352,17 @@ begin
                 0 1 pixx 2 sub {
                     /i exch def
                     /k i j abcd def
-                    k (0001) eq k (1001) eq or {  % Black region stem corners
-                        8 i j cget 0 eq {
-                            i j trace
-                        } if
+                    k 2#0001 eq                           % Black region stem corners:
+                    k 2#1001 eq or {                      %
+                        //renmatrix.up i j cget 0 eq {    %   0 0       1 0
+                            i j trace                     %    *   and   *
+                        } if                              %   0 1       0 1
                     } if
-                    k (1110) eq {  % White region stem corner
-                        4 i j cget 0 eq {
-                            i j trace
-                        } if
-                    } if
+                    k 2#1110 eq {                         % White region stem corner:
+                        //renmatrix.left i j cget 0 eq {  %
+                            i j trace                     %   1 1
+                        } if                              %    *
+                    } if                                  %   1 0
                 } for
             } for
         ] def
