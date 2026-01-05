@@ -93,7 +93,7 @@ begin
                                                            %  0|1
 
                                                            %  0 1      0^1
-    {dir //renmatrix.right eq {down} {up} ifelse} bind     %  -+   or   +-
+    {dup //renmatrix.right eq {down} {up} ifelse} bind     %  -+   or   +-
                                                            %  1v0      1 0
 
                                                            %  0^1
@@ -105,7 +105,7 @@ begin
                                                            %  0 0
 
                                                            %  1|0      1 0
-    {dir //renmatrix.down eq {left} {right} ifelse} bind   %  <+   or   +>
+    {dup //renmatrix.down eq {left} {right} ifelse} bind   %  <+   or   +>
                                                            %  0 1      0|1
 
                                                            %  1|0
@@ -259,10 +259,48 @@ begin
     /pack   { pixxpad mul add } def                    % x y -> y*pixxpad+x
     /unpack { dup pixxpad mod exch pixxpad idiv } def  % packed -> x y
 
-    /left  {dir //renmatrix.left  ne {x y dir cput x y pack} if  /x x 1 sub def  /dir //renmatrix.left  def} def
-    /right {dir //renmatrix.right ne {x y dir cput x y pack} if  /x x 1 add def  /dir //renmatrix.right def} def
-    /up    {dir //renmatrix.up    ne {x y dir cput x y pack} if  /y y 1 sub def  /dir //renmatrix.up    def} def
-    /down  {dir //renmatrix.down  ne {x y dir cput x y pack} if  /y y 1 add def  /dir //renmatrix.down  def} def
+    %
+    % Stack: x y dir -> (packed vertex?) x' y' dir'
+    %
+    /left {
+        dup //renmatrix.left ne {
+            3 copy cput
+            2 index 2 index pack 4 1 roll
+        } if
+        pop
+        exch 1 sub exch  % x--
+        //renmatrix.left
+    } def
+
+    /right {
+        dup //renmatrix.right ne {
+            3 copy cput
+            2 index 2 index pack 4 1 roll
+        } if
+        pop
+        exch 1 add exch  % x++
+        //renmatrix.right
+    } def
+
+    /up {
+        dup //renmatrix.up ne {
+            3 copy cput
+            2 index 2 index pack 4 1 roll
+        } if
+        pop
+        1 sub  % y--
+        //renmatrix.up
+    } def
+
+    /down {
+        dup //renmatrix.down ne {
+            3 copy cput
+            2 index 2 index pack 4 1 roll
+        } if
+        pop
+        1 add  % y++
+        //renmatrix.down
+    } def
 
     %
     % Walk the outline of a region emitting edge coordinates of the path
@@ -272,9 +310,14 @@ begin
         /dir x 1 add y 1 add xyget 1 eq {//renmatrix.up} {//renmatrix.left} ifelse def
         /sx x def  /sy y def  /sdir dir def
 
-        mark {
-            //renmatrix.tracestep x y abcdget get exec
-            x sx eq y sy eq and dir sdir eq and {exit} if
+        mark x y dir
+        {  % [vertex...] x y dir
+            //renmatrix.tracestep 3 index 3 index abcdget get exec
+            dup sdir eq {
+                1 index sy eq {
+                    2 index sx eq { pop pop pop exit } if
+                } if
+            } if
         } loop
         counttomark array astore exch pop
 
