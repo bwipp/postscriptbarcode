@@ -256,10 +256,13 @@ begin
         exch pixs exch get 8 mul add
     } def
 
-    /left  {dir //renmatrix.left  ne {x y dir cput [x y]} if  /x x 1 sub def  /dir //renmatrix.left  def} def
-    /right {dir //renmatrix.right ne {x y dir cput [x y]} if  /x x 1 add def  /dir //renmatrix.right def} def
-    /up    {dir //renmatrix.up    ne {x y dir cput [x y]} if  /y y 1 sub def  /dir //renmatrix.up    def} def
-    /down  {dir //renmatrix.down  ne {x y dir cput [x y]} if  /y y 1 add def  /dir //renmatrix.down  def} def
+    /pack   { pixxpad mul add } def                    % x y -> y*pixxpad+x
+    /unpack { dup pixxpad mod exch pixxpad idiv } def  % packed -> x y
+
+    /left  {dir //renmatrix.left  ne {x y dir cput x y pack} if  /x x 1 sub def  /dir //renmatrix.left  def} def
+    /right {dir //renmatrix.right ne {x y dir cput x y pack} if  /x x 1 add def  /dir //renmatrix.right def} def
+    /up    {dir //renmatrix.up    ne {x y dir cput x y pack} if  /y y 1 sub def  /dir //renmatrix.up    def} def
+    /down  {dir //renmatrix.down  ne {x y dir cput x y pack} if  /y y 1 add def  /dir //renmatrix.down  def} def
 
     %
     % Walk the outline of a region emitting edge coordinates of the path
@@ -270,7 +273,7 @@ begin
         /sx x def  /sy y def  /sdir dir def
 
         mark {
-            //renmatrix.tracestep x y abcd get exec
+            //renmatrix.tracestep x y abcdget get exec
             x sx eq y sy eq and dir sdir eq and {exit} if
         } loop
         counttomark array astore exch pop
@@ -337,11 +340,26 @@ begin
         ] def
         /pixx pixx 2 add def
         /pixy pixy 2 add def
+        /pixxpad pixx def
 
         %
         % Cache of visited corners for each direction
         %
         /cache [ pixs length {0} repeat ] def
+
+        %
+        % Pre-compute abcd values (printed neighbours) for all cells
+        %
+        /abcdcache [
+            0 1 pixy 2 sub {
+                0 1 pixx 2 sub {
+                    1 index abcd exch % result j
+                } for
+                pop
+            } for
+        ] def
+
+        /abcdget { pixx 1 sub mul add abcdcache exch get } def
 
         %
         % Construct paths by tracing regions avoiding duplication by using the cache
@@ -351,7 +369,7 @@ begin
                 /j exch def
                 0 1 pixx 2 sub {
                     /i exch def
-                    /k i j abcd def
+                    /k i j abcdget def
                     k 2#0001 eq                           % Black region stem corners:
                     k 2#1001 eq or {                      %
                         //renmatrix.up i j cget 0 eq {    %   0 0       1 0
@@ -380,11 +398,11 @@ begin
         paths {
             /p exch def
             /len p length def
-            p len 1 sub get aload pop
-            p 0 get aload pop
+            p len 1 sub get unpack
+            p 0 get unpack
             0 1 len 1 sub {                                % x1 y1 x2 y2
                 /i exch def
-                p i 1 add len mod get aload pop 6 -2 roll  % x3 y3 x1 y1 x2 y2
+                p i 1 add len mod get unpack 6 -2 roll     % x3 y3 x1 y1 x2 y2
                 5 index inkspreadh
                 4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+i : x2-i
                 4 1 roll
