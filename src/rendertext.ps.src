@@ -30,12 +30,13 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RESOURCE rendertext--
-% --REQUIRES preamble raiseerror--
+% --REQUIRES preamble raiseerror setanycolor--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 2 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 begin
 
 /rendertext.positions <<
@@ -86,7 +87,7 @@ begin
     % Display the text for elements in the text array
     includetext {
 
-        textcolor (unset) ne { textcolor setanycolor } if
+        textcolor (unset) ne { textcolor //setanycolor exec } if
 
         textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
             /s 0 def /fn () def
@@ -222,7 +223,7 @@ begin
             /textlines [ extratext ] def
         } ifelse
 
-        extratextcolor (unset) ne { extratextcolor setanycolor } if
+        extratextcolor (unset) ne { extratextcolor //setanycolor exec } if
         extratextfont extratextsize selectfont
 
         % Find true ascent of font
