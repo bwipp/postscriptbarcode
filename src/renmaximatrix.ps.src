@@ -58,7 +58,7 @@ begin
     /borderwidth 0.25 def
 
     {def} forall
-    opt currentdict /opt undef //processoptions exec pop
+    opt currentdict /opt undef //processoptions exec /options exch def
 
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /ctx exch def
@@ -66,6 +66,8 @@ begin
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    options /debughexagons known { /bwipp.debughexagons pixs //raiseerror exec } if
 
     gsave
 
