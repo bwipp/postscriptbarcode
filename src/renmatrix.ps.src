@@ -186,7 +186,7 @@ begin
     /borderwidth 0.25 def
 
     {def} forall
-    opt currentdict /opt undef //processoptions exec pop
+    opt currentdict /opt undef //processoptions exec /options exch def
 
     inkspread null eq {/inkspread 0.15 def} if
     inkspreadh null eq {/inkspreadh inkspread def} if
@@ -386,6 +386,8 @@ begin
                 } for
             } for
         ] def
+
+        options /debugpaths known { /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
 
         %
         % Revert the bitmap size
