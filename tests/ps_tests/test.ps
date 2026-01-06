@@ -6,7 +6,12 @@
         2 copy
         length exch length ne {/testError pstack quit} if
         dup length 1 sub 0 exch 1 exch {
-            dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
+            dup 3 index exch get exch 2 index exch get  % ... a b
+            2 copy type /realtype eq exch type /realtype eq or {
+                sub abs 0.0001 gt {/testError pstack quit} if
+            } {
+                ne {/testError pstack quit} if
+            } ifelse
         } for
     } {
         2 copy ne {/testError pstack quit}
@@ -24,7 +29,12 @@
     2 copy
     length exch length ne {/testError pstack quit} if
     dup length 1 sub 0 exch 1 exch {
-        dup 3 index exch get exch 2 index exch get ne {/testError pstack quit} if
+        dup 3 index exch get exch 2 index exch get  % ... a b
+        2 copy type /realtype eq exch type /realtype eq or {
+            sub abs 0.0001 gt {/testError pstack quit} if
+        } {
+            ne {/testError pstack quit} if
+        } ifelse
     } for
     pop
     pop pop
@@ -62,12 +72,15 @@
 
     (../../../tests/ps_tests/auspost.ps.test)
     (../../../tests/ps_tests/azteccode.ps.test)
+    (../../../tests/ps_tests/azteccodecompact.ps.test)
     (../../../tests/ps_tests/bc412.ps.test)
+    (../../../tests/ps_tests/channelcode.ps.test)
     (../../../tests/ps_tests/codablockf.ps.test)
     (../../../tests/ps_tests/code11.ps.test)
     (../../../tests/ps_tests/code128.ps.test)
     (../../../tests/ps_tests/code16k.ps.test)
     (../../../tests/ps_tests/code2of5.ps.test)
+    (../../../tests/ps_tests/code32.ps.test)
     (../../../tests/ps_tests/code39.ps.test)
     (../../../tests/ps_tests/code49.ps.test)
     (../../../tests/ps_tests/code93ext.ps.test)
@@ -88,17 +101,26 @@
     (../../../tests/ps_tests/databartruncated.ps.test)
     (../../../tests/ps_tests/databartruncatedcomposite.ps.test)
     (../../../tests/ps_tests/datamatrix.ps.test)
+    (../../../tests/ps_tests/datamatrixrectangular.ps.test)
+    (../../../tests/ps_tests/datamatrixrectangularextension.ps.test)
     (../../../tests/ps_tests/dotcode.ps.test)
     (../../../tests/ps_tests/ean13.ps.test)
     (../../../tests/ps_tests/ean13composite.ps.test)
     (../../../tests/ps_tests/ean14.ps.test)
+    (../../../tests/ps_tests/ean2.ps.test)
+    (../../../tests/ps_tests/ean5.ps.test)
     (../../../tests/ps_tests/ean8.ps.test)
     (../../../tests/ps_tests/ean8composite.ps.test)
+    (../../../tests/ps_tests/flattermarken.ps.test)
     (../../../tests/ps_tests/gs1-128.ps.test)
     (../../../tests/ps_tests/gs1-128composite.ps.test)
     (../../../tests/ps_tests/gs1-cc.ps.test)
     (../../../tests/ps_tests/gs1datamatrix.ps.test)
+    (../../../tests/ps_tests/gs1dldatamatrix.ps.test)
+    (../../../tests/ps_tests/gs1dlqrcode.ps.test)
+    (../../../tests/ps_tests/gs1dotcode.ps.test)
     (../../../tests/ps_tests/gs1northamericancoupon.ps.test)
+    (../../../tests/ps_tests/gs1qrcode.ps.test)
     (../../../tests/ps_tests/hanxin.ps.test)
     (../../../tests/ps_tests/hibcazteccode.ps.test)
     (../../../tests/ps_tests/hibccodablockf.ps.test)
@@ -109,21 +131,41 @@
     (../../../tests/ps_tests/hibcmicropdf417.ps.test)
     (../../../tests/ps_tests/hibcpdf417.ps.test)
     (../../../tests/ps_tests/hibcqrcode.ps.test)
+    (../../../tests/ps_tests/identcode.ps.test)
+    (../../../tests/ps_tests/interleaved2of5.ps.test)
+    (../../../tests/ps_tests/isbn.ps.test)
+    (../../../tests/ps_tests/ismn.ps.test)
+    (../../../tests/ps_tests/issn.ps.test)
+    (../../../tests/ps_tests/itf14.ps.test)
     (../../../tests/ps_tests/japanpost.ps.test)
     (../../../tests/ps_tests/kix.ps.test)
+    (../../../tests/ps_tests/leitcode.ps.test)
+    (../../../tests/ps_tests/mailmark.ps.test)
+    (../../../tests/ps_tests/mands.ps.test)
     (../../../tests/ps_tests/maxicode.ps.test)
     (../../../tests/ps_tests/micropdf417.ps.test)
     (../../../tests/ps_tests/microqrcode.ps.test)
     (../../../tests/ps_tests/msi.ps.test)
+    (../../../tests/ps_tests/onecode.ps.test)
+    (../../../tests/ps_tests/pharmacode.ps.test)
+    (../../../tests/ps_tests/pharmacode2.ps.test)
+    (../../../tests/ps_tests/planet.ps.test)
     (../../../tests/ps_tests/plessey.ps.test)
+    (../../../tests/ps_tests/postnet.ps.test)
     (../../../tests/ps_tests/pdf417.ps.test)
     (../../../tests/ps_tests/pdf417compact.ps.test)
     (../../../tests/ps_tests/posicode.ps.test)
+    (../../../tests/ps_tests/pzn.ps.test)
     (../../../tests/ps_tests/qrcode.ps.test)
     (../../../tests/ps_tests/rationalizedCodabar.ps.test)
+    (../../../tests/ps_tests/raw.ps.test)
     (../../../tests/ps_tests/rectangularmicroqrcode.ps.test)
     (../../../tests/ps_tests/royalmail.ps.test)
     (../../../tests/ps_tests/sscc18.ps.test)
+    (../../../tests/ps_tests/swissqrcode.ps.test)
+    (../../../tests/ps_tests/symbol.ps.test)
+    (../../../tests/ps_tests/telepen.ps.test)
+    (../../../tests/ps_tests/telepennumeric.ps.test)
     (../../../tests/ps_tests/ultracode.ps.test)
     (../../../tests/ps_tests/upca.ps.test)
     (../../../tests/ps_tests/upcacomposite.ps.test)
