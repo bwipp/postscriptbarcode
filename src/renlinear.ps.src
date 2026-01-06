@@ -114,7 +114,7 @@ begin
     /guardheight 7.0 def
 
     {def} forall
-    opt currentdict /opt undef //processoptions exec pop
+    opt currentdict /opt undef //processoptions exec /options exch def
 
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /ctx exch def
@@ -186,6 +186,8 @@ begin
         } ifelse
         /pixx pixx d add def  % pixx += d
     } for
+
+    options /debugbars known { /bwipp.debugbars [ bars { dup -1 ne { aload pop } { pop } ifelse } forall ] //raiseerror exec } if
 
     gsave
 
