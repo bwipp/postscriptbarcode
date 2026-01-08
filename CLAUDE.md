@@ -20,7 +20,10 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Prefer stack work over dictionary heavy code
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
-- Do not assume GhostScript-only execution.
+- Do not assume GhostScript-only execution. Assume modern implementation limit, and warn when approaching those limits:
+  -  Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
+  -  Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
+  -  Maximum string length is 65535 characters.
 
 
 ## Build
@@ -417,4 +420,3 @@ For repetitive tests, use template procedures:
 
 (INVALID)  /bwipp.encoderBadData  er_tmpl
 ```
-
