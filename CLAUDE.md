@@ -108,7 +108,7 @@ Each resource source file has a similar structure:
 
 Encoder source files contain metadata comments:
 
-```
+```postscript
 % --BEGIN ENCODER encodername--
 % --EXAM: example input data
 % --EXOP: example options
@@ -123,7 +123,7 @@ assemble the resource as a prolog; listen in order of inclusion
 
 ### Lazy Initialisation Pattern
 
-```
+```postscript
 /resource.latevars dup 16 dict def load /init {
     currentglobal
     true setglobal  % Lazy vars must be in global VM, like resource definitions
@@ -163,13 +163,13 @@ assemble the resource as a prolog; listen in order of inclusion
 
 Resources are registered to the `/uk.co.terryburton.bwipp` category:
 
-```
+```postscript
 /encodername dup load /uk.co.terryburton.bwipp defineresource pop
 ```
 
 Dependencies are loaded at the start of the resource definition:
 
-```
+```postscript
 N dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
@@ -181,7 +181,7 @@ end
 
 ### Main Procedure Structure
 
-```
+```postscript
 /encoder {
     20 dict begin
 
@@ -239,7 +239,7 @@ bind def
 
 ## User API
 
-```
+```postscript
 <barcode data string> <options string or dict> /<encoder> /uk.co.terryburton.bwipp findresource exec
 ```
 
@@ -357,14 +357,14 @@ Encoders create a common dictionary structure expected by their renderer:
 
 Success test - validate 1D barcode graphical structure via sbs array:
 
-```
+```postscript
 (INPUT) (dontdraw) encoder /sbs get
 [1 2 1 1 ...] debugIsEqual
 ```
 
 Success test - validate 2D barcode graphical structure via pixs array:
 
-```
+```postscript
 (INPUT) (dontdraw) encoder /pixs get
 [
     1 0 1 0 ...    % Aligned to shape of 2D bitmap
@@ -374,7 +374,7 @@ Success test - validate 2D barcode graphical structure via pixs array:
 
 Success test - validate encoder codeword output:
 
-```
+```postscript
 {
     (TESTING) (debugcws) encoder
 } [32 61 39 ...] debugIsEqual
@@ -382,13 +382,13 @@ Success test - validate encoder codeword output:
 
 Error test:
 
-```
+```postscript
 { (INPUT) (dontdraw) encoder } /bwipp.encoderErrorName isError
 ```
 
 For repetitive tests, use template procedures:
 
-```
+```postscript
 /eq_tmpl {
     exch { 0 (dontdraw) encoder /sbs get } dup 3 -1 roll 0 exch put
     exch isEqual
@@ -398,7 +398,7 @@ For repetitive tests, use template procedures:
 (87654321)  [1 2 1 1 1 ...]  eq_tmpl
 ```
 
-```
+```postscript
 /eq_tmpl {
     3 1 roll { 0 0 encoder /pixs get }
     dup 3 -1 roll 1 exch put      % insert options
@@ -409,7 +409,7 @@ For repetitive tests, use template procedures:
 (DATA) (eclevel=M) [...pixs...] eq_tmpl
 ```
 
-```
+```postscript
 /er_tmpl {
     exch { 0 (dontdraw) encoder } dup 3 -1 roll 0 exch put
     exch isError
