@@ -1008,25 +1008,27 @@ begin
     % Function to calculate the product in the field
     %
     /rsprod {
-        2 copy 0 ne exch 0 ne and {
+        dup 0 ne { 1 index 0 ne {
             rslog exch get exch rslog exch get add 928 mod rsalog exch get
-        } {
-            pop pop 0
-        } ifelse
+        } { pop pop 0 } ifelse } { pop pop 0 } ifelse
     } def
 
     %
     % Generate the coefficients
     %
     /coeffs [ 1 k {0} repeat ] def
-    1 1 k {
-        /i exch def
-        coeffs i coeffs i 1 sub get put
-        i 1 sub -1 1 {
-            /j exch def
-            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod add 929 mod put
+    1 1 k {  % i
+        coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
+        rsalog 1 index get                       % ai = rsalog[i]
+        exch 1 sub -1 1 {  % j
+            coeffs exch 2 copy get               % ... coeffs j coeffs[j]
+            3 index                              % ... ai
+            rsprod                               % p = coeffs[j] * ai
+            coeffs 2 index 1 sub get             % ... coeffs[j-1]
+            add 929 mod put                      % coeffs[j] = (p + coeffs[j-1]) mod 929
         } for
-        coeffs 0 coeffs 0 get rsalog i get rsprod put
+        coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
+        pop  % ai
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
     coeffs length 1 sub -2 0 {coeffs exch 2 copy get 929 exch sub put} for
@@ -1034,14 +1036,22 @@ begin
     %
     % Derive the error codewords
     %
-    0 1 n 1 sub {
-        /t exch cws exch get cws n get add 929 mod def
-        0 1 k 1 sub {
-            /j exch def
-            cws n j add cws n j add 1 add get 929 t coeffs k j sub 1 sub get mul 929 mod sub add 929 mod put
+    0 1 n 1 sub {  % i
+        cws exch get cws n get add 929 mod       % t = (cws[i] + cws[n]) mod 929
+        0 1 k 1 sub {  % j
+            cws n 2 index add 2 copy 1 add get   % ... cws n+j cws[n+j+1]
+            929                                  % ... 929
+            5 index                              % ... t
+            coeffs k 8 -1 roll sub 1 sub get     % ... coeffs[k-j-1]
+            mul 929 mod                          % p = (t * coeffs[k-j-1]) mod 929
+            sub add 929 mod put                  % cws[n+j] = (cws[n+j+1] + (929 - p)) mod 929
         } for
+        pop  % t
     } for
-    n 1 n k add { dup cws exch 929 cws 5 -1 roll get sub 929 mod put } for
+    n 1 n k add {  % i
+         cws exch 2 copy get                     % ... cws i cws[i]
+         929 exch sub 929 mod put                % cws[i] = (929 - cws[i]) mod 929
+    } for
 
     %
     % Trim the working space from the end of the codewords
