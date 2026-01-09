@@ -26,6 +26,14 @@ Performance, execution cost, and interpreter compatibility are critical.
   -  Maximum string length is 65535 characters.
 
 
+## AI Observations
+
+- AI is not very good at writing and reasoning about stack-based code.
+- AI seems unable to accurately track the position of items on the stack, resulting in spurious inputs to `index` and `roll`.
+- AI does not consider the side effect of inserting new code into existing stack based code, e.g. later indexes needing to be recalculated.
+- AI should warn the user of areas of new or changed stack-based code that are likely to be incorrect.
+
+
 ## Build
 
 ### Commands
