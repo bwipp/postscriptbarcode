@@ -338,7 +338,42 @@ Encoders create a common dictionary structure expected by their renderer:
 - Defining static data in the main procedure (hoist to define time, then use `//name`)
 - Computing derived data on every invocation (use latevars)
 
-### Profiling Results
+### Hot Loop Stack Pattern
+
+In high computational complexity loops, avoid `/idx exch def`. Keep loop index
+on stack, reference with `index` and finally consume with `roll` (rather than
+`pop`):
+
+```postscript
+% Bad: Creates dictionary entry each iteration
+0 1 k {  % E.g. k from outer loop
+    /idx exch def
+    % Stuff using "idx" variable...
+    arr k idx sub 1 sub get
+} for
+
+% Good: Loop index consumed by roll
+0 1 k 1 sub {  % idx on stack
+    % Stuff using "N index" to access idx on the stack...
+    % Finally, roll moves idx to top where we consume it:
+    arr k 3 -1 roll sub 1 sub get
+} for
+```
+
+The RSEC loops in qrcode, datamatrix, pdf417 demonstrate advanced uses of this
+pattern, including stack-based access to variables outside of the inner loop.
+
+### Profiling
+
+Simple profiling of the overall runtime for some encoder:
+
+```bash
+time gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -c \
+  '(build/monolithic/barcode.ps) run
+   100 { 0 0 moveto (DATA) (options) /encoder /uk.co.terryburton.bwipp findresource exec } repeat'
+```
+
+### Detailed Profiling Results
 
 Large 2D symbols have different runtime bottlenecks, for example:
 
