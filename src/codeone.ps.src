@@ -912,25 +912,28 @@ begin
     /gf-1 gf 1 sub def
 
     /rsprod {
-        2 copy 0 ne exch 0 ne and {
+        dup 0 ne { 1 index 0 ne {
             rslog exch get exch rslog exch get add gf-1 mod rsalog exch get
-        } {
-            pop pop 0
-        } ifelse
+        } { pop pop 0 } ifelse } { pop pop 0 } ifelse
     } def
 
     %
     % Generate the coefficients for the Reed-Solomon algorithm
     %
     /coeffs [ 1 ecpb {0} repeat ] def
-    0 1 ecpb 1 sub {
-        /i exch def
-        coeffs i 1 add coeffs i get put
-        i -1 1 {
-            /j exch def
-            coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+    0 1 ecpb 1 sub {  % i
+        rsalog 1 index get                        % ai = rsalog[i]
+        exch dup 1 add                            % ai i i+1
+        coeffs exch 2 copy 1 sub get put          % ai i ; coeffs[i+1] = coeffs[i]
+        -1 1 {  % j
+            coeffs exch 2 copy get                % ... coeffs j coeffs[j]
+            3 index                               % ... ai
+            rsprod                                % p = coeffs[j] * ai
+            coeffs 2 index 1 sub get              % ... coeffs[j-1]
+            xor put                               % coeffs[j] = p ^ coeffs[j-1]
         } for
-        coeffs 0 coeffs 0 get rsalog i get rsprod put
+        coeffs 0 2 copy get 3 index rsprod put    % coeffs[0] = coeffs[0] * ai
+        pop  % ai
     } for
     /coeffs coeffs 0 coeffs length 1 sub getinterval def
 
@@ -940,13 +943,17 @@ begin
     0 1 cwbs length 1 sub {
         /i exch def
         /rscws [ cwbs i get aload pop ecpb {0} repeat ] def
-        0 1 dcpb 1 sub {
-            /m exch def
-            /k rscws m get def
-            0 1 ecpb 1 sub {
-                /j exch def
-                rscws m j add 1 add coeffs ecpb j sub 1 sub get k rsprod rscws m j add 1 add get xor put
+        0 1 dcpb 1 sub {  % m
+            rscws 1 index get                               % k = rscws[m]
+            0 1 ecpb 1 sub {  % j
+                rscws 3 index 2 index add 1 add 2 copy get  % ... rscws m+j+1 rscws[m+j+1]
+                coeffs ecpb 6 -1 roll sub 1 sub get         % ... coeffs[ecpb-j-1]
+                4 index                                     % ... k
+                rsprod                                      % p = coeffs[ecpb-j-1] * k
+                xor put                                     % rscws[m+j+1] = rscws[m+j+1] ^ p
             } for
+            pop  % k
+            pop  % m
         } for
         ecbs i rscws dcpb ecpb getinterval put
     } for
