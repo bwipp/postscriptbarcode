@@ -338,6 +338,13 @@ Encoders create a common dictionary structure expected by their renderer:
 - Defining static data in the main procedure (hoist to define time, then use `//name`)
 - Computing derived data on every invocation (use latevars)
 
+### Profiling Results
+
+Large 2D symbols have different runtime bottlenecks, for example:
+
+QR Code v40          - Mask evaluation is ~75% of overall runtime; RSEC is fast
+Data Matrix 144x144  - RSEC codeword calculation (excluding polynomial generation) is ~75% of overall runtime due to many codeword per block
+Aztec Code 32 layers - RSEC coefficients generation is ~95% of overall runtime due to large Galois fields and many ECC codewords
 
 ## Testing
 
