@@ -14,12 +14,14 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Use sparse comments explaining "why" not "how".
 - Generated code should match existing idioms. Newer encoders such as QR Code are the best source of idiomatic code.
 - Maintain existing user API (encoder interfaces and metadata).
-- Warn about potential issues such as potential performance regressions in hot paths and when introducing new idioms.
 - Static data should be hoisted out of the main procedure, and deferred with lazy initialisation if it must be derived
 - Static and cached structures should be readonly
 - Prefer stack work over dictionary heavy code
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
+- Search for pre-existing patterns before inventing code. Warn if the existing pattern does not appear to follow best practise.
+- Warn about potential issues such as potential performance regressions in hot paths.
+- Warn about potentially incorrect code when introducing new idioms involving stack-based constructions.
 - Do not assume GhostScript-only execution. Assume modern implementation limit, and warn when approaching those limits:
   -  Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
   -  Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
@@ -31,7 +33,7 @@ Performance, execution cost, and interpreter compatibility are critical.
 - AI is not very good at writing and reasoning about stack-based code.
 - AI seems unable to accurately track the position of items on the stack, resulting in spurious inputs to `index` and `roll`.
 - AI does not consider the side effect of inserting new code into existing stack based code, e.g. later indexes needing to be recalculated.
-- AI should warn the user of areas of new or changed stack-based code that are likely to be incorrect.
+- AI benefits from being shown a preferred pattern then applying it.
 
 
 ## Build
