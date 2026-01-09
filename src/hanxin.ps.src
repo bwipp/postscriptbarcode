@@ -630,31 +630,33 @@ begin
         /rscws exch def
 
         rstables rsbt get aload pop /rsalog exch def /rslog exch def
-        /rsgf rsalog length def
+        /rsgf-1 rsalog length 1 sub def
 
         %
         % Function to calculate the product in the field
         %
         /rsprod {
-            2 copy 0 ne exch 0 ne and {
-                rslog exch get exch rslog exch get add rsgf 1 sub mod rsalog exch get
-            } {
-                pop pop 0
-            } ifelse
+            dup 0 ne { 1 index 0 ne {
+                rslog exch get exch rslog exch get add rsgf-1 mod rsalog exch get
+            } { pop pop 0 } ifelse } { pop pop 0 } ifelse
         } def
 
         %
         % Generate the coefficients
         %
         /coeffs [ 1 rsnc {0} repeat ] def
-        1 1 rsnc {
-            /i exch def
-            coeffs i coeffs i 1 sub get put
-            i 1 sub -1 1 {
-                /j exch def
-                coeffs j coeffs j 1 sub get coeffs j get rsalog i get rsprod xor put
+        1 1 rsnc {  % i
+            coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
+            rsalog 1 index get                       % ai = rsalog[i]
+            exch 1 sub -1 1 {  % j
+                coeffs exch 2 copy get               % ... coeffs j coeffs[j]
+                3 index                              % ... ai
+                rsprod                               % p = coeffs[j] * ai
+                coeffs 2 index 1 sub get             % ... coeffs[j-1]
+                xor put                              % coeffs[j] = p ^ coeffs[j-1]
             } for
-            coeffs 0 coeffs 0 get rsalog i get rsprod put
+            coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
+            pop  % ai
         } for
 
         %
@@ -662,12 +664,16 @@ begin
         %
         /nd rscws length def
         /rscws [ rscws aload pop rsnc {0} repeat 0 ] def
-        0 1 nd 1 sub {
-            /k exch rscws exch get rscws nd get xor def
-            0 1 rsnc 1 sub {
-                /j exch def
-                rscws nd j add rscws nd j add 1 add get k coeffs rsnc j sub 1 sub get rsprod xor put
+        0 1 nd 1 sub {  % i
+            rscws exch get rscws nd get xor          % k = rscws[i] ^ rscws[nd]
+            0 1 rsnc 1 sub {  % j
+                dup
+                rscws exch nd add 2 copy 1 add get   % ... rscws nd+j rscws[nd+j+1]
+                coeffs rsnc 6 -1 roll sub 1 sub get  % ... coeffs[rsnc-1-j]
+                4 index                              % ... k
+                rsprod xor put                       % rscws[nd+j] = rscws[nd+j+1] ^ (coeffs[rsnc-1-j] * k)
             } for
+            pop  % k
         } for
 
         %
