@@ -27,6 +27,7 @@ Performance, execution cost, and interpreter compatibility are critical.
   - Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
   - Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
   - Maximum string length is 65535 characters.
+- If a file is updated then its copyright date should be bumped.
 
 
 ## AI Observations
