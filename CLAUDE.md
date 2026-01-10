@@ -14,6 +14,7 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Use sparse comments explaining "why" not "how".
 - Generated code should match existing idioms. Newer encoders such as QR Code are the best source of idiomatic code.
 - Maintain existing user API (encoder interfaces and metadata).
+- Prefer derived values over opaque constants so that the code is auditable, unless prohibitively expensive (even for lazy init).
 - Static data should be hoisted out of the main procedure, and deferred with lazy initialisation if it must be derived
 - Static and cached structures should be readonly
 - Prefer stack work over dictionary heavy code
