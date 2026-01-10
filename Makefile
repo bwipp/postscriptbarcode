@@ -85,13 +85,11 @@ STANDALONE_DIR = $(DSTDIR)/standalone
 STANDALONE_MKDIRS:=$(STANDALONE_DIR)
 STANDALONE_MKDIRSTAMP:=$(STANDALONE_DIR)/.dirstamp
 TARGETS_STANDALONE:=$(addprefix $(STANDALONE_DIR)/,$(addsuffix .ps,$(TARGETS)))
-cleanlist += $(TARGETS_STANDALONE) $(STANDALONE_MKDIRSTAMP)
 
 STANDALONE_PACKAGE_DIR = $(DSTDIR)/standalone_package
 STANDALONE_PACKAGE_MKDIRS:=$(STANDALONE_PACKAGE_DIR)
 STANDALONE_PACKAGE_MKDIRSTAMP:=$(STANDALONE_PACKAGE_DIR)/.dirstamp
 TARGETS_STANDALONE_PACKAGE:=$(addprefix $(STANDALONE_PACKAGE_DIR)/,$(addsuffix .ps,$(TARGETS)))
-cleanlist += $(TARGETS_STANDALONE_PACKAGE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
 
 RELEASEDIR := $(DSTDIR)/release
 RELEASEMKDIRS:=$(RELEASEDIR)
@@ -249,8 +247,8 @@ $(STANDALONE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_MKDIRS)
 	touch $@
 
-$(STANDALONE_DIR)/%.ps: $(MONOLITHIC_FILE) $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
-	$(DSTDIR)/make_standalone.pl $< $@
+$(STANDALONE_DIR)/%.ps: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_MKDIRSTAMP)
+	$(DSTDIR)/make_standalone.pl $(RESDIR)/Resource $@
 
 #------------------------------------------------------------
 
@@ -258,8 +256,8 @@ $(STANDALONE_PACKAGE_MKDIRSTAMP):
 	mkdir -p $(STANDALONE_PACKAGE_MKDIRS)
 	touch $@
 
-$(STANDALONE_PACKAGE_DIR)/%.ps: $(MONOLITHIC_PACKAGE_FILE) $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
-	$(DSTDIR)/make_standalone.pl $< $@
+$(STANDALONE_PACKAGE_DIR)/%.ps: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_FILE) $(STANDALONE_PACKAGE_MKDIRSTAMP)
+	$(DSTDIR)/make_standalone.pl $(PACKAGEDIR)/Resource $@
 
 #------------------------------------------------------------
 

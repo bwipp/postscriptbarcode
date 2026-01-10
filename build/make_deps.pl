@@ -41,4 +41,21 @@ while (my $targetdir = shift @ARGV) {
   print "$reqfiles\n";
 }
 
+# Standalone dependency rules (only for encoders, not preamble)
+if ($resource ne 'uk.co.terryburton.bwipp') {
+  for my $standalonedir ('build/standalone', 'build/standalone_package') {
+    my $resdir = $standalonedir eq 'build/standalone'
+      ? 'build/resource/Resource' : 'build/packaged_resource/Resource';
+    my $reqfiles = "$standalonedir/$resource.ps :";
+    foreach my $req (split /\s+/, $reqs) {
+      $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
+      (my $reqfile) = $upr =~ /^$req=(.*)$/m;
+      $reqfiles .= " $resdir/$reqfile";
+    }
+    # Include the encoder itself as a dependency
+    $reqfiles .= " $resdir/$provfile";
+    print "$reqfiles\n";
+  }
+}
+
 exit 0;
