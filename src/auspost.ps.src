@@ -63,6 +63,10 @@ begin
     (11) 37  (45) 37  (59) 52  (62) 67
 >> readonly def
 
+/auspost.rsprod {
+    64 mul add rstable exch get
+} bind def
+
 /auspost.latevars dup 8 dict def load /init {
 
     currentglobal
@@ -98,13 +102,17 @@ begin
     %
     /rspoly [ 1 0 0 0 0 ] def
     1 1 4 {  % i
-        1 1 index bitshift                                        % t = 2^i
+        1 1 index bitshift                   % t = 2^i
         exch -1 1 {  % j = i -> 1
-            rspoly 1 index 2 copy 1 sub get                       % ... rsploy j rsploy[j-1]
-            rstable rspoly 6 -1 roll get 64 mul 5 index add get   % p = rsploy[j] * t
-            xor put                                               % rspoly[j] = rsploy[j-1] ^ p
+            rspoly 1 index 2 copy 1 sub get  % ... rsploy j rsploy[j-1]
+            rspoly 5 -1 roll get             % ... rsploy[j]
+            4 index                          % ... t
+            //auspost.rsprod exec            % p = rsploy[j] * t
+            xor put                          % rspoly[j] = rsploy[j-1] ^ p
         } for
-        rspoly 0 rstable 64 rspoly 0 get mul 4 index add get put  % rspoly[0] = rspoly[0] * t
+        rspoly 0 2 copy get                  % ... rspoly 0 rspoly[0]
+        3 index                              % ... t
+        //auspost.rsprod exec put            % rspoly[0] = rspoly[0] * t
         pop  % t
     } for
     /rspoly rspoly readonly def
@@ -255,9 +263,11 @@ begin
 
     rscodes length 5 sub -1 0 {  % i
         0 1 4 {  % j
-            rscodes 2 index 2 index add 2 copy get                                 % ... rscodes i+j rscodes[i+j]
-            rstable rspoly 6 -1 roll get 64 mul rscodes 6 index 4 add get add get  % p = rspoly[j] * rscodes[i+4]
-            xor put                                                                % rscodes[i+j] = rscodes[i+j] ^ p
+            rscodes 2 index 2 index add 2 copy get  % ... rscodes i+j rscodes[i+j]
+            rspoly 5 -1 roll get                    % ... rspoly[j]
+            rscodes 5 index 4 add get               % ... rscodes[i+4]
+            //auspost.rsprod exec                   % p = rspoly[j] * rscodes[i+4]
+            xor put                                 % rscodes[i+j] = rscodes[i+j] ^ p
         } for
         pop  % i
     } for
