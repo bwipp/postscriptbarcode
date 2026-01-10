@@ -63,8 +63,6 @@ begin
     (11) 37  (45) 37  (59) 52  (62) 67
 >> readonly def
 
-/auspost.rspoly [ 48 17 29 30 1 ] readonly def
-
 /auspost.latevars dup 8 dict def load /init {
 
     currentglobal
@@ -78,23 +76,38 @@ begin
     /rstable 64 64 mul array def
     rstable 0 [ 64 {0} repeat ] putinterval
     rstable 64 [ 0 1 63 {} for ] putinterval
-    /prev 1 def
+    1                                               % ... prev
     64 {
-        /next prev 1 bitshift def
-        next 64 and 0 ne {
-            /next next 67 xor def
-        } if
-        0 1 63 {
-            /j exch def
-            /nextcell {rstable 64 next mul j add} def
-            nextcell rstable 64 prev mul j add get 1 bitshift put
-            nextcell get 64 and 0 ne {
-                nextcell nextcell get 67 xor put
-            } if
+        dup 1 bitshift dup 64 and 0 ne {67 xor} if  % ... next
+        1 index 64 mul                              % ... prevbase
+        1 index 64 mul                              % ... nextbase
+        0 1 63 {  % i
+            rstable 2 index 2 index add
+            rstable 5 index 4 index add get 1 bitshift
+            dup 64 and 0 ne {67 xor} if
+            put
+            pop  % i
         } for
-        /prev next def
+        pop pop exch pop
     } repeat
+    pop
     /rstable rstable readonly def
+
+    %
+    % Calculate the generator polynomials
+    %
+    /rspoly [ 1 0 0 0 0 ] def
+    1 1 4 {  % i
+        1 1 index bitshift                                        % t = 2^i
+        exch -1 1 {  % j = i -> 1
+            rspoly 1 index 2 copy 1 sub get                       % ... rsploy j rsploy[j-1]
+            rstable rspoly 6 -1 roll get 64 mul 5 index add get   % p = rsploy[j] * t
+            xor put                                               % rspoly[j] = rsploy[j-1] ^ p
+        } for
+        rspoly 0 rstable 64 rspoly 0 get mul 4 index add get put  % rspoly[0] = rspoly[0] * t
+        pop  % t
+    } for
+    /rspoly rspoly readonly def
 
     /init { //auspost.latevars {def} forall } def
 
@@ -239,15 +252,16 @@ begin
         encstr i 2 add 1 getinterval cvi add
         put
     } for
-    rscodes length 5 sub -1 0 {
-       /i exch def
-       0 1 4 {
-           /j exch def
-           rscodes i j add rscodes i j add get
-           rstable 64 //auspost.rspoly j get mul rscodes i 4 add get add get
-           xor put
-       } for
+
+    rscodes length 5 sub -1 0 {  % i
+        0 1 4 {  % j
+            rscodes 2 index 2 index add 2 copy get                                 % ... rscodes i+j rscodes[i+j]
+            rstable rspoly 6 -1 roll get 64 mul rscodes 6 index 4 add get add get  % p = rspoly[j] * rscodes[i+4]
+            xor put                                                                % rscodes[i+j] = rscodes[i+j] ^ p
+        } for
+        pop  % i
     } for
+
     /checkcode (000000000000) 12 string copy def
     0 1 3 {
         /i exch def
