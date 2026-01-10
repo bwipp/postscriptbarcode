@@ -41,48 +41,47 @@ Performance, execution cost, and interpreter compatibility are critical.
 
 ### Commands
 
-- `make -j $(nproc)`      - Build all
+- `make -j $(nproc)`      - Build all distribution targets (resource, packaged_resource, monolithic, monolithic_package)
 - `make -j $(nproc) test` - Run tests
 - `make clean`            - Clean
+- `make build/standalone/<encoder>.ps` - Build standalone encoder
 
-Build requires Ghostscript (`gs`) in PATH and uses Perl.
+Build requires Ghostscript (`gs`) in PATH and Perl.
 
 
 ### Terminology
 
-"Packaging" refers to an instance of the PostScript that has been processed
-into a form that is easier to distribute but harder to debug. Specifically it
-uses efficient byte-based encodings for operators, numbers, string and numeric
-arrays, presented as in a watermarked ASCII85 encoding.
+"Packaging" refers to PostScript processed into a form easier to distribute but
+is harder to debug:
+
+- Efficient byte-based encodings for numbers and operators
+- Compressed numeric/string arrays
+- ASCII85-wrapped output (watermarked)
+- Results in ~30-50% smaller files
+
 
 ### Directory Structure
 
 Core library:
 
 - `src/*.ps.src`                    - PostScript resource source files
+- `src/uk.co.terryburton.bwipp.upr` - Resource name to path mapping used by Distiller and build system; order determines resource order in monolithic and standalone outputs
 - `tests/ps_tests/*.ps.test`        - PostScript test files
 
 Build scripts:
 
-- `build/make_resource.pl`           - Resource builder
-- `build/make_resource.ps`           - Unpackaged resource helper
-- `build/make_packaged_resource.ps`  - Packaged resource helper
-- `build/make_deps.pl`               - Dependency generator
+- `build/make_resource.pl`           - Resource builder (invokes GhostScript)
+- `build/make_deps.pl`               - Dependency rule generator (creates .d files)
 - `build/make_monolithic.pl`         - Monolithic resource assembler
-- `build/make_standalone.pl`         - Standalone file extractor
+- `build/make_standalone.pl`         - Standalone file assembler (supports multiple encoders)
 
-Target resources:
+Build outputs:
 
-- `build/resource/`                      - `make resource`: Unpackaged resource build output (individual encoders in separate files)
-- `build/packaged_resource/`             - `make packaged_resource`: Packaged resource build output (individual encoders packaged into separate files)
-- `build/monolithic/barcode.ps`          - `make monolithic`: Monolithic build (all encoders combined)
-- `build/monolithic_package/barcode.ps`  - `make monolithic_package`: Packaged monolithic build (all encoders packaged and combined)
-
-- `build/standalone/<encoder>.ps`        - Standalone encoder builds (with all deps embedded). Triggered manually.
-
-Extra wrappers for working with the BWIPP resources:
-
-- `libs/`                           - C library for working with resources
+- `build/resource/`                      - `make resource`: Unpackaged resources
+- `build/packaged_resource/`             - `make packaged_resource`: Packaged resources
+- `build/monolithic/barcode.ps`          - `make monolithic`: All encoders combined
+- `build/monolithic_package/barcode.ps`  - `make monolithic_package`: Packaged monolithic
+- `build/standalone/<encoder>.ps`        - Standalone encoder (manual, only required deps built)
 
 
 ## Resource File Structure
@@ -131,8 +130,9 @@ Encoder source files contain metadata comments:
 % --END ENCODER encodername--
 ```
 
-REQUIRES lists dependencies for the build system and for a user that want to
-assemble the resource as a prolog; listen in order of inclusion
+REQUIRES lists dependencies of the resource in order. It is used by the build
+system and is API for users that want to assemble the resources into a PS file
+prolog.
 
 
 ### Lazy Initialisation Pattern
@@ -260,7 +260,7 @@ bind def
 Example:
 ```postscript
 10 10 moveto
-(\(01\)09521234543213(3103)000123) (segments=4 includetext alttext=TEST)
+(\(01\)09521234543213(3103)000123) (segments=4 includetext alttext=TEST)  % Note quoting of parentheses in data
 /databarexpandedstacked /uk.co.terryburton.bwipp findresource exec
 showpage
 ```
@@ -393,6 +393,10 @@ Large 2D symbols have different runtime bottlenecks, for example:
 - Aztec Code 32 layers - RSEC coefficients generation is ~95% of overall runtime due to large Galois fields and many ECC codewords
 
 ## Testing
+
+- `tests/run_tests` - Top-level test orchestrator
+- `tests/ps_tests/*.ps.test` - Individual encoder tests (run against packaged resources)
+- `tests/test_*/run` - Integration tests for each build variant
 
 ### Test Utilities
 
