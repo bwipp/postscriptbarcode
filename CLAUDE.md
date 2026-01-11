@@ -546,3 +546,57 @@ For repetitive tests, use template procedures:
 
 (INVALID)  /bwipp.encoderBadData  er_tmpl
 ```
+
+
+## PostScript Language paradigms
+
+Pay attention to the direction of roll:
+
+    (a) (b) (c) 3  1 roll => (c) (a) (b)
+    (a) (b) (c) 3 -1 roll => (b) (c) (a)
+
+Understand the offset used by index:
+
+    (a) (b) (c) 1 index => (a) (b) (c)   (b)
+
+Inserting stack elements requires index adjustment:
+
+    (a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
+
+Understand that readonly does not affect its argument:
+
+```postscript
+    /a [ 1 2 3 ] def   % a is writable
+    a readonly pop     % a is still writable; achieves nothing
+    /c a readonly def  % c is not writable; a remains writable
+```
+
+Invalidating a boolean placed first on the stack is a common way to perform multiple tests that must pass:
+
+```postscript
+true  % Assume good until...
+a 1 eq { pop (Error: a can't be 1)        false } if  % ... error encountered: Replace "true" with "false (error message)"
+a 9 eq { pop (Error: a can't be 9)        false } if
+b 5 gt { pop (Error: b must be 5 or less) false } if
+% ... More tests ...
+not {  % Check status
+    (An error occurred) ==
+    ==    % Emit error message on stack
+    stop  % Do unwinding instead
+} if
+% If we get here, all is well and no boolean left on the stack
+```
+
+PLRM terminology is confusing:
+
+As a result of the following command:
+
+    /a [ 1 2 3 ] def
+    /b a def
+
+- a is referred to as the "object" (within the currentdict)
+- The --array-- created by "]" is referred to as "the storage for the object in VM" (either global or local depending on globalstatus)
+- b is also an "object" that refers to the same VM storage as a
+
+The terminology differs from languages where the array itself would be an object and a and b would be names / references.
+
