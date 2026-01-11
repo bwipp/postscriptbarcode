@@ -3,15 +3,13 @@
 # Barcode Writer in Pure PostScript
 # https://bwipp.terryburton.co.uk
 #
-# Copyright (c) 2004-2024 Terry Burton
+# Copyright (c) 2004-2025 Terry Burton
 
 set -e
 set -u
 set -o pipefail
 
 TEST=$(dirname "$0")
-
-echo -n "Running $TEST: "
 
 if gs --version | grep -q '^7\.'; then
 	echo "SKIPPED GS too old"
@@ -24,15 +22,27 @@ else
 	STRING_CONTINUE_BUG=-dNO_STRING_CONTINUE_BUG
 fi
 
-if OUT=$(cd build/packaged_resource/Resource && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage "$STRING_CONTINUE_BUG" -P ../../../"$TEST"/test.ps 2>&1); then
-	if echo "$OUT" | grep -qFx 'PASS'; then
-		echo "PASS"
-		exit 0
-	fi
-fi
+run_test() {
+	local resdir=$1
+	local label=$2
 
-echo "FAIL"
-echo
-echo "$OUT"
-echo
-exit 1
+	if OUT=$(cd "$resdir" && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage "$STRING_CONTINUE_BUG" -P ../../../"$TEST"/test.ps 2>&1); then
+		if echo "$OUT" | grep -qFx 'PASS'; then
+			return 0
+		fi
+	fi
+
+	echo "FAIL"
+	echo
+	echo "$OUT"
+	echo
+	return 1
+}
+
+echo -n "Running tests/ps_tests (unpackaged): "
+run_test build/resource/Resource unpackaged
+echo "PASS"
+
+echo -n "Running tests/ps_tests (packaged): "
+run_test build/packaged_resource/Resource packaged
+echo "PASS"
