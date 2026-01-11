@@ -428,19 +428,20 @@ Large 2D symbols have different runtime bottlenecks, for example:
 
 ## Testing
 
-- `tests/run_tests`          - Top-level test orchestrator
-- `tests/<variant>/run`      - Script to run the tests for each build variant
-- `tests/ps_tests/test.ps`   - PostScript test handler
-- `tests/ps_tests/*.ps.test` - Individual resource tests (run from either `build/resource/Resource` or `build/packaged_resource/Resource`)
+- `tests/run_tests`              - Top-level test orchestrator
+- `tests/<variant>/run`          - Script to run the tests for each build variant
+- `tests/ps_tests/test_utils.ps` - PostScript test utility functions
+- `tests/ps_tests/*.ps.test`     - Individual resource tests (run from either `build/resource/Resource` or `build/packaged_resource/Resource`); require that test_utils.ps utility is loaded
+- `tests/ps_tests/test.ps`       - PostScript test entrypoint: Loads utility functions then runs all resource tests
 
-The test.ps handler is the entry point for PostScript tests and contains
-utility functions upon which all resource tests depend:
+The test_utils.ps file contains the following utility functions required for
+all resource tests:
 
 - `debugIsEqual` - Compare codeword arrays (used with `debugcws` option)
 - `isEqual`      - Compare output arrays (pixs, sbs)
 - `isError`      - Verify specific error is raised
 
-Encoder may have one or more of the following debug options:
+Encoders may have one or more of the following debug options:
 
 - `dontdraw`      - Return structured dict without rendering
 - `debugcws`      - Return codeword array
