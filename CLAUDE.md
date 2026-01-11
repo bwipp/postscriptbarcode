@@ -95,7 +95,9 @@ Build outputs:
 - `build/standalone/<encoder>.ps`        - Standalone encoder (manual, only required deps built)
 
 
-## Resource Source File Structure
+## Code structure
+
+### Resource Source File Structure
 
 Each resource source file has a similar structure:
 
@@ -128,7 +130,7 @@ Each resource source file has a similar structure:
    - Calls lazy initialisation procedure
 
 
-#### Encoder Metadata
+### Encoder Metadata
 
 Encoder source files contain metadata comments:
 
