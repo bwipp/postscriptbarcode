@@ -55,6 +55,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Parse ordinals of the form ^NNN to ASCII
     %
@@ -77,7 +82,7 @@ begin
     %
     % Get the result of encoding with qrcode
     %
-    options (dontdraw) true put
+    /_dontdraw true def
     barcode options //qrcode exec /args exch def
 
     args (opt) options put

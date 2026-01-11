@@ -84,6 +84,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     //hibcdatamatrix.latevars /init get exec
 
     barcode () eq {
@@ -121,14 +126,15 @@ begin
     %
     % Get the result of encoding with datamatrix
     %
-    options (dontdraw) true put
     options (validatecheck) false put
+
+    /_dontdraw true def
     barcode options //datamatrix exec /args exch def
 
     args (opt) options put
     args
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

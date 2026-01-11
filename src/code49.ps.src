@@ -863,6 +863,11 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     //code49.latevars /init get exec
 
     rows 0 ne rows 2 lt rows 8 gt or and {
@@ -1172,7 +1177,7 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
     /opt options
     >>
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

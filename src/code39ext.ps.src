@@ -69,6 +69,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Parse ordinals of the form ^NNN to ASCII
     %
@@ -109,7 +114,7 @@ begin
     %
     % Get the result of encoding with code39
     %
-    options (dontdraw) true put
+    /_dontdraw true def
     newcode options //code39 exec /args exch def
 
     %
@@ -128,7 +133,7 @@ begin
     args (opt) options put
     args
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

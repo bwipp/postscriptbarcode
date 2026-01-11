@@ -76,6 +76,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Split off the addon
     %
@@ -240,7 +245,7 @@ begin
     /borderbottom 5.0
     >>
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

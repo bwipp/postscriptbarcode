@@ -72,6 +72,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     barcode length 2 lt barcode length 3 lt validatecheck and or {
         /bwipp.rationalizedCodabarBadLength (Codabar must be at least 2 characters in length excluding any check digit) //raiseerror exec
     } if
@@ -183,7 +188,7 @@ begin
     /opt options
     >>
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

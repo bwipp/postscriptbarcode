@@ -53,6 +53,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Validate the input
     %
@@ -90,15 +95,15 @@ begin
     %
     % Get the result of encoding with databaromni with format=truncated
     %
-    options (dontdraw) true put
     options (format) (truncated) put
 
+    /_dontdraw true def
     barcode options //databaromni exec /args exch def
 
     args (opt) options put
     args
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

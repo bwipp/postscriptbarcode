@@ -56,6 +56,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Validate the input
     %
@@ -110,7 +115,7 @@ begin
     /opt options
     >>
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

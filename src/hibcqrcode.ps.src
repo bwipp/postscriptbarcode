@@ -84,6 +84,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     //hibcqrcode.latevars /init get exec
 
     % Validate the input
@@ -117,14 +122,15 @@ begin
     barcode barlen 1 add //hibcqrcode.barchars checksum get put
 
     % Get the result of encoding with qrcode
-    options (dontdraw) true put
     options (validatecheck) false put
+
+    /_dontdraw true def
     barcode options //qrcode exec /args exch def
 
     args (opt) options put
     args
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

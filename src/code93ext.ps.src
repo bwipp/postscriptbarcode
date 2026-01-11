@@ -76,7 +76,14 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
+    %
     % Parse ordinals of the form ^NNN to ASCII
+    %
     /fncvals <<
         /parse parse
         /parseonly true
@@ -107,12 +114,17 @@ begin
     /newcode newcode 0 j getinterval def
     /newtext newtext 0 k getinterval def
 
+    %
     % Get the result of encoding with code93
-    options (dontdraw) true put
+    %
     options (parsefnc) true put
+
+    /_dontdraw true def
     newcode options //code93 exec /args exch def
 
+    %
     % Replace chars in /txt with chars in newtext
+    %
     includetext {
         /txt args (txt) get def
         0 1 newtext length 1 sub {
@@ -126,7 +138,7 @@ begin
     args (opt) options put
     args
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

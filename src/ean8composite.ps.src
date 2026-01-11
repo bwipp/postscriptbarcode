@@ -60,6 +60,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     dontdraw { /usematrix true def } if
 
     %
@@ -78,7 +83,6 @@ begin
     %
     options (lintype) (ean8) put
     options (inkspreadv) 0.0 put
-    options (dontdraw) true put
     options (dontlint) true put
 
     %
@@ -92,6 +96,7 @@ begin
     %
     % Plot the linear part
     %
+    /_dontdraw true def
     linear options //ean8 exec
     usematrix not {
         gsave
@@ -187,7 +192,7 @@ begin
         /opt options
         >>
 
-        dontdraw not {
+        _render {
             gsave
             //renmatrix exec
             grestore

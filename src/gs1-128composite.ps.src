@@ -60,6 +60,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     dontdraw { /usematrix true def } if
 
     %
@@ -76,7 +81,6 @@ begin
     usematrix not { gsave } if
 
     options (inkspreadv) 0.0 put
-    options (dontdraw) true put
     options (dontlint) true put
 
     %
@@ -91,6 +95,7 @@ begin
     % Dummy plot of linear part with CC-A to get width
     %
     options (linkagea) true put
+    /_dontdraw true def
     linear << options {} forall >> //gs1-128 exec
     (sbs) get 0 exch {add} forall /linwidth exch def
 
@@ -200,7 +205,7 @@ begin
         /opt options
         >>
 
-        dontdraw not {
+        _render {
             gsave
             //renmatrix exec
             grestore

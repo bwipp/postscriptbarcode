@@ -57,6 +57,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Parse the input
     %
@@ -81,7 +86,7 @@ begin
     % Get the result of encoding with datamatrix
     %
     options (parse) undef
-    options (dontdraw) true put
+    /_dontdraw true def
     barcode options //datamatrix exec /args exch def
 
     args (opt) options put
@@ -91,7 +96,7 @@ begin
     args (textsize) 5 put
     args
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

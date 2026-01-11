@@ -61,6 +61,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Split off the addon
     %
@@ -235,8 +240,9 @@ begin
     %
     % Get the result of encoding with ean13
     %
-    options (dontdraw) true put
     options (addongap) addongap put
+
+    /_dontdraw true def
     barcode options //ean13 exec /args exch def
 
     %
@@ -263,7 +269,7 @@ begin
     args (opt) options put
     args
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 

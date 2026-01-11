@@ -313,6 +313,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     //codeone.latevars /init get exec
 
     version (unset) ne {
@@ -1068,7 +1073,7 @@ begin
     /opt options
     >>
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

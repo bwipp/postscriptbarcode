@@ -95,6 +95,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     ccversion (a) ne ccversion (b) ne and ccversion (c) ne and {
         /bwipp.gs1ccBadCCversion (ccversion must be a, b or c) //raiseerror exec
     } if
@@ -649,9 +654,9 @@ begin
             barcode i 4 mul 3 -1 roll putinterval
         } for
         options (parse) undef
-        options (dontdraw) true put
         options (cca) true put
         options (columns) cccolumns put
+        /_dontdraw true def
         barcode options //micropdf417 exec /args exch def
     } if
 
@@ -663,9 +668,9 @@ begin
             barcode exch i exch put
         } for
         options (parse) undef
-        options (dontdraw) true put
         options (ccb) true put
         options (columns) cccolumns put
+        /_dontdraw true def
         barcode options //micropdf417 exec /args exch def
     } if
 
@@ -677,15 +682,15 @@ begin
             barcode exch i exch put
         } for
         options (parse) undef
-        options (dontdraw) true put
         options (ccc) true put
         options (columns) cccolumns put
         options (eclevel) eccws ln 2 ln div cvi 1 sub put
+        /_dontdraw true def
         barcode options //pdf417 exec /args exch def
     } if
 
     args
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

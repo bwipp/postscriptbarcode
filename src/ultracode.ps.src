@@ -166,6 +166,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     //ultracode.latevars /init get exec
 
     rev dup 1 ne exch 2 ne and {
@@ -425,7 +430,7 @@ begin
     /opt options
     >>
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

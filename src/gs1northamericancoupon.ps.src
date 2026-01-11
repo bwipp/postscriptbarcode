@@ -62,6 +62,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     barcode /ai //gs1process exec
     pop
     /vals exch def
@@ -89,7 +94,7 @@ begin
     coupontext gcp length 1 add cod putinterval
 
     % Get the result of encoding with databarexpandedstacked
-    options (dontdraw) true put
+    /_dontdraw true def
 
     barcode options //databarexpandedstacked exec /args exch def
 
@@ -115,7 +120,7 @@ begin
     args (opt) options put
     args
 
-    dontdraw not //renmatrix if
+    _render //renmatrix if
 
     end
 

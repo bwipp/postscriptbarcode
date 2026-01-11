@@ -90,6 +90,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     barcode length 17 ne barcode length 18 ne and {
         /bwipp.databaromniBadLength (GS1 DataBar Omnidirectional must be 13 or 14 digits) //raiseerror exec
     } if
@@ -362,7 +367,7 @@ begin
         /opt options
         >>
 
-        dontdraw not //renlinear if
+        _render //renlinear if
 
     } {  % 2D - stacked or stackedomni
 
@@ -482,7 +487,7 @@ begin
         /opt options
         >>
 
-        dontdraw not //renmatrix if
+        _render //renmatrix if
 
     } ifelse
 

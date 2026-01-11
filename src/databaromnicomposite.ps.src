@@ -65,6 +65,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     dontdraw { /usematrix true def } if
 
     %
@@ -83,7 +88,6 @@ begin
     options (lintype) (databaromni) put
     options (linkage) true put
     options (inkspreadv) 0.0 put
-    options (dontdraw) true put
     options (dontlint) true put
 
     %
@@ -97,6 +101,7 @@ begin
     %
     % Plot the linear part
     %
+    /_dontdraw true def
     linear options //databaromni exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
@@ -185,7 +190,7 @@ begin
         /opt options
         >>
 
-        dontdraw not {
+        _render {
             gsave
             //renmatrix exec
             grestore

@@ -66,6 +66,11 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+    def
+
     %
     % Strip spaces from the given data
     %
@@ -115,7 +120,6 @@ begin
     %
     % Get the result of encoding with interleaved2of5
     %
-    options (dontdraw) true put
     options (showborder) showborder put
     options (borderwidth) borderwidth put
     options (borderleft) borderleft put
@@ -124,6 +128,8 @@ begin
     options (borderbottom) borderbottom put
     options (height) height put
     options (textyoffset) textyoffset put
+
+    /_dontdraw true def
     barcode options //interleaved2of5 exec /args exch def
 
     args (txt) [ [text textxoffset textyoffset textfont textsize] ] put
@@ -131,7 +137,7 @@ begin
     args (opt) options put
     args
 
-    dontdraw not //renlinear if
+    _render //renlinear if
 
     end
 
