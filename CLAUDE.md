@@ -309,7 +309,7 @@ contain junk upon `raiseerror` from the called resource. (`raiseerror` only
 attempts to clean up the stack use by own resource.)
 
 Any example is "wrapper encoders" that delegate to another encoder with
-modified options: 
+modified options:
 
 ```postscript
 % Good: /args only pushed after inner encoder succeeds
@@ -575,23 +575,29 @@ For repetitive tests, use template procedures:
 
 Pay attention to the direction of roll:
 
-    (a) (b) (c) 3  1 roll => (c) (a) (b)
-    (a) (b) (c) 3 -1 roll => (b) (c) (a)
+```postscript
+(a) (b) (c) 3  1 roll => (c) (a) (b)
+(a) (b) (c) 3 -1 roll => (b) (c) (a)
+```
 
 Understand the offset used by index:
 
-    (a) (b) (c) 1 index => (a) (b) (c)   (b)
+```postscript
+(a) (b) (c) 1 index => (a) (b) (c)   (b)
+```
 
 Inserting stack elements requires index adjustment:
 
-    (a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
+```postscript
+(a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
+```
 
 Understand that readonly does not affect its argument:
 
 ```postscript
-    /a [ 1 2 3 ] def   % a is writable
-    a readonly pop     % a is still writable; achieves nothing
-    /c a readonly def  % c is not writable; a remains writable
+/a [ 1 2 3 ] def   % a is writable
+a readonly pop     % a is still writable; achieves nothing
+/c a readonly def  % c is not writable; a remains writable
 ```
 
 Invalidating a boolean placed first on the stack is a common way to perform multiple tests that must pass:
