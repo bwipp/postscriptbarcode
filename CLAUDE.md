@@ -52,8 +52,8 @@ Build requires Ghostscript (`gs`) in PATH and Perl.
 
 ### Terminology
 
-"Packaging" refers to PostScript processed into a form easier to distribute but
-is harder to debug:
+"Packaging" refers to PostScript processed (by the build system's "packager")
+into a form easier to distribute but is harder to debug:
 
 - Efficient byte-based encodings for numbers and operators
 - Compressed numeric/string arrays
@@ -85,7 +85,7 @@ Build outputs:
 - `build/standalone/<encoder>.ps`        - Standalone encoder (manual, only required deps built)
 
 
-## Resource File Structure
+## Resource Source File Structure
 
 Each resource source file has a similar structure:
 
@@ -102,8 +102,8 @@ Each resource source file has a similar structure:
 4. **Static data structures**
    - Plain definitions of literal stuctured data (arrays and dicts) that is costly to assemble if executed every call
    - Runs once during resource definition; values immediately referenced by main procedure
-   - Names are prefixed with the resource name (e.g., `encoder.charmap`)
-   - Names are stored in a temporary dictionary discarded after resource definition, but values persist via immediate reference (`//encoder.static_var`)
+   - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
+   - `//name` immediate references are resolved at parse time, embedding the value directly into procedures
    - Embedded procedures should have explicit `bind`
    - Must be marked `readonly`
 
@@ -118,7 +118,7 @@ Each resource source file has a similar structure:
    - Calls lazy initialisation procedure
 
 
-### Encoder Metadata
+#### Encoder Metadata
 
 Encoder source files contain metadata comments:
 
@@ -134,6 +134,17 @@ Encoder source files contain metadata comments:
 REQUIRES lists dependencies of the resource in order. It is used by the build
 system and is API for users that want to assemble the resources into a PS file
 prolog.
+
+
+### Resource output file structure
+
+Built resource files have a similar structure to their source files, with their
+source (packaged or otherwise) wrapped by comments that follow the PostScript
+language Document Structuring Conventions.
+
+- `BeginResource:` DSC comment contains VM memory usage that is measured by the build system per-resource by pre-loading all dependencies before measurement, so each resource's VMusage reflects only its own consumption.
+
+Monolithic outputs contain comments that feature a "--BEGIN/END TEMPLATE--" marker pair that users can use to splice the relevant contents into the prolog of a PS document.
 
 
 ### Lazy Initialisation Pattern
@@ -396,7 +407,7 @@ Large 2D symbols have different runtime bottlenecks, for example:
 ## Testing
 
 - `tests/run_tests` - Top-level test orchestrator
-- `tests/ps_tests/*.ps.test` - Individual encoder tests (run against packaged resources)
+- `tests/ps_tests/*.ps.test` - Individual encoder tests (run from `build/packaged_resource/Resource` directory)
 - `tests/test_*/run` - Integration tests for each build variant
 
 ### Test Utilities
