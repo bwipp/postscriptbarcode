@@ -61,7 +61,7 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
 
 Or (with standard tests):
 
-```
+```bash
 make build/resource/Resource/uk.co.terryburton.bwipp/qrcode && \
 gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
         -f tests/ps_tests/test_utils.ps -f tests/ps_tests/qrcode.ps.test
