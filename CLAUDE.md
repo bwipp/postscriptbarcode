@@ -49,11 +49,19 @@ Performance, execution cost, and interpreter compatibility are critical.
 
 Build requires Ghostscript (`gs`) in PATH and Perl.
 
+Quick iteration when developing a resource:
+
+```bash
+make build/resource/Resource/uk.co.terryburton.bwipp/qrcode && \
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+  -c '10 10 moveto (Hello World) () /qrcode /uk.co.terryburton.bwipp findresource exec'
+```
+
 
 ### Terminology
 
-"Packaging" refers to PostScript processed (by the build system's "packager")
-into a form easier to distribute but is harder to debug:
+"Packaging" refers to PostScript resources processed (by the build system's
+"packager") into a form easier to distribute but is harder to debug:
 
 - Efficient byte-based encodings for numbers and operators
 - Compressed numeric/string arrays
@@ -66,7 +74,7 @@ into a form easier to distribute but is harder to debug:
 Core library:
 
 - `src/*.ps.src`                    - PostScript resource source files
-- `src/uk.co.terryburton.bwipp.upr` - Resource name to path mapping used by Distiller and build system; order determines resource order in monolithic and standalone outputs
+- `src/uk.co.terryburton.bwipp.upr` - Resource name to path mapping for all resources; required by Distiller; build system uses the order to determine resource order in monolithic and standalone outputs
 - `tests/ps_tests/*.ps.test`        - PostScript test files
 
 Build scripts:
@@ -207,6 +215,8 @@ end
 
 ### Main Procedure Structure
 
+Example for an encoder:
+
 ```postscript
 /encoder {
     20 dict begin
@@ -237,7 +247,17 @@ end
     } if
 
     %
-    % 5. Main encoding logic using //encoder.staticdata
+    % 5. Main encoding logic using //encoder.staticdata and loaded data from latevars
+    %
+    % The barcode generation process is typically some variation of these steps:
+    %   - High-level encoding to codewords
+    %   - Termination and padding
+    %   - Symbol size selection
+    %   - Blocking data for Reed-Solomon ECC generation
+    %   - Matrix construction with fixtures
+    %   - Data layout in matrix
+    %   - Mask evaluation and selection
+    %   - Function module placement
     %
 
     %
