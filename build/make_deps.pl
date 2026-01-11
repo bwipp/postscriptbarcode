@@ -32,11 +32,13 @@ $reqs = '' unless defined $reqs;
 (my $provfile) = $upr =~ /^$resource=(.*)$/m;
 
 while (my $targetdir = shift @ARGV) {
-  my $reqfiles = "$targetdir/$provfile : ";
-  foreach my $req (split /\s+/, $reqs) {
+  my @reqs_list = split /\s+/, $reqs;
+  next unless @reqs_list;  # Skip if no dependencies
+  my $reqfiles = "$targetdir/$provfile : |";
+  foreach my $req (@reqs_list) {
     $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
     (my $reqfile) = $upr =~ /^$req=(.*)$/m;
-    $reqfiles .= "$targetdir/$reqfile ";
+    $reqfiles .= " $targetdir/$reqfile";
   }
   print "$reqfiles\n";
 }
