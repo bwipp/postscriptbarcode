@@ -77,6 +77,14 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
 - ASCII85-wrapped output (watermarked)
 - Results in ~30-50% smaller files
 
+BWIPP's "global context" is an optional dictionary containing optional keys
+that affect the behaviour of BWIPP:
+
+- `preload` - Perform eager initialisation of normally lazy variables during resource definition
+- `enabledebug` - Allow the user to set debug options (e.g. `debugcws`), for development purposes
+- `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
+- `default_{barcolor,backgroundcolor,...}` - Defaults for certain renderer options set by the user
+
 
 ### Directory Structure
 
