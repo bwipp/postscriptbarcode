@@ -43,9 +43,11 @@ Performance, execution cost, and interpreter compatibility are critical.
 ### Commands
 
 - `make -j $(nproc)`      - Build all distribution targets (resource, packaged_resource, monolithic, monolithic_package)
-- `make -j $(nproc) test` - Run tests
+- `make -j $(nproc) test` - Run all tests; should be ran before declaring a code change complete
 - `make clean`            - Clean
 - `make build/standalone/<encoder>.ps` - Build standalone encoder
+
+Note: On the default MacOS execution environment for AI it's `sysctl -n hw.ncpu` instead of `$(nproc)`.
 
 Build requires Ghostscript (`gs`) in PATH and Perl.
 
@@ -426,17 +428,19 @@ Large 2D symbols have different runtime bottlenecks, for example:
 
 ## Testing
 
-- `tests/run_tests` - Top-level test orchestrator
-- `tests/ps_tests/*.ps.test` - Individual encoder tests (run from `build/packaged_resource/Resource` directory)
-- `tests/test_*/run` - Integration tests for each build variant
+- `tests/run_tests`          - Top-level test orchestrator
+- `tests/<variant>/run`      - Script to run the tests for each build variant
+- `tests/ps_tests/test.ps`   - PostScript test handler
+- `tests/ps_tests/*.ps.test` - Individual resource tests (run from either `build/resource/Resource` or `build/packaged_resource/Resource`)
 
-### Test Utilities
+The test.ps handler is the entry point for PostScript tests and contains
+utility functions upon which all resource tests depend:
 
 - `debugIsEqual` - Compare codeword arrays (used with `debugcws` option)
 - `isEqual`      - Compare output arrays (pixs, sbs)
 - `isError`      - Verify specific error is raised
 
-### Debug Options
+Encoder may have one or more of the following debug options:
 
 - `dontdraw`      - Return structured dict without rendering
 - `debugcws`      - Return codeword array
