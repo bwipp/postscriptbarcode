@@ -51,7 +51,7 @@ Note: On the default MacOS execution environment for AI it's `sysctl -n hw.ncpu`
 
 Build requires Ghostscript (`gs`) in PATH and Perl.
 
-Quick iteration when developing a resource:
+Quick iteration when developing a resource (with custom invocation):
 
 ```bash
 make build/resource/Resource/uk.co.terryburton.bwipp/qrcode && \
@@ -59,6 +59,13 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
   -c '10 10 moveto (Hello World) () /qrcode /uk.co.terryburton.bwipp findresource exec'
 ```
 
+Or (with standard tests):
+
+```
+make build/resource/Resource/uk.co.terryburton.bwipp/qrcode && \
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+        -f tests/ps_tests/test_utils.ps -f tests/ps_tests/qrcode.ps.test
+```
 
 ### Terminology
 
