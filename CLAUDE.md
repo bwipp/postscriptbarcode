@@ -428,8 +428,8 @@ Large 2D symbols have different runtime bottlenecks, for example:
 
 ## Testing
 
-- `tests/run_tests`              - Top-level test orchestrator
-- `tests/<variant>/run`          - Script to run the tests for each build variant
+- `tests/run_tests`              - Top-level test orchestrator to run tests for all build variants
+- `tests/<variant>/run`          - Script to run the tests for a single build variant
 - `tests/ps_tests/test_utils.ps` - PostScript test utility functions
 - `tests/ps_tests/*.ps.test`     - Individual resource tests (run from either `build/resource/Resource` or `build/packaged_resource/Resource`); require that test_utils.ps utility is loaded
 - `tests/ps_tests/test.ps`       - PostScript test entrypoint: Loads utility functions then runs all resource tests
@@ -448,6 +448,29 @@ Encoders may have one or more of the following debug options:
 - `debugbits`     - Return bit array
 - `debugecc`      - Return error correction data
 - `debughexagons` - Return hexagon positions (MaxiCode)
+
+### Examples of one off testing and debugging
+
+Run tests for just one of the encoders:
+
+```postscript
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+        -f tests/ps_tests/test_utils.ps -f tests/ps_tests/qrcode.ps.test
+```
+
+Debug an encoder's high-level encoding codeword generation:
+
+```postscript
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+        -c '10 10 moveto (TEST) (debugcws) /qrcode /uk.co.terryburton.bwipp findresource exec =='
+```
+
+Debug an encoder's ECC codeword generation:
+
+```postscript
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+        -c '10 10 moveto (TEST) (debugecc) /datamatrix /uk.co.terryburton.bwipp findresource exec =='
+```
 
 
 ### Test Patterns
