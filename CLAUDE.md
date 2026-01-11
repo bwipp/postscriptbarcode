@@ -150,7 +150,7 @@ Encoder source files contain metadata comments:
 % --END ENCODER encodername--
 ```
 
-REQUIRES lists dependencies of the resource in order. It is used by the build
+`REQUIRES` lists dependencies of the resource in order. It is used by the build
 system and is API for users that want to assemble the resources into a PS file
 prolog.
 
@@ -163,7 +163,7 @@ language Document Structuring Conventions.
 
 - `BeginResource:` DSC comment contains VM memory usage that is measured by the build system per-resource by pre-loading all dependencies before measurement, so each resource's VMusage reflects only its own consumption.
 
-Monolithic outputs contain comments that feature a "--BEGIN/END TEMPLATE--" marker pair that users can use to splice the relevant contents into the prolog of a PS document.
+Monolithic outputs contain comments that feature a `--BEGIN/END TEMPLATE--` marker pair that users can use to splice the relevant contents into the prolog of a PS document.
 
 
 ### Lazy Initialisation Pattern
