@@ -294,6 +294,21 @@ bind def
 ```
 
 
+### Resource calling pattern
+
+Resources should call one another with a clean stack, otherwise the stack may
+contain junk upon `raiseerror` from the called resource. (`raiseerror` only
+attempts to clean up the stack use by own resource.)
+
+Any example is "wrapper encoders" that delegate to another encoder with
+modified options: 
+
+```postscript
+% Good: /args only pushed after inner encoder succeeds
+barcode options //innerencoder exec /args exch def
+```
+
+
 ## User API
 
 ```postscript
@@ -329,7 +344,7 @@ GS1 AI syntax is first processed by `gs1process.ps.src` before regular parsing
 
 ### Error Handling (raiseerror.ps.src)
 
-- Errors raised by calling raiseerror with error name and user-friendly info string
+- Errors are raised by popping stack items added by current resource, pushing a user-friendly info string and error name, then calling raiseerror
 - Uses standard PostScript `stop` mechanism for custom error handlers
 - Error names typically follow pattern: `/bwipp.<resource><ErrorType>`, e.g. `/bwipp.code39badCharacter`
 
@@ -587,16 +602,14 @@ not {  % Check status
 % If we get here, all is well and no boolean left on the stack
 ```
 
-PLRM terminology is confusing:
-
-As a result of the following command:
+Some PLRM terminology is a source of confusion. As a result of the following command:
 
     /a [ 1 2 3 ] def
     /b a def
 
 - a is referred to as the "object" (within the currentdict)
-- The --array-- created by "]" is referred to as "the storage for the object in VM" (either global or local depending on globalstatus)
+- The --array-- created by "]" is referred to as "the storage for the object in VM" (either global or local VM depending on globalstatus)
 - b is also an "object" that refers to the same VM storage as a
 
-The terminology differs from languages where the array itself would be an object and a and b would be names / references.
+The terminology differs from many languages where the array itself would be referred to as an object and a and b would be referred to as names or references.
 
