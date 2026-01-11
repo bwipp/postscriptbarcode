@@ -27,6 +27,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Fix PATH for CI
+        run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
+
       - name: Build
         run: |
           sudo apt-get update
@@ -364,6 +367,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fix PATH for CI
+        run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
 
       - name: Get and check the version
         id: get_version
