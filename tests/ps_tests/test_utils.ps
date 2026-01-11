@@ -45,17 +45,24 @@
   /expect exch def
   /cmd exch def
   /cds countdictstack def
-  /testStart /cmd load  % Put useful debugging info on stack
+  /testStart /cmd load   % Put useful debugging info on stack
+  count /depth exch def  % Record stack depth after debug items
   0 dict begin
   {
       cmd exec
+      1                  % Normal exit: Expect result
   } stopped {
       $error /errorname get     % Put error details on the stack
       $error /errorname () put  % and clear the error dictionary
       $error /errorinfo get
       $error /errorinfo () put
+      2                  % Stopped: Expect errorname and errorinfo
   } if
   end
+  /expectedResults exch def
+  count depth sub expectedResults ne {
+      /stackImbalance pstack quit
+  } if
   expect /test load exec
   clear                                % Clear the operand stack
   countdictstack cds sub {end} repeat  % Pop any stray dicts from the dictstack
