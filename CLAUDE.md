@@ -20,7 +20,7 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Prefer stack work over dictionary heavy code
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
-- Search for pre-existing patterns before inventing code. Warn if the existing pattern does not appear to follow best practise.
+- Always search for and follow pre-existing patterns before writing code. Warn if the existing pattern does not appear to follow best practise.
 - Warn about potential issues such as potential performance regressions in hot paths.
 - Warn about potentially incorrect code when introducing new idioms involving stack-based constructions.
 - Do not assume GhostScript-only execution. Assume modern implementation limit, and warn when approaching those limits:
