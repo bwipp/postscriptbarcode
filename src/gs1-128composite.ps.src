@@ -62,7 +62,7 @@ begin
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
-        /_dontdraw where {/_dontdraw get} {false} ifelse or not
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
     dontdraw { /usematrix true def } if
@@ -95,7 +95,7 @@ begin
     % Dummy plot of linear part with CC-A to get width
     %
     options (linkagea) true put
-    /_dontdraw true def
+    /uk.co.terryburton.bwipp._dontdraw true def
     linear << options {} forall >> //gs1-128 exec
     (sbs) get 0 exch {add} forall /linwidth exch def
 
