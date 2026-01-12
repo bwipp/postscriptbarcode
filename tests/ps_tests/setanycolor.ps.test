@@ -1,0 +1,80 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2026 Terry Burton
+
+% vim: set ts=4 sw=4 et :
+
+/setanycolor dup /uk.co.terryburton.bwipp findresource cvx def
+
+/ok_tmpl {
+    { 0 setanycolor } dup 3 -1 roll 0 exch put
+    stopped { stop } if
+} def
+
+%
+% RGB (6 hex chars)
+%
+(000000) ok_tmpl
+(FFFFFF) ok_tmpl
+(FF0000) ok_tmpl
+(00FF00) ok_tmpl
+(0000FF) ok_tmpl
+(ff00ff) ok_tmpl
+(Ab12Cd) ok_tmpl
+
+{ (GG0000) setanycolor } /bwipp.colorBadCharacter isError
+{ (00GG00) setanycolor } /bwipp.colorBadCharacter isError
+{ (0000GG) setanycolor } /bwipp.colorBadCharacter isError
+{ (GGGGGG) setanycolor } /bwipp.colorBadCharacter isError
+
+
+%
+% CMYK (8 hex chars)
+%
+(00000000) ok_tmpl
+(FF000000) ok_tmpl
+(00FF0000) ok_tmpl
+(0000FF00) ok_tmpl
+(000000FF) ok_tmpl
+
+{ (GG000000) setanycolor } /bwipp.colorBadCharacter isError
+{ (00GG0000) setanycolor } /bwipp.colorBadCharacter isError
+{ (0000GG00) setanycolor } /bwipp.colorBadCharacter isError
+{ (000000GG) setanycolor } /bwipp.colorBadCharacter isError
+{ (GGGGGGGG) setanycolor } /bwipp.colorBadCharacter isError
+
+
+%
+% Named colors
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /named_colors <<
+        (_testrgb) [ /DeviceRGB 1 0 0 ]
+        (_testcmyk) [ /DeviceCMYK 0 1 0 0 ]
+        (_testsep) [
+            [ /Separation (Test Separation) /DeviceCMYK { dup 0.49 mul exch dup 0 mul exch dup 0.03 mul exch 0 mul } ]  1.0
+        ]
+    >>
+>> def
+
+(_testrgb) ok_tmpl
+(_testcmyk) ok_tmpl
+(_testsep) ok_tmpl
+
+{ (_undefined) setanycolor } /bwipp.colorUnknown isError
+
+
+%
+% Invalid inputs
+%
+{ () setanycolor } /bwipp.colorEnpty isError
+{ (F) setanycolor } /bwipp.colorBadLength isError
+{ (FF) setanycolor } /bwipp.colorBadLength isError
+{ (FFF) setanycolor } /bwipp.colorBadLength isError
+{ (FFFF) setanycolor } /bwipp.colorBadLength isError
+{ (FFFFF) setanycolor } /bwipp.colorBadLength isError
+{ (FFFFFFF) setanycolor } /bwipp.colorBadLength isError
+{ (FFFFFFFFF) setanycolor } /bwipp.colorBadLength isError
+{ (FFFFFFFFFF) setanycolor } /bwipp.colorBadLength isError
+
