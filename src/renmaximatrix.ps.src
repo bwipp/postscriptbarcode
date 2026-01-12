@@ -67,7 +67,9 @@ begin
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
 
-    options /debughexagons known { /bwipp.debughexagons pixs //raiseerror exec } if
+    options /debughexagons known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debughexagons pixs //raiseerror exec } if
 
     gsave
 

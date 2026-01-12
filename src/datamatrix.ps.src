@@ -826,7 +826,9 @@ begin
         } for
     } if
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
     % Lookup symbol metrics based on number of codewords and user specification

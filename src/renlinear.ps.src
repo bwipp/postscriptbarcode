@@ -187,7 +187,9 @@ begin
         /pixx pixx d add def  % pixx += d
     } for
 
-    options /debugbars known { /bwipp.debugbars [ bars { dup -1 ne { aload pop } { pop } ifelse } forall ] //raiseerror exec } if
+    options /debugbars known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugbars [ bars { dup -1 ne { aload pop } { pop } ifelse } forall ] //raiseerror exec } if
 
     gsave
 

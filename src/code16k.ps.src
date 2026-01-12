@@ -776,7 +776,9 @@ begin
     c1 dcws 2 add mul add 107 mod /c2 exch def
     /cws [ cws aload pop c1 c2 ] def
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     sam -1 eq sam 10 idiv 2 mod 1 eq or {
         /stopencs //code16k.stopencsodd def

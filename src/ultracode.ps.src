@@ -225,7 +225,9 @@ begin
 
     } ifelse
 
-    options /debugcws known { /bwipp.debugcws dcws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws dcws //raiseerror exec } if
 
     /mcc dcws length 3 add def  % Message codewords: start mcc acc [dcws ...]
 
@@ -336,7 +338,9 @@ begin
     } for
     /ecws rsseq n k getinterval def
 
-    options /debugecc known { /bwipp.debugecc ecws //raiseerror exec } if
+    options /debugecc known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugecc ecws //raiseerror exec } if
 
     /dccu rev 1 eq {//ultracode.dccurev1} {//ultracode.dccurev2} ifelse def
     /dccl rev 1 eq {//ultracode.dcclrev1} {//ultracode.dcclrev2} ifelse def

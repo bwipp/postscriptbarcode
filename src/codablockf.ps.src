@@ -585,7 +585,9 @@ begin
         rcws rcws length 1 sub csum 103 mod put
     } for
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
     % Derive the bits for each row

@@ -706,7 +706,9 @@ begin
     cws j csum put
     cws j 1 add 106 put  % stp
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
     % Derive space bar succession

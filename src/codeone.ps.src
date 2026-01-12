@@ -890,7 +890,9 @@ begin
         /cws [ dcws cws length sub {0} repeat cws aload pop ] def
     } ifelse
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
     % De-interleave the codewords into blocks

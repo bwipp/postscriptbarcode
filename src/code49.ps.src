@@ -1126,7 +1126,9 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
     ccs ccs length 8 sub 7 getinterval 0 exch {add} forall 49 mod
     ccs ccs length 1 sub 3 -1 roll put
 
-    options /debugcws known { /bwipp.debugcws ccs //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws ccs //raiseerror exec } if
 
     %
     % Derive the bits for each row

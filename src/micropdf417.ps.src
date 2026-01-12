@@ -1166,7 +1166,9 @@ begin
     %
     /cws cws 0 cws length 1 sub getinterval def
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
     % Return the 17 bits for a codeword in a given cluster

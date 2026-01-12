@@ -387,7 +387,9 @@ begin
             } for
         ] def
 
-        options /debugpaths known { /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
+        options /debugpaths known
+        /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+        and { /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
 
         %
         % Revert the bitmap size

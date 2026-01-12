@@ -1183,7 +1183,9 @@ begin
     %
     lc4b {cws cws length 1 sub 2 copy get 4 bitshift put} if
 
-    options /debugcws known { /bwipp.debugcws cws //raiseerror exec } if
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws //raiseerror exec } if
 
     /rsprod {
         dup 0 ne { 1 index 0 ne {
@@ -1296,7 +1298,9 @@ begin
         cws ncws 1 sub cws ncws 1 sub get 15 and 4 bitshift put
     } if
 
-    options /debugecc known { /bwipp.debugecc cws //raiseerror exec } if
+    options /debugecc known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugecc cws //raiseerror exec } if
 
     %
     % Create the bitmap
