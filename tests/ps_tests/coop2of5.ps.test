@@ -1,0 +1,20 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2024 Terry Burton
+
+% vim: set ts=4 sw=4 et :
+
+/coop2of5 dup /uk.co.terryburton.bwipp findresource cvx def
+
+
+% Input validation
+
+{ () (dontdraw) coop2of5
+} /bwipp.code2of5emptyData isError
+
+
+% Examples
+
+{ (87654321) (dontdraw) coop2of5 /sbs get
+} [ 3 1 3 1 3 1 1 3 1 1 3 1 1 1 3 1 1 3 3 1 1 1 1 3 1 3 1 1 1 3 1 1 3 1 1 1 3 3 1 1 1 1 3 1 3 1 1 1 1 3 3 1 1 3 3 ] debugIsEqual
