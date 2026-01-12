@@ -126,16 +126,23 @@ Build outputs:
 Each resource source file has a similar structure:
 
 1. **Header comments**
+   - Project name and URL
+   - VIM modeline
    - Copyright notice (year should be maintained)
+   - License text
 
 2. **Metadata comments**
    - Declares dependencies between resources (for assembling monolithic resources)
    - For encoders, gives example data (see Encoder Metadata below)
 
-3. **Dependent resource loading**
+3. **Allocation mode setup**
+   - Object storage placed in global VM
+   - Executable arrays packed for efficiency
+
+4. **Dependent resource loading**
    - Uses `findresource` to load dependencies into working dictionary
 
-4. **Static data structures**
+5. **Static data structures**
    - Plain definitions of literal stuctured data (arrays and dicts) that is costly to assemble if executed every call
    - Runs once during resource definition; values immediately referenced by main procedure
    - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
@@ -143,15 +150,21 @@ Each resource source file has a similar structure:
    - Embedded procedures should have explicit `bind`
    - Must be marked `readonly`
 
-5. **Lazy initialisation procedure**
+6. **Lazy initialisation procedure**
    - Data that must be computed (expensive) and is deferred until first execution
    - First run derives and stores values (in global VM); subsequent runs load cached values
    - Embedded procedures do not require `bind` (propagates from outer procedure)
 
-6. **Main procedure**
+7. **Main procedure**
    - Exported by the resource and called on demand
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
+
+8. **Resource definition**
+   - Define the main procedure as a resource
+
+9. **Allocation mode restore**
+   - Return to previous defaults
 
 
 ### Encoder Metadata
@@ -547,7 +560,7 @@ Error test:
 { (INPUT) (dontdraw) encoder } /bwipp.encoderErrorName isError
 ```
 
-For repetitive tests, use template procedures:
+For repetitive tests, use template procedures, for example:
 
 ```postscript
 /eq_tmpl {
@@ -571,6 +584,21 @@ For repetitive tests, use template procedures:
 ```
 
 ```postscript
+%
+% Success-only smoke test; not comparing output
+%
+/ok_tmpl {
+    { 0 setanycolor true } dup 3 -1 roll 0 exch put
+    true isEqual
+} def
+
+(112233) ok_tmpl
+```
+
+```postscript
+%
+% Expecting an error
+%
 /er_tmpl {
     exch { 0 (dontdraw) encoder } dup 3 -1 roll 0 exch put
     exch isError
