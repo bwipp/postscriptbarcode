@@ -633,8 +633,10 @@ not {  % Check status
 
 Some PLRM terminology is a source of confusion. As a result of the following command:
 
-    /a [ 1 2 3 ] def
-    /b a def
+```postscript
+/a [ 1 2 3 ] def
+/b a def
+```
 
 - a is referred to as the "object" (within the currentdict)
 - The --array-- created by "]" is referred to as "the storage for the object in VM" (either global or local VM depending on globalstatus)
