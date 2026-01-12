@@ -59,6 +59,15 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
   -c '10 10 moveto (Hello World) () /qrcode /uk.co.terryburton.bwipp findresource exec'
 ```
 
+Or (with a debug option):
+
+```bash
+make build/resource/Resource/uk.co.terryburton.bwipp/qrcode && \
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
+  -c '/uk.co.terryburton.bwipp.global_ctx << /enabledebug true >> def' \
+  -c '10 10 moveto (Hello World) (debugcws) /qrcode /uk.co.terryburton.bwipp findresource exec'
+```
+
 Or (with standard tests):
 
 ```bash
