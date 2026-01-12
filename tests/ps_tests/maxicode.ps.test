@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 16023:2000
@@ -178,6 +178,12 @@
 (123456789^029840^029^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
 (123456789^029840^0291^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
 (123456789^029840^02912A^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
+
+% Mode 2/3 secondary message too long (>84 chars)
+{ (123456789^029840^029001^029) 90 string 0 1 89 { 1 index exch 65 put } for concatstrings (mode=2 parse dontdraw) maxicode } /bwipp.maxicodeMode23TooLong isError
+
+% Mode 5/6 message too long
+{ 100 string 0 1 99 { 1 index exch 65 put } for (mode=5 dontdraw) maxicode } /bwipp.maxicodeMode56TooLong isError
 
 % Figures
 

@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % EN 12323:2005
@@ -14,6 +14,13 @@
 /eq_tmpl {
     exch { 0 (dontdraw parse) code16k /pixs get } dup 3 -1 roll 0 exch put
     exch isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 code16k }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
 } def
 
 
@@ -50,3 +57,25 @@
     0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 1 0 1 0 1 0 0 0 1 0 0 1 1 1 0 1 1 1 1 0 1 0 0 1 1 0 0 1 0 0 1 0 0 0 0 1 0 0 1 1 0 1 0 0 0 1 1 0 1 0 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 0
     1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Invalid rows (valid: 2-16)
+(TEST) (rows=1 dontdraw) /bwipp.code16kBadRows er_tmpl
+(TEST) (rows=17 dontdraw) /bwipp.code16kBadRows er_tmpl
+
+% Invalid row height (valid: 8+)
+(TEST) (rowheight=7 dontdraw) /bwipp.code16kBadRowHeight er_tmpl
+
+% Invalid separator height (valid: 1+)
+(TEST) (sepheight=0 dontdraw) /bwipp.code16kBadSepHeight er_tmpl
+
+% Invalid SAM (Structured Append Mode) format
+(TEST) (sam=1 dontdraw) /bwipp.code16kBadSAM er_tmpl
+(TEST) (sam=110 dontdraw) /bwipp.code16kBadSAM er_tmpl
+
+% Invalid raw format
+(TEST) (raw dontdraw) /bwipp.code16kBadRawFormat er_tmpl

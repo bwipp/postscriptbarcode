@@ -3,10 +3,17 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /jabcode dup /uk.co.terryburton.bwipp findresource cvx def
+
+/er_tmpl {
+    3 1 roll { 0 0 jabcode }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 (This is JAB Code) (eclevel=6 dontdraw) jabcode /pixs get
 [
@@ -36,3 +43,11 @@
      7 14 14 14  9 11  0  2  8 14  0  7  9  1 14  8  3  1  0 13 13 13 13 15 10
     10  1  1  4  8  5 14 14  2  8 15  8  0  4  9  6  7  2 15  0 14 12 11  9  5
 ] debugIsEqual
+
+
+%
+% Error tests
+%
+
+% Symbol size exceeds limit (rows or cols > 145)
+(TEST) (rows=146 columns=10 dontdraw) /bwipp.jabcodeNoValidSymbol er_tmpl

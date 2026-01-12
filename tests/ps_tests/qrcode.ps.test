@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 18004:2015
@@ -245,3 +245,24 @@
     1 0 0 0 0 0 1 0 0 1 0 1 1 0 1 0 1 1 1 1 0
     1 1 1 1 1 1 1 0 1 1 0 0 0 1 0 1 1 1 0 0 0
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.qrcodeEmptyData er_tmpl
+
+% Invalid format
+(TEST) (format=invalid dontdraw) /bwipp.qrcodeInvalidFormat er_tmpl
+
+% Invalid eclevel
+(TEST) (eclevel=X dontdraw) /bwipp.qrcodeInvalidEClevel er_tmpl
+
+% Invalid version for full QR Code (valid: 1-40)
+(TEST) (version=41 dontdraw) /bwipp.qrcodeInvalidFullVersion er_tmpl
+(TEST) (version=99 dontdraw) /bwipp.qrcodeInvalidFullVersion er_tmpl
+
+% Invalid mask (valid: 0-7)
+(TEST) (mask=9 dontdraw) /bwipp.qrcodeBadMask er_tmpl

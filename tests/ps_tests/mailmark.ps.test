@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /mailmark dup /uk.co.terryburton.bwipp findresource cvx def
@@ -13,6 +13,13 @@
     dup 3 -1 roll 1 exch put
     dup 3 -1 roll 0 exch put
     isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 mailmark }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
 } def
 
 (JGB 012100123412345678AB19XY1A 0             www.xyz.com) (type=29 dontdraw)
@@ -34,3 +41,17 @@
     1 0 1 1 1 1 1 0 0 0 1 0 1 1 1 1 1 1 1 0 1 0 1 0 1 0 0 0 0 1 1 1 1 1 0 1 0 1 0 1 0 1 1 1 0 0 1 0
     1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Invalid type (valid: 7, 9, 29)
+(JGB 012100123412345678AB19XY1A 0) (type=8 dontdraw) /bwipp.mailmarkBadType er_tmpl
+
+% Data too short (at least 45 characters)
+(JGB 01210012341234567) (type=7 dontdraw) /bwipp.mailmarkBadLength er_tmpl
+
+% Invalid indicator (must begin with "JGB ")
+(XXX 012100123412345678AB19XY1A 0             ) (type=29 dontdraw) /bwipp.mailmarkBadIndicator er_tmpl

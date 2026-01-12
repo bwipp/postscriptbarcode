@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 23941:2022
@@ -128,3 +128,23 @@ false {
     1 0 0 0 1 1 0 1 0 0 1 0 0 1 0 1 0 0 0 0 0 0 1 0 0 0 1
     1 1 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.qrcodeEmptyData er_tmpl
+
+% Version required for RMQR
+() (version=R7x43 dontdraw) /bwipp.qrcodeEmptyData er_tmpl
+
+% Invalid version
+(TEST) (version=R0x0 dontdraw) /bwipp.qrcodeInvalidRMQRversion er_tmpl
+
+% Mask not allowed for RMQR
+(TEST) (version=R7x43 mask=0 dontdraw) /bwipp.qrcodeRMQRmask er_tmpl
+
+% Version required for RMQR (via qrcode with format=rmqr)
+(TEST) (format=rmqr dontdraw) /bwipp.qrcodeRMQRwithoutVersion er_tmpl

@@ -3,13 +3,20 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 24778:2008
 
 
 /azteccode dup /uk.co.terryburton.bwipp findresource cvx def
+
+/er_tmpl {
+    3 1 roll { 0 0 azteccode }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 
 % Punctuation-space combinations (PR #161)
@@ -214,4 +221,31 @@
     (3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333^013^010) (parse debugcws) azteccode
 } [970 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 682 672 191] debugIsEqual
 
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.aztecEmptyData er_tmpl
+
+% Invalid eclevel (valid: 5-95)
+(TEST) (eclevel=4 dontdraw) /bwipp.aztecInvalidEClevel er_tmpl
+(TEST) (eclevel=96 dontdraw) /bwipp.aztecInvalidEClevel er_tmpl
+
+% Invalid ecaddchars (valid: 3+)
+(TEST) (ecaddchars=2 dontdraw) /bwipp.aztecInvalidECaddChars er_tmpl
+
+% Invalid format (valid: full, compact, rune)
+(TEST) (format=invalid dontdraw) /bwipp.aztecInvalidFormat er_tmpl
+
+% Invalid layers (valid: 1-32 for full)
+(TEST) (layers=0 dontdraw) /bwipp.aztecFullInvalidLayers er_tmpl
+(TEST) (layers=33 dontdraw) /bwipp.aztecFullInvalidLayers er_tmpl
+
+% Reader init invalid layers (valid: 1-22 for full)
+(TEST) (layers=23 readerinit dontdraw) /bwipp.aztecFullInitInvalidLayers er_tmpl
+
+% Data too long for symbol
+(ABCDEFGHIJKLMNOPQRSTUVWXYZ) (layers=1 dontdraw) /bwipp.aztecNoValidSymbol er_tmpl
 

@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 18004:2015
@@ -178,3 +178,18 @@
     0 1 0 0 1 0 0 0 1 0 1 0 1
     1 1 1 1 1 1 1 0 1 0 0 1 1
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.qrcodeEmptyData er_tmpl
+
+% Invalid version (valid: M1-M4)
+(TEST) (version=M0 dontdraw) /bwipp.qrcodeInvalidMicroVersion er_tmpl
+(TEST) (version=M5 dontdraw) /bwipp.qrcodeInvalidMicroVersion er_tmpl
+
+% Invalid mask (valid: 0-3)
+(TEST) (version=M2 mask=5 dontdraw) /bwipp.qrcodeBadMask er_tmpl

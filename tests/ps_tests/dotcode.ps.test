@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % AIM ISS DotCode, Rev 4.0, DRAFT 0.15, TSC Pre-PR #5, May 28, 2019
@@ -16,6 +16,13 @@
     dup 3 -1 roll 1 exch put
     dup 3 -1 roll 0 exch put
     isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 dotcode }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
 } def
 
 
@@ -55,3 +62,26 @@
     1 0 0 0 1 0 0 0 1 0 1 0 1
     0 1 0 1 0 0 0 1 0 0 0 1 0
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Invalid rows (valid: 5+)
+(TEST) (rows=4 dontdraw) /bwipp.dotcodeBadRows er_tmpl
+
+% Invalid columns (valid: 5+)
+(TEST) (columns=4 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
+
+% Rows + columns must be odd
+(TEST) (rows=6 columns=6 dontdraw) /bwipp.dotcodeRowsColumnsBadParity er_tmpl
+
+% Invalid ratio
+(TEST) (ratio=0 dontdraw) /bwipp.dotcodeRatio er_tmpl
+
+% Invalid mask (valid: 0-3)
+(TEST) (mask=4 dontdraw) /bwipp.dotcodeBadMask er_tmpl
+
+% Data too long
+{ 500 string 0 1 499 { 1 index exch 65 put } for (rows=5 columns=6 dontdraw) dotcode } /bwipp.dotcodeTooLong isError

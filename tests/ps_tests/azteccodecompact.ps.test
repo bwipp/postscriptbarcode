@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /azteccodecompact dup /uk.co.terryburton.bwipp findresource cvx def
@@ -33,3 +33,22 @@
     0 0 0 0 0 1 1 0 0 1 1 0 0 1 1
     1 0 1 1 0 0 0 1 1 1 1 1 1 0 0
 ] eq_tmpl
+
+/er_tmpl {
+    3 1 roll { 0 0 azteccodecompact }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+
+%
+% Error tests
+%
+
+% Invalid layers (valid: 1-4)
+(TEST) (layers=0 dontdraw) /bwipp.aztecCompactInvalidLayers er_tmpl
+(TEST) (layers=5 dontdraw) /bwipp.aztecCompactInvalidLayers er_tmpl
+
+% Reader init invalid layers (valid: 1)
+(TEST) (layers=2 readerinit dontdraw) /bwipp.aztecCompactInitInvalidLayers er_tmpl

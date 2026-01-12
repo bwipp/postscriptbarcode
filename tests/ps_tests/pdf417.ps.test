@@ -3,13 +3,20 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 15438:2015
 
 
 /pdf417 dup /uk.co.terryburton.bwipp findresource cvx def
+
+/er_tmpl {
+    3 1 roll { 0 0 pdf417 }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 
 % Check when text pad spans ECI(s)
@@ -133,3 +140,40 @@
     1 1 1 1 1 1 1 1 0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 1 1 0 0 0 0 0 1 1 0 0 1 1 1 0 1 1 1 0 0 1 0 0 0 0 0 1 0 1 0 0 1 1 0 0 0 0 1 1 0 0 1 0 0 0 1 1 0 1 0 0 0 1 1 0 0 0 1 1 1 0 0 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 0 0 1
     1 1 1 1 1 1 1 1 0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 1 1 0 0 0 0 0 1 1 0 0 1 1 1 0 1 1 1 0 0 1 0 0 0 0 0 1 0 1 0 0 1 1 0 0 0 0 1 1 0 0 1 0 0 0 1 1 0 1 0 0 0 1 1 0 0 0 1 1 1 0 0 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 0 0 1
 ] isEqual
+
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.pdf417emptyData er_tmpl
+
+% Invalid rows (valid: 3-90)
+(TEST) (rows=2 dontdraw) /bwipp.pdf417invalidRows er_tmpl
+(TEST) (rows=91 dontdraw) /bwipp.pdf417invalidRows er_tmpl
+
+% Invalid columns (valid: 1-30)
+(TEST) (columns=-1 dontdraw) /bwipp.pdf417invalidColumns er_tmpl
+(TEST) (columns=31 dontdraw) /bwipp.pdf417invalidColumns er_tmpl
+
+% Invalid row multiplier
+(TEST) (rowmult=0 dontdraw) /bwipp.pdf417badRowMult er_tmpl
+
+% Cannot combine ccc and raw
+(TEST) (ccc raw dontdraw) /bwipp.pdf417cccAndRaw er_tmpl
+
+% Cannot combine ccc and compact
+(TEST) (ccc compact dontdraw) /bwipp.pdf417cccAndCompact er_tmpl
+
+% Invalid raw format
+(TEST) (raw parse dontdraw) /bwipp.pdf417badRawFormat er_tmpl
+
+% Invalid ECI (valid: 000000-811799)
+(^ECI900000) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
+
+% Data too long (>926 codewords)
+{ 2000 string 0 1 1999 { 1 index exch 65 put } for (dontdraw) pdf417 } /bwipp.pdf417dataTooLong isError
+
+% Insufficient capacity
+(AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA) (columns=1 dontdraw) /bwipp.pdf417insufficientCapacity er_tmpl

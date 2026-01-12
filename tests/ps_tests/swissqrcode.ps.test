@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /swissqrcode dup /uk.co.terryburton.bwipp findresource cvx def
@@ -13,6 +13,13 @@
     dup 3 -1 roll 1 exch put
     dup 3 -1 roll 0 exch put
     isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 swissqrcode }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
 } def
 
 (SPC^01300020^0121^012CH5800791123000889012^012S^012Robert Schneider AG^012Rue du Lac^0121268^01221^0122501^012Biel^012CH^012^012^012^012^012^012^012131.00^012CHF^012K^012Pia-Maria Rutschmann-Schnyder^012Grosse Marktgasse^01228^012^0129400^012Rorschach^012CH^012NON^012^012test) (parse dontdraw)
@@ -71,3 +78,11 @@
     1 0 0 0 0 0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 1 1 0 1 0 0 0 1 1 0 1 0 0 1 1 1 1 0 0 1 1 1 0 1 1 1 0 1 1 0
     1 1 1 1 1 1 1 0 1 0 1 1 0 1 0 0 0 0 1 0 1 1 1 1 1 0 0 0 1 1 0 0 0 0 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 1 0 0 0
 ] eq_tmpl
+
+
+%
+% Error tests
+%
+
+% Input exceeds 997 characters
+{ 1000 string 0 1 999 { 1 index exch 65 put } for (dontdraw) swissqrcode } /bwipp.swissqrcodeBadLength isError

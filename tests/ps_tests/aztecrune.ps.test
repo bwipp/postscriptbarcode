@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 24778:2008
@@ -58,6 +58,19 @@
     0 0 1 1 0 0 1 1 1 0 0
 ] eq_tmpl
 
+%
+% Error tests
+%
+
+% Must be numeric
 (/) (dontdraw) /bwipp.aztecRuneNotNumeric er_tmpl
 (:) (dontdraw) /bwipp.aztecRuneNotNumeric er_tmpl
+
+% Must be 0-255
 (256) (dontdraw) /bwipp.aztecRuneInvalid er_tmpl
+
+% Layers not valid for runes
+(0) (layers=1 dontdraw) /bwipp.aztecRuneInvalidLayers er_tmpl
+
+% Reader init not compatible with runes
+(0) (readerinit dontdraw) /bwipp.aztecRuneReaderInit er_tmpl

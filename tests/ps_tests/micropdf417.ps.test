@@ -3,13 +3,20 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 24728:2006
 
 
 /micropdf417 dup /uk.co.terryburton.bwipp findresource cvx def
+
+/er_tmpl {
+    3 1 roll { 0 0 micropdf417 }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 
 % Check when text pad spans ECI(s)
@@ -253,3 +260,30 @@
     1 1 1 0 0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 0 1 1 1 1 0 1 0 1 1 1 1 0 0 0 1 0 1 0 0 0 0 1 0 0 1 0 1 1 0 0 1 1 0 0 1 0 0 1 1 1 1 0 1 1 0 1 1 1 1 1 0 1 0 0 1 1 1 0 1 0 0 1 1 1 1 1 0 0 1 1 0 1 1 0 0 0 1 0 1
     1 1 1 0 0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 0 1 1 1 1 0 1 0 1 1 1 1 0 0 0 1 0 1 0 0 0 0 1 0 0 1 0 1 1 0 0 1 1 0 0 1 0 0 1 1 1 1 0 1 1 0 1 1 1 1 1 0 1 0 0 1 1 1 0 1 0 0 1 1 1 1 1 0 0 1 1 0 1 1 0 0 0 1 0 1
 ] isEqual
+
+
+%
+% Error tests
+%
+
+% Empty data
+() (dontdraw) /bwipp.micropdf417emptyData er_tmpl
+
+% Invalid row multiplier (valid: > 0)
+(TEST) (rowmult=0 dontdraw) /bwipp.micropdf417badRowMult er_tmpl
+
+% Cannot combine cca, ccb and raw
+(TEST) (cca raw dontdraw) /bwipp.micropdf417ccaAndCcb er_tmpl
+(TEST) (ccb raw dontdraw) /bwipp.micropdf417ccaAndCcb er_tmpl
+
+% Invalid version format
+(TEST) (version=X dontdraw) /bwipp.micropdf417badVersionFormat er_tmpl
+
+% Invalid version rows/columns (non-digit in row or column)
+(TEST) (version=Ax1 dontdraw) /bwipp.micropdf417BadVersionBadRowOrColumn er_tmpl
+
+% Invalid cca/raw format
+(TEST) (raw dontdraw) /bwipp.micropdf417badCcaRawFormat er_tmpl
+
+% Data too long
+{ 400 string 0 1 399 { 1 index exch 65 put } for (dontdraw) micropdf417 } /bwipp.micropdf417noValidSymbol isError

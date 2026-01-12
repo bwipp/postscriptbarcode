@@ -3,13 +3,20 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % AIM USS Code One Revision March 3, 2000
 
 
 /codeone dup /uk.co.terryburton.bwipp findresource cvx def
+
+/er_tmpl {
+    3 1 roll { 0 0 codeone }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
 
 
 % EDI
@@ -183,3 +190,10 @@ systemdict /STRING_CONTINUE_BUG known not {
 1481 <01> (H) dcap_tmpl /bwipp.codeoneTooLong isError
 
 } if
+
+
+% Invalid version
+(TEST) (version=X dontdraw) /bwipp.codeoneBadVersion er_tmpl
+
+% S-type must be numeric only
+(ABC) (version=S-10 dontdraw) /bwipp.codeoneStypeNonDigit er_tmpl
