@@ -1,5 +1,7 @@
 #!/usr/bin/perl -T
 
+# vim: set sw=4 sts=4 et:
+
 # $Id$
 
 use strict;

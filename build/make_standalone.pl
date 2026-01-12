@@ -1,5 +1,7 @@
 #!/usr/bin/perl -T
 
+# vim: set sw=4 sts=4 et:
+
 use strict;
 use warnings;
 use File::Basename;
