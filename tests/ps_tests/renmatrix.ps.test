@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /renmatrix dup /uk.co.terryburton.bwipp findresource cvx def
@@ -320,4 +320,119 @@
     8   16 17 16 18 17 18 17 17
     16  11 19 13 19 13 20 15 20 15 21 12 21 12 20 11 20
 ] debugIsEqual
+
+
+%
+% Error tests
+%
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /textxalign /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextxalign isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /textyalign /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextyalign isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /textdirection /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextdirection isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /textsize 0 >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextsize isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /textsize 30 >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextsize isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /extratextxalign /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadExtratextxalign isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /extratextyalign /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadExtratextyalign isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /extratextdirection /invalid >>
+    >> renmatrix
+} /bwipp.renmatrixBadExtratextdirection isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /extratextsize 0 >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextsize isError
+
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 1
+        /opt << /extratextsize 30 >>
+    >> renmatrix
+} /bwipp.renmatrixBadTextsize isError
 

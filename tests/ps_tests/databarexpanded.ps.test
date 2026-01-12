@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 24724:2011
@@ -58,3 +58,20 @@
 ((01)90012345678908(3103)012233(15)000000)  % Encoding method "0111100" prospect but invalid date so encoding method "1"
     [1 1 4 2 2 2 1 3 2 1 8 4 1 1 1 2 1 3 5 2 2 1 1 1 4 2 2 1 5 1 1 1 5 6 2 3 1 1 2 4 2 1 3 3 4 1 2 1 1 1 4 3 6 4 1 1 1 2 1 1 2 3 3 4 1 5 1 2 2 3 2 1 1 1 8 2 3 2 2 1 5 1 4 1 1 1 4 1 3 4 1 2 1 3 2 8 1 1 1 1 2 4 1 6 1 1 1 1 1 1 4 1 6 2 1 1 9 2 2 1 1]
     eq_tmpl_dontlint
+
+
+%
+% Error tests
+%
+
+{ ((01)00012345678905) (format=invalid dontdraw) databarexpanded
+} /bwipp.databarexpandedBadFormat isError
+
+{ ((01)00012345678905) (format=expandedstacked segments=3 dontdraw) databarexpanded
+} /bwipp.gs1databarexpandedBadSegments isError
+
+{ ((01)00012345678905) (format=expandedstacked segments=24 dontdraw) databarexpanded
+} /bwipp.gs1databarexpandedBadSegments isError
+
+{ ((01)00012345678905(10)ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ) (dontdraw dontlint) databarexpanded
+} /bwipp.gs1databarexpandedTooLong isError

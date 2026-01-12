@@ -10,3 +10,13 @@
 
 { (01234) (dontdraw) postnet /bhs get
 } [ 0.125 0.125 0.125 0.05 0.05 0.05 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.125 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.05 0.125 0.125 0.125 0.05 0.05 0.05 0.125 ] debugIsEqual
+
+
+%
+% Error tests
+%
+
+{ (1234) (dontdraw) postnet } /bwipp.postnetBadLength isError
+{ (123456) (dontdraw) postnet } /bwipp.postnetBadLength isError
+{ (0123A) (dontdraw) postnet } /bwipp.postnetBadCharacter isError
+{ (012341) (validatecheck dontdraw) postnet } /bwipp.postnetBadCheckDigit isError
