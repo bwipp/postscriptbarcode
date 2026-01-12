@@ -20,10 +20,10 @@ my $upr = join('', <$fh>);
 close($fh);
 
 (my $begin, $_, my $resource, my $meta, $_, my $end) = $src =~ /
-  (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
-  (.*?)
-  (^[^%].*?)
-  (^%\ --END\ \2\ \3--$)
+    (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
+    (.*?)
+    (^[^%].*?)
+    (^%\ --END\ \2\ \3--$)
 /msgx;
 
 $resource = 'uk.co.terryburton.bwipp' if $resource eq 'preamble';
@@ -34,32 +34,32 @@ $reqs = '' unless defined $reqs;
 (my $provfile) = $upr =~ /^$resource=(.*)$/m;
 
 while (my $targetdir = shift @ARGV) {
-  my @reqs_list = split /\s+/, $reqs;
-  next unless @reqs_list;  # Skip if no dependencies
-  my $reqfiles = "$targetdir/$provfile : |";
-  foreach my $req (@reqs_list) {
-    $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
-    (my $reqfile) = $upr =~ /^$req=(.*)$/m;
-    $reqfiles .= " $targetdir/$reqfile";
-  }
-  print "$reqfiles\n";
+    my @reqs_list = split /\s+/, $reqs;
+    next unless @reqs_list;  # Skip if no dependencies
+    my $reqfiles = "$targetdir/$provfile : |";
+    foreach my $req (@reqs_list) {
+        $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
+        (my $reqfile) = $upr =~ /^$req=(.*)$/m;
+        $reqfiles .= " $targetdir/$reqfile";
+    }
+    print "$reqfiles\n";
 }
 
 # Standalone dependency rules (only for encoders, not preamble)
 if ($resource ne 'uk.co.terryburton.bwipp') {
-  for my $standalonedir ('build/standalone', 'build/standalone_package') {
-    my $resdir = $standalonedir eq 'build/standalone'
-      ? 'build/resource/Resource' : 'build/packaged_resource/Resource';
-    my $reqfiles = "$standalonedir/$resource.ps :";
-    foreach my $req (split /\s+/, $reqs) {
-      $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
-      (my $reqfile) = $upr =~ /^$req=(.*)$/m;
-      $reqfiles .= " $resdir/$reqfile";
+    for my $standalonedir ('build/standalone', 'build/standalone_package') {
+        my $resdir = $standalonedir eq 'build/standalone'
+            ? 'build/resource/Resource' : 'build/packaged_resource/Resource';
+        my $reqfiles = "$standalonedir/$resource.ps :";
+        foreach my $req (split /\s+/, $reqs) {
+            $req = 'uk.co.terryburton.bwipp' if $req eq 'preamble';
+            (my $reqfile) = $upr =~ /^$req=(.*)$/m;
+            $reqfiles .= " $resdir/$reqfile";
+        }
+        # Include the encoder itself as a dependency
+        $reqfiles .= " $resdir/$provfile";
+        print "$reqfiles\n";
     }
-    # Include the encoder itself as a dependency
-    $reqfiles .= " $resdir/$provfile";
-    print "$reqfiles\n";
-  }
 }
 
 exit 0;

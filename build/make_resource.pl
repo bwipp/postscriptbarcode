@@ -22,10 +22,10 @@ my $outfile = $ARGV[1];
 ($outfile) = $outfile =~ /(.*)/;  # Untaint
 
 END {
-  if ($? != 0) {
-    unlink("$outfile.tmp");
-    unlink($outfile);
-  }
+    if ($? != 0) {
+        unlink("$outfile.tmp");
+        unlink($outfile);
+    }
 }
 
 (my $resdir) = $outfile =~ m#^(build/[^/]+)/#;
@@ -44,10 +44,10 @@ my $template = join('', <$fh>);
 close $fh;
 
 $template =~ /
-    ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
-    (.*?)
-    (^[^%].*?)
-    ^%\ --END\ \1\ \2--$
+        ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
+        (.*?)
+        (^[^%].*?)
+        ^%\ --END\ \1\ \2--$
 /msgx;
 
 my $resource = $2;
@@ -59,11 +59,11 @@ $reqs = '' unless defined $reqs;
 
 my $neededresources = '';
 foreach (split /\s+/, $reqs) {
-  if ($_ eq 'preamble') {
-    $neededresources.="Category/uk.co.terryburton.bwipp ";
-  } else {
-    $neededresources.="uk.co.terryburton.bwipp/$_ ";
-  }
+    if ($_ eq 'preamble') {
+        $neededresources.="Category/uk.co.terryburton.bwipp ";
+    } else {
+        $neededresources.="uk.co.terryburton.bwipp/$_ ";
+    }
 }
 $neededresources =~ s/\s+$//;
 
@@ -74,8 +74,8 @@ close $fh;
 my $category = 'uk.co.terryburton.bwipp';
 my $key = $resource;
 if ($resource eq 'preamble') {
-  $category = 'Category';
-  $key = 'uk.co.terryburton.bwipp';
+    $category = 'Category';
+    $key = 'uk.co.terryburton.bwipp';
 }
 
 my $vmusage = '0 0';
@@ -84,40 +84,40 @@ my $vmusage = '0 0';
 my $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
 
 {
-  use File::Temp qw(tempfile);
-  my ($vmusage_fh, $vmusagefile) = tempfile('vmusage.XXXXXX', DIR => '/tmp', UNLINK => 1);
-  ($vmusagefile) = $vmusagefile =~ /(.*)/;  # Untaint
+    use File::Temp qw(tempfile);
+    my ($vmusage_fh, $vmusagefile) = tempfile('vmusage.XXXXXX', DIR => '/tmp', UNLINK => 1);
+    ($vmusagefile) = $vmusagefile =~ /(.*)/;  # Untaint
 
-  my $oldpwd = getcwd();
-  ($oldpwd) = $oldpwd =~ /(.*)/;  # Untaint
-  chdir("$resdir/Resource") or die "Cannot chdir to $resdir/Resource: $!";
+    my $oldpwd = getcwd();
+    ($oldpwd) = $oldpwd =~ /(.*)/;  # Untaint
+    chdir("$resdir/Resource") or die "Cannot chdir to $resdir/Resource: $!";
 
-  open(my $gs_fh, '-|', $gs, '-P', '-dNOSAFER', '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', "-sInputFilename=$abspath/$outfile.tmp", "-sOutputFilename=$abspath/$outfile", "-sVMusageFilename=$vmusagefile", "-sCategory=$category", "-sKey=$key", "-sVMusage=$vmusage", "-sQualifier=$qualifier", "-sVersion=$version", "-sNeededResources=$neededresources", "-sPostWatermark=$category/$key $qualifier", "../../$packager")
-    or die "Cannot execute gs: $!";
-  print while <$gs_fh>;
-  close $gs_fh or die 'GS create resource error';
+    open(my $gs_fh, '-|', $gs, '-P', '-dNOSAFER', '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', "-sInputFilename=$abspath/$outfile.tmp", "-sOutputFilename=$abspath/$outfile", "-sVMusageFilename=$vmusagefile", "-sCategory=$category", "-sKey=$key", "-sVMusage=$vmusage", "-sQualifier=$qualifier", "-sVersion=$version", "-sNeededResources=$neededresources", "-sPostWatermark=$category/$key $qualifier", "../../$packager")
+        or die "Cannot execute gs: $!";
+    print while <$gs_fh>;
+    close $gs_fh or die 'GS create resource error';
 
-  chdir($oldpwd) or die "Cannot chdir back to $oldpwd: $!";
-  unlink("$outfile.tmp");
+    chdir($oldpwd) or die "Cannot chdir back to $oldpwd: $!";
+    unlink("$outfile.tmp");
 
-  open(my $vm_fh, '-|', $gs, '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', '--', $vmusagefile, '2>&1')
-    or die "Cannot execute gs for VMusage: $!";
-  my $vmout = do { local $/; <$vm_fh> };
-  close $vm_fh or die "GS measure VMusage error: $vmout";
-  ($vmusage) = $vmout =~ /VMusage \((\d+ \d+)\) def/ or die 'Failed to determine VMusage';
+    open(my $vm_fh, '-|', $gs, '-dQUIET', '-dNOPAUSE', '-dBATCH', '-sDEVICE=nullpage', '--', $vmusagefile, '2>&1')
+        or die "Cannot execute gs for VMusage: $!";
+    my $vmout = do { local $/; <$vm_fh> };
+    close $vm_fh or die "GS measure VMusage error: $vmout";
+    ($vmusage) = $vmout =~ /VMusage \((\d+ \d+)\) def/ or die 'Failed to determine VMusage';
 
-  # $vmusagefile auto-deleted when $vmusage_fh goes out of scope
+    # $vmusagefile auto-deleted when $vmusage_fh goes out of scope
 }
 
 # Stamp VMusage into the resource
 {
-  $^I = '';
-  @ARGV = ($outfile);
-  while (<>) {
-    s/%%VMusage: \d+ \d+/%%VMusage: $vmusage/g;
-    s/%%BeginResource: (.*) \d+ \d+/%%BeginResource: $1 $vmusage/g;
-    print;
-  }
+    $^I = '';
+    @ARGV = ($outfile);
+    while (<>) {
+        s/%%VMusage: \d+ \d+/%%VMusage: $vmusage/g;
+        s/%%BeginResource: (.*) \d+ \d+/%%BeginResource: $1 $vmusage/g;
+        print;
+    }
 }
 
 $? = 0;  # Mark successful completion
