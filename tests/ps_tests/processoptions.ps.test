@@ -1,0 +1,102 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/processoptions dup /uk.co.terryburton.bwipp findresource cvx def
+
+/setup {
+    /stropt (default) def
+    /boolopt false def
+    /intopt 0 def
+    /realopt 0.0 def
+} def
+
+/ok_tmpl {
+    { 10 dict begin setup 0 exec end }
+    dup 3 -1 roll 4 exch put
+    true isEqual
+} def
+
+/er_tmpl {
+    { 10 dict begin setup 0 exec end }
+    dup 4 5 -1 roll put
+    exch isError
+} def
+
+
+%
+% String input parsing
+%
+{ (stropt=hello) processoptions pop stropt (hello) eq } ok_tmpl
+{ (stropt=hello world) processoptions pop stropt (hello) eq } ok_tmpl
+{ (stropt=a boolopt) processoptions pop stropt (a) eq boolopt true eq and } ok_tmpl
+{ (intopt=1 realopt=2.5 stropt=foo) processoptions pop intopt 1 eq realopt 2.5 eq and stropt (foo) eq and } ok_tmpl
+
+
+%
+% Dict input
+%
+{ << /stropt (test) >> processoptions pop stropt (test) eq } ok_tmpl
+
+
+%
+% String type
+%
+{ (stropt=hello) processoptions pop stropt (hello) eq } ok_tmpl
+{ (stropt=123)   processoptions pop stropt (123)   eq } ok_tmpl
+{ (stropt=)      processoptions pop stropt ()      eq } ok_tmpl
+{ (stropt= )     processoptions pop stropt ()      eq } ok_tmpl
+
+
+%
+% Boolean type
+%
+{ (boolopt) processoptions pop boolopt true eq } ok_tmpl
+{ << /boolopt true  >> processoptions pop boolopt true  eq } ok_tmpl
+{ << /boolopt false >> processoptions pop boolopt false eq } ok_tmpl
+
+{ (boolopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
+{ (boolopt=1)    processoptions } /bwipp.invalidOptionType er_tmpl
+
+
+%
+% Integer type
+%
+{ (intopt=42) processoptions pop intopt 42 eq } ok_tmpl
+{ (intopt=-5) processoptions pop intopt -5 eq } ok_tmpl
+{ (intopt=0)  processoptions pop intopt  0 eq } ok_tmpl
+
+{ (intopt=3.5)  processoptions } /bwipp.invalidOptionType er_tmpl
+{ (intopt=abc)  processoptions } /bwipp.invalidOptionType er_tmpl
+{ (intopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
+
+
+%
+% Real type
+%
+{ (realopt=3.14) processoptions pop realopt 3.14 eq } ok_tmpl
+{ (realopt=-2.5) processoptions pop realopt -2.5 eq } ok_tmpl
+{ (realopt=42)   processoptions pop realopt 42.0 eq } ok_tmpl
+
+{ (realopt=abc)  processoptions } /bwipp.invalidOptionType er_tmpl
+{ (realopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
+
+
+%
+% Unknown options (silently ignored)
+%
+{ (unknown=foo) processoptions pop true } ok_tmpl
+{ (unknown)     processoptions pop true } ok_tmpl
+
+
+%
+% Meaningless (ignored)
+%
+{ (1=foo)       processoptions pop true } ok_tmpl
+{ (1)           processoptions pop true } ok_tmpl
+{ (=foo)        processoptions pop true } ok_tmpl
+
