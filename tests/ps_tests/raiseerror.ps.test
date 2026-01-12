@@ -1,0 +1,47 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/raiseerror dup /uk.co.terryburton.bwipp findresource def
+
+
+%
+% Basic functionality: stopped returns true, errorname and errorinfo set
+%
+{
+    { /bwipp.testError (Test info) raiseerror } stopped
+    $error /errorname get /bwipp.testError eq and
+    $error /errorinfo get (Test info) eq and
+} true isEqual
+
+
+%
+% errorname is a name
+%
+{
+    { /bwipp.anotherError (Info) raiseerror } stopped pop
+    $error /errorname get
+} /bwipp.anotherError isEqual
+
+
+%
+% errorinfo is a string
+%
+{
+    { /bwipp.test (Error information string) raiseerror } stopped pop
+    $error /errorinfo get
+} (Error information string) isEqual
+
+
+%
+% errorinfo can be empty
+%
+{
+    { /bwipp.emptyInfo () raiseerror } stopped pop
+    $error /errorinfo get
+} () isEqual
+
