@@ -1,0 +1,36 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+
+%
+% Category exists
+%
+{
+    /uk.co.terryburton.bwipp /Category findresource
+    type /dicttype eq
+} true isEqual
+
+
+%
+% InstanceType is packedarraytype or arraytype
+%
+{
+    /uk.co.terryburton.bwipp /Category findresource
+    /InstanceType get
+    dup /packedarraytype eq exch /arraytype eq or
+} true isEqual
+
+
+%
+% Can find resources in the category
+%
+{
+    /raiseerror /uk.co.terryburton.bwipp resourcestatus
+    exch pop exch pop  % Discard size and status, keep bool
+} true isEqual
+
