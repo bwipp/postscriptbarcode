@@ -592,6 +592,12 @@ Inserting stack elements requires index adjustment:
 (a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
 ```
 
+Names and strings are treated as equivalent when compared:
+
+```postscript
+/test (test) eq => true
+```
+
 Understand that readonly does not affect its argument:
 
 ```postscript
