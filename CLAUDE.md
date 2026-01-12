@@ -27,7 +27,8 @@ Performance, execution cost, and interpreter compatibility are critical.
   - Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
   - Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
   - Maximum string length is 65535 characters.
-- If a file is updated then its copyright date should be bumped.
+- If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
+- Tests should be extended to cover any error conditions raise by new code.
 
 
 ## AI Observations
@@ -606,6 +607,29 @@ For repetitive tests, use template procedures, for example:
 
 (INVALID)  /bwipp.encoderBadData  er_tmpl
 ```
+
+
+### Errors test coverage
+
+Test for errors that are raise by code should be comprehensive.
+
+However some linter errors cannot be triggered because they are masked by other
+checks.
+
+GS1 format checks error that are impossible due to format validation running
+before linters:
+- `GS1valueTooShortForOffsetGCP` - AIs have min >= 14
+- `GS1badDateLength` - AIs have fixed-length date fields
+- `GS1badTimeLength` - linter defined but unused
+- `GS1badPieceTotalLength` - AIs have fixed even length
+- `GS1couponTooShortGCPVLI`, `GS1couponTooShortFormatCode` - AIs have min >= 1
+- `GS1badLatitudeLength`, `GS1badLongitudeLength` - AIs have fixed length
+
+Unreachable due to earlier validation:
+- `GS1UnknownCSET82Character` - lintcset82 catches first
+- `GS1alphaTooLong` - max length fits primes array
+- `GS1requiresNonDigit` - checksum requires non-digits
+- `colorFailedToSet` - valid colors work; error path has stack cleanup issues
 
 
 ## PostScript Language paradigms
