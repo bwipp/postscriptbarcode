@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -53,6 +53,7 @@ begin
 /jabcode.slavemetamap [ 10 12 14 14 16 16 16 16 ] readonly def
 /jabcode.coderates [ 0.67 0.63 0.57 0.55 0.50 0.43 0.34 0.25 0.20 0.17 0.14 ] readonly def
 /jabcode.metavfadj [ 0 4 8 16 ] readonly def
+/jabcode.algnpos_default [ 3 17 ] readonly def
 
 /jabcode.fpat.master [
     [ 1 1 1 0 0 ]
@@ -992,12 +993,12 @@ begin
     /algnpat1 algnpat1s colors get def
 
     /num cols 16 div round cvi 1 sub def
-    /algnrpos [ 3 17 ] def
+    /algnrpos //jabcode.algnpos_default def
     num 0 gt {
         /algnrpos [ 0 1 num {cols 7 sub num div mul cvi 3 add} for ] def
     } if
     /num rows 16 div round cvi 1 sub def
-    /algncpos [ 3 17 ] def
+    /algncpos //jabcode.algnpos_default def
     num 0 gt {
         /algncpos [ 0 1 num {rows 7 sub num div mul cvi 3 add} for ] def
     } if
