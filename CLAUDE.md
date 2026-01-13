@@ -165,6 +165,7 @@ Each resource source file has a similar structure:
    - Exported by the resource and called on demand
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
+   - Bind the main procedure whilst inhibiting binding of non-standard operators defined on some RIPs, i.e. `barcode`
 
 8. **Resource definition**
    - Define the main procedure as a resource
@@ -324,7 +325,7 @@ Example for an encoder:
 
     end
 }
-[/barcode] {null def} forall
+[/barcode] {null def} forall  % Inhibit binding of non-standard operators defined on some RIPs
 bind def
 /encoder dup load /uk.co.terryburton.bwipp defineresource pop
 ```
@@ -501,6 +502,44 @@ Loops should be commented as such in the first line:
 - Creating variables (dictionary entries) in hot loops
 - Defining static data in the main procedure (hoist to define time, then use `//name`)
 - Computing derived data on every invocation (use latevars)
+
+
+**Array Extension in Loops**
+
+Avoid `/arr [ arr aload pop newelem ] def` within loops. This idiom creates a
+new array each iteration by unpacking the old array onto the stack, adding new
+elements, then repacking.
+
+```postscript
+% Bad: O(n^2) array rebuilding
+/result [] def
+0 1 n 1 sub {
+    /i exch def
+    /result [ result aload pop i computeValue ] def
+} for
+
+% Good: Pre-allocate and fill
+/result n array def
+0 1 n 1 sub {
+    /i exch def
+    result i i computeValue put
+} for
+```
+
+It can be difficult to determine the required size for an array in advance.
+PostScript has no build-in mechanism to automatically extend or shrink arrays.
+
+It is sometimes necessary to over-size the array and later take the used prefix
+of the array with `/arr arr 0 len getinterval def`, but there is an associated
+cost of allocating a new array and copying the used elements.
+
+Adding elements to the stack and later constructing the array (`mark ...
+counttomark array store /arr exch def`) might be preferable when the array size
+isn't known in advance.
+
+Extension of small arrays with `aload pop` is acceptable for one-time
+operations outside loops.
+
 
 **Hot Loop Stack Pattern**
 
