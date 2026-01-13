@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -202,6 +202,8 @@ begin
     [    2       2       2       0       2    ]  % D
     [    2       2       2       2       0    ]  % E
 ] readonly def
+
+/maxicode.pad_code [33 33 0 0 28] readonly def
 
 /maxicode.max_int 16#7FFFFFFF def
 
@@ -808,14 +810,13 @@ begin
         %
         % End in a code set which has a pad code
         %
-        /pad_code [33 33 0 0 28] def
-        /final_code_set pad_code state get 0 eq {0} {state} ifelse def
+        /final_code_set //maxicode.pad_code state get 0 eq {0} {state} ifelse def
 
         %
         % Insert a latch to A if padding is necessary and the code set does not have a pad code.
         %
-        pad_code state get 0 eq j maxlen lt and {j 1 add array dup j 58 put} {j array} ifelse
-        /padval pad_code final_code_set get def
+        //maxicode.pad_code state get 0 eq j maxlen lt and {j 1 add array dup j 58 put} {j array} ifelse
+        /padval //maxicode.pad_code final_code_set get def
         /len j def
 
         % Follow the best path back to the start of the message
