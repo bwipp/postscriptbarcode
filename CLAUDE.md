@@ -632,6 +632,66 @@ Unreachable due to earlier validation:
 - `colorFailedToSet` - valid colors work; error path has stack cleanup issues
 
 
+## Documentation
+
+Documentation is hosted in the wiki at
+<https://github.com/bwipp/postscriptbarcode/wiki>, and these pages are the
+source for the PDF and HTML documentation that is hosted at in GitHub Releases.
+
+
+### Wikidocs Submodule
+
+The `wikidocs/` directory is a Git submodule that tracks the project's GitHub wiki repository.
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) builds the
+documentation. Upon release (i.e. pushing a tag), the job uploads the build
+documentation to GitHub releases as `postscriptbarcode-manual.pdf` and
+`postscriptbarcode-manual.html`.
+
+To regenerate the documentation locally:
+
+```bash
+git -C wikidocs pull origin master
+git add wikidocs
+got commit -m "Bumped wikidocs"
+```
+
+### Building Documentation
+
+From the wikidocs directory:
+
+```bash
+make -f __pandoc/Makefile all
+```
+
+Outputs:
+- `__pandoc/barcodewriter.pdf` - Complete PDF manual
+- `__pandoc/barcodewriter.html` - Self-contained HTML documentation
+
+The build requires Pandoc, the Haskell runtime and LaTeX.
+
+
+### Adding New Symbology / Options Documentation
+
+When adding a new symbology page or options page, update the following files:
+
+**Wiki content for symbologies** (in `wikidocs/` submodule):
+1. `symbologies/<Symbology-Name>.md` - Create the documentation page
+2. `symbologies/_Sidebar.md` - Add link in appropriate category section
+3. `symbologies/Symbologies-Reference.md` - Add entry with thumbnail image(s)
+4. `images/<name>.png` and `images/<name>.eps` - Example images (use `scale=1`)
+5. Related symbology pages - Add cross-references if applicable
+
+**Wiki content for options** (in `wikidocs/` submodule):
+1. `options/<Option-Name>.md` - Create the documentation page
+2. `options/_Sidebar.md` - Add link in appropriate section
+3. `options/Options-Reference.md` - Add entry if applicable
+
+**Build system**
+1. `wikidocs/__pandoc/Makefile` - Add to `REF_FILES` in appropriate category
+2. `.github/workflows/ci.yml` - Add to BOTH `docs-pdf` and `docs-html` jobs
+
+
 ## PostScript Language paradigms
 
 Pay attention to the direction of roll:
