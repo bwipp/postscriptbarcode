@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -40,7 +40,7 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+20 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
@@ -81,6 +81,81 @@ begin
 
 /gs1-cc.pwr928init [ 0 0 0 0 0 0 1 ] readonly def
 
+/gs1-cc.tobin {
+    string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
+    dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
+} bind def
+
+/gs1-cc.fnc1          -1 def
+/gs1-cc.lnumeric      -2 def
+/gs1-cc.lalphanumeric -3 def
+/gs1-cc.liso646       -4 def
+
+/gs1-cc.latevars dup 8 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //gs1-cc.latevars begin
+
+    /alpha <<
+        65 1 90 {dup 65 sub 5 //gs1-cc.tobin exec} for
+        48 1 57 {dup 4 add 6 //gs1-cc.tobin exec} for
+        //gs1-cc.fnc1 (11111)
+    >> readonly def
+
+    /numeric <<
+        0 1 119 {
+            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
+            dup length 2 exch sub exch putinterval
+            dup 0 get 65 eq {dup 0 94 put} if
+            dup 1 get 65 eq {dup 1 94 put} if
+            exch 8 add
+            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
+            dup length 7 exch sub exch putinterval
+        } for
+        //gs1-cc.lalphanumeric (0000)
+    >> readonly def
+
+    /alphanumeric <<
+        48 1 57 {dup 43 sub 5 //gs1-cc.tobin exec} for
+        //gs1-cc.fnc1 (01111)
+        65 1 90 {dup 33 sub 6 //gs1-cc.tobin exec} for
+        42 (111010)
+        44 1 47 {dup 15 add 6 //gs1-cc.tobin exec} for
+        //gs1-cc.lnumeric (000)
+        //gs1-cc.liso646 (00100)
+    >> readonly def
+
+    /iso646 <<
+        48 1 57 {dup 43 sub 5 //gs1-cc.tobin exec} for
+        //gs1-cc.fnc1 (01111)
+        65 1 90 {dup 1 sub 7 //gs1-cc.tobin exec} for
+        97 1 122 {dup 7 sub 7 //gs1-cc.tobin exec} for
+        33 (11101000)
+        34 (11101001)
+        37 1 47 {dup 197 add 8 //gs1-cc.tobin exec} for
+        58 1 63 {dup 187 add 8 //gs1-cc.tobin exec} for
+        95 (11111011)
+        32 (11111100)
+        //gs1-cc.lnumeric (000)
+        //gs1-cc.lalphanumeric (00100)
+    >> readonly def
+
+    /init { //gs1-cc.latevars {def} forall } def
+
+    end
+
+    //gs1-cc.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//gs1-cc.latevars /init get exec} if
+} {pop} ifelse
+
 /gs1-cc {
 
     20 dict begin            % Confine variables to local scope
@@ -101,6 +176,8 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
+
+    //gs1-cc.latevars /init get exec
 
     ccversion (a) ne ccversion (b) ne and ccversion (c) ne and {
         /bwipp.gs1ccBadCCversion (ccversion must be a, b or c) //raiseerror exec
@@ -194,57 +271,6 @@ begin
     /method exch def
     /npre exch def
 
-    /tobin {
-        string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
-        dup 3 -1 roll 2 2 index length string cvrs dup length 2 index length exch sub exch putinterval
-    } def
-
-    /fnc1 -1 def /lnumeric -2 def /lalphanumeric -3 def /liso646 -4 def
-
-    /alpha <<
-        65 1 90 {dup 65 sub 5 tobin} for
-        48 1 57 {dup 4 add 6 tobin} for
-        fnc1 (11111)
-    >> def
-
-    /numeric <<
-        0 1 119 {
-            dup (00) 2 string copy dup 3 -1 roll 11 2 string cvrs
-            dup length 2 exch sub exch putinterval
-            dup 0 get 65 eq {dup 0 94 put} if
-            dup 1 get 65 eq {dup 1 94 put} if
-            exch 8 add
-            (0000000) 7 string copy dup 3 -1 roll 2 7 string cvrs
-            dup length 7 exch sub exch putinterval
-        } for
-        lalphanumeric (0000)
-    >> def
-
-    /alphanumeric <<
-        48 1 57 {dup 43 sub 5 tobin} for
-        fnc1 (01111)
-        65 1 90 {dup 33 sub 6 tobin} for
-        42 (111010)
-        44 1 47 {dup 15 add 6 tobin} for
-        lnumeric (000)
-        liso646 (00100)
-    >> def
-
-    /iso646 <<
-        48 1 57 {dup 43 sub 5 tobin} for
-        fnc1 (01111)
-        65 1 90 {dup 1 sub 7 tobin} for
-        97 1 122 {dup 7 sub 7 tobin} for
-        33 (11101000)
-        34 (11101001)
-        37 1 47 {dup 197 add 8 tobin} for
-        58 1 63 {dup 187 add 8 tobin} for
-        95 (11111011)
-        32 (11111100)
-        lnumeric (000)
-        lalphanumeric (00100)
-    >> def
-
     method (10) eq {  % TODO: fixme
         ais 0 get (11) eq ais 0 get (17) eq or {
             vals 0 get
@@ -266,12 +292,12 @@ begin
         ais length 0 ne {
             ais 0 get (10) eq {
                 /gpf [ vals 0 get {} forall ] def
-                ais length 1 gt {/gpf [ gpf aload pop fnc1 ] def} if  % TODO: check
+                ais length 1 gt {/gpf [ gpf aload pop //gs1-cc.fnc1 ] def} if  % TODO: check
                 /ais  ais  1 ais  length 1 sub getinterval def
                 /vals vals 1 vals length 1 sub getinterval def
                 /fncs fncs 1 fncs length 1 sub getinterval def
             } {
-                /gpf [fnc1] def  % TODO: check
+                /gpf [//gs1-cc.fnc1] def  % TODO: check
             } ifelse
         } {
             /cdf [ cdf aload pop 0 0 0 0 0 1 1 1 1 ] def
@@ -340,9 +366,9 @@ begin
             ] def
         } ifelse
         mode (alpha) ne {
-            /gpf [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
+            /gpf [ ai90rem {} forall ais length 1 gt {//gs1-cc.fnc1} if ] def
         } {
-            /in [ ai90rem {} forall ais length 1 gt {fnc1} if ] def
+            /in [ ai90rem {} forall ais length 1 gt {//gs1-cc.fnc1} if ] def
             /out in length 6 mul array def
             /j 0 def
             0 1 in length 1 sub {
@@ -369,7 +395,7 @@ begin
                 /ais  ais  1 ais  length 1 sub getinterval def
                 /vals vals 1 vals length 1 sub getinterval def
                 /fncs fncs 1 fncs length 1 sub getinterval def
-                ais length 0 ne {/gpf [gpf aload pop fnc1] def} if
+                ais length 0 ne {/gpf [gpf aload pop //gs1-cc.fnc1] def} if
             } if
         } if
     } if
@@ -395,7 +421,7 @@ begin
         i ais length 1 sub ne fncs i get and {  % Append FNC1
             gpf length 1 add array
             dup 0 gpf putinterval
-            dup gpf length fnc1 put
+            dup gpf length //gs1-cc.fnc1 put
             /gpf exch def
         } if
     } for
@@ -463,8 +489,8 @@ begin
         /i exch def
         gpf i get
         (00) 2 string copy
-        dup 0 gpf i get dup fnc1 eq {pop 94} if put
-        i gpf length 1 sub lt {dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put} if
+        dup 0 gpf i get dup //gs1-cc.fnc1 eq {pop 94} if put
+        i gpf length 1 sub lt {dup 1 gpf i 1 add get dup //gs1-cc.fnc1 eq {pop 94} if put} if
         numeric exch known {
             numericruns i numericruns i 2 add get 2 add put
         } {
@@ -494,20 +520,20 @@ begin
             mode (numeric) eq {
                 i gpf length 2 sub le {
                     2 string
-                    dup 0 gpf i get dup fnc1 eq {pop 94} if put
-                    dup 1 gpf i 1 add get dup fnc1 eq {pop 94} if put
+                    dup 0 gpf i get dup //gs1-cc.fnc1 eq {pop 94} if put
+                    dup 1 gpf i 1 add get dup //gs1-cc.fnc1 eq {pop 94} if put
                     dup numeric exch known {
                         numeric encode
                         /i i 2 add def
                         exit
                     } if
                     pop
-                    lalphanumeric numeric encode
+                    //gs1-cc.lalphanumeric numeric encode
                     /mode (alphanumeric) def
                     exit
                 } {
                     gpf i get dup 48 lt exch 57 gt or {
-                        lalphanumeric numeric encode
+                        //gs1-cc.lalphanumeric numeric encode
                         /mode (alphanumeric) def
                         exit
                     } if
@@ -527,24 +553,24 @@ begin
             } if
 
             mode (alphanumeric) eq {
-                gpf i get fnc1 eq {
-                    fnc1 alphanumeric encode
+                gpf i get //gs1-cc.fnc1 eq {
+                    //gs1-cc.fnc1 alphanumeric encode
                     /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
                 gpf i get dup iso646 exch known exch alphanumeric exch known not and {
-                     liso646 alphanumeric encode
+                     //gs1-cc.liso646 alphanumeric encode
                      /mode (iso646) def
                      exit
                 } if
                 numericruns i get 6 ge {
-                    lnumeric alphanumeric encode
+                    //gs1-cc.lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
                 numericruns i get dup 4 ge exch i add gpf length eq and {
-                    lnumeric alphanumeric encode
+                    //gs1-cc.lnumeric alphanumeric encode
                     /mode (numeric) def
                     exit
                 } if
@@ -554,19 +580,19 @@ begin
             } if
 
             mode (iso646) eq {
-                gpf i get fnc1 eq {
-                    fnc1 iso646 encode
+                gpf i get //gs1-cc.fnc1 eq {
+                    //gs1-cc.fnc1 iso646 encode
                     /mode (numeric) def
                     /i i 1 add def
                     exit
                 } if
                 numericruns i get 4 ge nextiso646only i get 10 ge and {
-                    lnumeric iso646 encode
+                    //gs1-cc.lnumeric iso646 encode
                     /mode (numeric) def
                     exit
                 } if
                 alphanumericruns i get 5 ge nextiso646only i get 10 ge and {
-                    lalphanumeric iso646 encode
+                    //gs1-cc.lalphanumeric iso646 encode
                     /mode (alphanumeric) def
                     exit
                 } if
