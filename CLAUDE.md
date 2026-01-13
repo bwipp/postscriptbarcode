@@ -43,10 +43,11 @@ Performance, execution cost, and interpreter compatibility are critical.
 
 ### Commands
 
-- `make -j $(nproc)`      - Build all distribution targets (resource, packaged_resource, monolithic, monolithic_package)
-- `make -j $(nproc) test` - Run all tests; should be ran before declaring a code change complete
-- `make clean`            - Clean
-- `make build/standalone/<encoder>.ps` - Build standalone encoder
+- `make -j $(nproc)`                           - Build all distribution targets (resource, packaged_resource, monolithic, monolithic_package)
+- `make -j $(nproc) test`                      - Run all tests; should be ran before declaring a code change complete
+- `make clean`                                 - Clean
+- `make build/standalone/<encoder>.ps`         - Build standalone encoder
+- `make build/standalone_package/<encoder>.ps` - Build packaged standalone encoder
 
 Note: On the default MacOS execution environment for AI it's `sysctl -n hw.ncpu` instead of `$(nproc)`.
 
@@ -100,24 +101,28 @@ that affect the behaviour of BWIPP:
 
 Core library:
 
-- `src/*.ps.src`                    - PostScript resource source files
-- `src/uk.co.terryburton.bwipp.upr` - Resource name to path mapping for all resources; required by Distiller; build system uses the order to determine resource order in monolithic and standalone outputs
-- `tests/ps_tests/*.ps.test`        - PostScript test files
+- `src/*.ps.src`                          - PostScript resource source files
+- `src/uk.co.terryburton.bwipp.upr`       – PostScript resource index mapping resource names to file paths; required by Distiller and used by the build system to enforce resource order in monolithic and standalone outputs
+- `tests/ps_tests/*.ps.test`              - PostScript test files
 
 Build scripts:
 
-- `build/make_resource.pl`           - Resource builder (invokes GhostScript)
-- `build/make_deps.pl`               - Dependency rule generator (creates .d files)
-- `build/make_monolithic.pl`         - Monolithic resource assembler
-- `build/make_standalone.pl`         - Standalone file assembler (supports multiple encoders)
+- `build/make_resource.pl`                - Resource builder (invokes GhostScript)
+- `build/make_deps.pl`                    - Dependency rule generator (creates .d files)
+- `build/make_monolithic.pl`              - Monolithic resource assembler
+- `build/make_standalone.pl`              - Standalone file assembler (supports multiple encoders)
 
-Build outputs:
+Automatic build outputs:
 
-- `build/resource/`                      - `make resource`: Unpackaged resources
-- `build/packaged_resource/`             - `make packaged_resource`: Packaged resources
-- `build/monolithic/barcode.ps`          - `make monolithic`: All encoders combined
-- `build/monolithic_package/barcode.ps`  - `make monolithic_package`: Packaged monolithic
-- `build/standalone/<encoder>.ps`        - Standalone encoder (manual, only required deps built)
+- `build/resource/`                       - `make resource`: Unpackaged resources
+- `build/packaged_resource/`              - `make packaged_resource`: Packaged resources
+- `build/monolithic/barcode.ps`           - `make monolithic`: All encoders combined
+- `build/monolithic_package/barcode.ps`   - `make monolithic_package`: Packaged monolithic
+
+On-demand build outputs:
+
+- `build/standalone/<encoder>.ps`         - Standalone encoder containing all required resource dependencies
+- `build/standalone_package/<encoder>.ps` - As above, but packaged
 
 
 ## Code structure
@@ -325,17 +330,22 @@ bind def
 ```
 
 
-### Resource calling pattern
+### Resource calling pattern and error handling
 
-Resources should call one another with a clean stack, otherwise the stack may
-contain junk upon `raiseerror` from the called resource. (`raiseerror` only
-attempts to clean up the stack use by own resource.)
+Upon encountering an error, a resource shall clean up **only** its own stack
+entries and then call the `raiseerror` procedure. This halts execution and
+results in either a custom error handler or a user-provided `stopped` context
+being run.
+
+To avoid orphaning stack entries when a resource does not run to completion — such
+as when another resource invokes `raiseerror` — resources must execute other
+resources only with a clean stack.
 
 Any example is "wrapper encoders" that delegate to another encoder with
 modified options:
 
 ```postscript
-% Good: /args only pushed after inner encoder succeeds
+% Good: /args is only pushed after inner encoder succeeds
 barcode options //innerencoder exec /args exch def
 ```
 
@@ -375,8 +385,8 @@ GS1 AI syntax is first processed by `gs1process.ps.src` before regular parsing
 
 ### Error Handling (raiseerror.ps.src)
 
-- Errors are raised by popping stack items added by current resource, pushing a user-friendly info string and error name, then calling raiseerror
-- Uses standard PostScript `stop` mechanism for custom error handlers
+- Errors are raised by popping stack items added by current resource, pushing a user-friendly info string and error name, then calling `raiseerror`
+- Uses standard PostScript `stop` mechanism to invoke custom error handlers or a `stopped` context
 - Error names typically follow pattern: `/bwipp.<resource><ErrorType>`, e.g. `/bwipp.code39badCharacter`
 
 
@@ -425,6 +435,7 @@ Encoders create a common dictionary structure expected by their renderer:
 - Basic stack ops (pop, index, roll) have similar cost to dict ops
 - Consecutive stack operations have small marginal cost after initial op
 
+
 ### Optimization Patterns
 
 - Use `//name` immediate lookup for static data (avoids runtime structure allocation cost)
@@ -432,13 +443,66 @@ Encoders create a common dictionary structure expected by their renderer:
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
 - Prefer stack manipulation over creating intermediate dictionaries
 
+**Conditional Assignment Pattern**
+
+Use an inline condition when performing simple conditional assignments:
+
+```postscript
+% Bad: Verbose
+condition {
+    /a 2 def
+} {
+    /a 5 def
+} ifelse
+
+% Good: Concise
+/a condition { 2 } { 5 } ifelse def
+```
+
+
+**"Switch" blocks (short circuit)**
+
+Long `ifelse` chains should be avoided by using a "common exit" pattern,
+clearly denoted by a comment on the first line:
+
+```postscript
+% Bad: Hard to modify
+condition1 {
+    /c1
+} {
+condition2 {
+    /c2
+} ... {
+    /default
+} ifelse ... } ifelse
+
+% Good: Clarity
+1 {  % Common exit
+    condition1 { /c1 exit } if
+    condition2 { /c2 exit } if
+    ...
+    /default
+} repeat
+/result exch def
+```
+
+**Loops with conditional exit**
+
+Loops should be commented as such in the first line:
+
+{  % loop
+    condition { exit } if
+    ...
+} loop
+
+
 ### Anti-patterns
 
 - Creating variables (dictionary entries) in hot loops
 - Defining static data in the main procedure (hoist to define time, then use `//name`)
 - Computing derived data on every invocation (use latevars)
 
-### Hot Loop Stack Pattern
+**Hot Loop Stack Pattern**
 
 In high computational complexity loops, avoid `/idx exch def`. Keep loop index
 on stack, reference with `index` and finally consume with `roll` (rather than
@@ -446,13 +510,13 @@ on stack, reference with `index` and finally consume with `roll` (rather than
 
 ```postscript
 % Bad: Creates dictionary entry each iteration
-0 1 k {  % E.g. k from outer loop
+0 1 k {  % E.g. k from an outer loop
     /idx exch def
     % Stuff using "idx" variable...
     arr k idx sub 1 sub get
 } for
 
-% Good: Loop index consumed by roll
+% Good: Iterator referenced by "index" and finally consumed by "roll"
 0 1 k 1 sub {  % idx on stack
     % Stuff using "N index" to access idx on the stack...
     % Finally, roll moves idx to top where we consume it:
@@ -462,6 +526,7 @@ on stack, reference with `index` and finally consume with `roll` (rather than
 
 The RSEC loops in qrcode, datamatrix, pdf417 demonstrate advanced uses of this
 pattern, including stack-based access to variables outside of the inner loop.
+
 
 ### Profiling
 
@@ -750,9 +815,9 @@ Some PLRM terminology is a source of confusion. As a result of the following com
 /b a def
 ```
 
-- a is referred to as the "object" (within the currentdict)
-- The --array-- created by "]" is referred to as "the storage for the object in VM" (either global or local VM depending on globalstatus)
-- b is also an "object" that refers to the same VM storage as a
+- `a` is referred to as the "object" (within the currentdict)
+- The `--array--` created by `]` is referred to as "the storage for the object in VM" (either global or local VM depending on the allocation mode indicated by `globalstatus`)
+- `b` is also an "object" that refers to the same VM storage as `a`
 
 The terminology differs from many languages where the array itself would be referred to as an object and a and b would be referred to as names or references.
 
