@@ -16,7 +16,7 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Maintain existing user API (encoder interfaces and metadata).
 - Prefer derived values over opaque constants so that the code is auditable, unless prohibitively expensive (even for lazy init).
 - Static data should be hoisted out of the main procedure, and deferred with lazy initialisation if it must be derived
-- Static and cached structures should be readonly
+- Static and cached structures should be readonly by the time they are used in the main procedure
 - Prefer stack work over dictionary heavy code
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
@@ -149,8 +149,8 @@ Each resource source file has a similar structure:
    - Uses `findresource` to load dependencies into working dictionary
 
 5. **Static data structures**
-   - Plain definitions of literal stuctured data (arrays and dicts) that is costly to assemble if executed every call
-   - Runs once during resource definition; values immediately referenced by main procedure
+   - Plain definitions of literal stuctured data (arrays and dicts)
+   - Runs once during resource definition, with values immediately referenced by main procedure; allocate once during initialisation, then reuse at runtime
    - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
    - `//name` immediate references are resolved at parse time, embedding the value directly into procedures
    - Embedded procedures should have explicit `bind`
@@ -440,9 +440,10 @@ Encoders create a common dictionary structure expected by their renderer:
 ### Optimization Patterns
 
 - Use `//name` immediate lookup for static data (avoids runtime structure allocation cost)
-- Mark static arrays/dicts `readonly` (prevents accidental modification)
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
 - Prefer stack manipulation over creating intermediate dictionaries
+- Use immediate references directly in main procedures instead of creating local aliases (e.g., use `//encoder.fnc1` directly rather than `/fnc1 //encoder.fnc1 def`). This saves runtime dictionary lookups.
+- When latevars needs a helper function to compute values, define it in static scope (ensure to bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec` in latevars to save lookups.
 
 **Conditional Assignment Pattern**
 
