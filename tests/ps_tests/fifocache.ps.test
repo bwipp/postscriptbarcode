@@ -1,0 +1,73 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/fifocache dup /uk.co.terryburton.bwipp findresource def
+
+%
+% Test 1: Basic cache creation and retrieval
+%
+/testcache 10 100 fifocache exec def
+
+% Generate and cache a value
+{ (key1) { [1 2 3 4 5] } { length } testcache /fetch get exec }
+[1 2 3 4 5] isEqual
+
+% Retrieve cached value (should hit - returns original, not new generator value)
+{ (key1) { [9 9 9 9 9] } { length } testcache /fetch get exec }
+[1 2 3 4 5] isEqual
+
+%
+% Test 2: Cache miss generates new value
+%
+{ (key2) { [10 20 30] } { length } testcache /fetch get exec }
+[10 20 30] isEqual
+
+%
+% Test 3: FIFO eviction - verify oldest entry is evicted first
+%
+/smallcache 4 12 fifocache exec def
+
+% Fill cache to capacity: 4 entries, total 12 elements = limit
+(k1) { [1 2 3] } { length } smallcache /fetch get exec pop
+(k2) { [4 5 6] } { length } smallcache /fetch get exec pop
+(k3) { [7 8 9] } { length } smallcache /fetch get exec pop
+(k4) { [10 11 12] } { length } smallcache /fetch get exec pop
+
+% Adding k5 should evict k1 (FIFO - oldest entry)
+(k5) { [13 14 15] } { length } smallcache /fetch get exec pop
+
+% k2, k3, k4, k5 should still be cached (return original values, not regenerated)
+% Check these FIRST before fetching k1, since fetching k1 would cause more evictions
+{ (k2) { [88 88 88] } { length } smallcache /fetch get exec }
+[4 5 6] isEqual
+
+{ (k3) { [77 77 77] } { length } smallcache /fetch get exec }
+[7 8 9] isEqual
+
+{ (k4) { [66 66 66] } { length } smallcache /fetch get exec }
+[10 11 12] isEqual
+
+{ (k5) { [55 55 55] } { length } smallcache /fetch get exec }
+[13 14 15] isEqual
+
+% k1 should be evicted (regenerates with new value) - checked last since this causes further eviction
+{ (k1) { [99 99 99] } { length } smallcache /fetch get exec }
+[99 99 99] isEqual
+
+%
+% Test 4: Item too large to cache
+%
+/tinycache 10 5 fifocache exec def
+
+% Large item is generated
+{ (toobig) { [1 2 3 4 5 6 7 8 9 10] } { length } tinycache /fetch get exec }
+[1 2 3 4 5 6 7 8 9 10] isEqual
+
+% Should not be cached - generates fresh each time
+{ (toobig) { [99 99 99 99 99 99 99 99 99 99] } { length } tinycache /fetch get exec }
+[99 99 99 99 99 99 99 99 99 99] isEqual

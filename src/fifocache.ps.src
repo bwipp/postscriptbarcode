@@ -1,0 +1,144 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE fifocache--
+% --REQUIRES preamble--
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+10 dict
+begin
+
+/fifocache.fetch {
+
+    8 dict begin
+
+    /self exch def
+    /cardfn exch def
+    /genfn exch def
+    /key exch def
+
+    /cache self /cache get def
+
+    cache key known {  % Hit
+
+        %
+        % Return the existing result
+        %
+        cache key get
+
+    } {  % Miss
+
+        /fifo self /fifo get def
+        /max self /max get def
+        /limit self /limit get def
+
+        %
+        % Generate result in global VM
+        %
+        currentglobal
+        true setglobal
+
+        genfn exec /result exch def
+        result cardfn exec /card exch def  % Cardinality of the result
+
+        card limit le {
+
+            %
+            % Sufficient space: Cache and return
+            %
+            self /state get begin
+
+                %
+                % Evict until sufficient space for result
+                %
+                {  % loop
+                    total card add limit le cnt max lt and { exit } if
+
+                    fifo head get                       % old_key = fifo[head]
+                    cache 1 index get cardfn exec       % old_card = cardfn(cache[old_key])
+                    /total exch total exch sub def      % total -= old_card
+                    cache exch undef                    % delete cache[old_key]
+                    /head head 1 add max mod def        % head++ (mod max)
+                    /cnt cnt 1 sub def                  % cnt--
+                } loop
+
+                %
+                % Store the result under the new key
+                %
+                cache key result put                    % cache[key] = result
+                fifo head cnt add max mod               % tail = (head + cnt) mod max
+                key put                                 % fifo[tail] = key
+                /cnt cnt 1 add def                      % cnt++
+                /total total card add def               % total += card
+
+            end  % self.state
+
+        } if
+
+        setglobal
+
+        result
+
+    } ifelse
+
+    end
+
+} bind def
+
+%
+%  Initialisation routine
+%
+/fifocache {
+
+    8 dict begin
+
+    /limit exch def
+    /max exch def
+    /cache max dict def
+    /fifo max array def
+    /state << /head 0 /cnt 0 /total 0 >> def
+    /fetch currentdict [
+        exch { //fifocache.fetch exec } aload pop
+    ] cvx def
+
+    currentdict  % Leave this on the stack
+
+    end
+
+} bind def
+/fifocache dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END RESOURCE fifocache--
