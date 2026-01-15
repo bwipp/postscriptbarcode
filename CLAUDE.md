@@ -29,6 +29,8 @@ Performance, execution cost, and interpreter compatibility are critical.
   - Maximum string length is 65535 characters.
 - If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
 - Tests should be extended to cover any error conditions raise by new code.
+- Don't ever `git reset` to try to rewrite history when there is a risk of losing recent work.
+- Backup work before running irreversible commands such as `sed` against a large number of files.
 
 
 ## AI Observations
@@ -96,6 +98,11 @@ that affect the behaviour of BWIPP:
 - `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
 - `default_{barcolor,backgroundcolor,...}` - Defaults for certain renderer options set by the user
 
+For example:
+
+```postscript
+/uk.co.terryburton.bwipp.global_ctx << /preload true >> def
+```
 
 ### Directory Structure
 
@@ -189,7 +196,8 @@ Encoder source files contain metadata comments:
 
 `REQUIRES` lists dependencies of the resource in order. It is used by the build
 system and is API for users that want to assemble the resources into a PS file
-prolog.
+prolog. It is not transitive: If must list the recursive dependencies of all
+required resources.
 
 
 ### Resource output file structure
@@ -442,7 +450,7 @@ Encoders create a common dictionary structure expected by their renderer:
 - Use `//name` immediate lookup for static data (avoids runtime structure allocation cost)
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
 - Prefer stack manipulation over creating intermediate dictionaries
-- Use immediate references directly in main procedures instead of creating local aliases (e.g., use `//encoder.fnc1` directly rather than `/fnc1 //encoder.fnc1 def`). This saves runtime dictionary lookups.
+- Use immediate references directly instead of creating local aliases (e.g., use `//encoder.fnc1` directly rather than `/fnc1 //encoder.fnc1 def`). This saves runtime dictionary lookups.
 - When latevars needs a helper function to compute values, define it in static scope (ensure to bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec` in latevars to save lookups.
 
 **Conditional Assignment Pattern**
@@ -498,6 +506,51 @@ Loops should be commented as such in the first line:
 } loop
 
 
+**Reading Global Context**
+
+Read configuration from (optional) global context with a default:
+
+```postscript
+/configvalue 42 def  % Default
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /configkey 2 copy known {get /configvalue exch def} {pop pop} ifelse
+} {pop} ifelse
+```
+
+
+**Module-Level Caching with fifocache**
+
+For expensive computations that benefit from caching across invocations (e.g.,
+generation of Reed-Solomon polynomial coefficients), use the `fifocache`
+resource:
+
+```postscript
+/encoder.coeffscachemax   N def    % Override with global_ctx.encoder.coeffscachemax
+/encoder.coeffscachelimit M def    % Override with global_ctx.encoder.coeffscachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /encoder.coeffscachemax   2 copy known {get /encoder.coeffscachemax   exch def} {pop pop} ifelse
+        /encoder.coeffscachelimit 2 copy known {get /encoder.coeffscachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/encoder.coeffscache encoder.coeffscachemax encoder.coeffscachelimit //fifocache exec def
+
+/encoder.coeffscachefetch {
+    /key exch def
+    key
+    { //encoder.gencoeffs exec }  % Generator procedure
+    { length }                    % Cardinality function; applied to output of generator procedure
+    //encoder.coeffscache /fetch get exec
+} bind def
+```
+
+Cache parameter guidelines:
+
+- `max` limits cache entry count (number of keys); `limit` limits total elements (as measured by cardinality function)
+- Set `limit=0` to disable caching
+- Set `max` and `limit` high enough to avoid evictions when memory allows
+
+
 ### Anti-patterns
 
 - Creating variables (dictionary entries) in hot loops
@@ -528,7 +581,6 @@ elements, then repacking.
 ```
 
 It can be difficult to determine the required size for an array in advance.
-PostScript has no build-in mechanism to automatically extend or shrink arrays.
 
 It is sometimes necessary to over-size the array and later take the used prefix
 of the array with `/arr arr 0 len getinterval def`, but there is an associated
@@ -568,6 +620,40 @@ The RSEC loops in qrcode, datamatrix, pdf417 demonstrate advanced uses of this
 pattern, including stack-based access to variables outside of the inner loop.
 
 
+**Updating a dictionary item**
+
+When applying a function to a dictionary key:
+
+```postscript
+% Bad: More lookups; verbose
+dic /item dic /item get 1 add put
+
+% Good: Clean; efficient
+dic /item 2 copy get 1 add put
+```
+
+**Beware built-in operators**
+
+When a procedure is `bind`ed, names that match operators are resolved at bind
+time. Using operator names as variables causes unexpected behavior:
+
+```postscript
+% count is a built-in operator that returns stack depth
+(a) (b) (c) count =   % prints 3
+
+% Problem: "count" as a variable in a bound procedure
+/badproc {
+    /count 5 def
+    /count count 1 add def   % BUG: count resolves to operator
+    count
+} bind def
+
+badproc =   % prints 0 (stack depth), not 6!
+```
+
+Common operators to avoid as variable names: `count`, `length`, `index`.
+
+
 ### Profiling
 
 Simple profiling of the overall runtime for some encoder:
@@ -578,13 +664,28 @@ time gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -c \
    100 { 0 0 moveto (DATA) (options) /encoder /uk.co.terryburton.bwipp findresource exec } repeat'
 ```
 
-### Detailed Profiling Results
+
+### Profiling Results (including failed optimisation attempts)
 
 Large 2D symbols have different runtime bottlenecks, for example:
 
-- QR Code v40          - Mask evaluation is ~75% of overall runtime; RSEC is fast
-- Data Matrix 144x144  - RSEC codeword calculation (excluding polynomial generation) is ~75% of overall runtime due to many codeword per block
-- Aztec Code 32 layers - RSEC coefficients generation is ~95% of overall runtime due to large Galois fields and many ECC codewords
+**QR Code** - >60% of V40 runtime is mask evaluation; bottleneck is penalty calculation requiring multiple full-symbol scans; RSEC is fast
+- Direct masklayers access (bitshift per pixel instead of extracting to array): Slower - per-pixel overhead in inner loops exceeds allocation savings
+- Array reuse (preallocate masksym, rle, lastpairs, thispairs): No gain
+
+**Data Matrix** - ~75% of 144x144 runtime is RSEC codeword calculation; bottleneck is due to many codewords per block
+- ECC codeword calculation is already optimal so there is little that can be gained
+- Generator polynomical generation is negligable compared to codeword calculation
+
+**Aztec Code** - ~95% of 32-layer runtime is RSEC coefficient generation; bottleneck is large Galois field operations
+- This cost is largely amortised during long production runs by using a FIFO cache
+
+**PDF417** - At high ECC levels RSEC coefficient generation is ~85% of initial runtime
+- Lazy loading of all polynomials reduces this time for subsequent symbols
+
+**MicroPDF417** - No significant bottleneck
+- Coefficient generation is quick due to limited number of error codewords
+
 
 ## Testing
 
@@ -601,9 +702,15 @@ all resource tests:
 - `isEqual`      - Compare output arrays (pixs, sbs)
 - `isError`      - Verify specific error is raised
 
-Encoders may have one or more of the following debug options:
+To access the intermediate dictionary without rendering, each of the encoders
+support the following option, which requires `enabledontdraw` to be set in
+global context:
 
 - `dontdraw`      - Return structured dict without rendering
+
+Encoders may have one or more of the following debug options, each of which
+requires `enabledebug` to be set in global context:
+
 - `debugcws`      - Return codeword array
 - `debugbits`     - Return bit array
 - `debugecc`      - Return error correction data
@@ -818,6 +925,30 @@ Inserting stack elements requires index adjustment:
 (a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
 ```
 
+GhostScript can recursively expand structures with `===`:
+
+```postscript
+[ [ << /a 1 >> << /b 2 >> ] [ << /c 3 >> ] /d ] ===
+```
+
+Dictionaries will dynamically grow as needed:
+
+```postscript
+/dic 1 dict def  % Initial size, should be sized appropriately; for static data, prefer next power of 2 above expected size
+dic /a 1 put
+dic /b 2 put     % May overflow capacity, but is resized transparently (with associated performance impact)
+```
+
+It is not possible to dynamically grow an existing array:
+
+```postscript
+/arr 1 array def  % Fixed size, should be sized appropriately
+arr 0 /a put      % Indexed at zero
+arr 1 /b put      % Error: Out of bounds write
+arr 1 get         % Error: Out of bounds read
+```
+
+
 Names and strings are treated as equivalent when compared:
 
 ```postscript
@@ -856,7 +987,7 @@ Some PLRM terminology is a source of confusion. As a result of the following com
 ```
 
 - `a` is referred to as the "object" (within the currentdict)
-- The `--array--` created by `]` is referred to as "the storage for the object in VM" (either global or local VM depending on the allocation mode indicated by `globalstatus`)
+- The `--array--` created by `]` is referred to as "the storage for the object in VM" (either global or local VM depending on the allocation mode indicated by `currentglobal`)
 - `b` is also an "object" that refers to the same VM storage as `a`
 
 The terminology differs from many languages where the array itself would be referred to as an object and a and b would be referred to as names or references.
