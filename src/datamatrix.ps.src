@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER datamatrix--
-% --REQUIRES preamble raiseerror processoptions parseinput setanycolor rendertext renmatrix--
+% --REQUIRES preamble raiseerror processoptions parseinput setanycolor fifocache rendertext renmatrix--
 % --DESC: Data Matrix
 % --EXAM: This is Data Matrix!
 % --EXOP:
@@ -44,6 +44,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /fifocache dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -292,6 +293,61 @@ begin
 /uk.co.terryburton.bwipp.global_ctx dup where {
     exch get /preload known {//datamatrix.latevars /init get exec} if
 } {pop} ifelse
+
+%
+% Function to calculate the product in the field
+%
+/datamatrix.rsprod {
+    dup 0 ne { 1 index 0 ne {
+        rslog exch get exch rslog exch get add 255 mod rsalog exch get
+    } { pop pop 0 } ifelse } { pop pop 0 } ifelse
+} bind def
+
+%
+% Generate Reed-Solomon coefficients for a given k
+%
+/datamatrix.gencoeffs {
+    /coeffs [ 1 k {0} repeat ] def
+    1 1 k {  % i
+        coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
+        rsalog 1 index get                       % ai = rsalog[i]
+        exch 1 sub -1 1 {  % j
+            coeffs exch 2 copy get               % ... coeffs j coeffs[j]
+            3 index                              % ... ai
+            //datamatrix.rsprod exec             % p = coeffs[j] * ai
+            coeffs 2 index 1 sub get             % ... coeffs[j-1]
+            xor put                              % coeffs[j] = p ^ coeffs[j-1]
+        } for
+        coeffs 0 2 copy get                      % ... coeffs 0 coeffs[0]
+        3 index                                  % ... ai
+        //datamatrix.rsprod exec put             % coeffs[0] = coeffs[0] * ai
+        pop  % ai
+    } for
+    coeffs 0 coeffs length 1 sub getinterval
+} bind def
+
+%
+% FIFO cache for ECC polynomials
+%
+% 25 unique keys: per-block 5-68 from symbol configurations
+%
+/datamatrix.coeffscachemax 25 def    % Override with global_ctx.datamatrix.coeffscachemax
+/datamatrix.coeffscachelimit 766 def % Override with global_ctx.datamatrix.coeffscachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /datamatrix.coeffscachemax 2 copy known {get /datamatrix.coeffscachemax exch def} {pop pop} ifelse
+    /datamatrix.coeffscachelimit 2 copy known {get /datamatrix.coeffscachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/datamatrix.coeffscache datamatrix.coeffscachemax datamatrix.coeffscachelimit //fifocache exec def
+
+/datamatrix.coeffscachefetch {
+    /k exch def
+    k
+    { //datamatrix.gencoeffs exec }
+    { length }
+    //datamatrix.coeffscache /fetch get exec
+} bind def
 
 /datamatrix {
 
@@ -885,32 +941,9 @@ begin
     } for
 
     %
-    % Function to calculate the product in the field
+    % Fetch the coefficients
     %
-    /rsprod {
-        dup 0 ne { 1 index 0 ne {
-            rslog exch get exch rslog exch get add 255 mod rsalog exch get
-        } { pop pop 0 } ifelse } { pop pop 0 } ifelse
-    } def
-
-    %
-    % Generate the coefficients
-    %
-    /coeffs [ 1 rscw rsbl idiv {0} repeat ] def
-    1 1 rscw rsbl idiv {  % i
-        coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
-        rsalog 1 index get                       % ai = rsalog[i]
-        exch 1 sub -1 1 {  % j
-            coeffs exch 2 copy get               % ... coeffs j coeffs[j]
-            3 index                              % ... ai
-            rsprod                               % p = coeffs[j] * ai
-            coeffs 2 index 1 sub get             % ... coeffs[j-1]
-            xor put                              % coeffs[j] = p ^ coeffs[j-1]
-        } for
-        coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
-        pop  % ai
-    } for
-    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+    /coeffs rscw rsbl idiv //datamatrix.coeffscachefetch exec def
 
     %
     % Calculate the error correction codewords for each block
@@ -926,10 +959,10 @@ begin
                 ecb rsnc-1 2 index sub 2 copy 1 add get  % ... ecb rsnc-1-j ecb[rnsc-1-j]
                 4 index                                  % ... t
                 coeffs 6 -1 roll get                     % ... coeffs[j]
-                rsprod                                   % p = t * coeffs[j]
+                //datamatrix.rsprod exec                 % p = t * coeffs[j]
                 xor put                                  % ecb[rnsc-1-j] = p ^ ecb[rnsc-1-j]
             } for
-            ecb rsnc-1 2 index coeffs 0 get rsprod put   % ecb[rnnc-1] = t * coeffs[0]
+            ecb rsnc-1 2 index coeffs 0 get //datamatrix.rsprod exec put  % ecb[rnnc-1] = t * coeffs[0]
             pop
         } for
     } for
