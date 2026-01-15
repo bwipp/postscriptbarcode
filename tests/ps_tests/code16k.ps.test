@@ -33,6 +33,23 @@
 } [9 12 34 56 78 90 12 34 56 78 90 12 34 71 42] debugIsEqual
 
 
+%
+% Extended ASCII (FNC4) tests
+%
+
+{  % Single extended ASCII character (shift)
+    (^160) (debugcws parse) code16k
+} [1 100 0 103 103 103 103 103 55 41] debugIsEqual
+
+{  % Multiple extended ASCII characters (latch)
+    (^160^160^160^160) (debugcws parse) code16k
+} [1 100 100 0 0 0 0 103 24 43] debugIsEqual
+
+{  % Mixed extended ASCII and Code C digits
+    (^193^193^193^193^193^19399999999999999^193) (debugcws parse) code16k
+} [22 100 100 33 33 33 33 33 33 100 100 99 99 99 99 99 99 99 99 100 100 33 103 90 74] debugIsEqual
+
+
 % Example
 
 (ab0123456789)  % EN 12323:2005 Figure 3, same except figure's binder bars do not extend over lefthand quiet zone
