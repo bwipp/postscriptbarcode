@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -928,8 +928,10 @@ begin
     verset {
         /ver exch def
 
-        % Derive optimal sequence
-        /mode -1 def /seq [] def /i 0 def {
+        %
+        % Derive optimal sequence using stack-based accumulation
+        %
+        /mode -1 def /seqok true def mark /i 0 def {
             i msglen ge {exit} if
             /numK numKs i get def
             /numB numBs i get def
@@ -937,15 +939,15 @@ begin
             /numN numNs i get def
             /numAorN numAorNs i get def
             /eci isECI i get def
-            ver //qrcode.vM1 eq numA 1 ge and {/seq -1 def exit} if
-            ver //qrcode.vM1 eq numB 1 ge and {/seq -1 def exit} if
-            ver //qrcode.vM1 eq numK 1 ge and {/seq -1 def exit} if
-            ver //qrcode.vM1 eq eci and       {/seq -1 def exit} if
-            ver //qrcode.vM2 eq numB 1 ge and {/seq -1 def exit} if
-            ver //qrcode.vM2 eq numK 1 ge and {/seq -1 def exit} if
-            ver //qrcode.vM2 eq eci and       {/seq -1 def exit} if
-            ver //qrcode.vM3 eq eci and       {/seq -1 def exit} if
-            ver //qrcode.vM4 eq eci and       {/seq -1 def exit} if
+            ver //qrcode.vM1 eq numA 1 ge and {/seqok false def exit} if
+            ver //qrcode.vM1 eq numB 1 ge and {/seqok false def exit} if
+            ver //qrcode.vM1 eq numK 1 ge and {/seqok false def exit} if
+            ver //qrcode.vM1 eq eci and       {/seqok false def exit} if
+            ver //qrcode.vM2 eq numB 1 ge and {/seqok false def exit} if
+            ver //qrcode.vM2 eq numK 1 ge and {/seqok false def exit} if
+            ver //qrcode.vM2 eq eci and       {/seqok false def exit} if
+            ver //qrcode.vM3 eq eci and       {/seqok false def exit} if
+            ver //qrcode.vM4 eq eci and       {/seqok false def exit} if
             {  % common exit
                 eci {
                     //qrcode.E exit
@@ -1009,25 +1011,23 @@ begin
                 } if
             } loop
             dup //qrcode.K eq fnc1first and {pop //qrcode.B} if  % No kanji with fnc1first
-            dup mode eq {  % Same mode encode directly
+            dup mode eq {  % Same mode encode directly - extend data on stack
                 pop
                 /dat msg i mode //qrcode.K eq {2} {1} ifelse getinterval def
-                /seq [
-                    seq aload pop
-                    [ exch aload pop dat aload pop ]
-                ] def
-            } {  % Change mode
+                [ exch aload pop dat aload pop ]  % Extend top data array with dat
+            } {  % Change mode - push mode and data to stack
                 /mode exch def
                 mode //qrcode.K eq {//qrcode.K msg i numK 2 mul getinterval} if
                 mode //qrcode.B eq {//qrcode.B msg i numB getinterval} if
                 mode //qrcode.A eq {//qrcode.A msg i numA getinterval} if
                 mode //qrcode.N eq {//qrcode.N msg i numN getinterval} if
                 mode //qrcode.E eq {//qrcode.E msg i 1 getinterval  /mode -1 def} if
-                /dat exch def /sw exch def
-                /seq [ seq aload pop sw dat ] def
+                /dat 1 index def  % Copy data to dat variable (sw and data stay on stack)
             } ifelse
             /i i dat length add def
         } loop
+        % Build seq from stack (or set to -1 if invalid)
+        seqok {counttomark array astore exch pop} {cleartomark -1} ifelse /seq exch def
 
         %
         % Encode the sequence
