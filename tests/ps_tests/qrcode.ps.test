@@ -248,6 +248,25 @@
 
 
 %
+% Sequence building tests - exercise same-mode path which extends seq array
+% These patterns have letters followed by digits, which triggers same-mode
+% iterations as digits are processed one at a time in alphanumeric mode
+%
+
+{  % A10 (A1B2C3D4E5), alternating alpha-digit pattern
+    (A1B2C3D4E5) (fixedeclevel debugcws) qrcode
+} [32 81 195 62 40 125 38 167 176 236 17 236 17 236 17 236] debugIsEqual
+
+{  % A10 (ABCDE12345), 5 letters then 5 digits - tests same-mode with short run
+    (ABCDE12345) (fixedeclevel debugcws) qrcode
+} [32 81 205 69 41 220 46 139 144 236 17 236 17 236 17 236] debugIsEqual
+
+{  % A55 (ABCDE + 50 digits), 5 letters then 50 digits - stress test same-mode path
+    (ABCDE12345678901234567890123456789012345678901234567890) (fixedeclevel debugcws) qrcode
+} [32 41 205 69 39 8 100 61 185 24 168 24 172 212 220 41 213 27 239 67 219 145 138 129 138 205 77 104] debugIsEqual
+
+
+%
 % Error tests
 %
 
