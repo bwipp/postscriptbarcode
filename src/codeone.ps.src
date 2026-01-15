@@ -559,15 +559,33 @@ begin
             [ exch {48 sub} forall ]
         } def
 
+        %
+        % Decimal mode: 3 digits -> 10 bits, plus entry/unlatch/padding overhead
+        %
+        /Dbitsbuf msglen 10 mul 3 idiv 20 add array def
+        /Dbitslen 0 def
+
+        % Helper to append bits to Dbitsbuf
+        /appendbits {  % bits... count -> -
+            /apnd_n exch def              % bits...
+            apnd_n array astore           % [bits]
+            Dbitsbuf Dbitslen 3 -1 roll putinterval  % -
+            /Dbitslen Dbitslen apnd_n add def        % -
+        } def
+
         /encA {
             1 {  % Common exit
                 numD i get 21 ge {
-                    /Dbits [ 1 1 1 1 ] def
+                    % Initialize Dbits buffer with [ 1 1 1 1 ]
+                    Dbitsbuf 0 1 put  Dbitsbuf 1 1 put  Dbitsbuf 2 1 put  Dbitsbuf 3 1 put
+                    /Dbitslen 4 def
                     /mode //codeone.d def
                     exit
                 } if
                 numD i get dup 13 ge exch i add msglen eq and {
-                    /Dbits [ 1 1 1 1 ] def
+                    % Initialize Dbits buffer with [ 1 1 1 1 ]
+                    Dbitsbuf 0 1 put  Dbitsbuf 1 1 put  Dbitsbuf 2 1 put  Dbitsbuf 3 1 put
+                    /Dbitslen 4 def
                     /mode //codeone.d def
                     exit
                 } if
@@ -580,14 +598,14 @@ begin
                     numD i 1 add get 15 ge {
                         avals //codeone.fnc1ld get addtocws
                         /i i 1 add def
-                        /Dbits [] def
+                        /Dbitslen 0 def  % Initialize Dbits buffer as empty
                         /mode //codeone.d def
                         exit
                     } if
                     numD i 1 add get dup 7 ge exch i add 1 add msglen eq and {
                         avals //codeone.fnc1ld get addtocws
                         /i i 1 add def
-                        /Dbits [] def
+                        /Dbitslen 0 def  % Initialize Dbits buffer as empty
                         /mode //codeone.d def
                         exit
                     } if
@@ -750,17 +768,21 @@ begin
 
                 numD i get 3 lt {
 
-                    /Drem 8 Dbits length 8 mod sub 8 mod def
-                    /remcws numremcws j Dbits length 8 idiv add get def
+                    /Drem 8 Dbitslen 8 mod sub 8 mod def
+                    /remcws numremcws j Dbitslen 8 idiv add get def
 
                     %
                     % Final codeword with no data
                     %
-                    numremcws j Dbits length 8 idiv add 1 sub get 1 sub 0 eq Drem 0 eq and  % No remaining codewords and no bits
+                    numremcws j Dbitslen 8 idiv add 1 sub get 1 sub 0 eq Drem 0 eq and  % No remaining codewords and no bits
                     remcws 1 eq Drem 0 ne and or  % Or 1 remaining codeword and some bits
                     i msglen eq and {
-                        Drem 4 eq Drem 6 eq or { /Dbits [ Dbits aload pop 1 1 1 1 ] def } if
-                        Drem 2 eq Drem 6 eq or { /Dbits [ Dbits aload pop 0 1 ] def } if
+                        Drem 4 eq Drem 6 eq or {
+                            1 1 1 1  4 appendbits
+                        } if
+                        Drem 2 eq Drem 6 eq or {
+                            0 1  2 appendbits
+                        } if
                         exit
                     } if
 
@@ -776,8 +798,8 @@ begin
                     %
                     i msglen 1 sub eq numD i get 1 eq and
                     remcws 1 eq and Drem 4 eq Drem 6 eq or and not {
-                      /Dbits [ Dbits aload pop 1 1 1 1 1 1 ] def
-                      /Drem 8 Dbits length 8 mod sub 8 mod def
+                        1 1 1 1 1 1  6 appendbits
+                        /Drem 8 Dbitslen 8 mod sub 8 mod def
                     } if
 
                     %
@@ -785,15 +807,15 @@ begin
                     %
                     Drem 4 eq Drem 6 eq or {
                         numD i get 1 ge {
-                            /Dbits [ Dbits aload pop msg i get 48 sub 1 add 4 tobin aload pop ] def
+                            msg i get 48 sub 1 add 4 tobin aload pop  4 appendbits
                             /i i 1 add def
                         } {
-                            /Dbits [ Dbits aload pop 1 1 1 1 ] def
+                            1 1 1 1  4 appendbits
                         } ifelse
                         /Drem Drem 4 sub def
                     } if
                     Drem 2 eq {
-                        /Dbits [ Dbits aload pop 0 1 ] def
+                        0 1  2 appendbits
                         /Drem 0 def
                     } if
 
@@ -804,19 +826,19 @@ begin
                 %
                 % Three digit value plus one to ten bits
                 %
-                /Dbits [
-                    Dbits aload pop
-                    0 msg i 3 getinterval {48 sub add 10 mul} forall 10 idiv
-                    1 add 10 tobin aload pop
-                ] def
+                0 msg i 3 getinterval {48 sub add 10 mul} forall 10 idiv
+                1 add 10 tobin aload pop  10 appendbits
                 /i i 3 add def
 
             } loop
 
+            /Dbits Dbitsbuf 0 Dbitslen getinterval def
             mark
-            0 8 Dbits length 1 sub {
-                Dbits exch 8 getinterval 0 exch {add 2 mul} forall 2 idiv
-            } for
+            Dbitslen 0 gt {
+                0 8 Dbitslen 1 sub {
+                    Dbits exch 8 getinterval 0 exch {add 2 mul} forall 2 idiv
+                } for
+            } if
             counttomark array astore exch pop addtocws
             /mode //codeone.a def
 
