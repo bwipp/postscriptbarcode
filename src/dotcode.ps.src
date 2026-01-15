@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER dotcode--
-% --REQUIRES preamble raiseerror processoptions parseinput setanycolor rendertext renmatrix--
+% --REQUIRES preamble raiseerror processoptions parseinput setanycolor fifocache rendertext renmatrix--
 % --DESC: DotCode
 % --EXAM: This is DotCode
 % --EXOP: inkspread=0.16
@@ -44,6 +44,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /fifocache dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -187,6 +188,44 @@ begin
 /uk.co.terryburton.bwipp.global_ctx dup where {
     exch get /preload known {//dotcode.latevars /init get exec} if
 } {pop} ifelse
+
+%
+% Generate Reed-Solomon coefficients for given NC (uses rsalog from currentdict)
+%
+/dotcode.gencoeffs {
+    /coeffs [ 1 NC {0} repeat ] def
+    1 1 NC {
+        /i exch def
+        NC -1 1 {
+            /j exch def
+            coeffs j coeffs j get 113 add rsalog i get coeffs j 1 sub get mul 113 mod sub 113 mod put
+        } for
+    } for
+    coeffs
+} bind def
+
+%
+% FIFO cache for ECC polynomials
+%
+% 79 unique keys: NC=1-79 continuous range from symbol interleaving
+%
+/dotcode.coeffscachemax 79 def      % Override with global_ctx.dotcode.coeffscachemax
+/dotcode.coeffscachelimit 3160 def  % Override with global_ctx.dotcode.coeffscachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /dotcode.coeffscachemax 2 copy known {get /dotcode.coeffscachemax exch def} {pop pop} ifelse
+    /dotcode.coeffscachelimit 2 copy known {get /dotcode.coeffscachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/dotcode.coeffscache dotcode.coeffscachemax dotcode.coeffscachelimit //fifocache exec def
+
+/dotcode.coeffscachefetch {
+    /NC exch def
+    NC
+    { //dotcode.gencoeffs exec }
+    { length }
+    //dotcode.coeffscache /fetch get exec
+} bind def
 
 /dotcode {
 
@@ -1067,14 +1106,7 @@ begin
             /ND nd 1 add start sub step add 1 sub step idiv def
             /NW nw 1 add start sub step add 1 sub step idiv def
             /NC NW ND sub def
-            /coeffs [ 1 NC {0} repeat ] def
-            1 1 NC {
-                /i exch def
-                NC -1 1 {
-                    /j exch def
-                    coeffs j coeffs j get 113 add rsalog i get coeffs j 1 sub get mul 113 mod sub 113 mod put
-                } for
-            } for
+            /coeffs NC //dotcode.coeffscachefetch exec def
             0 1 ND 1 sub {
                 /t exch rscws exch offset get rscws ND offset get add 113 mod def
                 0 1 NC 2 sub {
