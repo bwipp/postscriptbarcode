@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -865,7 +865,7 @@ begin
 
         /encn {
             /in exch def
-            /out [] def
+            mark
             0 44 in length 1 sub {
                 /k exch def
                 /gmod [
@@ -874,27 +874,29 @@ begin
                 ] def
                 /cwn [] def {
                     /dv 900 def
-                    /gmul [] def /val 0 def {
+                    /val 0 def /gmulstart true def
+                    mark  % Start collecting gmul digits
+                    {
                         gmod length 0 eq {exit} if
                         /val val 10 mul gmod 0 get add def
                         /gmod gmod 1 gmod length 1 sub getinterval def
                         val dv lt {
-                            gmul length 0 ne {
-                                /gmul [ gmul aload pop 0 ] def
-                            } if
+                            gmulstart not { 0 } if  % Push 0 if not at start
                         } {
-                            /gmul [ gmul aload pop val dv idiv ] def
+                            val dv idiv  % Push quotient digit
+                            /gmulstart false def
                         } ifelse
                         /val val dv mod def
                     } loop
+                    counttomark array astore exch pop  % Build gmul
                     /dv val def
                     /cwn [ dv cwn aload pop ] def
-                    /gmod gmul def
-                    gmul length 0 eq {exit} if
+                    /gmod exch def
+                    gmod length 0 eq {exit} if
                 } loop
-                /out [ out aload pop cwn aload pop ] def
+                cwn aload pop
             } for
-            out
+            counttomark array astore exch pop
         } def
 
         /ence {
