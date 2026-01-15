@@ -685,13 +685,13 @@ Large 2D symbols have different runtime bottlenecks, for example:
 
 **Data Matrix** - ~75% of 144x144 runtime is RSEC codeword calculation; bottleneck is due to many codewords per block
 - ECC codeword calculation is already optimal so there is little that can be gained
-- Generator polynomical generation is negligable compared to codeword calculation
+- Generator polynomial generation is negligable compared to codeword calculation
 
 **Aztec Code** - ~95% of 32-layer runtime is RSEC coefficient generation; bottleneck is large Galois field operations
 - This cost is largely amortised during long production runs by using a FIFO cache
 
 **PDF417** - At high ECC levels RSEC coefficient generation is ~85% of initial runtime
-- Lazy loading of all polynomials reduces this time for subsequent symbols
+- This cost is largely amortised during long production runs by using a FIFO cache
 
 **MicroPDF417** - No significant bottleneck
 - Coefficient generation is quick due to limited number of error codewords
