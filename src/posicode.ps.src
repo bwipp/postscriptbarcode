@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -321,7 +321,8 @@ begin
         %
         % FNC4 codeword insertion for extended ASCII
         %
-        /ea false def /msgtmp [] def
+        /ea false def
+        mark
         0 1 msglen 1 sub {
             /i exch def
             /c msg i get def
@@ -329,15 +330,15 @@ begin
                 ea {numSA} {numEA} ifelse i get dup  % Runlength of other mode
                 i add msglen eq {3} {5} ifelse       % Does run terminate symbol
                 lt {  % Shift
-                    /msgtmp [ msgtmp aload pop //posicode.fn4 ] def
+                    //posicode.fn4
                 } {   % Latch
-                    /msgtmp [ msgtmp aload pop //posicode.fn4 //posicode.fn4 ] def
+                    //posicode.fn4 //posicode.fn4
                     /ea ea not def
                 } ifelse
             } if
-            /msgtmp [ msgtmp aload pop c 0 ge {c 127 and} {c} ifelse ] def
+            c 0 ge {c 127 and} {c} ifelse
         } for
-        /msg msgtmp def
+        counttomark array astore /msg exch def pop
         /msglen msg length def
 
         %
