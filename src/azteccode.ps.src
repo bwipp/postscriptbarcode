@@ -372,9 +372,21 @@ begin
 
         /e //azteccode.e def
 
+        %
+        % Each char adds 1, latches add up to 3
+        %
+        /maxseqlen msglen 4 mul def
+
+        /seq0 [ 6 { maxseqlen array } repeat ] def
+        /seq1 [ 6 { maxseqlen array } repeat ] def
+        /len0 6 array def  0 1 5 { len0 exch 0 put } for
+        /len1 6 array def
+
+        /curseq seq0 def  /curseqlen len0 def
+        /nxtseq seq1 def  /nxtseqlen len1 def
+
         %          U  L  M  P  D  B
         /curlen [  0  e  e  e  e  e ] def
-        /curseq [ [] [] [] [] [] [] ] def
 
         /backto //azteccode.u def  % U
         /lastchar () def
@@ -397,10 +409,16 @@ begin
                             /cost curlen x get //azteccode.latlen x get y get add def
                             cost curlen y get lt {
                                 curlen y cost put
-                                curseq y [
-                                    curseq x get aload pop
-                                    //azteccode.latseq x get y get aload pop
-                                ] put
+                                % Copy curseq[x] to curseq[y] and append latseq codes
+                                /srclen curseqlen x get def
+                                srclen 0 gt {
+                                    curseq y get 0 curseq x get 0 srclen getinterval putinterval
+                                } if
+                                //azteccode.latseq x get y get {
+                                    curseq y get srclen 3 -1 roll put
+                                    /srclen srclen 1 add def
+                                } forall
+                                curseqlen y srclen put
                                 y //azteccode.b eq {  % Set backto to previous state
                                     /backto x //azteccode.p eq x //azteccode.d eq or {//azteccode.u} {x} ifelse def
                                 } if
@@ -417,7 +435,7 @@ begin
             %
             %          U  L  M  P  D  B
             /nxtlen [  e  e  e  e  e  e ] def
-            /nxtseq 6 array def
+            0 1 5 { nxtseqlen exch 0 put } for
 
             //azteccode.states {
                 /x exch def
@@ -434,12 +452,17 @@ begin
                     } ifelse
 
                     %
-                    % Extend directly
+                    % Extend directly: copy curseq[x] + char to nxtseq[x]
                     %
                     /cost curlen x get x char charsize add def
                     cost nxtlen x get lt {
                         nxtlen x cost put
-                        nxtseq x [ curseq x get aload pop char ] put
+                        /srclen curseqlen x get def
+                        srclen 0 gt {
+                            nxtseq x get 0 curseq x get 0 srclen getinterval putinterval
+                        } if
+                        nxtseq x get srclen char put
+                        nxtseqlen x srclen 1 add put
                     } if
 
                     %
@@ -453,11 +476,14 @@ begin
                             /cost curlen y get //azteccode.shftlen y get x get add x char charsize add def
                             cost nxtlen y get lt {
                                 nxtlen y cost put
-                                nxtseq y [
-                                    curseq y get aload pop
-                                    x //azteccode.u eq {//azteccode.su} {//azteccode.sp} ifelse
-                                    char
-                                ] put
+                                % Copy curseq[y] + shift + char to nxtseq[y]
+                                /srclen curseqlen y get def
+                                srclen 0 gt {
+                                    nxtseq y get 0 curseq y get 0 srclen getinterval putinterval
+                                } if
+                                nxtseq y get srclen x //azteccode.u eq {//azteccode.su} {//azteccode.sp} ifelse put
+                                nxtseq y get srclen 1 add char put
+                                nxtseqlen y srclen 2 add put
                             } if
                         } if
                     } forall
@@ -484,19 +510,19 @@ begin
                                 lastchar 44 eq lastchar 46 eq or { /inP false def } if
                             } if
                         } ifelse
+                        /curseqilen curseqlen i get def
                         inP curlen i get nxtlen i get lt and {
-                            /curseqi curseq i get def
                             /lastld false def
                             /lastsp false def
                             /lastidx -1 def
-                            curseqi length 1 sub -1 0 {  % Search backwards for lastchar
+                            curseqilen 1 sub -1 0 {  % Search backwards for lastchar
                                 /idx exch def
-                                /ch curseqi idx get def
+                                /ch curseq i get idx get def
                                 lastidx -1 eq {
                                     ch lastchar eq {
                                         /lastidx idx def
                                         idx 0 gt {
-                                            curseqi idx 1 sub get //azteccode.sp eq { /lastsp true def } if  % Preceded by P/S
+                                            curseq i get idx 1 sub get //azteccode.sp eq { /lastsp true def } if  % Preceded by P/S
                                         } if
                                     } if
                                 } {  % Found lastchar, check latch
@@ -516,18 +542,31 @@ begin
                             } for
                             inP lastidx 0 ge and {
                                 nxtlen i curlen i get put
-                                lastidx curseqi length 1 sub lt {  % If lastchar not at end of sequence
+                                lastidx curseqilen 1 sub lt {  % If lastchar not at end of sequence
                                     i //azteccode.p eq {
                                         lastld { nxtlen i nxtlen i get 1 add put } if  % Adjust count if D/L
-                                        % Move lastchar to end and replace
-                                        nxtseq i [ curseqi aload pop curseqi length lastidx sub -1 roll pop //azteccode.pcomp pchars get ] put
+                                        % Copy curseq[i], move lastchar to end and replace with pcomp
+                                        /srclen curseqilen def
+                                        nxtseq i get 0 curseq i get 0 lastidx getinterval putinterval
+                                        nxtseq i get lastidx curseq i get lastidx 1 add srclen lastidx sub 1 sub getinterval putinterval
+                                        nxtseq i get srclen 1 sub //azteccode.pcomp pchars get put
+                                        nxtseqlen i srclen put
                                     } {
-                                        % Replace lastchar in situ
-                                        nxtseq i [ curseqi aload pop ] put
+                                        % Copy curseq[i] and replace lastchar in situ
+                                        curseqilen 0 gt {
+                                            nxtseq i get 0 curseq i get 0 curseqilen getinterval putinterval
+                                        } if
                                         nxtseq i get lastidx //azteccode.pcomp pchars get put
+                                        nxtseqlen i curseqilen put
                                     } ifelse
                                 } {
-                                    nxtseq i [ curseqi aload pop pop //azteccode.pcomp pchars get ] put
+                                    % Copy curseq[i] except last element, append pcomp
+                                    /srclen curseqilen 1 sub def
+                                    srclen 0 gt {
+                                        nxtseq i get 0 curseq i get 0 srclen getinterval putinterval
+                                    } if
+                                    nxtseq i get srclen //azteccode.pcomp pchars get put
+                                    nxtseqlen i srclen 1 add put
                                 } ifelse
                             } if
                         } if
@@ -538,16 +577,19 @@ begin
             %
             % Account for binary extension for 32 or more bytes
             %
-            nxtseq //azteccode.b get null ne {
+            nxtseqlen //azteccode.b get 0 gt {
                 /numbytes 0 def
-                nxtseq //azteccode.b get {
+                0 1 nxtseqlen //azteccode.b get 1 sub {
+                    nxtseq //azteccode.b get exch get
                     //azteccode.sb eq {0} {numbytes 1 add} ifelse /numbytes exch def
-                } forall
+                } for
                 numbytes 32 eq {nxtlen //azteccode.b nxtlen //azteccode.b get 11 add put} if
             } if
 
             /curlen nxtlen def
-            /curseq nxtseq def
+            % Swap cur and nxt buffers
+            curseq nxtseq /curseq exch def /nxtseq exch def
+            curseqlen nxtseqlen /curseqlen exch def /nxtseqlen exch def
             /lastchar char 0 ge {char} {()} ifelse def
 
         } forall
@@ -560,7 +602,7 @@ begin
             /i exch def
             curlen i get minseq lt {
                 /minseq curlen i get def
-                /seq curseq i get def
+                /seq curseq i get 0 curseqlen i get getinterval def
             } if
         } forall
 
