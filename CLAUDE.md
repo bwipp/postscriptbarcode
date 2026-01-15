@@ -12,6 +12,7 @@ Performance, execution cost, and interpreter compatibility are critical.
 - Create atomic, logical commits upon completion.
 - Do not push commits or rewrite history.
 - Use sparse comments explaining "why" not "how".
+- Ensure that code comments describe only the current code and do not reference changes made with respect to old code - that's what commit descriptions are for.
 - Generated code should match existing idioms. Newer encoders such as QR Code are the best source of idiomatic code.
 - Maintain existing user API (encoder interfaces and metadata).
 - Prefer derived values over opaque constants so that the code is auditable, unless prohibitively expensive (even for lazy init).
