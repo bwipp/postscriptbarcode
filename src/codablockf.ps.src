@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -226,13 +226,12 @@ begin
     %
     % FNC4 codeword insertion for extended ASCII
     %
-    /msgtmp [] def
-    msg {
-        /char exch def
-        /msgtmp [ msgtmp aload pop char 128 lt {char} {//codablockf.fn4 char 127 and} ifelse ] def
-    } forall
     /kmsg msg def  % Keep for k1/k2 check characters calculation
-    /msg msgtmp def
+    mark
+    msg {
+        dup 128 ge {//codablockf.fn4 exch 127 and} if
+    } forall
+    counttomark array astore /msg exch def pop
     /msglen msg length def
 
     %
