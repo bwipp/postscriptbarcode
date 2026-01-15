@@ -794,9 +794,21 @@ begin
 
             /in exch def
 
-            /curlen [  //micropdf417.e  //micropdf417.e  //micropdf417.e  //micropdf417.e ] def
+            %
+            % Each char adds 1 codeword, latches add up to 2
+            %
+            /maxseqlen in length 3 mul 4 add def
+
+            /seq0 [ 4 { maxseqlen array } repeat ] def
+            /seq1 [ 4 { maxseqlen array } repeat ] def
+            /len0 4 array def  len0 0 0 put  len0 1 0 put  len0 2 0 put  len0 3 0 put
+            /len1 4 array def
+
+            /curseq seq0 def  /curseqlen len0 def
+            /nxtseq seq1 def  /nxtseqlen len1 def
+
+            /curlen [ //micropdf417.e //micropdf417.e //micropdf417.e //micropdf417.e ] def
             curlen submode 0 put
-            /curseq [ [] [] [] [] ] def
 
             % Derive the optimal sequences ending in each submode
             in {
@@ -813,10 +825,16 @@ begin
                             /cost curlen x get //micropdf417.latlen x get y get add def
                             cost curlen y get lt {
                                 curlen y cost put
-                                curseq y [
-                                    curseq x get aload pop
-                                    //micropdf417.latseq x get y get aload pop
-                                ] put
+                                % Copy curseq[x] to curseq[y] and append latseq codes
+                                /srclen curseqlen x get def
+                                srclen 0 gt {
+                                    curseq y get 0 curseq x get 0 srclen getinterval putinterval
+                                } if
+                                //micropdf417.latseq x get y get {
+                                    curseq y get srclen 3 -1 roll put
+                                    /srclen srclen 1 add def
+                                } forall
+                                curseqlen y srclen put
                                 /imp true def
                             } if
                         } forall
@@ -828,7 +846,7 @@ begin
                 % Determine optimal next sequences for each valid encoding
                 %
                 /nxtlen [ //micropdf417.e //micropdf417.e //micropdf417.e //micropdf417.e ] def
-                /nxtseq 4 array def
+                nxtseqlen 0 0 put  nxtseqlen 1 0 put  nxtseqlen 2 0 put  nxtseqlen 3 0 put
 
                 //micropdf417.textsubmodes {
                     /x exch def
@@ -838,12 +856,17 @@ begin
                         charvals x get char known not {exit} if
 
                         %
-                        % Extend directly
+                        % Extend directly: copy curseq[x] + char to nxtseq[x]
                         %
                         /cost curlen x get 1 add def
                         cost nxtlen x get lt {
                             nxtlen x cost put
-                            nxtseq x [ curseq x get aload pop char ] put
+                            /srclen curseqlen x get def
+                            srclen 0 gt {
+                                nxtseq x get 0 curseq x get 0 srclen getinterval putinterval
+                            } if
+                            nxtseq x get srclen char put
+                            nxtseqlen x srclen 1 add put
                         } if
 
                         %
@@ -855,11 +878,14 @@ begin
                                 /cost curlen y get //micropdf417.shftlen y get x get add 1 add def
                                 cost nxtlen y get lt {
                                     nxtlen y cost put
-                                    nxtseq y [
-                                        curseq y get aload pop
-                                        x //micropdf417.a eq {//micropdf417.as} {//micropdf417.ps} ifelse
-                                        char
-                                    ] put
+                                    % Copy curseq[y] + shift + char to nxtseq[y]
+                                    /srclen curseqlen y get def
+                                    srclen 0 gt {
+                                        nxtseq y get 0 curseq y get 0 srclen getinterval putinterval
+                                    } if
+                                    nxtseq y get srclen x //micropdf417.a eq {//micropdf417.as} {//micropdf417.ps} ifelse put
+                                    nxtseq y get srclen 1 add char put
+                                    nxtseqlen y srclen 2 add put
                                 } if
                             } if
                         } forall
@@ -870,7 +896,9 @@ begin
                 } forall
 
                 /curlen nxtlen def
-                /curseq nxtseq def
+                % Swap cur and nxt buffers
+                curseq nxtseq /curseq exch def /nxtseq exch def
+                curseqlen nxtseqlen /curseqlen exch def /nxtseqlen exch def
 
             } forall
 
@@ -882,7 +910,7 @@ begin
                 /k exch def
                 curlen k get minseq lt {
                     /minseq curlen k get def
-                    /txtseq curseq k get def
+                    /txtseq curseq k get 0 curseqlen k get getinterval def
                 } if
             } forall
 
