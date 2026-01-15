@@ -164,21 +164,27 @@ Each resource source file has a similar structure:
    - Embedded procedures should have explicit `bind`
    - Must be marked `readonly`
 
-6. **Lazy initialisation procedure**
+6. **Initialisation of any FIFO caches**
+   - Definition of cache capacity parameters and loading of parameter overrides from global context
+   - Definition of a generator procedure and a cardinality function
+   - Executing the `fifocache` resource to return a named "FIFO cache object"
+
+7. **Lazy initialisation procedure**
    - Data that must be computed (expensive) and is deferred until first execution
    - First run derives and stores values (in global VM); subsequent runs load cached values
    - Embedded procedures do not require `bind` (propagates from outer procedure)
 
-7. **Main procedure**
+8. **Main procedure**
    - Exported by the resource and called on demand
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
+   - Makes use of any named FIFO caches by executing their `fetch` method 
    - Bind the main procedure whilst inhibiting binding of non-standard operators defined on some RIPs, i.e. `barcode`
 
-8. **Resource definition**
+9. **Resource definition**
    - Define the main procedure as a resource
 
-9. **Allocation mode restore**
+10. **Allocation mode restore**
    - Return to previous defaults
 
 
@@ -434,6 +440,9 @@ Encoders create a common dictionary structure expected by their renderer:
     /pixs [...]             % 30x29 hexagon grid values
     /opt options
 >>
+
+Callers can access the intermediate dictionary by setting the `dontdraw` options with `enabledontdraw` set in global context.
+
 ```
 
 
@@ -519,7 +528,7 @@ Read configuration from (optional) global context with a default:
 ```
 
 
-**Module-Level Caching with fifocache**
+**Module-Level Caching with FIFO caches**
 
 For expensive computations that benefit from caching across invocations (e.g.,
 generation of Reed-Solomon polynomial coefficients), use the `fifocache`
@@ -992,4 +1001,3 @@ Some PLRM terminology is a source of confusion. As a result of the following com
 - `b` is also an "object" that refers to the same VM storage as `a`
 
 The terminology differs from many languages where the array itself would be referred to as an object and a and b would be referred to as names or references.
-
