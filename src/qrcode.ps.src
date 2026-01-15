@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER qrcode--
-% --REQUIRES preamble raiseerror processoptions parseinput setanycolor rendertext renmatrix--
+% --REQUIRES preamble raiseerror processoptions parseinput setanycolor fifocache rendertext renmatrix--
 % --DESC: QR Code
 % --EXAM: http://goo.gl/0bis
 % --EXOP: eclevel=M
@@ -44,6 +44,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /fifocache dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -621,6 +622,62 @@ begin
     exch get /preload known {//qrcode.latevars /init get exec} if
 } {pop} ifelse
 
+%
+% Function to calculate the product in the field
+%
+/qrcode.rsprod {
+    dup 0 ne { 1 index 0 ne {
+        rslog exch get exch rslog exch get add 255 mod rsalog exch get
+    } { pop pop 0 } ifelse } { pop pop 0 } ifelse
+} bind def
+
+%
+% Generate Reed-Solomon coefficients for a given ecpb
+%
+/qrcode.gencoeffs {
+    /coeffs [ 1 ecpb {0} repeat ] def
+    0 1 ecpb 1 sub {  % i
+        rsalog 1 index get                        % ai = rsalog[i]
+        exch dup 1 add                            % ai i i+1
+        coeffs exch 2 copy 1 sub get put          % ai i ; coeffs[i+1] = coeffs[i]
+        -1 1 {  % j
+            coeffs exch 2 copy get                % ... coeffs j coeffs[j]
+            3 index                               % ... ai
+            //qrcode.rsprod exec                  % p = coeffs[j] * ai
+            coeffs 2 index 1 sub get              % ... coeffs[j-1]
+            xor put                               % coeffs[j] = p ^ coeffs[j-1]
+        } for
+        coeffs 0 2 copy get                       % ... coeffs 0 coeffs[0]
+        3 index                                   % ... ai
+        //qrcode.rsprod exec put                  % coeffs[0] = coeffs[0] * ai
+        pop  % ai
+    } for
+    coeffs 0 coeffs length 1 sub getinterval
+} bind def
+
+%
+% FIFO cache for ECC polynomials
+%
+% 20 unique keys: per-block 2-30 from version/eclevel combinations
+%
+/qrcode.coeffscachemax 20 def    % Override with global_ctx.qrcode.coeffscachemax
+/qrcode.coeffscachelimit 302 def % Override with global_ctx.qrcode.coeffscachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /qrcode.coeffscachemax 2 copy known {get /qrcode.coeffscachemax exch def} {pop pop} ifelse
+    /qrcode.coeffscachelimit 2 copy known {get /qrcode.coeffscachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/qrcode.coeffscache qrcode.coeffscachemax qrcode.coeffscachelimit //fifocache exec def
+
+/qrcode.coeffscachefetch {
+    /ecpb exch def
+    ecpb
+    { //qrcode.gencoeffs exec }
+    { length }
+    //qrcode.coeffscache /fetch get exec
+} bind def
+
 /qrcode {
 
     256 dict begin
@@ -1188,31 +1245,10 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
 
-    /rsprod {
-        dup 0 ne { 1 index 0 ne {
-            rslog exch get exch rslog exch get add 255 mod rsalog exch get
-        } { pop pop 0 } ifelse } { pop pop 0 } ifelse
-    } def
-
     %
-    % Generate the coefficients for the Reed-Solomon algorithm
+    % Fetch the coefficients (cached)
     %
-    /coeffs [ 1 ecpb {0} repeat ] def
-    0 1 ecpb 1 sub {  % i
-        rsalog 1 index get                        % ai = rsalog[i]
-        exch dup 1 add                            % ai i i+1
-        coeffs exch 2 copy 1 sub get put          % ai i ; coeffs[i+1] = coeffs[i]
-        -1 1 {  % j
-            coeffs exch 2 copy get                % ... coeffs j coeffs[j]
-            3 index                               % ... ai
-            rsprod                                % p = coeffs[j] * ai
-            coeffs 2 index 1 sub get              % ... coeffs[j-1]
-            xor put                               % coeffs[j] = p ^ coeffs[j-1]
-        } for
-        coeffs 0 2 copy get 3 index rsprod put    % coeffs[0] = coeffs[0] * ai
-        pop  % ai
-    } for
-    /coeffs coeffs 0 coeffs length 1 sub getinterval def
+    /coeffs ecpb //qrcode.coeffscachefetch exec def
 
     %
     % Reed-Solomon algorithm to derive the error correction codewords
@@ -1227,7 +1263,7 @@ begin
                 rscws 3 index 2 index add 1 add 2 copy get  % ... rcws m+j+1 rscws[m+j+1]
                 coeffs ecpb 6 -1 roll sub 1 sub get         % ... coeffs[ecpb-j-1]
                 4 index                                     % ... k
-                rsprod                                      % p = coeffs[ecpb-j-1] * k
+                //qrcode.rsprod exec                        % p = coeffs[ecpb-j-1] * k
                 xor put                                     % rscws[m+j+1] = rscws[m+j+1] ^ p
             } for
             pop  % k
