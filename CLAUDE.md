@@ -178,14 +178,14 @@ Each resource source file has a similar structure:
    - Exported by the resource and called on demand
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
-   - Makes use of any named FIFO caches by executing their `fetch` method 
+   - Makes use of any named FIFO caches by executing their `fetch` method
    - Bind the main procedure whilst inhibiting binding of non-standard operators defined on some RIPs, i.e. `barcode`
 
 9. **Resource definition**
    - Define the main procedure as a resource
 
 10. **Allocation mode restore**
-   - Return to previous defaults
+    - Return to previous defaults
 
 
 ### Encoder Metadata
