@@ -249,3 +249,19 @@
 % Data too long for symbol
 (ABCDEFGHIJKLMNOPQRSTUVWXYZ) (layers=1 dontdraw) /bwipp.aztecNoValidSymbol er_tmpl
 
+
+%
+% Coefficient cache tests (azteccode.cachelimit in global context)
+%
+
+% Large symbol with caching (default)
+{
+    (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws) azteccode
+} [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
+
+% Cache disabled via global context - same result
+uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit 0 put
+{
+    (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws) azteccode
+} [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
+uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to restore default

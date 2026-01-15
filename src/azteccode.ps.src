@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER azteccode--
-% --REQUIRES preamble raiseerror processoptions parseinput setanycolor rendertext renmatrix--
+% --REQUIRES preamble raiseerror processoptions parseinput setanycolor fifocache rendertext renmatrix--
 % --DESC: Aztec Code
 % --EXAM: This is Aztec Code
 % --EXOP: format=full
@@ -44,6 +44,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /fifocache dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -201,6 +202,46 @@ begin
 /azteccode.encfuncs [ /encu /encl /encm /encp /encd ] readonly def
 /azteccode.states [ //azteccode.u //azteccode.l //azteccode.m //azteccode.p //azteccode.d //azteccode.b ] readonly def
 /azteccode.charsizes [ 5 5 5 5 4 8 ] readonly def
+
+%
+% FIFO cache for ECC polynomials
+%
+% 551 unique keys (5 GFs, single-block up to 1581 coeffs); memory-bounded
+%
+/azteccode.coeffscachemax 551 def     % Override with global_ctx.azteccode.coeffscachemax
+/azteccode.coeffscachelimit 6000 def  % Override with global_ctx.azteccode.coeffscachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /azteccode.coeffscachemax 2 copy known {get /azteccode.coeffscachemax exch def} {pop pop} ifelse
+    /azteccode.coeffscachelimit 2 copy known {get /azteccode.coeffscachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/azteccode.gencoeffs {
+    /coeffs [ 1 rsnc {0} repeat ] def
+    1 1 rsnc {  % i
+        coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
+        rsalog 1 index get                       % ai = rsalog[i]
+        exch 1 sub -1 1 {  % for j in i-1 -> 1
+            coeffs exch 2 copy get               % ... coeffs j coeffs[j]
+            3 index                              % ... ai
+            rsprod                               % p = coeffs[j] * ai
+            coeffs 2 index 1 sub get             % ... coeffs[j-1]
+            xor put                              % coeffs[j] = p ^ coeffs[j-1]
+        } for
+        coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
+        pop  % ai
+    } for
+    coeffs
+} bind def
+
+/azteccode.coeffscache azteccode.coeffscachemax azteccode.coeffscachelimit //fifocache exec def
+
+/azteccode.coeffscachefetch {
+    100000 mul add                  % key = rsbt * 100000 + rsnc
+    { //azteccode.gencoeffs exec }
+    { length }
+    //azteccode.coeffscache /fetch get exec
+} bind def
 
 /azteccode.latevars dup 8 dict def load /init {
 
@@ -806,25 +847,7 @@ begin
             } { pop pop 0 } ifelse } { pop pop 0 } ifelse
         } def
 
-        %
-        % Generate the coefficients
-        %
-        % This is >90% of runtime for large synbols
-        %
-        /coeffs [ 1 rsnc {0} repeat ] def
-        1 1 rsnc {  % i
-            coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
-            rsalog 1 index get                       % ai = rsalog[i]
-            exch 1 sub -1 1 {  % for j in i-1 -> 1
-                coeffs exch 2 copy get               % ... coeffs j coeffs[j]
-                3 index                              % ... ai
-                rsprod                               % p = coeffs[j] * ai
-                coeffs 2 index 1 sub get             % ... coeffs[j-1]
-                xor put                              % coeffs[j] = p ^ coeffs[j-1]
-            } for
-            coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
-            pop  % ai
-        } for
+        /coeffs rsnc rsbt //azteccode.coeffscachefetch exec def
 
         %
         % Extend the input with the error correction values
