@@ -1543,6 +1543,8 @@ begin
     %
     % Evaluation algorithm for full symbols
     %
+    % Reads bestscore from enclosing scope for early termination
+    %
     /evalfull {
         /sym exch def
 
@@ -1551,6 +1553,7 @@ begin
         /lastpairs cols array def
         /thispairs cols array def
         /colsadd1 cols 1 add def
+        /earlyexit false def
         0 1 cols 1 sub {
             /i exch def
 
@@ -1589,13 +1592,19 @@ begin
                 cleartomark
             } if
 
+            % Early termination check
+            n1 n2 add n3 add bestscore ge { /earlyexit true def exit } if
+
         } for
 
-        % Score dark/light imbalance
-        /dark 0 sym {add} forall def
-        /n4 dark 100 mul cols dup mul div 50 sub abs 5 div cvi 10 mul def
-
-        n1 n2 add n3 add n4 add
+        earlyexit not {
+            % Score dark/light imbalance
+            /dark 0 sym {add} forall def
+            /n4 dark 100 mul cols dup mul div 50 sub abs 5 div cvi 10 mul def
+            n1 n2 add n3 add n4 add
+        } {
+            999999999
+        } ifelse
     } def
 
     %
