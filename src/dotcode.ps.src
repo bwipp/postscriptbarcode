@@ -195,11 +195,14 @@ begin
 /dotcode.gencoeffs {
     /coeffs [ 1 NC {0} repeat ] def
     1 1 NC {
-        /i exch def
         NC -1 1 {
-            /j exch def
-            coeffs j coeffs j get 113 add rsalog i get coeffs j 1 sub get mul 113 mod sub 113 mod put
+            coeffs 1 index 2 copy get 113 add  % ... coeffs j coeffs[j]+113
+            rsalog 5 index get                 % ... rsalog[i]
+            coeffs 6 -1 roll 1 sub get         % ... coeffs[j-1]
+            mul 113 mod                        % p = (rsalog[i] * coeffs[j-1]) mod 113
+            sub 113 mod put                    % coeffs[j] = ((coeffs[j]+113) - p) mod 113
         } for
+        pop  % i
     } for
     coeffs
 } bind def
@@ -1107,14 +1110,27 @@ begin
             /NW nw 1 add start sub step add 1 sub step idiv def
             /NC NW ND sub def
             /coeffs NC //dotcode.coeffscachefetch exec def
-            0 1 ND 1 sub {
-                /t exch rscws exch offset get rscws ND offset get add 113 mod def
-                0 1 NC 2 sub {
-                    /j exch def
-                    rscws ND j add offset rscws ND j add 1 add offset get 113 add t coeffs j 1 add get mul 113 mod sub 113 mod put
+
+            0 1 ND 1 sub {  % i
+                rscws exch offset get                                     % ... rscws[offset(i)]
+                rscws ND offset get                                       % ... rscws[offset(ND)]
+                add 113 mod                                               % t = (rscws[offset(i)] + rscws[offset(ND)]) mod 113
+                0 1 NC 2 sub {  % j
+                    rscws ND 2 index add 2 copy 1 add offset get 113 add  % ... rscws ND+j rscws[offset[ND+j+1]]+113
+                    4 index                                               % ... t
+                    coeffs 6 -1 roll 1 add get                            % ... coeffs[j+1]
+                    mul 113 mod                                           % p = (t * coeffs[j+1]) mod 113
+                    sub 113 mod put                                       % rscws[offset(ND+j)] = (rscws[offset(ND+j+1)]+113 - p) mod 113
                 } for
-                rscws ND NC add 1 sub offset 113 t coeffs NC get mul 113 mod sub 113 mod put
+                rscws ND NC add 1 sub offset                              % ... rscws offset(ND+NC-1)
+                113                                                       % ... 113
+                3 index                                                   % ... t
+                coeffs NC get                                             % ... coeffs[NC]
+                mul 113 mod                                               % p = (t * coeffs[NC]) mod 113
+                sub 113 mod put                                           % rscws[offset(ND+NC-1)] = (113 - p) mod 113
+                pop  % t
             } for
+
             ND 1 NW 1 sub { dup rscws exch offset 113 rscws 5 -1 roll offset get sub 113 mod put } for
         } for
 
