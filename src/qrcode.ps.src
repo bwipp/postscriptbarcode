@@ -440,45 +440,6 @@ begin
 /qrcode.ecidmicrosym [ [0] [1 2] [3 4] [5 6 7] ] readonly def
 
 %
-% Format information value tables
-%
-/qrcode.fmtvalsfull [
-    16#5412 16#5125 16#5e7c 16#5b4b 16#45f9 16#40ce 16#4f97 16#4aa0
-    16#77c4 16#72f3 16#7daa 16#789d 16#662f 16#6318 16#6c41 16#6976
-    16#1689 16#13be 16#1ce7 16#19d0 16#0762 16#0255 16#0d0c 16#083b
-    16#355f 16#3068 16#3f31 16#3a06 16#24b4 16#2183 16#2eda 16#2bed
-] readonly def
-
-/qrcode.fmtvalsmicro [
-    16#4445 16#4172 16#4e2b 16#4b1c 16#55ae 16#5099 16#5fc0 16#5af7
-    16#6793 16#62a4 16#6dfd 16#68ca 16#7678 16#734f 16#7c16 16#7921
-    16#06de 16#03e9 16#0cb0 16#0987 16#1735 16#1202 16#1d5b 16#186c
-    16#2508 16#203f 16#2f66 16#2a51 16#34e3 16#31d4 16#3e8d 16#3bba
-] readonly def
-
-/qrcode.fmtvalsrmqr1 [
-    16#1fab2 16#1e597 16#1dbdd 16#1c4f8 16#1b86c 16#1a749 16#19903 16#18626
-    16#17f0e 16#1602b 16#15e61 16#14144 16#13dd0 16#122f5 16#11cbf 16#1039a
-    16#0f1ca 16#0eeef 16#0d0a5 16#0cf80 16#0b314 16#0ac31 16#0927b 16#08d5e
-    16#07476 16#06b53 16#05519 16#04a3c 16#036a8 16#0298d 16#017c7 16#008e2
-    16#3f367 16#3ec42 16#3d208 16#3cd2d 16#3b1b9 16#3ae9c 16#390d6 16#38ff3
-    16#376db 16#369fe 16#357b4 16#34891 16#33405 16#32b20 16#3156a 16#30a4f
-    16#2f81f 16#2e73a 16#2d970 16#2c655 16#2bac1 16#2a5e4 16#29bae 16#2848b
-    16#27da3 16#26286 16#25ccc 16#243e9 16#23f7d 16#22058 16#21e12 16#20137
-] readonly def
-
-/qrcode.fmtvalsrmqr2 [
-    16#20a7b 16#2155e 16#22b14 16#23431 16#248a5 16#25780 16#269ca 16#276ef
-    16#28fc7 16#290e2 16#2aea8 16#2b18d 16#2cd19 16#2d23c 16#2ec76 16#2f353
-    16#30103 16#31e26 16#3206c 16#33f49 16#343dd 16#35cf8 16#362b2 16#37d97
-    16#384bf 16#39b9a 16#3a5d0 16#3baf5 16#3c661 16#3d944 16#3e70e 16#3f82b
-    16#003ae 16#01c8b 16#022c1 16#03de4 16#04170 16#05e55 16#0601f 16#07f3a
-    16#08612 16#09937 16#0a77d 16#0b858 16#0c4cc 16#0dbe9 16#0e5a3 16#0fa86
-    16#108d6 16#117f3 16#129b9 16#1369c 16#14a08 16#1552d 16#16b67 16#17442
-    16#18d6a 16#1924f 16#1ac05 16#1b320 16#1cfb4 16#1d091 16#1eedb 16#1f1fe
-] readonly def
-
-%
 % Version information module map (QR Code only)
 %
 /qrcode.vimmap [
@@ -500,17 +461,6 @@ begin
     [ {  9 sub 0 } bind  { 0 exch  9 sub } bind ]
     [ { 10 sub 0 } bind  { 0 exch 10 sub } bind ]
     [ { 11 sub 0 } bind  { 0 exch 11 sub } bind ]
-] readonly def
-
-%
-% Version information value table
-%
-/qrcode.vervals [
-    16#07c94 16#085bc 16#09a99 16#0a4d3 16#0bbf6 16#0c762 16#0d847
-    16#0e60d 16#0f928 16#10b78 16#1145d 16#12a17 16#13532 16#149a6
-    16#15683 16#168c9 16#177ec 16#18ec4 16#191e1 16#1afab 16#1b08e
-    16#1cc1a 16#1d33f 16#1ed75 16#1f250 16#209d5 16#216f0 16#228ba
-    16#2379f 16#24b0b 16#2542e 16#26a64 16#27541 16#28c69
 ] readonly def
 
 %
@@ -567,6 +517,26 @@ begin
     (rmqr)  [ 4 ]
 >> readonly def
 
+%
+% BCH remainder after division in GF(2)
+%
+/qrcode.bchrem {  % gen shift data
+    1 index bitshift                                       % gen shift val ; val = data << shift
+    {  % gen shift val
+        dup 0 eq {exit} if
+        dup 0 exch                                         % ... vdeg tmp ; vdeg=0, tmp=val
+        dup 65536 ge { -16 bitshift exch 16 add exch } if  % Binary search for MSB position (vdeg)
+        dup   256 ge {  -8 bitshift exch  8 add exch } if
+        dup    16 ge {  -4 bitshift exch  4 add exch } if
+        dup     4 ge {  -2 bitshift exch  2 add exch } if
+                2 ge {                    1 add      } if  % ... vdeg
+        dup 3 index lt {pop exit} if                       % if vdeg < shift: done
+        2 index sub 3 index exch bitshift                  % ... gen<<(vdeg-shift)
+        exch xor                                           % gen shift val' ; val' = val^(gen<<(vdeg-shift))
+    } loop
+    3 1 roll pop pop                                       % val'
+} bind def
+
 /qrcode.latevars dup 16 dict def load /init {
 
     currentglobal
@@ -607,6 +577,38 @@ begin
         } for
     } for
     /funcpatlayers funcpatlayers readonly def
+
+    %
+    % Generate format and version information tables via BCH encoding
+    %
+    /fmtvalsfull 32 array def
+    /fmtvalsmicro 32 array def
+    0 1 31 {  % BCH(15,5) with generator x^10+x^8+x^5+x^4+x^2+x+1 = 0x537
+        16#537 10 2 index //qrcode.bchrem exec
+        1 index 10 bitshift or
+        dup 16#5412 xor fmtvalsfull  3 index 3 -1 roll put       % Format info for Full QR
+            16#4445 xor fmtvalsmicro 3 1 roll put                % Format info for Micro QR
+    } for
+    /fmtvalsfull fmtvalsfull readonly def
+    /fmtvalsmicro fmtvalsmicro readonly def
+
+    /fmtvalsrmqr1 64 array def
+    /fmtvalsrmqr2 64 array def
+    /vervals 34 array def
+    0 1 63 {  % BCH(18,6) with generator x^12+x^11+x^10+x^9+x^8+x^5+x^2+1 = 0x1F25
+        16#1F25 12 2 index //qrcode.bchrem exec
+        1 index 12 bitshift or
+        2 copy  16#1FAB2 xor fmtvalsrmqr1 4 index 3 -1 roll put  % Format info for rMQR
+        pop dup 16#20A7B xor fmtvalsrmqr2 3 index 3 -1 roll put  % Format info for rMQR
+        exch dup 7 ge 1 index 40 le and {
+            7 sub exch vervals 3 1 roll put                      % Version info for QR V7-40
+        } {
+            pop pop
+        } ifelse
+    } for
+    /fmtvalsrmqr1 fmtvalsrmqr1 readonly def
+    /fmtvalsrmqr2 fmtvalsrmqr2 readonly def
+    /vervals vervals readonly def
 
     /init { //qrcode.latevars {def} forall } def
 
@@ -1700,7 +1702,7 @@ begin
     %
     format (full) eq {
         /ecid //qrcode.ecidfull eclval get def
-        /fmtval //qrcode.fmtvalsfull ecid 3 bitshift bestmaskval add get def
+        /fmtval fmtvalsfull ecid 3 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             formatmap i get {
@@ -1710,7 +1712,7 @@ begin
     } if
     format (micro) eq {
         /symid //qrcode.ecidmicrosym cols 11 sub 2 idiv get eclval get def
-        /fmtval //qrcode.fmtvalsmicro symid 2 bitshift bestmaskval add get def
+        /fmtval fmtvalsmicro symid 2 bitshift bestmaskval add get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval 14 i sub neg bitshift 1 and put
@@ -1718,8 +1720,8 @@ begin
     } if
     format (rmqr) eq {
         /fmtvalu //qrcode.ecidrmqr eclval get 5 bitshift verind add def
-        /fmtval1 //qrcode.fmtvalsrmqr1 fmtvalu get def
-        /fmtval2 //qrcode.fmtvalsrmqr2 fmtvalu get def
+        /fmtval1 fmtvalsrmqr1 fmtvalu get def
+        /fmtval2 fmtvalsrmqr2 fmtvalu get def
         0 1 formatmap length 1 sub {
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval1 17 i sub neg bitshift 1 and put
@@ -1731,7 +1733,7 @@ begin
     % Add the version information
     %
     format (full) eq cols 45 ge and {
-        /verval //qrcode.vervals cols 17 sub 4 idiv 7 sub get def
+        /verval vervals cols 17 sub 4 idiv 7 sub get def
         0 1 versionmap length 1 sub {
             /i exch def
             versionmap i get {
