@@ -218,6 +218,7 @@ begin
     /txt txt 0 barcode length spacecnt add getinterval def
 
     /normalize {
+
         /base exch def
         /num exch def
         num length 1 sub -1 1 {
@@ -247,11 +248,11 @@ begin
         } if
 
         %
-        % Trim leading zeros
+        % Trim leading zeros and return
         %
-        /num [/i true def num {dup 0 eq i and {pop} {/i false def} ifelse} forall] def
-        num length 0 eq {/num [0] def} if
-        num
+        0 { dup num length ge {exit} if num 1 index get 0 ne {exit} if 1 add } loop
+        dup num length ge { pop [0] } { num exch num length 1 index sub getinterval } ifelse
+
     } def
 
     /bigadd {
