@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -218,6 +218,7 @@ begin
     /txt txt 0 barcode length spacecnt add getinterval def
 
     /normalize {
+
         /base exch def
         /num exch def
         num length 1 sub -1 1 {
@@ -225,19 +226,33 @@ begin
             num i 1 sub 2 copy get num i get base idiv add put
             num i num i get base mod put
         } for
-        { %loop - extend input as necessary
-            num 0 get base lt {exit} if
-            /num [ 0 num aload pop ] def
-            num 0 num 0 get num 1 get base idiv add put
-            num 1 num 1 get base mod put
-        } loop
 
         %
-        % Trim leading zeros
+        % Extend array using stack accumulation
         %
-        /num [/i true def num {dup 0 eq i and {pop} {/i false def} ifelse} forall] def
-        num length 0 eq {/num [0] def} if
-        num
+        num 0 get base ge {
+            mark num 0 get
+            { % loop
+                dup base lt {exit} if
+                dup base mod exch base idiv
+            } loop
+            % Stack: mark lsb lsb-1 ... msb (msb < base)
+            counttomark 1 sub /extcnt exch def
+            counttomark array astore /extdigits exch def
+            pop  % mark
+            % Build num with reversed extension digits prepended to num[1:]
+            /num [
+                extcnt -1 0 { extdigits exch get } for
+                num 1 num length 1 sub getinterval aload pop
+            ] def
+        } if
+
+        %
+        % Trim leading zeros and return
+        %
+        0 { dup num length ge {exit} if num 1 index get 0 ne {exit} if 1 add } loop
+        dup num length ge { pop [0] } { num exch num length 1 index sub getinterval } ifelse
+
     } def
 
     /bigadd {
@@ -315,6 +330,10 @@ begin
     fcs 1024 and 0 ne {
         codewords 0 codewords 0 get 659 add put
     } if
+
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws codewords //raiseerror exec } if
 
     %
     % Conversion from codewords to characters
