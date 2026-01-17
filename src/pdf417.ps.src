@@ -657,61 +657,48 @@ begin
         /numtext   numtext   0 msglen getinterval def
         /numbytes  numbytes  0 msglen getinterval def
 
-        /seq [] def /seqlen 0 def /state //pdf417.t def /p 0 def {  % loop
+        mark
+        /seqlen 0 def /state //pdf417.t def /p 0 def {  % loop
             p msglen eq {exit} if
             iseci p get {
                 /eci msg p get def
-                /seq [
-                    seq aload pop
-                    [ eci ]
-                ] def
+                [ eci ]
                 /p p 1 add def
                 /seqlen seqlen eci -1810900 le {2} {eci -1000900 le {3} {2} ifelse} ifelse add def
             } {
             /n numdigits p get def
             n 13 ge n msglen eq n 8 ge and or {  % 13+ digits or all-numeric and 8+ digits
-                /seq [
-                    seq aload pop
-                    //pdf417.nl
-                    [ msg p n getinterval aload pop ]
-                ] def
+                //pdf417.nl
+                [ msg p n getinterval aload pop ]
                 /state //pdf417.n def
                 /p p n add def
                 /seqlen seqlen 1 add n add def
             } {  % next
             /t numtext p get def
             t 5 ge {
-                /seq [
-                    seq aload pop
-                    state //pdf417.t ne {
-                        //pdf417.tl
-                    } if
-                    [ msg p t getinterval aload pop ]
-                ] def
+                state //pdf417.t ne {
+                    //pdf417.tl
+                } if
+                [ msg p t getinterval aload pop ]
                 /state //pdf417.t def
                 /p p t add def
                 /seqlen seqlen 1 add t add def  % ish
             } {  % next
             /b numbytes p get def
             b 1 eq state //pdf417.t eq and {
-                /seq [
-                    seq aload pop
-                    //pdf417.bs
-                    [ msg p get ]
-                ] def
+                //pdf417.bs
+                [ msg p get ]
                 /p p b add def
                 /seqlen seqlen 2 add def
             } {  % next
-                /seq [
-                    seq aload pop
-                    b 6 mod 0 ne {//pdf417.bl} {//pdf417.bl6} ifelse
-                    [ msg p b getinterval aload pop ]
-                ] def
+                b 6 mod 0 ne {//pdf417.bl} {//pdf417.bl6} ifelse
+                [ msg p b getinterval aload pop ]
                 /state //pdf417.b def
                 /p p b add def
                 /seqlen seqlen 1 add b add def
             } ifelse } ifelse } ifelse } ifelse
         } loop
+        counttomark array astore exch pop /seq exch def
 
         %
         % Submode encoding functions
