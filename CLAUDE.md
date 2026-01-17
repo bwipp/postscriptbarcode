@@ -450,18 +450,19 @@ Callers can access the intermediate dictionary by setting the `dontdraw` options
 
 ### Ghostscript Observed Behaviour
 
-- Each `/name value def` has fixed cost; name lookup has similar cost
-- Basic stack ops (pop, index, roll) have similar cost to dict ops
-- Consecutive stack operations have small marginal cost after initial op
+- Dict reads are ~1.3x faster than stack `index`; writes (`def`) are ~1.25x slower than reads
+- Stack manipulation wins by avoiding `def`, not by faster access
+- `forall` avoids per-iteration `get` overhead compared to `for` + `get`
+- `N index` cost is independent of stack depth
+- `getinterval` cost is fixed regardless of size (returns a view, not a copy)
+- String literals `(...)` are allocated at definition time; array `[...]` and dict `<<...>>` literals are allocated at execution time
 
 
 ### Optimization Patterns
 
-- Use `//name` immediate lookup for static data (avoids runtime structure allocation cost)
+- Use `//name` immediate lookup for static data (avoids runtime allocation and dictionary lookups); use directly rather than creating local aliases (e.g., `//encoder.fnc1` not `/fnc1 //encoder.fnc1 def`)
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
-- Prefer stack manipulation over creating intermediate dictionaries
-- Use immediate references directly instead of creating local aliases (e.g., use `//encoder.fnc1` directly rather than `/fnc1 //encoder.fnc1 def`). This saves runtime dictionary lookups.
-- When latevars needs a helper function to compute values, define it in static scope (ensure to bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec` in latevars to save lookups.
+- When latevars needs a helper function, define it in static scope (bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec`
 
 **Conditional Assignment Pattern**
 
@@ -480,13 +481,13 @@ condition {
 ```
 
 
-**"Switch" blocks (short circuit)**
+**"Switch" blocks (common exit)**
 
-Long `ifelse` chains should be avoided by using a "common exit" pattern,
-clearly denoted by a comment on the first line:
+Long `ifelse` chains can be replaced with a "common exit" pattern for
+maintainability. Nested ifelse avoids the `repeat`/`exit` overhead, so prefer it in hot paths.
 
 ```postscript
-% Bad: Hard to modify
+% Nested ifelse (faster, harder to modify)
 condition1 {
     /c1
 } {
@@ -496,7 +497,7 @@ condition2 {
     /default
 } ifelse ... } ifelse
 
-% Good: Clarity
+% Common exit (slower, easier to maintain)
 1 {  % Common exit
     condition1 { /c1 exit } if
     condition2 { /c2 exit } if
@@ -590,15 +591,17 @@ elements, then repacking.
 } for
 ```
 
-It can be difficult to determine the required size for an array in advance.
+When array size isn't known in advance, `mark ... counttomark array astore` is
+fastest (~2x faster than pre-allocate, ~5x faster than aload rebuild):
 
-It is sometimes necessary to over-size the array and later take the used prefix
-of the array with `/arr arr 0 len getinterval def`, but there is an associated
-cost of allocating a new array and copying the used elements.
+```postscript
+mark
+0 1 n 1 sub { computeValue } for
+counttomark array astore
+/result exch def
+```
 
-Adding elements to the stack and later constructing the array (`mark ...
-counttomark array store /arr exch def`) might be preferable when the array size
-isn't known in advance.
+If size is bounded, over-size then trim with `getinterval`.
 
 Extension of small arrays with `aload pop` is acceptable for one-time
 operations outside loops.
@@ -606,9 +609,8 @@ operations outside loops.
 
 **Hot Loop Stack Pattern**
 
-In high computational complexity loops, avoid `/idx exch def`. Keep loop index
-on stack, reference with `index` and finally consume with `roll` (rather than
-`pop`):
+In hot loops, avoid `/idx exch def` which incurs `def` overhead each iteration.
+Keep loop index on stack instead:
 
 ```postscript
 % Bad: Creates dictionary entry each iteration
