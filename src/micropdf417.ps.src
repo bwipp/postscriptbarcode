@@ -1072,7 +1072,7 @@ begin
                     1 in k in length k sub dup 44 gt {pop 44} if getinterval
                     {48 sub} forall
                 ] def
-                /cwn [] def {
+                /cwn 15 array def /cwi 15 def {  % Pre-allocate, fill from end
                     /dv 900 def
                     /val 0 def /gmulstart true def
                     mark  % Start collecting gmul digits
@@ -1090,11 +1090,12 @@ begin
                     } loop
                     counttomark array astore exch pop  % Build gmul
                     /dv val def
-                    /cwn [ dv cwn aload pop ] def
+                    /cwi cwi 1 sub def
+                    cwn cwi dv put                     % Store codeword from end
                     /gmod exch def
                     gmod length 0 eq {exit} if
                 } loop
-                cwn aload pop
+                cwn cwi 15 cwi sub getinterval aload pop  % Push codewords
             } for
             counttomark array astore exch pop
         } def
