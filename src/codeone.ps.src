@@ -407,6 +407,7 @@ begin
         } if
 
         /normalize {
+
             /base exch def
             /num exch def
             num length 1 sub -1 1 {
@@ -414,16 +415,40 @@ begin
                 num i 1 sub 2 copy get num i get base idiv add put
                 num i num i get base mod put
             } for
-            { % loop - extend input as necessary
-                num 0 get base lt {exit} if
-                /num [0 num aload pop] def
-                num 0 num 0 get num 1 get base idiv add put
-                num 1 num 1 get base mod put
-            } loop
-            % Trim leading zeros
-            /num [/i true def num {dup 0 eq i and {pop} {/i false def} ifelse} forall] def
-            num length 0 eq {/num [0] def} if
-            num
+
+            %
+            % Extend array using stack accumulation
+            %
+            num 0 get base ge {
+                mark num 0 get
+                { % loop
+                    dup base lt {exit} if
+                    dup base mod exch base idiv
+                } loop
+                %
+                % Stack: mark lsb lsb-1 ... msb
+                %
+                % (Note: msb < base)
+                %
+                counttomark 1 sub /extcnt exch def
+                counttomark array astore /extdigits exch def
+                pop  % mark
+
+                %
+                % Build num with reversed extension digits prepended to num[1:]
+                %
+                /num [
+                    extcnt -1 0 { extdigits exch get } for
+                    num 1 num length 1 sub getinterval aload pop
+                ] def
+            } if
+
+            %
+            % Trim leading zeros and return
+            %
+            0 { dup num length ge {exit} if num 1 index get 0 ne {exit} if 1 add } loop
+            dup num length ge { pop [0] } { num exch num length 1 index sub getinterval } ifelse
+
         } def
 
         /bigadd {
