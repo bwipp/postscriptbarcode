@@ -1116,7 +1116,8 @@ begin
                 rscws ND offset get                                       % ... rscws[offset(ND)]
                 add 113 mod                                               % t = (rscws[offset(i)] + rscws[offset(ND)]) mod 113
                 0 1 NC 2 sub {  % j
-                    rscws ND 2 index add 2 copy 1 add offset get 113 add  % ... rscws ND+j rscws[offset[ND+j+1]]+113
+                    rscws ND 2 index add dup offset exch                  % ... rscws offset(ND+j) ND+j
+                    1 add offset rscws exch get 113 add                   % ... rscws[offset(ND+j+1)]+113
                     4 index                                               % ... t
                     coeffs 6 -1 roll 1 add get                            % ... coeffs[j+1]
                     mul 113 mod                                           % p = (t * coeffs[j+1]) mod 113
