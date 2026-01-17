@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -515,9 +515,9 @@ begin
         /metrics //codeone.nonstypemetrics def
 
         %
-        % Select metrics of an appropriate symbol
+        % Select metrics of an appropriate symbol using stack-based accumulation
         %
-        /fullcws [] def
+        mark
         metrics {
             /m exch def
             /vers m 0 get def           % Version of symbol
@@ -528,8 +528,9 @@ begin
             } {
                 version vers ne {/okay false def} if
             } ifelse
-            okay {/fullcws [ fullcws aload pop dcws ] def} if
+            okay { dcws } if            % Push dcws
         } forall
+        counttomark array astore /fullcws exch def pop
         /numremcws [ 1480 {10000} repeat ] def
         fullcws {numremcws exch 1 sub 1 put} bind forall
         1478 -1 0 {

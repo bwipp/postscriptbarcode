@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -415,11 +415,11 @@ begin
     } if
 
     %
-    % Create array of codewords remaining to make a full symbol
+    % Create array of codewords remaining to make a full symbol using stack-based accumulation
     %
     /urows rows def
     /ucols columns def
-    /fullcws [] def
+    mark
     //datamatrix.metrics {
         /m exch def
         /rows m 0 get def                          % Rows in symbol
@@ -438,8 +438,9 @@ begin
         format (square) eq rows cols ne and {/okay false def} if
         format (rectangle) eq rows cols eq and {/okay false def} if
         dmre not doly 1 eq and {/okay false def} if
-        okay {/fullcws [ fullcws aload pop ncws ] def} if
+        okay { ncws } if                           % Push ncws
     } forall
+    counttomark array astore /fullcws exch def pop
     /numremcws [ 1558 {10000} repeat ] def
     fullcws {numremcws exch 1 sub 1 put} forall
     1556 -1 0 {
