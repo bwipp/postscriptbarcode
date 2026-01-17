@@ -91,7 +91,7 @@ begin
 /gs1-cc.lalphanumeric -3 def
 /gs1-cc.liso646       -4 def
 
-/gs1-cc.latevars dup 8 dict def load /init {
+/gs1-cc.latevars dup 16 dict def load /init {
 
     currentglobal
     true setglobal
@@ -141,6 +141,25 @@ begin
         //gs1-cc.lnumeric (000)
         //gs1-cc.lalphanumeric (00100)
     >> readonly def
+
+    %
+    % Powers of 2 in base-928 representation for CC-A encoding
+    %
+    /pwr928 [
+        //gs1-cc.pwr928init
+        68 {7 array} repeat
+    ] def
+    1 1 68 {
+        /j exch def
+        /v 0 def
+        6 -1 1 {
+            /i exch def
+            /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
+            pwr928 j get i v 928 mod put
+        } for
+        pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
+    } for
+    /pwr928 pwr928 readonly def
 
     /init { //gs1-cc.latevars {def} forall } def
 
@@ -630,21 +649,6 @@ begin
         gpf aload pop
         pad aload pop
     ] def
-
-    /pwr928 [
-        //gs1-cc.pwr928init
-        68 {7 array} repeat
-    ] def
-    1 1 68 {
-        /j exch def
-        /v 0 def
-        6 -1 1 {
-            /i exch def
-            /v pwr928 j 1 sub get i get 2 mul v 928 idiv add def
-            pwr928 j get i v 928 mod put
-        } for
-        pwr928 j get 0 pwr928 j 1 sub get 0 get 2 mul v 928 idiv add put
-    } for
 
     ccversion (a) eq {
         /cws [ 28 {0} repeat ] def
