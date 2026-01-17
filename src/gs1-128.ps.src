@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -85,42 +85,34 @@ begin
     /ais exch def
 
     %
-    % Create the code128 data
+    % Create the code128 data using stack-based accumulation
     %
     /fnc1 -1 def
-    /c128 [ fnc1 ] def
+    mark fnc1
     0 1 ais length 1 sub {
         /i exch def
-        /ai ais i get def
-        /val vals i get def
-        c128 length ai length add val length add array
-        dup 0 c128 putinterval
-        dup c128 length ai [ exch {} forall ] putinterval
-        dup c128 length ai length add val [ exch {} forall ] putinterval
-        /c128 exch def
-        i ais length 1 sub ne fncs i get and {  % Append FNC1
-            c128 length 1 add array
-            dup 0 c128 putinterval
-            dup c128 length fnc1 put
-            /c128 exch def
+        ais i get { } forall                    % Push AI characters
+        vals i get { } forall                   % Push value characters
+        i ais length 1 sub ne fncs i get and {
+            fnc1                                % Push FNC1 separator
         } if
     } for
+    counttomark array astore /c128 exch def pop
 
     %
     % Compose input to code128
     %
     /barcode c128 length 1 add 5 mul string def
-    /i 0 def /j 0 def {
-        i c128 length eq {exit} if
-        c128 i get dup fnc1 eq {
+    /j 0 def
+    c128 {
+        dup fnc1 eq {
             pop barcode j (^FNC1) putinterval
-            /j j 4 add def
+            /j j 5 add def
         } {
             barcode exch j exch put
+            /j j 1 add def
         } ifelse
-        /i i 1 add def
-        /j j 1 add def
-    } loop
+    } forall
     linkagea linkagec or {
         barcode j linkagea {(^LNKA)} {(^LNKC)} ifelse putinterval
         /j j 5 add def

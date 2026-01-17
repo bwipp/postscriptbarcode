@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -71,42 +71,34 @@ begin
     /ais exch def
 
     %
-    % Create the datamatrix data
+    % Create the datamatrix data using stack-based accumulation
     %
     /fnc1 -1 def
-    /dmtx [ fnc1 ] def
+    mark fnc1
     0 1 ais length 1 sub {
         /i exch def
-        /ai ais i get def
-        /val vals i get def
-        dmtx length ai length add val length add array
-        dup 0 dmtx putinterval
-        dup dmtx length ai [ exch {} forall ] putinterval
-        dup dmtx length ai length add val [ exch {} forall ] putinterval
-        /dmtx exch def
-        i ais length 1 sub ne fncs i get and {  % Append FNC1
-            dmtx length 1 add array
-            dup 0 dmtx putinterval
-            dup dmtx length gssep {29} {fnc1} ifelse put
-            /dmtx exch def
+        ais i get { } forall                    % Push AI characters
+        vals i get { } forall                   % Push value characters
+        i ais length 1 sub ne fncs i get and {
+            gssep {29} {fnc1} ifelse            % Push separator
         } if
     } for
+    counttomark array astore /dmtx exch def pop
 
     %
     % Compose input to datamatrix
     %
     /barcode dmtx length 1 add 5 mul string def
-    /i 0 def /j 0 def {
-        i dmtx length eq {exit} if
-        dmtx i get dup fnc1 eq {
+    /j 0 def
+    dmtx {
+        dup fnc1 eq {
             pop barcode j (^FNC1) putinterval
-            /j j 4 add def
+            /j j 5 add def
         } {
             barcode exch j exch put
+            /j j 1 add def
         } ifelse
-        /i i 1 add def
-        /j j 1 add def
-    } loop
+    } forall
     /barcode barcode 0 j getinterval def
 
     %

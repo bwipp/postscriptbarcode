@@ -426,24 +426,18 @@ begin
     } if
 
     %
-    % Append the remaining AI data
+    % Append the remaining AI data using stack-based accumulation
     %
+    mark gpf aload pop
     0 1 ais length 1 sub {
         /i exch def
-        /ai ais i get def
-        /val vals i get def
-        gpf length ai length add val length add array
-        dup 0 gpf putinterval
-        dup gpf length ai [ exch {} forall ] putinterval
-        dup gpf length ai length add val [ exch {} forall ] putinterval
-        /gpf exch def
-        i ais length 1 sub ne fncs i get and {  % Append FNC1
-            gpf length 1 add array
-            dup 0 gpf putinterval
-            dup gpf length //gs1-cc.fnc1 put
-            /gpf exch def
+        ais i get { } forall                    % Push AI characters
+        vals i get { } forall                   % Push value characters
+        i ais length 1 sub ne fncs i get and {
+            //gs1-cc.fnc1                       % Push FNC1 separator
         } if
     } for
+    counttomark array astore /gpf exch def pop
 
     %
     % Calculate the number of bits remaining to the next valid symbol size

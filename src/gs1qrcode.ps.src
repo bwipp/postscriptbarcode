@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -69,42 +69,34 @@ begin
     /ais exch def
 
     %
-    % Create the qrcode data
+    % Create the qrcode data using stack-based accumulation
     %
     /fnc1 -1 def
-    /qrc [ fnc1 ] def
+    mark fnc1
     0 1 ais length 1 sub {
         /i exch def
-        /ai ais i get def
-        /val vals i get def
-        qrc length ai length add val length add array
-        dup 0 qrc putinterval
-        dup qrc length ai [ exch {} forall ] putinterval
-        dup qrc length ai length add val [ exch {} forall ] putinterval
-        /qrc exch def
-        i ais length 1 sub ne fncs i get and {  % Append FNC1
-            qrc length 1 add array
-            dup 0 qrc putinterval
-            dup qrc length fnc1 put
-            /qrc exch def
+        ais i get { } forall                    % Push AI characters
+        vals i get { } forall                   % Push value characters
+        i ais length 1 sub ne fncs i get and {
+            fnc1                                % Push FNC1 separator
         } if
     } for
+    counttomark array astore /qrc exch def pop
 
     %
     % Compose input to qrcode
     %
     /barcode qrc length 1 add 5 mul string def
-    /i 0 def /j 0 def {
-        i qrc length eq {exit} if
-        qrc i get dup fnc1 eq {
+    /j 0 def
+    qrc {
+        dup fnc1 eq {
             pop barcode j (^FNC1) putinterval
-            /j j 4 add def
+            /j j 5 add def
         } {
             barcode exch j exch put
+            /j j 1 add def
         } ifelse
-        /i i 1 add def
-        /j j 1 add def
-    } loop
+    } forall
     /barcode barcode 0 j getinterval def
 
     %
