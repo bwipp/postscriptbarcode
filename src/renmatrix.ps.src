@@ -38,10 +38,15 @@ true setglobal
 /setpacking where {pop currentpacking true setpacking} if
 8 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 dup /rendertext dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/renmatrix [/before /after] //setuphooks exec
+
+(setup.define) //renmatrix.before exec
 
 /renmatrix.xalignopts <<
     /offleft dup  /left dup  /center dup  /right dup  /offright dup
@@ -141,6 +146,8 @@ begin
 
     128 dict begin
 
+    (input.processoptions) //renmatrix.before exec
+
     % Default options
     /width 1.0 def
     /height 1.0 def
@@ -201,9 +208,13 @@ begin
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
 
+    (input.processoptions) //renmatrix.after exec
+
     %
     % Input validation
     %
+    (input.validate) //renmatrix.before exec
+
     textxalign (unset) ne {
         //renmatrix.xalignopts textxalign known not {
             /bwipp.renmatrixBadTextxalign (textxalign must be offleft, left, center, right or offright) //raiseerror exec
@@ -239,6 +250,8 @@ begin
     extratextsize 0 le extratextsize 25 ge or {
         /bwipp.renmatrixBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
     } if
+
+    (input.validate) //renmatrix.after exec
 
     /xyget { pixx mul add pixs exch get } def
     /cget { pixx mul add cache exch get and } def
@@ -332,6 +345,8 @@ begin
         /pixsorig pixs def
         /pixs exch def
 
+        (render.tracepaths) //renmatrix.before exec
+
         % Pad the bitmap on all sides
         /pixs [
             pixx 2 add {0} repeat
@@ -389,19 +404,24 @@ begin
             } for
         ] def
 
-        options /debugpaths known
-        /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
-        and { /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
-
         %
         % Revert the bitmap size
         %
         /pixx pixx 2 sub def
         /pixy pixy 2 sub def
 
+
+        options /debugpaths known
+        /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+        and { /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
+
+        (render.tracepaths) //renmatrix.after exec
+
         %
         % Draw the image
         %
+        (render.drawpaths) //renmatrix.before exec
+
         newpath
         paths {
             /p exch def
@@ -426,9 +446,13 @@ begin
 
         /pixs pixsorig def
 
+        (render.drawpaths) //renmatrix.after exec
+
     } def
 
     /drawlayerdots {
+
+        (render.drawdots) //renmatrix.before exec
 
         /pixsorig pixs def
         /pixs exch def
@@ -445,6 +469,8 @@ begin
         fill
 
         /pixs pixsorig def
+
+        (render.drawdots) //renmatrix.after exec
 
     } def
 
@@ -517,6 +543,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /renmatrix dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //renmatrix.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
