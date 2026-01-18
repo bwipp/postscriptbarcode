@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/qrcode [/before /after] //setuphooks exec
+
+(setup.define) //qrcode.before exec
 
 %
 % Version groups
@@ -539,6 +544,8 @@ begin
 
 /qrcode.latevars dup 16 dict def load /init {
 
+    (setup.latevars) //qrcode.before exec
+
     currentglobal
     true setglobal
 
@@ -617,6 +624,8 @@ begin
     //qrcode.latevars /init get exec
 
     setglobal
+
+    (setup.latevars) //qrcode.after exec
 
 } bind put
 
@@ -704,6 +713,11 @@ begin
 
     //qrcode.latevars /init get exec
 
+    %
+    % Input validation
+    %
+    (input.validate) //qrcode.before exec
+
     barcode () eq {
         /bwipp.qrcodeEmptyData (The data must not be empty) //raiseerror exec
     } if
@@ -749,9 +763,14 @@ begin
         } if
     } if
 
+    (input.validate) //qrcode.after exec
+
+
     %
     % Parse the input
     %
+    (input.preprocess) //qrcode.before exec
+
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -772,6 +791,13 @@ begin
             /msglen msg length def
         } if
     } if
+
+    (input.preprocess) //qrcode.after exec
+
+    %
+    % Encode the input
+    %
+    (input.encoding) //qrcode.before exec
 
     %
     % Encoding functions
@@ -1247,14 +1273,22 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
 
+    (input.encoding) //qrcode.after exec
+
     %
-    % Fetch the coefficients (cached)
+    % Generate or fetch the coefficients
     %
+    (ecc.coeffs) //qrcode.before exec
+
     /coeffs ecpb //qrcode.coeffscachefetch exec def
+
+    (ecc.coeffs) //qrcode.after exec
 
     %
     % Reed-Solomon algorithm to derive the error correction codewords
     %
+    (ecc.cws) //qrcode.before exec
+
     /rscodes {
         /rscws exch def
         /rsnd rscws length def
@@ -1341,9 +1375,13 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugecc cws //raiseerror exec } if
 
+    (ecc.cws) //qrcode.after exec
+
     %
-    % Create the bitmap
+    % Layout the fixtures and data in the bitmap
     %
+    (matrix.layout) //qrcode.before exec
+
     /pixs [ rows cols mul {-1} repeat ] def
     /qmv {cols mul add} def
 
@@ -1551,6 +1589,13 @@ begin
         } ifelse
     } loop
 
+    (matrix.layout) //qrcode.after exec
+
+    %
+    % Symbol masking and evaluation to select prime candidate
+    %
+    (matrix.masking) //qrcode.before exec
+
     %
     % Evaluate runlength encoded rows or columns in full symbols
     %
@@ -1690,6 +1735,13 @@ begin
     } for
     /pixs bestsym def
 
+    (matrix.masking) //qrcode.after exec
+
+    %
+    % Finalise the bitmap
+    %
+    (matrix.finalise) //qrcode.before exec
+
     %
     % Set the solitary dark module in full symbols
     %
@@ -1742,6 +1794,8 @@ begin
         } for
     } if
 
+    (matrix.finalise) //qrcode.after exec
+
     %
     % Return the arguments
     %
@@ -1767,6 +1821,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /qrcode dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //qrcode.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
