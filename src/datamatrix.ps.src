@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/datamatrix [/before /after] //setuphooks exec
+
+(setup.define) //datamatrix.before exec
 
 %
 % Basic metrics for each symbol
@@ -154,6 +159,8 @@ begin
 ] readonly def
 
 /datamatrix.latevars dup 16 dict def load /init {
+
+    (setup.latevars) //datamatrix.before exec
 
     currentglobal
     true setglobal
@@ -288,6 +295,8 @@ begin
 
     setglobal
 
+    (setup.latevars) //datamatrix.after exec
+
 } bind put
 
 /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -331,8 +340,8 @@ begin
 %
 % 25 unique keys: per-block 5-68 from symbol configurations
 %
-/datamatrix.coeffscachemax 25 def    % Override with global_ctx.datamatrix.coeffscachemax
-/datamatrix.coeffscachelimit 766 def % Override with global_ctx.datamatrix.coeffscachelimit
+/datamatrix.coeffscachemax 25 def     % Override with global_ctx.datamatrix.coeffscachemax
+/datamatrix.coeffscachelimit 766 def  % Override with global_ctx.datamatrix.coeffscachelimit
 /uk.co.terryburton.bwipp.global_ctx dup where {
     exch get
     dup /datamatrix.coeffscachemax 2 copy known {get /datamatrix.coeffscachemax exch def} {pop pop} ifelse
@@ -374,6 +383,11 @@ begin
 
     //datamatrix.latevars /init get exec
 
+    %
+    % Input validation
+    %
+    (input.validate) //datamatrix.before exec
+
     barcode () eq {
         /bwipp.datamatrixEmptyData (The data must not be empty) //raiseerror exec
     } if
@@ -413,6 +427,8 @@ begin
     format (square) ne format (rectangle) ne and {
         /bwipp.datamatrixInvalidFormat (The format must be either square or rectangle) //raiseerror exec
     } if
+
+    (input.validate) //datamatrix.after exec
 
     %
     % Create array of codewords remaining to make a full symbol using stack-based accumulation
@@ -468,6 +484,8 @@ begin
         %
         % Parse the input
         %
+        (input.preprocess) //datamatrix.before exec
+
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
@@ -500,6 +518,13 @@ begin
             } if
         } if
         /msglen msg length def
+
+        (input.preprocess) //datamatrix.after exec
+
+        %
+        % Input encoding
+        %
+        (input.encoding) //datamatrix.before exec
 
         /numD      [ msglen {0} repeat 0 ] def
         /nextXterm [ msglen {0} repeat 9999 ] def
@@ -889,6 +914,8 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
 
+    (input.encoding) //datamatrix.after exec
+
     %
     % Lookup symbol metrics based on number of codewords and user specification
     %
@@ -921,6 +948,15 @@ begin
     } if
 
     %
+    % Fetch the coefficients
+    %
+    (ecc.coeffs) //datamatrix.before exec
+    /coeffs rscw rsbl idiv //datamatrix.coeffscachefetch exec def
+    (ecc.coeffs) //datamatrix.after exec
+
+    (ecc.cws) //datamatrix.before exec
+
+    %
     % De-interleave the codewords into blocks
     %
     /cwbs rsbl array def  % Array of data codeword blocks
@@ -940,11 +976,6 @@ begin
         cwbs i cwb put
         ecbs i [ rscw rsbl idiv {0} repeat ] put
     } for
-
-    %
-    % Fetch the coefficients
-    %
-    /coeffs rscw rsbl idiv //datamatrix.coeffscachefetch exec def
 
     %
     % Calculate the error correction codewords for each block
@@ -987,9 +1018,13 @@ begin
         cws ncws i add ecbs i rsbl mod get i rsbl idiv get put
     } for
 
+    (ecc.cws) //datamatrix.after exec
+
     %
     % Place codeword bits into matrix
     %
+    (matrix.layout) //datamatrix.before exec
+
     /module {
         % cw row col shape
         4 -1 roll
@@ -1089,6 +1124,8 @@ begin
         } if
     } for
 
+    (matrix.layout) //datamatrix.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1111,6 +1148,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /datamatrix dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //datamatrix.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
