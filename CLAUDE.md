@@ -97,7 +97,7 @@ containing optional keys that affect the behaviour of BWIPP:
 - `preload` - Perform eager initialisation of normally lazy variables during resource definition
 - `enabledebug` - Allow the user to set debug options (e.g. `debugcws`), for development purposes including activation of hooks
 - `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
-- `hooks` - Dictionary of hook procedures for profiling/debugging (see Hooks Framework below)
+- `hooks` - Dictionary of hook procedures for debugging purposes, including profiling
 - `default_{barcolor,backgroundcolor,...}` - Defaults for certain renderer options set by the user
 
 For example:
@@ -692,14 +692,18 @@ Resources may be configured to permit named "hooks" at any point in their code:
 The following placed at the beginning of the resource definition will create
 two hooks (`before` and `after`):
 
-    /qrcode [/before /after] //setuphooks exec
+```postscript
+/qrcode [/before /after] //setuphooks exec
+```
 
 Hooks accept a single parameter and may appear anywhere in the code (as many
 times as required):
 
-    (matrix.layout) //qrcode.before exec
-    ...
-    (matrix.layout) //qrcode.after exec
+```postscript
+(matrix.layout) //qrcode.before exec
+...
+(matrix.layout) //qrcode.after exec
+```
 
 The above as examples of existing hooks placed at execution phase boundaries.
 
