@@ -789,25 +789,22 @@ begin
                 } if
             } if
             [ finaliseBIN ] addtocws
-            i msglen 1 sub ne {  % Not last character
-                msg i get //dotcode.fn3 eq i segstart ne and {  % FNC3
-                    [ BINvals //dotcode.tms get ] addtocws
-                    /i i 1 add def
-                    /mode C def
-                    /inmac 0 def
-                    /segstart i def
-                    /segend i UntilEndSeg i get add def
-                    exit
-                } if
-                AheadA i get AheadB i get gt {
-                    [ BINvals //dotcode.tma get ] addtocws
-                    /mode A def
-                } {
-                    [ BINvals //dotcode.tmb get ] addtocws
-                    /mode B def
-                } ifelse
+            msg i get //dotcode.fn3 eq i segstart ne and {  % FNC3
+                [ BINvals //dotcode.tms get ] addtocws
+                /i i 1 add def
+                /mode C def
+                /inmac 0 def
+                /segstart i def
+                /segend i UntilEndSeg i get add def
                 exit
             } if
+            AheadA i get AheadB i get gt {
+                [ BINvals //dotcode.tma get ] addtocws
+                /mode A def
+            } {
+                [ BINvals //dotcode.tmb get ] addtocws
+                /mode B def
+            } ifelse
             exit
         } repeat
     } def
