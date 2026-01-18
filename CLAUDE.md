@@ -91,18 +91,22 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
 - ASCII85-wrapped output (watermarked)
 - Results in ~30-50% smaller files
 
-BWIPP's "global context" is an optional dictionary containing optional keys
-that affect the behaviour of BWIPP:
+BWIPP's "global context" is an optional dictionary configured in **global VM**
+containing optional keys that affect the behaviour of BWIPP:
 
 - `preload` - Perform eager initialisation of normally lazy variables during resource definition
-- `enabledebug` - Allow the user to set debug options (e.g. `debugcws`), for development purposes
+- `enabledebug` - Allow the user to set debug options (e.g. `debugcws`), for development purposes including activation of hooks
 - `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
+- `hooks` - Dictionary of hook procedures for profiling/debugging (see Hooks Framework below)
 - `default_{barcolor,backgroundcolor,...}` - Defaults for certain renderer options set by the user
 
 For example:
 
 ```postscript
+currentglobal
+true setglobal
 /uk.co.terryburton.bwipp.global_ctx << /preload true >> def
+setglobal
 ```
 
 ### Directory Structure
@@ -156,7 +160,11 @@ Each resource source file has a similar structure:
 4. **Dependent resource loading**
    - Uses `findresource` to load dependencies into working dictionary
 
-5. **Static data structures**
+5. **Hooks setup**
+   - Call `setuphooks` to create encoder-specific or generic hook procedures
+   - Enables profiling and debugging via global context hooks
+
+6. **Static data structures**
    - Plain definitions of literal stuctured data (arrays and dicts)
    - Runs once during resource definition, with values immediately referenced by main procedure; allocate once during initialisation, then reuse at runtime
    - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
@@ -164,27 +172,27 @@ Each resource source file has a similar structure:
    - Embedded procedures should have explicit `bind`
    - Must be marked `readonly`
 
-6. **Initialisation of any FIFO caches**
+7. **Initialisation of any FIFO caches**
    - Definition of cache capacity parameters and loading of parameter overrides from global context
    - Definition of a generator procedure and a cardinality function
    - Executing the `fifocache` resource to return a named "FIFO cache object"
 
-7. **Lazy initialisation procedure**
+8. **Lazy initialisation procedure**
    - Data that must be computed (expensive) and is deferred until first execution
    - First run derives and stores values (in global VM); subsequent runs load cached values
    - Embedded procedures do not require `bind` (propagates from outer procedure)
 
-8. **Main procedure**
+9. **Main procedure**
    - Exported by the resource and called on demand
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
    - Makes use of any named FIFO caches by executing their `fetch` method
    - Bind the main procedure whilst inhibiting binding of non-standard operators defined on some RIPs, i.e. `barcode`
 
-9. **Resource definition**
-   - Define the main procedure as a resource
+10. **Resource definition**
+    - Define the main procedure as a resource
 
-10. **Allocation mode restore**
+11. **Allocation mode restore**
     - Return to previous defaults
 
 
@@ -675,6 +683,62 @@ time gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -c \
   '(build/monolithic/barcode.ps) run
    100 { 0 0 moveto (DATA) (options) /encoder /uk.co.terryburton.bwipp findresource exec } repeat'
 ```
+
+
+### Hooks Framework
+
+Resources may be configured to permit named "hooks" at any point in their code:
+
+The following placed at the beginning of the resource definition will create
+two hooks (`before` and `after`):
+
+    /qrcode [/before /after] //setuphooks exec
+
+Hooks accept a single parameter and may appear anywhere in the code (as many
+times as required):
+
+    (matrix.layout) //qrcode.before exec
+    ...
+    (matrix.layout) //qrcode.after exec
+
+The above as examples of existing hooks placed at execution phase boundaries.
+
+**Configuring hooks procedures:**
+
+By default hooks will do nothing other than pop the parameter.
+
+The above pair of hooks is intended to allow measurement of time spent in each
+phase via the definition of suitable procedures within global context.
+
+The global context must be configured with `enabledebug` set and a `hooks`
+dictionary containing custom procedures related to the hooks, for example:
+
+```postscript
+currentglobal true setglobal
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks <<
+        /before {20 string cvs print ( before ) print print ( ) print realtime =}
+        /after  {20 string cvs print ( after  ) print print ( ) print realtime =}
+    >>
+>> def
+setglobal
+```
+
+Example output:
+```
+datamatrix before setup.define 20
+datamatrix after  setup.define 21
+datamatrix before setup.latevars 22
+datamatrix after  setup.latevars 40
+...
+```
+
+When triggered, a hook procedure receives the resource name that triggered it,
+as well as the parameter from the code.
+
+To configure a hook procedure for the named hooks in just a single encoder,
+create a hooks entries named like `qrcode.before`.
 
 
 ### Profiling Results (including failed optimisation attempts)
