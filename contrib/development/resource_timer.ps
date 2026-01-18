@@ -1,0 +1,352 @@
+%!PS
+%
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% Resource timing utility using the hooks framework.
+%
+% Usage:
+%
+%   gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage \
+%      -I build/resource/Resource -f contrib/development/resource_timer.ps -c '
+%      10 10 moveto (Hello World) (version=40) /qrcode /uk.co.terryburton.bwipp findresource exec
+%      resource_timer_report
+%   '
+
+%
+% Storage dict for timing data (in global VM for hook access)
+%
+currentglobal true setglobal
+userdict /resource_timer_ctx 32 dict put
+resource_timer_ctx begin
+
+%
+% Per-resource timing storage:
+%
+/timing_data 64 dict def     % resource_name -> { label -> << /start N /end N >> }
+/timing_order 64 dict def    % resource_name -> [labels in order]
+/resource_order [] def       % [resource names in order of first appearance]
+
+%
+% Helper: Split a string by dots, returning array of components
+%
+/split_by_dot {  % (a.b.c) -> [(a) (b) (c)]
+    mark exch
+    {  % loop
+        dup length 0 eq { pop exit } if
+        (.) search {
+            % Stack: (post) (.) (pre)
+            3 1 roll pop  % Stack: (pre) (post) - pre accumulated, post continues
+        } {
+            % (remaining) - no more dots, final component on stack
+            exit
+        } ifelse
+    } loop
+    counttomark array astore exch pop
+} bind def
+
+%
+% Helper: Build all ancestor paths for a label
+% (a.b.c) -> [(a) (a.b) (a.b.c)]
+%
+/build_ancestors {  % (a.b.c) -> [(a) (a.b) (a.b.c)]
+    //split_by_dot exec  % [(a) (b) (c)]
+    mark                 % [(a) (b) (c)] mark
+    ()                   % [(a) (b) (c)] mark () - empty prefix
+    3 -1 roll            % mark () [(a) (b) (c)]
+    {
+        % Stack: mark [ancestors...] (prefix) (component)
+        exch dup length 0 eq {
+            % First component: prefix is empty, use component as-is
+            pop dup  % mark (component) (component)
+        } {
+            % Build: prefix + "." + component
+            % Stack: mark [ancestors...] (component) (prefix)
+            1 index length 1 add 1 index length add string  % new string sized for prefix.component
+            % Stack: [anc...] (component) (prefix) (newstr): idx 0=newstr 1=prefix 2=component
+            dup 0 3 index putinterval                       % copy prefix at pos 0
+            % After dup 0: idx 0=0 1=newstr 2=newstr 3=prefix 4=component -> 3 index = prefix
+            dup 2 index length (.) putinterval              % add dot at prefix.length
+            % After dup: idx 0=newstr 1=newstr 2=prefix -> 2 index = prefix
+            dup 2 index length 1 add 4 index putinterval    % add component at prefix.length+1
+            % After dup len add: idx 0=int 1=newstr 2=newstr 3=prefix 4=component -> 4 index = component
+            % Stack: [anc...] (component) (prefix) (newstr)
+            exch pop exch pop                               % [anc...] (newstr)
+            dup  % duplicate as new prefix
+        } ifelse
+    } forall
+    pop  % Remove final prefix
+    counttomark array astore exch pop
+} bind def
+
+%
+% Helper: Get depth of a path (number of dots + 1)
+%
+/path_depth {  % (a.b.c) -> 3
+    0 exch { (.) 0 get eq { 1 add } if } forall 1 add
+} bind def
+
+%
+% Helper: Append item to an array
+%
+/array_append {
+    1 index length 1 add array
+    dup 0 4 index putinterval
+    dup 3 index length 3 index put
+    3 1 roll pop pop
+} bind def
+
+%
+% Reset timing data for new run
+%
+/reset_timing_data {
+    currentglobal      % Save current state
+    true setglobal     % Switch to global
+    //resource_timer_ctx /timing_data 64 dict put
+    //resource_timer_ctx /timing_order 64 dict put
+    //resource_timer_ctx /resource_order [] put
+    setglobal          % Restore saved state
+} bind def
+
+%
+% Before hook: record start time
+%
+/timing_before {
+    10 dict begin
+    % Stack: (label) /resname
+    /resname exch dup length string cvs def
+    /label exch def
+    /savedglobal currentglobal def
+    true setglobal
+
+    % Ensure resource has entries in timing_data and timing_order
+    //resource_timer_ctx /timing_data get resname known not {
+        //resource_timer_ctx /timing_data get resname 64 dict put
+        //resource_timer_ctx /timing_order get resname [] put
+        //resource_timer_ctx /resource_order get resname //array_append exec
+        //resource_timer_ctx exch /resource_order exch put
+    } if
+
+    % Get this resource's dicts
+    /res_tdata //resource_timer_ctx /timing_data get resname get def
+    /res_torder //resource_timer_ctx /timing_order get resname get def
+
+    res_tdata label known not {
+        % First time seeing this label for this resource
+        res_tdata label 5 dict dup /start realtime put put
+        //resource_timer_ctx /timing_order get resname res_torder label //array_append exec put
+    } {
+        % Already seen - update start
+        res_tdata label get /start realtime put
+    } ifelse
+
+    savedglobal setglobal
+    end
+} bind def
+
+%
+% After hook: record end time
+%
+/timing_after {
+    5 dict begin
+    % Stack: (label) /resname
+    /resname exch dup length string cvs def
+    /label exch def
+
+    % Get this resource's timing_data dict if it exists
+    //resource_timer_ctx /timing_data get resname known {
+        /res_tdata //resource_timer_ctx /timing_data get resname get def
+        res_tdata label known {
+            res_tdata label get /end realtime put
+        } if
+    } if
+    end
+} bind def
+
+%
+% Compute hierarchical timings for a specific resource
+% (resname) compute_hierarchical_timings -> dict
+%
+/compute_hierarchical_timings {
+    /resname exch def
+    //resource_timer_ctx /timing_data get resname get /tdata exch def
+    //resource_timer_ctx /timing_order get resname get /torder exch def
+
+    % Build set of all paths (leaves and ancestors)
+    64 dict /all_paths exch def
+    torder {
+        //build_ancestors exec {
+            all_paths exch true put
+        } forall
+    } forall
+
+    % Create result dict with leaf times and computed parent times
+    64 dict /result exch def
+
+    % Copy all leaf timings
+    torder {
+        dup tdata exch get
+        dup /start get exch /end get
+        % Stack: (label) start_val end_val
+        5 dict dup /end 4 -1 roll put dup /start 4 -1 roll put
+        % Stack: (label) dict
+        result 3 1 roll put
+    } forall
+
+    % Compute synthetic parent times from children
+    all_paths {
+        pop  % value (always true)
+        /path exch def
+
+        % Only process if this is a synthetic parent (not in timing_data)
+        tdata path known not {
+            /min_start null def
+            /max_end null def
+
+            torder {
+                /child exch def
+                % Check if child is descendant of path (starts with path.)
+                child length path length gt {
+                    child 0 path length getinterval path eq {
+                        child path length get (.) 0 get eq {
+                            % child is descendant of path
+                            tdata child get
+                            dup /start get  % entry start_val
+                            min_start null eq {
+                                /min_start exch def
+                            } {
+                                dup min_start lt { /min_start exch def } { pop } ifelse
+                            } ifelse
+                            % Stack: entry
+                            /end get  % end_val
+                            max_end null eq {
+                                /max_end exch def
+                            } {
+                                dup max_end gt { /max_end exch def } { pop } ifelse
+                            } ifelse
+                        } if
+                    } if
+                } if
+            } forall
+
+            min_start null ne {
+                5 dict dup /start min_start put dup /end max_end put
+                result path 3 -1 roll put
+            } if
+        } if
+    } forall
+
+    result
+} bind def
+
+%
+% Build ordered list including synthetic parents (parents before children)
+% (resname) build_ordered_paths -> [paths...]
+%
+/build_ordered_paths {
+    /resname exch def
+    //resource_timer_ctx /timing_order get resname get /torder exch def
+
+    % Output paths in order: for each leaf, emit its ancestors first (if not yet emitted)
+    64 dict /emitted exch def
+    mark
+    torder {
+        //build_ancestors exec {
+            dup emitted exch known not {
+                dup emitted exch true put
+            } { pop } ifelse
+        } forall
+    } forall
+    counttomark array astore exch pop
+} bind def
+
+%
+% Format and print timing report for a single resource
+% (resname) print_resource_report
+%
+/print_resource_report {
+    /resname exch def
+    resname //compute_hierarchical_timings exec /htimings exch def
+    resname //build_ordered_paths exec /ordered exch def
+
+    % Print header for this resource
+    () =
+    (Timing report for ) print resname print (:) =
+    () =
+    (Process                                  Start         End   Time \(ms\)) =
+    (----------------------------------------------------------------------) =
+
+    ordered {
+        /path exch def
+        htimings path known {
+            htimings path get /entry exch def
+
+            % Build indentation based on depth
+            path //path_depth exec 1 sub 2 mul string
+            dup length 0 gt { dup 0 1 2 index length 1 sub { 2 index exch 32 put } for } if
+            /indent exch def
+
+            % Build padded path string (36 chars total)
+            36 string /pathstr exch def
+            0 1 35 { pathstr exch 32 put } for  % Fill with spaces
+            pathstr 0 indent putinterval
+            /maxlen 36 indent length sub def
+            path length maxlen gt { /plen maxlen def } { /plen path length def } ifelse
+            pathstr indent length path 0 plen getinterval putinterval
+
+            % Print line: path, start, end, duration
+            pathstr print
+            entry /start get 10 string cvs dup length 10 exch sub { ( ) print } repeat print
+            (  ) print
+            entry /end get 10 string cvs dup length 10 exch sub { ( ) print } repeat print
+            (  ) print
+            entry /end get entry /start get sub 10 string cvs dup length 10 exch sub { ( ) print } repeat print
+            () =
+        } if
+    } forall
+} bind def
+
+%
+% Format and print timing report for all resources
+%
+/print_timing_report {
+    //resource_timer_ctx /resource_order get {
+        //print_resource_report exec
+    } forall
+    () =
+    (Note: Capture resolution limited to 1ms) =
+} bind def
+
+%
+% Print timing report and reset for next run
+%
+/resource_timer_report {
+    //print_timing_report exec
+    //reset_timing_data exec
+} bind def
+
+%
+% Initialize hooks on script load
+%
+//reset_timing_data exec
+currentglobal         % Save current state
+true setglobal        % Switch to global
+userdict /uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /enabledontdraw true
+    /hooks <<
+        /before //timing_before
+        /after //timing_after
+    >>
+>> put
+setglobal             % Restore saved state
+
+%
+% Export main procedure to userdict
+%
+userdict /resource_timer_report //resource_timer_report put
+
+end
+setglobal  % Restore previous allocation mode

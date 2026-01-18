@@ -697,6 +697,19 @@ time gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -c \
    100 { 0 0 moveto (DATA) (options) /encoder /uk.co.terryburton.bwipp findresource exec } repeat'
 ```
 
+Detailed per-phase timing using the resource timer utility:
+
+```bash
+gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage \
+   -I build/resource/Resource -f contrib/development/resource_timer.ps -c '
+   0 0 moveto (DATA) (options) /encoder /uk.co.terryburton.bwipp findresource exec
+   resource_timer_report
+'
+```
+
+The resource timer uses the hooks framework to measure time spent in each phase
+of resource execution, with hierarchical grouping of related phases.
+
 
 ### Hooks Framework
 
