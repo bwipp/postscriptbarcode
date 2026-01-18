@@ -743,7 +743,7 @@ setglobal
 ```
 
 Example output:
-```
+```text
 datamatrix before setup.define 20
 datamatrix after  setup.define 21
 datamatrix before setup.latevars 22
