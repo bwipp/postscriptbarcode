@@ -75,14 +75,15 @@ begin
         %
         % Lookup procedure in hooks dict and define in caller's dictionary:
         %
-        %     encodername.hookname > hookname > {pop}
+        %     encodername.hookname > hookname > {pop pop}
         %
         hooksdict null ne {
             hooksdict 2 index known {hooksdict 2 index get} {
             hooksdict 1 index known {hooksdict 1 index get}
-            { {pop} } ifelse} ifelse
-        } { {pop} } ifelse
-        exch pop
+            { {pop pop} } ifelse} ifelse
+        } { {pop pop} } ifelse
+        exch pop                                            % /encodername.hookname {userhook}
+        mark encname cvn 3 -1 roll /exec load ] cvx         % /encodername.hookname {wrapper}
         targetdict 3 1 roll put
 
     } forall
