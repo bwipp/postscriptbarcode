@@ -9,12 +9,13 @@ Barcode Writer in Pure PostScript
 Useful links:
 
 * Homepage: <https://bwipp.terryburton.co.uk>
-* Documentation: <https://github.com/bwipp/postscriptbarcode/wiki>
-* Documentation in PDF format for print: <https://bit.ly/2LzxYcU>
+* User documentation: <https://github.com/bwipp/postscriptbarcode/wiki>
+* User documentation in PDF format for print: <https://bit.ly/2LzxYcU>
 * Download: <https://github.com/bwipp/postscriptbarcode/releases/latest>
-* Source: <https://github.com/bwipp/postscriptbarcode.git>
 * Support: <https://github.com/bwipp/postscriptbarcode/discussions>
 * Issues: <https://github.com/bwipp/postscriptbarcode/issues>
+* Source: <https://github.com/bwipp/postscriptbarcode.git>
+* Developer documentation: <ihttps://github.com/bwipp/postscriptbarcode/blob/master/DEVELOPERS.md>
 * Presentation: Slides: <https://goo.gl/WqYB6A>
 
 Barcode Writer in Pure Postscript (BWIPP) generates all barcode formats
