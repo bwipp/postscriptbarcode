@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/codeone [/before /after] //setuphooks exec
+
+(setup.define) //codeone.before exec
 
 /codeone.versionopts <<
    [ (T-16) (T-32) (T-48) (S-10) (S-20) (S-30) (A) (B) (C) (D) (E) (F) (G) (H) ]
@@ -156,6 +161,8 @@ begin
 ] readonly def
 
 /codeone.latevars dup 16 dict def load /init {
+
+    (setup.latevars) //codeone.before exec
 
     currentglobal
     true setglobal
@@ -298,6 +305,8 @@ begin
 
     setglobal
 
+    (setup.latevars) //codeone.after exec
+
 } bind put
 
 /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -369,6 +378,8 @@ begin
 
     128 dict begin
 
+    (input.processoptions) //codeone.before exec
+
     /dontdraw false def
     /version (unset) def
     /parse false def
@@ -382,7 +393,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //codeone.after exec
+
     //codeone.latevars /init get exec
+
+    (input.validate.common) //codeone.before exec
 
     version (unset) ne {
         //codeone.versionopts version known not {
@@ -393,7 +408,11 @@ begin
     /stype version 0 1 getinterval (S) eq def
     /ttype version 0 1 getinterval (T) eq def
 
+    (input.validate.common) //codeone.after exec
+
     stype {
+
+        (input.validate.stype) //codeone.before exec
 
         barcode {
             dup 48 lt exch 57 gt or {
@@ -405,6 +424,10 @@ begin
         barlen 18 gt {
             /bwipp.codeoneStypeTooLong (Maximum length exceeded) //raiseerror exec
         } if
+
+        (input.validate.stype) //codeone.after exec
+
+        (input.encoding.stype) //codeone.before exec
 
         /normalize {
 
@@ -489,7 +512,11 @@ begin
 
         /metrics //codeone.stypemetrics def
 
+        (input.encoding) //codeone.after exec
+
     } {  % Standard and type-T
+
+        (input.preprocess) //codeone.before exec
 
         %
         % Convert input into bytes accounting for FNC characters
@@ -536,6 +563,10 @@ begin
             /msg msgtmp 0 j getinterval def
             /msglen msg length def
         } if
+
+        (input.preprocess) //codeone.after exec
+
+        (input.encoding.non_stype) //codeone.before exec
 
         /metrics //codeone.nonstypemetrics def
 
@@ -964,6 +995,8 @@ begin
         } loop
         /cws cws 0 j getinterval def
 
+        (input.encoding.non_stype) //codeone.after exec
+
     } ifelse
 
     %
@@ -1007,6 +1040,16 @@ begin
     and { /bwipp.debugcws cws //raiseerror exec } if
 
     %
+    % Fetch the coefficients
+    %
+    (ecc.coeffs) //codeone.before exec
+    /rsbt stype {5} {8} ifelse def
+    /coeffs ecpb rsbt //codeone.coeffscachefetch exec def
+    (ecc.coeffs) //codeone.after exec
+
+    (ecc.cws) //codeone.before exec
+
+    %
     % De-interleave the codewords into blocks
     %
     /cwbs rsbl array def  % Array of data codeword blocks
@@ -1020,12 +1063,6 @@ begin
         } for
         cwbs i cwb put
     } for
-
-    %
-    % Fetch the coefficients
-    %
-    /rsbt stype {5} {8} ifelse def
-    /coeffs ecpb rsbt //codeone.coeffscachefetch exec def
 
     %
     % Reed-Solomon algorithm to derive the error correction codewords
@@ -1056,6 +1093,10 @@ begin
         /i exch def
         cws dcws i add ecbs i rsbl mod get i rsbl idiv get put
     } for
+
+    (ecc.cws) //codeone.after exec
+
+    (matrix.layout) //codeone.before exec
 
     %
     % Module matrix for layout of the codewords
@@ -1142,6 +1183,8 @@ begin
         } if
     } for
 
+    (matrix.layout) //codeone.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1166,6 +1209,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /codeone dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //codeone.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
