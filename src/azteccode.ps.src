@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/azteccode [/before /after] //setuphooks exec
+
+(setup.define) //azteccode.before exec
 
 %
 % State key: "U"pper, "L"ower, "M"ixed, "P"unctuation, "D"igit, "B"inary
@@ -245,6 +250,8 @@ begin
 
 /azteccode.latevars dup 8 dict def load /init {
 
+    (setup.latevars) //azteccode.before exec
+
     currentglobal
     true setglobal
 
@@ -290,6 +297,8 @@ begin
 
     setglobal
 
+    (setup.latevars) //azteccode.after exec
+
 } bind put
 
 /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -299,6 +308,8 @@ begin
 /azteccode {
 
     128 dict begin
+
+    (input.processoptions) //azteccode.before exec
 
     /dontdraw false def
     /format (full) def    % full, compact or rune
@@ -318,7 +329,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //azteccode.after exec
+
     //azteccode.latevars /init get exec
+
+    (input.validate) //azteccode.before exec
 
     barcode () eq {
         /bwipp.aztecEmptyData (The data must not be empty) //raiseerror exec
@@ -377,9 +392,13 @@ begin
         } if
     } if
 
+    (input.validate) //azteccode.after exec
+
     %
     % Parse the input
     %
+    (input.preprocess) //azteccode.before exec
+
     /fn1 -1 def
     /fncvals <<
         /parse parse
@@ -390,9 +409,13 @@ begin
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
 
+    (input.preprocess) //azteccode.after exec
+
     %
     % Convert from input into message bitstream
     %
+    (input.encoding) //azteccode.before exec
+
     /msgbits () def
     format (rune) ne raw and {/msgbits barcode def} if
     format (rune) ne raw not and {
@@ -823,10 +846,14 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
 
+    (input.encoding) //azteccode.after exec
+
     %
     % Reed-Solomon algorithm
     %
     /rscodes {
+
+        (ecc.cws) //azteccode.before exec
 
         /rsbt exch def
         /rsnc exch def
@@ -847,7 +874,9 @@ begin
             } { pop pop 0 } ifelse } { pop pop 0 } ifelse
         } def
 
+        (ecc.coeffs) //azteccode.before exec
         /coeffs rsnc rsbt //azteccode.coeffscachefetch exec def
+        (ecc.coeffs) //azteccode.after exec
 
         %
         % Extend the input with the error correction values
@@ -870,6 +899,8 @@ begin
         % Return all but the last codeword
         %
         rscws 0 rscws length 1 sub getinterval
+
+        (ecc.cws) //azteccode.after exec
 
     } def
 
@@ -928,6 +959,8 @@ begin
         dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add
         exch putinterval
     } for
+
+    (matrix.layout) //azteccode.before exec
 
     %
     % Move to a point in the cartesian plane centered on the bullseye
@@ -1050,6 +1083,8 @@ begin
         pop
     } for
 
+    (matrix.layout) //azteccode.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1068,6 +1103,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /azteccode dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //azteccode.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
