@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/pdf417 [/before /after] //setuphooks exec
+
+(setup.define) //pdf417.before exec
 
 %
 % Modes and text submodes
@@ -453,6 +458,8 @@ begin
 
 /pdf417.latevars dup 8 dict def load /init {
 
+    (setup.latevars) //pdf417.before exec
+
     currentglobal
     true setglobal
 
@@ -492,6 +499,8 @@ begin
 
     setglobal
 
+    (setup.latevars) //pdf417.after exec
+
 } bind put
 
 /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -501,6 +510,8 @@ begin
 /pdf417 {
 
     128 dict begin
+
+    (input.processoptions) //pdf417.before exec
 
     /dontdraw false def
     /compact false def
@@ -522,7 +533,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //pdf417.after exec
+
     //pdf417.latevars /init get exec
+
+    (input.validate) //pdf417.before exec
 
     barcode () eq {
         /bwipp.pdf417emptyData (The data must not be empty) //raiseerror exec
@@ -551,6 +566,8 @@ begin
     rowmult 0 le {
         /bwipp.pdf417badRowMult (The row multiplier must be greater than zero) //raiseerror exec
     } if
+
+    (input.validate) //pdf417.after exec
 
     %
     % Convert input into array of codewords
@@ -624,6 +641,8 @@ begin
         %
         % Parse the input
         %
+        (input.preprocess) //pdf417.before exec
+
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
@@ -632,6 +651,10 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        (input.preprocess) //pdf417.after exec
+
+        (input.encoding) //pdf417.before exec
 
         %
         % Determine runlengths of digits
@@ -1018,6 +1041,9 @@ begin
             /i i 1 add def
         } loop
         /datcws datcws 0 j getinterval def
+
+        (input.encoding) //pdf417.after exec
+
     } if
     /m datcws length def
 
@@ -1076,6 +1102,15 @@ begin
     } if
 
     %
+    % Fetch the coefficients
+    %
+    (ecc.coeffs) //pdf417.before exec
+    /coeffs k //pdf417.coeffscachefetch exec def
+    (ecc.coeffs) //pdf417.after exec
+
+    (ecc.cws) //pdf417.before exec
+
+    %
     % Create codewords array with one extra working space element and add padding
     %
     /n c r mul k sub def
@@ -1084,11 +1119,6 @@ begin
     cws 1 datcws putinterval
     cws m 1 add [ n m sub 1 sub {900} repeat ] putinterval
     cws n [ k {0} repeat 0 ] putinterval
-
-    %
-    % Fetch the coefficients
-    %
-    /coeffs k //pdf417.coeffscachefetch exec def
 
     %
     % Derive the error codewords
@@ -1118,6 +1148,10 @@ begin
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
+
+    (ecc.cws) //pdf417.after exec
+
+    (matrix.layout) //pdf417.before exec
 
     %
     % Return the 17 bits for a codeword in a given cluster
@@ -1171,6 +1205,8 @@ begin
         pop
     } for
 
+    (matrix.layout) //pdf417.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1193,6 +1229,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /pdf417 dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //pdf417.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
