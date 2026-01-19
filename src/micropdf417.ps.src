@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/micropdf417 [/before /after] //setuphooks exec
+
+(setup.define) //micropdf417.before exec
 
 %
 % Modes and text submodes
@@ -476,6 +481,8 @@ begin
 
 /micropdf417.latevars dup 8 dict def load /init {
 
+    (setup.latevars) //micropdf417.before exec
+
     currentglobal
     true setglobal
 
@@ -514,6 +521,8 @@ begin
     //micropdf417.latevars /init get exec
 
     setglobal
+
+    (setup.latevars) //micropdf417.after exec
 
 } bind put
 
@@ -582,6 +591,8 @@ begin
 
     128 dict begin
 
+    (input.processoptions) //micropdf417.before exec
+
     /dontdraw false def
     /version (unset) def
     /columns 0 def
@@ -601,7 +612,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //micropdf417.after exec
+
     //micropdf417.latevars /init get exec
+
+    (input.validate) //micropdf417.before exec
 
     barcode () eq {
         /bwipp.micropdf417emptyData (The data must not be empty) //raiseerror exec
@@ -637,6 +652,8 @@ begin
             pop /bwipp.micropdf417badVersionFormat (version must be formatted as RxC) //raiseerror exec
         } ifelse
     } if
+
+    (input.validate) //micropdf417.after exec
 
     %
     % Convert input into array of codewords
@@ -710,6 +727,8 @@ begin
         %
         % Parse the input
         %
+        (input.preprocess) //micropdf417.before exec
+
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
@@ -741,6 +760,10 @@ begin
             } if
         } if
         /msglen msg length def
+
+        (input.preprocess) //micropdf417.after exec
+
+        (input.encoding) //micropdf417.before exec
 
         %
         % Determine runlengths of digits
@@ -1148,15 +1171,20 @@ begin
             /i i 1 add def
         } loop
         /datcws datcws 0 j getinterval def
+
+        (input.encoding) //micropdf417.after exec
+
     } if
 
-    /metrics cca {//micropdf417.ccametrics} {//micropdf417.nonccametrics} ifelse def
 
     %
     % Select metrics of an appropriate symbol
     %
+    (metrics.selection) //micropdf417.before exec
+
     /urows rows def
     /ucols columns def
+    /metrics cca {//micropdf417.ccametrics} {//micropdf417.nonccametrics} ifelse def
     metrics {
         /m exch def
         /c    m 0 get def        % Columns in symbol
@@ -1177,6 +1205,17 @@ begin
         /bwipp.micropdf417noValidSymbol (Maximum length exceeded or invalid size) //raiseerror exec
     } if
 
+    (metrics.selection) //micropdf417.after exec
+
+    %
+    % Fetch the coefficients
+    %
+    (ecc.coeffs) //micropdf417.before exec
+    /coeffs k //micropdf417.coeffscachefetch exec def
+    (ecc.coeffs) //micropdf417.after exec
+
+    (ecc.cws) //micropdf417.before exec
+
     %
     % Create codewords array with one extra working space element and add padding
     %
@@ -1186,11 +1225,6 @@ begin
     cws 0 datcws putinterval
     cws m [ n m sub {900} repeat ] putinterval
     cws n [ k {0} repeat 0 ] putinterval
-
-    %
-    % Fetch the coefficients
-    %
-    /coeffs k //micropdf417.coeffscachefetch exec def
 
     %
     % Derive the error codewords
@@ -1220,6 +1254,10 @@ begin
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
+
+    (ecc.cws) //micropdf417.after exec
+
+    (matrix.layout) //micropdf417.before exec
 
     %
     % Return the 17 bits for a codeword in a given cluster
@@ -1288,6 +1326,8 @@ begin
         pop
     } for
 
+    (matrix.layout) //micropdf417.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -1310,6 +1350,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /micropdf417 dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //micropdf417.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
