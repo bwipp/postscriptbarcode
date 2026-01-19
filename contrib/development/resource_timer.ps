@@ -111,7 +111,7 @@ resource_timer_ctx begin
 } bind def
 
 %
-% Before hook: record start time
+% Before hook: record start time for pending measurement
 %
 /timing_before {
     10 dict begin
@@ -133,13 +133,22 @@ resource_timer_ctx begin
     /res_tdata //resource_timer_ctx /timing_data get resname get def
     /res_torder //resource_timer_ctx /timing_order get resname get def
 
+    /now realtime def
     res_tdata label known not {
-        % First time seeing this label for this resource
-        res_tdata label 5 dict dup /start realtime put put
+        % First time seeing this label: initialize stats
+        res_tdata label <<
+            /pending_start now
+            /first_start now
+            /last_end now
+            /count 0
+            /sum 0
+            /min 999999999
+            /max 0
+        >> put
         //resource_timer_ctx /timing_order get resname res_torder label //array_append exec put
     } {
-        % Already seen - update start
-        res_tdata label get /start realtime put
+        % Already seen - record pending start for this invocation
+        res_tdata label get /pending_start now put
     } ifelse
 
     savedglobal setglobal
@@ -147,10 +156,10 @@ resource_timer_ctx begin
 } bind def
 
 %
-% After hook: record end time
+% After hook: compute duration and update stats
 %
 /timing_after {
-    5 dict begin
+    10 dict begin
     % Stack: (label) /resname
     /resname exch dup length string cvs def
     /label exch def
@@ -159,7 +168,16 @@ resource_timer_ctx begin
     //resource_timer_ctx /timing_data get resname known {
         /res_tdata //resource_timer_ctx /timing_data get resname get def
         res_tdata label known {
-            res_tdata label get /end realtime put
+            /entry res_tdata label get def
+            /now realtime def
+            /duration now entry /pending_start get sub def
+
+            % Update stats
+            entry /last_end now put
+            entry /count entry /count get 1 add put
+            entry /sum entry /sum get duration add put
+            duration entry /min get lt { entry /min duration put } if
+            duration entry /max get gt { entry /max duration put } if
         } if
     } if
     end
@@ -185,14 +203,18 @@ resource_timer_ctx begin
     % Create result dict with leaf times and computed parent times
     64 dict /result exch def
 
-    % Copy all leaf timings
+    % Copy all leaf timings (with full stats)
     torder {
-        dup tdata exch get
-        dup /start get exch /end get
-        % Stack: (label) start_val end_val
-        5 dict dup /end 4 -1 roll put dup /start 4 -1 roll put
-        % Stack: (label) dict
-        result 3 1 roll put
+        /lbl exch def
+        tdata lbl get /entry exch def
+        result lbl <<
+            /first_start entry /first_start get
+            /last_end entry /last_end get
+            /count entry /count get
+            /sum entry /sum get
+            /min entry /min get
+            /max entry /max get
+        >> put
     } forall
 
     % Compute synthetic parent times from children
@@ -213,14 +235,14 @@ resource_timer_ctx begin
                         child path length get (.) 0 get eq {
                             % child is descendant of path
                             tdata child get
-                            dup /start get  % entry start_val
+                            dup /first_start get  % entry start_val
                             min_start null eq {
                                 /min_start exch def
                             } {
                                 dup min_start lt { /min_start exch def } { pop } ifelse
                             } ifelse
                             % Stack: entry
-                            /end get  % end_val
+                            /last_end get  % end_val
                             max_end null eq {
                                 /max_end exch def
                             } {
@@ -232,8 +254,14 @@ resource_timer_ctx begin
             } forall
 
             min_start null ne {
-                5 dict dup /start min_start put dup /end max_end put
-                result path 3 -1 roll put
+                result path <<
+                    /first_start min_start
+                    /last_end max_end
+                    /count 0  % Synthetic parent - no direct count
+                    /sum 0
+                    /min 0
+                    /max 0
+                >> put
             } if
         } if
     } forall
@@ -263,6 +291,17 @@ resource_timer_ctx begin
 } bind def
 
 %
+% Helper: print right-aligned integer in field of given width
+%
+/print_int_field {  % int width -> -
+    exch 10 string cvs  % width (str)
+    dup length          % width (str) len
+    3 -1 roll exch sub  % (str) padding
+    dup 0 gt { { ( ) print } repeat } { pop } ifelse
+    print
+} bind def
+
+%
 % Format and print timing report for a single resource
 % (resname) print_resource_report
 %
@@ -271,12 +310,22 @@ resource_timer_ctx begin
     resname //compute_hierarchical_timings exec /htimings exch def
     resname //build_ordered_paths exec /ordered exch def
 
+    % Check if any entry has count > 1
+    /has_multi false def
+    ordered {
+        htimings exch get /count get 1 gt { /has_multi true def } if
+    } forall
+
     % Print header for this resource
     () =
     (Timing report for ) print resname print (:) =
     () =
-    (Process                                  Start         End   Time \(ms\)) =
-    (----------------------------------------------------------------------) =
+    % Header: 36 + 10 + 2 + 10 + 2 + 7 + 2 + 7 + 2 + 9 + 2 + 10 = 99 chars
+    (Process                             ) print
+    (     Start) print (  ) print (       End) print
+    (  ) print (    Min) print (  ) print (    Max) print
+    (  ) print (  Mean\(N\)) print (  ) print (Total \(ms\)) =
+    (---------------------------------------------------------------------------------------------------) =
 
     ordered {
         /path exch def
@@ -296,13 +345,34 @@ resource_timer_ctx begin
             path length maxlen gt { /plen maxlen def } { /plen path length def } ifelse
             pathstr indent length path 0 plen getinterval putinterval
 
-            % Print line: path, start, end, duration
             pathstr print
-            entry /start get 10 string cvs dup length 10 exch sub { ( ) print } repeat print
+            entry /first_start get 10 //print_int_field exec
             (  ) print
-            entry /end get 10 string cvs dup length 10 exch sub { ( ) print } repeat print
-            (  ) print
-            entry /end get entry /start get sub 10 string cvs dup length 10 exch sub { ( ) print } repeat print
+            entry /last_end get 10 //print_int_field exec
+
+            entry /count get /cnt exch def
+            cnt 1 gt {
+                % Multiple invocations: show min, max, mean(N), total
+                /sum entry /sum get def
+                (  ) print entry /min get 7 //print_int_field exec
+                (  ) print entry /max get 7 //print_int_field exec
+                % Format mean(N) right-aligned in 9 chars
+                /meanstr sum cnt div cvi 10 string cvs def
+                /cntstr cnt 10 string cvs def
+                /meanfull meanstr length 1 add cntstr length add 1 add string def
+                meanfull 0 meanstr putinterval
+                meanfull meanstr length (\() putinterval
+                meanfull meanstr length 1 add cntstr putinterval
+                meanfull meanfull length 1 sub (\)) putinterval
+                (  ) print 9 meanfull length sub { ( ) print } repeat meanfull print
+                (  ) print sum 10 //print_int_field exec
+            } {
+                % Single invocation or synthetic parent: show only total
+                % Skip: gap(2)+Min(7)+gap(2)+Max(7)+gap(2)+Mean(9)+gap(2) = 31, then Total(10)
+                /total cnt 0 gt { entry /sum get } { entry /last_end get entry /first_start get sub } ifelse def
+                (                               ) print
+                total 10 //print_int_field exec
+            } ifelse
             () =
         } if
     } forall
