@@ -538,11 +538,12 @@ condition2 {
 
 Loops should be commented as such in the first line:
 
+```postscript
 {  % loop
     condition { exit } if
     ...
 } loop
-
+```
 
 **Reading Global Context**
 
