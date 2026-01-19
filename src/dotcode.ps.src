@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/dotcode [/before /after] //setuphooks exec
+
+(setup.define) //dotcode.before exec
 
 /dotcode.laa  -1 def  /dotcode.lab  -2 def  /dotcode.lac  -3 def  /dotcode.bin  -4 def
 /dotcode.sfa  -5 def  /dotcode.sfb  -6 def  /dotcode.sb2  -7 def  /dotcode.sb3  -8 def
@@ -142,6 +147,8 @@ begin
 
 /dotcode.latevars dup 16 dict def load /init {
 
+    (setup.latevars) //dotcode.before exec
+
     currentglobal
     true setglobal
 
@@ -149,7 +156,9 @@ begin
 
     /rsalog [ 1 112 { dup 3 mul 113 mod } repeat ] readonly def
 
+    %
     % Invert charmaps to give character to value maps for each state
+    %
     /charvals [ 113 dict 117 dict 113 dict ] def
     0 1 //dotcode.charmaps length 1 sub {
         /i exch def
@@ -182,6 +191,8 @@ begin
     //dotcode.latevars /init get exec
 
     setglobal
+
+    (setup.latevars) //dotcode.after exec
 
 } bind put
 
@@ -234,6 +245,8 @@ begin
 
     128 dict begin
 
+    (input.processoptions) //dotcode.before exec
+
     /dontdraw false def
     /rows -1 def
     /columns -1 def
@@ -252,7 +265,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //dotcode.after exec
+
     //dotcode.latevars /init get exec
+
+    (input.validate) //dotcode.before exec
 
     rows -1 ne {
         rows 5 lt {
@@ -288,9 +305,13 @@ begin
         } if
     } if
 
+    (input.validate) //dotcode.after exec
+
     %
     % Parse the input
     %
+    (input.preprocess) //dotcode.before exec
+
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -321,6 +342,10 @@ begin
     } for
     /msg msgtmp def
     /msglen msg length def
+
+    (input.preprocess) //dotcode.after exec
+
+    (input.encoding) //dotcode.before exec
 
     /A 0 def  /B 1 def  /C 2 def  /BIN 3 def
 
@@ -897,6 +922,8 @@ begin
         /bwipp.dotcodeTooLong (Maximum length exceeded) //raiseerror exec
     } if
 
+    (input.encoding) //dotcode.after exec
+
     %
     % Final six dots arranged at edges
     %
@@ -1108,7 +1135,12 @@ begin
             /ND nd 1 add start sub step add 1 sub step idiv def
             /NW nw 1 add start sub step add 1 sub step idiv def
             /NC NW ND sub def
+
+            (ecc.coeffs) //dotcode.before exec
             /coeffs NC //dotcode.coeffscachefetch exec def
+            (ecc.coeffs) //dotcode.after exec
+
+            (ecc.cws) //dotcode.before exec
 
             0 1 ND 1 sub {  % i
                 rscws exch offset get                                     % ... rscws[offset(i)]
@@ -1132,7 +1164,12 @@ begin
             } for
 
             ND 1 NW 1 sub { dup rscws exch offset 113 rscws 5 -1 roll offset get sub 113 mod put } for
+
+            (ecc.cws) //dotcode.after exec
+
         } for
+
+        (matrix.layout) //dotcode.before exec
 
         %
         % Create the bitstream
@@ -1178,6 +1215,10 @@ begin
             bits bits length 6 sub i add get 48 sub put
         } for
 
+        (matrix.layout) //dotcode.after exec
+
+        (matrix.evaluate.normal) //dotcode.before exec
+
         %
         % Evaluate the symbol to find the most suitable mask
         %
@@ -1211,6 +1252,8 @@ begin
             } if
         } if
 
+        (matrix.evaluate.normal) //dotcode.after exec
+
     } forall
     /pixs bestsym def
 
@@ -1218,6 +1261,9 @@ begin
     % For default mode, if best mask fails threshold then recalculate with lit corners and pick best
     %
     fast not bestscore rows columns mul 2 idiv le and {
+
+        (matrix.evaluate.fixup) //dotcode.before exec
+
         /bestscore -99999999 def
         masks {
             litmasks exch get /litmask exch def
@@ -1228,6 +1274,9 @@ begin
             } if
         } forall
         /pixs bestsym def
+
+        (matrix.evaluate.fixup) //dotcode.after exec
+
     } if
 
     <<
@@ -1253,6 +1302,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /dotcode dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //dotcode.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
