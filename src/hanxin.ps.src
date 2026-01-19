@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/hanxin [/before /after] //setuphooks exec
+
+(setup.define) //hanxin.before exec
 
 /hanxin.noblk [ 0 -1 -1 ] readonly def
 
@@ -459,6 +464,8 @@ begin
 
 /hanxin.latevars dup 4 dict def load /init {
 
+    (setup.latevars) //hanxin.before exec
+
     currentglobal
     true setglobal
 
@@ -488,6 +495,8 @@ begin
     //hanxin.latevars /init get exec
 
     setglobal
+
+    (setup.latevars) //hanxin.after exec
 
 } bind put
 
@@ -557,6 +566,8 @@ begin
 
     128 dict begin
 
+    (input.processoptions) //hanxin.before exec
+
     /dontdraw false def
     /version (unset) def   % 1-84
     /eclevel (L2) def   % L1, L2, L3 or L4
@@ -572,7 +583,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //hanxin.after exec
+
     //hanxin.latevars /init get exec
+
+    (input.validate) //hanxin.before exec
 
     barcode () eq {
         /bwipp.hanxinEmptyData (The data must not be empty) //raiseerror exec
@@ -605,9 +620,12 @@ begin
         } if
     } if
 
+    (input.validate) //hanxin.after exec
+
     %
     % Parse the input
     %
+    (input.preprocess) //hanxin.before exec
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -615,6 +633,10 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    (input.preprocess) //hanxin.after exec
+
+    (input.encoding) //hanxin.before exec
 
     /tobin {
         string dup length 1 sub 0 exch 1 exch {1 index exch 48 put} for
@@ -689,6 +711,8 @@ begin
         cws c cw put
     } for
 
+    (input.encoding) //hanxin.after exec
+
     /rscodes {
 
         /rsbt exch def
@@ -698,11 +722,15 @@ begin
         %
         % Fetch the coefficients
         %
+        (ecc.coeffs) //hanxin.before exec
         /coeffs rsnc rsbt //hanxin.coeffscachefetch exec def
+        (ecc.coeffs) //hanxin.after exec
 
         %
         % Extend the input with the error correction values
         %
+        (ecc.cws) //hanxin.before exec
+
         /nd rscws length def
         /rscws [ rscws aload pop rsnc {0} repeat 0 ] def
         0 1 nd 1 sub {  % i
@@ -722,6 +750,8 @@ begin
         % Return all but the last codeword
         %
         rscws 0 rscws length 1 sub getinterval
+
+        (ecc.cws) //hanxin.after exec
 
     } def
 
@@ -749,6 +779,8 @@ begin
         e3dcws e3ecws getinterval ecwsb exch out exch put
         /in in e3dcws add def  /out out 1 add def
     } repeat
+
+    (codewords.finalise) //hanxin.before exec
 
     %
     % Reassemble the codewords
@@ -783,6 +815,10 @@ begin
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
+
+    (codewords.finalise) //hanxin.after exec
+
+    (matrix.layout) //hanxin.before exec
 
     %
     % Create the bitmap
@@ -921,6 +957,10 @@ begin
         posx size eq {/posx 0 def /posy posy 1 add def} if
     } loop
 
+    (matrix.layout) //hanxin.after exec
+
+    (matrix.evaluate) //hanxin.before exec
+
     %
     % Evaluate runlength encoded rows or columns in full symbols
     %
@@ -1028,6 +1068,8 @@ begin
     } for
     /pixs bestsym def
 
+    (matrix.evaluate) //hanxin.after exec
+
     %
     % Add the function information
     %
@@ -1071,6 +1113,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /hanxin dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //hanxin.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
