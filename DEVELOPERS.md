@@ -469,10 +469,9 @@ Encoders create a common dictionary structure expected by their renderer:
     /pixs [...]             % 30x29 hexagon grid values
     /opt options
 >>
+```
 
 Callers can access the intermediate dictionary by setting the `dontdraw` options with `enabledontdraw` set in global context.
-
-```
 
 
 ## Performance
