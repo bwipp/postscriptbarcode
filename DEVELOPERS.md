@@ -483,7 +483,6 @@ Callers can access the intermediate dictionary by setting the `dontdraw` options
 - `forall` avoids per-iteration `get` overhead compared to `for` + `get`
 - `N index` cost is independent of stack depth
 - `getinterval` cost is fixed regardless of size (returns a view, not a copy)
-- String literals `(...)` are allocated at definition time; array `[...]` and dict `<<...>>` literals are allocated at execution time
 
 
 ### Optimization Patterns
@@ -1093,6 +1092,23 @@ not {  % Check status
 } if
 % If we get here, all is well and no boolean left on the stack
 ```
+
+
+When defining a procedure, string literals `(...)` are instantiated once (immediately) whereas array literals `[ ... ]` and dictionary literals `<< ... >>` are instantiated whenever the procedure is executed:
+
+```postscript
+% Bad: Error prone
+/proc {
+    /a (0000) def    % Safer to make a copy: /a (0000) 4 string copy def
+    a ==
+    a 0 (1234) putinterval
+    a ==
+} def
+proc    % First run:       0000 \n 1234
+proc    % Subsequent runs: 1234 \n 1234  ; object was updated by first run
+...
+```
+
 
 Some PLRM terminology is a source of confusion. As a result of the following command:
 
