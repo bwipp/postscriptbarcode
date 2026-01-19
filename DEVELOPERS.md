@@ -45,6 +45,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
 - Don't ever `git reset` to try to rewrite history when there is a risk of losing recent work.
 - Backup work before running irreversible commands such as `sed` against a large number of files.
+- Plan complex tasks. Interview the user regarding significant design choices.
 
 
 ## AI Observations
