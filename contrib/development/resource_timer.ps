@@ -320,12 +320,15 @@ resource_timer_ctx begin
     () =
     (Timing report for ) print resname print (:) =
     () =
-    % Header: 36 + 10 + 2 + 10 + 2 + 7 + 2 + 7 + 2 + 9 + 2 + 10 = 99 chars
+    % Header: 36 + 11 + 2 + 10 + 2 + 7 + 2 + 7 + 2 + 9 + 2 + 10 = 100 chars
+    %         Process(36) + First start(11) + gap(2) + Last end(10) + gap(2) = 61, then Runtime columns
+    (                                                                          ) print
+    (Runtime \(ms\)) =
     (Process                             ) print
-    (     Start) print (  ) print (       End) print
+    (First start) print (  ) print (  Last end) print
     (  ) print (    Min) print (  ) print (    Max) print
-    (  ) print (  Mean\(N\)) print (  ) print (Total \(ms\)) =
-    (---------------------------------------------------------------------------------------------------) =
+    (  ) print (  Mean\(N\)) print (  ) print (    Total) =
+    (----------------------------------------------------------------------------------------------------) =
 
     ordered {
         /path exch def
@@ -346,7 +349,7 @@ resource_timer_ctx begin
             pathstr indent length path 0 plen getinterval putinterval
 
             pathstr print
-            entry /first_start get 10 //print_int_field exec
+            entry /first_start get 11 //print_int_field exec
             (  ) print
             entry /last_end get 10 //print_int_field exec
 
@@ -367,11 +370,15 @@ resource_timer_ctx begin
                 (  ) print 9 meanfull length sub { ( ) print } repeat meanfull print
                 (  ) print sum 10 //print_int_field exec
             } {
-                % Single invocation or synthetic parent: show only total
+                % Single invocation or synthetic parent
                 % Skip: gap(2)+Min(7)+gap(2)+Max(7)+gap(2)+Mean(9)+gap(2) = 31, then Total(10)
-                /total cnt 0 gt { entry /sum get } { entry /last_end get entry /first_start get sub } ifelse def
-                (                               ) print
-                total 10 //print_int_field exec
+                cnt 0 gt {
+                    % Single invocation: show total
+                    (                               ) print
+                    entry /sum get 10 //print_int_field exec
+                } {
+                    % Synthetic parent: no total
+                } ifelse
             } ifelse
             () =
         } if
