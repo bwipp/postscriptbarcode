@@ -273,9 +273,16 @@ Monolithic outputs contain comments that feature a `--BEGIN/END TEMPLATE--` mark
 } {pop} ifelse
 
 %
-% latevars procedure is called in main procedure:
+% latevars procedure is called in main procedure, **after** options processing
 %
-//resource.latevars /init get exec
+% User must not be able to override variables defined in latevars via options.
+%
+/resource {
+   % Options processing code
+   ...
+   //resource.latevars /init get exec
+   ...
+}
 ```
 
 ### Resource Registration
