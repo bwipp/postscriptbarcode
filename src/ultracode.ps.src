@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/ultracode [/before /after] //setuphooks exec
+
+(setup.define) //ultracode.before exec
 
 /ultracode.metrics [
     % rows  minc  maxc  mcol
@@ -129,6 +134,8 @@ begin
 
 /ultracode.latevars dup 4 dict def load /init {
 
+    (setup.latevars) //ultracode.before exec
+
     currentglobal
     true setglobal
 
@@ -146,6 +153,8 @@ begin
     //ultracode.latevars /init get exec
 
     setglobal
+
+    (setup.latevars) //ultracode.after exec
 
 } bind put
 
@@ -214,6 +223,8 @@ begin
 
     64 dict begin
 
+    (input.processoptions) //ultracode.before exec
+
     /dontdraw false def
     /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
     /parse false def
@@ -231,7 +242,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //ultracode.after exec
+
     //ultracode.latevars /init get exec
+
+    (input.validate) //ultracode.before exec
 
     rev dup 1 ne exch 2 ne and {
         /bwipp.ultracodeInvalidRevision (Valid revisions are 1 and 2) //raiseerror exec
@@ -246,7 +261,11 @@ begin
         /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
     } if
 
+    (input.validate) //ultracode.after exec
+
     raw {
+
+        (input.encoding.raw) //ultracode.before exec
 
         /dcws barcode length array def
         /i 0 def /j 0 def
@@ -259,7 +278,11 @@ begin
         } loop
         /dcws dcws 0 j getinterval def
 
+        (input.encoding.raw) //ultracode.after exec
+
     } {
+
+        (input.preprocess) //ultracode.before exec
 
         % Parse the input
         /fn1 -1 def  /fn3 -2 def
@@ -272,6 +295,10 @@ begin
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
 
+        (input.preprocess) //ultracode.after exec
+
+        (input.encoding.normal) //ultracode.before exec
+
         /scr [] def     % Empty symbol control region
         /scp [] def     % Empty start sequence parameters
         /dcws [
@@ -283,11 +310,15 @@ begin
             } forall
         ] def
 
+        (input.encoding.normal) //ultracode.before exec
+
     } ifelse
 
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws dcws //raiseerror exec } if
+
+    (metrics.selection) //ultracode.before exec
 
     /mcc dcws length 3 add def  % Message codewords: start mcc acc [dcws ...]
 
@@ -335,6 +366,18 @@ begin
     } for
     /dcc columns mcol sub def
 
+    (metrics.selection) //ultracode.after exec
+
+    %
+    % Fetch the coefficients
+    %
+    (ecc.coeffs) //ultracode.before exec
+    /n mcc def  /k qcc def
+    /coeffs k //ultracode.coeffscachefetch exec def
+    (ecc.coeffs) //ultracode.after exec
+
+    (ecc.cws) //ultracode.before exec
+
     %
     % Reed-Solomon error correction
     %
@@ -346,12 +389,6 @@ begin
         qcc {0} repeat
         0  % Working space
     ] def
-
-    %
-    % Fetch the coefficients
-    %
-    /n mcc def  /k qcc def
-    /coeffs k //ultracode.coeffscachefetch exec def
 
     %
     % Derive the error codewords
@@ -377,6 +414,10 @@ begin
     options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugecc ecws //raiseerror exec } if
+
+    (ecc.cws) //ultracode.after exec
+
+    (matrix.layout) //ultracode.before exec
 
     /dccu rev 1 eq {//ultracode.dccurev1} {//ultracode.dccurev2} ifelse def
     /dccl rev 1 eq {//ultracode.dcclrev1} {//ultracode.dcclrev2} ifelse def
@@ -455,6 +496,8 @@ begin
          } ifelse
     } forall
 
+    (matrix.layout) //ultracode.after exec
+
     <<
     /ren /renmatrix
     /pixs pixs
@@ -478,6 +521,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /ultracode dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //ultracode.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
