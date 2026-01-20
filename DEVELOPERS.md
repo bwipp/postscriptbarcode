@@ -441,15 +441,17 @@ The `contrib/development` directory contains:
 
 **Calling convention:**
 ```postscript
-(\(01\)09521234543213\(10\)ABC123)               /ai //gs1process exec => ais vals fncs  % For bracketed AI syntax
-(https://id.gs1.org/01/09521234543213/10/ABC123) /dl //gs1process exec => ais vals fncs  % For Digital Link URI
+(\(01\)09521234543213\(10\)ABC123)               /ai //gs1process exec  % => ais vals fncs  (For bracketed AI syntax)
+(https://id.gs1.org/01/09521234543213/10/ABC123) /dl //gs1process exec  % => ais vals fncs  (For Digital Link URI)
 ```
 
 - `ais`  - Application Identifier strings (e.g., `[(01) (10)]`)
 - `vals` - Corresponding value strings (e.g., `[(09521234543213) (ABC123)]`)
 - `fncs` - Boolean array indicating which AIs require FNC1 separator (based on `contrib/development/ai_not_needing_fnc1.txt`)
 
-GS1-enabled encoders can disable these checks using the `dontlint` option.
+`parseinput` is applied to each extracted AI value (from `vals`) of bracketed AI syntax inputs, and to the overall URI for GS1 Digital Link inputs.
+
+GS1-enabled encoders can disable validation checks using the `dontlint` option.
 
 
 ### Error Handling (raiseerror.ps.src)
@@ -653,15 +655,16 @@ fastest (~2x faster than pre-allocate, ~5x faster than aload rebuild):
 
 ```postscript
 mark
-0 1 n 1 sub { computeValue } for
+0 1 n 1 sub { computeValue } for  % Leave values on the stack
 counttomark array astore
 /result exch def
 ```
 
-If size is bounded, over-size then trim with `getinterval`.
+If use of stack is difficult, e.g. due to complex backtracking, then
+pre-allocate and, if size is bounded, over-size then trim with `getinterval`.
 
-Extension of small arrays with `aload pop` is acceptable for one-time
-operations outside loops.
+Extension of small arrays with `/arr [ arr aload pop ... ] def` is
+acceptable for one-time operations outside loops.
 
 
 **Hot Loop Stack Pattern**
