@@ -25,7 +25,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Maintain existing user API (encoder interfaces and metadata).
 - Prefer derived values over opaque constants so that the code is auditable, unless prohibitively expensive (even for lazy init).
 - Static data should be hoisted out of the main procedure, and deferred with lazy initialisation if it must be derived
-- Static and cached structures should be readonly by the time they are used in the main procedure
+- Static and cached structures should be `readonly` by the time they are used in the main procedure
 - Prefer stack work over dictionary heavy code, especially in hot loops.
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
@@ -68,7 +68,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 
 Note: On MacOS it's `sysctl -n hw.ncpu` instead of `$(nproc)`.
 
-Build requires Ghostscript (`gs`) in PATH and Perl.
+Build requires Ghostscript (`gs`) in `PATH` and Perl.
 
 Quick iteration when developing a resource (with custom invocation):
 
@@ -410,14 +410,14 @@ showpage
 ```
 
 
-### Options Processing (processoptions.ps.src)
+### Options Processing (`processoptions.ps.src`)
 
 - Accepts space-separated `key=value` pairs or just `key` (to set boolean to true)
 - Options update corresponding PostScript variable in the current dictionary, only if it exists
 - Values are type checked against the option's default value type, otherwise error is raised
 
 
-### Barcode Data Parsing (parseinput.ps.src)
+### Barcode Data Parsing (`parseinput.ps.src`)
 
 Options `parse` and `parsefnc` preprocess data to allow denoting ASCII control characters and non-data characters (FNC1-4, ECI) as printable text
 
@@ -454,11 +454,11 @@ The `contrib/development` directory contains:
 GS1-enabled encoders can disable validation checks using the `dontlint` option.
 
 
-### Error Handling (raiseerror.ps.src)
+### Error Handling (`raiseerror.ps.src`)
 
 - Errors are raised by popping stack items added by current resource, pushing a user-friendly info string and error name, then calling `raiseerror`
 - Uses standard PostScript `stop` mechanism to invoke custom error handlers or a `stopped` context
-- Error names typically follow pattern: `/bwipp.<resource><ErrorType>`, e.g. `/bwipp.code39badCharacter`
+- Error names typically follow pattern: `/bwipp.<resource><ErrorType>`, e.g., `/bwipp.code39badCharacter`
 
 Example custom error handlers in `contrib/development/`:
 
@@ -470,7 +470,7 @@ Example custom error handlers in `contrib/development/`:
 
 Encoders create a common dictionary structure expected by their renderer:
 
-**1D Barcodes (renlinear):**
+**1D Barcodes (`renlinear`):**
 ```postscript
 <<
     /ren /renlinear
@@ -482,7 +482,7 @@ Encoders create a common dictionary structure expected by their renderer:
 >>
 ```
 
-**2D Barcodes (renmatrix):**
+**2D Barcodes (`renmatrix`):**
 ```postscript
 <<
     /ren /renmatrix
@@ -493,7 +493,7 @@ Encoders create a common dictionary structure expected by their renderer:
 >>
 ```
 
-**MaxiCode (renmaximatrix):**
+**MaxiCode (`renmaximatrix`):**
 ```postscript
 <<
     /ren /renmaximatrix
@@ -520,7 +520,7 @@ Callers can access the intermediate dictionary by setting the `dontdraw` options
 
 - Use `//name` immediate lookup for static data (avoids runtime allocation and dictionary lookups); use directly rather than creating local aliases (e.g., `//encoder.fnc1` not `/fnc1 //encoder.fnc1 def`)
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
-- When latevars needs a helper function, define it in static scope (bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec`
+- When `latevars` needs a helper function, define it in static scope (bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec`
 
 **Conditional Assignment Pattern**
 
@@ -542,7 +542,7 @@ condition {
 **"Switch" blocks (common exit)**
 
 Long `ifelse` chains can be replaced with a "common exit" pattern for
-maintainability. Nested ifelse avoids the `repeat`/`exit` overhead, so prefer it in hot paths.
+maintainability. Nested `ifelse` avoids the `repeat`/`exit` overhead, so prefer it in hot paths.
 
 ```postscript
 % Nested ifelse (faster, harder to modify)
@@ -625,7 +625,7 @@ Cache parameter guidelines:
 
 - Creating variables (dictionary entries) in hot loops
 - Defining static data in the main procedure (hoist to define time, then use `//name`)
-- Computing derived data on every invocation (use latevars)
+- Computing derived data on every invocation (use `latevars`)
 
 
 **Array Extension in Loops**
@@ -688,7 +688,7 @@ Keep loop index on stack instead:
 } for
 ```
 
-The RSEC loops in qrcode, datamatrix, pdf417 demonstrate advanced uses of this
+The RSEC loops in `qrcode`, `datamatrix`, `pdf417` demonstrate advanced uses of this
 pattern, including stack-based access to variables outside of the inner loop.
 
 
@@ -817,8 +817,8 @@ Performance enhancements are welcome, but significant gains are hard won.
 Be aware that large 2D symbols have different runtime bottlenecks, for example:
 
 **QR Code** - >60% of V40 runtime is mask evaluation; bottleneck is penalty calculation requiring multiple full-symbol scans; RSEC is fast
-- Direct masklayers access (bitshift per pixel instead of extracting to array): Slower - per-pixel overhead in inner loops exceeds allocation savings
-- Array reuse (preallocate masksym, rle, lastpairs, thispairs): No gain
+- Direct `masklayers` access (bitshift per pixel instead of extracting to array): Slower - per-pixel overhead in inner loops exceeds allocation savings
+- Array reuse (preallocate `masksym`, `rle`, `lastpairs`, `thispairs`): No gain
 
 **Data Matrix** - ~75% of 144x144 runtime is RSEC codeword calculation; bottleneck is due to many codewords per block
 - ECC codeword calculation is already optimal so there is little that can be gained
@@ -846,7 +846,7 @@ The `test_utils.ps` file contains the following utility functions required for
 all resource tests:
 
 - `debugIsEqual` - Compare codeword arrays (used with `debugcws` option)
-- `isEqual`      - Compare output arrays (pixs, sbs)
+- `isEqual`      - Compare output arrays (`pixs`, `sbs`)
 - `isError`      - Verify specific error is raised
 
 To access the intermediate dictionary without rendering, each of the encoders
@@ -889,14 +889,14 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
 
 ### Test Patterns
 
-Success test - validate 1D barcode graphical structure via sbs array:
+Success test - validate 1D barcode graphical structure via `sbs` array:
 
 ```postscript
 (INPUT) (dontdraw) encoder /sbs get
 [1 2 1 1 ...] debugIsEqual
 ```
 
-Success test - validate 2D barcode graphical structure via pixs array:
+Success test - validate 2D barcode graphical structure via `pixs` array:
 
 ```postscript
 (INPUT) (dontdraw) encoder /pixs get
@@ -985,7 +985,7 @@ before linters:
 - `GS1badLatitudeLength`, `GS1badLongitudeLength` - AIs have fixed length
 
 Unreachable due to earlier validation:
-- `GS1UnknownCSET82Character` - lintcset82 catches first
+- `GS1UnknownCSET82Character` - `lintcset82` catches first
 - `GS1alphaTooLong` - max length fits primes array
 - `GS1requiresNonDigit` - checksum requires non-digits
 - `colorFailedToSet` - valid colors work; error path has stack cleanup issues
@@ -1017,7 +1017,7 @@ got commit -m "Bumped wikidocs"
 
 ### Building Documentation
 
-From the wikidocs directory:
+From the `wikidocs` directory:
 
 ```bash
 make -f __pandoc/Makefile all
@@ -1055,26 +1055,26 @@ The build requires Pandoc, the Haskell runtime and LaTeX.
 2. `.github/workflows/ci.yml` - Add to BOTH `docs-pdf` and `docs-html` jobs
 
 **Release tasks** (maintainer only):
-- Update homepage in `postscriptbarcode` gh-pages branch
+- Update homepage in `postscriptbarcode` `gh-pages` branch
 - Update GitHub project tags
 
 
 ## PostScript Language paradigms
 
-Pay attention to the direction of roll:
+Pay attention to the direction of `roll`:
 
 ```postscript
 (a) (b) (c) 3  1 roll => (c) (a) (b)
 (a) (b) (c) 3 -1 roll => (b) (c) (a)
 ```
 
-Understand the offset used by index:
+Understand the offset used by `index`:
 
 ```postscript
 (a) (b) (c) 1 index => (a) (b) (c)   (b)
 ```
 
-Inserting stack elements requires index adjustment:
+Inserting stack elements requires `index` adjustment:
 
 ```postscript
 (a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
@@ -1110,7 +1110,7 @@ Names and strings are treated as equivalent when compared:
 /test (test) eq => true
 ```
 
-Understand that readonly does not affect its argument:
+Understand that `readonly` does not affect its argument:
 
 ```postscript
 /a [ 1 2 3 ] def   % a is writable
@@ -1158,8 +1158,8 @@ Some PLRM terminology is a source of confusion. As a result of the following com
 /b a def
 ```
 
-- `a` is referred to as the "object" (within the currentdict)
+- `a` is referred to as the "object" (within the `currentdict`)
 - The `--array--` created by `]` is referred to as "the storage for the object in VM" (either global or local VM depending on the allocation mode indicated by `currentglobal`)
 - `b` is also an "object" that refers to the same VM storage as `a`
 
-The terminology differs from many languages where the array itself would be referred to as an object and a and b would be referred to as names or references.
+The terminology differs from many languages where the array itself would be referred to as an object and `a` and `b` would be referred to as names or references.
