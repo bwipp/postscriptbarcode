@@ -45,8 +45,13 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/maxicode [/before /after] //setuphooks exec
+
+(setup.define) //maxicode.before exec
 
 %
 % Special function characters
@@ -264,6 +269,8 @@ begin
 
 /maxicode.latevars dup 16 dict def load /init {
 
+    (setup.latevars) //maxicode.before exec
+
     currentglobal
     true setglobal
 
@@ -305,6 +312,8 @@ begin
 
     setglobal
 
+    (setup.latevars) //maxicode.after exec
+
 } bind put
 
 /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -314,6 +323,8 @@ begin
 /maxicode {
 
     128 dict begin
+
+    (input.processoptions) //maxicode.before exec
 
     /dontdraw false def
     /mode -1 def
@@ -330,7 +341,11 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    (input.processoptions) //maxicode.after exec
+
     //maxicode.latevars /init get exec
+
+    (input.validate) //maxicode.before exec
 
     barcode () eq {
         /bwipp.maxicodeEmptyData (The data must not be empty) //raiseerror exec
@@ -352,12 +367,16 @@ begin
         } if
     } if
 
+    (input.validate) //maxicode.after exec
+
     /encoding (new) def
     legacyencoder {/encoding (legacy) def} if
 
     %
     % Parse the input
     %
+    (input.preprocess) //maxicode.before exec
+
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
@@ -471,6 +490,10 @@ begin
         /msglen msg length def
 
     } if
+
+    (input.preprocess) //maxicode.after exec
+
+    (input.encoding) //maxicode.before exec
 
     /maxlen mode 5 eq {77} {mode 3 le {84} {93} ifelse} ifelse def
 
@@ -1005,9 +1028,13 @@ begin
 
     } if
 
+    (input.encoding) //maxicode.after exec
+
     %
     % Generate error correction codewords
     %
+    (ecc.cws) //maxicode.before exec
+
     /rscodes {
 
         /rsnum exch def
@@ -1073,6 +1100,10 @@ begin
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws codewords //raiseerror exec } if
 
+    (ecc.cws) //maxicode.after exec
+
+    (matrix.layout) //maxicode.before exec
+
     %
     % Convert the codewords into module bits
     %
@@ -1097,6 +1128,8 @@ begin
     } for
     /pixs [ pixs 0 j getinterval aload pop 28 29 280 281 311 457 488 500 530 670 700 677 707 ] def
 
+    (matrix.layout) //maxicode.after exec
+
     <<
     /ren /renmaximatrix
     /pixs pixs
@@ -1115,6 +1148,7 @@ begin
 [/barcode] {null def} forall
 bind def
 /maxicode dup load /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //maxicode.after exec
 end
 /setpacking where {pop setpacking} if
 setglobal
