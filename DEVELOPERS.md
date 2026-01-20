@@ -410,6 +410,13 @@ showpage
 ```
 
 
+### Options Processing (processoptions.ps.src)
+
+- Accepts space-separated `key=value` pairs or just `key` (to set boolean to true)
+- Options update corresponding PostScript variable in the current dictionary, only if it exists
+- Values are type checked against the option's default value type, otherwise error is raised
+
+
 ### Barcode Data Parsing (parseinput.ps.src)
 
 Options `parse` and `parsefnc` preprocess data to allow denoting ASCII control characters and non-data characters (FNC1-4, ECI) as printable text
@@ -421,11 +428,28 @@ Options `parse` and `parsefnc` preprocess data to allow denoting ASCII control c
 GS1 AI syntax is first processed by `gs1process.ps.src` before regular parsing
 
 
-### Options Processing (processoptions.ps.src)
+### GS1 Application Identifier Syntax and GS1 DigitalLink Processing (`gs1process.ps.src`)
 
-- Accepts space-separated `key=value` pairs or just `key` (to set boolean to true)
-- Options update corresponding PostScript variable in the current dictionary, only if it exists
-- Values are type checked against the option's default value type, otherwise error is raised
+Processes GS1 data and validates against the [GS1 Barcode Syntax Dictionary](https://github.com/gs1/gs1-syntax-dictionary),
+which describes each Application Identifier's format specification (component
+data types and lengths), and component validation rules (using "linters").
+
+The `contrib/development` directory contains:
+
+- `gs1-syntax-dictionary.txt` - Local copy of the GS1 Syntax Dictionary
+- `build-gs1-syntax-dict.pl` - Maintainer script to transform it into the `/gs1syntax` code structure
+
+**Calling convention:**
+```postscript
+(\(01\)09521234543213\(10\)ABC123)               /ai //gs1process exec => ais vals fncs  % For bracketed AI syntax
+(https://id.gs1.org/01/09521234543213/10/ABC123) /dl //gs1process exec => ais vals fncs  % For Digital Link URI
+```
+
+- `ais`  - Application Identifier strings (e.g., `[(01) (10)]`)
+- `vals` - Corresponding value strings (e.g., `[(09521234543213) (ABC123)]`)
+- `fncs` - Boolean array indicating which AIs require FNC1 separator (based on `contrib/development/ai_not_needing_fnc1.txt`)
+
+GS1-enabled encoders can disable these checks using the `dontlint` option.
 
 
 ### Error Handling (raiseerror.ps.src)
@@ -433,6 +457,11 @@ GS1 AI syntax is first processed by `gs1process.ps.src` before regular parsing
 - Errors are raised by popping stack items added by current resource, pushing a user-friendly info string and error name, then calling `raiseerror`
 - Uses standard PostScript `stop` mechanism to invoke custom error handlers or a `stopped` context
 - Error names typically follow pattern: `/bwipp.<resource><ErrorType>`, e.g. `/bwipp.code39badCharacter`
+
+Example custom error handlers in `contrib/development/`:
+
+- `error_handler_to_stderr.ps` - Writes BWIPP errors to stderr (for scripted/batch use)
+- `error_handler_as_image.ps`  - Renders error message as page output (for viewers)
 
 
 ### Intermediate Dictionaries
@@ -998,9 +1027,13 @@ Outputs:
 The build requires Pandoc, the Haskell runtime and LaTeX.
 
 
-### Adding New Symbology / Options Documentation
+### Adding a New Symbology
 
-When adding a new symbology page or options page, update the following files:
+**Source code:**
+1. `src/<symbology>.ps.src` - Create the resource file (use existing encoder as template)
+2. `src/uk.co.terryburton.bwipp.upr` - Add entry to the resource index
+3. `tests/ps_tests/<symbology>.ps.test` - Create test file
+4. Verify build: `make build/standalone/<symbology>.ps`
 
 **Wiki content for symbologies** (in `wikidocs/` submodule):
 1. `symbologies/<Symbology-Name>.md` - Create the documentation page
@@ -1014,9 +1047,13 @@ When adding a new symbology page or options page, update the following files:
 2. `options/_Sidebar.md` - Add link in appropriate section
 3. `options/Options-Reference.md` - Add entry if applicable
 
-**Build system**
+**Build system:**
 1. `wikidocs/__pandoc/Makefile` - Add to `REF_FILES` in appropriate category
 2. `.github/workflows/ci.yml` - Add to BOTH `docs-pdf` and `docs-html` jobs
+
+**Release tasks** (maintainer only):
+- Update homepage in `postscriptbarcode` gh-pages branch
+- Update GitHub project tags
 
 
 ## PostScript Language paradigms
