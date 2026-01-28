@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -68,6 +68,30 @@ begin
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    inkspread -1 lt inkspread 1 gt or {
+        /bwipp.renmaximatrixBadInkspread (inkspread must be from -1 to 1) //raiseerror exec
+    } if
+
+    borderleft -1 lt borderleft 50 gt or {
+        /bwipp.renmaximatrixBadBorderleft (borderleft must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderright -1 lt borderright 50 gt or {
+        /bwipp.renmaximatrixBadBorderright (borderright must be from -1 to 50) //raiseerror exec
+    } if
+
+    bordertop -1 lt bordertop 50 gt or {
+        /bwipp.renmaximatrixBadBordertop (bordertop must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderbottom -1 lt borderbottom 50 gt or {
+        /bwipp.renmaximatrixBadBorderbottom (borderbottom must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderwidth 0 lt borderwidth 10 gt or {
+        /bwipp.renmaximatrixBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
+    } if
 
     options /debughexagons known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse

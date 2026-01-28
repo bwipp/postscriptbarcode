@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /renmaximatrix dup /uk.co.terryburton.bwipp findresource cvx def
@@ -49,4 +49,26 @@
     957 986 58 89 118 149 148 238 269 329 358 389 388 418 449 448 478 508 538 568 778 809 868 958 988 28 29 280 281 311 457 488
     500 530 670 700 677 707
 ] debugIsEqual
+
+%
+% Error tests
+%
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /inkspread -2 >> >> renmaximatrix } /bwipp.renmaximatrixBadInkspread isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /inkspread 2 >> >> renmaximatrix } /bwipp.renmaximatrixBadInkspread isError
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderleft -2 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderleft isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderleft 51 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderleft isError
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderright -2 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderright isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderright 51 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderright isError
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /bordertop -2 >> >> renmaximatrix } /bwipp.renmaximatrixBadBordertop isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /bordertop 51 >> >> renmaximatrix } /bwipp.renmaximatrixBadBordertop isError
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderbottom -2 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderbottom isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderbottom 51 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderbottom isError
+
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth -1 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderwidth isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth 11 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderwidth isError
 
