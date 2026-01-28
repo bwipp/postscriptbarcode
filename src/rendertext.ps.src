@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -114,6 +114,9 @@ begin
                 /tstr txt length string def
                 0 1 txt length 1 sub { dup txt exch get tstr 3 1 roll put } for
             } {
+                alttextsubspace () ne alttextsubspace length 1 ne and {
+                    /bwipp.alttextsubspaceBad (The alttextsubspace option must be a single character) //raiseerror exec
+                } if
                 /tstr alttext def
                 0 1 alttext length 1 sub {
                     dup
@@ -205,6 +208,10 @@ begin
 
     % Render any extratext
     extratext () ne {
+
+        extratextsubspace () ne extratextsubspace length 1 ne and {
+            /bwipp.extratextsubspaceBad (The extratextsubspace option must be a single character) //raiseerror exec
+        } if
 
         0 1 extratext length 1 sub {
             dup
