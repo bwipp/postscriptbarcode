@@ -66,6 +66,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - `make clean`                                 - Clean
 - `make build/standalone/<encoder>.ps`         - Build standalone encoder
 - `make build/standalone_package/<encoder>.ps` - Build packaged standalone encoder
+- `make syncsyntaxdict`                        - Sync gs1process.ps.src with latest upstream GS1 Syntax Dictionary
 
 Note: On MacOS it's `sysctl -n hw.ncpu` instead of `$(nproc)`.
 
