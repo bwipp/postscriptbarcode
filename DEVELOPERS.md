@@ -18,6 +18,8 @@ Performance, execution cost, and interpreter compatibility are critical.
 These must be followed, otherwise you must be prepared to defend your choices:
 
 - Create atomic, logical commits that complete one task.
+- If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
+- Create an entry in CHANGES for each user-visible change. If the current change block has been published, create a new block dated "XXXX-XX-XX". Observe the layout and style of pre-existing contents.
 - Unless the changes are tiny and consistant, there should be one commit per updated resource.
 - Use sparse comments explaining "why" not "how".
 - Ensure that code comments describe only the current code and do not reference changes made with respect to old code - that's what commit descriptions are for.
@@ -42,7 +44,6 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Always search for and follow pre-existing patterns before writing code. Warn if the existing pattern does not appear to follow best practise.
 - Warn about potential issues such as potential performance regressions in hot paths.
 - Warn about potentially incorrect code when introducing new idioms involving stack-based constructions.
-- If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
 - Don't ever `git reset` to try to rewrite history when there is a risk of losing recent work.
 - Backup work before running irreversible commands such as `sed` against a large number of files.
 - Plan complex tasks. Interview the user regarding significant design choices.
