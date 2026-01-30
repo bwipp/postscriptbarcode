@@ -80,8 +80,13 @@ if ($resource eq 'preamble') {
 
 my $vmusage = '0 0';
 
-(my $yyyy, my $mm, my $dd, $_, my $rr) = $version =~ /^(\d{4})-(\d{2})-(\d{2})(-(\d{1,2}))?$/ or die 'Malformed version';
-my $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
+my $qualifier;
+if ($version eq 'XXXX-XX-XX') {
+    $qualifier = '0.0 0000000000';
+} else {
+    (my $yyyy, my $mm, my $dd, $_, my $rr) = $version =~ /^(\d{4})-(\d{2})-(\d{2})(-(\d{1,2}))?$/ or die 'Malformed version';
+    $qualifier = "0.0 $yyyy$mm$dd" . sprintf("%02d",$rr || 0);
+}
 
 {
     use File::Temp qw(tempfile);

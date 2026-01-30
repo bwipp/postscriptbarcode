@@ -315,6 +315,7 @@ $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_F
 
 .PHONY: tag
 tag:
+	@[ "$(VERSION)" != "XXXX-XX-XX" ] || { echo "Error: Cannot tag with placeholder version"; exit 1; }
 	@echo Push a new tag as follows:
 	@echo
 	@echo Remenber to refresh the wikidocs/ submodule
