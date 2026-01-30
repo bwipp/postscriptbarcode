@@ -1,7 +1,7 @@
 # Barcode Writer in Pure PostScript
 # https://bwipp.terryburton.co.uk
 #
-# Copyright (c) 2004-2024 Terry Burton
+# Copyright (c) 2004-2026 Terry Burton
 #
 # $Id$
 
@@ -113,13 +113,14 @@ cleanlist += $(RELEASEFILES) $(RELEASEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
-.PHONY : all clean test resource packaged_resource monolithic monolithic_package release tag copyright whitespace
-
+.PHONY: all
 all: resource packaged_resource monolithic monolithic_package
 
+.PHONY: clean
 clean:
 	$(RM) $(cleanlist)
 
+.PHONY: test
 test: all
 	tests/run_tests
 
@@ -133,6 +134,7 @@ endif
 
 #------------------------------------------------------------
 
+.PHONY: resource
 resource: $(TARGETS_RES)
 
 $(RESMKDIRSTAMP):
@@ -177,6 +179,7 @@ cleanlist += $(DSTDIR)/make_packaged_resource.ps $(DSTDIR)/make_packaged_resourc
 
 #------------------------------------------------------------
 
+.PHONY: packaged_resource
 packaged_resource: $(TARGETS_PACKAGE)
 
 $(PACKAGEMKDIRSTAMP):
@@ -204,6 +207,7 @@ $(PACKAGEDIR)/docs/%: $(DOCDIR)/% $(PACKAGEMKDIRSTAMP)
 
 #------------------------------------------------------------
 
+.PHONY: monolithic
 monolithic: $(TARGETS_MONOLITHIC)
 
 $(MONOLITHIC_MKDIRSTAMP):
@@ -225,6 +229,7 @@ $(MONOLITHIC_DIR)/docs/%: $(DOCDIR)/% $(MONOLITHIC_MKDIRSTAMP)
 
 #------------------------------------------------------------
 
+.PHONY: monolithic_package
 monolithic_package: $(TARGETS_MONOLITHIC_PACKAGE)
 
 $(MONOLITHIC_PACKAGE_MKDIRSTAMP):
@@ -264,6 +269,7 @@ $(STANDALONE_PACKAGE_DIR)/%.ps: $(SRCDIR)/%.ps.src $(SRCDIR)/ps.head $(CHANGES_F
 
 #------------------------------------------------------------
 
+.PHONY: release
 release: $(RELEASEFILES)
 
 $(RELEASEMKDIRSTAMP):
@@ -307,6 +313,7 @@ $(RELEASE_MONOLITHIC_PACKAGE_ZIPFILE): $(TARGETS_MONOLITHIC_PACKAGE) $(CHANGES_F
 
 #------------------------------------------------------------
 
+.PHONY: tag
 tag:
 	@echo Push a new tag as follows:
 	@echo
@@ -319,8 +326,46 @@ tag:
 
 YEAR:=$(shell date +%Y)
 
+.PHONY: copyright
 copyright:
 	sed -i -e 's@\(Copyright\)\(.*\)\(2004-\)\([[:digit:]]\+\)\( Terry Burton\)@\1\2\3$(YEAR)\5@' $(SOURCES) LICENSE Makefile $(SRCDIR)/ps.head $(DSTDIR)/make_packaged_resource.ps.in $(DSTDIR)/make_resource.ps libs/bindings/postscriptbarcode.i libs/c/*.[ch]
 
+.PHONY: whitespace
 whitespace:
 	perl -p -i -e 's/\s+$$/\n/;' $(SOURCES)
+
+
+#
+#  GS1 Syntax Dictionary sync helper
+#
+GS1_SYNTAX_DICT = contrib/development/gs1-syntax-dictionary.txt
+GS1_SYNTAX_BUILD = contrib/development/build-gs1-syntax-dict.pl
+GS1_SYNTAX_TARGET = $(SRCDIR)/gs1process.ps.src
+
+.PHONY: syncsyntaxdict
+syncsyntaxdict:
+	@echo "Fetching latest GS1 Syntax Dictionary release..."
+	@TAG=$$(curl -sf https://api.github.com/repos/gs1/gs1-syntax-dictionary/releases/latest | \
+		grep '"tag_name":' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/'); \
+	if [ -z "$$TAG" ]; then echo "Error: Failed to fetch release info" >&2; exit 1; fi; \
+	echo "Latest release: $$TAG"; \
+	curl -sfL "https://raw.githubusercontent.com/gs1/gs1-syntax-dictionary/$$TAG/gs1-syntax-dictionary.txt" \
+		-o $(GS1_SYNTAX_DICT).tmp || { echo "Error: Failed to download syntax dictionary" >&2; exit 1; }; \
+	mv $(GS1_SYNTAX_DICT).tmp $(GS1_SYNTAX_DICT); \
+	echo "Regenerating gs1syntax block..."; \
+	cp $(GS1_SYNTAX_TARGET) $(GS1_SYNTAX_TARGET).orig; \
+	perl -T $(GS1_SYNTAX_BUILD) < $(GS1_SYNTAX_DICT) | \
+		sed 's/>> def$$/>> readonly def/' > $(GS1_SYNTAX_TARGET).gs1syntax.tmp; \
+	START=$$(grep -n '/gs1syntax <<' $(GS1_SYNTAX_TARGET) | cut -d: -f1); \
+	END=$$(awk '/\/gs1syntax <</{start=NR} start && />> readonly def/{print NR; exit}' $(GS1_SYNTAX_TARGET)); \
+	if [ -z "$$START" ] || [ -z "$$END" ]; then echo "Error: Failed to locate gs1syntax block" >&2; exit 1; fi; \
+	head -n $$((START - 1)) $(GS1_SYNTAX_TARGET) > $(GS1_SYNTAX_TARGET).tmp; \
+	cat $(GS1_SYNTAX_TARGET).gs1syntax.tmp >> $(GS1_SYNTAX_TARGET).tmp; \
+	tail -n +$$((END + 1)) $(GS1_SYNTAX_TARGET) >> $(GS1_SYNTAX_TARGET).tmp; \
+	mv $(GS1_SYNTAX_TARGET).tmp $(GS1_SYNTAX_TARGET); \
+	rm -f $(GS1_SYNTAX_TARGET).gs1syntax.tmp; \
+	echo "Done. Updated $(GS1_SYNTAX_TARGET) with GS1 Syntax Dictionary $$TAG"; \
+	echo ""; \
+	diff -u -w $(GS1_SYNTAX_TARGET).orig $(GS1_SYNTAX_TARGET) || true; \
+	rm -f $(GS1_SYNTAX_TARGET).orig
+
