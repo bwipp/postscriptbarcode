@@ -61,6 +61,10 @@ ENCODER="$2"
 DATA="$3"
 OPTIONS="$4"
 
+# Convert data and options to hex strings to avoid PostScript escaping issues
+DATA_HEX=$(printf '%s' "$DATA" | xxd -p | tr -d '\n')
+OPTIONS_HEX=$(printf '%s' "$OPTIONS" | xxd -p | tr -d '\n')
+
 if [ -z "$FORMAT" ] || [ -z "$ENCODER" ] || [ -z "$DATA" ]; then
     echo "Usage: $0 [options] <format> <encoder> <data> [barcode_options] > output" >&2
     echo "Options: [--crop] [--scale=N] [--scalex=N] [--scaley=N] [--rotate=N]" >&2
@@ -94,7 +98,7 @@ BBOX=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=bbox \
     -c "<< /PageOffset [$OFFSET $OFFSET] /WhiteIsOpaque $WHITE_IS_OPAQUE >> setpagedevice" \
     -c "$INIT" \
     -c "($BWIPP) run $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-    -c "($DATA) ($OPTIONS) /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage" \
+    -c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage" \
     2>&1 | grep "%%BoundingBox:")
 
 if [ -z "$BBOX" ]; then
@@ -117,7 +121,7 @@ if [ "$FORMAT" = "png" ]; then
         -sOutputFile=- \
         -c "$INIT" \
         -c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-        -c "($DATA) ($OPTIONS) /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+        -c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
 fi
 
 if [ "$FORMAT" = "eps" ]; then
@@ -125,5 +129,5 @@ if [ "$FORMAT" = "eps" ]; then
         -sOutputFile=- \
         -c "$INIT" \
         -c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-        -c "($DATA) ($OPTIONS) /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+        -c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
 fi
