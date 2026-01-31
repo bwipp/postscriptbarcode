@@ -16,7 +16,8 @@
 #
 # Example: make_image.sh png ean13 '1231231231232' 'includetext' > ean13.png
 #          make_image.sh --scale=2 png qrcode 'test' > qrcode.png
-#          make_image.sh --crop --rotate=90 eps datamatrix 'test' > datamatrix.eps
+#          make_image.sh --crop --rotate=90 pdf datamatrix 'test' > datamatrix.pdf
+#          make_image.sh svg qrcode 'test' > qrcode.svg
 #
 
 set -e
@@ -73,8 +74,8 @@ if [ -z "$FORMAT" ] || [ -z "$ENCODER" ] || [ -z "$DATA" ]; then
 	exit 1
 fi
 
-if [ "$FORMAT" != "png" ] && [ "$FORMAT" != "eps" ]; then
-	echo "Error: format must be 'png' or 'eps'" >&2
+if [ "$FORMAT" != "png" ] && [ "$FORMAT" != "eps" ] && [ "$FORMAT" != "pdf" ] && [ "$FORMAT" != "svg" ]; then
+	echo "Error: format must be 'png', 'eps', 'pdf', or 'svg'" >&2
 	exit 1
 fi
 
@@ -99,14 +100,21 @@ BBOX=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=bbox \
 	-c "$INIT" \
 	-c "($BWIPP) run $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
 	-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage" \
-	2>&1 | grep "%%BoundingBox:")
+	2>&1 | grep "%%HiResBoundingBox:")
 
 if [ -z "$BBOX" ]; then
 	echo "Error: Failed to get bounding box" >&2
 	exit 1
 fi
 
-read -r _ X1 Y1 X2 Y2 <<<"$BBOX"
+# Round X1,Y1 down (floor) and X2,Y2 up (ceiling) to enclose symbol
+read -r X1 Y1 X2 Y2 < <(echo "$BBOX" | awk '{
+	x1 = int($2); if ($2 < x1) x1--;
+	y1 = int($3); if ($3 < y1) y1--;
+	x2 = int($4); if ($4 > x2) x2++;
+	y2 = int($5); if ($5 > y2) y2++;
+	print x1, y1, x2, y2
+}')
 
 TRANSLATE_X=$((OFFSET - X1))
 TRANSLATE_Y=$((OFFSET - Y1))
@@ -130,4 +138,27 @@ if [ "$FORMAT" = "eps" ]; then
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
 		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+fi
+
+if [ "$FORMAT" = "pdf" ]; then
+	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=pdfwrite \
+		-dAutoRotatePages=/None \
+		-dDEVICEWIDTHPOINTS=$WIDTH -dDEVICEHEIGHTPOINTS=$HEIGHT \
+		-sOutputFile=- \
+		-c "$INIT" \
+		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
+		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+fi
+
+if [ "$FORMAT" = "svg" ]; then
+	TMPPDF=$(mktemp --suffix=.pdf)
+	trap 'rm -f "$TMPPDF"' EXIT
+	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=pdfwrite \
+		-dAutoRotatePages=/None \
+		-dDEVICEWIDTHPOINTS=$WIDTH -dDEVICEHEIGHTPOINTS=$HEIGHT \
+		-sOutputFile="$TMPPDF" \
+		-c "$INIT" \
+		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
+		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+	pdftocairo -svg "$TMPPDF" -
 fi
