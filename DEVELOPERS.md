@@ -1037,7 +1037,7 @@ The build requires Pandoc, the Haskell runtime and LaTeX.
 Example images in the wiki are generated from formatted code blocks in the
 markdown files:
 
-```
+```text
 Data:    <barcode data>
 Options: <encoder options>
 Encoder: <encoder name>
