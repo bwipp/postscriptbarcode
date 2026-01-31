@@ -9,7 +9,7 @@
 #
 # Options:
 #   --crop          Crop to content (no quiet zone)
-#   --scale=N       Scale factor for both axes (default: 1)
+#   --scale=N       Scale factor for both axes (default: 2)
 #   --scalex=N      Scale factor for x axis
 #   --scaley=N      Scale factor for y axis
 #   --rotate=N      Rotation in degrees
@@ -22,8 +22,8 @@
 set -e
 
 CROP=false
-SCALEX=1
-SCALEY=1
+SCALEX=2
+SCALEY=2
 ROTATE=0
 
 while [[ "$1" == --* ]]; do
