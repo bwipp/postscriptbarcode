@@ -1032,6 +1032,34 @@ Outputs:
 The build requires Pandoc, the Haskell runtime and LaTeX.
 
 
+### Wiki Example Images
+
+Example images in the wiki are generated from formatted code blocks in the
+markdown files:
+
+```
+Data:    <barcode data>
+Options: <encoder options>
+Encoder: <encoder name>
+```
+
+Followed by an image reference: `![](images/<name>.png)`
+
+**Generating individual images:**
+
+```bash
+contrib/development/make_image.sh png qrcode 'Hello World' '' > qrcode.png
+```
+
+**Regenerating all wiki images:**
+
+```bash
+wikidocs/__pandoc/regenerate_images.pl
+```
+
+Both scripts require `build/monolithic/barcode.ps` (run `make` first).
+
+
 ### Adding a New Symbology
 
 **Source code:**
@@ -1059,6 +1087,64 @@ The build requires Pandoc, the Haskell runtime and LaTeX.
 **Release tasks** (maintainer only):
 - Update homepage in `postscriptbarcode` `gh-pages` branch
 - Update GitHub project tags
+
+
+## Release Process
+
+1. Update CHANGES date:
+   ```bash
+   sed -i '1s/XXXX-XX-XX/YYYY-MM-DD/' CHANGES
+   git add CHANGES
+   git commit -m "Update CHANGES"
+   ```
+
+2. Review CHANGES for new/modified symbologies or options. Verify corresponding
+   updates exist in wikidocs:
+   - `wikidocs/symbologies/<Symbology-Name>.md`
+   - `wikidocs/options/<Option-Name>.md`
+   - `wikidocs/symbologies/Symbologies-Reference.md`
+   - `wikidocs/options/Options-Reference.md`
+
+3. Ensure wikidocs submodule is up to date:
+   ```bash
+   git -C wikidocs pull origin master
+   git add wikidocs
+   git commit -m "Bump wikidocs"  # Skip if no changes
+   ```
+
+4. Push commits:
+   ```bash
+   git push origin master
+   ```
+
+5. Wait for CI to pass:
+   ```bash
+   gh run watch
+   ```
+
+6. Only after CI succeeds, create and push the tag:
+   ```bash
+   make tag
+   git push origin YYYY-MM-DD
+   ```
+
+7. Watch the release workflow triggered by the tag:
+   ```bash
+   gh run watch
+   ```
+
+8. Verify the release was created:
+   ```bash
+   gh release view YYYY-MM-DD
+   ```
+
+9. Add placeholder for next release:
+   ```bash
+   sed -i '1i XXXX-XX-XX\n\n* \n\n' CHANGES
+   git add CHANGES
+   git commit -m "Update CHANGES"
+   git push origin master
+   ```
 
 
 ## PostScript Language paradigms
