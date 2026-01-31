@@ -1043,13 +1043,17 @@ Options: <encoder options>
 Encoder: <encoder name>
 ```
 
-Followed by an image reference: `![](images/<name>.png)`
+Followed by an image reference: `![](images/<name>.svg)`
 
 **Generating individual images:**
 
 ```bash
-contrib/development/make_image.sh png qrcode 'Hello World' '' > qrcode.png
+contrib/development/make_image.sh svg qrcode 'Hello World' '' > qrcode.svg
+contrib/development/make_image.sh pdf qrcode 'Hello World' '' > qrcode.pdf
 ```
+
+The script supports `png`, `eps`, `pdf`, and `svg` formats. Wiki images use SVG for
+the GitHub wiki and PDF for LaTeX documentation.
 
 **Regenerating all wiki images:**
 
@@ -1072,7 +1076,7 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 1. `symbologies/<Symbology-Name>.md` - Create the documentation page
 2. `symbologies/_Sidebar.md` - Add link in appropriate category section
 3. `symbologies/Symbologies-Reference.md` - Add entry with thumbnail image(s)
-4. `images/<name>.png` and `images/<name>.eps` - Example images (use `scale=1`)
+4. `images/<name>.svg` and `images/<name>.pdf` - Example images (use `scale=1`)
 5. Related symbology pages - Add cross-references if applicable
 
 **Wiki content for options** (in `wikidocs/` submodule):
