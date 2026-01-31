@@ -44,13 +44,13 @@ jobs:
     container: pandoc/latex:2.9
 
     steps:
+      - name: Install dependencies
+        run: apk add --no-cache git make
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-
-      - name: Install make
-        run: apk add --no-cache make
 
       - name: Build docs
         run: make -C wikidocs -f __pandoc/Makefile all
