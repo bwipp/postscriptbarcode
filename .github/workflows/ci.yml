@@ -55,7 +55,7 @@ jobs:
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
-          sed -i -e 's/\[!\[GitHub license\].*//' README.md
+          sed -i -e '/img.shields.io/d' -e '/badge.svg/d' README.md
 
       - name: Build PDF docs
         uses: docker://pandoc/latex:2.9
@@ -215,7 +215,7 @@ jobs:
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
-          sed -i -e 's/\[!\[GitHub license\].*//' README.md
+          sed -i -e '/img.shields.io/d' -e '/badge.svg/d' README.md
 
       - name: Build HTML docs
         uses: docker://pandoc/latex:2.9
