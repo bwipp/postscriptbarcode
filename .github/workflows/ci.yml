@@ -48,18 +48,10 @@ jobs:
         with:
           submodules: True
 
-      - name: Convert images from EPS to PDF
-        run: |
-          sudo apt-get update
-          sudo apt install -y --no-install-recommends \
-              texlive-font-utils ghostscript
-          find wikidocs/images/ -name '*.eps' -print0 | \
-              xargs -0 -t -P "$(nproc)" -I{} epstopdf {}
-
       - name: Transform wiki
         run: |
           sed -i \
-            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.pdf)/' \
+            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).svg)/![\1](wikidocs\/\2\/\3.pdf)/' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
@@ -219,7 +211,7 @@ jobs:
       - name: Transform wiki
         run: |
           sed -i \
-            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).png)/![\1](wikidocs\/\2\/\3.png)/' \
+            -e 's/!\[\(.*\)\](\(images\)\/\(.\+\).svg)/![\1](wikidocs\/\2\/\3.svg)/' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
           perl -pi -e 's/(([^!]|^)\[[^\]]+\])\(([A-Za-z0-9-]+)\)/\1\L(#\3)/g' \
             wikidocs/symbologies/*.md wikidocs/options/*.md wikidocs/kb/*.md
