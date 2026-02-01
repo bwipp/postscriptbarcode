@@ -813,28 +813,9 @@ To configure a hook procedure for the named hooks in just a single encoder,
 create a hooks entries named like `qrcode.before`.
 
 
-### Profiling Results (including failed optimisation attempts)
+### Profiling Results
 
-Performance enhancements are welcome, but significant gains are hard won.
-
-Be aware that large 2D symbols have different runtime bottlenecks, for example:
-
-**QR Code** - >60% of V40 runtime is mask evaluation; bottleneck is penalty calculation requiring multiple full-symbol scans; RSEC is fast
-- Direct `masklayers` access (bitshift per pixel instead of extracting to array): Slower - per-pixel overhead in inner loops exceeds allocation savings
-- Array reuse (preallocate `masksym`, `rle`, `lastpairs`, `thispairs`): No gain
-
-**Data Matrix** - ~75% of 144x144 runtime is RSEC codeword calculation; bottleneck is due to many codewords per block
-- ECC codeword calculation is already optimal so there is little that can be gained
-- Generator polynomial generation is negligable compared to codeword calculation
-
-**Aztec Code** - ~95% of 32-layer runtime is RSEC coefficient generation; bottleneck is large Galois field operations
-- This cost is largely amortised during long production runs by using a FIFO cache
-
-**PDF417** - At high ECC levels RSEC coefficient generation is ~85% of initial runtime
-- This cost is largely amortised during long production runs by using a FIFO cache
-
-**MicroPDF417** - No significant bottleneck
-- Coefficient generation is quick due to limited number of error codewords
+Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code is mask evaluation bound; Data Matrix, Aztec, and PDF417 are RSEC bound (mitigated by FIFO caches). See encoder source for attempted optimizations.
 
 
 ## Testing
@@ -1095,163 +1076,38 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 
 ## Release Process
 
-1. Update CHANGES date:
-   ```bash
-   sed -i '1s/XXXX-XX-XX/YYYY-MM-DD/' CHANGES
-   git add CHANGES
-   git commit -m "Update CHANGES"
-   ```
-
-2. Review CHANGES for new/modified symbologies or options. Verify corresponding
-   updates exist in wikidocs:
-   - `wikidocs/symbologies/<Symbology-Name>.md`
-   - `wikidocs/options/<Option-Name>.md`
-   - `wikidocs/symbologies/Symbologies-Reference.md`
-   - `wikidocs/options/Options-Reference.md`
-
-3. Ensure wikidocs submodule is up to date:
-   ```bash
-   git -C wikidocs pull origin master
-   git add wikidocs
-   git commit -m "Bump wikidocs"  # Skip if no changes
-   ```
-
-4. Push commits:
-   ```bash
-   git push origin master
-   ```
-
-5. Wait for CI to pass:
-   ```bash
-   gh run watch
-   ```
-
-6. Only after CI succeeds, create and push the tag:
-   ```bash
-   make tag
-   git push origin YYYY-MM-DD
-   ```
-
-7. Watch the release workflow triggered by the tag:
-   ```bash
-   gh run watch
-   ```
-
-8. Verify the release was created:
-   ```bash
-   gh release view YYYY-MM-DD
-   ```
-
-9. Add placeholder for next release:
-   ```bash
-   sed -i '1i XXXX-XX-XX\n\n*\n\n' CHANGES
-   git add CHANGES
-   git commit -m "Update CHANGES"
-   git push origin master
-   ```
+1. Update CHANGES date: `sed -i '1s/XXXX-XX-XX/YYYY-MM-DD/' CHANGES` and commit
+2. Review CHANGES; verify wikidocs has corresponding symbology/option pages
+3. Update wikidocs submodule if needed: `git -C wikidocs pull origin master`
+4. Push commits, wait for CI: `gh run watch`
+5. After CI succeeds: `make tag && git push origin YYYY-MM-DD`
+6. Verify release: `gh release view YYYY-MM-DD`
+7. Add next placeholder: `sed -i '1i XXXX-XX-XX\n\n*\n\n' CHANGES` and commit/push
 
 
-## PostScript Language paradigms
+## PostScript Language Reminders
 
-Pay attention to the direction of `roll`:
-
+**Stack operations:**
 ```postscript
 (a) (b) (c) 3  1 roll => (c) (a) (b)
 (a) (b) (c) 3 -1 roll => (b) (c) (a)
+(a) (b) (c) 1 index => (a) (b) (c) (b)
+(a) (b) (c) /x 1 index def => x = (c), not (b) due to /x on stack!
 ```
 
-Understand the offset used by `index`:
-
-```postscript
-(a) (b) (c) 1 index => (a) (b) (c)   (b)
-```
-
-Inserting stack elements requires `index` adjustment:
-
-```postscript
-(a) (b) (c) /x 1 index def => (a) (b) (c) ; and x = (c), not (b) due to /x on the stack!
-```
-
-GhostScript can recursively expand structures with `===`:
-
-```postscript
-[ [ << /a 1 >> << /b 2 >> ] [ << /c 3 >> ] /d ] ===
-```
-
-Dictionaries will dynamically grow as needed:
-
-```postscript
-/dic 1 dict def  % Initial size, should be sized appropriately; for static data, prefer next power of 2 above expected size
-dic /a 1 put
-dic /b 2 put     % May overflow capacity, but is resized transparently (with associated performance impact)
-```
-
-It is not possible to dynamically change the size of an existing array:
-
-```postscript
-/arr 1 array def  % Fixed size, should be sized appropriately
-arr 0 /a put      % Indexed at zero
-arr 1 /b put      % Error: Out of bounds write
-arr 1 get         % Error: Out of bounds read
-```
-
-
-Names and strings are treated as equivalent when compared:
-
-```postscript
-/test (test) eq => true
-```
-
-Understand that `readonly` does not affect its argument:
-
+**`readonly` returns a new reference:**
 ```postscript
 /a [ 1 2 3 ] def   % a is writable
-a readonly pop     % a is still writable; achieves nothing
-/c a readonly def  % c is not writable; a remains writable
+a readonly pop     % achieves nothing; a still writable
+/c a readonly def  % c is readonly; a remains writable
 ```
 
-Invalidating a boolean placed first on the stack is a common way to perform multiple tests that must pass:
-
+**String literals are shared across invocations** (arrays/dicts are not):
 ```postscript
-true  % Assume good until...
-a 1 eq { pop (Error: a can't be 1)        false } if  % ... error encountered: Replace "true" with "false (error message)"
-a 9 eq { pop (Error: a can't be 9)        false } if
-b 5 gt { pop (Error: b must be 5 or less) false } if
-% ... More tests ...
-not {  % Check status
-    (An error occurred) ==
-    ==    % Emit error message on stack
-    stop  % Do unwinding instead
-} if
-% If we get here, all is well and no boolean left on the stack
-```
-
-
-When defining a procedure, string literals `(...)` are instantiated once (immediately) whereas array literals `[ ... ]` and dictionary literals `<< ... >>` are instantiated whenever the procedure is executed:
-
-```postscript
-% Bad: Error prone
 /proc {
-    /a (0000) def    % Safer to make a copy: /a (0000) 4 string copy def
-    a ==
+    /a (0000) def    % Safer: /a (0000) 4 string copy def
     a 0 (1234) putinterval
-    a ==
 } def
-proc    % First run:       0000 \n 1234
-proc    % Subsequent runs: 1234 \n 1234  ; object was updated by first run
-...
+proc  % First run: a = "1234"
+proc  % Subsequent: a starts as "1234", not "0000"!
 ```
-
-
-Some PLRM terminology is a source of confusion. As a result of the following command:
-
-```postscript
-/a [ 1 2 3 ] def
-/b a def
-```
-
-- `a` is referred to as the "object" (within the `currentdict`)
-- The `--array--` created by `]` is referred to as "the storage for the object in VM" (either global or local VM depending on the allocation mode indicated by `currentglobal`)
-- `b` is also an "object" that refers to the same VM storage as `a`
-
-The terminology differs from many languages where the array itself would be referred to as an object and `a` and `b` would be referred to as names or references.
