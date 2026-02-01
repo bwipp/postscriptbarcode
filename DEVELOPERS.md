@@ -1143,7 +1143,7 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 
 9. Add placeholder for next release:
    ```bash
-   sed -i '1i XXXX-XX-XX\n\n* \n\n' CHANGES
+   sed -i '1i XXXX-XX-XX\n\n*\n\n' CHANGES
    git add CHANGES
    git commit -m "Update CHANGES"
    git push origin master
