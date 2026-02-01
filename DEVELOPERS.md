@@ -1086,7 +1086,6 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 
 **Build system:**
 1. `wikidocs/__pandoc/Makefile` - Add to `REF_FILES` in appropriate category
-2. `.github/workflows/ci.yml` - Add to BOTH `docs-pdf` and `docs-html` jobs
 
 **Release tasks** (maintainer only):
 - Update homepage in `postscriptbarcode` `gh-pages` branch
