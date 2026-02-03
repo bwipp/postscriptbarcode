@@ -158,7 +158,7 @@ if [ "$FORMAT" = "svg" ]; then
 		-dDEVICEWIDTHPOINTS=$WIDTH -dDEVICEHEIGHTPOINTS=$HEIGHT \
 		-sOutputFile="$TMPPDF" \
 		-c "$INIT" \
-		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
+		-c "($BWIPP) run gsave 1 setgray clippath fill grestore $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
 		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
 	pdftocairo -svg "$TMPPDF" -
 fi
