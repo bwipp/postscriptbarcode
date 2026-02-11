@@ -45,19 +45,29 @@ Ehlenbroker J., Lohweg V. (2016) "System for simple coding, authentication and c
 
 Berisso, K. (2018) "DotCode Damage Testing," Journal of Computer Sciences and Applications, Volume 6, Number 1. pp. 43-47. <http://pubs.sciepub.com/jcsa/6/1/6>
 
-West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," DEF CON 26. <https://www.youtube.com/watch?v=Wy79TLkqArg>
+West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," DEF CON 26. <https://www.youtube.com/watch?v=Wy79TLkqArg> <https://media.defcon.org/DEF%20CON%2026/DEF%20CON%2026%20presentations/Michael%20West%20and%20Colin%20Campbell%20-%20Updated/>
 
 Wells, R. (2018) "British newspaper barcodes explained - and automated," <https://www.robjwells.com/2018/02/british-newspaper-barcodes-explained-and-automated/>
 
-Neubert, Jonas. (2019) "The Best Python Packages for Generating Barcodes," <https://blog.jonasneubert.com/2019/01/23/barcode-generation-python/>
+Packaging Digest. (2019) "Revised 2D Barcode Offers Potential in Beverage Distribution, Ecommerce Markets," <https://www.packagingdigest.com/ecommerce/revised-2d-barcode-offers-potential-in-beverage-distribution-ecommerce-markets>
 
 Russell, Robert. (2020) "How to Print QRcodes, Data Matrix, Aztec Codes, Maxi Code and Han Xin Barcodes in SAP," <https://www.rjruss.info/2020/04/how-to-print-qrcodes-data-matrix-aztec.html>
 
 Smith, Roland. (2020) "Generating barcodes with BWIPP," <https://rsmith.home.xs4all.nl/software/generating-barcodes-with-bwipp.html>
 
-Garcia, Greg. (2021) "Generating barcodes using Python - much more than you wanted to know," <https://garcia.casa/posts/generating-barcodes-using-python/>
-
 Nyström, Rikard. (2021) "A Machine Vision System for Robotic Operations Quality Control in an Automated Biological Lab," Thesis. <https://umu.diva-portal.org/smash/get/diva2:1584678/FULLTEXT01.pdf>
+
+GS1 AISBL. (2022) "GS1 Barcode Syntax Dictionary," <https://github.com/gs1/gs1-syntax-dictionary>
+
+GS1 AISBL. "GS1 2D Barcode Generator," <https://gs1.github.io/2d-barcode-generator/>
+
+
+treepoem
+--------
+
+Neubert, Jonas. (2019) "The Best Python Packages for Generating Barcodes," <https://blog.jonasneubert.com/2019/01/23/barcode-generation-python/>
+
+Garcia, Greg. (2021) "Generating barcodes using Python - much more than you wanted to know," <https://garcia.casa/posts/generating-barcodes-using-python/>
 
 Hrekov, Serhii. (2025) "Generating Data Matrix and PDF417 in Python," <https://hrekov.com/blog/generating-data-matrix-pdf417-python>
 
@@ -97,7 +107,15 @@ Barcode Writer in Pure JavaScript
 
 Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," <https://community.sap.com/t5/technology-blog-posts-by-members/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript-updated-and-also/ba-p/13157063>
 
+Vaneyghen, Roel. (2018) "Generate Barcode PDF's with Feathers.js," <https://medium.com/@roel_v/generate-barcode-pdfs-with-feathers-js-7ee2450d9259>
+
+Patel, Pankaj. (2021) "Today's npm package: bwip-js," <https://blog.pankaj.pro/todays-npm-package-bwip-js>
+
 Dynamsoft. (2024) "How to Build an Online Shipping Label Generator," <https://www.dynamsoft.com/codepool/online-shipping-label-generator.html>
+
+Dynamsoft. (2024) "How to Insert Barcodes into a PDF Document with HTML5 and JavaScript," <https://www.dynamsoft.com/codepool/html5-javascript-insert-barcode-into-pdf.html>
+
+Dynamsoft. (2025) "How to Build a Chrome Extension for Barcode & QR Code Generation from Scratch," <https://www.dynamsoft.com/codepool/chrome-extension-barcode-qr-code-generator.html>
 
 
 Scribus Barcode Generator Plugin
