@@ -9,17 +9,17 @@ If you are aware of any noteworthy additions to this list then please send a pat
 Barcode Writer in Pure PostScript
 ---------------------------------
 
-Martínez, Juan J. (2004) "A Barcode Generator in Pure PostScript," <http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html>
+Martínez, Juan J. (2004) "A Barcode Generator in Pure PostScript," <https://web.archive.org/web/20111127120932/http://blackshell.usebox.net/archive/a-barcode-generator-in-pure-postscript.html>
 
 Flack, Chapman. (2006) "Direct Use of the PostScript Language," <http://www.anastigmatix.net/postscript/direct.html>
 
 Rocholl, Johann C. (2009) "Robust 1D Barcode Recognition on Mobile Devices," <https://ieeexplore.ieee.org/document/5597018/>
 
-Scarso, Luigi. (2009) "Una estensione di luatex: luatex lunatic," <http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.188.5052&rep=rep1&type=pdf>
+Scarso, Luigi. (2009) "Una estensione di luatex: luatex lunatic," <https://www.tug.org/TUGboat/tb30-3/tb96scarso.pdf>
 
 Pluimers, Jeroen W. (2009) "Generating EAN-13 barcode EPS files for your article numbers," <http://wiert.me/2009/11/30/generating-ean-13-barcode-eps-files-for-your-article-numbers/>
 
-Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript," <https://blogs.sap.com/2010/10/25/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript/>
+Russell, Robert. (2010) "Barcodes in SAP with the Barcode Writer in Pure Postscript," <https://community.sap.com/t5/additional-blog-posts-by-members/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript/ba-p/12912935>
 
 Seichter, Dominik. (2010) "KBarcode4 Light Released," <http://domseichter.blogspot.com/2010/08/kbarcode4-light-released.html>
 
@@ -29,7 +29,7 @@ Russell, Robert. (2010) "How to Print(PDF) QR Codes in standard SAP," <http://ww
 
 Zhao, Y., Sun, W. (2010) "Practice of Imposition and Illustrator Variable Data Plate Making with Barcode," Proceedings of 17th IAPRI World Conference on Packaging. ISBN 978-1-935068-36-5.
 
-Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," <https://blogs.sap.com/2011/01/31/more-barcodes-with-barcode-writer-in-pure-postscript/>
+Russell, Robert. (2011) "More Barcodes with Barcode Writer in Pure Postscript," <https://community.sap.com/t5/additional-blog-posts-by-members/more-barcodes-with-barcode-writer-in-pure-postscript/ba-p/12913781>
 
 McNulty, John. (2011) "The Secret Lives of Objects," Sonic Arts Research Centre. Queen’s University Belfast. <http://www.robotmouth.com/papers_files/TSLOO.pdf>
 
@@ -49,9 +49,17 @@ West, M., Campbell C. (2018) "barcOwned: Popping Shells with Your Cereal Box," D
 
 Wells, R. (2018) "British newspaper barcodes explained - and automated," <https://www.robjwells.com/2018/02/british-newspaper-barcodes-explained-and-automated/>
 
+Neubert, Jonas. (2019) "The Best Python Packages for Generating Barcodes," <https://blog.jonasneubert.com/2019/01/23/barcode-generation-python/>
+
 Russell, Robert. (2020) "How to Print QRcodes, Data Matrix, Aztec Codes, Maxi Code and Han Xin Barcodes in SAP," <https://www.rjruss.info/2020/04/how-to-print-qrcodes-data-matrix-aztec.html>
 
+Smith, Roland. (2020) "Generating barcodes with BWIPP," <https://rsmith.home.xs4all.nl/software/generating-barcodes-with-bwipp.html>
+
+Garcia, Greg. (2021) "Generating barcodes using Python - much more than you wanted to know," <https://garcia.casa/posts/generating-barcodes-using-python/>
+
 Nyström, Rikard. (2021) "A Machine Vision System for Robotic Operations Quality Control in an Automated Biological Lab," Thesis. <https://umu.diva-portal.org/smash/get/diva2:1584678/FULLTEXT01.pdf>
+
+Hrekov, Serhii. (2025) "Generating Data Matrix and PDF417 in Python," <https://hrekov.com/blog/generating-data-matrix-pdf417-python>
 
 
 pst-barcode
@@ -67,11 +75,13 @@ Voß, Herbert. (2010) "The current state of the PSTricks project," The TUGboat J
 
 Voß, Herbert. (2011) "Ch 26: pst-barcode - Bar codes" in "PSTricks. Graphics and PostScript for TeX and LaTeX," Cambridge: UIT Cambridge. pp. 497-508.
 
-Molnar, Peter. (2013) "Processing class assignments on paper (Part I)," Blog: I'd rather be programming... <http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html>
+Molnar, Peter. (2013) "Processing class assignments on paper (Part I)," Blog: I'd rather be programming... <https://web.archive.org/web/20231211104335/http://blog.petermolnar.us/2013/03/processing-class-assignments-on-paper.html>
 
 Voß, Herbert. (2013) "QR-Codes im Rand ausgeben [QR Codes in the Margin]," Die TEXnische Komödie 4/2013. pp. 34–37. <http://archiv.dante.de/DTK/PDF/komoedie_2013_4.pdf>
 
 Fischer, Ulrike. (2014) "biblatex variations," The TUGboat Journal, Volume 35, Number 3. pp. 256-260.
+
+Talbot, Nicola L. C. (2015) "LaTeX for Administrative Work," Dickimaw Books. pp. 433-443. ISBN 978-1-909440-07-4. <https://www.dickimaw-books.com/latex/admin/>
 
 de Assis Zampirolli, F., Batista, V.R., Quilici-Gonzalez, J.A. (2016) "An automatic generator and corrector of multiple choice tests with random answer keys," Frontiers in Education Conference (FIE), 2016. IEEE. pp. 1-8.
 
@@ -85,7 +95,9 @@ Voß, Herbert. (2017) "The current state of the PSTricks project," The TUGboat J
 Barcode Writer in Pure JavaScript
 ---------------------------------
 
-Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," <https://blogs.sap.com/2015/02/01/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript-updated-and-also-available-in-javascript/>
+Russell, Robert. (2015) "Barcodes in SAP with the Barcode Writer in Pure Postscript Updated and Also Available in JavaScript," <https://community.sap.com/t5/technology-blog-posts-by-members/barcodes-in-sap-with-the-barcode-writer-in-pure-postscript-updated-and-also/ba-p/13157063>
+
+Dynamsoft. (2024) "How to Build an Online Shipping Label Generator," <https://www.dynamsoft.com/codepool/online-shipping-label-generator.html>
 
 
 Scribus Barcode Generator Plugin
@@ -99,4 +111,4 @@ Willis, Nathan. (2013) "Scribus 1.4.3 adds color models and more," LWN.net. Ekle
 
 White, Robert. (2015) "Beginning Scribus," Apress Media, LLC. pp 300-301. ISBN 978-1-4842-0722-2.
 
-Prokoudine, Alexandre. (2018) "Scribus 1.5.4 released with CxF3 and initial QuarkXPress support," <http://libregraphicsworld.org/blog/entry/scribus-1-5-4-released-with-cxf3-and-quarkxpress-support>
+Prokoudine, Alexandre. (2018) "Scribus 1.5.4 released with CxF3 and initial QuarkXPress support," <https://web.archive.org/web/20180506183931/http://libregraphicsworld.org/blog/entry/scribus-1-5-4-released-with-cxf3-and-quarkxpress-support>
