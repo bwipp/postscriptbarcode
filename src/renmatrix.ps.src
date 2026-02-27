@@ -503,11 +503,11 @@ begin
             0 1 len 1 sub {                                % x1 y1 x2 y2
                 /i exch def
                 p i 1 add len mod get unpack 6 -2 roll     % x3 y3 x1 y1 x2 y2
-                5 index inkspreadh
-                4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+i : x2-i
+                5 index inkspreadh 2 div
+                4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+ih : x2-ih
                 4 1 roll
-                4 index inkspreadv
-                4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+i : y2-i
+                4 index inkspreadv 2 div
+                4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+iv : y2-iv
                 4 -1 roll exch pixy exch sub
                 i 0 eq {moveto} {lineto} ifelse
             } for                                          % x2 y2 x3 y3
@@ -535,7 +535,7 @@ begin
             pixx idiv /y exch def
             x y xyget 1 eq {
                x 0.5 add pixy y sub 0.5 sub moveto
-               x 0.5 add pixy y sub 0.5 sub 0.5 inkspread sub 0 360 arc
+               x 0.5 add pixy y sub 0.5 sub 0.5 inkspread 2 div sub 0 360 arc
             } if
         } for
         fill
@@ -549,10 +549,6 @@ begin
     gsave
 
     currentpoint translate
-
-    /inkspread  inkspread  2 div def
-    /inkspreadh inkspreadh 2 div def
-    /inkspreadv inkspreadv 2 div def
 
     %
     % Force symbol to given width
