@@ -96,7 +96,7 @@ begin
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /bordercolor (unset) def
-    /inkspread 0.15 def
+    /inkspread null def
     /width 0.0 def
     /barratio 1.0 def
     /spaceratio 1.0 def
@@ -123,7 +123,10 @@ begin
         barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+        inkspread       null eq    { ctx /default_inkspread       2 copy known {get /inkspread       exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    inkspread null eq {/inkspread 0.15 def} if
 
     %
     % Input validation
