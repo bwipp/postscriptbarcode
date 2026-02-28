@@ -611,9 +611,9 @@ resource:
 /encoder.coeffscachemax   N def    % Override with global_ctx.encoder.coeffscachemax
 /encoder.coeffscachelimit M def    % Override with global_ctx.encoder.coeffscachelimit
 /uk.co.terryburton.bwipp.global_ctx dup where {
-    exch get
-    dup /encoder.coeffscachemax   2 copy known {get /encoder.coeffscachemax   exch def} {pop pop} ifelse
-        /encoder.coeffscachelimit 2 copy known {get /encoder.coeffscachelimit exch def} {pop pop} ifelse
+    exch get dup
+    /encoder.coeffscachemax   2 copy known {get /encoder.coeffscachemax   exch def} {pop pop} ifelse
+    /encoder.coeffscachelimit 2 copy known {get /encoder.coeffscachelimit exch def} {pop pop} ifelse
 } {pop} ifelse
 
 /encoder.coeffscache encoder.coeffscachemax encoder.coeffscachelimit //fifocache exec def
