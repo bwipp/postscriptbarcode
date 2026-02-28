@@ -445,9 +445,17 @@ The `contrib/development` directory contains:
 - `build-gs1-syntax-dict.pl` - Maintainer script to transform it into the `/gs1syntax` code structure
 
 **Calling convention:**
+
+For bracketed AI syntax:
+
 ```postscript
-(\(01\)09521234543213\(10\)ABC123)               /ai //gs1process exec  % => ais vals fncs  (For bracketed AI syntax)
-(https://id.gs1.org/01/09521234543213/10/ABC123) /dl //gs1process exec  % => ais vals fncs  (For Digital Link URI)
+(\(01\)09521234543213\(10\)ABC123)               /ai //gs1process exec  % => ais vals fncs
+```
+
+For a GS1 Digital Link URI:
+
+```postscript
+(https://id.gs1.org/01/09521234543213/10/ABC123) /dl //gs1process exec  % => ais vals fncs
 ```
 
 - `ais`  - Application Identifier strings (e.g., `[(01) (10)]`)
