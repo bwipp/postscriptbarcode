@@ -407,8 +407,10 @@ barcode options //innerencoder exec /args exch def
 Example:
 ```postscript
 10 10 moveto
-(\(01\)09521234543213(3103)000123) (segments=4 includetext alttext=TEST)  % Note quoting of parentheses in data
-/databarexpandedstacked /uk.co.terryburton.bwipp findresource exec
+(\(01\)09521234543213(3103)000123)      % Data: Note quoting of parentheses
+(segments=4 includetext alttext=TEST)   % Options
+/databarexpandedstacked                 % Encoder
+/uk.co.terryburton.bwipp findresource exec
 showpage
 ```
 
