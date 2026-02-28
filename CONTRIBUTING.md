@@ -1,4 +1,4 @@
-# BWIPP - Barcode Writer in Pure PostScript
+# Barcode Writer in Pure PostScript (Contributing)
 
 This document is authoritative for both human contributors and automated tools.
 
