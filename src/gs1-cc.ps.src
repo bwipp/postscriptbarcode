@@ -290,8 +290,12 @@ begin
     /method exch def
     /npre exch def
 
-    method (10) eq {  % TODO: fixme
-        ais 0 get (11) eq ais 0 get (17) eq or {
+    method (10) eq {
+        ais 0 get (11) eq ais 0 get (17) eq or
+        vals 0 get dup length 6 ge {
+            true exch 0 6 getinterval { dup 48 lt exch 57 gt or { pop false } if } forall
+        } { pop false } ifelse
+        and {
             vals 0 get
             dup 0 2 getinterval cvi 384 mul exch
             dup 2 2 getinterval cvi 1 sub 32 mul exch

@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 24723:2010
@@ -43,3 +43,6 @@
 { ((90)1) (lintype=blah) gs1-cc }                            /bwipp.gs1ccBadLinType       isError
 { ((90)1) (lintype=gs1-128 ccversion=c) gs1-cc }             /bwipp.gs1ccMissingLinWidth  isError
 { ((90)1) (lintype=gs1-128 ccversion=c linwidth=67) gs1-cc } /bwipp.gs1ccMinimumLinWidth  isError
+
+% Non-numeric date with dontlint falls through to freeform encoding
+{ ((11)ABCDEF) (dontdraw dontlint) gs1-cc pop true } true isEqual
