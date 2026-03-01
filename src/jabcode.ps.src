@@ -534,7 +534,10 @@ begin
     %
     % Extend the encoded data to fill the required data length
     %
-    /tmpbits C datawr idiv datawr mul C datawr idiv datawc mul sub string def
+    C datawr idiv datawr mul C datawr idiv datawc mul sub
+    { string } stopped {
+        pop /bwipp.jabcodeSymbolTooLarge (The resulting symbol exceeds the maximum string or array size) //raiseerror exec
+    } if /tmpbits exch def
     tmpbits 0 bits putinterval
     bits length 1 tmpbits length 1 sub {
         dup 1 sub tmpbits exch get dup 2 mod 0 eq {1 add} {1 sub} ifelse
@@ -870,7 +873,9 @@ begin
         GaussJordan
         createGeneratorMatrix
 
-        /ecc_encoded_data Pg array def
+        Pg { array } stopped {
+            pop /bwipp.jabcodeSymbolTooLarge (The resulting symbol exceeds the maximum string or array size) //raiseerror exec
+        } if /ecc_encoded_data exch def
 
         /offset Pg_sub_block matrix_rank sub 32 div ceiling cvi def
         0 1 encoding_iterations 1 sub {
@@ -914,7 +919,9 @@ begin
             } for
         } if
 
-        /out Pg string def
+        Pg { string } stopped {
+            pop /bwipp.jabcodeSymbolTooLarge (The resulting symbol exceeds the maximum string or array size) //raiseerror exec
+        } if /out exch def
         0 1 Pg 1 sub {
             dup ecc_encoded_data exch get
             out 3 1 roll 48 add put
@@ -946,7 +953,9 @@ begin
     %
     % Append padding bits to the interleaved, ECC encoded data up to capacity
     %
-    /tmpbits C string def
+    C { string } stopped {
+        pop /bwipp.jabcodeSymbolTooLarge (The resulting symbol exceeds the maximum string or array size) //raiseerror exec
+    } if /tmpbits exch def
     tmpbits 0 bits putinterval
     /j bits length def
     C j sub 1 add 2 idiv {

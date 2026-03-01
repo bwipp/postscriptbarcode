@@ -651,7 +651,9 @@ begin
     %
     % Encode the data using byte mode encoding
     %
-    /bits 4 13 add msglen 8 mul add string def
+    4 13 add msglen 8 mul add { string } stopped {
+        pop /bwipp.hanxinInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+    } if /bits exch def
     bits 0 (0011) putinterval
     bits 4 msglen 13 tobin putinterval
     0 1 msglen 1 sub {

@@ -719,7 +719,9 @@ begin
         % Encode the sequence
         %
         /state //azteccode.u def
-        /msgbits minseq string def
+        minseq { string } stopped {
+            pop /bwipp.azteccodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if /msgbits exch def
         /i 0 def /j 0 def {
             i seq length ge {exit} if
 

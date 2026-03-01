@@ -820,7 +820,10 @@ begin
         fnc1first {  % FNC1 as %
             /in [ in { dup //qrcode.fn1 eq {pop 37} if } forall ] def
         } if
-        /out in length 11 mul 2 idiv 1 add string def
+        in length 11 mul 2 idiv 1 add
+        { string } stopped {
+            pop /bwipp.qrcodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if /out exch def
         /k 0 def /m 0 def {
             k in length eq {exit} if
             k in length 1 sub lt {
@@ -838,7 +841,10 @@ begin
 
     /encN {
         /in exch def
-        /out in length 10 mul 3 idiv 1 add string def
+        in length 10 mul 3 idiv 1 add
+        { string } stopped {
+            pop /bwipp.qrcodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if /out exch def
         /k 0 def /m 0 def {
             k in length eq {exit} if
             k in length 2 sub lt {
@@ -864,7 +870,10 @@ begin
         fnc1first {  % FNC1 as GS
             /in [ in { dup //qrcode.fn1 eq {pop 29} if } forall ] def
         } if
-        /out in length 8 mul string def
+        in length 8 mul
+        { string } stopped {
+            pop /bwipp.qrcodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if /out exch def
         0 1 in length 1 sub {
             /k exch def
             in k get cvi 8 tobin
@@ -875,7 +884,10 @@ begin
 
     /encK {
         /in exch def
-        /out in length 2 idiv 13 mul string def
+        in length 2 idiv 13 mul
+        { string } stopped {
+            pop /bwipp.qrcodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if /out exch def
         /k 0 def /m 0 def {
             k in length eq {exit} if
             in k get 256 mul in k 1 add get add
