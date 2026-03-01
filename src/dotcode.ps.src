@@ -952,7 +952,9 @@ begin
     %
     % Construct the template
     %
-    /outline rows columns mul array def
+    rows columns mul { array } stopped {
+        pop /bwipp.dotcodeSymbolTooLarge (The resulting symbol exceeds the implementation maximum array size) //raiseerror exec
+    } if /outline exch def
     0 1 rows 1 sub {
         /y exch def
         0 1 columns 1 sub {

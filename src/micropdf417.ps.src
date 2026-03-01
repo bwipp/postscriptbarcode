@@ -1282,7 +1282,9 @@ begin
     %
     /rwid //micropdf417.rwids c 1 sub get def
     c 3 eq cca and {/rwid 72 def} if
-    /pixs rwid r mul rowmult mul array def
+    rwid r mul rowmult mul { array } stopped {
+        pop /bwipp.micropdf417PixsTooLarge (The resulting symbol with the given rowmult exceeds the implementation maximum array size) //raiseerror exec
+    } if /pixs exch def
 
     0 1 r 1 sub {
         /i exch def
