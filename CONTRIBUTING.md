@@ -34,7 +34,8 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Do not assume GhostScript-only execution. Assume modern implementation limit, and warn when approaching those limits:
   - Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
   - Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
-  - Maximum string length is 65535 characters.
+  - Maximum string length of 65535 characters. Maximum name length of 127 characters.
+  - Where an allocation could exceed these limits, wrap it with a `stopped` guard (see Implementation Limit Guards below).
 - Tests should be extended to cover any error conditions raised by new code.
 
 
@@ -395,6 +396,24 @@ modified options:
 ```postscript
 % Good: /args is only pushed after inner encoder succeeds
 barcode options //innerencoder exec /args exch def
+```
+
+
+### Implementation Limit Guards
+
+When an encoder's input can cause an internal allocation (string, array or
+dictionary) to exceed the guaranteed PostScript implementation limits, the
+allocation must be wrapped with `stopped` to catch the error gracefully.
+GhostScript has higher limits so these guards may only trigger on other
+interpreters.
+
+The guard must pop the failed size operand left on the stack by `stopped` and
+raise a descriptive error:
+
+```postscript
+barcode length 8 mul { string } stopped {
+    pop /bwipp.encoderInputTooLarge (Input data exceeds implementation limits) //raiseerror exec
+} if /bits exch def
 ```
 
 
