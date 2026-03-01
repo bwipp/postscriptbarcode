@@ -63,6 +63,10 @@ begin
     %
     % Validate input
     %
+    barcode length 2500 gt {
+        /bwipp.rawinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     barcode {
         dup 49 lt exch 57 gt or {
             /bwipp.rawBadCharacter (Raw must contain only digits 1 to 9) //raiseerror exec

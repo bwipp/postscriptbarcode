@@ -248,6 +248,11 @@ begin
 
     (input.validate) //ultracode.before exec
 
+    % 282 max codewords; 4x for ^NNN parse expansion
+    barcode length 2500 gt {
+        /bwipp.ultracodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     rev dup 1 ne exch 2 ne and {
         /bwipp.ultracodeInvalidRevision (Valid revisions are 1 and 2) //raiseerror exec
     } if

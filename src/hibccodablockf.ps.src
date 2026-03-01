@@ -93,13 +93,17 @@ begin
 
     //hibccodablockf.latevars /init get exec
 
+    %
+    % Validate the input
+    %
     barcode () eq {
         /bwipp.hibccodablockfEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    %
-    % Validate the input
-    %
+    barcode length 25000 gt {
+        /bwipp.hibccodablockfinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibccodablockfBadCharacter (HIBC Codablock F must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec

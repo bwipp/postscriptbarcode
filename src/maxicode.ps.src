@@ -351,6 +351,11 @@ begin
         /bwipp.maxicodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
+    % 93 max alphanumeric; 4x for ^NNN parse expansion
+    barcode length 1000 gt {
+        /bwipp.maxicodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     mode -1 ne mode 2 lt mode 6 gt or and {
        /bwipp.maxicodeBadMode (Mode must be 2 to 6) //raiseerror exec
     } if

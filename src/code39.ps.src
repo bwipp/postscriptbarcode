@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -114,6 +114,10 @@ begin
 
     barcode () eq {
         /bwipp.code39emptyData (The data must not be empty) //raiseerror exec
+    } if
+
+    barcode length 500 gt {
+        /bwipp.code39inputTooLong (The input data is too long) //raiseerror exec
     } if
 
     %

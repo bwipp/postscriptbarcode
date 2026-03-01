@@ -98,6 +98,10 @@ begin
         /bwipp.hibcqrcodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
+    barcode length 30000 gt {
+        /bwipp.hibcqrcodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcqrcodeBadCharacter (HIBC QR Code must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec

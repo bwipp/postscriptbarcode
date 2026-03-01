@@ -339,6 +339,11 @@ begin
         /bwipp.aztecEmptyData (The data must not be empty) //raiseerror exec
     } if
 
+    % 3832 max digits; 4x for ^NNN parse expansion
+    barcode length 16000 gt {
+        /bwipp.azteccodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     eclevel 5 lt eclevel 95 gt or {
         /bwipp.aztecInvalidEClevel (The EC percentage must be from 5 to 95) //raiseerror exec
     } if

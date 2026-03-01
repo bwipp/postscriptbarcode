@@ -40,7 +40,8 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -57,6 +58,10 @@ begin
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    barcode length 4000 gt {
+        /bwipp.gs1qrcodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and

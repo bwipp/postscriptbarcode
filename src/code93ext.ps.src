@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -77,6 +77,10 @@ begin
 
     //processoptions exec /options exch def
     /barcode exch def
+
+    barcode length 500 gt {
+        /bwipp.code93extinputTooLong (The input data is too long) //raiseerror exec
+    } if
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and

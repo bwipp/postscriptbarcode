@@ -252,6 +252,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode length 500 gt {
+        /bwipp.code128inputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
@@ -712,6 +716,7 @@ begin
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws //raiseerror exec } if
+
 
     %
     % Derive space bar succession

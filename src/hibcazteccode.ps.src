@@ -93,13 +93,17 @@ begin
 
     //hibcazteccode.latevars /init get exec
 
+    %
+    % Validate the input
+    %
     barcode () eq {
         /bwipp.hibcazteccodeEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    %
-    % Validate the input
-    %
+    barcode length 16000 gt {
+        /bwipp.hibcazteccodeinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcazteccodeBadCharacter (HIBC Aztec Code must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec

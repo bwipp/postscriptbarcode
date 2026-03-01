@@ -94,13 +94,17 @@ begin
 
     //hibcpdf417.latevars /init get exec
 
+    %
+    % Validate the input
+    %
     barcode () eq {
         /bwipp.hibcpdf417EmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    %
-    % Validate the input
-    %
+    barcode length 12500 gt {
+        /bwipp.hibcpdf417inputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     0 1 barcode length 1 sub {
         barcode exch 1 getinterval charvals exch known not {
             /bwipp.hibcpdf417BadCharacter (HIBC PDF417 must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
