@@ -9,8 +9,13 @@
 /setanycolor dup /uk.co.terryburton.bwipp findresource cvx def
 
 /ok_tmpl {
-    { 0 setanycolor true } dup 3 -1 roll 0 exch put
+    { 0 setanycolor } dup 3 -1 roll 0 exch put
     true isEqual
+} def
+
+/er_tmpl {
+    exch { 0 setanycolor pop pop } dup 3 -1 roll 0 exch put
+    exch isEqual
 } def
 
 %
@@ -24,10 +29,10 @@
 (ff00ff) ok_tmpl
 (Ab12Cd) ok_tmpl
 
-{ (GG0000) setanycolor } /bwipp.colorBadCharacter isError
-{ (00GG00) setanycolor } /bwipp.colorBadCharacter isError
-{ (0000GG) setanycolor } /bwipp.colorBadCharacter isError
-{ (GGGGGG) setanycolor } /bwipp.colorBadCharacter isError
+(GG0000) /bwipp.colorBadCharacter er_tmpl
+(00GG00) /bwipp.colorBadCharacter er_tmpl
+(0000GG) /bwipp.colorBadCharacter er_tmpl
+(GGGGGG) /bwipp.colorBadCharacter er_tmpl
 
 
 %
@@ -39,11 +44,11 @@
 (0000FF00) ok_tmpl
 (000000FF) ok_tmpl
 
-{ (GG000000) setanycolor } /bwipp.colorBadCharacter isError
-{ (00GG0000) setanycolor } /bwipp.colorBadCharacter isError
-{ (0000GG00) setanycolor } /bwipp.colorBadCharacter isError
-{ (000000GG) setanycolor } /bwipp.colorBadCharacter isError
-{ (GGGGGGGG) setanycolor } /bwipp.colorBadCharacter isError
+(GG000000) /bwipp.colorBadCharacter er_tmpl
+(00GG0000) /bwipp.colorBadCharacter er_tmpl
+(0000GG00) /bwipp.colorBadCharacter er_tmpl
+(000000GG) /bwipp.colorBadCharacter er_tmpl
+(GGGGGGGG) /bwipp.colorBadCharacter er_tmpl
 
 
 %
@@ -63,19 +68,18 @@
 (_testcmyk) ok_tmpl
 (_testsep) ok_tmpl
 
-{ (_undefined) setanycolor } /bwipp.colorUnknown isError
+(_undefined) /bwipp.colorUnknown er_tmpl
 
 
 %
 % Invalid inputs
 %
-{ () setanycolor } /bwipp.colorEnpty isError
-{ (F) setanycolor } /bwipp.colorBadLength isError
-{ (FF) setanycolor } /bwipp.colorBadLength isError
-{ (FFF) setanycolor } /bwipp.colorBadLength isError
-{ (FFFF) setanycolor } /bwipp.colorBadLength isError
-{ (FFFFF) setanycolor } /bwipp.colorBadLength isError
-{ (FFFFFFF) setanycolor } /bwipp.colorBadLength isError
-{ (FFFFFFFFF) setanycolor } /bwipp.colorBadLength isError
-{ (FFFFFFFFFF) setanycolor } /bwipp.colorBadLength isError
-
+() /bwipp.colorEnpty er_tmpl
+(F) /bwipp.colorBadLength er_tmpl
+(FF) /bwipp.colorBadLength er_tmpl
+(FFF) /bwipp.colorBadLength er_tmpl
+(FFFF) /bwipp.colorBadLength er_tmpl
+(FFFFF) /bwipp.colorBadLength er_tmpl
+(FFFFFFF) /bwipp.colorBadLength er_tmpl
+(FFFFFFFFF) /bwipp.colorBadLength er_tmpl
+(FFFFFFFFFF) /bwipp.colorBadLength er_tmpl

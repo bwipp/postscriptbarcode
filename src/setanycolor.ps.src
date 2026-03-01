@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -32,49 +32,57 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RESOURCE setanycolor--
-% --REQUIRES preamble raiseerror setuphooks--
+% --REQUIRES preamble setuphooks--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-2 dict
-dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
-begin
+1 dict begin
 /setanycolor {
 
     /anycolor exch def
-    anycolor length 1 lt {
-        /bwipp.colorEnpty (Colors must not be empty) //raiseerror exec
-    } if
-    anycolor 0 get 95 ne {  % RGB or CMYK
-        anycolor length dup 6 ne exch 8 ne and {
-            /bwipp.colorBadLength (Colors must be 6 or 8 hexadecimal characters or a defined name beginning with underscore) //raiseerror exec
+
+    1 {  % Common exit
+
+        anycolor length 1 lt {
+            /bwipp.colorEnpty (Colors must not be empty) false exit
         } if
-        mark
-        0 2 anycolor length 1 sub {
-            anycolor exch 2 getinterval 0 exch {
-                dup dup 48 ge exch  57 le and {48 sub} {  % 0-9
-                dup dup 65 ge exch  70 le and {55 sub} {  % A-F
-                dup dup 97 ge exch 102 le and {87 sub} {  % a-f
-                    cleartomark /bwipp.colorBadCharacter (RGB and CMYK Colors must be in hexadecimal notation) //raiseerror exec
-                } ifelse } ifelse } ifelse
-                exch 16 mul add
-            } forall
-            255 div
-        } for
-        counttomark
-        dup 3 eq { /DeviceRGB } { /DeviceCMYK } ifelse
-        exch 2 add -1 roll pop  % clear mark
-    } {  % Named color beginning "_..."
-        /uk.co.terryburton.bwipp.global_ctx dup where {exch get} {0 dict} ifelse
-        /named_colors 2 copy known {get} {pop pop 0 dict} ifelse
-        anycolor 2 copy known not {
-            pop pop /bwipp.colorUnknown (Color is not defined) //raiseerror exec
+        anycolor 0 get 95 ne {  % RGB or CMYK
+            anycolor length dup 6 ne exch 8 ne and {
+                /bwipp.colorBadLength (Colors must be 6 or 8 hexadecimal characters or a defined name beginning with underscore) false exit
+            } if
+            mark
+            {
+                0 2 anycolor length 1 sub {
+                    anycolor exch 2 getinterval 0 exch {
+                        dup dup 48 ge exch  57 le and {48 sub} {  % 0-9
+                        dup dup 65 ge exch  70 le and {55 sub} {  % A-F
+                        dup dup 97 ge exch 102 le and {87 sub} {  % a-f
+                            cleartomark stop
+                        } ifelse } ifelse } ifelse
+                        exch 16 mul add
+                    } forall
+                    255 div
+                } for
+            } stopped {
+                /bwipp.colorBadCharacter (RGB and CMYK Colors must be in hexadecimal notation) false exit
+            } if
+            counttomark
+            dup 3 eq { /DeviceRGB } { /DeviceCMYK } ifelse
+            exch 2 add -1 roll pop  % clear mark
+        } {  % Named color beginning "_..."
+            /uk.co.terryburton.bwipp.global_ctx dup where {exch get} {0 dict} ifelse
+            /named_colors 2 copy known {get} {pop pop 0 dict} ifelse
+            anycolor 2 copy known not {
+                pop pop /bwipp.colorUnknown (Color is not defined) false exit
+            } if
+            get mark exch aload pop counttomark 1 add -2 roll exch pop
+        } ifelse
+        { setcolorspace setcolor } stopped {
+            /bwipp.colorFailedToSet (Failed to set color) false exit
         } if
-        get mark exch aload pop counttomark 1 add -2 roll exch pop
-    } ifelse
-    { setcolorspace setcolor } stopped {
-        /bwipp.colorFailedToSet (Failed to set color) //raiseerror exec
-    } if
+        true exit
+
+    } repeat
 
 }
 [/barcode] {null def} forall

@@ -123,18 +123,18 @@ begin
     backgroundcolor (unset) ne {
         gsave
         newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        backgroundcolor //setanycolor exec fill
+        backgroundcolor //setanycolor exec not { grestore grestore //raiseerror exec } if fill
         grestore
     } if
     showborder {
         gsave
         newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        bordercolor (unset) ne { bordercolor //setanycolor exec } if
+        bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
         borderwidth inkspread 2 mul sub setlinewidth stroke
         grestore
     } if
 
-    barcolor (unset) ne { barcolor //setanycolor exec } if
+    barcolor (unset) ne { barcolor //setanycolor exec not { grestore //raiseerror exec } if } if
 
     /g 0.06 inkspread add def
 

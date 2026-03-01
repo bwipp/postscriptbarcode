@@ -316,7 +316,7 @@ begin
     backgroundcolor (unset) ne {
         gsave
         newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        backgroundcolor //setanycolor exec fill
+        backgroundcolor //setanycolor exec not { grestore grestore //raiseerror exec } if fill
         grestore
     } if
     showbearer {  % Overrides showborder
@@ -324,14 +324,14 @@ begin
         newpath
         bl aload pop moveto br aload pop lineto
         tl aload pop moveto tr aload pop lineto
-        bordercolor (unset) ne { bordercolor //setanycolor exec } if
+        bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
         borderwidth inkspread 2 mul sub setlinewidth stroke
         grestore
     } {
     showborder {
         gsave
         newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        bordercolor (unset) ne { bordercolor //setanycolor exec } if
+        bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
         borderwidth inkspread 2 mul sub setlinewidth stroke
         grestore
     } if } ifelse
@@ -340,7 +340,7 @@ begin
     % Display the bars for elements in the bars array
     %
     gsave
-    barcolor (unset) ne { barcolor //setanycolor exec } if
+    barcolor (unset) ne { barcolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
     newpath
     bars {
         dup -1 ne {
@@ -361,7 +361,7 @@ begin
     %
     % Display the text
     %
-    //rendertext exec
+    //rendertext exec not { grestore //raiseerror exec } if
 
     %
     % Display the guard elements
