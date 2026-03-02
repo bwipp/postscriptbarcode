@@ -339,8 +339,7 @@ begin
         /bwipp.aztecEmptyData (The data must not be empty) //raiseerror exec
     } if
 
-    % 3832 max digits; 4x for ^NNN parse expansion
-    barcode length 16000 gt {
+    barcode length 20000 gt {
         /bwipp.azteccodeinputTooLong (The input data is too long) //raiseerror exec
     } if
 
@@ -446,8 +445,12 @@ begin
         %
         /maxseqlen msglen 4 mul def
 
-        /seq0 [ 6 { maxseqlen array } repeat ] def
-        /seq1 [ 6 { maxseqlen array } repeat ] def
+        /seq0 [ 6 { maxseqlen { array } stopped {
+            pop /bwipp.azteccodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if } repeat ] def
+        /seq1 [ 6 { maxseqlen { array } stopped {
+            pop /bwipp.azteccodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+        } if } repeat ] def
         /len0 6 array def  0 1 5 { len0 exch 0 put } for
         /len1 6 array def
 
