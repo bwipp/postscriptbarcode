@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -63,11 +63,11 @@ begin
     %
     % Validate the input
     %
-    barcode 0 4 getinterval (\(01\)) ne {
-        /bwipp.databarstackedomniBadAI (GS1 DataBar Stacked Omnidirectional must begin with (01) application identifier) //raiseerror exec
-    } if
     barcode length 17 ne barcode length 18 ne and {
         /bwipp.databarstackedomniBadLength (GS1 DataBar Stacked Omnidirectional must be 13 or 14 digits) //raiseerror exec
+    } if
+    barcode 0 4 getinterval (\(01\)) ne {
+        /bwipp.databarstackedomniBadAI (GS1 DataBar Stacked Omnidirectional must begin with (01) application identifier) //raiseerror exec
     } if
     barcode 4 barcode length 4 sub getinterval {
         dup 48 lt exch 57 gt or {

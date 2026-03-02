@@ -865,6 +865,10 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
     //processoptions exec /options exch def
     /barcode exch def
 
+    barcode () eq {
+        /bwipp.code49emptyData (The data must not be empty) //raiseerror exec
+    } if
+
     barcode length 500 gt {
         /bwipp.code49inputTooLong (The input data is too long) //raiseerror exec
     } if
