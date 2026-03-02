@@ -30,7 +30,7 @@ causes any of the following:
 - **Denial of service** — unbounded resource consumption (infinite loops,
   unbounded allocation), or algorithmic complexity that is disproportionate to
   input size (e.g. O(n²) processing of large input).
-- **Interpreter state corruption** — State (e.g. graphics, static data) is
+- **Interpreter state corruption** — state (e.g. graphics, static data) is
   corrupted in a way that persists beyond the current invocation, affecting
   subsequent barcode generation.
 
