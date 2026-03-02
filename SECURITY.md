@@ -7,7 +7,8 @@ entirely within the hosting PostScript interpreter (printer, RIP, Ghostscript,
 Distiller, etc.) with the same privileges as that interpreter.
 
 Users supply barcode data strings and options (as a string or dict) through the
-documented encoder interface. These inputs are assumed to be correctly escaped
+[documented encoder interface](https://github.com/bwipp/postscriptbarcode/wiki/PostScript-Calling-Convention).
+These inputs are assumed to be correctly escaped
 at the integration boundary (e.g. passed as hex-encoded strings); PostScript
 injection via the host application's input handling is outside BWIPP's scope.
 
@@ -17,7 +18,8 @@ between unrelated users whose barcode data is private.
 ## What Is a Vulnerability
 
 A vulnerability is a bug in which barcode data or options passed through the
-documented encoder interface causes any of the following:
+[documented encoder interface](https://github.com/bwipp/postscriptbarcode/wiki/PostScript-Calling-Convention)
+causes any of the following:
 
 - **Arbitrary code execution** — input data or options are interpreted as
   executable PostScript.
