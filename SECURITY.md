@@ -45,7 +45,7 @@ considered security vulnerabilities, and should be reported openly via the
   malformed input data or options — the library validates input and raises
   descriptive errors; unhandled cases are ordinary bugs.
 - **API misuse** — calling encoders with incorrect stack state, wrong argument
-  types, or outside the documented calling convention.
+  types, or outside the [documented calling convention](https://github.com/bwipp/postscriptbarcode/wiki/PostScript-Calling-Convention).
 - **Issues in debug/development features** that require `enabledebug` or
   `enabledontdraw` to be explicitly set in global context.
 - **Interpreter bugs** — crashes or misbehaviour in the hosting interpreter
