@@ -627,6 +627,9 @@ begin
         } def
 
         /addtocws {
+            dup length j add cws length gt {
+                pop /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
+            } if
             dup cws exch j exch putinterval
             /j exch length j add def
         } def
