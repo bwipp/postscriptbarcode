@@ -49,10 +49,18 @@
 % Error tests
 %
 
-% Symbol size exceeds limit (rows or cols > 145)
-(TEST) (rows=146 columns=10 dontdraw) /bwipp.jabcodeNoValidSymbol er_tmpl
+% Invalid rows/columns size (valid: 21-145, or -1 for auto)
+(TEST) (rows=0 dontdraw) /bwipp.jabcodeInvalidRowSize er_tmpl
+(TEST) (rows=20 dontdraw) /bwipp.jabcodeInvalidRowSize er_tmpl
+(TEST) (rows=146 dontdraw) /bwipp.jabcodeInvalidRowSize er_tmpl
+(TEST) (columns=0 dontdraw) /bwipp.jabcodeInvalidColumnSize er_tmpl
+(TEST) (columns=20 dontdraw) /bwipp.jabcodeInvalidColumnSize er_tmpl
+(TEST) (columns=146 dontdraw) /bwipp.jabcodeInvalidColumnSize er_tmpl
 
 8001 string (dontdraw) /bwipp.jabcodeinputTooLong er_tmpl
+
+% Data exceeds maximum symbol capacity
+2000 string 0 1 1999 { 2 copy 65 put pop } for (dontdraw) /bwipp.jabcodeNoValidSymbol er_tmpl
 
 % Invalid eclevel (valid: 0-10)
 (TEST) (eclevel=-1 dontdraw) /bwipp.jabcodeInvalidEclevel er_tmpl

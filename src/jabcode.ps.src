@@ -353,6 +353,14 @@ begin
         /bwipp.jabcodeInvalidColors (Colors must be 4, 8, 16, 32, 64, 128 or 256) //raiseerror exec
     } if
 
+    rows -1 ne { rows 21 lt rows 145 gt or {
+        /bwipp.jabcodeInvalidRowSize (Rows must be 21 to 145) //raiseerror exec
+    } if } if
+
+    columns -1 ne { columns 21 lt columns 145 gt or {
+        /bwipp.jabcodeInvalidColumnSize (Columns must be 21 to 145) //raiseerror exec
+    } if } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
@@ -490,6 +498,9 @@ begin
     rows -1 eq columns -1 eq and {        % Square if neither rows or columns fixed
         /size grosslen sqrt snapsize def
         {
+            size 145 gt {
+                /bwipp.jabcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+            } if
             size size metrics
             grosslen numdatabits le {exit} if
             /size size 4 add def
@@ -500,6 +511,9 @@ begin
         columns -1 eq rows -1 ne and {     % Fixed height
             /columns grosslen rows div snapsize def
             {
+                columns 145 gt {
+                    /bwipp.jabcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+                } if
                 rows columns metrics
                 grosslen numdatabits le {exit} if
                 /columns columns 4 add def
@@ -508,6 +522,9 @@ begin
         rows -1 eq columns -1 ne and {     % Fixed width
             /rows grosslen columns div snapsize def
             {
+                rows 145 gt {
+                    /bwipp.jabcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+                } if
                 rows columns metrics
                 grosslen numdatabits le {exit} if
                 /rows rows 4 add def
@@ -520,7 +537,6 @@ begin
     /C numdatabits def
     /cols columns def
 
-    % TODO Reject all invalid sizes
     rows 145 gt cols 145 gt or {
         /bwipp.jabcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
     } if
