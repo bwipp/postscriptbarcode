@@ -340,6 +340,19 @@ begin
         /bwipp.jabcodeinputTooLong (The input data is too long) //raiseerror exec
     } if
 
+    eclevel 0 lt eclevel 10 gt or {
+        /bwipp.jabcodeInvalidEclevel (Error correction level must be 0 to 10) //raiseerror exec
+    } if
+
+    mask -1 ne { mask 0 lt mask 7 gt or {
+        /bwipp.jabcodeInvalidMask (Mask must be 0 to 7) //raiseerror exec
+    } if } if
+
+    colors dup dup 4 lt exch 256 gt or          % Range check
+    exch dup 1 sub and 0 ne or {                % Power of 2 check
+        /bwipp.jabcodeInvalidColors (Colors must be 4, 8, 16, 32, 64, 128 or 256) //raiseerror exec
+    } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
