@@ -55,5 +55,8 @@
 { ((90)1) (cccolumns=2 lintype=ean8)  gs1-cc }               /bwipp.gs1ccColumnsTooSmall  isError
 { ((90)1) (cccolumns=3 lintype=ean13) gs1-cc }               /bwipp.gs1ccColumnsTooSmall  isError
 
+% CC-B overflow with non-GS1-128 lintype cannot upgrade to CC-C
+{ (\(91\)AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA) (ccversion=b lintype=ean13 dontdraw dontlint) gs1-cc } /bwipp.gs1ccDataTooLarge isError
+
 % Non-numeric date with dontlint falls through to freeform encoding
 { ((11)ABCDEF) (dontdraw dontlint) gs1-cc pop true } true isEqual

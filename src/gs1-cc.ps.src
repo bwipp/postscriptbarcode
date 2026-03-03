@@ -488,23 +488,26 @@ begin
             pop
             ccversion (a) eq {
                 /ccversion (b) def
+                used rembits
             } {
                 ccversion (b) eq lintype (gs1-128) eq and {
                     /ccversion (c) def
                     /cccolumns linwidth 52 sub 17 idiv def
+                    used rembits
                 } {
-                    /ccversion -1 def
+                    -1  % Can't upgrade; data exceeds composite capacity
                 } ifelse
             } ifelse
-            used rembits
         } if
     } def
 
     /encode {
         dup /raw ne {exch get} {pop} ifelse
         [ exch {48 sub} forall ]
-        dup length exch
-        gpfenc exch j exch putinterval
+        dup length dup j add gpfenc length gt {
+            pop pop /bwipp.gs1ccDataTooLarge (Data too large for the composite component) //raiseerror exec
+        } if
+        exch gpfenc exch j exch putinterval
         /j exch j add def
     } def
 
@@ -637,7 +640,11 @@ begin
     %
     % Create pad
     %
-    /pad cdf length gpf length add rembits array def
+    cdf length gpf length add rembits
+    dup -1 eq {
+        pop /bwipp.gs1ccDataTooLarge (Data too large for the composite component) //raiseerror exec
+    } if
+    /pad exch array def
     pad length 0 gt {
         0 5 pad length 1 sub {  % Fill with 00100
             /i exch def
