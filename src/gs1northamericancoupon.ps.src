@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -87,6 +87,9 @@ begin
     /vli val 0 get 48 sub def
     vli 0 lt vli 6 gt or {
         /bwipp.gs1northamericancouponBadVLI (The AI (8110) data should start with a Company Prefix length indicator in the range 0 to 6) //raiseerror exec
+    } if
+    val length vli 13 add lt {
+        /bwipp.gs1northamericancouponTooShort (The AI (8110) data is too short) //raiseerror exec
     } if
     /gcp val 1 vli 6 add getinterval def
     /cod val vli 7 add 6 getinterval def
