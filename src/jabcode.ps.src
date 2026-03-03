@@ -340,6 +340,10 @@ begin
     //processoptions exec /options exch def
     /barcode exch def
 
+    //jabcode.bit31 0 le {  % 1 31 bitshift <= 0 implies 32-bit integers
+        /bwipp.jabcodeRequires64bit (JAB Code requires a 64-bit PostScript interpreter) //raiseerror exec
+    } if
+
     barcode length 8000 gt {
         /bwipp.jabcodeinputTooLong (The input data is too long) //raiseerror exec
     } if
