@@ -32,10 +32,11 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Do not replace stack-based logic with dictionary-heavy abstractions.
 - Do not refactor for readability at the expense of execution cost.
 - Do not assume GhostScript-only execution. Assume modern implementation limit, and warn when approaching those limits:
-  - Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit.
+  - Integer representation may be 32- or 64-bit. Do not assume overflow or promotion at 32-bit. Encoders that require 64-bit integers should detect this and exit gracefully.
   - Maximum of 65535 entries within dictionaries, arrays, and on the stack. (Assume user might already have entries on the stack.)
   - Maximum string length of 65535 characters. Maximum name length of 127 characters.
   - Where an allocation could exceed these limits, wrap it with a `stopped` guard (see Implementation Limit Guards below).
+- Integer literals in source code must not exceed the signed 32-bit range (−2147483648 to 2147483647). The packager encodes integers as 32-bit binary tokens; larger values are silently corrupted. Compute large values at define time from small operands and reference via `//name` (see Packager Integer Limitation below).
 - Tests should be extended to cover any error conditions raised by new code.
 
 
@@ -108,6 +109,10 @@ gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage -I build/resource/Resource \
 - Compressed numeric/string arrays
 - ASCII85-wrapped output (watermarked)
 - Results in ~30-50% smaller files
+
+**Packager Integer Limitation:** The packager encodes integers as signed 32-bit
+binary tokens. Literals outside that range are silently corrupted. Compute
+large values at define time from small operands and reference via `//name`.
 
 "Global context" is an optional dictionary configured in **global VM**
 containing optional keys that affect the behaviour of BWIPP:
