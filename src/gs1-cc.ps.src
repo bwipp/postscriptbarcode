@@ -230,6 +230,12 @@ begin
         /cccolumns exch def
     } if
 
+    ccversion (c) ne {
+        cccolumns 2 lt cccolumns 4 gt or {
+            /bwipp.gs1ccBadColumns (CC-A and CC-B require 2 to 4 columns) //raiseerror exec
+        } if
+    } if
+
     barcode /ai //gs1process exec
     /fncs exch def
     /vals exch def
