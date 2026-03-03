@@ -672,12 +672,15 @@ begin
                 dup 48 lt exch 57 gt or { pop true } if
             } forall { pop exit } if
             cvi /cw exch def
+            cw 928 gt {
+                /bwipp.micropdf417badRawCodeword (Raw codewords must be 0 to 928) //raiseerror exec
+            } if
             datcws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
         i barcode length ne {
-            /bwipp.micropdf417badCcaRawFormat (cca and raw data must be formatted as ^NNN) //raiseerror exec
+            /bwipp.micropdf417badCcaRawFormat (Raw codewords must be formatted as ^NNN) //raiseerror exec
         } if
         /datcws datcws 0 j getinterval def
     } if

@@ -287,12 +287,22 @@ begin
         /cws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
+            i barcode length 3 sub ge {exit} if
+            barcode i get 94 ne {exit} if
+            barcode i 1 add 3 getinterval false 1 index {
+                dup 48 lt exch 57 gt or { pop true } if
+            } forall { pop exit } if
+            cvi /cw exch def
+            cw 106 gt {
+                /bwipp.code128BadRawCodeword (Raw codewords must be 0 to 106) //raiseerror exec
+            } if
             cws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
+        i barcode length ne {
+            /bwipp.code128BadRawFormat (Raw codewords must be formatted as ^NNN) //raiseerror exec
+        } if
         /cws cws 0 j getinterval def
         /text () def
     } {

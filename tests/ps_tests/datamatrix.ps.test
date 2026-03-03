@@ -130,5 +130,16 @@
 (TEST) (version=10xABC dontdraw) /bwipp.datamatrixVersionBadRowOrColumn er_tmpl
 (TEST) (version=ABCx10 dontdraw) /bwipp.datamatrixVersionBadRowOrColumn er_tmpl
 
+% Invalid raw format
+(^12A) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^12) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^1) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^230garbage) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+
+% Raw codeword out of range (valid: 0-255)
+(^256) (raw dontdraw) /bwipp.datamatrixBadRawCodeword er_tmpl
+(^999) (raw dontdraw) /bwipp.datamatrixBadRawCodeword er_tmpl
+
 % Data too long for symbol
 (ABCDEFGHIJKLMNOPQRSTUVWXYZ) (version=10x10 dontdraw) /bwipp.datamatrixNoValidSymbol er_tmpl

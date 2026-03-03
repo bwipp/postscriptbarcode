@@ -22,6 +22,16 @@
 
 { 501 string (dontdraw) posicode } /bwipp.posicodeinputTooLong isError
 
+% Invalid raw format
+{ (^12A) (raw dontdraw) posicode } /bwipp.posicodeBadRawFormat isError
+{ (^12) (raw dontdraw) posicode } /bwipp.posicodeBadRawFormat isError
+{ (^1) (raw dontdraw) posicode } /bwipp.posicodeBadRawFormat isError
+{ (^) (raw dontdraw) posicode } /bwipp.posicodeBadRawFormat isError
+{ (^020garbage) (raw dontdraw) posicode } /bwipp.posicodeBadRawFormat isError
+
+% Raw codeword out of range (valid: 0-45)
+{ (^046) (raw dontdraw) posicode } /bwipp.posicodeBadRawCodeword isError
+{ (^999) (raw dontdraw) posicode } /bwipp.posicodeBadRawCodeword isError
 
 % Examples
 

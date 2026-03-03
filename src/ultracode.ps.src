@@ -275,12 +275,22 @@ begin
         /dcws barcode length array def
         /i 0 def /j 0 def
         { % loop
-            i barcode length eq {exit} if
-            /cw barcode i 1 add 3 getinterval cvi def
+            i barcode length 3 sub ge {exit} if
+            barcode i get 94 ne {exit} if
+            barcode i 1 add 3 getinterval false 1 index {
+                dup 48 lt exch 57 gt or { pop true } if
+            } forall { pop exit } if
+            cvi /cw exch def
+            cw 284 gt {
+                /bwipp.ultracodeBadRawCodeword (Raw codewords must be 0 to 284) //raiseerror exec
+            } if
             dcws j cw put
             /i i 4 add def
             /j j 1 add def
         } loop
+        i barcode length ne {
+            /bwipp.ultracodeBadRawFormat (Raw codewords must be formatted as ^NNN) //raiseerror exec
+        } if
         /dcws dcws 0 j getinterval def
 
         (input.encoding.raw) //ultracode.after exec

@@ -152,5 +152,16 @@
 (TEST) (eclevel=EC6 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
 (TEST) (rev=2 eclevel=EC0 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
 
+% Invalid raw format
+(^12A) (raw dontdraw) /bwipp.ultracodeBadRawFormat er_tmpl
+(^12) (raw dontdraw) /bwipp.ultracodeBadRawFormat er_tmpl
+(^1) (raw dontdraw) /bwipp.ultracodeBadRawFormat er_tmpl
+(^) (raw dontdraw) /bwipp.ultracodeBadRawFormat er_tmpl
+(^282garbage) (raw dontdraw) /bwipp.ultracodeBadRawFormat er_tmpl
+
+% Raw codeword out of range (valid: 0-284)
+(^285) (raw dontdraw) /bwipp.ultracodeBadRawCodeword er_tmpl
+(^999) (raw dontdraw) /bwipp.ultracodeBadRawCodeword er_tmpl
+
 % Data too long for symbol
 { 300 string 0 1 299 { 1 index exch 65 put } for (dontdraw) ultracode } /bwipp.ultracodeNoValidSymbol isError
