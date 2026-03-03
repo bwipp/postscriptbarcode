@@ -48,6 +48,7 @@ begin
 %
 /gs1process.daysinmonth [ 31 -1 31 30 31 30 31 31 30 31 30 31 ] readonly def
 
+
 /gs1process.latevars dup 1 dict def load /init {
 
     currentglobal
@@ -3225,8 +3226,7 @@ begin
         dup length 10 ne {
             pop /bwipp.GS1badLatitudeLength (Invalid length for a latitude) false exit
         } if
-        cvi
-        (1800000000) cvi  % Workaround issue with packager
+        (1800000000)
         gt { pop /bwipp.GS1badLatitude (Invalid value for latitude) false exit } if
     } def
 
@@ -3234,9 +3234,7 @@ begin
         dup length 10 ne {
             pop /bwipp.GS1badLongitudeLength (Invalid length for a longitude) false exit
         } if
-        % Workaround issue with packager
-        cvi
-        (3600000000) cvi  % Workaround issue with packager
+        (3600000000)
         gt { pop /bwipp.GS1badLongitude (Invalid value for longitude) false exit } if
     } def
 
