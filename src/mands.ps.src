@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -91,28 +91,25 @@ begin
     dup 2 get 11 exch put
 
     %
-    % Fix up the text for 7-digit inputs
+    % Fix up the text for 7-digit inputs and add the M and S guards
     %
-    /txt args (txt) get def
-    barlen 7 eq {
-        0 1 6 {
-            txt exch 2 copy
-            1 add get 0 get 3 1 roll get
-            0 get exch 0 exch putinterval
-        } for
-        txt 7 get 0 get 0 ( ) putinterval
+    includetext {
+        /txt args (txt) get def
+        barlen 7 eq {
+            0 1 6 {
+                txt exch 2 copy
+                1 add get 0 get 3 1 roll get
+                0 get exch 0 exch putinterval
+            } for
+            txt 7 get 0 get 0 ( ) putinterval
+        } if
+        10 array dup 0 txt putinterval /txt exch def
+        txt 0 get dup length array copy txt exch 8 exch put
+        txt 0 get dup length array copy txt exch 9 exch put
+        txt 8 get 0 (M) put txt 8 get 1 -12 put
+        txt 9 get 0 (S) put txt 9 get 1 69 put
+        args (txt) txt put
     } if
-
-    %
-    % Add the M and S guards
-    %
-    10 array dup 0 txt putinterval /txt exch def
-    txt 0 get dup length array copy txt exch 8 exch put
-    txt 0 get dup length array copy txt exch 9 exch put
-    txt 8 get 0 (M) put txt 8 get 1 -12 put
-    txt 9 get 0 (S) put txt 9 get 1 69 put
-
-    args (txt) txt put
     args (opt) options put
     args
 
