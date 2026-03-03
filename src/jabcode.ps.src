@@ -55,6 +55,10 @@ begin
 /jabcode.metavfadj [ 0 4 8 16 ] readonly def
 /jabcode.algnpos_default [ 3 17 ] readonly def
 
+% Computed to avoid integer literals > 2^31 that break packager binarisation
+/jabcode.bit31  1 31 bitshift def          % 16#80000000
+/jabcode.mask32 1 32 bitshift 1 sub def    % 16#ffffffff
+
 /jabcode.fpat.master [
     [ 1 1 1 0 0 ]
     [ 1 2 2 0 0 ]
@@ -617,12 +621,12 @@ begin
         %
         % Temper most significant 32 bits
         %
-        s0 16#8000 sub 16#10000 mul s1 add 16#80000000 xor
-        16#ffffffff and
+        s0 16#8000 sub 16#10000 mul s1 add //jabcode.bit31 xor
+        //jabcode.mask32 and
         dup -11 bitshift xor
         dup   7 bitshift 16#62d3a980 neg and xor  % 0x9D2C5680 - 0x100000000
         dup  15 bitshift 16#103a0000 neg and xor  % 0xEFC60000 - 0x100000000
-        16#ffffffff and
+        //jabcode.mask32 and
         dup -18 bitshift xor
 
     } def
@@ -656,7 +660,7 @@ begin
             0 1 Pg_sub_block 1 sub {
                 /j exch def
                 lcg64_temper
-                dup 0 lt {16#80000000 xor 2147483648.0 add} if
+                dup 0 lt {//jabcode.bit31 xor 2147483648.0 add} if
                 4294967296.0 div Pg_sub_block j sub mul cvi  % (float)UINT32_MAX = 65536.0 * 65536
                 /pos exch def
                 0 1 Pg_sub_block wr idiv 1 sub {
@@ -695,7 +699,7 @@ begin
             0 1 nb_once 1 sub {
                 /j exch def
                 lcg64_temper
-                dup 0 lt {16#80000000 xor 2147483648.0 add} if
+                dup 0 lt {//jabcode.bit31 xor 2147483648.0 add} if
                 4294967296.0 div Pg_sub_block j sub mul cvi  % (float)UINT32_MAX = 65536.0 * 65536
                 /pos exch def
                 matrixA i offset mul permutation pos get 32 idiv add
@@ -969,7 +973,7 @@ begin
     bits length 1 sub -1 1 {
         /l exch def
         lcg64_temper
-        dup 0 lt {16#80000000 xor 2147483648.0 add} if
+        dup 0 lt {//jabcode.bit31 xor 2147483648.0 add} if
         4294967296.0 div l 1 add mul cvi  % (float)UINT32_MAX = 65536.0 * 65536
         /r exch def
         bits l get bits r get
