@@ -914,6 +914,9 @@ begin
     } def
 
     /addtobits {
+        dup length j add bits length gt {
+            pop /bwipp.qrcodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+        } if
         dup bits j 3 -1 roll putinterval
         length j add /j exch def
     } def
