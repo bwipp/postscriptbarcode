@@ -77,7 +77,10 @@
   } if
   expect /test load exec
   clear                                % Clear the operand stack
-  countdictstack cds sub {end} repeat  % Pop any stray dicts from the dictstack
+  countdictstack cds sub dup 0 ne {    % Detect dict stack imbalance
+      (   dict leak: ) print dup = flush
+      {end} repeat
+  } {pop} ifelse
 } bind def
 
 /isEqual { //_isEqual //_doTest exec } def
