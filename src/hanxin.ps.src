@@ -655,6 +655,9 @@ begin
         pop /bwipp.hanxinInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
     } if /bits exch def
     bits 0 (0011) putinterval
+    msglen 1 13 bitshift ge {  % Exceeds 13-bit character count field
+        /bwipp.hanxinInputTooLarge (The input data exceeds the maximum symbol capacity) //raiseerror exec
+    } if
     bits 4 msglen 13 tobin putinterval
     0 1 msglen 1 sub {
         /i exch def
