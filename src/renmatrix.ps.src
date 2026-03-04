@@ -426,35 +426,47 @@ begin
         (render.tracepaths) //renmatrix.before exec
 
         % Pad the bitmap on all sides
-        /pixs [
-            pixx 2 add {0} repeat
-            0 pixx pixs length 1 sub {
-                0 exch
-                pixs exch pixx getinterval aload pop
-                0
-            } for
-            pixx 2 add {0} repeat
-        ] def
         /pixx pixx 2 add def
         /pixy pixy 2 add def
         /pixxpad pixx def
+        /zerorow [ pixx {0} repeat ] def
+        pixx pixy mul { array } stopped {
+            pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
+        } if /padded exch def
+        0 pixx padded length 1 sub {
+            padded exch zerorow putinterval
+        } for
+        0 1 pixy 3 sub {
+            /row exch def
+            padded row 1 add pixx mul 1 add pixs row pixx 2 sub mul pixx 2 sub getinterval putinterval
+        } for
+        /pixs padded def
 
         %
         % Cache of visited corners for each direction
         %
-        /cache [ pixs length {0} repeat ] def
+        pixs length { array } stopped {
+            pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
+        } if /cache exch def
+        0 pixx cache length 1 sub {
+            cache exch zerorow putinterval
+        } for
 
         %
         % Pre-compute abcd values (printed neighbours) for all cells
         %
-        /abcdcache [
-            0 1 pixy 2 sub {
-                0 1 pixx 2 sub {
-                    1 index abcd exch % result j
-                } for
-                pop
+        /abcdw pixx 1 sub def
+        abcdw pixy 1 sub mul { array } stopped {
+            pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
+        } if /abcdcache exch def
+        /abcdrow abcdw array def
+        0 1 pixy 2 sub {
+            /j exch def
+            0 1 abcdw 1 sub {
+                dup j abcd  abcdrow 3 1 roll put
             } for
-        ] def
+            abcdcache j abcdw mul abcdrow putinterval
+        } for
 
         /abcdget { pixx 1 sub mul add abcdcache exch get } def
 
@@ -599,9 +611,13 @@ begin
     colormap {
         dup (unset) ne { //setanycolor exec not { grestore //raiseerror exec } if } { pop } ifelse
         /key exch def
-        [
-            pixs { key eq {1} {0} ifelse } forall
-        ] dotty {drawlayerdots} {drawlayer} ifelse
+        pixs length { array } stopped {
+            pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
+        } if /layer exch def
+        0 1 pixs length 1 sub {
+            dup pixs exch get key eq {layer exch 1 put} {layer exch 0 put} ifelse
+        } for
+        layer dotty {drawlayerdots} {drawlayer} ifelse
     } forall
 
     %
