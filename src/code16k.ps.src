@@ -821,23 +821,54 @@ begin
     %
     % Populate the bitmap
     %
-    /pixs [
-        81 sepheight mul {1} repeat
-        0 1 r 2 sub {
-            /i exch def
-            rowheight {rowbits i get aload pop} repeat
-            sepheight {10 {0} repeat 70 {1} repeat 0} repeat
-        } for
-        rowheight {rowbits r 1 sub get aload pop} repeat
-        81 sepheight mul {1} repeat
-    ] def
+    /symhgt sepheight r 1 add mul r rowheight mul add def
+    81 symhgt mul { array } stopped {
+        pop /bwipp.code16kSymbolTooLarge (The symbol size exceeds the implementation limits) //raiseerror exec
+    } if /pixs exch def
+
+    % Reusable row templates
+    /allone [ 81 {1} repeat ] def
+    /seprow [ 10 {0} repeat 70 {1} repeat 0 ] def
+
+    /pos 0 def
+
+    % Top separator
+    sepheight {
+        pixs pos allone putinterval
+        /pos pos 81 add def
+    } repeat
+
+    % Data rows with separators
+    0 1 r 2 sub {
+        /i exch def
+        rowheight {
+            pixs pos rowbits i get putinterval
+            /pos pos 81 add def
+        } repeat
+        sepheight {
+            pixs pos seprow putinterval
+            /pos pos 81 add def
+        } repeat
+    } for
+
+    % Last data row
+    rowheight {
+        pixs pos rowbits r 1 sub get putinterval
+        /pos pos 81 add def
+    } repeat
+
+    % Bottom separator
+    sepheight {
+        pixs pos allone putinterval
+        /pos pos 81 add def
+    } repeat
 
     <<
     /ren /renmatrix
     /pixs pixs
     /pixx 81
-    /pixy pixs length 81 idiv
-    /height pixs length 81 idiv 72 div
+    /pixy symhgt
+    /height symhgt 72 div
     /width 81 72 div
     /opt options
     >>
