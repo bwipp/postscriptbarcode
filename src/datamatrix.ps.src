@@ -474,6 +474,13 @@ begin
         } if
     } for
 
+    /getnumremcws {
+        dup numremcws length ge {
+            pop /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
+        } if
+        numremcws exch get
+    } def
+
     raw {
 
         /cws barcode length array def
@@ -712,7 +719,7 @@ begin
                         } if
                     } if
                     msglen i sub 3 le {  % Check end of data conditions
-                        /remcws numremcws j p 3 idiv 2 mul add get def
+                        j p 3 idiv 2 mul add getnumremcws /remcws exch def
                         /remvals [
                             msg i msglen i sub getinterval {
                                 dup encvals mode get exch known {
@@ -767,6 +774,9 @@ begin
                     } if
                 } if
                 encvals mode get msg i get get
+                dup length p add ctxvals length gt {
+                    pop /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
+                } if
                 dup ctxvals exch p exch putinterval
                 /p exch length p add def
                 /i i 1 add def
@@ -826,9 +836,12 @@ begin
             {
                 i msglen eq {exit} if
                 Evals msg i get known not {exit} if
+                p edifactvals length ge {
+                    /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
+                } if
                 p 4 mod 0 eq {
                     msglen i sub 2 le {  % Check end of data condition
-                        /remcws numremcws j p 4 idiv 3 mul add get def
+                        j p 4 idiv 3 mul add getnumremcws /remcws exch def
                         /remvals [
                             msg i msglen i sub getinterval {
                                 Avals exch get aload pop
@@ -855,7 +868,7 @@ begin
             % Unlatch and pad with zeros until boundary
             %
             mode //datamatrix.A ne {
-                /remcws numremcws j p 4 idiv 3 mul add 1 sub get 1 sub def
+                j p 4 idiv 3 mul add 1 sub getnumremcws 1 sub /remcws exch def
                 p 4 mod 0 ne i msglen ne or remcws 3 ge or {  % Unlatch unless less than 3 codewords remain
                     Evals //datamatrix.unl get
                     dup edifactvals exch p exch putinterval
@@ -881,11 +894,14 @@ begin
             /p 0 def /bvals 1558 array def {
                 i msglen eq {exit} if
                 lookup mode ne {exit} if
+                p bvals length ge {
+                    /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
+                } if
                 bvals p msg i get put
                 /p p 1 add def
                 /i i 1 add def
             } loop
-            /remcws numremcws j p add get 1 sub def
+            j p add getnumremcws 1 sub /remcws exch def
             /bvals [
                 remcws 0 eq i msglen eq and {  % Terminates symbol
                     0
@@ -920,7 +936,7 @@ begin
     % Extend codewords to fill symbol with pseudo-randomised pad characters
     %
     /datlen cws length def
-    /remcws numremcws j 1 sub get 1 sub def
+    j 1 sub getnumremcws 1 sub /remcws exch def
     remcws 0 gt {
         /cws [ cws aload pop remcws {129} repeat ] def
         datlen 1 add 1 datlen remcws add 1 sub {
