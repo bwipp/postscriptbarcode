@@ -615,27 +615,58 @@ begin
     % Populate the bitmap
     %
     /symwid c 11 mul 57 add def
-    /pixs [
-        symwid sepheight mul {1} repeat
-        0 1 r 2 sub {
-            /i exch def
-            rowheight {rowbits i get aload pop} repeat
-            sepheight {
-                1 1 0 1 0 0 0 0 1 0 0
-                symwid 24 sub {1} repeat
-                1 1 0 0 0 1 1 1 0 1 0 1 1
-            } repeat
-        } for
-        rowheight {rowbits r 1 sub get aload pop} repeat
-        symwid sepheight mul {1} repeat
+    /symhgt sepheight r 1 add mul r rowheight mul add def
+    symwid symhgt mul { array } stopped {
+        pop /bwipp.codablockfSymbolTooLarge (The symbol size exceeds the implementation limits) //raiseerror exec
+    } if /pixs exch def
+
+    % Reusable row templates
+    /allone [ symwid {1} repeat ] def
+    /seprow [
+        1 1 0 1 0 0 0 0 1 0 0
+        symwid 24 sub {1} repeat
+        1 1 0 0 0 1 1 1 0 1 0 1 1
     ] def
+
+    /pos 0 def
+
+    % Top separator
+    sepheight {
+        pixs pos allone putinterval
+        /pos pos symwid add def
+    } repeat
+
+    % Data rows with separators
+    0 1 r 2 sub {
+        /i exch def
+        rowheight {
+            pixs pos rowbits i get putinterval
+            /pos pos symwid add def
+        } repeat
+        sepheight {
+            pixs pos seprow putinterval
+            /pos pos symwid add def
+        } repeat
+    } for
+
+    % Last data row
+    rowheight {
+        pixs pos rowbits r 1 sub get putinterval
+        /pos pos symwid add def
+    } repeat
+
+    % Bottom separator
+    sepheight {
+        pixs pos allone putinterval
+        /pos pos symwid add def
+    } repeat
 
     <<
     /ren /renmatrix
     /pixs pixs
     /pixx symwid
-    /pixy pixs length symwid idiv
-    /height pixs length symwid idiv 72 div
+    /pixy symhgt
+    /height symhgt 72 div
     /width symwid 72 div
     /opt options
     >>
