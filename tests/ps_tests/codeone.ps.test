@@ -202,3 +202,15 @@ systemdict /STRING_CONTINUE_BUG known not {
 
 % Data exceeds maximum symbol capacity
 2500 string 0 1 2499 { 2 copy 65 put pop } for (dontdraw) /bwipp.codeoneTooLong er_tmpl
+
+% Data exceeds symbol capacity via binary encoding
+{ 1500 string 0 1 1499 { 1 index exch 128 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
+
+% Data exceeds symbol capacity via Text encoding
+{ 2500 string 0 1 2499 { 1 index exch 97 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
+
+% Data exceeds symbol capacity via X12 encoding
+{ 2500 string 0 1 2499 { 1 index exch 42 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
+
+% Data exceeds symbol capacity via Decimal encoding
+{ 4000 string 0 1 3999 { 1 index exch 49 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
