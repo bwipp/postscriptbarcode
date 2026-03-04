@@ -717,6 +717,9 @@ begin
 
         /addtomsgbits {
             /v exch def
+            j v length add msgbits length gt {
+                /bwipp.aztecNoValidSymbol (Maximum length exceeded) //raiseerror exec
+            } if
             msgbits j v putinterval
             /j j v length add def
         } def
@@ -755,10 +758,11 @@ begin
 
             } {  % Binary
 
-                % Find number of bytes before latch or end
+                % Find number of bytes before latch or end, capped at 2078
                 /numbytes 0 def {
                     i numbytes add seq length ge {exit} if
                     seq i numbytes add get 0 lt {exit} if
+                    numbytes 2078 eq {exit} if  % 11-bit length field maximum
                     /numbytes numbytes 1 add def
                 } loop
 
