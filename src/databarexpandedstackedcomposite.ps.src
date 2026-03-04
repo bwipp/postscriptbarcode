@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 % $Id$
 %
@@ -82,8 +82,6 @@ begin
         pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
     } ifelse
 
-    usematrix not { gsave } if
-
     options (lintype) (databarexpandedstacked) put
     options (linkage) true put
     options (inkspreadv) 0.0 put
@@ -153,7 +151,6 @@ begin
             /opt options
         >> //renmatrix exec
 
-        grestore
     } {
         comp options //gs1-cc exec /compsym exch def
         /ccpixs compsym /pixs get def
@@ -181,11 +178,7 @@ begin
         /opt options
         >>
 
-        _render {
-            gsave
-            //renmatrix exec
-            grestore
-        } if
+        _render //renmatrix if
     } ifelse
 
     end
