@@ -260,6 +260,13 @@ begin
         /bwipp.renlinearBadGuardrightypos (guardrightypos must be from -50 to 150) //raiseerror exec
     } if
 
+    sbs length 0 ne {
+        sbs length 1 add 2 idiv  % nbars
+        bhs length 1 index lt bbs length 2 index lt or
+        { pop /bwipp.renlinearBadBarHeightArrays (The bar height and baseline arrays must be at least as long as the number of bars) //raiseerror exec } if
+        pop
+    } if
+
     %
     % Create bar elements and put them into the bars array
     %
