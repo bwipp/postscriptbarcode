@@ -57,6 +57,7 @@
   /expect exch def
   /cmd exch def
   /cds countdictstack def
+  /wasglobal currentglobal def
   /testStart /cmd load   % Put useful debugging info on stack
   count /depth exch def  % Record stack depth after debug items
   0 dict begin
@@ -81,6 +82,10 @@
       (   dict leak: ) print dup = flush
       {end} repeat
   } {pop} ifelse
+  currentglobal wasglobal ne {         % Detect VM allocation mode leak
+      (   global VM leak) = flush
+      wasglobal setglobal
+  } if
 } bind def
 
 /isEqual { //_isEqual //_doTest exec } def
