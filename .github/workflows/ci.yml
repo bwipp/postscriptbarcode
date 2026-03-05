@@ -107,129 +107,23 @@ jobs:
         with:
           name: docs-html
 
+      - name: Rename docs for release
+        run: |
+          mv barcodewriter.pdf postscriptbarcode-manual.pdf
+          mv barcodewriter.html postscriptbarcode-manual.html
+
       - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: ${{ steps.get_version.outputs.VERSION }}
-          draft: false
-          prerelease: false
-
-      - name: "Upload asset: monolithic tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: monolithic zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: monolithic-package tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: monolithic-package zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload packaged-resource tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: packaged-resource zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: resource tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-resource-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: resource zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: PDF docs"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: barcodewriter.pdf
-          asset_name: postscriptbarcode-manual.pdf
-          asset_content_type: application/pdf
-
-      - name: "Upload asset: HTML docs"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: barcodewriter.html
-          asset_name: postscriptbarcode-manual.html
-          asset_content_type: text/html
+          name: ${{ steps.get_version.outputs.VERSION }}
+          files: |
+            build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.tgz
+            build/release/postscriptbarcode-monolithic-${{ steps.get_version.outputs.VERSION }}.zip
+            build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.tgz
+            build/release/postscriptbarcode-monolithic-package-${{ steps.get_version.outputs.VERSION }}.zip
+            build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+            build/release/postscriptbarcode-packaged-resource-${{ steps.get_version.outputs.VERSION }}.zip
+            build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.tgz
+            build/release/postscriptbarcode-resource-${{ steps.get_version.outputs.VERSION }}.zip
+            postscriptbarcode-manual.pdf
+            postscriptbarcode-manual.html
