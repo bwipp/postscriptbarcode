@@ -321,6 +321,7 @@ Example for an encoder:
 ```postscript
 /encoder {
     20 dict begin
+    {  % stopped context for error cleanup
 
     %
     % 1. Option defaults
@@ -376,6 +377,7 @@ Example for an encoder:
     %
     dontdraw not //renlinear if
 
+    } stopped {end stop} if  % Prevent dict stack leak on error
     end
 }
 [/barcode] {null def} forall  % Inhibit binding of non-standard operators defined on some RIPs
@@ -395,7 +397,11 @@ To avoid orphaning stack entries when a resource does not run to completion — 
 as when another resource invokes `raiseerror` — resources must execute other
 resources only with a clean stack.
 
-Any example is "wrapper encoders" that delegate to another encoder with
+To avoid leaving entries on the dict stack when an error is raised, each
+resource's `stopped` context catches the `stop` from `raiseerror`, and then
+runs `{end stop}` to close the dictionary and re-propagate.
+
+An example is "wrapper encoders" that delegate to another encoder with
 modified options:
 
 ```postscript
@@ -1006,7 +1012,6 @@ Unreachable due to earlier validation:
 - `GS1UnknownCSET82Character` - `lintcset82` catches first
 - `GS1alphaTooLong` - max length fits primes array
 - `GS1requiresNonDigit` - checksum requires non-digits
-- `colorFailedToSet` - valid colors work; error path has stack cleanup issues
 
 
 ## Documentation
