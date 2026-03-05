@@ -291,3 +291,36 @@
 
 % Data exceeds maximum symbol capacity
 { 7100 string 0 1 7099 { 1 index exch 49 put } for (dontdraw) qrcode } /bwipp.qrcodeNoValidSymbol isError
+
+% Option edges
+(TEST) (eclevel=Z dontdraw) /bwipp.qrcodeInvalidEClevel er_tmpl
+(TEST) (version=0 dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+(TEST) (version=999 dontdraw) /bwipp.qrcodeInvalidFullVersion er_tmpl
+(TEST) (mask=-2 dontdraw) /bwipp.qrcodeBadMask er_tmpl
+{ (TEST) (mask=8 dontdraw) qrcode pop true } true isEqual
+(TEST) (mask=99 dontdraw) /bwipp.qrcodeBadMask er_tmpl
+(TEST) (version=M1 dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+(TEST) (version=M5 dontdraw) /bwipp.qrcodeInvalidMicroVersion er_tmpl
+{ (TEST) (version=R7x43 dontdraw) qrcode pop true } true isEqual
+(TEST) (format=rmqr dontdraw) /bwipp.qrcodeRMQRwithoutVersion er_tmpl
+(TEST) (format=rmqr version=R99x99 dontdraw) /bwipp.qrcodeInvalidRMQRversion er_tmpl
+(TEST) (format=rmqr version=R7x43 mask=0 dontdraw) /bwipp.qrcodeRMQRmask er_tmpl
+
+% Parse edges
+{ (^) (parse dontdraw) qrcode pop true } true isEqual
+{ (^^) (parse dontdraw) qrcode pop true } true isEqual
+{ (^000) (parse dontdraw) qrcode pop true } true isEqual
+{ (^255) (parse dontdraw) qrcode pop true } true isEqual
+(^256) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+(^999) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+{ (^NUL) (parse dontdraw) qrcode pop true } true isEqual
+{ (A^) (parse dontdraw) qrcode pop true } true isEqual
+{ (^1) (parse dontdraw) qrcode pop true } true isEqual
+{ (^12) (parse dontdraw) qrcode pop true } true isEqual
+
+% parsefnc edges
+{ (^FNC1) (parse parsefnc dontdraw) qrcode pop true } true isEqual
+{ (^ECI000000) (parse parsefnc dontdraw) qrcode pop true } true isEqual
+{ (^ECI999999) (parse parsefnc dontdraw) qrcode pop true } true isEqual
+(^ECI) (parse parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
+(^ECI1) (parse parsefnc dontdraw) /bwipp.truncatedECI er_tmpl

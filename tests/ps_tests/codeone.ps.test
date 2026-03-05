@@ -214,3 +214,11 @@ systemdict /STRING_CONTINUE_BUG known not {
 
 % Data exceeds symbol capacity via Decimal encoding
 { 4000 string 0 1 3999 { 1 index exch 49 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
+
+% ECI range
+{ (^ECI000000TEST) (parsefnc dontdraw) codeone pop true } true isEqual
+{ (^ECI999999TEST) (parsefnc dontdraw) codeone pop true } true isEqual
+
+(TEST) (version=S dontdraw) /bwipp.codeoneBadVersion er_tmpl
+(TEST) (version=T dontdraw) /bwipp.codeoneBadVersion er_tmpl
+(TEST) (version=Z dontdraw) /bwipp.codeoneBadVersion er_tmpl

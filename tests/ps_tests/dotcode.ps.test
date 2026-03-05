@@ -140,3 +140,15 @@
 { 500 string 0 1 499 { 1 index exch 65 put } for (rows=5 columns=6 dontdraw) dotcode } /bwipp.dotcodeTooLong isError
 
 4001 string (dontdraw) /bwipp.dotcodeinputTooLong er_tmpl
+
+(TEST) (columns=0 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
+(TEST) (columns=1 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
+(TEST) (columns=2 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
+{ (TEST) (columns=5 dontdraw) dotcode pop true } true isEqual
+(TEST) (rows=0 dontdraw) /bwipp.dotcodeBadRows er_tmpl
+(TEST) (rows=1 dontdraw) /bwipp.dotcodeBadRows er_tmpl
+{ (TEST) (columns=200 dontdraw) dotcode pop true } true isEqual
+
+% ECI range
+{ (^ECI000000TEST) (parsefnc dontdraw) dotcode pop true } true isEqual
+{ (^ECI999999TEST) (parsefnc dontdraw) dotcode pop true } true isEqual

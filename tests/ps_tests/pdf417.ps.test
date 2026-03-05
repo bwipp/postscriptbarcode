@@ -185,7 +185,9 @@
 (^929) (raw dontdraw) /bwipp.pdf417badRawCodeword er_tmpl
 (^999) (raw dontdraw) /bwipp.pdf417badRawCodeword er_tmpl
 
-% Invalid ECI (valid: 000000-811799)
+% ECI range (valid: 000000-811799)
+{ (^ECI811799) (parsefnc dontdraw) pdf417 pop true } true isEqual
+(^ECI811800) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
 (^ECI900000) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
 
 % Data too long (>926 codewords)
@@ -196,3 +198,43 @@
 
 % Symbol length descriptor exceeds codeword range
 (test) (rows=90 columns=30 dontdraw) /bwipp.pdf417insufficientCapacity er_tmpl
+
+% Option edges: columns
+{ (TEST) (columns=0 dontdraw) pdf417 pop true } true isEqual
+(TEST) (columns=999 dontdraw) /bwipp.pdf417invalidColumns er_tmpl
+
+% Option edges: rows
+(TEST) (rows=-1 dontdraw) /bwipp.pdf417invalidRows er_tmpl
+(TEST) (rows=999 dontdraw) /bwipp.pdf417invalidRows er_tmpl
+
+% Option edges: eclevel
+(TEST) (eclevel=9 dontdraw) /bwipp.pdf417InvalidErrorCorrectionLevel er_tmpl
+
+% Option edges: columns and rows combined
+{ (TEST) (columns=1 rows=3 dontdraw) pdf417 pop true } true isEqual
+
+% Raw mode edge cases
+{ (^928) (raw dontdraw) pdf417 pop true } true isEqual
+{ (^000) (raw dontdraw) pdf417 pop true } true isEqual
+{ (^928^000) (raw dontdraw) pdf417 pop true } true isEqual
+
+% Parse mode edge cases
+{ (^^) (parse dontdraw) pdf417 pop true } true isEqual
+{ (^000) (parse dontdraw) pdf417 pop true } true isEqual
+{ (^255) (parse dontdraw) pdf417 pop true } true isEqual
+(^256) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+(^999) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+{ (^NUL) (parse dontdraw) pdf417 pop true } true isEqual
+{ (A^) (parse dontdraw) pdf417 pop true } true isEqual
+{ (^1) (parse dontdraw) pdf417 pop true } true isEqual
+{ (^12) (parse dontdraw) pdf417 pop true } true isEqual
+
+% parsefnc edge cases
+(^FNC1) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC2) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC3) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC4) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+{ (^ECI000000) (parsefnc dontdraw) pdf417 pop true } true isEqual
+(^ECI999999) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
+(^ECI) (parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
+(^ECI1) (parsefnc dontdraw) /bwipp.truncatedECI er_tmpl

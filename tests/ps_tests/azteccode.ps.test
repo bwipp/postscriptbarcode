@@ -271,3 +271,28 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit 0 put
     (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws) azteccode
 } [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
 uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to restore default
+
+
+% Option edges: layers
+{ (TEST) (layers=-1 dontdraw) azteccode pop true } true isEqual
+
+% Option edges: eclevel
+(TEST) (eclevel=-1 dontdraw) /bwipp.aztecInvalidEClevel er_tmpl
+(TEST) (eclevel=200 dontdraw) /bwipp.aztecInvalidEClevel er_tmpl
+
+% Option edges: format
+(TEST) (format=badval dontdraw) /bwipp.aztecInvalidFormat er_tmpl
+
+% Option edges: compact layers (valid: 1-4)
+(TEST) (format=compact layers=0 dontdraw) /bwipp.aztecCompactInvalidLayers er_tmpl
+(TEST) (format=compact layers=5 dontdraw) /bwipp.aztecCompactInvalidLayers er_tmpl
+
+% Option edges: compact readerinit layers (must be 1)
+(TEST) (format=compact layers=2 readerinit dontdraw) /bwipp.aztecCompactInitInvalidLayers er_tmpl
+
+% Option edges: rune layers (not allowed)
+(255) (format=rune layers=1 dontdraw) /bwipp.aztecRuneInvalidLayers er_tmpl
+
+% parsefnc edge cases
+{ (^ECI000000) (parsefnc dontdraw) azteccode pop true } true isEqual
+{ (^ECI999999) (parsefnc dontdraw) azteccode pop true } true isEqual

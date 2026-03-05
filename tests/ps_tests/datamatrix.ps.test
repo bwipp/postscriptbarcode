@@ -161,3 +161,33 @@
 
 % Data exceeds symbol capacity via EDIFACT encoding
 { 2500 string 0 1 2499 { 1 index exch 91 put } for (dontdraw) datamatrix } /bwipp.datamatrixTooMuchData isError
+
+% Option edges: version
+{ (TEST) (version=0x0 dontdraw) datamatrix pop true } true isEqual
+(TEST) (version=999 dontdraw) /bwipp.datamatrixVersionFormat er_tmpl
+(TEST) (version=1x1 dontdraw) /bwipp.datamatrixNoValidSymbol er_tmpl
+
+% Raw mode edge cases
+(^) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^1) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^12) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^999) (raw dontdraw) /bwipp.datamatrixBadRawCodeword er_tmpl
+{ (^000) (raw dontdraw) datamatrix pop true } true isEqual
+{ (^230^001) (raw dontdraw) datamatrix pop true } true isEqual
+(^230^) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+(^230^1) (raw dontdraw) /bwipp.datamatrixBadRawFormat er_tmpl
+
+% Parse mode edge cases
+{ (^^) (parse dontdraw) datamatrix pop true } true isEqual
+{ (^000) (parse dontdraw) datamatrix pop true } true isEqual
+{ (^255) (parse dontdraw) datamatrix pop true } true isEqual
+{ (^NUL) (parse dontdraw) datamatrix pop true } true isEqual
+{ (A^) (parse dontdraw) datamatrix pop true } true isEqual
+(^256) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+
+% parsefnc edge cases
+{ (^FNC1) (parsefnc dontdraw) datamatrix pop true } true isEqual
+{ (^ECI000000) (parsefnc dontdraw) datamatrix pop true } true isEqual
+{ (^ECI999999) (parsefnc dontdraw) datamatrix pop true } true isEqual
+(^ECI) (parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
+

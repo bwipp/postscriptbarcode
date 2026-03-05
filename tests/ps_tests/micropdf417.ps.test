@@ -303,3 +303,40 @@
 
 % Data too long
 { 400 string 0 1 399 { 1 index exch 65 put } for (dontdraw) micropdf417 } /bwipp.micropdf417noValidSymbol isError
+
+% Option edges: version
+(TEST) (version=-1 dontdraw) /bwipp.micropdf417badVersionFormat er_tmpl
+(TEST) (version=0 dontdraw) /bwipp.micropdf417badVersionFormat er_tmpl
+(TEST) (version=35 dontdraw) /bwipp.micropdf417badVersionFormat er_tmpl
+
+% Option edges: columns
+{ (TEST) (columns=0 dontdraw) micropdf417 pop true } true isEqual
+(TEST) (columns=5 dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
+
+% Raw mode edge cases
+{ (^928) (raw dontdraw) micropdf417 pop true } true isEqual
+{ (^000) (raw dontdraw) micropdf417 pop true } true isEqual
+{ (^928^000) (raw dontdraw) micropdf417 pop true } true isEqual
+
+% Parse mode edge cases
+(^256) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+(^999) (parse dontdraw) /bwipp.invalidOrdinal er_tmpl
+{ (^^) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (^000) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (^255) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (^NUL) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (A^) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (^1) (parse dontdraw) micropdf417 pop true } true isEqual
+{ (^12) (parse dontdraw) micropdf417 pop true } true isEqual
+
+% parsefnc edge cases
+(^FNC1) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC2) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC3) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC4) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+{ (^ECI000000) (parsefnc dontdraw) micropdf417 pop true } true isEqual
+{ (^ECI811799) (parsefnc dontdraw) micropdf417 pop true } true isEqual
+(^ECI811800) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
+(^ECI999999) (parsefnc dontdraw) /bwipp.pdf417badECI er_tmpl
+(^ECI) (parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
+(^ECI1) (parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
