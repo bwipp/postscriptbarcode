@@ -1,12 +1,14 @@
-XXXX-XX-XX
+2026-03-03
 
-* DotCode, PDF417, MicroPDF417, Han Xin Code and Aztec Code were amended to guard against large input data that would exceed the PS implementation's array size limit.
-* All encoders now guard against input data that is too long.
-* GS1 Composite date encoding now validates numeric data before conversion.
-* Renderer error paths now correctly restore the graphics state.
-* GS1 DataBar Stacked Omnidirectional now validates data length before checking the AI prefix.
-* Code 49 now rejects empty input data.
-* Aztec Runes now validates input length before numeric conversion.
+* Input validation was hardened across all encoders, including data length checks, empty data rejection, and implementation limit guards for large allocations.
+* The renderers now validate their input structures and the text renderer handles single-character justify alignment correctly.
+* All resources now clean up the dictionary stack when an error is raised, preventing dict stack leaks in caller contexts.
+* Renderer error handling was improved: correct graphics state restoration, operand stack cleanup for invalid colors, and redundant gsave/grestore removal from composite rendering paths.
+* Raw mode input validation was improved for Code 128, Code 16K, Data Matrix, PosiCode, Ultracode, PDF417 and Micro PDF417, including ^NNN format and codeword range checks.
+* Data exceeding the maximum symbol capacity is now rejected during encoding for QR Code, Data Matrix, Code One, PDF417 and JAB Code.
+* Codablock F, Code 16K and the matrix renderer now handle large symbols without overflowing the operand stack.
+* GS1 input validation was improved for DataBar Expanded, DataBar Stacked Omnidirectional, GS1 Composite Component and GS1 North American Coupon.
+* JAB Code now validates eclevel, mask, colors, rows and columns options. PRNG constants now avoid integer literals exceeding the signed 32-bit range.
 
 
 2026-02-27
