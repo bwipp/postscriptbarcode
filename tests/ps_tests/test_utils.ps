@@ -52,6 +52,22 @@
     pop pop
 } bind def
 
+% Accept success or bwipp.* error; fail on interpreter errors
+/_fuzzTest {
+    expectedResults 2 eq {
+        % Stopped: errorname errorinfo expect
+        pop pop  % errorname
+        128 string cvs (bwipp.) anchorsearch {
+            pop pop
+        } {
+            pop /testError pstack quit
+        } ifelse
+    } {
+        % Success: result expect
+        pop pop
+    } ifelse
+} bind def
+
 /_doTest {
   /test exch def
   /expect exch def
@@ -91,4 +107,5 @@
 /isEqual { //_isEqual //_doTest exec } def
 /isError { //_isError //_doTest exec } def
 /debugIsEqual { //_debugIsEqual //_doTest exec } def
+/fuzzTest { null //_fuzzTest //_doTest exec } def
 
