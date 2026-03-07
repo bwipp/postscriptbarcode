@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<title>GS1 AI Standard Format</title>
+<style>
+@import "../manual.css"</style>
+</head>
+<body>
+<h2 id="gs1-application-identifier-standard-format">GS1 Application
+Identifier Standard Format</h2>
+<p>Certain barcode symbologies (including <a href="bwipp-symbologies.html#gs1-128">GS1-128</a>, <a href="bwipp-symbologies.html#gs1-databar-expanded">GS1 DataBar
+Expanded</a>, <a href="bwipp-symbologies.html#gs1-datamatrix">GS1
+DataMatrix</a>, <a href="bwipp-symbologies.html#gs1-qr-code">GS1 QR
+Code</a> and <a href="bwipp-symbologies.html#gs1-composite-symbols">GS1
+Composite Symbols</a>) represent standardized GS1 data and require that
+their data field is provided in GS1 Application Identifier standard
+format, consisting of a concatenated string of <em>AIs</em> along with
+their corresponding values.</p>
+<p>The AIs are a set of approximately one hundred two-, three- or
+four-digit prefixes written within parentheses that represent physical
+attributes and business information, e.g.</p>
+<ul>
+<li><em>(00)</em> is an eighteen-digit SSCC.</li>
+<li><em>(01)</em> is a fourteen-digit GTIN.</li>
+<li><em>(403)</em> is a variable-length routing code.</li>
+</ul>
+<p>The following input represents GTIN-14 <em>09521234543213</em>;
+Expiration Date <em>1 January 2010</em>; Batch <em>123ABC</em>; Serial
+<em>1234567890</em>:</p>
+<pre><code>(01)09521234543213(17)100101(10)123ABC(21)1234567890</code></pre>
+<p>Encoders for barcode symbologies that expect data in GS1 Application
+Identifier standard format will take care of parsing the input and
+inserting any necessary <em>FNC1</em> characters to delimit variable
+length fields.</p>
+<pre><code>Input to GS1-based encoder:   (01)09521234543213(17)100101(10)123ABC(21)1234567890
+                                                     |
+                                     [ BWIPP encodes barcode message... ]
+                                                     |
+                                                     V
+Barcode contents:             {FNC1}095212345432131710010110123ABC{FNC1}211234567890
+                                                     |
+                                    [ Scanner transfer protocol sends... ]
+                                                     |
+                                                     V
+Application receives:          ]Nm095212345432131710010110123ABC{GS}211234567890
+
+(Where &quot;]Nm&quot; is the symbology specific AIM Symbology Identifier.)</code></pre>
+<h4 id="encoding-parentheses-within-application-identifier-data-values">Encoding
+parentheses within Application Identifier data values</h4>
+<p>Instances of parentheses, <code>(</code> and <code>)</code>, within
+Application Identifier data values must be escaped using the <a href="bwipp-options.html#parse"><code>parse</code> option</a> as
+<code>^040</code> and <code>^041</code>, respectively.</p>
+<h4 id="gs1-application-identifier-linting">GS1 Application Identifier
+Linting</h4>
+<p>The input is checked against the structural rules for the GS1
+Application Identifiers, as described in <a href="https://www.linkedin.com/pulse/gs1-application-identifier-syntax-dictionary-terry-burton/">this
+article</a>, unless the <strong>dontlint</strong> option is given. The
+Application Identifier definitions are provided in the <a href="http://www.gs1.org/barcodes-epcrfid-id-keys/gs1-general-specifications">GS1
+General Specifications</a>.</p>
+<h4 id="use-of-group-separator-character-gs-ascii-29-as-an-ai-separator">Use
+of Group Separator character (GS; ASCII 29) as an AI separator</h4>
+<p>FNC1 is the canonical separator that is used in GS1 symbols when
+encoding Application Identifier based data.</p>
+<p>The transfer protocol for FNC1 characters is defined by the
+fundamental ISO/IEC barcode symbology standards and is not something
+that an application standard can legitimately redefine whilst claiming
+conformance with the fundamental standards.</p>
+<p>Encoding a GS (ASCII value 29) directly within a barcode message is
+incorrect and may lead to larger symbol sizes since they may not be
+encoded as efficiently and FNC1. However, because the transfer protocol
+for barcode scanners converts FNC1 non-data characters in third and
+subsequent characters positions to GS data characters for transmission,
+the host is generally unable to determine whether FNC1 or GS was used in
+the barcode message.</p>
+<p>Because of this ambiguity, the use of GS characters of AI separation
+is tolerated by the GS1 standards, but not encouraged.</p>
+<p>BWIPP will always correctly encode the barcode message using FNC1
+characters.</p>
+<p>If you wish to do the wrong thing then you can manually encode the
+data and use a general (non-GS1) instance of the encoder, for
+example:</p>
+<p>Instead of auto-encoding with canonical use of FNC1 separators:</p>
+<pre><code>Encoder:   GS1 DataMatrix
+Data:      (01)09521234543213(17)100101(10)123ABC(21)1234567890
+Options:</code></pre>
+<p>Manually encode with the non-canonical use of GS separators:</p>
+<pre><code>Encoder:   Data Matrix
+Data:      ^FNC1095212345432131710010110123ABC^GS211234567890
+Options:   parse parsefnc</code></pre>
+<p>Note however that:</p>
+<ul>
+<li>The rules for encoding Application Identifier based data are
+nuanced. FNC1/GS separators are not merely separators and their
+necessity is unrelated to whether the AIs are fixed or variable length,
+as many sources falsely claim.</li>
+<li>You will not benefit from BWIPP&#39;s comprehensive validation of
+AI-based data if you choose to encode data manually rather than let
+BWIPP take care of it.</li>
+</ul>
+</body>
+</html>
