@@ -27,6 +27,13 @@ run_test() {
 
 	if OUT=$(cd "$resdir" && gs -sNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage "$STRING_CONTINUE_BUG" -P ../../../"$TEST"/test.ps 2>&1); then
 		if echo "$OUT" | grep -qFx 'PASS'; then
+			if WARNINGS=$(echo "$OUT" | grep -F 'leak'); then
+				echo "WARN"
+				echo
+				echo "$WARNINGS"
+				echo
+				return 1
+			fi
 			return 0
 		fi
 	fi
