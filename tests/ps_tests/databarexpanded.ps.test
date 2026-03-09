@@ -410,3 +410,86 @@
 
 % Minimum barxmult for expanded stacked
 { (\(01\)09521234543213) (barxmult=33 format=expandedstacked dontdraw) databarexpanded } /bwipp.databarStackedOmniBarXmult isError
+
+%
+% GPF encoding: numeric with AI (21)
+%
+((01)09521234543213(21)12345) [
+    0                                                                                            % linkage=0
+    1                                                                                            % method "1"
+    0 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 1 0 0 1 0 1 0 0 0 0 0 1  % GTIN-13 (44 bits)
+    0 0 1 1 1 1 1 0 0 1 0 1 0 1 0 1 0 1 1 0 1 1 0 0 1 0 0 1 0 0 0 0 0 0 1 0                      % GPF: (21)12345 numeric
+] eq_tmpl_bits
+
+((01)09521234543213(21)12345) [1 2 1 3 2 1 3 4 1 1 8 4 1 1 3 2 1 4 1 1 2 3 2 1 1 4 1 5 2 1 1 1 6 4 3 4 1 1 1 1 2 3 4 2 4 3 1 1 3 2 1 3 6 4 1 1 1 4 1 2 4 1 1 3 1 1 1 1 2 2 4 5 1 1 8 2 3 3 1 2 3 1 2 3 2 1 1] eq_tmpl
+
+%
+% GPF encoding: alphanumeric with FNC1 then numeric
+%
+((01)09521234543213(10)AB(21)12345) [
+    0                                                                                            % linkage=0
+    1                                                                                            % method "1"
+    0 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 1 0 0 1 0 1 0 0 0 0 0 1  % GTIN-13 (44 bits)
+    0 0 1 0 0 1 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 1 0 1 1 1 1                                      % GPF: (10) A B FNC1 alphanumeric
+    0 0 1 1 1 1 1 0 0 1 0 1 0 1 0 1 0 1 1 0 1 1 0 0 1 0 0 1 0 0 0 0                              % GPF: (21)12345 numeric
+] eq_tmpl_bits
+
+((01)09521234543213(10)AB(21)12345) [1 4 1 2 1 1 1 3 4 1 8 4 1 1 3 2 1 4 1 1 2 3 2 1 1 4 1 5 2 1 1 1 5 6 2 4 1 1 1 1 2 3 4 2 4 3 1 1 3 2 1 3 6 4 1 1 3 3 2 2 1 4 1 1 1 1 3 2 6 1 2 1 1 1 8 2 3 2 1 4 1 4 1 1 3 4 3 3 2 2 1 1 1 3 4 6 1 1 3 1 3 3 2 1 3 1 1 1] eq_tmpl
+
+%
+% GPF encoding: ISO 646 mode (lowercase)
+%
+((01)09521234543213(10)abc) [
+    0                                                                                                % linkage=0
+    1                                                                                                % method "1"
+    1 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 1 0 0 1 0 1 0 0 0 0 0 1      % GTIN-13 (44 bits)
+    0 0 1 0 0 1 1 0 0 0 0 0 0 1 0 0 1 0 1 1 0 1 0 1 0 1 1 0 1 1 1 0 1 1 1 0 0 0 0 1 0 0 0 0 1 0 0 0  % GPF: (10) a b c ISO 646
+] eq_tmpl_bits
+
+((01)09521234543213(10)abc) [1 3 3 4 1 2 2 1 1 1 8 4 1 1 3 4 3 1 2 2 1 1 2 1 1 4 1 5 2 1 1 1 5 6 2 4 1 1 1 1 2 3 4 2 4 3 1 1 3 2 1 3 6 4 1 1 4 3 1 2 1 4 1 1 3 3 5 1 1 2 1 1 1 1 8 2 3 1 3 5 1 1 3 2 1 3 1 4 1 4 1 1 2 3 4 6 1 1 1 1] eq_tmpl_dontlint
+
+%
+% Linkage flag: bit 0 = 1 for composite linkage
+%
+{
+    ((01)09521234543213) (debugbits linkage dontlint) databarexpanded
+} [
+    1                                                                                            % linkage=1
+    1                                                                                            % method "1"
+    1 0 0 0 0 0 1 1 1 0 1 1 1 0 0 0 0 0 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 1 0 0 1 0 1 0 0 0 0 0 1  % GTIN-13 (44 bits)
+] debugIsEqual
+
+{
+    ((01)09521234543213) (dontdraw linkage) databarexpanded /sbs get
+} [1 3 1 2 1 1 2 6 1 1 8 4 1 1 1 2 3 1 6 1 1 2 2 1 1 4 1 5 2 1 1 1 4 6 3 4 1 1 1 1 2 3 4 2 4 3 1 1 3 2 1 3 6 4 1 1 1 1] isEqual
+
+%
+% Method "0100": (01)+(3103), weight = 0
+%
+((01)90012345678908(3103)000000) [
+    0                                                                                % linkage=0
+    0 1 0 0                                                                          % method "0100"
+    0 0 0 0 0 0 0 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 0 1 1 1 1 1 0 1 1 1 1 0 1 0  % GTIN-12 (40 bits, conv12to40)
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0                                                    % weight=0 (15 bits)
+] eq_tmpl_bits
+
+%
+% Method "0101": (01)+(3203), weight = 10000+10000=20000
+%
+((01)90012345678908(3203)010000) [
+    0                                                                                % linkage=0
+    0 1 0 1                                                                          % method "0101"
+    0 0 0 0 0 0 0 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 0 1 1 1 1 1 0 1 1 1 1 0 1 0  % GTIN-12 (40 bits, conv12to40)
+    1 0 0 1 1 1 0 0 0 1 0 0 0 0 0                                                    % weight=20000 (15 bits)
+] eq_tmpl_bits
+
+%
+% Method "01100": (01)+(3922)+additional AIs
+%
+((01)90012345678908(3922)795(20)01) [
+    0                                                                                % linkage=0
+    0 1 1 0 0                                                                        % method "01100"
+    0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 0 1 1 1 1 1 0 1 1 1 1 0  % GTIN-12 (40 bits, conv12to40)
+    1 0                                                                              % AI code (3922: last digit=2)
+    1 0 1 0 1 1 1 1 0 1 0 0 1 0 0 1 0 0 1 1 1 1 0 0 0 0 1 0 0 1 0 0 0 0 0 0          % GPF: 795 FNC1 (20)01
+] eq_tmpl_bits

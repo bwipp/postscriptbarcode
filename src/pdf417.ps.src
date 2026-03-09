@@ -1131,6 +1131,10 @@ begin
     cws m 1 add [ n m sub 1 sub {900} repeat ] putinterval
     cws n [ k {0} repeat 0 ] putinterval
 
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws cws 0 n getinterval //raiseerror exec } if
+
     %
     % Derive the error codewords
     %
@@ -1156,9 +1160,9 @@ begin
     %
     /cws cws 0 cws length 1 sub getinterval def
 
-    options /debugcws known
+    options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
-    and { /bwipp.debugcws cws //raiseerror exec } if
+    and { /bwipp.debugecc cws n k getinterval //raiseerror exec } if
 
     (ecc.cws) //pdf417.after exec
 
