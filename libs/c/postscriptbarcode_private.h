@@ -1,8 +1,8 @@
 /*
- * libpostscriptbarcode - postscriptbarcode.c
+ * libpostscriptbarcode - postscriptbarcode_private.h
  *
  * @file postscriptbarcode_private.h
- * @author Copyright (c) 2004-2024 Terry Burton.
+ * @author Copyright (c) 2004-2026 Terry Burton.
  *
  * Permission is hereby granted, free of charge, to any
  * person obtaining a copy of this software and associated
@@ -34,6 +34,7 @@
 #define BWIPP_PRIVATE_H
 
 #include "postscriptbarcode.h"
+#include <stddef.h>
 
 typedef struct Property {
 	char *key, *value;
@@ -46,13 +47,26 @@ typedef struct PropertyList {
 
 typedef struct Resource {
 	char *type, *name, *reqs, *code;
+	size_t code_len;
 	unsigned int numprops;
 	PropertyList *props;
+	PropertyList **props_tail;
 } Resource;
 
 typedef struct ResourceList {
 	Resource *entry;
 	struct ResourceList *next;
 } ResourceList;
+
+typedef struct Family {
+	char *name;
+	const char **members;	/* NULL-terminated; pointers into Resource names */
+	unsigned int count;
+} Family;
+
+typedef struct FamilyList {
+	Family *entry;
+	struct FamilyList *next;
+} FamilyList;
 
 #endif  /* BWIPP_PRIVATE_H */
