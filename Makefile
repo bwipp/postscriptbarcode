@@ -318,7 +318,7 @@ tag:
 	@[ "$(VERSION)" != "XXXX-XX-XX" ] || { echo "Error: Cannot tag with placeholder version"; exit 1; }
 	@echo Push a new tag as follows:
 	@echo
-	@echo Remenber to refresh the wikidocs/ submodule
+	@echo Remember to refresh the wikidocs/ submodule
 	@echo
 	@echo "git tag -s -F /dev/stdin `head -n1 CHANGES` <<'EOF'"
 	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
@@ -335,6 +335,19 @@ copyright:
 whitespace:
 	perl -p -i -e 's/\s+$$/\n/;' $(SOURCES)
 
+.PHONY: superlinter
+superlinter:
+	docker run --rm \
+		-e RUN_LOCAL=true \
+		-e VALIDATE_ALL_CODEBASE=true \
+		-e DEFAULT_BRANCH=master \
+		-e IGNORE_GITIGNORED_FILES=true \
+		-e SAVE_SUPER_LINTER_SUMMARY=true \
+		-e VALIDATE_GIT_COMMITLINT=false \
+		-e 'FILTER_REGEX_EXCLUDE=(wikidocs/|.*/acutest\.h|build-qr-mode-optim-arrs\.php|setup\.py|build/|corpus/|contrib/Examples/|\.claude/)' \
+		$(shell grep -v '^\#' .github/linters/superlinter-disabled.env | grep '=' | sed 's/^/-e /') \
+		-v $(CURDIR):/tmp/lint \
+		ghcr.io/super-linter/super-linter:v8
 
 #
 #  GS1 Syntax Dictionary sync helper

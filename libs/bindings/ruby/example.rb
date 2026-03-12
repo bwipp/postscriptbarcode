@@ -3,8 +3,8 @@
 
 require "postscriptbarcode"
 
-bwipp1=Postscriptbarcode::BWIPP.new(File.dirname(__FILE__)+"/../../../build/monolithic_package/barcode.ps")
-bwipp2=Postscriptbarcode::BWIPP.new(File.dirname(__FILE__)+"/../../../build/monolithic/barcode.ps")
+bwipp1 = Postscriptbarcode::BWIPP.new(File.dirname(__FILE__) + "/../../../build/monolithic_package/barcode.ps")
+bwipp2 = Postscriptbarcode::BWIPP.new(File.dirname(__FILE__) + "/../../../build/monolithic/barcode.ps")
 
 puts "Packaged version: " + bwipp1.get_version
 puts "Unpackaged version: " + bwipp2.get_version

@@ -13,25 +13,36 @@ jobs:
     name: Super-Linter
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       statuses: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          persist-credentials: false
+
+      - name: Load disabled linters
+        run: >
+          grep -v '^#' .github/linters/superlinter-disabled.env
+          | grep '=' >> "$GITHUB_ENV"
 
       - name: Lint
-        uses: github/super-linter@v7
+        uses: super-linter/super-linter@v8
         env:
-          DEFAULT_BRANCH: master
-          VALIDATE_JSCPD: false
-          VALIDATE_NATURAL_LANGUAGE: false
-          VALIDATE_GIT_MERGE_CONFLICT_MARKERS: false
-          VALIDATE_MARKDOWN_PRETTIER: false
-          VALIDATE_CLANG_FORMAT: false
-          VALIDATE_CPP: false
-          VALIDATE_GOOGLE_JAVA_FORMAT: false
-          VALIDATE_JAVA: false
-          FILTER_REGEX_EXCLUDE: wikidocs/.*|.*/acutest\.h|build-qr-mode-optim-arrs\.php|setup\.py
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          VALIDATE_ALL_CODEBASE: true
+          IGNORE_GITIGNORED_FILES: true
+          SAVE_SUPER_LINTER_SUMMARY: true
+          VALIDATE_GIT_COMMITLINT: false
+          FILTER_REGEX_EXCLUDE: "\
+            (wikidocs/\
+            |.*/acutest\\.h\
+            |build-qr-mode-optim-arrs\\.php\
+            |setup\\.py\
+            |build/\
+            |corpus/\
+            |contrib/Examples/\
+            |\\.claude/)"

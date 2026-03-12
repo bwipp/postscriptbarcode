@@ -11,36 +11,172 @@ on:
     branches:
       - "*"
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
-  ci:
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-22.04
+  #
+  #  PostScript resource CI
+  #
+
+  ci:
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Fix PATH for CI
         run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
 
-      - name: Build
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends ghostscript
-          make -j "$(nproc)"
+
+      - name: Build
+        run: make -j "$(nproc)"
 
       - name: Test
         run: make test
 
+  #
+  #  C library CI
+  #
+
+  ci-clang:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: clang CI (with sanitizers)
+        run: |
+          sudo apt-get update
+          sudo apt-get -y --no-install-recommends install llvm
+          make -C libs/c -j "$(nproc)" test \
+            CC=clang SANITIZE=yes
+
+      - name: clang shared library
+        run: |
+          make -C libs/c -j "$(nproc)" lib \
+            CC=clang SANITIZE=yes
+
+  ci-gcc:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: gcc CI (with analyzer)
+        run: |
+          make -C libs/c -j "$(nproc)" test \
+            CC=gcc ANALYZER=yes
+
+      - name: gcc shared library
+        run: |
+          make -C libs/c -j "$(nproc)" lib \
+            CC=gcc ANALYZER=yes
+
+  ci-valgrind:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Valgrind memcheck CI
+        run: |
+          sudo apt-get update
+          sudo apt-get -y --no-install-recommends install valgrind
+          make -C libs/c -j "$(nproc)" test CC=gcc
+          make -C libs/c test-valgrind
+
+  ci-scan-build:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: clang static analyzer CI
+        run: |
+          sudo apt-get update
+          sudo apt-get -y --no-install-recommends install clang-tools cppcheck
+          scan-build -o plist \
+            make -C libs/c -j "$(nproc)" lib CC=clang
+          [ "$(find plist/ -name '*.html')" = '' ];
+
+      - name: "clang static analyzer: Store assets on failure"
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-scan.tgz
+          path: plist/**/*.html
+          retention-days: 30
+        if: ${{ failure() }}
+
+      - name: cppcheck
+        working-directory: libs/c
+        run: |
+          cppcheck --enable=all --force \
+            --error-exitcode=1 \
+            --check-level=exhaustive \
+            --inline-suppr \
+            --suppress=missingIncludeSystem \
+            --suppress='*:acutest.h' \
+            -i postscriptbarcode_fuzzer.c \
+            .
+
+  #
+  #  Language bindings CI
+  #
+
+  ci-bindings:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Fix PATH for CI
+        run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ghostscript \
+            swig python3-dev ruby-dev default-jdk-headless libperl-dev ant
+
+      - name: Build PS resources
+        run: make -j "$(nproc)"
+
+      - name: Build C library
+        run: make -C libs/c
+
+      - name: Build bindings
+        run: make -C libs/bindings
+
+      - name: Test bindings
+        run: make -C libs/bindings test
+
   docs:
-    runs-on: ubuntu-22.04
+    if: github.repository == 'bwipp/postscriptbarcode'
+    runs-on: ubuntu-24.04
     container: pandoc/latex:2.9
 
     steps:
@@ -48,8 +184,9 @@ jobs:
         run: apk add --no-cache git make
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
+          persist-credentials: false
           submodules: true
 
       - name: Build docs
@@ -79,26 +216,33 @@ jobs:
   release:
     if: startsWith(github.ref, 'refs/tags/')
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
-    permissions: write-all
+    permissions:
+      contents: write
 
     needs:
       - ci
+      - ci-clang
+      - ci-gcc
+      - ci-valgrind
+      - ci-scan-build
+      - ci-bindings
       - docs
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
       - name: Fix PATH for CI
         run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
 
-      - name: Get and check the version
-        id: get_version
+      - name: Check version matches CHANGES
         run: |
-          VERSION="${GITHUB_REF/refs\/tags\//}"
           [ "$VERSION" == "$(head -1 CHANGES)" ] || exit 1
-          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+        env:
+          VERSION: ${{ github.ref_name }}
 
       - name: Make assets
         run: |
@@ -125,6 +269,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin gh-pages
           git worktree add gh-pages-wt origin/gh-pages
           mkdir -p gh-pages-wt/scribus
@@ -132,134 +277,36 @@ jobs:
           printf 'User-agent: *\nDisallow: /scribus/\n' > gh-pages-wt/robots.txt
           cd gh-pages-wt
           git add scribus/ robots.txt
-          git diff --cached --quiet || git commit -m "Update Scribus docs for ${{ steps.get_version.outputs.VERSION }}"
+          git diff --cached --quiet || git commit -m "Update Scribus docs for $VERSION"
           git push origin HEAD:gh-pages
           cd ..
           git worktree remove gh-pages-wt
+        env:
+          VERSION: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename docs for release
+        run: |
+          mv barcodewriter.pdf postscriptbarcode-manual.pdf
+          mv barcodewriter.html postscriptbarcode-manual.html
 
       - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: ${{ steps.get_version.outputs.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           draft: false
           prerelease: false
-
-      - name: "Upload asset: monolithic tgz"
-        uses: actions/upload-release-asset@v1
+          files: |
+            build/release/postscriptbarcode-monolithic-${{ github.ref_name }}.tgz
+            build/release/postscriptbarcode-monolithic-${{ github.ref_name }}.zip
+            build/release/postscriptbarcode-monolithic-package-${{ github.ref_name }}.tgz
+            build/release/postscriptbarcode-monolithic-package-${{ github.ref_name }}.zip
+            build/release/postscriptbarcode-packaged-resource-${{ github.ref_name }}.tgz
+            build/release/postscriptbarcode-packaged-resource-${{ github.ref_name }}.zip
+            build/release/postscriptbarcode-resource-${{ github.ref_name }}.tgz
+            build/release/postscriptbarcode-resource-${{ github.ref_name }}.zip
+            postscriptbarcode-manual.pdf
+            postscriptbarcode-manual.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: monolithic zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-monolithic-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: monolithic-package tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: monolithic-package zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-monolithic-package-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload packaged-resource tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: packaged-resource zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-packaged-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: resource tgz"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_name: "postscriptbarcode-resource-package-\
-            ${{ steps.get_version.outputs.VERSION }}.tgz"
-          asset_content_type: application/gzip'
-
-      - name: "Upload asset: resource zip"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "build/release/postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_name: "postscriptbarcode-resource-\
-            ${{ steps.get_version.outputs.VERSION }}.zip"
-          asset_content_type: application/zip
-
-      - name: "Upload asset: PDF docs"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: barcodewriter.pdf
-          asset_name: postscriptbarcode-manual.pdf
-          asset_content_type: application/pdf
-
-      - name: "Upload asset: HTML docs"
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: barcodewriter.html
-          asset_name: postscriptbarcode-manual.html
-          asset_content_type: text/html

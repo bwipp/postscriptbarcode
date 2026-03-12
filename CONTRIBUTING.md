@@ -20,7 +20,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Create atomic, logical commits that complete one task.
 - If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
 - Create an entry in CHANGES for each user-visible change. If the current change block has been published, create a new block dated "XXXX-XX-XX". Observe the layout and style of pre-existing contents.
-- Unless the changes are tiny and consistant, there should be one commit per updated resource.
+- Unless the changes are tiny and consistent, there should be one commit per updated resource.
 - Use sparse comments explaining "why" not "how".
 - Ensure that code comments describe only the current code and do not reference changes made with respect to old code - that's what commit descriptions are for.
 - New code should match existing idioms. Complex encoders such as QR Code are the best source of idiomatic code.
@@ -188,7 +188,7 @@ Each resource source file has a similar structure:
    - Enables profiling and debugging via global context hooks
 
 6. **Static data structures**
-   - Plain definitions of literal stuctured data (arrays and dicts)
+   - Plain definitions of literal structured data (arrays and dicts)
    - Runs once during resource definition, with values immediately referenced by main procedure; allocate once during initialisation, then reuse at runtime
    - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
    - `//name` immediate references are resolved at parse time, embedding the value directly into procedures

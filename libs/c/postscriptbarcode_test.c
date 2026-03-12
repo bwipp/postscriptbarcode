@@ -264,6 +264,12 @@ static void test_load_missing_file(void) {
 	TEST_CHECK(bwipp_load_from_file("nonexistent.ps") == NULL);
 }
 
+static void test_load_default_path(void) {
+	BWIPP *ctx = bwipp_load();
+	if (ctx)
+		bwipp_unload(ctx);
+}
+
 static void test_load_nested_begin(void) {
 	write_mock_ps(MOCK_PS,
 		"%!PS\n"
@@ -2260,12 +2266,12 @@ static void test_code_with_percent_lines(void) {
  * ======================================================================== */
 
 static void test_load_unload_cycle(void) {
-	BWIPP *ctx;
 	int i;
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
 	for (i = 0; i < 10; i++) {
+		BWIPP *ctx;
 		TEST_CASE("cycle");
 		TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
 		if (ctx)
@@ -2401,6 +2407,7 @@ TEST_LIST = {
 
 	/* Loading - error paths */
 	{"load_missing_file",                test_load_missing_file},
+	{"load_default_path",                test_load_default_path},
 	{"load_nested_begin",                test_load_nested_begin},
 	{"load_mismatched_end_name",         test_load_mismatched_end_name},
 	{"load_mismatched_end_type",         test_load_mismatched_end_type},

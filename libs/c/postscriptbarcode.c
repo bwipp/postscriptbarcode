@@ -323,7 +323,8 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 				skip = false;
 			if (!ctx->version &&
 					strncmp(buf, "% Barcode Writer in Pure PostScript", 35) == 0) {
-				char *version, *p;
+				const char *version;
+				char *p;
 				p = strrchr(buf, ' ');
 				if (!p)
 					goto error;
@@ -344,7 +345,8 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 		/* % --BEGIN {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --BEGIN ", 10) == 0) {
 
-			char *type, *name, *p;
+			const char *type, *name;
+			char *p;
 
 			if (resource)
 				goto error;
@@ -381,7 +383,8 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 
 		/* % --KEY: VALUE (metadata comments) */
 		if (resource && strncmp(buf, "% --", 4) == 0 && strchr(buf + 4, ':')) {
-			char *key, *value, *p;
+			const char *key;
+			char *value, *p;
 
 			key = buf + 4;
 			p = strchr(key, ':');
@@ -404,7 +407,8 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 		/* % --REQUIRES {REQS}-- */
 		if (strncmp(buf, "% --REQUIRES ", 13) == 0) {
 
-			char *reqs, *p;
+			const char *reqs;
+			char *p;
 
 			if (!resource || resource->reqs)
 				goto error;
@@ -425,7 +429,8 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 		/* % --END {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --END ", 8) == 0) {
 
-			char *type, *name, *p;
+			const char *type, *name;
+			char *p;
 
 			if (!resource)
 				goto error;
@@ -686,7 +691,8 @@ BWIPP_API const char **bwipp_list_family_members(BWIPP *ctx,
 }
 
 BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
-	char *code = NULL, *reqs, *req, *tmp, *saveptr = NULL;
+	char *code = NULL, *reqs, *tmp, *saveptr = NULL;
+	const char *req;
 	size_t code_len = 0;
 	const Resource *resource, *res;
 
@@ -777,7 +783,7 @@ BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data,
 		"%s\n"
 		"/%s /uk.co.terryburton.bwipp findresource exec\n";
 	char *call = NULL, *data_h = NULL, *options_h = NULL;
-	size_t data_h_len, options_h_len, alloc;
+	size_t data_h_len, options_h_len;
 
 	assert(ctx);
 	assert(name);
@@ -787,25 +793,15 @@ BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data,
 	data_h = pshexstr(data, &data_h_len);
 	options_h = pshexstr(options, &options_h_len);
 
-	if (!data_h || !options_h)
-		goto error;
-
-	alloc = sizeof(fmt) + data_h_len + options_h_len + strlen(name);
-	call = malloc(alloc);
-	if (!call)
-		goto error;
-
-	snprintf(call, alloc, fmt, data_h, options_h, name);
+	if (data_h && options_h) {
+		size_t alloc = sizeof(fmt) + data_h_len + options_h_len + strlen(name);
+		call = malloc(alloc);
+		if (call)
+			snprintf(call, alloc, fmt, data_h, options_h, name);
+	}
 
 	free(data_h);
 	free(options_h);
 
 	return call;
-
-error:
-
-	free(data_h);
-	free(options_h);
-
-	return NULL;
 }
