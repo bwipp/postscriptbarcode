@@ -18,7 +18,7 @@ jobs:
 
       - name: Download Coverity
         run: |
-          curl \
+          curl -sf \
             -o coverity_tool.tar.gz \
             --form token="$TOKEN" \
             --form project="bwipp/postscriptbarcode" \
@@ -37,7 +37,7 @@ jobs:
       - name: Submit result
         run: |
           tar czf cov-int.tar.gz cov-int
-          curl \
+          curl -sf \
             --form token="$TOKEN" \
             --form email="tez@terryburton.co.uk" \
             --form file=@cov-int.tar.gz \
