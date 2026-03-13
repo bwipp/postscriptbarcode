@@ -226,9 +226,11 @@ Encoder source files contain metadata comments:
 
 ```postscript
 % --BEGIN ENCODER encodername--
+% --DESC: Human-readable description
 % --EXAM: example input data
 % --EXOP: example options
 % --RNDR: renlinear|renmatrix|renmaximatrix
+% --FMLY: Family Name
 % --REQUIRES preamble raiseerror [other deps...]
 % --END ENCODER encodername--
 ```
@@ -237,6 +239,11 @@ Encoder source files contain metadata comments:
 system and is API for users that want to assemble the resources into a PS file
 prolog. It is not transitive: If must list the recursive dependencies of all
 required resources.
+
+`DESC` and `FMLY` apply only to encoders. Utility resources (e.g. `preamble`,
+`raiseerror`, renderers) intentionally omit both. Internal encoders (e.g.
+`gs1-cc`, `raw`, `daft`) intentionally omit `FMLY`, which groups encoders into
+families for the C library API.
 
 
 ### Resource output file structure
