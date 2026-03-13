@@ -49,6 +49,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 - Don't ever `git reset` to try to rewrite history when there is a risk of losing recent work.
 - Backup work before running irreversible commands such as `sed` against a large number of files.
 - Plan complex tasks. Interview the user regarding significant design choices.
+- To analyse barcode image output, generate a PNM image (that can be directly interpreted) using `contrib/development/make_image.sh pnm <encoder> <data> [options] > output.pnm`. Requires `build/monolithic/barcode.ps` (i.e. run `make` first).
 
 
 ## AI Observations
@@ -1073,8 +1074,8 @@ contrib/development/make_image.sh svg qrcode 'Hello World' '' > qrcode.svg
 contrib/development/make_image.sh pdf qrcode 'Hello World' '' > qrcode.pdf
 ```
 
-The script supports `png`, `eps`, `pdf`, and `svg` formats. Wiki images use SVG for
-the GitHub wiki and PDF for LaTeX documentation.
+The script supports `png`, `pnm`, `eps`, `pdf`, and `svg` formats. Wiki images use SVG
+for the GitHub wiki and PDF for LaTeX documentation.
 
 **Regenerating all wiki images:**
 
