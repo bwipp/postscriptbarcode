@@ -2397,6 +2397,177 @@ static void test_real_emit_exec(void) {
 }
 
 
+/* ========================================================================
+ *  bwipp_load_from_file_ex - lazy loading
+ * ======================================================================== */
+
+static void test_lazy_load_mock(void) {
+	BWIPP *ctx;
+	char *out;
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.flags = bwipp_iLAZY_LOAD,
+	};
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+
+	/* Metadata should still be available */
+	TEST_CHECK(bwipp_get_version(ctx) != NULL);
+	TEST_CHECK(strcmp(bwipp_get_version(ctx), "2099-01-01") == 0);
+
+	/* Emit should load code on demand */
+	out = bwipp_emit_required_resources(ctx, "encoder");
+	TEST_ASSERT(out != NULL);
+	TEST_CHECK(strstr(out, "base code") != NULL);
+	TEST_CHECK(strstr(out, "helper code") != NULL);
+	TEST_CHECK(strstr(out, "encoder code") != NULL);
+	bwipp_free(out);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_lazy_emit_all(void) {
+	BWIPP *ctx;
+	char *out;
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.flags = bwipp_iLAZY_LOAD,
+	};
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+
+	out = bwipp_emit_all_resources(ctx);
+	TEST_ASSERT(out != NULL);
+	TEST_CHECK(strstr(out, "base code") != NULL);
+	TEST_CHECK(strstr(out, "helper code") != NULL);
+	TEST_CHECK(strstr(out, "encoder code") != NULL);
+	bwipp_free(out);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_lazy_no_code_in_memory(void) {
+	BWIPP *ctx;
+	char *eager_out, *lazy_out;
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.flags = bwipp_iLAZY_LOAD,
+	};
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	/* Eager: verify code works */
+	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	eager_out = bwipp_emit_required_resources(ctx, "encoder");
+	TEST_ASSERT(eager_out != NULL);
+	bwipp_unload(ctx);
+
+	/* Lazy: same output */
+	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	lazy_out = bwipp_emit_required_resources(ctx, "encoder");
+	TEST_ASSERT(lazy_out != NULL);
+
+	TEST_CHECK(strcmp(eager_out, lazy_out) == 0);
+
+	bwipp_free(eager_out);
+	bwipp_free(lazy_out);
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_lazy_null_opts(void) {
+	BWIPP *ctx;
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	/* NULL opts should behave like bwipp_load_from_file (eager) */
+	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, NULL)) != NULL);
+	TEST_CHECK(bwipp_get_version(ctx) != NULL);
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_lazy_old_struct_size(void) {
+	BWIPP *ctx;
+	/* struct_size smaller than flags field: flags not extracted, defaults to eager */
+	bwipp_load_init_opts_t opts = {
+		.struct_size = offsetof(bwipp_load_init_opts_t, flags),
+		.flags = bwipp_iLAZY_LOAD,	/* Should be ignored */
+	};
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	TEST_CHECK(bwipp_get_version(ctx) != NULL);
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_real_lazy_emit_required(void) {
+	BWIPP *ctx;
+	char *eager_out, *lazy_out;
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.flags = bwipp_iLAZY_LOAD,
+	};
+
+	ctx = bwipp_load_from_file(BARCODE_PS);
+	if (!ctx) {
+		TEST_MSG("Skipped: %s not found", BARCODE_PS);
+		return;
+	}
+	eager_out = bwipp_emit_required_resources(ctx, "qrcode");
+	TEST_ASSERT(eager_out != NULL);
+	bwipp_unload(ctx);
+
+	ctx = bwipp_load_from_file_ex(BARCODE_PS, &opts);
+	TEST_ASSERT(ctx != NULL);
+	lazy_out = bwipp_emit_required_resources(ctx, "qrcode");
+	TEST_ASSERT(lazy_out != NULL);
+
+	TEST_CHECK(strcmp(eager_out, lazy_out) == 0);
+
+	bwipp_free(eager_out);
+	bwipp_free(lazy_out);
+	bwipp_unload(ctx);
+}
+
+static void test_real_lazy_emit_all(void) {
+	BWIPP *ctx;
+	char *eager_out, *lazy_out;
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.flags = bwipp_iLAZY_LOAD,
+	};
+
+	ctx = bwipp_load_from_file(BARCODE_PS);
+	if (!ctx) {
+		TEST_MSG("Skipped: %s not found", BARCODE_PS);
+		return;
+	}
+	eager_out = bwipp_emit_all_resources(ctx);
+	TEST_ASSERT(eager_out != NULL);
+	bwipp_unload(ctx);
+
+	ctx = bwipp_load_from_file_ex(BARCODE_PS, &opts);
+	TEST_ASSERT(ctx != NULL);
+	lazy_out = bwipp_emit_all_resources(ctx);
+	TEST_ASSERT(lazy_out != NULL);
+
+	TEST_CHECK(strcmp(eager_out, lazy_out) == 0);
+
+	bwipp_free(eager_out);
+	bwipp_free(lazy_out);
+	bwipp_unload(ctx);
+}
+
+
 TEST_LIST = {
 
 	/* Loading - success */
@@ -2528,6 +2699,17 @@ TEST_LIST = {
 	{"real_all_encoders_have_fmly",      test_real_all_encoders_have_fmly},
 	{"real_list_families",               test_real_list_families},
 	{"real_list_family_members",         test_real_list_family_members},
+
+	/* Lazy loading */
+	{"lazy_load_mock",                   test_lazy_load_mock},
+	{"lazy_emit_all",                    test_lazy_emit_all},
+	{"lazy_no_code_in_memory",           test_lazy_no_code_in_memory},
+	{"lazy_null_opts",                   test_lazy_null_opts},
+	{"lazy_old_struct_size",             test_lazy_old_struct_size},
+
+	/* Lazy loading (real barcode.ps) */
+	{"real_lazy_emit_required",          test_real_lazy_emit_required},
+	{"real_lazy_emit_all",               test_real_lazy_emit_all},
 
 	{NULL, NULL}
 };

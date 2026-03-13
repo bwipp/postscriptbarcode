@@ -59,7 +59,15 @@ struct BWIPP {
 	unsigned int numencoders;
 	FamilyList *familylist;		/* Built at load time from FMLY properties */
 	unsigned int numfamilies;
+	FILE *f;			/* Held open for lazy loading, else NULL */
 };
+
+/* Extract option from opts struct, respecting struct_size for forward compat */
+#define EXTRACT_OPT(f) do {								\
+	if (opts && opts->struct_size >=							\
+	    offsetof(bwipp_load_init_opts_t, f) + sizeof(opts->f))			\
+		f = opts->f;								\
+} while (0)
 
 /*
  *	TODO Differentiate by OS
@@ -140,6 +148,31 @@ static const Resource *get_resource(BWIPP *ctx, const char *name) {
 	}
 
 	return NULL;
+}
+
+/* Read resource body from file on demand; returns NULL on I/O error */
+static char *load_code(BWIPP *ctx, const Resource *resource) {
+	char *code;
+
+	if (resource->code_offset < 0 || !ctx->f)
+		return NULL;
+
+	code = malloc(resource->code_len + 1);
+	if (!code)
+		return NULL;
+
+	if (fseek(ctx->f, resource->code_offset, SEEK_SET) != 0) {
+		free(code);
+		return NULL;
+	}
+
+	if (fread(code, 1, resource->code_len, ctx->f) != resource->code_len) {
+		free(code);
+		return NULL;
+	}
+
+	code[resource->code_len] = '\0';
+	return code;
 }
 
 static const char *get_resource_property(const Resource *resource, const char *key) {
@@ -286,17 +319,28 @@ BWIPP_API BWIPP *bwipp_load(void) {
 }
 
 BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
+	return bwipp_load_from_file_ex(filename, NULL);
+}
+
+BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
+					  const bwipp_load_init_opts_t *opts) {
 	BWIPP *ctx;
 	FILE *f;
+	bwipp_load_init_flags_t flags = bwipp_iDEFAULT;
 
 	ResourceList **tail;
 	Resource *resource = NULL;
 	char buf[MAX_LINE];
 	char *code = NULL;
 	size_t code_len = 0;
+	long code_start = 0;
 	bool skip;
+	bool lazy;
 
 	assert(filename);
+
+	EXTRACT_OPT(flags);
+	lazy = (flags & bwipp_iLAZY_LOAD) != 0;
 
 	ctx = malloc(sizeof(BWIPP));
 	if (!ctx)
@@ -308,15 +352,18 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 	ctx->numencoders = 0;
 	ctx->familylist = NULL;
 	ctx->numfamilies = 0;
+	ctx->f = NULL;
 	tail = &ctx->resourcelist;
 
 	f = fopen(filename, "r");
 	if (!f)
 		goto error;
 
-	code = malloc(MAX_CODE);
-	if (!code)
-		goto error;
+	if (!lazy) {
+		code = malloc(MAX_CODE);
+		if (!code)
+			goto error;
+	}
 
 	skip = true;
 	while (fgets(buf, sizeof buf, f)) {
@@ -382,9 +429,12 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 			resource->name = strdup(name);
 			if (!resource->name)
 				goto error;
+			resource->code_offset = -1;
 
-			*code = '\0';
+			if (!lazy)
+				*code = '\0';
 			code_len = 0;
+			code_start = ftell(f);
 
 			continue;
 
@@ -409,6 +459,7 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 					*p = '\0';
 				if (!add_property(resource, key, value))
 					goto error;
+				code_start = ftell(f);
 				continue;
 			}
 		}
@@ -431,6 +482,7 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 			if (!resource->reqs)
 				goto error;
 
+			code_start = ftell(f);
 			continue;
 
 		} /* REQUIRES */
@@ -460,12 +512,16 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 			if (strcmp(resource->name, name) != 0)
 				goto error;
 
-			resource->code = strdup(code);
-			if (!resource->code)
-				goto error;
+			if (lazy) {
+				resource->code = NULL;
+				resource->code_offset = code_start;
+			} else {
+				resource->code = strdup(code);
+				if (!resource->code)
+					goto error;
+				*code = '\0';
+			}
 			resource->code_len = code_len;
-
-			*code = '\0';
 			code_len = 0;
 
 			/* Add to ResourceList */
@@ -490,8 +546,12 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 
 		/* PS Code */
 		if (resource) {
-			if (!safe_append_n(code, &code_len, MAX_CODE, buf, line_len))
-				goto error;
+			if (lazy) {
+				code_len += line_len;
+			} else {
+				if (!safe_append_n(code, &code_len, MAX_CODE, buf, line_len))
+					goto error;
+			}
 		}
 	}
 
@@ -499,7 +559,10 @@ BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
 	if (resource)
 		goto error;
 
-	fclose(f);
+	if (lazy)
+		ctx->f = f;	/* Hold open for on-demand reads */
+	else
+		fclose(f);
 	free(code);
 
 	if (!build_families(ctx))
@@ -554,6 +617,11 @@ BWIPP_API void bwipp_unload(BWIPP *ctx) {
 
 	free_families(ctx->familylist);
 	ctx->familylist = NULL;
+
+	if (ctx->f) {
+		fclose(ctx->f);
+		ctx->f = NULL;
+	}
 
 	free(ctx->version);
 	free(ctx);
@@ -723,6 +791,22 @@ BWIPP_API const char **bwipp_list_family_members(BWIPP *ctx,
 	return list;
 }
 
+/* Append a resource's code to output buffer, loading from disk if lazy */
+static bool append_resource_code(BWIPP *ctx, const Resource *res,
+				 char *buf, size_t *pos, size_t capacity) {
+	if (res->code) {
+		return safe_append_n(buf, pos, capacity, res->code, res->code_len);
+	} else {
+		char *lazy_code = load_code(ctx, res);
+		bool ok;
+		if (!lazy_code)
+			return false;
+		ok = safe_append_n(buf, pos, capacity, lazy_code, res->code_len);
+		free(lazy_code);
+		return ok;
+	}
+}
+
 BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 	char *code = NULL, *reqs, *tmp, *saveptr = NULL;
 	const char *req;
@@ -754,7 +838,7 @@ BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 				req = strtok_r(NULL, " ", &saveptr);
 				continue;  /* Ignore missing requisites */
 			}
-			if (!safe_append_n(code, &code_len, MAX_CODE, res->code, res->code_len)) {
+			if (!append_resource_code(ctx, res, code, &code_len, MAX_CODE)) {
 				free(reqs);
 				goto error;
 			}
@@ -764,7 +848,7 @@ BWIPP_API char *bwipp_emit_required_resources(BWIPP *ctx, const char *name) {
 	}
 
 	/* Add code for this resource */
-	if (!safe_append_n(code, &code_len, MAX_CODE, resource->code, resource->code_len))
+	if (!append_resource_code(ctx, resource, code, &code_len, MAX_CODE))
 		goto error;
 
 	tmp = realloc(code, code_len + 1);
@@ -796,7 +880,7 @@ BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx) {
 
 	*code = '\0';
 	while (curr) {
-		if (!safe_append_n(code, &code_len, MAX_CODE, curr->entry->code, curr->entry->code_len)) {
+		if (!append_resource_code(ctx, curr->entry, code, &code_len, MAX_CODE)) {
 			free(code);
 			return NULL;
 		}

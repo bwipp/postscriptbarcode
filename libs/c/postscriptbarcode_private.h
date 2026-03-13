@@ -48,6 +48,7 @@ typedef struct PropertyList {
 typedef struct Resource {
 	char *type, *name, *reqs, *code;
 	size_t code_len;
+	long code_offset;		/* File offset for lazy loading (-1 if eager) */
 	unsigned int numprops;
 	PropertyList *props;
 	PropertyList **props_tail;

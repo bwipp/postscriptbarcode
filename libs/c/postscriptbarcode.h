@@ -64,6 +64,8 @@
 #ifndef POSTSCRIPTBARCODE_H
 #define POSTSCRIPTBARCODE_H
 
+#include <stddef.h>
+
 /* Decorator for public API functions that we export */
 #ifndef BWIPP_API
 #if defined(_WIN32)
@@ -83,6 +85,35 @@ extern "C" {
 typedef struct BWIPP BWIPP;
 
 /**
+ * @brief Initialisation flags for bwipp_load_from_file_ex().
+ */
+enum bwipp_load_init_flags {
+	bwipp_iDEFAULT    = 0,       /**< Default: load all resource bodies into memory. */
+	bwipp_iLAZY_LOAD  = 1 << 0,  /**< Defer loading of resource bodies until emit; holds file open. */
+};
+
+/**
+ * @brief Equivalent to the `enum bwipp_load_init_flags` type.
+ */
+typedef enum bwipp_load_init_flags bwipp_load_init_flags_t;
+
+/**
+ * @brief Initialisation options for bwipp_load_from_file_ex().
+ *
+ * Callers must set `struct_size` to `sizeof(bwipp_load_init_opts_t)` to enable
+ * forward-compatible option extraction.
+ */
+struct bwipp_load_init_opts {
+	size_t struct_size;              /**< Must be sizeof(bwipp_load_init_opts_t). */
+	bwipp_load_init_flags_t flags;   /**< Bitwise OR of bwipp_load_init_flags values. */
+};
+
+/**
+ * @brief Equivalent to the `struct bwipp_load_init_opts` type.
+ */
+typedef struct bwipp_load_init_opts bwipp_load_init_opts_t;
+
+/**
  * @brief Load the BWIPP resources by searching for barcode.ps in default
  *        locations.
  * @return ::BWIPP context on success, else NULL.
@@ -92,10 +123,32 @@ BWIPP_API BWIPP *bwipp_load(void);
 /**
  * @brief Load the BWIPP resources from a given resource file.
  *
+ * All resource bodies are loaded into memory. Equivalent to calling
+ * bwipp_load_from_file_ex() with NULL opts.
+ *
  * @param [in] filename Path to the barcode.ps resources file.
  * @return ::BWIPP context on success, else NULL.
  */
 BWIPP_API BWIPP *bwipp_load_from_file(const char *filename);
+
+/**
+ * @brief Load the BWIPP resources from a given resource file, with options.
+ *
+ * When `opts` is NULL, behaves identically to bwipp_load_from_file().
+ * When `bwipp_iLAZY_LOAD` is set in opts->flags, resource bodies are not
+ * read into memory at load time. Instead, the file handle is held open and
+ * bodies are read on demand by the emit functions. This trades disk I/O
+ * for reduced memory usage.
+ *
+ * @param [in] filename Path to the barcode.ps resources file.
+ * @param [in] opts Initialisation options, or NULL for defaults.
+ * @return ::BWIPP context on success, else NULL.
+ *
+ * @note If opts is provided, `opts->struct_size` must be initialised to
+ * `sizeof(bwipp_load_init_opts_t)`.
+ */
+BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
+                                          const bwipp_load_init_opts_t *opts);
 
 /**
  * @brief Unload the BWIPP resources.
