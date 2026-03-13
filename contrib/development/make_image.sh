@@ -18,6 +18,7 @@
 #          make_image.sh --scale=2 png qrcode 'test' > qrcode.png
 #          make_image.sh --crop --rotate=90 pdf datamatrix 'test' > datamatrix.pdf
 #          make_image.sh svg qrcode 'test' > qrcode.svg
+#          make_image.sh pnm qrcode 'test' > qrcode.pnm
 #
 
 set -e
@@ -74,8 +75,8 @@ if [ -z "$FORMAT" ] || [ -z "$ENCODER" ] || [ -z "$DATA" ]; then
 	exit 1
 fi
 
-if [ "$FORMAT" != "png" ] && [ "$FORMAT" != "eps" ] && [ "$FORMAT" != "pdf" ] && [ "$FORMAT" != "svg" ]; then
-	echo "Error: format must be 'png', 'eps', 'pdf', or 'svg'" >&2
+if [ "$FORMAT" != "png" ] && [ "$FORMAT" != "pnm" ] && [ "$FORMAT" != "eps" ] && [ "$FORMAT" != "pdf" ] && [ "$FORMAT" != "svg" ]; then
+	echo "Error: format must be 'png', 'pnm', 'eps', 'pdf', or 'svg'" >&2
 	exit 1
 fi
 
@@ -124,6 +125,16 @@ HEIGHT=$((Y2 - Y1))
 
 if [ "$FORMAT" = "png" ]; then
 	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=png16m \
+		-dGraphicsAlphaBits=1 -dTextAlphaBits=4 \
+		-g${WIDTH}x${HEIGHT} \
+		-sOutputFile=- \
+		-c "$INIT" \
+		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
+		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+fi
+
+if [ "$FORMAT" = "pnm" ]; then
+	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=pnmraw \
 		-dGraphicsAlphaBits=1 -dTextAlphaBits=4 \
 		-g${WIDTH}x${HEIGHT} \
 		-sOutputFile=- \
