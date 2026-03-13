@@ -431,7 +431,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 				goto error;
 			resource->code_offset = -1;
 
-			if (!lazy)
+			if (code)
 				*code = '\0';
 			code_len = 0;
 			code_start = ftell(f);
