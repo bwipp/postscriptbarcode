@@ -1,0 +1,169 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/setuphooks dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Each test uses unique encoder and hook names to avoid cross-test
+% interference via global_ctx. Names follow the pattern:
+%   /_test.<purpose>.enc   - fake encoder name
+%   /_test.<purpose>.hook  - hook name (suffixed A/B when multiple)
+%
+
+
+%
+% Default hooks are no-ops when no hooks dict in global_ctx
+%
+{
+    10 dict begin
+    /_test.default.enc [/_test.default.hookA /_test.default.hookB] setuphooks
+    (phase) _test.default.enc._test.default.hookA
+    (phase) _test.default.enc._test.default.hookB
+    true
+    end
+} true isEqual
+
+
+%
+% Generic hook procedure is called
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks << /_test.generic.hook { pop pop /_test.generic.hook_ran } >>
+>> def
+
+{
+    10 dict begin
+    /_test.generic.enc [/_test.generic.hook] setuphooks
+    (phase) _test.generic.enc._test.generic.hook
+    end
+} /_test.generic.hook_ran isEqual
+
+
+%
+% Encoder-specific hook takes priority over generic
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks <<
+        /_test.priority.hook { pop pop /_test.priority.hook_generic }
+        /_test.priority.enc._test.priority.hook { pop pop /_test.priority.hook_specific }
+    >>
+>> def
+
+{
+    10 dict begin
+    /_test.priority.enc [/_test.priority.hook] setuphooks
+    (phase) _test.priority.enc._test.priority.hook
+    end
+} /_test.priority.hook_specific isEqual
+
+
+%
+% Falls back to generic when no encoder-specific hook
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks <<
+        /_test.fallback.hook { pop pop /_test.fallback.hook_generic }
+        /_test.fallback.enc._test.fallback.other { pop pop /_test.fallback.hook_wrong }
+    >>
+>> def
+
+{
+    10 dict begin
+    /_test.fallback.enc [/_test.fallback.hook] setuphooks
+    (phase) _test.fallback.enc._test.fallback.hook
+    end
+} /_test.fallback.hook_generic isEqual
+
+
+%
+% Falls back to no-op when hook not in hooks dict
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks << /_test.nomatch.unrelated { pop pop /_test.nomatch.hook_wrong } >>
+>> def
+
+{
+    10 dict begin
+    /_test.nomatch.enc [/_test.nomatch.hook] setuphooks
+    (phase) _test.nomatch.enc._test.nomatch.hook
+    true
+    end
+} true isEqual
+
+
+%
+% Without enabledebug, hooks are default no-ops
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /hooks << /_test.nodebug.hook { pop pop /_test.nodebug.hook_wrong } >>
+>> def
+
+{
+    10 dict begin
+    /_test.nodebug.enc [/_test.nodebug.hook] setuphooks
+    (phase) _test.nodebug.enc._test.nodebug.hook
+    true
+    end
+} true isEqual
+
+
+%
+% Hook receives phase string and encoder name
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks << /_test.phase.hook { pop } >>
+>> def
+
+{
+    10 dict begin
+    /_test.phase.enc [/_test.phase.hook] setuphooks
+    (myphase) _test.phase.enc._test.phase.hook
+    end
+} (myphase) isEqual
+
+
+%
+% Hook receives encoder name
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks << /_test.name.hook { exch pop } >>
+>> def
+
+{
+    10 dict begin
+    /_test.name.enc [/_test.name.hook] setuphooks
+    (phase) _test.name.enc._test.name.hook
+    end
+} /_test.name.enc isEqual
+
+
+%
+% Multiple hooks registered independently
+%
+/uk.co.terryburton.bwipp.global_ctx <<
+    /enabledebug true
+    /hooks <<
+        /_test.multi.hookA { pop pop /_test.multi.hookA_ran }
+        /_test.multi.hookB { pop pop /_test.multi.hookB_ran }
+    >>
+>> def
+
+{
+    10 dict begin
+    /_test.multi.enc [/_test.multi.hookA /_test.multi.hookB] setuphooks
+    (p) _test.multi.enc._test.multi.hookA
+    (p) _test.multi.enc._test.multi.hookB
+    2 array astore
+    end
+} [/_test.multi.hookA_ran /_test.multi.hookB_ran] isEqual
