@@ -1660,20 +1660,23 @@ static void test_list_family_members_sorted(void) {
 	const char **list;
 	unsigned int count;
 
-	/* Members should be returned in sorted order */
+	/* Members should be sorted by DESC, not encoder name */
 	write_mock_ps(MOCK_PS,
 		"%!PS\n"
 		"% Barcode Writer in Pure PostScript - Version 2099-01-01\n"
 		"% --BEGIN TEMPLATE--\n"
 		"% --BEGIN ENCODER zzz--\n"
+		"% --DESC: Alpha\n"
 		"% --FMLY: Grp\n"
 		"% code\n"
 		"% --END ENCODER zzz--\n"
 		"% --BEGIN ENCODER aaa--\n"
+		"% --DESC: Charlie\n"
 		"% --FMLY: Grp\n"
 		"% code\n"
 		"% --END ENCODER aaa--\n"
 		"% --BEGIN ENCODER mmm--\n"
+		"% --DESC: Bravo\n"
 		"% --FMLY: Grp\n"
 		"% code\n"
 		"% --END ENCODER mmm--\n"
@@ -1684,9 +1687,10 @@ static void test_list_family_members_sorted(void) {
 	list = bwipp_list_family_members(ctx, "Grp", &count);
 	TEST_ASSERT(list != NULL);
 	TEST_CHECK(count == 3);
-	TEST_CHECK(strcmp(list[0], "aaa") == 0);
+	/* Sorted by DESC: Alpha(zzz), Bravo(mmm), Charlie(aaa) */
+	TEST_CHECK(strcmp(list[0], "zzz") == 0);
 	TEST_CHECK(strcmp(list[1], "mmm") == 0);
-	TEST_CHECK(strcmp(list[2], "zzz") == 0);
+	TEST_CHECK(strcmp(list[2], "aaa") == 0);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);

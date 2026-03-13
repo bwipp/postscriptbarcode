@@ -142,6 +142,15 @@ static const Resource *get_resource(BWIPP *ctx, const char *name) {
 	return NULL;
 }
 
+static const char *get_resource_property(const Resource *resource, const char *key) {
+	const PropertyList *curr;
+	for (curr = resource->props; curr; curr = curr->next) {
+		if (strcmp(curr->entry->key, key) == 0)
+			return curr->entry->value;
+	}
+	return NULL;
+}
+
 static bool add_property(Resource *resource, const char *key, const char *value) {
 	Property *prop;
 	PropertyList *node;
@@ -616,7 +625,6 @@ BWIPP_API const char **bwipp_list_properties(BWIPP *ctx, const char *name,
 BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name,
 					 const char *key) {
 	const Resource *resource;
-	const PropertyList *curr;
 
 	assert(ctx);
 	assert(name);
@@ -626,12 +634,7 @@ BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name,
 	if (!resource)
 		return NULL;
 
-	for (curr = resource->props; curr; curr = curr->next) {
-		if (strcmp(curr->entry->key, key) == 0)
-			return curr->entry->value;
-	}
-
-	return NULL;
+	return get_resource_property(resource, key);
 }
 
 BWIPP_API const char **bwipp_list_families(BWIPP *ctx, unsigned int *count) {
@@ -657,12 +660,26 @@ BWIPP_API const char **bwipp_list_families(BWIPP *ctx, unsigned int *count) {
 	return list;
 }
 
+typedef struct {
+	const char *name;
+	const char *desc;
+} NameDesc;
+
+static int cmp_name_desc(const void *a, const void *b) {
+	const NameDesc *na = (const NameDesc *)a;
+	const NameDesc *nb = (const NameDesc *)b;
+	const char *da = na->desc ? na->desc : na->name;
+	const char *db = nb->desc ? nb->desc : nb->name;
+	return strcmp(da, db);
+}
+
 BWIPP_API const char **bwipp_list_family_members(BWIPP *ctx,
 						 const char *family,
 						 unsigned int *count) {
 	FamilyList *curr;
 	const char **list;
-	unsigned int i;
+	NameDesc *pairs;
+	unsigned int i, n;
 
 	assert(ctx);
 	assert(family);
@@ -674,18 +691,34 @@ BWIPP_API const char **bwipp_list_family_members(BWIPP *ctx,
 	if (!curr)
 		return NULL;
 
-	list = malloc((curr->entry->count + 1) * sizeof(const char *));
-	if (!list)
+	n = curr->entry->count;
+
+	pairs = malloc(n * sizeof(NameDesc));
+	if (!pairs)
 		return NULL;
 
-	for (i = 0; i < curr->entry->count; i++)
-		list[i] = curr->entry->members[i];
-	list[i] = NULL;
+	for (i = 0; i < n; i++) {
+		const Resource *res = get_resource(ctx, curr->entry->members[i]);
+		pairs[i].name = curr->entry->members[i];
+		pairs[i].desc = res ? get_resource_property(res, "DESC") : NULL;
+	}
 
-	qsort(list, curr->entry->count, sizeof(const char *), cmp_str);
+	qsort(pairs, n, sizeof(NameDesc), cmp_name_desc);
+
+	list = malloc((n + 1) * sizeof(const char *));
+	if (!list) {
+		free(pairs);
+		return NULL;
+	}
+
+	for (i = 0; i < n; i++)
+		list[i] = pairs[i].name;
+	list[n] = NULL;
+
+	free(pairs);
 
 	if (count)
-		*count = curr->entry->count;
+		*count = n;
 
 	return list;
 }

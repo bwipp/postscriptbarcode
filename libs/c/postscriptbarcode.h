@@ -65,10 +65,12 @@
 #define POSTSCRIPTBARCODE_H
 
 /* Decorator for public API functions that we export */
+#ifndef BWIPP_API
 #if defined(_WIN32)
 #define BWIPP_API __declspec(dllexport)
 #else
 #define BWIPP_API __attribute__((visibility("default")))
+#endif
 #endif
 
 #ifdef __cplusplus
