@@ -9,6 +9,8 @@ use warnings;
 use File::Basename;
 use Cwd qw(abs_path getcwd);
 use IPC::Cmd qw(can_run);
+use lib 'build';
+use BWIPP qw(read_version parse_source);
 
 $ENV{PATH} = '/usr/local/bin:/usr/bin';
 
@@ -31,31 +33,18 @@ END {
 (my $resdir) = $outfile =~ m#^(build/[^/]+)/#;
 my $packager = $resdir eq 'build/packaged_resource' ? 'make_packaged_resource.ps' : 'make_resource.ps';
 
-my $fh;
+my $version = read_version();
 
-open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
-my $version = <$fh>;
-close $fh;
-chomp $version;
-($version) = $version =~ m/(.*)/;  # Untaint
+my $fh;
 
 open($fh, '<', $infile) || die "File not found: $infile";
 my $template = join('', <$fh>);
 close $fh;
 
-$template =~ /
-        ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$
-        (.*?)
-        (^[^%].*?)
-        ^%\ --END\ \1\ \2--$
-/msgx;
-
-my $resource = $2;
-my $meta = $3;
-my $body = $4;
-
-(my $reqs) = $meta =~ /^% --REQUIRES (.*)--$/mg;
-$reqs = '' unless defined $reqs;
+my $parsed = parse_source($template);
+my $resource = $parsed->{name};
+my $body = $parsed->{body};
+my $reqs = $parsed->{requires};
 
 my $neededresources = '';
 foreach (split /\s+/, $reqs) {

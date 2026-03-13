@@ -5,6 +5,8 @@
 use strict;
 use warnings;
 use File::Basename;
+use lib 'build';
+use BWIPP qw(read_version read_upr read_head parse_source extract_resource_body);
 
 if ($#ARGV < 1) {
     die <<EOF
@@ -27,52 +29,31 @@ if (!@encoders) {
     push @encoders, $encoder;
 }
 
-my $fh;
+my $version = read_version();
+my ($upr_entries, $upr_lookup) = read_upr();
 
-open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
-my $version = <$fh>;
-close $fh;
-chomp $version;
-
-open($fh, '<', 'src/ps.head') || die 'Unable to open ps.head';
-my $head = join('', <$fh>);
-close $fh;
-$head =~ s/XXXX-XX-XX/$version/;
-
-open($fh, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
-my $upr = join('', <$fh>);
-close $fh;
-
-open($fh, '>', $outfile) || die "Failed to write $outfile";
-print $fh $head;
+open(my $fh, '>', $outfile) || die "Failed to write $outfile";
+print $fh read_head($version);
 
 my %seen;
 for my $encoder (@encoders) {
     my $srcfile = "src/$encoder.ps.src";
-    my $src_fh;
-    open($src_fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
+    open(my $src_fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
     my $src = join('', <$src_fh>);
     close($src_fh);
 
-    ($_, $_, my $meta, $_) = $src =~ /
-        ^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ($encoder)--$
-        (.*?)
-        (^[^%].*?)
-        ^%\ --END\ \1\ \2--$
-    /msgx or die "Encoder unknown: $encoder";
-
-    (my $reqs) = $meta =~ /^% --REQUIRES (.*)--$/mg;
-    $reqs = '' unless defined $reqs;
+    my $parsed = parse_source($src);
+    die "Encoder unknown: $encoder" unless $parsed->{name} eq $encoder;
 
     # Build set of resources to include: dependencies + encoder itself
     my %reqs_set;
-    $reqs_set{$_} = 1 foreach split(' ', $reqs);
+    $reqs_set{$_} = 1 foreach split(' ', $parsed->{requires});
     $reqs_set{$encoder} = 1;
 
     # Output resources in UPR order (matching monolithic behavior)
     my @resources;
-    while ($upr =~ /^(.*)=(.*)$/mg) {
-        my $name = $1;
+    for my $entry (@$upr_entries) {
+        my $name = $entry->[0];
         $name = 'preamble' if $name eq 'uk.co.terryburton.bwipp';
         push @resources, $name if $reqs_set{$name};
     }
@@ -82,26 +63,17 @@ for my $encoder (@encoders) {
 
         # Map resource name to file path via UPR
         my $lookup = $resource eq 'preamble' ? 'uk.co.terryburton.bwipp' : $resource;
-        (my $relpath) = $upr =~ /^$lookup=(.*)$/m;
+        my $relpath = $upr_lookup->{$lookup};
         die "Resource not found in UPR: $resource" unless $relpath;
 
         my $respath = "$resourcedir/$relpath";
         ($respath) = $respath =~ /(.*)/;  # Untaint
 
-        my $res_fh;
-        open($res_fh, '<', $respath) || die "Unable to open resource file: $respath";
+        open(my $res_fh, '<', $respath) || die "Unable to open resource file: $respath";
         my $res = join('', <$res_fh>);
         close($res_fh);
 
-        # Extract body from resource file (same pattern as make_monolithic.pl)
-        $res =~ /
-            (^%%BeginResource:\ [\w\.]+\ [\w\.-]+?\ .*?$)
-            .*?
-            (^%%BeginData:.*?$
-            .*?
-            ^%%EndResource$)
-        /msgx or die "Failed to parse resource: $respath";
-        my $body = "$1\n$2\n";
+        my $body = extract_resource_body($res);
 
         print $fh "$body\n";
     }

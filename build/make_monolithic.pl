@@ -6,61 +6,40 @@
 
 use strict;
 use warnings;
+use lib 'build';
+use BWIPP qw(read_version read_upr read_head parse_source extract_resource_body);
 
 my $resourcedir = $ARGV[0] || '';
 
-my $fh;
+my $version = read_version();
+my ($upr_entries) = read_upr();
 
-open($fh, '<', 'src/uk.co.terryburton.bwipp.upr') || die 'Unable to open UPR file';
-my $upr = join('', <$fh>);
-close $fh;
-
-open($fh, '<', 'CHANGES') || die 'Unable to open CHANGES';
-my $version = <$fh>;
-close $fh;
-chomp $version;
-
-open($fh, '<', 'src/ps.head') || die 'Unable to open ps.head';
-my $head = join('', <$fh>);
-close $fh;
-$head =~ s/XXXX-XX-XX/$version/;
-print $head;
+print read_head($version);
 
 print "% --BEGIN TEMPLATE--\n\n";
 
-while ($upr =~ /^(.*)=(.*)$/mg) {
+for my $entry (@$upr_entries) {
+    my ($name, $relpath) = @$entry;
 
-    my $srcfile = "src/$1.ps.src";
-    $srcfile = 'src/preamble.ps.src' if $1 eq 'uk.co.terryburton.bwipp';
-    my $resfile = "$resourcedir/$2";
+    my $srcfile = "src/$name.ps.src";
+    $srcfile = 'src/preamble.ps.src' if $name eq 'uk.co.terryburton.bwipp';
+    my $resfile = "$resourcedir/$relpath";
 
-    open($fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
+    open(my $fh, '<', $srcfile) || die "Unable to open source file: $srcfile";
     my $src = join('', <$fh>);
     close $fh;
 
-    (my $begin, $_, $_, my $meta, my $end) = $src =~ /
-        (^%\ --BEGIN\ (ENCODER|RENDERER|RESOURCE)\ ([\w-]+?)--$)
-        (.*?)
-        ^[^%].*?
-        (^%\ --END\ \2\ \3--$)
-    /msgx;
+    my $parsed = parse_source($src);
 
     open($fh, '<', $resfile) || die "Unable to open resource file: $resfile";
     my $res = join('', <$fh>);
     close $fh;
-    $res =~ /
-        (^%%BeginResource:\ [\w\.]+\ [\w\.-]+?\ .*?$)
-        .*
-        (^%%BeginData:.*?$
-        .*
-        ^%%EndResource$)
-    /msgx;
-    my $body = "$1\n$2\n";
+    my $body = extract_resource_body($res);
 
-    print $begin;
-    print $meta;
+    print $parsed->{begin_line};
+    print $parsed->{meta};
     print $body;
-    print "$end\n\n";
+    print "$parsed->{end_line}\n\n";
 
 }
 
