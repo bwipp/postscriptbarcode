@@ -1121,6 +1121,79 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 - Update GitHub project tags
 
 
+## Packaging
+
+### OBS (Open Build Service)
+
+Distribution packages are built on the
+[OBS](https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode)
+for 19 targets across DEB, RPM, and Arch-based distributions.
+
+**How it works:**
+
+1. The `_service` file (managed in OBS, backup at
+   `packaging-examples/open-build-service/_service.backup`) tells OBS to:
+   - Fetch the source tarball from the upstream GitHub repository via `tar_scm`
+   - Extract the RPM spec, Arch PKGBUILD, and Debian packaging files via
+     `extract_file`
+   - Set the version via `set_version`
+2. OBS builds packages using each distro's native toolchain
+   (`dpkg-buildpackage`, `rpmbuild`, `makepkg`)
+
+**Packaging files:**
+
+- `debian/`                                    - Debian packaging (must be at
+  repo root for `dpkg-buildpackage`)
+- `packaging-examples/rpm-based/postscriptbarcode.spec` - RPM spec file
+- `packaging-examples/arch-linux/PKGBUILD`     - Arch PKGBUILD
+- `packaging-examples/open-build-service/`     - OBS-specific files
+  (`_service.backup`, `.dsc`, `debtransform`)
+
+**Version handling:**
+
+The RPM spec and Arch PKGBUILD have empty version fields that OBS's
+`set_version` service fills at build time. The `CHANGES` file line 1 is
+`XXXX-XX-XX` between releases; build scripts (`setup.py`, `Makefile.PL`,
+`libs/c/Makefile`, `libs/bindings/Makefile`) skip this placeholder and use the
+first line starting with a digit.
+
+**Triggering a build:**
+
+```bash
+osc service remoterun home:terryburton:postscriptbarcode libpostscriptbarcode
+osc results home:terryburton:postscriptbarcode libpostscriptbarcode
+```
+
+### Package Install Tests
+
+Post-install smoke tests verify that packages work after installation. Shared
+test scripts in `packaging-examples/install_tests/` run across all distros.
+
+**Test scripts:**
+
+- `run_all.sh`          - Top-level runner; exits non-zero on any skip or failure
+- `test_postscript.sh`  - Loads `barcode.ps` in GhostScript and generates a barcode
+- `test_clib.sh`        - Tests C shared library via python3 ctypes
+- `test_python.sh`      - Tests Python binding via installed example
+- `test_perl.sh`        - Tests Perl binding via installed example
+- `test_ruby.sh`        - Tests Ruby binding via installed example
+- `test_java.sh`        - Tests Java binding via jshell or java
+
+**Integration layers:**
+
+- `debian/tests/`       - DEP-8 autopkgtest; triggered by OBS DEB builds and
+  Debian's britney2 on dependency updates
+- `.github/workflows/package-install-tests.yml` - GitHub Actions; builds
+  packages for DEB, RPM, and Arch, installs them in clean containers, and runs
+  the smoke tests
+
+**Running locally after a manual package install:**
+
+```bash
+packaging-examples/install_tests/run_all.sh
+```
+
+
 ## Release Process
 
 1. Update CHANGES date: `sed -i '1s/XXXX-XX-XX/YYYY-MM-DD/' CHANGES` and commit
