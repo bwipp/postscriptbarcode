@@ -34,7 +34,25 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+ *  Don't flag warnings in third-party test harness code.
+ */
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wsign-conversion"
+#elif defined(_MSC_VER)
+#  include <CodeAnalysis/warnings.h>
+#  pragma warning(push)
+#  pragma warning(disable: ALL_CODE_ANALYSIS_WARNINGS)
+#endif
 #include "acutest.h"
+#if defined(__clang__)
+#elif defined(__GNUC__)
+#  pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
 #include "postscriptbarcode.h"
 
 #define MOCK_PS "test_barcode.ps"
