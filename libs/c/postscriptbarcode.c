@@ -74,7 +74,7 @@ struct BWIPP {
  */
 static const char *default_filename = "/usr/share/postscriptbarcode/barcode.ps";
 
-static const char hex_lut[512] =
+static const char hex_lut[] =
 	"000102030405060708090A0B0C0D0E0F"
 	"101112131415161718191A1B1C1D1E1F"
 	"202122232425262728292A2B2C2D2E2F"
@@ -379,7 +379,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 				skip = false;
 			if (!ctx->version &&
 					strncmp(buf, "% Barcode Writer in Pure PostScript", 35) == 0) {
-				const char *version;
+				char *version;
 				char *p;
 				p = strrchr(buf, ' ');
 				if (!p)
@@ -401,7 +401,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --BEGIN {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --BEGIN ", 10) == 0) {
 
-			const char *type, *name;
+			char *type, *name;
 			char *p;
 
 			if (resource)
@@ -442,7 +442,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 
 		/* % --KEY: VALUE (metadata comments) */
 		if (resource && strncmp(buf, "% --", 4) == 0 && strchr(buf + 4, ':')) {
-			const char *key;
+			char *key;
 			char *value, *p;
 
 			key = buf + 4;
@@ -467,7 +467,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --REQUIRES {REQS}-- */
 		if (strncmp(buf, "% --REQUIRES ", 13) == 0) {
 
-			const char *reqs;
+			char *reqs;
 			char *p;
 
 			if (!resource || resource->reqs)
@@ -490,7 +490,7 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --END {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --END ", 8) == 0) {
 
-			const char *type, *name;
+			char *type, *name;
 			char *p;
 
 			if (!resource)
