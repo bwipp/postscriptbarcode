@@ -1,0 +1,335 @@
+%!PS
+%%Creator: Matthew Newton
+%%EndComments
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LTO Tape Label Generator Using PostScript Forms
+%
+% Generates sheets of LTO cartridge labels with Code 39
+% barcodes. Static label elements are cached as PostScript
+% forms for efficient RIPing. Variable barcode data is read
+% from the end of the file, one code per line.
+%
+% Requires BWIPP resources to be available; either use -I to
+% provide a resource directory, or uncomment the following to
+% load the monolithic file:
+% (barcode.ps) run
+%
+% gs -dNOSAFER -I build/resource/Resource -f ltotapelabel.ps
+%
+% Or to print directly:
+%
+% cat barcode.ps ltotapelabel.ps | lpr -o raw
+%
+% To use a separate data file:
+%
+% gs -dNOSAFER -I build/resource/Resource -f ltotapelabel.ps data.txt
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Convert mm to points
+/mm { 72 mul 25.4 div } bind def
+
+% Label dimensions
+/label.topwid 67 mm def       % width of top barcode
+/label.botwid 37 mm def       % width of bottom barcode
+/label.vgap 1 mm def          % vertical gap between barcodes
+/label.tophi 7 mm def         % height of top barcode
+/label.bothi 7 mm def         % height of bottom barcode
+/label.bottom 3 mm def        % bottom margin
+/label.left 6 mm def          % left margin
+/label.width 78 mm def        % label width
+/label.height 16.5 mm def     % label height
+
+% Text layout
+/label.message (This edge of label toward hub of tape) def
+/label.msgptsize 5 def
+/label.msgypos 2.5 def
+/label.textsize 9 def
+/label.letterwidth 10 def
+/label.rectpad 2 def
+
+% LTO generation colour codes for each digit
+/label.digitcolours <<
+    /0 [ 1 0 0 ]
+    /1 [ 1 1 0 ]
+    /2 [ 0.5 1 0 ]
+    /3 [ 0.4 0.7 0.7 ]
+    /4 [ 0.5 0.5 0.5 ]
+    /5 [ 1 0.5 0 ]
+    /6 [ 1 0.5 1 ]
+    /7 [ 0 0.5 0 ]
+    /8 [ 1 0.75 0 ]
+    /9 [ 0.5 0 0.7 ]
+>> readonly def
+
+% Border colour for text region
+/label.bordercolour [ 0.0 0.8 1 ] readonly def
+
+% Page layout
+/page.gridx         3      def
+/page.gridy        11      def
+/page.xstep        78   mm def
+/page.ystep        16.5 mm def
+/page.leftborder   36      def     % 0.5 in
+/page.bottomborder 36      def     % 0.5 in
+/page.labels //page.gridx //page.gridy mul def
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper procedures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Draw a coloured rectangle behind the current text position
+/drawcellbg {    % [r g b] drawcellbg -
+    gsave
+        aload pop setrgbcolor
+        currentpoint //label.bothi 2 div sub
+        exch //label.letterwidth sub //label.rectpad add exch
+        //label.letterwidth //label.bothi rectfill
+    grestore
+} bind def
+
+% Draw a single character rotated 90 degrees, advance by letterwidth
+/drawchar {    % (char) drawchar -
+    gsave
+        90 rotate
+        dup stringwidth pop 2 div neg 0 rmoveto
+        show
+    grestore
+    //label.letterwidth 0 rmoveto
+} bind def
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Form definitions — static elements cached by RIP
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Static parts of a single label: outline and message
+/LabelForm <<
+    /FormType 1
+    /BBox [ 0 0 //label.width cvi //label.height cvi 1 add ]
+    /Matrix matrix
+    /PaintProc {
+        pop
+
+        % Label outline
+        gsave
+            0.2 setlinewidth 0.6 setgray
+            0 0 //label.width //label.height rectstroke
+        grestore
+
+        % Centred message along bottom
+        /Helvetica //label.msgptsize selectfont
+        //label.width 2 div //label.message stringwidth pop 2 div sub
+        //label.msgypos moveto
+        //label.message show
+
+    } bind
+>> def
+
+% Full page of label outlines in a grid
+/PageForm <<
+    /FormType 1
+    /BBox [ 0 0 841 595 ]
+    /Matrix matrix
+    /PaintProc {
+        pop
+
+        0 1 //page.gridx 1 sub {
+            /col exch def
+            0 1 //page.gridy 1 sub {
+                /row exch def
+                gsave
+                    col //page.xstep mul //page.leftborder   add
+                    row //page.ystep mul //page.bottomborder add
+                    translate
+                    LabelForm execform
+                grestore
+            } for
+        } for
+
+    } bind
+>> def
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Variable data overlay — barcodes and coloured text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/DrawLabelData {    % code DrawLabelData -
+
+    5 dict begin
+    /code exch def
+
+    % Code 39 natural width in points: (len+3) chars x 15 modules + (len+2) gaps + final bar
+    /barwid code length 16 mul 48 add def
+
+    % Number of characters before the suffix
+    /nchars code length 2 sub def
+
+    0 0 //label.width //label.height rectclip
+
+    % Top barcode
+    gsave
+        //label.left
+        //label.bottom //label.bothi add //label.vgap add
+        moveto
+        //label.topwid barwid div //label.tophi 72 div scale
+        code (includecheck borderleft=0 borderright=0)
+        /code39 /uk.co.terryburton.bwipp findresource exec
+    grestore
+
+    % Bottom barcode (mirrored)
+    gsave
+        //label.left //label.botwid add
+        //label.bottom
+        moveto
+        //label.botwid barwid div neg //label.bothi 72 div scale
+        code (includecheck borderleft=0 borderright=0)
+        /code39 /uk.co.terryburton.bwipp findresource exec
+    grestore
+
+    % Coloured vertical text
+    gsave
+        /Helvetica-Bold //label.textsize selectfont
+
+        % Text box position: right-aligned to top barcode
+        /textx //label.left //label.topwid add
+            nchars //label.letterwidth mul sub 3 sub def
+        /texty //label.bothi 2 div //label.bottom add def
+
+        % Rectangle covering all characters
+        /boxx textx //label.letterwidth sub //label.rectpad add def
+        /boxy texty //label.bothi 2 div sub def
+        /boxw code length 1 sub //label.letterwidth mul def
+        /boxh //label.bothi def
+
+        % Background fill
+        gsave
+            //label.bordercolour aload pop setrgbcolor
+            boxx boxy nchars //label.letterwidth mul boxh rectfill
+        grestore
+
+        % Draw each character before the suffix with digit colour
+        textx texty moveto
+        0 1 nchars 1 sub {
+            code exch 1 getinterval
+            dup cvn //label.digitcolours exch known {
+                dup cvn //label.digitcolours exch get //drawcellbg exec
+            } if
+            //drawchar exec
+        } for
+
+        % Suffix characters
+        code nchars 2 getinterval
+        gsave
+            90 rotate
+            dup stringwidth pop 2 div neg 0 rmoveto
+            show
+        grestore
+
+        % Border outline
+        //label.bordercolour aload pop setrgbcolor
+        1 setlinewidth
+        boxx boxy boxw boxh rectstroke
+
+    grestore
+
+    end
+
+} bind def
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Main: read data from end of file, generate label sheets
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<< /PageSize [ 595 841 ] /ImagingBBox null >> setpagedevice
+
+/__PROCESS_LABELS__ {
+
+    /buf 50 string def
+    /labelnum 0 def
+    /EOD false def
+
+    % Landscape orientation
+    0 841 translate -90 rotate
+
+    currentfile cvlit buf readline {
+        {    % loop: process each line
+            /code exch def
+
+            % Start of page: render cached static template
+            labelnum //page.labels mod 0 eq {
+                PageForm execform
+            } if
+
+            % Position for this label within the grid
+            gsave
+                labelnum //page.labels mod //page.gridy idiv
+                //page.xstep mul //page.leftborder add
+                labelnum //page.labels mod //page.gridy mod
+                //page.ystep mul //page.bottomborder add
+                translate
+
+                code DrawLabelData
+            grestore
+
+            /labelnum labelnum 1 add def
+
+            % Read next line; detect end of data
+            currentfile cvlit buf readline not 1 index () eq or {
+                /EOD true def
+            } if
+
+            % End of page
+            labelnum //page.labels mod 0 eq EOD or {
+                showpage
+                EOD not {
+                    0 841 translate -90 rotate
+                } if
+            } if
+
+            EOD { pop exit } if
+
+        } loop
+    } if
+
+} bind def
+
+% Every line after __PROCESS_LABELS__ until a blank line is a label code:
+
+__PROCESS_LABELS__
+MCN001L4
+MCN002L4
+MCN003L4
+MCN004L4
+MCN005L4
+MCN006L4
+MCN007L4
+MCN008L4
+MCN009L4
+MCN010L4
+MCN011L4
+MCN012L4
+MCN013L4
+MCN014L4
+MCN015L4
+MCN016L4
+MCN017L4
+MCN018L4
+MCN019L4
+MCN020L4
+MCN021L4
+MCN022L4
+MCN023L4
+MCN024L4
+MCN025L4
+MCN026L4
+MCN027L4
+MCN028L4
+MCN029L4
+MCN030L4
+MCN031L4
+MCN032L4
+MCN033L4
