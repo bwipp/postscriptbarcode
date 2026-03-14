@@ -39,6 +39,7 @@ build() {
   popd
 
   pushd libs/bindings/python
+  python setup.py build_ext --inplace
   python setup.py build
   popd
 
@@ -120,8 +121,7 @@ package_java-postscriptbarcode() {
   pushd libs/bindings/java
   mkdir -p "${pkgdir}/usr/share/java"
   cp -p *.jar "${pkgdir}/usr/share/java/"
-  mkdir -p "${pkgdir}/usr/lib/java-postscriptbarcode"
-  cp -p *.so "${pkgdir}/usr/lib/java-postscriptbarcode/"
+  install -Dm755 libpostscriptbarcode_jni.so "${pkgdir}/usr/lib/libpostscriptbarcode_jni.so"
   popd
   mkdir -p "${pkgdir}/usr/share/licenses/${pkgname}/"
   cp LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/"

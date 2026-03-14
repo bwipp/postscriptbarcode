@@ -1,0 +1,262 @@
+---
+name: Package install tests
+
+on:
+  push:
+    branches:
+      - "*"
+    paths:
+      - "packaging-examples/**"
+      - "debian/**"
+      - ".github/workflows/package-install-tests.yml"
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "packaging-examples/**"
+      - "debian/**"
+      - ".github/workflows/package-install-tests.yml"
+
+permissions:
+  contents: read
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+
+  upload-tests:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            packaging-examples/install_tests
+            libs/bindings/python/example.py
+            libs/bindings/perl/example.pl
+            libs/bindings/ruby/example.rb
+            libs/bindings/java/Example.java
+
+      - name: Collect test assets
+        run: |
+          cp libs/bindings/python/example.py \
+             packaging-examples/install_tests/example.py
+          cp libs/bindings/perl/example.pl \
+             packaging-examples/install_tests/example.pl
+          cp libs/bindings/ruby/example.rb \
+             packaging-examples/install_tests/example.rb
+
+      - name: Upload test scripts
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-tests
+          path: packaging-examples/install_tests/
+          retention-days: 1
+
+  build-deb:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Fix PATH for CI
+        run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
+
+      - name: Set version placeholder to valid date
+        run: sed -i '1s/^XXXX-XX-XX$/0001-01-01/' CHANGES
+
+      - name: Speed up dpkg and configure apt retries
+        run: |
+          echo 'force-unsafe-io' | sudo tee /etc/dpkg/dpkg.cfg.d/02speedup
+          echo 'Acquire::Retries "10";' | sudo tee /etc/apt/apt.conf.d/80retries
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends devscripts equivs
+          sudo mk-build-deps -i -t 'apt-get -y --no-install-recommends' debian/control
+
+      - name: Build DEB packages
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Collect DEB packages
+        run: |
+          mkdir -p deb-output
+          cp ../*.deb deb-output/
+
+      - name: Upload DEB packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-packages
+          path: deb-output/*.deb
+          retention-days: 1
+
+  test-deb:
+    needs: [upload-tests, build-deb]
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download test scripts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-tests
+          path: tests
+
+      - name: Download DEB packages
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-packages
+          path: packages
+
+      - name: Install DEB packages
+        run: |
+          sudo apt-get update
+          sudo dpkg -i packages/*.deb || true
+          sudo apt-get install -f -y
+          sudo apt-get install -y --no-install-recommends ghostscript
+
+      - name: Run smoke tests
+        run: |
+          chmod +x tests/*.sh
+          tests/run_all.sh
+
+  build-rpm:
+    runs-on: ubuntu-24.04
+    container: fedora:latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set version placeholder to valid date
+        run: sed -i '1s/^XXXX-XX-XX$/0001-01-01/' CHANGES
+
+      - name: Install build dependencies
+        run: |
+          echo 'install_weak_deps=False' >> /etc/dnf/dnf.conf
+          dnf install -y rpm-build rpmdevtools
+          rpmdev-setuptree
+          VERSION=$(head -1 CHANGES | tr -d -)
+          sed "s/^Version:.*/Version: ${VERSION}/" \
+            packaging-examples/rpm-based/postscriptbarcode.spec \
+            > "$HOME/rpmbuild/SPECS/postscriptbarcode.spec"
+          dnf builddep -y "$HOME/rpmbuild/SPECS/postscriptbarcode.spec"
+
+      - name: Build RPM packages
+        run: |
+          VERSION=$(head -1 CHANGES | tr -d -)
+          tar czf "$HOME/rpmbuild/SOURCES/postscriptbarcode-${VERSION}.tar.gz" \
+            --transform "flags=r;s,^,postscriptbarcode-${VERSION}/," \
+            --exclude=.git .
+          rpmbuild -bb "$HOME/rpmbuild/SPECS/postscriptbarcode.spec"
+          mkdir -p /tmp/rpms
+          cp "$HOME"/rpmbuild/RPMS/*/*.rpm /tmp/rpms/
+
+      - name: Upload RPM packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm-packages
+          path: /tmp/rpms/*.rpm
+          retention-days: 1
+
+  test-rpm:
+    needs: [upload-tests, build-rpm]
+    runs-on: ubuntu-24.04
+    container: fedora:latest
+
+    steps:
+      - name: Download test scripts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-tests
+          path: tests
+
+      - name: Download RPM packages
+        uses: actions/download-artifact@v4
+        with:
+          name: rpm-packages
+          path: packages
+
+      - name: Install RPM packages
+        run: dnf install -y ghostscript packages/*.rpm
+
+      - name: Run smoke tests
+        run: |
+          chmod +x tests/*.sh
+          tests/run_all.sh
+
+  build-arch:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set version placeholder to valid date
+        run: sed -i '1s/^XXXX-XX-XX$/0001-01-01/' CHANGES
+
+      - name: Install base build tools
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed base-devel
+
+      - name: Build Arch packages
+        run: |
+          VERSION=$(head -1 CHANGES)
+          PKGVER=${VERSION//-/}
+          sed -i "s/^pkgver=.*/pkgver=${PKGVER}/" \
+            packaging-examples/arch-linux/PKGBUILD
+          TGZDIR=packaging-examples/arch-linux
+          tar czf "${TGZDIR}/postscriptbarcode-${PKGVER}.tar.gz" \
+            --transform "flags=r;s,^,postscriptbarcode-${PKGVER}/," \
+            --exclude=.git --exclude=packaging-examples .
+          useradd -m builder
+          echo 'builder ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+          chown -R builder:builder .
+          cd packaging-examples/arch-linux
+          su builder -c "makepkg -s --noconfirm --skipchecksums"
+          mkdir -p /tmp/archpkgs
+          cp ./*.pkg.tar.zst /tmp/archpkgs/
+
+      - name: Upload Arch packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-packages
+          path: /tmp/archpkgs/*.pkg.tar.zst
+          retention-days: 1
+
+  test-arch:
+    needs: [upload-tests, build-arch]
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+
+    steps:
+      - name: Download test scripts
+        uses: actions/download-artifact@v4
+        with:
+          name: install-tests
+          path: tests
+
+      - name: Download Arch packages
+        uses: actions/download-artifact@v4
+        with:
+          name: arch-packages
+          path: packages
+
+      - name: Install Arch packages
+        run: |
+          pacman -Syu --noconfirm
+          pacman -U --noconfirm packages/*.pkg.tar.zst
+          pacman -S --noconfirm --needed ghostscript
+
+      - name: Run smoke tests
+        run: |
+          chmod +x tests/*.sh
+          tests/run_all.sh

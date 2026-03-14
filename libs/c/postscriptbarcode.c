@@ -379,13 +379,13 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 				skip = false;
 			if (!ctx->version &&
 					strncmp(buf, "% Barcode Writer in Pure PostScript", 35) == 0) {
-				char *version;
+				const char *version;
 				char *p;
 				p = strrchr(buf, ' ');
 				if (!p)
 					goto error;
 				version = p + 1;
-				p = strchr(version, '\n');
+				p = strchr((char *)version, '\n');
 				if (p)
 					*p = '\0';
 				ctx->version = strdup(version);
@@ -401,19 +401,19 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --BEGIN {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --BEGIN ", 10) == 0) {
 
-			char *type, *name;
+			const char *type, *name;
 			char *p;
 
 			if (resource)
 				goto error;
 
 			type = buf + 10;
-			p = strchr(type, ' ');
+			p = strchr((char *)type, ' ');
 			if (!p)
 				goto error;
 			*p = '\0';
 			name = p + 1;
-			p = strrchr(name, '-');
+			p = strrchr((char *)name, '-');
 			if (!p || p <= name)
 				goto error;
 			*(p - 1) = '\0';
@@ -442,11 +442,11 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 
 		/* % --KEY: VALUE (metadata comments) */
 		if (resource && strncmp(buf, "% --", 4) == 0 && strchr(buf + 4, ':')) {
-			char *key;
+			const char *key;
 			char *value, *p;
 
 			key = buf + 4;
-			p = strchr(key, ':');
+			p = strchr((char *)key, ':');
 
 			/* Only match if the key is uppercase alpha (not REQUIRES, BEGIN, END) */
 			if (p && p > key && *(p - 1) != '-') {
@@ -467,14 +467,14 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --REQUIRES {REQS}-- */
 		if (strncmp(buf, "% --REQUIRES ", 13) == 0) {
 
-			char *reqs;
+			const char *reqs;
 			char *p;
 
 			if (!resource || resource->reqs)
 				goto error;
 
 			reqs = buf + 13;
-			p = strrchr(reqs, '-');
+			p = strrchr((char *)reqs, '-');
 			if (!p || p <= reqs)
 				goto error;
 			*(p - 1) = '\0';
@@ -490,19 +490,19 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 		/* % --END {TYPE} {NAME}-- */
 		if (strncmp(buf, "% --END ", 8) == 0) {
 
-			char *type, *name;
+			const char *type, *name;
 			char *p;
 
 			if (!resource)
 				goto error;
 
 			type = buf + 8;
-			p = strchr(type, ' ');
+			p = strchr((char *)type, ' ');
 			if (!p)
 				goto error;
 			*p = '\0';
 			name = p + 1;
-			p = strrchr(name, '-');
+			p = strrchr((char *)name, '-');
 			if (!p || p <= name)
 				goto error;
 			*(p - 1) = '\0';

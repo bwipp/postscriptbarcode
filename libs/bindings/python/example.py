@@ -2,34 +2,43 @@
 
 """Example user of the BWIPP Python binding."""
 
+import sys
+
 import postscriptbarcode
 
-bwipp1 = postscriptbarcode.BWIPP("../../../build/monolithic_package/barcode.ps")
-bwipp2 = postscriptbarcode.BWIPP("../../../build/monolithic/barcode.ps")
-print("Packaged version: " + bwipp1.get_version())
-print("Unpackaged version: " + bwipp2.get_version())
+if len(sys.argv) > 1:
+    path = sys.argv[1]
+    bwipp = postscriptbarcode.BWIPP(path)
+    print("Version: " + bwipp.get_version())
+else:
+    bwipp1 = postscriptbarcode.BWIPP("../../../build/monolithic_package/barcode.ps")
+    bwipp2 = postscriptbarcode.BWIPP("../../../build/monolithic/barcode.ps")
+    print("Packaged version: " + bwipp1.get_version())
+    print("Unpackaged version: " + bwipp2.get_version())
+    bwipp = bwipp2
 
-ps = bwipp1.emit_all_resources()
-print("Packaged lines: " + str(len(ps.split("\n"))))
-ps = bwipp2.emit_all_resources()
+    ps = bwipp1.emit_all_resources()
+    print("Packaged lines: " + str(len(ps.split("\n"))))
+
+ps = bwipp.emit_all_resources()
 print("Unpackaged lines: " + str(len(ps.split("\n"))))
 
-ps = bwipp2.emit_required_resources("qrcode")
+ps = bwipp.emit_required_resources("qrcode")
 print("qrcode resource lines: " + str(len(ps.split("\n"))))
 
-ps = bwipp2.emit_exec("qrcode", "Hello World", "eclevel=M")
+ps = bwipp.emit_exec("qrcode", "Hello World", "eclevel=M")
 print("emit_exec lines: " + str(len(ps.split("\n"))))
 
-encoders = bwipp2.list_encoders()
+encoders = bwipp.list_encoders()
 print("Encoders: " + str(len(encoders)))
 
-families = bwipp2.list_families()
+families = bwipp.list_families()
 print("Families: " + str(len(families)))
 for family in families:
-    members = bwipp2.list_family_members(family)
+    members = bwipp.list_family_members(family)
     print("  " + family + ": " + str(len(members)) + " members")
 
-props = bwipp2.list_properties("qrcode")
+props = bwipp.list_properties("qrcode")
 print("qrcode properties: " + str(props))
 for prop in props:
-    print("  " + prop + ": " + bwipp2.get_property("qrcode", prop))
+    print("  " + prop + ": " + bwipp.get_property("qrcode", prop))

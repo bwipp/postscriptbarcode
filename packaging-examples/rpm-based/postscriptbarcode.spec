@@ -117,7 +117,7 @@ This package provides the Python binding for Barcode Writer in Pure PostScript
 
 %package -n ruby-postscriptbarcode
 Summary: Ruby binding for Barcode Writer in Pure PostScript
-Requires: ruby(release)
+Requires: ruby
 Requires: %{postscriptbarcode_lib_pkgname} = %{version}-%{release}
 
 %description -n ruby-postscriptbarcode
@@ -147,6 +147,7 @@ find . -name 'postscriptbarcode.so' -exec chrpath -d {} \;
 popd
 
 pushd libs/bindings/python
+CFLAGS="%{optflags}" %{__python3} setup.py build_ext --inplace
 CFLAGS="%{optflags}" %{__python3} setup.py build
 popd
 
@@ -179,8 +180,7 @@ export NO_BRP_CHECK_BYTECODE_VERSION=true
 pushd libs/bindings/java
 mkdir -p %{buildroot}/%{_javadir}/
 cp -p *.jar %{buildroot}/%{_javadir}/
-mkdir -p %{buildroot}/%{_libdir}/java-postscriptbarcode
-cp -p *.so %{buildroot}/%{_libdir}/java-postscriptbarcode/
+install -Dm755 libpostscriptbarcode_jni.so %{buildroot}/%{_libdir}/libpostscriptbarcode_jni.so
 popd
 
 pushd libs/bindings/perl
@@ -249,8 +249,7 @@ popd
 %doc CHANGES libs/README.md
 %license LICENSE
 %{_javadir}/*
-%dir %{_libdir}/java-postscriptbarcode/
-%{_libdir}/java-postscriptbarcode/*
+%{_libdir}/libpostscriptbarcode_jni.so
 
 %files -n perl-postscriptbarcode
 %doc CHANGES libs/README.md
