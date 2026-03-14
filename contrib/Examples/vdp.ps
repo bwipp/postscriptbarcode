@@ -41,25 +41,16 @@
 % Windows: copy barcode.ps + vdp.ps + data.txt \\printserver\print /b
 % Unix:    cat barcode.ps vdp.ps data.txt | lpr -o raw
 
-% Trivial helper functions
+% Helper functions for timing display
 
-/mergestr {  % Concat strings
-    2 copy length exch length add string dup dup
-    4 3 roll 4 index length exch putinterval 3 1 roll exch
-    0 exch putinterval
+/padnum {  % int (padchar) padnum (string)
+    8 string copy dup                          % (pad) (pad)
+    3 -1 roll 10 8 string cvrs                 % (pad) (pad) (digits)
+    dup length 8 exch sub exch putinterval     % (result)
 } bind def
 
-/padstr {  % Zero-pad a number
-    (00000000) 8 string copy dup
-    3 2 roll 10 8 string cvrs dup length
-    8 exch sub exch putinterval
-} bind def
-
-/spadstr {  % Pad a number
-    (        ) 8 string copy dup
-    3 2 roll 10 8 string cvrs dup length
-    8 exch sub exch putinterval
-} bind def
+/shownum { (00000000) padnum show } bind def   % int shownum -
+/showms  { (        ) padnum show } bind def   % int showms -
 
 % ----------------------8<---------------------------8<-------------------
 
@@ -202,14 +193,14 @@
 
             % Before first label on page
             label 1 eq {
-                40 772 moveto (About to start plotting static page data at runtime ) realtime starttime sub padstr ( ...) mergestr mergestr show
+                40 772 moveto (About to start plotting static page data at runtime ) show realtime starttime sub shownum ( ...) show
                 /checkpoint realtime def
 
                 % Static page data from forms. Cached after first run.
                 PageForm execform
 
-                320 772 moveto (Took ) realtime checkpoint sub spadstr (ms) mergestr mergestr show
-                40 762 moveto (About to start plotting variable data at runtime ) realtime starttime sub padstr ( ...) mergestr mergestr show
+                320 772 moveto (Took ) show realtime checkpoint sub showms (ms) show
+                40 762 moveto (About to start plotting variable data at runtime ) show realtime starttime sub shownum ( ...) show
                 /checkpoint realtime def
             } if
 
@@ -229,8 +220,8 @@
             % After last label on page
             /label label 1 add def
             label 41 eq EOD or {
-                320 762 moveto (Took ) realtime checkpoint sub spadstr (ms) mergestr mergestr show
-                490 20 moveto (Page ) page 3 string cvs mergestr show
+                320 762 moveto (Took ) show realtime checkpoint sub showms (ms) show
+                490 20 moveto (Page ) show page 3 string cvs show
                 showpage
                 /page page 1 add def
                 /label 1 def
