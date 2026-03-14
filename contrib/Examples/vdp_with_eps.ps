@@ -25,35 +25,37 @@
 % Unix:    cat barcode.ps vdp_with_eps.ps data.txt | lpr -o raw
 
 
+% Create an executable array that captures the current dict stack and
+% restores it after execution, using stopped for error safety
+/closure {
+    [
+        countdictstack array dictstack
+        [ exch { dup systemdict eq { cleartomark mark systemdict } if } forall ]
+        { begin } /forall cvx
+        counttomark 2 add -1 roll
+        /stopped cvx
+        4 index length { end } /repeat cvx
+        { stop } /if cvx
+    ] cvx
+} def
+
+% Safely execute an EPS within save/restore using closure for dict stack safety
+/RunEPS {
+    save
+    /showpage {} def
+    /setpagedevice /pop load def
+    newpath
+    { MyEPS 0 setfileposition MyEPS cvx exec } stopped pop
+    restore
+} closure def
+
 % Form definitions
 
 /MyForm
 <<  /FormType 1
     /BBox [ 17 171 567 739 ]
     /Matrix matrix
-    /PaintProc
-      { pop
-
-        % Attempt to prevent pollution of the VM
-        userdict begin
-        save
-        /dict_count countdictstack def
-        /op_count count 1 sub def
-        /showpage {} def
-        /setpagedevice /pop load def
-        newpath
-
-        % Execute the EPS
-        MyEPS 0 setfileposition
-        MyEPS cvx exec
-
-        % Restore the state of the VM
-        count op_count sub {pop} repeat
-        countdictstack dict_count sub {end} repeat
-        restore
-        end
-
-      } bind
+    /PaintProc { pop //RunEPS exec } bind
 >> def
 
 % ----------------------8<---------------------------8<-------------------
