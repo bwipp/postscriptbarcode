@@ -1,0 +1,60 @@
+<services>
+
+  <!--
+       This is the release _service file for the OBS packaging [1] of Barcode Writer in Pure PostScript [2].
+
+       Used in the main project (home:terryburton:postscriptbarcode) to build
+       release packages. Checks out HEAD and derives the version from the latest
+       tag, so should be triggered promptly after tagging. The dev counterpart
+       (_service.dev) builds nightly packages from HEAD in the :dev subproject.
+
+       [1] https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode
+       [2] https://github.com/bwipp/postscriptbarcode
+  -->
+
+  <!-- Checkout from GitHub master; version derived from latest tag. -->
+  <service name="tar_scm" mode="disabled">
+    <param name="scm">git</param>
+    <param name="url">https://github.com/bwipp/postscriptbarcode.git</param>
+    <param name="versionformat">@PARENT_TAG@</param>
+  </service>
+
+  <!-- RPM-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/packaging-examples/rpm-based/postscriptbarcode.spec</param>
+    <param name="outfilename">postscriptbarcode.spec</param>
+  </service>
+
+  <!-- PKGBUILD-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/packaging-examples/arch-linux/PKGBUILD</param>
+    <param name="outfilename">PKGBUILD</param>
+  </service>
+
+  <!-- DEB-based builds -->
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/packaging-examples/open-build-service/postscriptbarcode.dsc</param>
+    <param name="outfilename">postscriptbarcode.dsc</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/packaging-examples/open-build-service/debian.debtransform</param>
+    <param name="outfilename">debian.debtransform</param>
+  </service>
+  <service name="extract_file">
+    <param name="archive">*.tar</param>
+    <param name="files">*/debian/changelog</param>
+    <param name="outfilename">debian.changelog</param>
+  </service>
+
+  <service name="recompress">
+    <param name="compression">gz</param>
+    <param name="file">*.tar</param>
+  </service>
+
+  <service name="set_version" />
+
+</services>
