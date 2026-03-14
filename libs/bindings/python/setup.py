@@ -4,8 +4,7 @@
 setup.py file for postscriptbarcode
 """
 
-from distutils.command.build import build
-from distutils.core import Command, Extension, setup
+from setuptools import Command, Extension, setup
 
 with open("../../../CHANGES", "r") as f:
     ver = f.readline().strip().replace("-", "")
@@ -35,13 +34,6 @@ postscriptbarcode_module = Extension(
     libraries=["postscriptbarcode"],
     library_dirs=["../../c"],
 )
-
-build.sub_commands = [
-    ("build_ext", build.has_ext_modules),
-    ("build_py", build.has_pure_modules),
-    ("build_clib", build.has_c_libraries),
-    ("build_scripts", build.has_scripts),
-]
 
 setup(
     name="postscriptbarcode",
