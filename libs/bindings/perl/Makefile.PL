@@ -7,10 +7,13 @@ open my $f, '<', "../../SOVERSION";
 my $maj=<$f>; 
 close $f;
 chomp $maj;
-open my $f, '<', "../../../CHANGES"; 
-my $min=<$f>; 
+open my $f, '<', "../../../CHANGES";
+my $min;
+while (<$f>) {
+	chomp;
+	if (/^\d/) { $min=$_; last }
+}
 close $f;
-chomp $min;
 $min=~s/-//g;
 
 `swig -Wall -perl -o postscriptbarcode_wrap.c -outdir . ../postscriptbarcode.i`;

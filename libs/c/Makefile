@@ -1,7 +1,7 @@
 NAME = postscriptbarcode
 
 MAJOR   := $(shell head -n 1 ../SOVERSION)
-MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
+MINOR   := $(shell grep -m1 '^[0-9]' ../../CHANGES | tr -d '-')
 VERSION := $(MAJOR).$(MINOR)
 
 FUZZER = $(NAME)_fuzzer
