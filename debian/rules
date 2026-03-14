@@ -9,11 +9,12 @@ include /usr/share/dpkg/buildflags.mk
 
 export PYBUILD_NAME = postscriptbarcode
 export JAVA_HOME = /usr/lib/jvm/default-java
+export ANT_ARGS = -Djava.compat=11
 
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
-	dh $@ --parallel --with javahelper,python2,python3,ruby
+	dh $@ --with javahelper,python3,ruby
 
 override_dh_auto_configure:
 	dh_auto_configure
@@ -24,7 +25,7 @@ override_dh_auto_configure:
 	dh_auto_configure --buildsystem=ruby
 
 override_dh_auto_build:
-	dh_auto_build --parallel
+	dh_auto_build
 	dh_auto_build --sourcedirectory=libs/c
 	dh_auto_build --sourcedirectory=libs/bindings/java
 	dh_auto_configure --sourcedirectory=libs/bindings/perl  # Configure must run after C library is built
@@ -64,12 +65,8 @@ override_dh_auto_clean:
 	dh_auto_clean --buildsystem=ruby
 	dh_auto_clean --sourcedirectory=libs/docs
 
-override_dh_strip:
-	dh_strip -p libpostscriptbarcode0 --dbg-package=libpostscriptbarcode0-dbg
-	dh_strip
-
 override_dh_shlibdeps:
-	dh_shlibdeps -O--parallel -l libs/c
+	dh_shlibdeps -l libs/c
 
 override_dh_installdocs:
 	dh_installdocs -p postscriptbarcode
