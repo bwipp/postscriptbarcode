@@ -16,7 +16,7 @@ Summary:        Barcode Writer in Pure PostScript
 
 # SuSE naming conventions
 %if 0%{?suse_version}
-%global postscriptbarcode_lib_pkgname libpostscriptbarcode0
+%global postscriptbarcode_lib_pkgname libpostscriptbarcode1
 %else
 %global postscriptbarcode_lib_pkgname postscriptbarcode-libs
 %endif

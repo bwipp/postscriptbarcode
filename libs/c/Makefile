@@ -1,8 +1,7 @@
 NAME = postscriptbarcode
 
-MAJOR   := $(shell head -n 1 ../SOVERSION)
-MINOR   := $(shell grep -m1 '^[0-9]' ../../CHANGES | tr -d '-')
-VERSION := $(MAJOR).$(MINOR)
+VERSION := $(shell head -n 1 ../CHANGES)
+MAJOR   := $(firstword $(subst ., ,$(VERSION)))
 
 FUZZER = $(NAME)_fuzzer
 FUZZER_CORPUS = corpus

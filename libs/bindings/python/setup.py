@@ -6,14 +6,8 @@ setup.py file for postscriptbarcode
 
 from setuptools import Command, Extension, setup
 
-with open("../../../CHANGES", "r") as f:
-    for line in f:
-        line = line.strip()
-        if line and line[0].isdigit():
-            ver = line.replace("-", "")
-            break
-    else:
-        ver = "0"
+with open("../../CHANGES", "r") as f:
+    ver = f.readline().strip()
 
 
 class Test(Command):

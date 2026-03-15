@@ -1,11 +1,10 @@
 
 MAKEFLAGS := -j 1
 
-MAJOR   := $(shell head -n 1 ../SOVERSION)
-MINOR   := $(shell grep -m1 '^[0-9]' ../../CHANGES | tr -d '-')
-VERSION := $(MAJOR).$(MINOR)
+VERSION := $(shell head -n 1 ../CHANGES)
+MAJOR   := $(firstword $(subst ., ,$(VERSION)))
 
-export NAME VERSION MAJOR MINOR
+export NAME VERSION MAJOR
 
 LANGS = $(patsubst %/,%,$(wildcard */))
 

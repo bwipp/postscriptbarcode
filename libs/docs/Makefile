@@ -1,8 +1,6 @@
 NAME = postscriptbarcode
 
-MAJOR   := $(shell head -n 1 ../SOVERSION)
-MINOR   := $(shell head -n 1 ../../CHANGES | tr -d '-')
-VERSION := $(MAJOR).$(MINOR)
+VERSION := $(shell head -n 1 ../CHANGES)
 
 .PHONY: default all doc clean
 

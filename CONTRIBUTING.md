@@ -1125,14 +1125,21 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 
 ### OBS (Open Build Service)
 
-Distribution packages are built on the
-[OBS](https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode)
-for 19 targets across DEB, RPM, and Arch-based distributions.
+Distribution packages are built on OBS for 19 targets across DEB, RPM, and
+Arch-based distributions, using two projects:
+
+| Project | Purpose | Source | Version format |
+|---------|---------|--------|----------------|
+| [`home:terryburton:postscriptbarcode`](https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode) | **Release** | Pinned tag | `@PARENT_TAG@` |
+| `home:terryburton:postscriptbarcode:dev` | Dev/nightly | HEAD | `@PARENT_TAG@.@TAG_OFFSET@~nightly` |
+
+The release project's services run on commit and can be re-triggered via
+`osc service remoterun`. Trigger promptly after tagging, before further
+commits land. The dev project builds from HEAD on each trigger.
 
 **How it works:**
 
-1. The `_service` file (managed in OBS, backup at
-   `packaging-examples/open-build-service/_service.backup`) tells OBS to:
+1. The `_service` file tells OBS to:
    - Fetch the source tarball from the upstream GitHub repository via `tar_scm`
    - Extract the RPM spec, Arch PKGBUILD, and Debian packaging files via
      `extract_file`
@@ -1147,7 +1154,7 @@ for 19 targets across DEB, RPM, and Arch-based distributions.
 - `packaging-examples/rpm-based/postscriptbarcode.spec` - RPM spec file
 - `packaging-examples/arch-linux/PKGBUILD`     - Arch PKGBUILD
 - `packaging-examples/open-build-service/`     - OBS-specific files
-  (`_service.backup`, `.dsc`, `debtransform`)
+  (`_service.release`, `_service.dev`, `.dsc`, `debtransform`)
 
 **Version handling:**
 
@@ -1157,11 +1164,16 @@ The RPM spec and Arch PKGBUILD have empty version fields that OBS's
 `libs/c/Makefile`, `libs/bindings/Makefile`) skip this placeholder and use the
 first line starting with a digit.
 
-**Triggering a build:**
+**Triggering builds:**
 
 ```bash
+# Release
 osc service remoterun home:terryburton:postscriptbarcode libpostscriptbarcode
 osc results home:terryburton:postscriptbarcode libpostscriptbarcode
+
+# Dev/nightly
+osc service remoterun home:terryburton:postscriptbarcode:dev libpostscriptbarcode
+osc results home:terryburton:postscriptbarcode:dev libpostscriptbarcode
 ```
 
 ### Package Install Tests
@@ -1202,7 +1214,9 @@ packaging-examples/install_tests/run_all.sh
 4. Push commits, wait for CI: `gh run watch`
 5. After CI succeeds: `make tag && git push origin YYYY-MM-DD`
 6. Verify release: `gh release view YYYY-MM-DD`
-7. Add next placeholder: `sed -i '1i XXXX-XX-XX\n\n*\n\n' CHANGES` and commit/push
+7. Trigger OBS release build (promptly, before further commits land):
+   `osc service remoterun home:terryburton:postscriptbarcode libpostscriptbarcode`
+8. Add next placeholder: `sed -i '1i XXXX-XX-XX\n\n*\n\n' CHANGES` and commit/push
 
 
 ## PostScript Language Reminders
