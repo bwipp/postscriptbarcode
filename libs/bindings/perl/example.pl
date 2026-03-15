@@ -6,12 +6,18 @@ use postscriptbarcode;
 my $bwipp;
 
 if (@ARGV) {
-    $bwipp = postscriptbarcode::BWIPP->new($ARGV[0]) || die 'Failed to load resource\n';
+    $bwipp = postscriptbarcode::BWIPP->new({filename => $ARGV[0]})
+        || die 'Failed to load resource\n';
     my $ver = $bwipp->get_version() || die 'Failed to get version\n';
     print "Version: $ver\n";
 } else {
-    my $bwipp1 = postscriptbarcode::BWIPP->new("../../../build/monolithic_package/barcode.ps") || die 'Failed to load resource\n';
-    $bwipp = postscriptbarcode::BWIPP->new("../../../build/monolithic/barcode.ps") || die 'Failed to load resource\n';
+    my $bwipp1 = postscriptbarcode::BWIPP->new({
+        filename => "../../../build/monolithic_package/barcode.ps",
+    }) || die 'Failed to load resource\n';
+
+    $bwipp = postscriptbarcode::BWIPP->new({
+        filename => "../../../build/monolithic/barcode.ps",
+    }) || die 'Failed to load resource\n';
 
     my $ver = $bwipp1->get_version() || die 'Failed to get version\n';
     print "Packaged version: $ver\n";

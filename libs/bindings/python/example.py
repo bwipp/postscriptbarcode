@@ -7,27 +7,29 @@ import sys
 import postscriptbarcode
 
 if len(sys.argv) > 1:
-    path = sys.argv[1]
-    bwipp = postscriptbarcode.BWIPP(path)
+    bwipp = postscriptbarcode.BWIPP(filename=sys.argv[1])
     print("Version: " + bwipp.get_version())
 else:
-    bwipp1 = postscriptbarcode.BWIPP("../../../build/monolithic_package/barcode.ps")
-    bwipp2 = postscriptbarcode.BWIPP("../../../build/monolithic/barcode.ps")
+    bwipp1 = postscriptbarcode.BWIPP(
+        filename="../../../build/monolithic_package/barcode.ps")
+    bwipp2 = postscriptbarcode.BWIPP(
+        filename="../../../build/monolithic/barcode.ps")
+
     print("Packaged version: " + bwipp1.get_version())
     print("Unpackaged version: " + bwipp2.get_version())
     bwipp = bwipp2
 
     ps = bwipp1.emit_all_resources()
-    print("Packaged lines: " + str(len(ps.split("\n"))))
+    print("Packaged lines: " + str(ps.count("\n")))
 
 ps = bwipp.emit_all_resources()
-print("Unpackaged lines: " + str(len(ps.split("\n"))))
+print("Unpackaged lines: " + str(ps.count("\n")))
 
 ps = bwipp.emit_required_resources("qrcode")
-print("qrcode resource lines: " + str(len(ps.split("\n"))))
+print("qrcode resource lines: " + str(ps.count("\n")))
 
 ps = bwipp.emit_exec("qrcode", "Hello World", "eclevel=M")
-print("emit_exec lines: " + str(len(ps.split("\n"))))
+print("emit_exec lines: " + str(ps.count("\n")))
 
 encoders = bwipp.list_encoders()
 print("Encoders: " + str(len(encoders)))

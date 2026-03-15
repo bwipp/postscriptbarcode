@@ -34,6 +34,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             packaging-examples/install_tests
+            libs/c/example.c
             libs/bindings/python/example.py
             libs/bindings/perl/example.pl
             libs/bindings/ruby/example.rb
@@ -41,6 +42,8 @@ jobs:
 
       - name: Collect test assets
         run: |
+          cp libs/c/example.c \
+             packaging-examples/install_tests/example.c
           cp libs/bindings/python/example.py \
              packaging-examples/install_tests/example.py
           cp libs/bindings/perl/example.pl \

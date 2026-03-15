@@ -58,6 +58,14 @@
 #define MOCK_PS "test_barcode.ps"
 #define BARCODE_PS "../../build/monolithic/barcode.ps"
 
+static BWIPP *load_from(const char *filename) {
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(opts),
+		.filename = filename,
+	};
+	return bwipp_load_ex(&opts);
+}
+
 
 static void write_mock_ps(const char *filename, const char *content) {
 	FILE *f = fopen(filename, "w");
@@ -107,7 +115,7 @@ static const char mock_ps[] =
 
 
 /* ========================================================================
- *  bwipp_load_from_file - success paths
+ *  bwipp_load_ex - success paths
  * ======================================================================== */
 
 static void test_load_mock(void) {
@@ -115,7 +123,7 @@ static void test_load_mock(void) {
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_CHECK((ctx = load_from(MOCK_PS)) != NULL);
 
 	bwipp_unload(ctx);
 	remove(MOCK_PS);
@@ -127,7 +135,7 @@ static void test_load_empty_file(void) {
 	write_mock_ps(MOCK_PS, "");
 
 	/* Empty file: valid context but no version or resources */
-	TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_CHECK((ctx = load_from(MOCK_PS)) != NULL);
 	if (ctx) {
 		TEST_CHECK(bwipp_get_version(ctx) == NULL);
 		bwipp_unload(ctx);
@@ -144,7 +152,7 @@ static void test_load_no_template(void) {
 		"% Barcode Writer in Pure PostScript - Version 2099-01-01\n"
 	);
 
-	ctx = bwipp_load_from_file(MOCK_PS);
+	ctx = load_from(MOCK_PS);
 
 	if (ctx)
 		bwipp_unload(ctx);
@@ -165,7 +173,7 @@ static void test_load_single_resource(void) {
 		"% --END RESOURCE only--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "only")) != NULL);
 	TEST_CHECK(strcmp(out, "% only code\n") == 0);
@@ -205,7 +213,7 @@ static void test_load_many_resources_order(void) {
 		"% --END RESOURCE eee--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* emit_all must preserve parse order */
 	TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
@@ -233,7 +241,7 @@ static void test_load_content_before_template(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_CHECK((ctx = load_from(MOCK_PS)) != NULL);
 	if (ctx)
 		bwipp_unload(ctx);
 
@@ -258,7 +266,7 @@ static void test_load_content_after_template(void) {
 		"% --END RESOURCE bar--\n"
 	);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Only foo should be loaded; bar is after END TEMPLATE */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "foo")) != NULL);
@@ -275,11 +283,11 @@ static void test_load_content_after_template(void) {
 
 
 /* ========================================================================
- *  bwipp_load_from_file - error paths
+ *  bwipp_load_ex - error paths
  * ======================================================================== */
 
 static void test_load_missing_file(void) {
-	TEST_CHECK(bwipp_load_from_file("nonexistent.ps") == NULL);
+	TEST_CHECK(load_from("nonexistent.ps") == NULL);
 }
 
 static void test_load_default_path(void) {
@@ -300,7 +308,7 @@ static void test_load_nested_begin(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -316,7 +324,7 @@ static void test_load_mismatched_end_name(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -332,7 +340,7 @@ static void test_load_mismatched_end_type(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -347,7 +355,7 @@ static void test_load_unterminated_resource(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -362,7 +370,7 @@ static void test_load_unterminated_at_eof(void) {
 	);
 
 	/* File ends without END RESOURCE or END TEMPLATE */
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -376,7 +384,7 @@ static void test_load_end_without_begin(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -393,7 +401,7 @@ static void test_load_duplicate_requires(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -407,7 +415,7 @@ static void test_load_requires_outside_resource(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -421,7 +429,7 @@ static void test_load_malformed_begin_no_name(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -435,7 +443,7 @@ static void test_load_malformed_begin_no_type_space(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -451,7 +459,7 @@ static void test_load_malformed_end_no_space(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -467,7 +475,7 @@ static void test_load_malformed_requires_no_suffix(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -481,7 +489,7 @@ static void test_load_malformed_begin_no_suffix(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -497,7 +505,7 @@ static void test_load_malformed_end_no_suffix(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -518,7 +526,7 @@ static void test_load_truncated_marker_begin(void) {
 
 	write_mock_ps_bin(MOCK_PS, content, sizeof(content) - 1);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -534,7 +542,7 @@ static void test_load_truncated_marker_end(void) {
 
 	write_mock_ps_bin(MOCK_PS, content, sizeof(content) - 1);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -549,7 +557,7 @@ static void test_load_truncated_marker_requires(void) {
 
 	write_mock_ps_bin(MOCK_PS, content, sizeof(content) - 1);
 
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -563,7 +571,7 @@ static void test_load_truncated_marker_template(void) {
 	write_mock_ps_bin(MOCK_PS, content, sizeof(content) - 1);
 
 	/* BEGIN TEMPLATE itself is truncated; parser should reject */
-	TEST_CHECK(bwipp_load_from_file(MOCK_PS) == NULL);
+	TEST_CHECK(load_from(MOCK_PS) == NULL);
 
 	remove(MOCK_PS);
 }
@@ -592,7 +600,7 @@ static void test_load_long_requires_line(void) {
 	fputs("% --END TEMPLATE--\n", f);
 	fclose(f);
 
-	TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_CHECK((ctx = load_from(MOCK_PS)) != NULL);
 	if (ctx)
 		bwipp_unload(ctx);
 
@@ -610,7 +618,7 @@ static void test_get_version(void) {
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	TEST_CHECK((version = bwipp_get_version(ctx)) != NULL);
 	TEST_CHECK(strcmp(version, "2099-01-01") == 0);
 	TEST_MSG("Got: %s", version);
@@ -631,7 +639,7 @@ static void test_get_version_no_version_line(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	TEST_CHECK(bwipp_get_version(ctx) == NULL);
 
 	bwipp_unload(ctx);
@@ -654,7 +662,7 @@ static void test_get_version_only_first(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	TEST_CHECK((version = bwipp_get_version(ctx)) != NULL);
 	TEST_CHECK(strcmp(version, "2099-01-01") == 0);
 	TEST_MSG("Got: %s", version);
@@ -678,7 +686,7 @@ static void test_get_version_after_template(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	TEST_CHECK(bwipp_get_version(ctx) == NULL);
 
 	bwipp_unload(ctx);
@@ -731,7 +739,7 @@ static void test_list_encoders_basic(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_encoders(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -760,7 +768,7 @@ static void test_list_encoders_no_encoders(void) {
 		"% --END RESOURCE foo--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_encoders(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -777,7 +785,7 @@ static void test_list_encoders_null_count(void) {
 	const char **list;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* NULL count pointer should not crash */
 	list = bwipp_list_encoders(ctx, NULL);
@@ -815,7 +823,7 @@ static void test_list_encoders_sorted(void) {
 		"% --END ENCODER mmm--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_encoders(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -837,7 +845,7 @@ static void test_list_encoders_strings_owned_by_context(void) {
 	const char *first_name;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_encoders(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -865,7 +873,7 @@ static void test_list_properties_basic(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* enc1 has DESC, EXAM, EXOP, RNDR */
 	list = bwipp_list_properties(ctx, "enc1", &count);
@@ -888,7 +896,7 @@ static void test_list_properties_fewer_keys(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* enc2 has DESC, EXAM, RNDR (no EXOP) */
 	list = bwipp_list_properties(ctx, "enc2", &count);
@@ -910,7 +918,7 @@ static void test_list_properties_no_properties(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* preamble has no metadata comments */
 	list = bwipp_list_properties(ctx, "preamble", &count);
@@ -927,7 +935,7 @@ static void test_list_properties_unknown_resource(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Unknown resource returns NULL */
 	TEST_CHECK(bwipp_list_properties(ctx, "nonexistent", NULL) == NULL);
@@ -941,7 +949,7 @@ static void test_list_properties_null_count(void) {
 	const char **list;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* NULL count pointer should not crash */
 	list = bwipp_list_properties(ctx, "enc1", NULL);
@@ -972,7 +980,7 @@ static void test_list_properties_preserves_order(void) {
 		"% --END ENCODER test--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_properties(ctx, "test", &count);
 	TEST_ASSERT(list != NULL);
@@ -996,7 +1004,7 @@ static void test_get_property_basic(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(strcmp(bwipp_get_property(ctx, "enc1", "DESC"),
 			  "Encoder One Description") == 0);
@@ -1015,7 +1023,7 @@ static void test_get_property_different_encoder(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(strcmp(bwipp_get_property(ctx, "enc2", "DESC"),
 			  "Encoder Two Description") == 0);
@@ -1030,7 +1038,7 @@ static void test_get_property_missing_key(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* enc2 has no EXOP */
 	TEST_CHECK(bwipp_get_property(ctx, "enc2", "EXOP") == NULL);
@@ -1046,7 +1054,7 @@ static void test_get_property_missing_resource(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(bwipp_get_property(ctx, "nonexistent", "DESC") == NULL);
 
@@ -1058,7 +1066,7 @@ static void test_get_property_no_properties(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* preamble has no properties */
 	TEST_CHECK(bwipp_get_property(ctx, "preamble", "DESC") == NULL);
@@ -1080,7 +1088,7 @@ static void test_get_property_value_with_spaces(void) {
 		"% --END ENCODER test--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(strcmp(bwipp_get_property(ctx, "test", "DESC"),
 			  "A Long Description With Many Words") == 0);
@@ -1103,7 +1111,7 @@ static void test_get_property_value_with_colon(void) {
 		"% --END ENCODER test--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Key is "DESC", value is everything after "DESC: " */
 	TEST_CHECK(strcmp(bwipp_get_property(ctx, "test", "DESC"),
@@ -1118,7 +1126,7 @@ static void test_get_property_owned_by_context(void) {
 	const char *val;
 
 	write_mock_ps(MOCK_PS, mock_ps_meta);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Returned string should be valid until unload */
 	val = bwipp_get_property(ctx, "enc1", "DESC");
@@ -1155,7 +1163,7 @@ static void test_metadata_not_parsed_outside_resource(void) {
 		"% --END RESOURCE foo--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(bwipp_get_property(ctx, "foo", "DESC") == NULL);
 
@@ -1183,7 +1191,7 @@ static void test_metadata_after_requires(void) {
 		"% --END TEMPLATE--\n"
 	);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Both DESC and EXAM should be properties */
 	list = bwipp_list_properties(ctx, "test", &count);
@@ -1212,7 +1220,7 @@ static void test_metadata_fmly_property(void) {
 		"% --END ENCODER test--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(strcmp(bwipp_get_property(ctx, "test", "FMLY"),
 			  "Code 128") == 0);
@@ -1231,7 +1239,7 @@ static void test_real_list_encoders(void) {
 	const char **list;
 	unsigned int count;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1265,7 +1273,7 @@ static void test_real_list_properties(void) {
 	const char **list;
 	unsigned int count;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1284,7 +1292,7 @@ static void test_real_get_property(void) {
 	BWIPP *ctx;
 	const char *val;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1312,7 +1320,7 @@ static void test_real_get_fmly(void) {
 	BWIPP *ctx;
 	const char *val;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1363,7 +1371,7 @@ static void test_real_all_encoders_have_fmly(void) {
 	unsigned int count, i;
 	int missing;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1392,7 +1400,7 @@ static void test_real_list_families(void) {
 	unsigned int count, i;
 	int found_pos, found_twod;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1422,7 +1430,7 @@ static void test_real_list_family_members(void) {
 	unsigned int count, i;
 	int found_qrcode;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -1503,7 +1511,7 @@ static void test_list_families_basic(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_families(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -1533,7 +1541,7 @@ static void test_list_families_no_fmly(void) {
 		"% --END ENCODER enc--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_families(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -1550,7 +1558,7 @@ static void test_list_families_null_count(void) {
 	const char **list;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_families(ctx, NULL);
 	TEST_ASSERT(list != NULL);
@@ -1585,7 +1593,7 @@ static void test_list_families_sorted(void) {
 		"% --END ENCODER m--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_families(ctx, &count);
 	TEST_ASSERT(list != NULL);
@@ -1610,7 +1618,7 @@ static void test_list_family_members_basic(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Family A has enc1 and enc2 */
 	list = bwipp_list_family_members(ctx, "Family A", &count);
@@ -1631,7 +1639,7 @@ static void test_list_family_members_single(void) {
 	unsigned int count;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Family B has only enc3 */
 	list = bwipp_list_family_members(ctx, "Family B", &count);
@@ -1649,7 +1657,7 @@ static void test_list_family_members_unknown(void) {
 	BWIPP *ctx;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK(bwipp_list_family_members(ctx, "Nonexistent", NULL) == NULL);
 
@@ -1662,7 +1670,7 @@ static void test_list_family_members_null_count(void) {
 	const char **list;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_family_members(ctx, "Family A", NULL);
 	TEST_ASSERT(list != NULL);
@@ -1700,7 +1708,7 @@ static void test_list_family_members_sorted(void) {
 		"% --END ENCODER mmm--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_family_members(ctx, "Grp", &count);
 	TEST_ASSERT(list != NULL);
@@ -1722,7 +1730,7 @@ static void test_list_family_members_strings_owned(void) {
 	const char *first;
 
 	write_mock_ps(MOCK_PS, mock_ps_families);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	list = bwipp_list_family_members(ctx, "Family A", &count);
 	TEST_ASSERT(list != NULL);
@@ -1747,7 +1755,7 @@ static void test_emit_required_no_deps(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "base")) != NULL);
 	TEST_CHECK(strcmp(out, "% base code\n") == 0);
@@ -1763,7 +1771,7 @@ static void test_emit_required_with_deps(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* "helper" requires "base"; should emit base then helper */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "helper")) != NULL);
@@ -1780,7 +1788,7 @@ static void test_emit_required_many_deps(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* "encoder" requires "base helper" — deps emitted in REQUIRES order */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "encoder")) != NULL);
@@ -1814,7 +1822,7 @@ static void test_emit_required_dep_order(void) {
 		"% --END RESOURCE gamma--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "gamma")) != NULL);
 	/* beta before alpha because that's the REQUIRES order */
@@ -1831,7 +1839,7 @@ static void test_emit_required_missing_resource(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "nonexistent")) != NULL);
 	TEST_CHECK(strcmp(out, "") == 0);
@@ -1855,7 +1863,7 @@ static void test_emit_required_missing_dep(void) {
 		"% --END RESOURCE foo--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Missing dep silently skipped */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "foo")) != NULL);
@@ -1884,7 +1892,7 @@ static void test_emit_required_mixed_missing_deps(void) {
 		"% --END RESOURCE foo--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* missing1 and missing2 skipped, real included */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "foo")) != NULL);
@@ -1901,7 +1909,7 @@ static void test_emit_required_empty_string(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Empty resource name */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "")) != NULL);
@@ -1922,7 +1930,7 @@ static void test_emit_all_resources(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
 	TEST_CHECK(strcmp(out,
@@ -1953,7 +1961,7 @@ static void test_emit_all_preserves_order(void) {
 		"% --END RESOURCE mmm--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Must be in file order, not alphabetical */
 	TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
@@ -1980,7 +1988,7 @@ static void test_emit_exec_exact_output(void) {
 		"/enc /uk.co.terryburton.bwipp findresource exec\n";
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_exec(ctx, "enc", "ABC", "opt=1")) != NULL);
 	TEST_CHECK(strcmp(out, expect) == 0);
@@ -2001,7 +2009,7 @@ static void test_emit_exec_empty_data(void) {
 		"/enc /uk.co.terryburton.bwipp findresource exec\n";
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_exec(ctx, "enc", "", "")) != NULL);
 	TEST_CHECK(strcmp(out, expect) == 0);
@@ -2021,7 +2029,7 @@ static void test_emit_exec_all_byte_values(void) {
 	int i;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* Build input with bytes 0x01..0xFF (skip 0x00, it terminates the string) */
 	for (i = 1; i <= 255; i++)
@@ -2074,7 +2082,7 @@ static void test_emit_exec_hex_wrap_exact_boundary(void) {
 	int hex_before_wrap;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* 36 bytes = 72 hex chars = exactly HEXIFY_WIDTH; no wrap needed */
 	memset(data, 'B', 36);
@@ -2111,7 +2119,7 @@ static void test_emit_exec_hex_wrap_over_boundary(void) {
 	const char *p;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* 37 bytes = 74 hex chars; should wrap after 72 */
 	memset(data, 'C', 37);
@@ -2139,7 +2147,7 @@ static void test_emit_exec_hex_wrap_long_data(void) {
 	int wraps;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* 180 bytes = 360 hex chars; multiple wraps expected */
 	memset(data, 'X', 180);
@@ -2171,7 +2179,7 @@ static void test_emit_exec_special_chars(void) {
 	char *out;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	/* SOH=01, DEL=7F, high byte=FF */
 	TEST_CHECK((out = bwipp_emit_exec(ctx, "enc", "\x01\x7f\xff", "")) != NULL);
@@ -2221,7 +2229,7 @@ static void test_multiline_code(void) {
 		"% --END RESOURCE multi--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "multi")) != NULL);
 	TEST_CHECK(strcmp(out, expect) == 0);
@@ -2244,7 +2252,7 @@ static void test_empty_code(void) {
 		"% --END RESOURCE empty--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "empty")) != NULL);
 	TEST_CHECK(strcmp(out, "") == 0);
@@ -2270,7 +2278,7 @@ static void test_code_with_percent_lines(void) {
 		"% --END RESOURCE commented--\n"
 		"% --END TEMPLATE--\n"
 	);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "commented")) != NULL);
 	TEST_CHECK(strcmp(out,
@@ -2295,7 +2303,7 @@ static void test_load_unload_cycle(void) {
 	for (i = 0; i < 10; i++) {
 		BWIPP *ctx;
 		TEST_CASE("cycle");
-		TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+		TEST_CHECK((ctx = load_from(MOCK_PS)) != NULL);
 		if (ctx)
 			bwipp_unload(ctx);
 	}
@@ -2309,7 +2317,7 @@ static void test_full_workflow(void) {
 	char *res, *all, *exec;
 
 	write_mock_ps(MOCK_PS, mock_ps);
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
 	TEST_CHECK((version = bwipp_get_version(ctx)) != NULL);
 	TEST_CHECK(strcmp(version, "2099-01-01") == 0);
@@ -2338,7 +2346,7 @@ static void test_full_workflow(void) {
 static void test_real_load(void) {
 	BWIPP *ctx;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found (run make first)", BARCODE_PS);
 		return;
@@ -2354,7 +2362,7 @@ static void test_real_emit_required(void) {
 	BWIPP *ctx;
 	char *out;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -2382,7 +2390,7 @@ static void test_real_emit_all(void) {
 	BWIPP *ctx;
 	char *out;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -2399,7 +2407,7 @@ static void test_real_emit_exec(void) {
 	BWIPP *ctx;
 	char *out;
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -2416,20 +2424,21 @@ static void test_real_emit_exec(void) {
 
 
 /* ========================================================================
- *  bwipp_load_from_file_ex - lazy loading
+ *  bwipp_load_ex - lazy loading
  * ======================================================================== */
 
 static void test_lazy_load_mock(void) {
 	BWIPP *ctx;
 	char *out;
 	bwipp_load_init_opts_t opts = {
-		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.struct_size = sizeof(opts),
 		.flags = bwipp_iLAZY_LOAD,
+		.filename = MOCK_PS,
 	};
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	TEST_ASSERT((ctx = bwipp_load_ex(&opts)) != NULL);
 
 	/* Metadata should still be available */
 	TEST_CHECK(bwipp_get_version(ctx) != NULL);
@@ -2451,13 +2460,14 @@ static void test_lazy_emit_all(void) {
 	BWIPP *ctx;
 	char *out;
 	bwipp_load_init_opts_t opts = {
-		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.struct_size = sizeof(opts),
 		.flags = bwipp_iLAZY_LOAD,
+		.filename = MOCK_PS,
 	};
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	TEST_ASSERT((ctx = bwipp_load_ex(&opts)) != NULL);
 
 	out = bwipp_emit_all_resources(ctx);
 	TEST_ASSERT(out != NULL);
@@ -2474,20 +2484,21 @@ static void test_lazy_no_code_in_memory(void) {
 	BWIPP *ctx;
 	char *eager_out, *lazy_out;
 	bwipp_load_init_opts_t opts = {
-		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.struct_size = sizeof(opts),
 		.flags = bwipp_iLAZY_LOAD,
+		.filename = MOCK_PS,
 	};
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
 	/* Eager: verify code works */
-	TEST_ASSERT((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	eager_out = bwipp_emit_required_resources(ctx, "encoder");
 	TEST_ASSERT(eager_out != NULL);
 	bwipp_unload(ctx);
 
 	/* Lazy: same output */
-	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	TEST_ASSERT((ctx = bwipp_load_ex(&opts)) != NULL);
 	lazy_out = bwipp_emit_required_resources(ctx, "encoder");
 	TEST_ASSERT(lazy_out != NULL);
 
@@ -2504,8 +2515,8 @@ static void test_lazy_null_opts(void) {
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	/* NULL opts should behave like bwipp_load_from_file (eager) */
-	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, NULL)) != NULL);
+	/* NULL opts should behave like bwipp_load (eager, default path) */
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 	TEST_CHECK(bwipp_get_version(ctx) != NULL);
 	bwipp_unload(ctx);
 	remove(MOCK_PS);
@@ -2513,15 +2524,16 @@ static void test_lazy_null_opts(void) {
 
 static void test_lazy_old_struct_size(void) {
 	BWIPP *ctx;
-	/* struct_size smaller than flags field: flags not extracted, defaults to eager */
+	/* struct_size covers filename but not flags: flags not extracted, defaults to eager */
 	bwipp_load_init_opts_t opts = {
 		.struct_size = offsetof(bwipp_load_init_opts_t, flags),
+		.filename = MOCK_PS,
 		.flags = bwipp_iLAZY_LOAD,	/* Should be ignored */
 	};
 
 	write_mock_ps(MOCK_PS, mock_ps);
 
-	TEST_ASSERT((ctx = bwipp_load_from_file_ex(MOCK_PS, &opts)) != NULL);
+	TEST_ASSERT((ctx = bwipp_load_ex(&opts)) != NULL);
 	TEST_CHECK(bwipp_get_version(ctx) != NULL);
 	bwipp_unload(ctx);
 	remove(MOCK_PS);
@@ -2531,11 +2543,12 @@ static void test_real_lazy_emit_required(void) {
 	BWIPP *ctx;
 	char *eager_out, *lazy_out;
 	bwipp_load_init_opts_t opts = {
-		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.struct_size = sizeof(opts),
 		.flags = bwipp_iLAZY_LOAD,
+		.filename = BARCODE_PS,
 	};
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -2544,7 +2557,7 @@ static void test_real_lazy_emit_required(void) {
 	TEST_ASSERT(eager_out != NULL);
 	bwipp_unload(ctx);
 
-	ctx = bwipp_load_from_file_ex(BARCODE_PS, &opts);
+	ctx = bwipp_load_ex(&opts);
 	TEST_ASSERT(ctx != NULL);
 	lazy_out = bwipp_emit_required_resources(ctx, "qrcode");
 	TEST_ASSERT(lazy_out != NULL);
@@ -2560,11 +2573,12 @@ static void test_real_lazy_emit_all(void) {
 	BWIPP *ctx;
 	char *eager_out, *lazy_out;
 	bwipp_load_init_opts_t opts = {
-		.struct_size = sizeof(bwipp_load_init_opts_t),
+		.struct_size = sizeof(opts),
 		.flags = bwipp_iLAZY_LOAD,
+		.filename = BARCODE_PS,
 	};
 
-	ctx = bwipp_load_from_file(BARCODE_PS);
+	ctx = load_from(BARCODE_PS);
 	if (!ctx) {
 		TEST_MSG("Skipped: %s not found", BARCODE_PS);
 		return;
@@ -2573,7 +2587,7 @@ static void test_real_lazy_emit_all(void) {
 	TEST_ASSERT(eager_out != NULL);
 	bwipp_unload(ctx);
 
-	ctx = bwipp_load_from_file_ex(BARCODE_PS, &opts);
+	ctx = bwipp_load_ex(&opts);
 	TEST_ASSERT(ctx != NULL);
 	lazy_out = bwipp_emit_all_resources(ctx);
 	TEST_ASSERT(lazy_out != NULL);

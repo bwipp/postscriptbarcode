@@ -4,11 +4,13 @@
 require "postscriptbarcode"
 
 if ARGV.length > 0
-  bwipp = Postscriptbarcode::BWIPP.new(ARGV[0])
+  bwipp = Postscriptbarcode::BWIPP.new(filename: ARGV[0])
   puts "Version: " + bwipp.get_version
 else
-  bwipp1 = Postscriptbarcode::BWIPP.new(File.dirname(__FILE__) + "/../../../build/monolithic_package/barcode.ps")
-  bwipp = Postscriptbarcode::BWIPP.new(File.dirname(__FILE__) + "/../../../build/monolithic/barcode.ps")
+  bwipp1 = Postscriptbarcode::BWIPP.new(
+    filename: File.dirname(__FILE__) + "/../../../build/monolithic_package/barcode.ps")
+  bwipp = Postscriptbarcode::BWIPP.new(
+    filename: File.dirname(__FILE__) + "/../../../build/monolithic/barcode.ps")
 
   puts "Packaged version: " + bwipp1.get_version
   puts "Unpackaged version: " + bwipp.get_version

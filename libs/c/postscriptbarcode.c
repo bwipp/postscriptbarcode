@@ -315,17 +315,13 @@ BWIPP_API void bwipp_free(void *p) { free(p); }
 
 BWIPP_API BWIPP *bwipp_load(void) {
 	/* TODO search a set of default paths */
-	return bwipp_load_from_file(default_filename);
+	return bwipp_load_ex(NULL);
 }
 
-BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
-	return bwipp_load_from_file_ex(filename, NULL);
-}
-
-BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
-					  const bwipp_load_init_opts_t *opts) {
+BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 	BWIPP *ctx;
 	FILE *f;
+	const char *filename = NULL;
 	bwipp_load_init_flags_t flags = bwipp_iDEFAULT;
 
 	ResourceList **tail;
@@ -337,9 +333,11 @@ BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
 	bool skip;
 	bool lazy;
 
-	assert(filename);
-
+	EXTRACT_OPT(filename);
 	EXTRACT_OPT(flags);
+	if (!filename)
+		filename = default_filename;
+
 	lazy = (flags & bwipp_iLAZY_LOAD) != 0;
 
 	ctx = malloc(sizeof(BWIPP));
@@ -593,6 +591,15 @@ error:
 
 	return NULL;
 }
+
+BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
+	bwipp_load_init_opts_t opts = {
+		.struct_size = sizeof(opts),
+		.filename = filename,
+	};
+	return bwipp_load_ex(&opts);
+}
+
 
 BWIPP_API void bwipp_unload(BWIPP *ctx) {
 	ResourceList *curr;

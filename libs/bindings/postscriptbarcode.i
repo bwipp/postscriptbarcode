@@ -36,6 +36,13 @@
 
 %{
 #include <postscriptbarcode.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct BwippInitOpts {
+	int flags;
+	char *filename;
+} BwippInitOpts;
 %}
 
 /*
@@ -115,8 +122,19 @@
 }
 #endif
 
+/* Ruby: attribute writer style */
+#ifdef SWIGRUBY
+%rename("filename=") BwippInitOpts::set_filename;
+%rename("lazy_load=") BwippInitOpts::set_lazy_load;
+#endif
+
+/* Python: property wrappers added via %pythoncode below */
+
 /* Java: rename snake_case methods to camelCase */
 #ifdef SWIGJAVA
+%rename(InitOpts) BwippInitOpts;
+%rename(setFilename) BwippInitOpts::set_filename;
+%rename(setLazyLoad) BwippInitOpts::set_lazy_load;
 %rename(getVersion) BWIPP::get_version;
 %rename(listEncoders) BWIPP::list_encoders;
 %rename(listProperties) BWIPP::list_properties;
@@ -128,14 +146,79 @@
 %rename(emitExec) BWIPP::emit_exec;
 #endif
 
+struct BwippInitOpts { };
+
+%extend BwippInitOpts {
+        BwippInitOpts() {
+                return (BwippInitOpts *)calloc(1, sizeof(BwippInitOpts));
+        }
+        ~BwippInitOpts() {
+                free($self->filename);
+                free($self);
+        }
+        void set_filename(const char *filename) {
+                free($self->filename);
+                $self->filename = filename ? strdup(filename) : NULL;
+        }
+        void set_lazy_load(int enable) {
+                if (enable)
+                        $self->flags |= bwipp_iLAZY_LOAD;
+                else
+                        $self->flags &= ~bwipp_iLAZY_LOAD;
+        }
+#ifdef SWIGPYTHON
+        %pythoncode %{
+            filename = property(fset=set_filename)
+            lazy_load = property(fset=set_lazy_load)
+        %}
+#endif
+#ifdef SWIGJAVA
+        /* Java: fluent setter wrappers returning this */
+        %proxycode %{
+            public InitOpts filename(String filename) {
+                setFilename(filename);
+                return this;
+            }
+            public InitOpts lazyLoad(boolean enable) {
+                setLazyLoad(enable ? 1 : 0);
+                return this;
+            }
+        %}
+#endif
+};
+
 struct BWIPP { };
 
 %extend BWIPP {
 
         %typemap(newfree) char * "bwipp_free($1);";
 
-        BWIPP(char* filename) {
-                return bwipp_load_from_file(filename);
+#ifdef SWIGPERL
+        /* Perl: accept a hashref as init options */
+        %perlcode %{
+            package postscriptbarcode::BWIPP;
+            my $_new_orig = \&new;
+            no warnings 'redefine';
+            *new = sub {
+                my $pkg = shift;
+                if (@_ == 1 && ref $_[0] eq 'HASH') {
+                    my $h = $_[0];
+                    my $opts = postscriptbarcode::BwippInitOpts->new();
+                    $opts->set_filename($h->{filename}) if exists $h->{filename};
+                    $opts->set_lazy_load($h->{lazy_load} ? 1 : 0) if exists $h->{lazy_load};
+                    return $_new_orig->($pkg, $opts);
+                }
+                return $_new_orig->($pkg, @_);
+            };
+        %}
+#endif
+        BWIPP(BwippInitOpts *opts) {
+                bwipp_load_init_opts_t c_opts = {
+                        .struct_size = sizeof(c_opts),
+                        .filename = opts ? opts->filename : NULL,
+                        .flags = opts ? opts->flags : bwipp_iDEFAULT,
+                };
+                return bwipp_load_ex(&c_opts);
         }
         BWIPP() {
                 return bwipp_load();
@@ -175,3 +258,44 @@ struct BWIPP { };
                 return bwipp_emit_exec($self,barcode,contents,options);
         }
 };
+
+#ifdef SWIGRUBY
+/* Ruby: accept keyword arguments to BWIPP.new */
+%init %{
+    rb_eval_string(
+        "class Postscriptbarcode::BWIPP\n"
+        "  class << self\n"
+        "    alias_method :_new_orig, :new\n"
+        "    def new(**kwargs)\n"
+        "      if kwargs.empty?\n"
+        "        _new_orig\n"
+        "      else\n"
+        "        opts = Postscriptbarcode::BwippInitOpts.new\n"
+        "        opts.filename = kwargs[:filename] if kwargs.key?(:filename)\n"
+        "        opts.lazy_load = kwargs[:lazy_load] ? 1 : 0 if kwargs.key?(:lazy_load)\n"
+        "        _new_orig(opts)\n"
+        "      end\n"
+        "    end\n"
+        "  end\n"
+        "end\n"
+    );
+%}
+#endif
+
+#ifdef SWIGPYTHON
+/* Python: accept keyword arguments to BWIPP() */
+%pythoncode %{
+_BWIPP_init_orig = BWIPP.__init__
+def _BWIPP_init_kwargs(self, *args, filename=None, lazy_load=None):
+    if args or (filename is None and lazy_load is None):
+        _BWIPP_init_orig(self, *args)
+    else:
+        opts = BwippInitOpts()
+        if filename is not None:
+            opts.filename = filename
+        if lazy_load is not None:
+            opts.lazy_load = lazy_load
+        _BWIPP_init_orig(self, opts)
+BWIPP.__init__ = _BWIPP_init_kwargs
+%}
+#endif

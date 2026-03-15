@@ -41,7 +41,7 @@
  *
  * The basic workflow is to firstly initialise the library to obtain a
  * BWIPP context by loading the BWIPP resources using either bwipp_load() or
- * bwipp_load_from_file(). The context is provided as the first argument to
+ * bwipp_load_ex(). The context is provided as the first argument to
  * all subsequent function calls. You can then list the available encoder
  * names using bwipp_list_encoders(). Each encoder has properties (metadata
  * key-value pairs such as DESC, EXAM, EXOP, RNDR) that can be enumerated
@@ -75,6 +75,14 @@
 #endif
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#  define BWIPP_DEPRECATED __attribute__((__deprecated__))
+#elif defined(_MSC_VER)
+#  define BWIPP_DEPRECATED __declspec(deprecated)
+#else
+#  define BWIPP_DEPRECATED
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -85,7 +93,7 @@ extern "C" {
 typedef struct BWIPP BWIPP;
 
 /**
- * @brief Initialisation flags for bwipp_load_from_file_ex().
+ * @brief Initialisation flags for bwipp_load_ex().
  */
 enum bwipp_load_init_flags {
 	bwipp_iDEFAULT    = 0,       /**< Default: load all resource bodies into memory. */
@@ -98,13 +106,14 @@ enum bwipp_load_init_flags {
 typedef enum bwipp_load_init_flags bwipp_load_init_flags_t;
 
 /**
- * @brief Initialisation options for bwipp_load_from_file_ex().
+ * @brief Initialisation options for bwipp_load_ex().
  *
  * Callers must set `struct_size` to `sizeof(bwipp_load_init_opts_t)` to enable
  * forward-compatible option extraction.
  */
 struct bwipp_load_init_opts {
 	size_t struct_size;              /**< Must be sizeof(bwipp_load_init_opts_t). */
+	const char *filename;            /**< Path to barcode.ps, or NULL for default. */
 	bwipp_load_init_flags_t flags;   /**< Bitwise OR of bwipp_load_init_flags values. */
 };
 
@@ -121,34 +130,32 @@ typedef struct bwipp_load_init_opts bwipp_load_init_opts_t;
 BWIPP_API BWIPP *bwipp_load(void);
 
 /**
- * @brief Load the BWIPP resources from a given resource file.
+ * @brief Load the BWIPP resources with options.
  *
- * All resource bodies are loaded into memory. Equivalent to calling
- * bwipp_load_from_file_ex() with NULL opts.
+ * When `opts` is NULL, behaves identically to bwipp_load().
  *
- * @param [in] filename Path to the barcode.ps resources file.
- * @return ::BWIPP context on success, else NULL.
- */
-BWIPP_API BWIPP *bwipp_load_from_file(const char *filename);
-
-/**
- * @brief Load the BWIPP resources from a given resource file, with options.
+ * When `opts->filename` is set, loads from the given path instead of the
+ * default location. When `bwipp_iLAZY_LOAD` is set in `opts->flags`,
+ * resource bodies are not read into memory at load time; instead the file
+ * handle is held open and bodies are read on demand by the emit functions.
  *
- * When `opts` is NULL, behaves identically to bwipp_load_from_file().
- * When `bwipp_iLAZY_LOAD` is set in opts->flags, resource bodies are not
- * read into memory at load time. Instead, the file handle is held open and
- * bodies are read on demand by the emit functions. This trades disk I/O
- * for reduced memory usage.
- *
- * @param [in] filename Path to the barcode.ps resources file.
  * @param [in] opts Initialisation options, or NULL for defaults.
  * @return ::BWIPP context on success, else NULL.
  *
  * @note If opts is provided, `opts->struct_size` must be initialised to
  * `sizeof(bwipp_load_init_opts_t)`.
  */
-BWIPP_API BWIPP *bwipp_load_from_file_ex(const char *filename,
-                                          const bwipp_load_init_opts_t *opts);
+BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts);
+
+/**
+ * @brief Load the BWIPP resources from a given resource file.
+ * @deprecated Use bwipp_load_ex() with opts->filename instead.
+ *
+ * @param [in] filename Path to the barcode.ps resources file.
+ * @return ::BWIPP context on success, else NULL.
+ */
+BWIPP_API BWIPP_DEPRECATED BWIPP *bwipp_load_from_file(const char *filename);
+
 
 /**
  * @brief Unload the BWIPP resources.

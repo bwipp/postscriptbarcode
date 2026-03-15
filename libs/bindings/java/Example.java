@@ -1,4 +1,5 @@
 import uk.co.terryburton.bwipp.BWIPP;
+import uk.co.terryburton.bwipp.InitOpts;
 
 public class Example {
 
@@ -10,22 +11,23 @@ public class Example {
         BWIPP bwipp;
 
         if (args.length > 0) {
-            bwipp = new BWIPP(args[0]);
+            bwipp = new BWIPP(new InitOpts().filename(args[0]));
             if (bwipp.getVersion() == null) {
                     System.err.println("Failed to load resource");
                     System.exit(1);
             }
             System.out.println("Version: " + bwipp.getVersion());
         } else {
-            BWIPP bwipp1 =
-                new BWIPP("../../../build/monolithic_package/barcode.ps");
+            BWIPP bwipp1 = new BWIPP(new InitOpts()
+                .filename("../../../build/monolithic_package/barcode.ps"));
 
             if (bwipp1.getVersion() == null) {
                     System.err.println("Failed to load resource");
                     System.exit(1);
             }
 
-            bwipp = new BWIPP("../../../build/monolithic/barcode.ps");
+            bwipp = new BWIPP(new InitOpts()
+                .filename("../../../build/monolithic/barcode.ps"));
 
             if (bwipp.getVersion() == null) {
                     System.err.println("Failed to load resource");

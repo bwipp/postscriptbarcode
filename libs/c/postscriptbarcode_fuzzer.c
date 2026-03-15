@@ -47,7 +47,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 	const char *end;
 
 	if (!ctx) {
-		ctx = bwipp_load_from_file(BARCODE_PS);
+		bwipp_load_init_opts_t opts = {
+			.struct_size = sizeof(opts),
+			.filename = BARCODE_PS,
+		};
+		ctx = bwipp_load_ex(&opts);
 		assert(ctx);
 		assert(bwipp_get_version(ctx) != NULL);
 	}
