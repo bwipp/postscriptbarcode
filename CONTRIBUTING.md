@@ -1128,10 +1128,10 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 Distribution packages are built on OBS for 19 targets across DEB, RPM, and
 Arch-based distributions, using two projects:
 
-| Project                                                                                                                                | Purpose      | Source     | Version format                      |
-|----------------------------------------------------------------------------------------------------------------------------------------|--------------|------------|-------------------------------------|
-| [`home:terryburton:postscriptbarcode`](https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode) | **Release**  | Pinned tag | `@PARENT_TAG@`                      |
-| `home:terryburton:postscriptbarcode:dev`                                                                                               | Dev/nightly  | HEAD       | `@PARENT_TAG@.@TAG_OFFSET@~nightly` |
+| Project                                                                                                                                 | Purpose     | Source     | Version format                      |
+|-----------------------------------------------------------------------------------------------------------------------------------------|-------------|------------|-------------------------------------|
+| [`home:terryburton:postscriptbarcode`](https://build.opensuse.org/package/show/home:terryburton:postscriptbarcode/libpostscriptbarcode) | **Release** | Pinned tag | `@PARENT_TAG@`                      |
+| `home:terryburton:postscriptbarcode:dev`                                                                                                | Dev/nightly | HEAD       | `@PARENT_TAG@.@TAG_OFFSET@~nightly` |
 
 The release project's services run on commit and can be re-triggered via
 `osc service remoterun`. Trigger promptly after tagging, before further
