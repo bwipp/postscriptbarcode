@@ -7,12 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if ! command -v perl >/dev/null 2>&1; then
 	echo "SKIP: perl (perl not installed)"
-	exit 0
+	exit 2
 fi
 
 if ! perl -Mpostscriptbarcode -e 1 2>/dev/null; then
 	echo "SKIP: perl (postscriptbarcode module not installed)"
-	exit 0
+	exit 2
 fi
 
 if ! OUTPUT=$(perl "$SCRIPT_DIR/example.pl" "$BARCODE_PS" 2>&1); then

@@ -10,17 +10,17 @@ SO_NAME="libpostscriptbarcode.so.1"
 
 if ! ldconfig -p 2>/dev/null | grep -q "$SO_NAME"; then
 	echo "SKIP: clib ($SO_NAME not found)"
-	exit 0
+	exit 2
 fi
 
 if ! command -v cc >/dev/null 2>&1; then
 	echo "SKIP: clib (cc not installed)"
-	exit 0
+	exit 2
 fi
 
 if [ ! -f "$EXAMPLE" ]; then
 	echo "SKIP: clib (example.c not found)"
-	exit 0
+	exit 2
 fi
 
 TMPBIN=$(mktemp)

@@ -120,12 +120,31 @@ jobs:
           sudo apt-get update
           sudo dpkg -i packages/*.deb || true
           sudo apt-get install -f -y
-          sudo apt-get install -y --no-install-recommends ghostscript gcc libc6-dev
+          sudo apt-get install -y --no-install-recommends ghostscript
 
-      - name: Run smoke tests
-        run: |
-          chmod +x tests/*.sh
-          tests/run_all.sh
+      - name: Make test scripts executable
+        run: chmod +x tests/*.sh
+
+      - name: Test PostScript
+        run: tests/test_postscript.sh
+
+      - name: Test Python binding
+        run: tests/test_python.sh
+
+      - name: Test Perl binding
+        run: tests/test_perl.sh
+
+      - name: Test Ruby binding
+        run: tests/test_ruby.sh
+
+      - name: Test Java binding
+        run: tests/test_java.sh
+
+      - name: Install C compiler
+        run: sudo apt-get install -y --no-install-recommends gcc libc6-dev
+
+      - name: Test C library
+        run: tests/test_clib.sh
 
   build-rpm:
     runs-on: ubuntu-24.04
@@ -186,12 +205,31 @@ jobs:
           path: packages
 
       - name: Install RPM packages
-        run: dnf install -y ghostscript gcc packages/*.rpm
+        run: dnf install -y ghostscript packages/*.rpm
 
-      - name: Run smoke tests
-        run: |
-          chmod +x tests/*.sh
-          tests/run_all.sh
+      - name: Make test scripts executable
+        run: chmod +x tests/*.sh
+
+      - name: Test PostScript
+        run: tests/test_postscript.sh
+
+      - name: Test Python binding
+        run: tests/test_python.sh
+
+      - name: Test Perl binding
+        run: tests/test_perl.sh
+
+      - name: Test Ruby binding
+        run: tests/test_ruby.sh
+
+      - name: Test Java binding
+        run: tests/test_java.sh
+
+      - name: Install C compiler
+        run: dnf install -y gcc
+
+      - name: Test C library
+        run: tests/test_clib.sh
 
   build-arch:
     runs-on: ubuntu-24.04
@@ -257,9 +295,28 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -U --noconfirm packages/*.pkg.tar.zst
-          pacman -S --noconfirm --needed ghostscript gcc
+          pacman -S --noconfirm --needed ghostscript
 
-      - name: Run smoke tests
-        run: |
-          chmod +x tests/*.sh
-          tests/run_all.sh
+      - name: Make test scripts executable
+        run: chmod +x tests/*.sh
+
+      - name: Test PostScript
+        run: tests/test_postscript.sh
+
+      - name: Test Python binding
+        run: tests/test_python.sh
+
+      - name: Test Perl binding
+        run: tests/test_perl.sh
+
+      - name: Test Ruby binding
+        run: tests/test_ruby.sh
+
+      - name: Test Java binding
+        run: tests/test_java.sh
+
+      - name: Install C compiler
+        run: pacman -S --noconfirm --needed gcc
+
+      - name: Test C library
+        run: tests/test_clib.sh

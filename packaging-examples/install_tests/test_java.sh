@@ -16,7 +16,7 @@ done
 
 if [ -z "$JAR" ]; then
 	echo "SKIP: java (libpostscriptbarcode.jar not found)"
-	exit 0
+	exit 2
 fi
 
 if command -v jshell >/dev/null 2>&1; then
@@ -51,7 +51,7 @@ elif command -v java >/dev/null 2>&1; then
 	fi
 else
 	echo "SKIP: java (java not installed)"
-	exit 0
+	exit 2
 fi
 
 echo "PASS: java"

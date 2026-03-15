@@ -6,12 +6,12 @@ BARCODE_PS="${1:-/usr/share/postscriptbarcode/barcode.ps}"
 
 if [ ! -f "$BARCODE_PS" ]; then
 	echo "SKIP: postscript ($BARCODE_PS not found)"
-	exit 0
+	exit 2
 fi
 
 if ! command -v gs >/dev/null 2>&1; then
 	echo "SKIP: postscript (ghostscript not installed)"
-	exit 0
+	exit 2
 fi
 
 if ! OUTPUT=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=nullpage \
