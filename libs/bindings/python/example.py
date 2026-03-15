@@ -11,9 +11,9 @@ if len(sys.argv) > 1:
     print("Version: " + bwipp.get_version())
 else:
     bwipp1 = postscriptbarcode.BWIPP(
-        filename="../../../build/monolithic_package/barcode.ps")
-    bwipp2 = postscriptbarcode.BWIPP(
-        filename="../../../build/monolithic/barcode.ps")
+        filename="../../../build/monolithic_package/barcode.ps"
+    )
+    bwipp2 = postscriptbarcode.BWIPP(filename="../../../build/monolithic/barcode.ps")
 
     print("Packaged version: " + bwipp1.get_version())
     print("Unpackaged version: " + bwipp2.get_version())

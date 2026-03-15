@@ -2600,6 +2600,36 @@ static void test_real_lazy_emit_all(void) {
 }
 
 
+/* ========================================================================
+ *  Deprecated API - exercise to prevent cppcheck unusedFunction
+ * ======================================================================== */
+
+#if defined(__GNUC__) || defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(_MSC_VER)
+#  pragma warning(push)
+#  pragma warning(disable: 4996)
+#endif
+
+static void test_deprecated_load_from_file(void) {
+	BWIPP *ctx;
+
+	write_mock_ps(MOCK_PS, mock_ps);
+
+	TEST_CHECK((ctx = bwipp_load_from_file(MOCK_PS)) != NULL);
+	TEST_CHECK(bwipp_get_version(ctx) != NULL);
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+#if defined(__GNUC__) || defined(__clang__)
+#  pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+#  pragma warning(pop)
+#endif
+
+
 TEST_LIST = {
 
 	/* Loading - success */
@@ -2742,6 +2772,9 @@ TEST_LIST = {
 	/* Lazy loading (real barcode.ps) */
 	{"real_lazy_emit_required",          test_real_lazy_emit_required},
 	{"real_lazy_emit_all",               test_real_lazy_emit_all},
+
+	/* Deprecated API */
+	{"deprecated_load_from_file",        test_deprecated_load_from_file},
 
 	{NULL, NULL}
 };
