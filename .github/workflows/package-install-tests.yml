@@ -120,7 +120,7 @@ jobs:
           sudo apt-get update
           sudo dpkg -i packages/*.deb || true
           sudo apt-get install -f -y
-          sudo apt-get install -y --no-install-recommends ghostscript
+          sudo apt-get install -y --no-install-recommends ghostscript gcc libc6-dev
 
       - name: Run smoke tests
         run: |
@@ -186,7 +186,7 @@ jobs:
           path: packages
 
       - name: Install RPM packages
-        run: dnf install -y ghostscript packages/*.rpm
+        run: dnf install -y ghostscript gcc packages/*.rpm
 
       - name: Run smoke tests
         run: |
@@ -257,7 +257,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -U --noconfirm packages/*.pkg.tar.zst
-          pacman -S --noconfirm --needed ghostscript
+          pacman -S --noconfirm --needed ghostscript gcc
 
       - name: Run smoke tests
         run: |
