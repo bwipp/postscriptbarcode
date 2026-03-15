@@ -58,4 +58,12 @@ for my $prop (@$props) {
     print "  $prop: " . $bwipp->get_property("qrcode", $prop) . "\n";
 }
 
+print "Hex string: " . $bwipp->emit_pshexstr("Hello") . "\n";
+
+my $tmpl = $bwipp->emit_template(
+    '%dat %opt %enc /uk.co.terryburton.bwipp findresource exec',
+    'qrcode', 'Hello World', 'eclevel=M');
+$lines = $tmpl=~tr/\n//;
+print "Template lines: $lines\n";
+
 1;

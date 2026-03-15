@@ -15,13 +15,13 @@ else
   puts "Packaged version: " + bwipp1.get_version
   puts "Unpackaged version: " + bwipp.get_version
 
-  puts "Packaged lines: " + bwipp1.emit_all_resources.lines.count.to_s
+  puts "Packaged lines: " + bwipp1.emit_all_resources.count("\n").to_s
 end
 
-puts "Unpackaged lines: " + bwipp.emit_all_resources.lines.count.to_s
+puts "Unpackaged lines: " + bwipp.emit_all_resources.count("\n").to_s
 
-puts "qrcode resource lines: " + bwipp.emit_required_resources("qrcode").lines.count.to_s
-puts "emit_exec lines: " + bwipp.emit_exec("qrcode", "Hello World", "eclevel=M").lines.count.to_s
+puts "qrcode resource lines: " + bwipp.emit_required_resources("qrcode").count("\n").to_s
+puts "emit_exec lines: " + bwipp.emit_exec("qrcode", "Hello World", "eclevel=M").count("\n").to_s
 
 encoders = bwipp.list_encoders
 puts "Encoders: " + encoders.length.to_s
@@ -38,3 +38,10 @@ puts "qrcode properties: " + props.length.to_s
 props.each do |prop|
   puts "  #{prop}: #{bwipp.get_property("qrcode", prop)}"
 end
+
+puts "Hex string: " + bwipp.emit_pshexstr("Hello")
+
+tmpl = bwipp.emit_template(
+  "%dat %opt %enc /uk.co.terryburton.bwipp findresource exec",
+  "qrcode", "Hello World", "eclevel=M")
+puts "Template lines: " + tmpl.count("\n").to_s

@@ -33,6 +33,7 @@
 #include "postscriptbarcode.h"
 #include "postscriptbarcode_private.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -60,6 +61,7 @@ struct BWIPP {
 	FamilyList *familylist;		/* Built at load time from FMLY properties */
 	unsigned int numfamilies;
 	FILE *f;			/* Held open for lazy loading, else NULL */
+	unsigned int hexify_width;	/* Line width for hex string output */
 };
 
 /* Extract option from opts struct, respecting struct_size for forward compat */
@@ -92,19 +94,34 @@ static const char hex_lut[] =
 	"E0E1E2E3E4E5E6E7E8E9EAEBECEDEEEF"
 	"F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF";
 
-static char *pshexstr(const char *in, size_t *out_len) {
+static char *pshexstr(const char *in, size_t *out_len, unsigned int width) {
 	char *out, *hex;
-	unsigned int count = 1, i;
-	size_t len, alloc;
+	unsigned int count = 1;
+	size_t i, len, hex_len, nwraps, wrap_len, alloc;
+	bool wrap;
 
 	assert(in);
 
-	len = strlen(in);
-	if (len > SIZE_MAX / 3)
-		return NULL;
+	/* width: 0=default, UINT_MAX=no wrap, otherwise even, minimum 2 */
+	if (!width)
+		width = HEXIFY_WIDTH;
+	wrap = (width != UINT_MAX);
+	if (wrap && width < 2)
+		width = 2;
+	if (wrap && (width & 1))
+		width &= ~1U;
 
-	/* 2 hex chars per byte, plus newline+space every HEXIFY_WIDTH chars */
-	alloc = 2 * len + 2 * (len / (HEXIFY_WIDTH / 2) + 1) + 3;
+	len = strlen(in);
+
+	hex_len = 2 * len;
+	nwraps = len / (width / 2) + 1;
+	wrap_len = 2 * nwraps;
+	if (hex_len / 2 != len || wrap_len / 2 != nwraps ||
+	    hex_len + wrap_len < hex_len ||
+	    hex_len + wrap_len + 3 < hex_len + wrap_len)
+		return NULL;
+	alloc = hex_len + wrap_len + 3;
+
 	out = malloc(alloc);
 	if (!out)
 		return NULL;
@@ -113,11 +130,11 @@ static char *pshexstr(const char *in, size_t *out_len) {
 
 	*hex++ = '<';
 	for (i = 0; i < len; i++) {
-		if (count >= HEXIFY_WIDTH) {
+		if (wrap && count >= width) {
 			*hex++ = '\n';
 			count = 0;
 		}
-		if (!count) {
+		if (wrap && !count) {
 			*hex++ = ' ';
 			count++;
 		}
@@ -323,6 +340,7 @@ BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 	FILE *f;
 	const char *filename = NULL;
 	bwipp_load_init_flags_t flags = bwipp_iDEFAULT;
+	unsigned int hexify_width = 0;
 
 	ResourceList **tail;
 	Resource *resource = NULL;
@@ -335,6 +353,7 @@ BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 
 	EXTRACT_OPT(filename);
 	EXTRACT_OPT(flags);
+	EXTRACT_OPT(hexify_width);
 	if (!filename)
 		filename = default_filename;
 
@@ -351,6 +370,7 @@ BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 	ctx->familylist = NULL;
 	ctx->numfamilies = 0;
 	ctx->f = NULL;
+	ctx->hexify_width = hexify_width;
 	tail = &ctx->resourcelist;
 
 	f = fopen(filename, "r");
@@ -683,16 +703,17 @@ BWIPP_API const char **bwipp_list_properties(BWIPP *ctx, const char *name,
 	if (!resource)
 		return NULL;
 
-	list = malloc((resource->numprops + 1) * sizeof(const char *));
+	list = malloc((resource->numprops + 2) * sizeof(const char *));
 	if (!list)
 		return NULL;
 
+	list[i++] = "TYPE";
 	for (curr = resource->props; curr; curr = curr->next)
 		list[i++] = curr->entry->key;
 	list[i] = NULL;
 
 	if (count)
-		*count = resource->numprops;
+		*count = resource->numprops + 1;
 
 	return list;
 }
@@ -708,6 +729,9 @@ BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name,
 	resource = get_resource(ctx, name);
 	if (!resource)
 		return NULL;
+
+	if (strcmp(key, "TYPE") == 0)
+		return resource->type;
 
 	return get_resource_property(resource, key);
 }
@@ -899,33 +923,147 @@ BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx) {
 	return tmp ? tmp : code;
 }
 
-BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data,
-				const char *options) {
-	static const char fmt[] =
-		"0 0 moveto\n"
-		"%s\n"
-		"%s\n"
-		"/%s /uk.co.terryburton.bwipp findresource exec\n";
-	char *call = NULL, *data_h = NULL, *options_h = NULL;
-	size_t data_h_len, options_h_len;
+BWIPP_API char *bwipp_emit_template(BWIPP *ctx, const char *fmt,
+				    const char *name, const char *data,
+				    const char *options) {
+	char *out, *dst, *name_h = NULL, *data_h = NULL, *options_h = NULL;
+	const char *src;
+	size_t fmt_len, name_h_len = 0, data_h_len = 0, options_h_len = 0;
+	size_t enc_total, dat_total, opt_total, token_len, alloc;
+	unsigned int ndat = 0, nopt = 0, nenc = 0;
 
 	assert(ctx);
+	assert(fmt);
 	assert(name);
 	assert(data);
 	assert(options);
 
-	data_h = pshexstr(data, &data_h_len);
-	options_h = pshexstr(options, &options_h_len);
-
-	if (data_h && options_h) {
-		size_t alloc = sizeof(fmt) + data_h_len + options_h_len + strlen(name);
-		call = malloc(alloc);
-		if (call)
-			snprintf(call, alloc, fmt, data_h, options_h, name);
+	/* First pass: count substitutions to size the output */
+	for (src = fmt; *src; src++) {
+		if (*src == '%' && src[1]) {
+			if (src[1] == 'd' && src[2] && src[2] == 'a' && src[3] && src[3] == 't') {
+				ndat++;
+				src += 3;
+			} else if (src[1] == 'o' && src[2] && src[2] == 'p' && src[3] && src[3] == 't') {
+				nopt++;
+				src += 3;
+			} else if (src[1] == 'e' && src[2] && src[2] == 'n' && src[3] && src[3] == 'c') {
+				nenc++;
+				src += 3;
+			} else if (src[1] == '%') {
+				src++;
+			}
+		}
 	}
 
+	/* Generate hex strings only if needed */
+	if (nenc) {
+		name_h = pshexstr(name, &name_h_len, 0);
+		if (!name_h)
+			return NULL;
+	}
+	if (ndat) {
+		data_h = pshexstr(data, &data_h_len, ctx->hexify_width);
+		if (!data_h) {
+			free(name_h);
+			return NULL;
+		}
+	}
+	if (nopt) {
+		options_h = pshexstr(options, &options_h_len, ctx->hexify_width);
+		if (!options_h) {
+			free(name_h);
+			free(data_h);
+			return NULL;
+		}
+	}
+
+	/* Allocate output: format length + expansions - substitution tokens */
+	fmt_len = strlen(fmt);
+	enc_total = nenc ? nenc * (name_h_len + 4) : 0;
+	dat_total = ndat ? ndat * data_h_len : 0;
+	opt_total = nopt ? nopt * options_h_len : 0;
+	token_len = (ndat + nopt + nenc) * 4;
+
+	/* Overflow check */
+	if ((nenc && enc_total / nenc != name_h_len + 4) ||
+	    (ndat && dat_total / ndat != data_h_len) ||
+	    (nopt && opt_total / nopt != options_h_len)) {
+		free(name_h);
+		free(data_h);
+		free(options_h);
+		return NULL;
+	}
+
+	alloc = fmt_len + enc_total + dat_total + opt_total - token_len + 1;
+	if (alloc < fmt_len) {	/* Wrapped */
+		free(name_h);
+		free(data_h);
+		free(options_h);
+		return NULL;
+	}
+
+	out = malloc(alloc);
+	if (!out) {
+		free(name_h);
+		free(data_h);
+		free(options_h);
+		return NULL;
+	}
+
+	/* Second pass: substitute */
+	dst = out;
+	for (src = fmt; *src; src++) {
+		if (*src == '%' && src[1]) {
+			if (src[1] == 'd' && src[2] && src[2] == 'a' && src[3] && src[3] == 't') {
+				memcpy(dst, data_h, data_h_len);
+				dst += data_h_len;
+				src += 3;
+				continue;
+			}
+			if (src[1] == 'o' && src[2] && src[2] == 'p' && src[3] && src[3] == 't') {
+				memcpy(dst, options_h, options_h_len);
+				dst += options_h_len;
+				src += 3;
+				continue;
+			}
+			if (src[1] == 'e' && src[2] && src[2] == 'n' && src[3] && src[3] == 'c') {
+				memcpy(dst, name_h, name_h_len);
+				dst += name_h_len;
+				memcpy(dst, " cvn", 4);
+				dst += 4;
+				src += 3;
+				continue;
+			}
+			if (src[1] == '%') {
+				*dst++ = '%';
+				src++;
+				continue;
+			}
+		}
+		*dst++ = *src;
+	}
+	*dst = '\0';
+
+	free(name_h);
 	free(data_h);
 	free(options_h);
 
-	return call;
+	return out;
+}
+
+BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *name, const char *data,
+				const char *options) {
+	return bwipp_emit_template(ctx,
+		"0 0 moveto\n%dat\n%opt\n%enc\n/uk.co.terryburton.bwipp findresource exec\n",
+		name, data, options);
+}
+
+BWIPP_API char *bwipp_emit_pshexstr(BWIPP *ctx, const char *str) {
+	size_t len;
+
+	assert(ctx);
+	assert(str);
+
+	return pshexstr(str, &len, ctx->hexify_width);
 }

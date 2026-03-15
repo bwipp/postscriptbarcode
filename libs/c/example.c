@@ -155,6 +155,24 @@ int main(int argc, char *argv[]) {
 		bwipp_unload(lazy);
 	}
 
+	/* Hex string encoding */
+	{
+		char *hex;
+		hex = bwipp_emit_pshexstr(bwipp, "Hello");
+		printf("Hex string: %s\n", hex);
+		bwipp_free(hex);
+	}
+
+	/* Template-based output */
+	{
+		char *tmpl;
+		tmpl = bwipp_emit_template(bwipp,
+			"%dat %opt %enc /uk.co.terryburton.bwipp findresource exec",
+			"qrcode", "Hello World", "eclevel=M");
+		printf("Template lines: %u\n", count_lines(tmpl));
+		bwipp_free(tmpl);
+	}
+
 	if (bwipp1)
 		bwipp_unload(bwipp1);
 	bwipp_unload(bwipp);

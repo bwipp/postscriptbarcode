@@ -115,6 +115,7 @@ struct bwipp_load_init_opts {
 	size_t struct_size;              /**< Must be sizeof(bwipp_load_init_opts_t). */
 	const char *filename;            /**< Path to barcode.ps, or NULL for default. */
 	bwipp_load_init_flags_t flags;   /**< Bitwise OR of bwipp_load_init_flags values. */
+	unsigned int hexify_width;       /**< Hex string line width: 0=default (72), even>=2, UINT_MAX=no wrap. */
 };
 
 /**
@@ -190,9 +191,10 @@ BWIPP_API const char **bwipp_list_encoders(BWIPP *ctx, unsigned int *count);
 /**
  * @brief List the property keys of a named resource.
  *
- * Returns a NULL-terminated array of property key strings. Properties are
- * metadata key-value pairs extracted from the resource file comments (e.g.
- * DESC, EXAM, EXOP, RNDR).
+ * Returns a NULL-terminated array of property key strings. The first entry
+ * is always "TYPE" (the resource type, e.g. "ENCODER" or "RESOURCE").
+ * Remaining entries are metadata key-value pairs extracted from the resource
+ * file comments (e.g. DESC, EXAM, EXOP, RNDR).
  *
  * @param [in] ctx ::BWIPP context.
  * @param [in] name The resource name.
@@ -209,7 +211,8 @@ BWIPP_API const char **bwipp_list_properties(BWIPP *ctx, const char *name,
  *
  * @param [in] ctx ::BWIPP context.
  * @param [in] name The resource name.
- * @param [in] key The property key (e.g. "DESC", "EXAM", "EXOP", "RNDR").
+ * @param [in] key The property key (e.g. "TYPE", "DESC", "EXAM", "EXOP",
+ *             "RNDR").
  * @return The property value string (owned by the context), or NULL if
  *         the resource or property is not found.
  */
@@ -281,6 +284,45 @@ BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx);
  */
 BWIPP_API char *bwipp_emit_exec(BWIPP *ctx, const char *barcode,
                                 const char *contents, const char *options);
+
+/**
+ * @brief Provide PostScript code from a template with substitutions.
+ *
+ * Substitution variables in the format string:
+ * - \%enc — encoder name as a PostScript hex string followed by cvn (e.g. \<7172636F6465\> cvn)
+ * - \%dat — data as a PostScript hex string
+ * - \%opt — options as a PostScript hex string
+ * - \%\% — literal \%
+ *
+ * Unrecognised \% sequences are passed through unchanged.
+ *
+ * @param [in,out] ctx ::BWIPP context.
+ * @param [in] fmt The format string with substitution variables.
+ * @param [in] name The encoder name.
+ * @param [in] data The barcode data.
+ * @param [in] options The barcode options.
+ * @return The expanded PostScript code, which the caller should release
+ *         with bwipp_free().
+ */
+BWIPP_API char *bwipp_emit_template(BWIPP *ctx, const char *fmt,
+                                     const char *name, const char *data,
+                                     const char *options);
+
+/**
+ * @brief Encode a string as a PostScript hex string literal.
+ *
+ * Returns a hex-encoded string wrapped in angle brackets (e.g.
+ * \<48656C6C6F\> for "Hello"), suitable for embedding in PostScript output.
+ * Lines are wrapped at the width configured via opts->hexify_width at
+ * load time (must be even, minimum 2). Set to UINT_MAX to disable
+ * wrapping. Default (0) is 72.
+ *
+ * @param [in,out] ctx ::BWIPP context.
+ * @param [in] str The input string.
+ * @return The hex-encoded PostScript string, which the caller should
+ *         release with bwipp_free().
+ */
+BWIPP_API char *bwipp_emit_pshexstr(BWIPP *ctx, const char *str);
 
 /**
  * @brief Free memory belonging to a BWIPP provided allocation.

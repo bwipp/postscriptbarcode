@@ -36,12 +36,14 @@
 
 %{
 #include <postscriptbarcode.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 typedef struct BwippInitOpts {
 	int flags;
 	char *filename;
+	unsigned int hexify_width;
 } BwippInitOpts;
 %}
 
@@ -126,6 +128,7 @@ typedef struct BwippInitOpts {
 #ifdef SWIGRUBY
 %rename("filename=") BwippInitOpts::set_filename;
 %rename("lazy_load=") BwippInitOpts::set_lazy_load;
+%rename("hexify_width=") BwippInitOpts::set_hexify_width;
 #endif
 
 /* Python: property wrappers added via %pythoncode below */
@@ -135,6 +138,7 @@ typedef struct BwippInitOpts {
 %rename(InitOpts) BwippInitOpts;
 %rename(setFilename) BwippInitOpts::set_filename;
 %rename(setLazyLoad) BwippInitOpts::set_lazy_load;
+%rename(setHexifyWidth) BwippInitOpts::set_hexify_width;
 %rename(getVersion) BWIPP::get_version;
 %rename(listEncoders) BWIPP::list_encoders;
 %rename(listProperties) BWIPP::list_properties;
@@ -144,6 +148,8 @@ typedef struct BwippInitOpts {
 %rename(emitRequiredResources) BWIPP::emit_required_resources;
 %rename(emitAllResources) BWIPP::emit_all_resources;
 %rename(emitExec) BWIPP::emit_exec;
+%rename(emitTemplate) BWIPP::emit_template;
+%rename(emitPshexstr) BWIPP::emit_pshexstr;
 #endif
 
 struct BwippInitOpts { };
@@ -166,10 +172,14 @@ struct BwippInitOpts { };
                 else
                         $self->flags &= ~bwipp_iLAZY_LOAD;
         }
+        void set_hexify_width(unsigned int width) {
+                $self->hexify_width = width ? width : UINT_MAX;
+        }
 #ifdef SWIGPYTHON
         %pythoncode %{
             filename = property(fset=set_filename)
             lazy_load = property(fset=set_lazy_load)
+            hexify_width = property(fset=set_hexify_width)
         %}
 #endif
 #ifdef SWIGJAVA
@@ -181,6 +191,10 @@ struct BwippInitOpts { };
             }
             public InitOpts lazyLoad(boolean enable) {
                 setLazyLoad(enable ? 1 : 0);
+                return this;
+            }
+            public InitOpts hexifyWidth(int width) {
+                setHexifyWidth(width);
                 return this;
             }
         %}
@@ -206,6 +220,7 @@ struct BWIPP { };
                     my $opts = postscriptbarcode::BwippInitOpts->new();
                     $opts->set_filename($h->{filename}) if exists $h->{filename};
                     $opts->set_lazy_load($h->{lazy_load} ? 1 : 0) if exists $h->{lazy_load};
+                    $opts->set_hexify_width($h->{hexify_width}) if exists $h->{hexify_width};
                     return $_new_orig->($pkg, $opts);
                 }
                 return $_new_orig->($pkg, @_);
@@ -217,6 +232,7 @@ struct BWIPP { };
                         .struct_size = sizeof(c_opts),
                         .filename = opts ? opts->filename : NULL,
                         .flags = opts ? opts->flags : bwipp_iDEFAULT,
+                        .hexify_width = opts ? opts->hexify_width : 0,
                 };
                 return bwipp_load_ex(&c_opts);
         }
@@ -257,6 +273,15 @@ struct BWIPP { };
                         const char *options) {
                 return bwipp_emit_exec($self,barcode,contents,options);
         }
+        %newobject emit_template;
+        char* emit_template(const char *fmt, const char *name,
+                            const char *data, const char *options) {
+                return bwipp_emit_template($self,fmt,name,data,options);
+        }
+        %newobject emit_pshexstr;
+        char* emit_pshexstr(const char *str) {
+                return bwipp_emit_pshexstr($self,str);
+        }
 };
 
 #ifdef SWIGRUBY
@@ -273,6 +298,7 @@ struct BWIPP { };
         "        opts = Postscriptbarcode::BwippInitOpts.new\n"
         "        opts.filename = kwargs[:filename] if kwargs.key?(:filename)\n"
         "        opts.lazy_load = kwargs[:lazy_load] ? 1 : 0 if kwargs.key?(:lazy_load)\n"
+        "        opts.hexify_width = kwargs[:hexify_width] if kwargs.key?(:hexify_width)\n"
         "        _new_orig(opts)\n"
         "      end\n"
         "    end\n"
@@ -286,8 +312,8 @@ struct BWIPP { };
 /* Python: accept keyword arguments to BWIPP() */
 %pythoncode %{
 _BWIPP_init_orig = BWIPP.__init__
-def _BWIPP_init_kwargs(self, *args, filename=None, lazy_load=None):
-    if args or (filename is None and lazy_load is None):
+def _BWIPP_init_kwargs(self, *args, filename=None, lazy_load=None, hexify_width=None):
+    if args or (filename is None and lazy_load is None and hexify_width is None):
         _BWIPP_init_orig(self, *args)
     else:
         opts = BwippInitOpts()
@@ -295,6 +321,8 @@ def _BWIPP_init_kwargs(self, *args, filename=None, lazy_load=None):
             opts.filename = filename
         if lazy_load is not None:
             opts.lazy_load = lazy_load
+        if hexify_width is not None:
+            opts.hexify_width = hexify_width
         _BWIPP_init_orig(self, opts)
 BWIPP.__init__ = _BWIPP_init_kwargs
 %}

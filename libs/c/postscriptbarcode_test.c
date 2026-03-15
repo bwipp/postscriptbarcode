@@ -704,6 +704,7 @@ static void test_get_version_after_template(void) {
  *    - "helper"    (RESOURCE, REQUIRES preamble, no props)
  *    - "enc1"      (ENCODER, REQUIRES preamble helper, has DESC/EXAM/EXOP/RNDR)
  *    - "enc2"      (ENCODER, REQUIRES preamble, has DESC/EXAM/RNDR)
+ *    - "renlinear" (RENDERER, no requirements)
  */
 static const char mock_ps_meta[] =
 	"%!PS\n"
@@ -716,6 +717,9 @@ static const char mock_ps_meta[] =
 	"% --REQUIRES preamble--\n"
 	"% helper code\n"
 	"% --END RESOURCE helper--\n"
+	"% --BEGIN RENDERER renlinear--\n"
+	"% renderer code\n"
+	"% --END RENDERER renlinear--\n"
 	"% --BEGIN ENCODER enc1--\n"
 	"% --DESC: Encoder One Description\n"
 	"% --EXAM: 12345\n"
@@ -875,15 +879,16 @@ static void test_list_properties_basic(void) {
 	write_mock_ps(MOCK_PS, mock_ps_meta);
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
-	/* enc1 has DESC, EXAM, EXOP, RNDR */
+	/* enc1 has TYPE, DESC, EXAM, EXOP, RNDR */
 	list = bwipp_list_properties(ctx, "enc1", &count);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(count == 4);
-	TEST_CHECK(strcmp(list[0], "DESC") == 0);
-	TEST_CHECK(strcmp(list[1], "EXAM") == 0);
-	TEST_CHECK(strcmp(list[2], "EXOP") == 0);
-	TEST_CHECK(strcmp(list[3], "RNDR") == 0);
-	TEST_CHECK(list[4] == NULL);
+	TEST_CHECK(count == 5);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "DESC") == 0);
+	TEST_CHECK(strcmp(list[2], "EXAM") == 0);
+	TEST_CHECK(strcmp(list[3], "EXOP") == 0);
+	TEST_CHECK(strcmp(list[4], "RNDR") == 0);
+	TEST_CHECK(list[5] == NULL);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -898,14 +903,15 @@ static void test_list_properties_fewer_keys(void) {
 	write_mock_ps(MOCK_PS, mock_ps_meta);
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
-	/* enc2 has DESC, EXAM, RNDR (no EXOP) */
+	/* enc2 has TYPE, DESC, EXAM, RNDR (no EXOP) */
 	list = bwipp_list_properties(ctx, "enc2", &count);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(count == 3);
-	TEST_CHECK(strcmp(list[0], "DESC") == 0);
-	TEST_CHECK(strcmp(list[1], "EXAM") == 0);
-	TEST_CHECK(strcmp(list[2], "RNDR") == 0);
-	TEST_CHECK(list[3] == NULL);
+	TEST_CHECK(count == 4);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "DESC") == 0);
+	TEST_CHECK(strcmp(list[2], "EXAM") == 0);
+	TEST_CHECK(strcmp(list[3], "RNDR") == 0);
+	TEST_CHECK(list[4] == NULL);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -920,11 +926,12 @@ static void test_list_properties_no_properties(void) {
 	write_mock_ps(MOCK_PS, mock_ps_meta);
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
-	/* preamble has no metadata comments */
+	/* preamble has no metadata comments, only TYPE */
 	list = bwipp_list_properties(ctx, "preamble", &count);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(count == 0);
-	TEST_CHECK(list[0] == NULL);
+	TEST_CHECK(count == 1);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(list[1] == NULL);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -954,7 +961,7 @@ static void test_list_properties_null_count(void) {
 	/* NULL count pointer should not crash */
 	list = bwipp_list_properties(ctx, "enc1", NULL);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(strcmp(list[0], "DESC") == 0);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -984,11 +991,12 @@ static void test_list_properties_preserves_order(void) {
 
 	list = bwipp_list_properties(ctx, "test", &count);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(count == 3);
-	/* Order should match file order: RNDR, DESC, EXAM */
-	TEST_CHECK(strcmp(list[0], "RNDR") == 0);
-	TEST_CHECK(strcmp(list[1], "DESC") == 0);
-	TEST_CHECK(strcmp(list[2], "EXAM") == 0);
+	TEST_CHECK(count == 4);
+	/* TYPE first, then file order: RNDR, DESC, EXAM */
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "RNDR") == 0);
+	TEST_CHECK(strcmp(list[2], "DESC") == 0);
+	TEST_CHECK(strcmp(list[3], "EXAM") == 0);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -1144,6 +1152,26 @@ static void test_get_property_owned_by_context(void) {
 	remove(MOCK_PS);
 }
 
+static void test_get_property_type(void) {
+	BWIPP *ctx;
+
+	write_mock_ps(MOCK_PS, mock_ps_meta);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
+
+	TEST_CHECK(strcmp(bwipp_get_property(ctx, "preamble", "TYPE"),
+			  "RESOURCE") == 0);
+	TEST_CHECK(strcmp(bwipp_get_property(ctx, "renlinear", "TYPE"),
+			  "RENDERER") == 0);
+	TEST_CHECK(strcmp(bwipp_get_property(ctx, "enc1", "TYPE"),
+			  "ENCODER") == 0);
+
+	/* Unknown resource returns NULL */
+	TEST_CHECK(bwipp_get_property(ctx, "nonexistent", "TYPE") == NULL);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
 
 /* ========================================================================
  *  Metadata parsing edge cases
@@ -1193,12 +1221,13 @@ static void test_metadata_after_requires(void) {
 
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
 
-	/* Both DESC and EXAM should be properties */
+	/* TYPE, DESC and EXAM should be properties */
 	list = bwipp_list_properties(ctx, "test", &count);
 	TEST_ASSERT(list != NULL);
-	TEST_CHECK(count == 2);
-	TEST_CHECK(strcmp(list[0], "DESC") == 0);
-	TEST_CHECK(strcmp(list[1], "EXAM") == 0);
+	TEST_CHECK(count == 3);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "DESC") == 0);
+	TEST_CHECK(strcmp(list[2], "EXAM") == 0);
 	bwipp_free((void *)list);
 
 	bwipp_unload(ctx);
@@ -1985,7 +2014,8 @@ static void test_emit_exec_exact_output(void) {
 		"0 0 moveto\n"
 		"<414243>\n"
 		"<6F70743D31>\n"
-		"/enc /uk.co.terryburton.bwipp findresource exec\n";
+		"<656E63> cvn\n"
+		"/uk.co.terryburton.bwipp findresource exec\n";
 
 	write_mock_ps(MOCK_PS, mock_ps);
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
@@ -2006,7 +2036,8 @@ static void test_emit_exec_empty_data(void) {
 		"0 0 moveto\n"
 		"<>\n"
 		"<>\n"
-		"/enc /uk.co.terryburton.bwipp findresource exec\n";
+		"<656E63> cvn\n"
+		"/uk.co.terryburton.bwipp findresource exec\n";
 
 	write_mock_ps(MOCK_PS, mock_ps);
 	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
@@ -2329,7 +2360,7 @@ static void test_full_workflow(void) {
 	TEST_CHECK(strlen(all) > 0);
 
 	TEST_CHECK((exec = bwipp_emit_exec(ctx, "encoder", "data", "opts")) != NULL);
-	TEST_CHECK(strstr(exec, "/encoder") != NULL);
+	TEST_CHECK(strstr(exec, "<656E636F646572> cvn") != NULL);
 
 	bwipp_free(res);
 	bwipp_free(all);
@@ -2416,7 +2447,7 @@ static void test_real_emit_exec(void) {
 	TEST_CHECK((out = bwipp_emit_exec(ctx, "qrcode", "TESTING",
 					  "version=5")) != NULL);
 	TEST_CHECK(strstr(out, "0 0 moveto") != NULL);
-	TEST_CHECK(strstr(out, "/qrcode") != NULL);
+	TEST_CHECK(strstr(out, "<7172636F6465> cvn") != NULL);
 	bwipp_free(out);
 
 	bwipp_unload(ctx);
@@ -2694,6 +2725,7 @@ TEST_LIST = {
 	{"get_property_value_with_spaces",   test_get_property_value_with_spaces},
 	{"get_property_value_with_colon",    test_get_property_value_with_colon},
 	{"get_property_owned_by_context",    test_get_property_owned_by_context},
+	{"get_property_type",                test_get_property_type},
 
 	/* Metadata parsing edge cases */
 	{"meta_not_outside_resource",        test_metadata_not_parsed_outside_resource},

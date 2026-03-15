@@ -44,3 +44,13 @@ props = bwipp.list_properties("qrcode")
 print("qrcode properties: " + str(props))
 for prop in props:
     print("  " + prop + ": " + bwipp.get_property("qrcode", prop))
+
+print("Hex string: " + bwipp.emit_pshexstr("Hello"))
+
+tmpl = bwipp.emit_template(
+    "%dat %opt %enc /uk.co.terryburton.bwipp findresource exec",
+    "qrcode",
+    "Hello World",
+    "eclevel=M",
+)
+print("Template lines: " + str(tmpl.count("\n")))

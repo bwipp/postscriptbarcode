@@ -39,20 +39,20 @@ public class Example {
 
             String ps = bwipp1.emitAllResources();
             System.out.println("Packaged lines: "
-                + ps.split("\r\n|\r|\n").length);
+                + ps.chars().filter(c -> c == '\n').count());
         }
 
         String ps = bwipp.emitAllResources();
         System.out.println("Unpackaged lines: "
-            + ps.split("\r\n|\r|\n").length);
+            + ps.chars().filter(c -> c == '\n').count());
 
         ps = bwipp.emitRequiredResources("qrcode");
         System.out.println("qrcode resource lines: "
-            + ps.split("\r\n|\r|\n").length);
+            + ps.chars().filter(c -> c == '\n').count());
 
         ps = bwipp.emitExec("qrcode", "Hello World", "eclevel=M");
         System.out.println("emit_exec lines: "
-            + ps.split("\r\n|\r|\n").length);
+            + ps.chars().filter(c -> c == '\n').count());
 
         String[] encoders = bwipp.listEncoders();
         System.out.println("Encoders: " + encoders.length);
@@ -71,6 +71,14 @@ public class Example {
             System.out.println("  " + prop + ": "
                 + bwipp.getProperty("qrcode", prop));
         }
+
+        System.out.println("Hex string: " + bwipp.emitPshexstr("Hello"));
+
+        String tmpl = bwipp.emitTemplate(
+            "%dat %opt %enc /uk.co.terryburton.bwipp findresource exec",
+            "qrcode", "Hello World", "eclevel=M");
+        System.out.println("Template lines: "
+            + tmpl.chars().filter(c -> c == '\n').count());
 
     }
 

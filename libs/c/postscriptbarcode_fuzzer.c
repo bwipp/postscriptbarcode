@@ -112,6 +112,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 	out = bwipp_emit_exec(ctx, name, data, options);
 	bwipp_free(out);
 
+	/* Exercise bwipp_emit_template with fuzzed format string */
+	out = bwipp_emit_template(ctx, options, name, data, options);
+	bwipp_free(out);
+
+	/* Exercise bwipp_emit_pshexstr */
+	out = bwipp_emit_pshexstr(ctx, data);
+	bwipp_free(out);
+
 	/* Exercise property queries with fuzzed name and data as key */
 	{
 		const char **props = bwipp_list_properties(ctx, name, NULL);
