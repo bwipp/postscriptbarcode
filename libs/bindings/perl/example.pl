@@ -58,6 +58,12 @@ for my $prop (@$props) {
     print "  $prop: " . $bwipp->get_property("qrcode", $prop) . "\n";
 }
 
+my %prop_pairs = @{$bwipp->get_properties("qrcode")};
+print "qrcode property pairs: " . scalar(keys %prop_pairs) . "\n";
+for my $key (sort keys %prop_pairs) {
+    print "  $key: $prop_pairs{$key}\n";
+}
+
 print "Hex string: " . $bwipp->emit_pshexstr("Hello") . "\n";
 
 my $tmpl = $bwipp->emit_template(

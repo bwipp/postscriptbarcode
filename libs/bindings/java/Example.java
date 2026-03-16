@@ -72,6 +72,12 @@ public class Example {
                 + bwipp.getProperty("qrcode", prop));
         }
 
+        java.util.Map<String, String> propMap = bwipp.getProperties("qrcode");
+        System.out.println("qrcode property pairs: " + propMap.size());
+        for (java.util.Map.Entry<String, String> e : propMap.entrySet()) {
+            System.out.println("  " + e.getKey() + ": " + e.getValue());
+        }
+
         System.out.println("Hex string: " + bwipp.emitPshexstr("Hello"));
 
         String tmpl = bwipp.emitTemplate(

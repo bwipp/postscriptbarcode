@@ -736,6 +736,40 @@ BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name,
 	return get_resource_property(resource, key);
 }
 
+BWIPP_API const char **bwipp_get_properties(BWIPP *ctx, const char *name,
+					    unsigned int *count) {
+	const Resource *resource;
+	const PropertyList *curr;
+	const char **list;
+	unsigned int i = 0;
+	unsigned int npairs;
+
+	assert(ctx);
+	assert(name);
+
+	resource = get_resource(ctx, name);
+	if (!resource)
+		return NULL;
+
+	npairs = resource->numprops + 1;	/* +1 for TYPE */
+	list = malloc((2 * npairs + 1) * sizeof(const char *));
+	if (!list)
+		return NULL;
+
+	list[i++] = "TYPE";
+	list[i++] = resource->type;
+	for (curr = resource->props; curr; curr = curr->next) {
+		list[i++] = curr->entry->key;
+		list[i++] = curr->entry->value;
+	}
+	list[i] = NULL;
+
+	if (count)
+		*count = npairs;
+
+	return list;
+}
+
 BWIPP_API const char **bwipp_list_families(BWIPP *ctx, unsigned int *count) {
 	FamilyList *curr;
 	const char **list;
@@ -941,13 +975,13 @@ BWIPP_API char *bwipp_emit_template(BWIPP *ctx, const char *fmt,
 	/* First pass: count substitutions to size the output */
 	for (src = fmt; *src; src++) {
 		if (*src == '%' && src[1]) {
-			if (src[1] == 'd' && src[2] && src[2] == 'a' && src[3] && src[3] == 't') {
+			if (src[1] == 'd' && src[2] == 'a' && src[3] == 't') {
 				ndat++;
 				src += 3;
-			} else if (src[1] == 'o' && src[2] && src[2] == 'p' && src[3] && src[3] == 't') {
+			} else if (src[1] == 'o' && src[2] == 'p' && src[3] == 't') {
 				nopt++;
 				src += 3;
-			} else if (src[1] == 'e' && src[2] && src[2] == 'n' && src[3] && src[3] == 'c') {
+			} else if (src[1] == 'e' && src[2] == 'n' && src[3] == 'c') {
 				nenc++;
 				src += 3;
 			} else if (src[1] == '%') {
@@ -1015,19 +1049,19 @@ BWIPP_API char *bwipp_emit_template(BWIPP *ctx, const char *fmt,
 	dst = out;
 	for (src = fmt; *src; src++) {
 		if (*src == '%' && src[1]) {
-			if (src[1] == 'd' && src[2] && src[2] == 'a' && src[3] && src[3] == 't') {
+			if (src[1] == 'd' && src[2] == 'a' && src[3] == 't') {
 				memcpy(dst, data_h, data_h_len);
 				dst += data_h_len;
 				src += 3;
 				continue;
 			}
-			if (src[1] == 'o' && src[2] && src[2] == 'p' && src[3] && src[3] == 't') {
+			if (src[1] == 'o' && src[2] == 'p' && src[3] == 't') {
 				memcpy(dst, options_h, options_h_len);
 				dst += options_h_len;
 				src += 3;
 				continue;
 			}
-			if (src[1] == 'e' && src[2] && src[2] == 'n' && src[3] && src[3] == 'c') {
+			if (src[1] == 'e' && src[2] == 'n' && src[3] == 'c') {
 				memcpy(dst, name_h, name_h_len);
 				dst += name_h_len;
 				memcpy(dst, " cvn", 4);

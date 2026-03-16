@@ -143,6 +143,7 @@ typedef struct BwippInitOpts {
 %rename(listEncoders) BWIPP::list_encoders;
 %rename(listProperties) BWIPP::list_properties;
 %rename(getProperty) BWIPP::get_property;
+%rename(getProperties) BWIPP::get_properties;
 %rename(listFamilies) BWIPP::list_families;
 %rename(listFamilyMembers) BWIPP::list_family_members;
 %rename(emitRequiredResources) BWIPP::emit_required_resources;
@@ -253,6 +254,57 @@ struct BWIPP { };
         }
         const char* get_property(const char *name, const char *key) {
                 return bwipp_get_property($self, name, key);
+        }
+#ifdef SWIGJAVA
+        %typemap(jni) const char **get_properties "jobject"
+        %typemap(jtype) const char **get_properties "java.util.Map<String, String>"
+        %typemap(jstype) const char **get_properties "java.util.Map<String, String>"
+        %typemap(javaout) const char **get_properties { return $jnicall; }
+        %typemap(out) const char **get_properties {
+                if ($1) {
+                        int i;
+                        jclass mapclass = (*jenv)->FindClass(jenv, "java/util/LinkedHashMap");
+                        jmethodID init = (*jenv)->GetMethodID(jenv, mapclass, "<init>", "()V");
+                        jmethodID put = (*jenv)->GetMethodID(jenv, mapclass, "put",
+                                "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+                        $result = (*jenv)->NewObject(jenv, mapclass, init);
+                        for (i = 0; $1[i] && $1[i+1]; i += 2)
+                                (*jenv)->CallObjectMethod(jenv, $result, put,
+                                        (*jenv)->NewStringUTF(jenv, $1[i]),
+                                        (*jenv)->NewStringUTF(jenv, $1[i+1]));
+                        bwipp_free((void *)$1);
+                }
+        }
+#endif
+#ifdef SWIGPYTHON
+        %typemap(out) const char **get_properties {
+                if ($1) {
+                        int i;
+                        $result = PyDict_New();
+                        for (i = 0; $1[i] && $1[i+1]; i += 2)
+                                PyDict_SetItemString($result, $1[i], PyUnicode_FromString($1[i+1]));
+                        bwipp_free((void *)$1);
+                } else {
+                        Py_INCREF(Py_None);
+                        $result = Py_None;
+                }
+        }
+#endif
+#ifdef SWIGRUBY
+        %typemap(out) const char **get_properties {
+                if ($1) {
+                        int i;
+                        $result = rb_hash_new();
+                        for (i = 0; $1[i] && $1[i+1]; i += 2)
+                                rb_hash_aset($result, rb_str_new2($1[i]), rb_str_new2($1[i+1]));
+                        bwipp_free((void *)$1);
+                } else {
+                        $result = Qnil;
+                }
+        }
+#endif
+        const char** get_properties(const char *name) {
+                return bwipp_get_properties($self, name, NULL);
         }
         const char** list_families() {
                 return bwipp_list_families($self, NULL);

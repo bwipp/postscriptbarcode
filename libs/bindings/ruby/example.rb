@@ -39,6 +39,12 @@ props.each do |prop|
   puts "  #{prop}: #{bwipp.get_property("qrcode", prop)}"
 end
 
+prop_hash = bwipp.get_properties("qrcode")
+puts "qrcode property pairs: " + prop_hash.length.to_s
+prop_hash.each do |key, val|
+  puts "  #{key}: #{val}"
+end
+
 puts "Hex string: " + bwipp.emit_pshexstr("Hello")
 
 tmpl = bwipp.emit_template(

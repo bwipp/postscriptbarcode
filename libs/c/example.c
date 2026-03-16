@@ -126,6 +126,12 @@ int main(int argc, char *argv[]) {
 		       bwipp_get_property(bwipp, "qrcode", list[i]));
 	bwipp_free((void *)list);
 
+	list = bwipp_get_properties(bwipp, "qrcode", &count);
+	printf("qrcode property pairs: %u\n", count);
+	for (i = 0; i < count * 2; i += 2)
+		printf("  %s: %s\n", list[i], list[i + 1]);
+	bwipp_free((void *)list);
+
 	/* Lazy loading: resource bodies read on demand, not at load time */
 	{
 		BWIPP *lazy;

@@ -45,6 +45,11 @@ print("qrcode properties: " + str(props))
 for prop in props:
     print("  " + prop + ": " + bwipp.get_property("qrcode", prop))
 
+prop_dict = bwipp.get_properties("qrcode")
+print("qrcode property pairs: " + str(len(prop_dict)))
+for key, val in prop_dict.items():
+    print("  " + key + ": " + val)
+
 print("Hex string: " + bwipp.emit_pshexstr("Hello"))
 
 tmpl = bwipp.emit_template(

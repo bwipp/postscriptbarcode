@@ -220,6 +220,23 @@ BWIPP_API const char *bwipp_get_property(BWIPP *ctx, const char *name,
                                          const char *key);
 
 /**
+ * @brief Get all properties for a named resource as key-value pairs.
+ *
+ * Returns a NULL-terminated array of strings in alternating key-value order:
+ * [key0, val0, key1, val1, ..., NULL]. The first pair is always "TYPE" and
+ * the resource type.
+ *
+ * @param [in] ctx ::BWIPP context.
+ * @param [in] name The resource name.
+ * @param [out] count If non-NULL, receives the number of pairs (not strings).
+ * @return NULL-terminated array of key-value strings, else NULL if the
+ *         resource is not found. The caller should release the array (not
+ *         the strings) with bwipp_free().
+ */
+BWIPP_API const char **bwipp_get_properties(BWIPP *ctx, const char *name,
+                                             unsigned int *count);
+
+/**
  * @brief List the unique family names.
  *
  * Returns a NULL-terminated array of unique family name strings sorted

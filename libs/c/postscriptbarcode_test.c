@@ -1172,6 +1172,68 @@ static void test_get_property_type(void) {
 	remove(MOCK_PS);
 }
 
+static void test_get_properties_basic(void) {
+	BWIPP *ctx;
+	const char **list;
+	unsigned int count;
+
+	write_mock_ps(MOCK_PS, mock_ps_meta);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
+
+	/* enc1: TYPE + DESC, EXAM, EXOP, RNDR = 5 pairs, 10 strings */
+	list = bwipp_get_properties(ctx, "enc1", &count);
+	TEST_ASSERT(list != NULL);
+	TEST_CHECK(count == 5);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "ENCODER") == 0);
+	TEST_CHECK(strcmp(list[2], "DESC") == 0);
+	TEST_CHECK(strcmp(list[3], "Encoder One Description") == 0);
+	TEST_CHECK(strcmp(list[4], "EXAM") == 0);
+	TEST_CHECK(strcmp(list[5], "12345") == 0);
+	TEST_CHECK(strcmp(list[6], "EXOP") == 0);
+	TEST_CHECK(strcmp(list[7], "includetext") == 0);
+	TEST_CHECK(strcmp(list[8], "RNDR") == 0);
+	TEST_CHECK(strcmp(list[9], "renlinear") == 0);
+	TEST_CHECK(list[10] == NULL);
+	bwipp_free((void *)list);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_get_properties_no_metadata(void) {
+	BWIPP *ctx;
+	const char **list;
+	unsigned int count;
+
+	write_mock_ps(MOCK_PS, mock_ps_meta);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
+
+	/* preamble: only TYPE pair */
+	list = bwipp_get_properties(ctx, "preamble", &count);
+	TEST_ASSERT(list != NULL);
+	TEST_CHECK(count == 1);
+	TEST_CHECK(strcmp(list[0], "TYPE") == 0);
+	TEST_CHECK(strcmp(list[1], "RESOURCE") == 0);
+	TEST_CHECK(list[2] == NULL);
+	bwipp_free((void *)list);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
+static void test_get_properties_unknown(void) {
+	BWIPP *ctx;
+
+	write_mock_ps(MOCK_PS, mock_ps_meta);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
+
+	TEST_CHECK(bwipp_get_properties(ctx, "nonexistent", NULL) == NULL);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
 
 /* ========================================================================
  *  Metadata parsing edge cases
@@ -2726,6 +2788,11 @@ TEST_LIST = {
 	{"get_property_value_with_colon",    test_get_property_value_with_colon},
 	{"get_property_owned_by_context",    test_get_property_owned_by_context},
 	{"get_property_type",                test_get_property_type},
+
+	/* Get properties (key-value pairs) */
+	{"get_properties_basic",             test_get_properties_basic},
+	{"get_properties_no_metadata",       test_get_properties_no_metadata},
+	{"get_properties_unknown",           test_get_properties_unknown},
 
 	/* Metadata parsing edge cases */
 	{"meta_not_outside_resource",        test_metadata_not_parsed_outside_resource},
