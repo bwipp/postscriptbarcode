@@ -190,7 +190,7 @@ jobs:
           submodules: true
 
       - name: Build docs
-        run: make -C wikidocs -f __pandoc/Makefile all scribus-docs
+        run: make -C wikidocs -f __pandoc/Makefile all scribus-docs adoc-docs
 
       - name: Store PDF docs
         uses: actions/upload-artifact@v4
@@ -212,6 +212,14 @@ jobs:
             wikidocs/__pandoc/scribus/bwipp-symbologies.html
             wikidocs/__pandoc/scribus/bwipp-gs1ai.html
             wikidocs/__pandoc/scribus/bwipp-options.html
+
+      - name: Store AsciiDoc docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-adoc
+          path: |
+            wikidocs/__pandoc/adoc/bwipp-symbologies.adoc
+            wikidocs/__pandoc/adoc/bwipp-options.adoc
 
   release:
     if: startsWith(github.ref, 'refs/tags/')
@@ -266,19 +274,26 @@ jobs:
           name: docs-scribus
           path: wikidocs/__pandoc/scribus
 
-      - name: Deploy Scribus docs to gh-pages
+      - name: Load AsciiDoc docs
+        uses: actions/download-artifact@v4
+        with:
+          name: docs-adoc
+          path: wikidocs/__pandoc/adoc
+
+      - name: Deploy Scribus and AsciiDoc docs to gh-pages
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin gh-pages
           git worktree add gh-pages-wt origin/gh-pages
-          mkdir -p gh-pages-wt/scribus
+          mkdir -p gh-pages-wt/scribus gh-pages-wt/adoc
           cp wikidocs/__pandoc/scribus/bwipp-symbologies.html wikidocs/__pandoc/scribus/bwipp-gs1ai.html wikidocs/__pandoc/scribus/bwipp-options.html gh-pages-wt/scribus/
-          printf 'User-agent: *\nDisallow: /scribus/\n' > gh-pages-wt/robots.txt
+          cp wikidocs/__pandoc/adoc/bwipp-symbologies.adoc wikidocs/__pandoc/adoc/bwipp-options.adoc gh-pages-wt/adoc/
+          printf 'User-agent: *\nDisallow: /scribus/\nDisallow: /adoc/\n' > gh-pages-wt/robots.txt
           cd gh-pages-wt
-          git add scribus/ robots.txt
-          git diff --cached --quiet || git commit -m "Update Scribus docs for $VERSION"
+          git add scribus/ adoc/ robots.txt
+          git diff --cached --quiet || git commit -m "Update Scribus and AsciiDoc docs for $VERSION"
           git push origin HEAD:gh-pages
           cd ..
           git worktree remove gh-pages-wt
