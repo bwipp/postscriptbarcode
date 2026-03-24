@@ -95,7 +95,6 @@ begin
 
     /encstr 20 1 add 3 mul 4 add string def
     /digits 20 array def
-    /txt barlen 1 add array def
 
     %
     % Put start character
@@ -136,7 +135,6 @@ begin
         encstr j 3 mul 2 add //japanpost.encs digit get putinterval % space
         /checksum checksum digit add def
         digits j digit put
-        txt i [barcode i 1 getinterval j 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
         /j j 1 add def
     } for
 
@@ -160,15 +158,9 @@ begin
     /checksum checksum 19 mod 19 exch sub def
     encstr 2 20 3 mul add //japanpost.encs checksum get putinterval
 
-    %
-    % Put end character
-    %
-    encstr 2 21 3 mul add //japanpost.encs 20 get putinterval
-    /checkdigit ( ) def
-    includecheckintext {
-        /checkdigit //japanpost.barchars checksum 1 getinterval def
-    } if
-    txt i 1 add [ checkdigit 20 3 mul 2 add 3.312 mul textyoffset textfont textsize] put
+    /text includecheckintext {
+        barlen 1 add string dup 0 barcode putinterval dup barlen //japanpost.barchars checksum 1 getinterval putinterval
+    } { barcode } ifelse def
 
     %
     % Put end character
@@ -208,7 +200,8 @@ begin
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

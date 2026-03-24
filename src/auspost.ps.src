@@ -166,7 +166,6 @@ begin
         /bwipp.auspostTooShort (The data length must be at least 10) //raiseerror exec
     } if
 
-    /txt barlen 2 sub array def
 
     //auspost.fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
     2 copy known not {
@@ -215,7 +214,6 @@ begin
         /i exch def
         //auspost.encs barcode i 1 getinterval cvi 64 add get
         encstr i 2 mul 2 add 3 2 roll putinterval
-        txt i 2 sub [barcode i 1 getinterval i 2 sub 2 mul 6 add 3.312 mul textyoffset textfont textsize] put
     } for
 
     %
@@ -230,7 +228,6 @@ begin
             } if
             48 sub 64 add get
             encstr i 2 mul 22 add 3 2 roll putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 2 mul 22 add 3.312 mul textyoffset textfont textsize] put
         } for
         /ciflen barlen 10 sub 2 mul def
     } {
@@ -244,7 +241,6 @@ begin
             pop pop
             /enc //auspost.encs indx get def
             encstr i 3 mul 22 add enc putinterval
-            txt i 8 add [barcode i 10 add 1 getinterval i 3 mul 22 add 3.312 mul textyoffset textfont textsize] put
         } for
         /ciflen barlen 10 sub 3 mul def
     } ifelse
@@ -323,7 +319,8 @@ begin
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
     includetext {
-        /txt txt
+        /txt [ [barcode 2 barlen 2 sub getinterval 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

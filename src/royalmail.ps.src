@@ -146,7 +146,6 @@ begin
     } if
 
     /encstr barlen 4 mul 6 add string def
-    /txt barlen 1 add array def
 
     %
     % Put start character
@@ -157,18 +156,15 @@ begin
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         encstr i 4 mul 1 add //royalmail.encs indx get putinterval
-        txt i [barcode i 1 getinterval i 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
     } for
 
     %
     % Put the checksum character
     %
     encstr barlen 4 mul 1 add //royalmail.encs checksum get putinterval
-    includecheckintext {
-        txt barlen [//royalmail.barchars checksum 1 getinterval barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
-    } {
-        txt barlen [( ) barlen 4 mul 1 add 3.312 mul textyoffset textfont textsize] put
-    } ifelse
+    /text includecheckintext {
+        barlen 1 add string dup 0 barcode putinterval dup barlen //royalmail.barchars checksum 1 getinterval putinterval
+    } { barcode } ifelse def
 
     %
     % Put end character
@@ -204,7 +200,8 @@ begin
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

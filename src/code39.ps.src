@@ -148,23 +148,16 @@ begin
     } if
 
     /sbs barlen includecheck {3} {2} ifelse add 10 mul string def
-    /txt barlen includecheck {3} {2} ifelse add array def
 
     %
     % Put the start character
     %
     sbs 0 //code39.encs 43 get putinterval
-    hidestars not {
-        txt 0 [(*) 0 textyoffset textfont textsize] put
-    } {
-        txt 0 [() 0 textyoffset textfont textsize] put
-    } ifelse
 
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         sbs i 10 mul 10 add //code39.encs indx get putinterval
-        txt i 1 add [barcode i 1 getinterval i 1 add 16 mul textyoffset textfont textsize] put
     } for
 
     %
@@ -172,25 +165,24 @@ begin
     %
     includecheck {
         sbs barlen 10 mul 10 add //code39.encs checksum get putinterval
-        includecheckintext {
-            txt barlen 1 add [//code39.barchars checksum 1 getinterval barlen 1 add 16 mul textyoffset textfont textsize] put
-        } {
-            txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
-        } ifelse
         sbs barlen 10 mul 20 add //code39.encs 43 get putinterval
-        hidestars not {
-            txt barlen 2 add [(*) barlen 2 add 16 mul textyoffset textfont textsize] put
-        } {
-            txt barlen 2 add [() barlen 2 add 16 mul textyoffset textfont textsize] put
-        } ifelse
     } {
         sbs barlen 10 mul 10 add //code39.encs 43 get putinterval
-        hidestars not {
-            txt barlen 1 add [(*) barlen 1 add 16 mul textyoffset textfont textsize] put
-        } {
-            txt barlen 1 add [() barlen 1 add 16 mul textyoffset textfont textsize] put
-        } ifelse
     } ifelse
+
+    % Build display text: [*] data [check] [*]
+    /slen hidestars not { 2 } { 0 } ifelse
+        barlen add
+        includecheck includecheckintext and { 1 add } if
+    def
+    /text slen string def
+    /tpos 0 def
+    hidestars not { text tpos (*) putinterval /tpos tpos 1 add def } if
+    text tpos barcode putinterval /tpos tpos barlen add def
+    includecheck includecheckintext and {
+        text tpos //code39.barchars checksum 1 getinterval putinterval /tpos tpos 1 add def
+    } if
+    hidestars not { text tpos (*) putinterval } if
 
     <<
     /ren /renlinear
@@ -198,7 +190,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

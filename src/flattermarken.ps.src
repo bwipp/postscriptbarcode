@@ -89,7 +89,6 @@ begin
     /barlen barcode length def
 
     /sbs barlen 4 mul string def
-    /txt barlen array def
 
     0 1 barlen 1 sub {
         /i exch def
@@ -99,7 +98,6 @@ begin
         pop pop
         /enc //flattermarken.encs indx get def
         sbs i 4 mul enc putinterval
-        txt i [barcode i 1 getinterval i 9 mul textyoffset textfont textsize] put
     } for
 
     <<
@@ -107,7 +105,8 @@ begin
     /sbs [sbs {48 sub} forall]
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
-    /txt txt
+    /txt [ [barcode 0 0 textfont textsize] ]
+    /textxalign (center)
     /opt options
     >>
 

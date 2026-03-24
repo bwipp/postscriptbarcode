@@ -171,7 +171,6 @@ begin
     } if
 
     /sbs barlen 8 mul 5 add string def
-    /txt barlen array def
 
     %
     % Put start character
@@ -186,7 +185,6 @@ begin
         pop pop                            % Discard seek and post
         /enc //msi.encs indx get def       % Get the indxth encoding
         sbs i 8 mul 2 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 12 mul 3 add textyoffset textfont textsize] put
     } for
 
     %
@@ -200,7 +198,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt 0 txtlen getinterval
+        /txt [ [barcode 0 txtlen getinterval 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

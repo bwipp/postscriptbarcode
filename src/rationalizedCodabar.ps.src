@@ -137,53 +137,35 @@ begin
     } if
 
     /sbs barlen includecheck {1 add} if 8 mul string def
-    /txt barlen includecheck {1 add} if array def
 
-    /xpos 0 def
     0 1 barlen 2 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         /enc //rationalizedCodabar.encs indx get def
         sbs i 8 mul enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval xpos textyoffset textfont textsize] put
-        0 1 7 {       % xpos+=width of the character
-            /xpos exch enc exch get 48 sub xpos add def
-        } for
     } for
 
     %
     % Put the checksum character and stop character
     %
     includecheck {
-        %
-        % Put the checksum character
-        %
         sbs barlen 8 mul 8 sub //rationalizedCodabar.encs checksum get putinterval
-        includecheckintext {
-            txt barlen 1 sub [barchars checksum 1 getinterval xpos textyoffset textfont textsize] put
-        } {
-            txt barlen 1 sub [( ) xpos textyoffset textfont textsize] put
-        } ifelse
-        0 1 7 {       % xpos+=width of the character
-            /xpos exch //rationalizedCodabar.encs checksum get exch get 48 sub xpos add def
-        } for
-
-        %
-        % Put the end character
-        %
         /indx charvals barcode barlen 1 sub 1 getinterval get def
-        /enc //rationalizedCodabar.encs indx get def            % Get the indxth encoding
-        sbs barlen 8 mul enc putinterval  % Put encoded digit into sbs
-        txt barlen [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
+        /enc //rationalizedCodabar.encs indx get def
+        sbs barlen 8 mul enc putinterval
     } {
-        %
-        % Put the end character
-        %
         /indx charvals barcode barlen 1 sub 1 getinterval get def
-        /enc //rationalizedCodabar.encs indx get def                  % Get the indxth encoding
-        sbs barlen 8 mul 8 sub enc putinterval  % Put encoded digit into sbs
-        txt barlen 1 sub [barcode barlen 1 sub 1 getinterval xpos textyoffset textfont textsize] put
+        /enc //rationalizedCodabar.encs indx get def
+        sbs barlen 8 mul 8 sub enc putinterval
     } ifelse
+
+    % Build display text: start data [check] stop
+    /text includecheck includecheckintext and {
+        barlen 1 add string
+        dup 0 barcode 0 barlen 1 sub getinterval putinterval
+        dup barlen 1 sub barchars checksum 1 getinterval putinterval
+        dup barlen barcode barlen 1 sub 1 getinterval putinterval
+    } { barcode } ifelse def
 
     <<
     /ren /renlinear
@@ -191,7 +173,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

@@ -127,13 +127,11 @@ begin
 
     /barlen barcode length def
     /encstr barlen 4 mul string def
-    /txt barlen array def
 
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         encstr i 4 mul //kix.encs indx get putinterval
-        txt i [barcode i 1 getinterval i 4 mul 3.312 mul textyoffset textfont textsize] put
     } for
 
     /bbs encstr length array def
@@ -165,7 +163,8 @@ begin
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
     includetext {
-        /txt txt
+        /txt [ [barcode 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

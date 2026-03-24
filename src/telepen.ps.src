@@ -126,7 +126,6 @@ begin
     } if
 
     /sbs barlen 16 mul 48 add string def
-    /txt barlen array def
 
     %
     % Put the start character ASCII 95
@@ -155,11 +154,10 @@ begin
                     pop /bwipp.telepenInvalidNumericCharacter (Telepen Numeric may contain only digits, or X in even positions) //raiseerror exec
                 } if
                 /indx exch def
-                txt j [np j 16 mul 16 add textyoffset textfont textsize] put
+                % numeric pair displayed via barcode
                 /i i 2 add def
             } {  % Ordinal values 0-16
                 /indx barcode i get def
-                txt j [( ) j 16 mul 16 add textyoffset textfont textsize] put
                 /i i 1 add def
             } ifelse
         } {  % ASCII mode
@@ -167,11 +165,6 @@ begin
             indx 127 gt {
                 /bwipp.telepenInvalidAlphaCharacter (Telepen Alpha characters must have ordinal values 0 to 127) //raiseerror exec
             } if
-            indx 32 ge indx 126 le and {
-                txt j [barcode i 1 getinterval j 16 mul 16 add textyoffset textfont textsize] put
-            } {
-                txt j [( ) j 16 mul 16 add textyoffset textfont textsize] put
-            } ifelse
             /i i 1 add def
         } ifelse
         /checksum checksum indx add def
@@ -197,10 +190,17 @@ begin
     /l l enc length add def
 
     %
-    % Shrink sbs and txt to fit exactly
+    % Shrink sbs to fit exactly
     %
     /sbs sbs 0 l getinterval def
-    /txt txt 0 j getinterval def
+
+    % Build display text: replace non-printable chars with spaces
+    /text barcode length string def
+    0 1 barcode length 1 sub {
+        /i exch def
+        /c barcode i get def
+        text i c 32 ge c 126 le and { c } { 32 } ifelse put
+    } for
 
     <<
     /ren /renlinear
@@ -208,7 +208,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

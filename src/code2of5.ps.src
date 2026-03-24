@@ -143,7 +143,6 @@ begin
     /es encs 11 get length def
 
     /sbs barlen includecheck {1 add} if cs mul ss add es add string def
-    /txt barlen includecheck {1 add} if array def
 
     %
     % Put the start character
@@ -158,7 +157,6 @@ begin
         pop pop                             % Discard seek and post
         /enc encs indx get def              % Get the indxth encoding
         sbs i cs mul ss add enc putinterval % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i cw mul sw add textyoffset textfont textsize] put
     } for
 
     %
@@ -167,14 +165,13 @@ begin
     includecheck {
         sbs barlen cs mul ss add encs checksum get putinterval
         sbs barlen cs mul cs add ss add encs 11 get putinterval
-        includecheckintext {
-            txt barlen [//code2of5.barchars checksum 1 getinterval barlen cw mul sw add textyoffset textfont textsize] put
-        } {
-            txt barlen [( ) barlen cw mul sw add textyoffset textfont textsize] put
-        } ifelse
     } {
         sbs barlen cs mul ss add encs 11 get putinterval
     } ifelse
+
+    /text includecheck includecheckintext and {
+        barlen 1 add string dup 0 barcode putinterval dup barlen //code2of5.barchars checksum 1 getinterval putinterval
+    } { barcode } ifelse def
 
     <<
     /ren /renlinear
@@ -182,7 +179,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

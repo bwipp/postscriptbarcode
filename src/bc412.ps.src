@@ -197,11 +197,6 @@ begin
     } ifelse
 
     /sbs barlen 1 add 8 mul 5 add string def
-    includecheck {
-        /txt barlen 1 add array def
-    } {
-        /txt barlen array def
-    } ifelse
 
     %
     % Put the start character
@@ -209,17 +204,14 @@ begin
     includestartstop {
         sbs 0 //bc412.encs 35 get putinterval
         /pos 2 def
-        /txtpos 3.0 def
     } {
         /pos 0 def
-        /txtpos 0.0 def
     } ifelse
 
     0 1 barlen 1 sub {
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         sbs pos //bc412.encs indx get putinterval
-        txt i [barcode i 1 getinterval i 12 mul txtpos add textyoffset textfont textsize] put
         /pos pos 8 add def
     } for
 
@@ -228,11 +220,6 @@ begin
     %
     includecheck {
         sbs pos //bc412.encs checksum get putinterval
-        includecheckintext {
-            txt barlen [//bc412.barchars checksum 1 getinterval barlen 12 mul txtpos add textyoffset textfont textsize] put
-        } {
-            txt barlen [() barlen 12 mul txtpos add textyoffset textfont textsize] put
-        } ifelse
         /pos pos 8 add def
     } if
 
@@ -244,6 +231,10 @@ begin
         /pos pos 3 add def
     } if
 
+    /text includecheck includecheckintext and {
+        barlen 1 add string dup 0 barcode putinterval dup barlen //bc412.barchars checksum 1 getinterval putinterval
+    } { barcode } ifelse def
+
     /sbs sbs 0 pos getinterval def
     <<
     /ren /renlinear
@@ -251,7 +242,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>

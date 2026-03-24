@@ -127,7 +127,6 @@ begin
     } if
 
     /sbs barlen 5 mul 8 add string def
-    /txt barlen array def
 
     %
     % Put the start character
@@ -164,12 +163,6 @@ begin
         } for
 
         sbs i 5 mul 4 add intl putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 9 mul 4 add textyoffset textfont textsize] put
-        includecheck includecheckintext not and barlen 2 sub i eq and {
-            txt i 1 add [( ) i 1 add 9 mul 4 add textyoffset textfont textsize] put
-        } {
-            txt i 1 add [barcode i 1 add 1 getinterval i 1 add 9 mul 4 add textyoffset textfont textsize] put
-        } ifelse
     } for
 
     %
@@ -177,13 +170,16 @@ begin
     %
     sbs barlen 5 mul 4 add //interleaved2of5.encs 11 get putinterval
 
+    /text barcode 0 includecheck includecheckintext not and { barlen 1 sub } { barlen } ifelse getinterval def
+
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /barratio 2.0
     /spaceratio 2.0

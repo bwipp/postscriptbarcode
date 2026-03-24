@@ -176,7 +176,6 @@ begin
     } if
 
     /sbs barlen 8 mul unidirectional {27} {33} ifelse add string def
-    /txt barlen 2 add array def
 
     %
     % Put start character
@@ -187,7 +186,6 @@ begin
         /i exch def
         /indx charvals barcode i 1 getinterval get def
         sbs i 8 mul 8 add //plessey.encs indx get putinterval
-        txt i [barcode i 1 getinterval i 20 mul 20 add textyoffset textfont textsize] put
     } for
 
     %
@@ -195,13 +193,11 @@ begin
     %
     sbs barlen 8 mul 8 add //plessey.encs checksum1 get putinterval
     sbs barlen 8 mul 16 add //plessey.encs checksum2 get putinterval
-    includecheckintext {
-        txt barlen [//plessey.barchars checksum1 1 getinterval barlen 20 mul 20 add textyoffset textfont textsize] put
-        txt barlen 1 add [//plessey.barchars checksum2 1 getinterval barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
-    } {
-        txt barlen [( ) barlen 20 mul 20 add textyoffset textfont textsize] put
-        txt barlen 1 add [( ) barlen 1 add 20 mul 20 add textyoffset textfont textsize] put
-    } ifelse
+    /text includecheckintext {
+        barlen 2 add string dup 0 barcode putinterval
+        dup barlen //plessey.barchars checksum1 1 getinterval putinterval
+        dup barlen 1 add //plessey.barchars checksum2 1 getinterval putinterval
+    } { barcode } ifelse def
 
     %
     % Put end character
@@ -214,7 +210,8 @@ begin
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
-        /txt txt
+        /txt [ [text 0 0 textfont textsize] ]
+        /textxalign (center)
     } if
     /opt options
     >>
