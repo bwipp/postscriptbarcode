@@ -93,7 +93,7 @@ begin
             textcolor (unset) ne { textcolor //setanycolor exec not { false exit } if } if
 
             textxalign (unset) eq textyalign (unset) eq and alttext () eq and {
-                /s 0 def /fn () def
+                /s 0 def /fn () def /xoff 0 def /yoff 0 def
                 {
                     txt {
                         aload pop
@@ -103,10 +103,14 @@ begin
                             } if
                             2 copy /s exch def /fn exch def
                             selectfont
+                            % Ink-centre offsets for single-char positioning
+                            (0) stringwidth pop 2 div neg /xoff exch def
+                            gsave newpath 0 0 moveto (0) false charpath pathbbox grestore
+                            exch pop add 2 div neg /yoff exch def pop
                         } {
                             pop pop
                         } ifelse
-                        moveto show
+                        moveto dup length 1 eq { xoff yoff rmoveto } if show
                     } forall
                 } stopped {
                     /bwipp.fontTooSmall (The font size is too small) false exit
