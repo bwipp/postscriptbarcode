@@ -7,7 +7,7 @@
 Public API for the libpostscriptbarcode bindings that provide an object oriented interface to
 Barcode Writer in Pure PostScript.
 
-Bindings are available for [Java](@ref java), [Perl](@ref perl), [Python](@ref python) and [Ruby](@ref ruby).
+Bindings are available for [C++](@ref cpp), [Java](@ref java), [Perl](@ref perl), [Python](@ref python) and [Ruby](@ref ruby).
 
 The methods of each binding relate to an equivalent C library function as follows:
 
@@ -47,6 +47,21 @@ loading.
 \section examples Examples
 
 These example should make clear how the common API is manifest by each language.
+
+
+\subsection cpp C++
+
+example.cpp:
+
+    #include <iostream>
+    #include <postscriptbarcode.hpp>
+
+    int main() {
+        bwipp::BWIPP bwipp(bwipp::InitOpts{}.filename("/path/to/barcode.ps").lazy_load(true));
+        std::cout << "Version: " << bwipp.get_version() << "\n";
+        auto ps = bwipp.emit_all_resources();
+        std::cout << "Lines: " << std::count(ps.begin(), ps.end(), '\n') << "\n";
+    }
 
 
 \subsection java Java

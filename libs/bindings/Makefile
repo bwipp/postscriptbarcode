@@ -12,7 +12,12 @@ LANGS = $(patsubst %/,%,$(wildcard */))
 
 all clean install uninstall test:
 	for dir in $(LANGS); do \
-		if $(MAKE) $(MAKE_FLAGS) -C $$dir -f Makefile-swig $@; then \
+		if [ -f $$dir/Makefile-swig ]; then \
+			mf=Makefile-swig; \
+		else \
+			mf=Makefile; \
+		fi; \
+		if $(MAKE) $(MAKE_FLAGS) -C $$dir -f $$mf $@; then \
 		    true; \
 		else \
 		    exit 1; \
