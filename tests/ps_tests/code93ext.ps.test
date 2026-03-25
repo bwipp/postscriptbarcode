@@ -39,3 +39,12 @@
 { (ABC^200) (dontdraw parse) code93ext } /bwipp.code93extbadCharacter isError
 
 { 501 string (dontdraw) code93ext } /bwipp.code93extinputTooLong isError
+
+
+% Regression: rangecheck when txt is single-string entry
+
+{ (Code93 Ext!) (includetext) code93ext } { true } true isEqual
+
+{ (Code93 Ext!) (includetext includecheck) code93ext } { true } true isEqual
+
+{ (Code93 Ext!) (includetext includecheck includecheckintext) code93ext } { true } true isEqual

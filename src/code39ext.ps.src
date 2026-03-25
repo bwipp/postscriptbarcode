@@ -68,6 +68,7 @@ begin
 
     /dontdraw false def
     /includetext false def
+    /hidestars false def
     /parse false def
 
     //processoptions exec /options exch def
@@ -126,16 +127,12 @@ begin
     newcode options //code39 exec /args exch def
 
     %
-    % Replace chars in /txt with chars in newtext
+    % Replace data portion of txt text string with original characters
     %
     includetext {
         /txt args (txt) get def
-        0 1 newtext length 1 sub {
-            /i exch def
-            /txtentry txt i 1 add get def
-            txtentry 0 newtext i 1 getinterval put
-            txt i 1 add txtentry put
-        } for
+        /txtstr txt 0 get 0 get def
+        txtstr hidestars { 0 } { 1 } ifelse newtext putinterval
         args (txt) txt put
     } if
     args (opt) options put
