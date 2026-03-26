@@ -4,7 +4,7 @@ Binary: postscriptbarcode, libpostscriptbarcode1, libpostscriptbarcode-dev, libp
 Architecture: any all
 Version: <empty>
 Maintainer: Terry Burton <tez@terryburton.co.uk>
-Build-Depends: debhelper-compat (= 13), dh-exec, ghostscript, swig, default-jdk, javahelper, ant, perl, libperl-dev, chrpath, dh-python, python3-all-dev, python3-setuptools, ruby, ruby-all-dev, gem2deb, doxygen, graphviz
+Build-Depends: debhelper-compat (= 13), dh-exec, ghostscript, swig, default-jdk, javahelper, ant, perl, libperl-dev, libcrypt-dev, chrpath, dh-python, python3-all-dev, python3-setuptools, ruby, ruby-all-dev, gem2deb, doxygen, graphviz
 Package-List:
  libpostscriptbarcode-dev deb libdevel optional arch=any
  libpostscriptbarcode-java deb java optional arch=any
