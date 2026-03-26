@@ -155,6 +155,7 @@ install: install-static install-shared
 install-headers:
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
+	install -m 0644 ../bindings/cpp/$(NAME).hpp $(DESTDIR)$(PREFIX)/include
 
 install-static: libstatic install-headers
 	install -d $(DESTDIR)$(LIBDIR)
@@ -169,6 +170,7 @@ install-shared: libshared install-headers
 
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).h
+	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).hpp
 	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).so*
 	$(RM) $(DESTDIR)$(PREFIX)/lib/lib$(NAME).a
 	-ldconfig

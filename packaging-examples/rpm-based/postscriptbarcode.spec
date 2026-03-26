@@ -243,6 +243,7 @@ popd
 %doc CHANGES libs/README.md
 %license LICENSE
 %{_includedir}/postscriptbarcode.h
+%{_includedir}/postscriptbarcode.hpp
 %{_libdir}/libpostscriptbarcode.so
 
 %files -n java-postscriptbarcode
