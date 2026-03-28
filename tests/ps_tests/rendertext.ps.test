@@ -199,41 +199,18 @@
 
 
 %
-% /resolvealiases resolves text1 and text2 aliases
+% /apply resolves aliases to canonical names
 %
 {
-    256 dict begin
-
-    % Generate primary names
-    (text) 2 /groupoptions rendertext /generategroup processoptions
-    /text1xalign (unset) def /text1yalign (unset) def
-
-    % text1 alias defaults (as in renderers)
-    /text () def /textcolor (unset) def /textxalign (unset) def /textyalign (unset) def
-    /textdirection (forward) def /textfont (Courier) def /textsize 10.0 def
-    /textxoffset 0.0 def /textyoffset 0.0 def /textgaps 0.0 def /textlinegaps 1.2 def
-    /textsubspace () def /textsplit () def /alttext () def
-    /alttextsubspace () def /alttextsplit () def
-
-    % text2 alias defaults
-    /extratext () def /extratextcolor (unset) def /extratextxalign (left) def
-    /extratextyalign (above) def /extratextdirection (forward) def
-    /extratextfont (Courier) def /extratextsize 10.0 def
-    /extratextxoffset 0.0 def /extratextyoffset 0.0 def
-    /extratextgaps 0.0 def /extratextlinegaps 1.2 def
-    /extratextsubspace () def /extratextsplit () def
-
-    % Simulate user/encoder setting some aliases
-    /textxalign /center def
-    /alttext (HELLO) def
-    /extratextfont (Helvetica) def
-
-    << (textxalign) /center (alttext) (HELLO) (extratextfont) (Helvetica) >>
-    /resolvealiases rendertext
-
-    text1xalign text1 text2font 3 array astore
+    50 dict begin
+    /text1font (Courier) def
+    /text1xalign (unset) def
+    /text1 () def
+    /text2font (Courier) def
+    (textfont=Helvetica text1xalign=center alttext=HELLO extratextfont=Times) /apply processoptions pop
+    text1font text1xalign text1 text2font 4 array astore
     end
-} [/center (HELLO) (Helvetica)] isEqual
+} [(Helvetica) (center) (HELLO) (Times)] isEqual
 
 
 %

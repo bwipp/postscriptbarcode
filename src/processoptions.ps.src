@@ -54,6 +54,36 @@ begin
     /integertype { dup cvr dup cvi ne {dup not} if cvi } bind  % Force type error when precision is lost or boolean is given
 >> readonly def
 
+% Alias maps: old option names => canonical names
+/processoptions.aliases <<
+    (alttext)              /text1
+    (alttextsubspace)      /text1subspace
+    (alttextsplit)         /text1split
+    (textlinegaps)         /text1linegaps
+    (textcolor)            /text1color
+    (textxalign)           /text1xalign
+    (textyalign)           /text1yalign
+    (textdirection)        /text1direction
+    (textfont)             /text1font
+    (textsize)             /text1size
+    (textxoffset)          /text1xoffset
+    (textyoffset)          /text1yoffset
+    (textgaps)             /text1gaps
+    (extratext)            /text2
+    (extratextsubspace)    /text2subspace
+    (extratextsplit)       /text2split
+    (extratextlinegaps)    /text2linegaps
+    (extratextcolor)       /text2color
+    (extratextxalign)      /text2xalign
+    (extratextyalign)      /text2yalign
+    (extratextdirection)   /text2direction
+    (extratextfont)        /text2font
+    (extratextsize)        /text2size
+    (extratextxoffset)     /text2xoffset
+    (extratextyoffset)     /text2yoffset
+    (extratextgaps)        /text2gaps
+>> readonly def
+
 /processoptions.apply {
 
     %
@@ -71,11 +101,20 @@ begin
     } if
 
     %
-    % Apply options that exist in currentdict, converting values to existing types
+    % Apply options that exist in currentdict, converting values to existing types.
+    % Unknown options are checked against the alias map and applied to the canonical name.
     %
     mark exch dup
     {
-        exch dup currentdict exch known {
+        exch dup currentdict exch known not {  % Not known, but we might have been given an alias
+            //processoptions.aliases 1 index 2 copy known {
+                get dup 4 index exch known not { exch } if  % Replace alias key with canonical, if no clash
+                pop
+            } {
+                pop pop
+            } ifelse
+        } if
+        dup currentdict exch known {
             dup load type 3 -1 roll exch
             //processoptions.typemap exch get stopped {
                 pop pop
@@ -199,33 +238,12 @@ begin
 } bind def
 
 %
-%  Resolve alias options: for each alias in the table, if the user set
-%  the alias in their options dict, copy the value to the primary name.
-%  User-set primary always wins.
-%
-/processoptions.resolve {              % optionsdict aliastable --
-    {                                  % optdict alias-key primary-name
-        2 index 1 index known {        % user set primary? => primary wins
-            pop pop
-        } {
-            2 index 2 index known {    % user set alias in options?
-                exch load def          % copy alias value to primary
-            } {
-                pop pop
-            } ifelse
-        } ifelse
-    } forall
-    pop  % optdict
-} bind def
-
-%
 %  Dispatcher table
 %
 /processoptions.dispatch <<
     /apply         //processoptions.apply
     /generategroup //processoptions.generate
     /collectgroup  //processoptions.collect
-    /resolve       //processoptions.resolve
 >> readonly def
 
 /processoptions {

@@ -92,40 +92,6 @@ begin
     (gaps)       0.0
 >> readonly def
 
-% Alias mapping: old text1 option names => new primary names
-/rendertext.text1aliases <<
-    (alttext)          /text1
-    (alttextsubspace)  /text1subspace
-    (alttextsplit)     /text1split
-    (textlinegaps)     /text1linegaps
-    (textcolor)        /text1color
-    (textxalign)       /text1xalign
-    (textyalign)       /text1yalign
-    (textdirection)    /text1direction
-    (textfont)         /text1font
-    (textsize)         /text1size
-    (textxoffset)      /text1xoffset
-    (textyoffset)      /text1yoffset
-    (textgaps)         /text1gaps
->> readonly def
-
-% Alias mapping: old text2/extratext names => new primary names
-/rendertext.text2aliases <<
-    (extratext)          /text2
-    (extratextsubspace)  /text2subspace
-    (extratextsplit)     /text2split
-    (extratextlinegaps)  /text2linegaps
-    (extratextcolor)     /text2color
-    (extratextxalign)    /text2xalign
-    (extratextyalign)    /text2yalign
-    (extratextdirection) /text2direction
-    (extratextfont)      /text2font
-    (extratextsize)      /text2size
-    (extratextxoffset)   /text2xoffset
-    (extratextyoffset)   /text2yoffset
-    (extratextgaps)      /text2gaps
->> readonly def
-
 % Validation dicts
 /rendertext.xalignopts <<
     /offleft dup  /left dup  /center dup  /right dup  /offright dup  /justify dup
@@ -138,14 +104,6 @@ begin
 /rendertext.directionoptions <<
     /forward dup  /backward dup  /upward dup  /downward dup
 >> readonly def
-
-%
-%  Resolve text1 and text2 aliases after processoptions
-%
-/rendertext.resolvealiases {     % optionsdict --
-    dup //rendertext.text1aliases /resolve //processoptions exec
-    //rendertext.text2aliases /resolve //processoptions exec
-} bind def
 
 %
 %  Validate a single text option dict
@@ -448,7 +406,6 @@ begin
     /groupoptions     //rendertext.groupoptions
     /render           //rendertext.render
     /validateoptions  //rendertext.validateoptions
-    /resolvealiases   //rendertext.resolvealiases
 >> readonly def
 
 /rendertext {
