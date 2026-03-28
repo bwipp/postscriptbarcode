@@ -53,6 +53,7 @@ begin
     16 dict begin
     {
 
+    /includetext false def
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -94,10 +95,12 @@ begin
     barcode options //datamatrix exec /args exch def
 
     args (opt) options put
-    args (alttext) hri put
-    args (textyoffset) -1.0 put
-    args (textfont) /Helvetica put
-    args (textsize) 5 put
+    includetext {
+        args (alttext) hri put
+        args (textyoffset) -1.0 put
+        args (textfont) /Helvetica put
+        args (textsize) 5 put
+    } if
     args
 
     _render //renmatrix if
