@@ -69,10 +69,10 @@ begin
 
     /dontdraw false def
     /includetext false def               % Enable/disable text
-    /textfont /Helvetica def
-    /textsize 12.0 def
-    /textxoffset -5.75 def
-    /textyoffset -0.25 def
+    /text1font /Helvetica def
+    /text1size 12.0 def
+    /text1xoffset -5.75 def
+    /text1yoffset -0.25 def
     /height 1.0 def
     /addongap 12.0 def
     /addontextfont (unset) def
@@ -80,7 +80,7 @@ begin
     /addontextxoffset null def  % sentinel realtype
     /addontextyoffset null def  % sentinel realtype
 
-    //processoptions exec /options exch def
+    /apply //processoptions exec /options exch def
     /barcode exch def
 
     /_render
@@ -219,7 +219,7 @@ begin
     pad 7 checksum 48 add put       % Put ascii for checksum at end of pad
     /barcode pad def
     /txt 8 array def
-    txt 0 [barcode 0 1 getinterval textxoffset textyoffset textfont textsize 2 sub] put
+    txt 0 [barcode 0 1 getinterval text1xoffset text1yoffset text1font text1size 2 sub] put
 
     %
     % Determine the mirror map based on checksum
@@ -267,10 +267,10 @@ begin
             /enc revenc def
         } if
         sbs i 1 sub 4 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 7 mul 13 add textxoffset add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 7 mul 13 add text1xoffset add text1yoffset text1font text1size] put
     } for
 
-    txt 7 [barcode 7 1 getinterval 6 7 mul 21 add textxoffset add textyoffset textfont textsize 2 sub] put
+    txt 7 [barcode 7 1 getinterval 6 7 mul 21 add text1xoffset add text1yoffset text1font text1size 2 sub] put
 
     %
     % Put the end character
@@ -295,10 +295,10 @@ begin
         /addopts <<
             /includetext true
             /height height includetext { 0.15 sub } if
-            /textxoffset addontextxoffset null ne {addontextxoffset} {54.25 addongap add} ifelse
-            addontextyoffset null ne {/textyoffset addontextyoffset} if
-            /textsize addontextsize null ne {addontextsize} {textsize} ifelse
-            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
+            /text1xoffset addontextxoffset null ne {addontextxoffset} {54.25 addongap add} ifelse
+            addontextyoffset null ne {/text1yoffset addontextyoffset} if
+            /text1size addontextsize null ne {addontextsize} {text1size} ifelse
+            /text1font addontextfont (unset) ne {addontextfont} {text1font} ifelse
         >> def
 
         /uk.co.terryburton.bwipp._dontdraw true def

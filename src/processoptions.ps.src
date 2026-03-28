@@ -36,10 +36,15 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-1 dict
+16 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
 
+%
+%  Apply user options to defaults in currentdict with type checking
+%
+%  options /apply //processoptions exec => optionsdict
+%
 /processoptions.typemap <<
     /booleantype { false or } bind                             % Force a type error if not boolean value
     /stringtype  { dup length string cvs } bind                % Conversion to string to force a boolean to fail
@@ -49,7 +54,7 @@ begin
     /integertype { dup cvr dup cvi ne {dup not} if cvi } bind  % Force type error when precision is lost or boolean is given
 >> readonly def
 
-/processoptions {
+/processoptions.apply {
 
     %
     % Convert string to dict
@@ -86,6 +91,146 @@ begin
         } ifelse
     } forall
     exch pop
+
+} bind def
+
+%
+%  Generate option definitions in currentdict for groups 1..N
+%
+%  (prefix) N template /generategroup //processoptions exec
+%
+/processoptions.generate {  % (prefix) N template --
+
+    currentdict 4 1 roll  % Save caller's dict below args
+
+    16 dict begin
+
+    /tmpl exch def
+    /n exch def
+    /pfx exch def
+    /target exch def
+
+    1 1 n {
+
+        /i exch def
+
+        % Build base name: prefix + digit
+        /base pfx length 1 add string def
+        base 0 pfx putinterval
+        base pfx length i 48 add put
+
+        tmpl {
+
+            /val exch def
+
+            % Dict forall yields names; convert suffix to string for concatenation
+            /sfx exch 127 string cvs def
+
+            % Build full name: base + suffix
+            base length sfx length add string
+            dup 0 base putinterval
+            dup base length sfx putinterval
+            cvn val target 3 1 roll put  % target /name value put
+
+        } forall
+
+    } for
+
+    end
+
+} bind def
+
+%
+%  Collect current option values into an array of dicts
+%
+%  (prefix) N template /collectgroup //processoptions exec => [ <<...>> <<...>> ... ]
+%
+/processoptions.collect {  % (prefix) N template => array
+
+    16 dict begin
+
+    /tmpl exch def
+    /n exch def
+    /pfx exch def
+    /result n array def
+
+    1 1 n {
+
+        /i exch def
+
+        %
+        %  Build base name: prefix + digit
+        %
+        /base pfx length 1 add string def
+        base 0 pfx putinterval
+        base pfx length i 48 add put
+
+        %
+        %  Build suffix-keyed dict from currentdict values
+        %
+        /grpdict tmpl length 2 mul dict def
+
+        tmpl {
+
+            pop  % ignore template default
+
+            % Dict forall yields names; convert suffix to string for concatenation
+            /sfx exch 127 string cvs def
+
+            % Build full name: base + suffix, then load value from dict stack
+            base length sfx length add string
+            dup 0 base putinterval
+            dup base length sfx putinterval
+            cvn load
+
+            % Store value in dict under suffix key
+            grpdict exch sfx exch put
+
+        } forall
+
+        result i 1 sub grpdict put
+
+    } for
+
+    result
+
+    end
+
+} bind def
+
+%
+%  Resolve alias options: for each alias in the table, if the user set
+%  the alias in their options dict, copy the value to the primary name.
+%  User-set primary always wins.
+%
+/processoptions.resolve {              % optionsdict aliastable --
+    {                                  % optdict alias-key primary-name
+        2 index 1 index known {        % user set primary? => primary wins
+            pop pop
+        } {
+            2 index 2 index known {    % user set alias in options?
+                exch load def          % copy alias value to primary
+            } {
+                pop pop
+            } ifelse
+        } ifelse
+    } forall
+    pop  % optdict
+} bind def
+
+%
+%  Dispatcher table
+%
+/processoptions.dispatch <<
+    /apply         //processoptions.apply
+    /generategroup //processoptions.generate
+    /collectgroup  //processoptions.collect
+    /resolve       //processoptions.resolve
+>> readonly def
+
+/processoptions {
+
+    //processoptions.dispatch exch get exec
 
 }
 [/barcode] {null def} forall

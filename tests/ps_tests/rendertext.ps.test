@@ -6,6 +6,7 @@
 % Copyright (c) 2004-2026 Terry Burton
 %
 
+/processoptions dup /uk.co.terryburton.bwipp findresource cvx def
 /rendertext dup /uk.co.terryburton.bwipp findresource cvx def
 
 /uk.co.terryburton.bwipp.global_ctx <<
@@ -16,247 +17,232 @@
     >>
 >> def
 
-/setup {
-    /pixx 100 def
-    /pixy 100 def
-    /txt [] def
-    /includetext false def
-    /textcolor (unset) def
-    /textxalign (unset) def
-    /textyalign (unset) def
-    /textdirection (forward) def
-    /textfont (Courier) def
-    /textsize 10.0 def
-    /textxoffset 0.0 def
-    /textyoffset 0.0 def
-    /textgaps 0.0 def
-    /textlinegaps 1.2 def
-    /alttext () def
-    /alttextsplit () def
-    /alttextsubspace () def
-    /extratext () def
-    /extratextsubspace () def
-    /extratextsplit () def
-    /extratextlinegaps 1.2 def
-    /extratextcolor (unset) def
-    /extratextxalign (left) def
-    /extratextyalign (above) def
-    /extratextdirection (forward) def
-    /extratextfont (Courier) def
-    /extratextsize 10.0 def
-    /extratextxoffset 0.0 def
-    /extratextyoffset 0.0 def
-    /extratextgaps 0.0 def
+% Build a text dict with defaults, applying overrides via a procedure
+/mkdict {
+    << () () (subspace) () (split) () (linegaps) 1.2
+       (color) (unset) (xalign) (left) (yalign) (above)
+       (direction) (forward) (font) (Courier) (size) 10.0
+       (xoffset) 0.0 (yoffset) 0.0 (gaps) 0.0 >>
 } def
 
-/ok_tmpl {
-    { 50 dict begin setup 0 exec rendertext end }
-    dup 3 -1 roll 4 exch put
+% inject: copy empty-key value into (content) key, ensure (txt) exists
+/inject { dup dup () get (content) exch put dup (txt) known not { dup (txt) [] put } if } def
+
+% ok: { override-proc } grp ok_grp
+/ok_grp {
+    /ok_grp.grp exch def
+    { 50 dict begin 100 100 0 mkdict 0 exec inject /render rendertext end }
+    dup 5 ok_grp.grp put
+    dup 3 -1 roll 7 exch put
     true isEqual
 } def
 
-/er_tmpl {
-    { 50 dict begin setup 0 exec rendertext pop pop end }
-    dup 4 5 -1 roll put
+% er: { override-proc } /errorname grp er_grp
+% rendertext returns errorname errorstring false on error; pop pop leaves errorname
+/er_grp {
+    /er_grp.grp exch def
+    exch
+    { 50 dict begin 100 100 0 mkdict 0 exec inject /render rendertext pop pop end }
+    dup 5 er_grp.grp put
+    dup 3 -1 roll 7 exch put
     exch isEqual
 } def
 
+/ok_tmpl { 1 ok_grp } def
+/er_tmpl { 1 er_grp } def
+
 
 %
-% includetext=false (no-op)
+% Empty content (no-op)
 %
 { } ok_tmpl
 
 
 %
-% txt array (encoder-positioned text)
+% txt array (encoder-positioned text, fast path)
 %
-{ /includetext true def /txt [ [ (X) 0 0 (Courier) 10 ] ] def } ok_tmpl
+{ dup (xalign) (unset) put dup (yalign) (unset) put dup (txt) [ [ (X) 0 0 (Courier) 10 ] ] put } ok_tmpl
 
-{ /includetext true def /txt [ [ (X) 0 0 (Courier)  0 ] ] def } /bwipp.fontTooSmall er_tmpl
-{ /includetext true def /txt [ [ (X) 0 0 (Courier) -1 ] ] def } /bwipp.fontTooSmall er_tmpl
-
-
-%
-% alttext
-%
-{ /includetext true def /alttext (TEST) def } ok_tmpl
+{ dup (xalign) (unset) put dup (yalign) (unset) put dup (txt) [ [ (X) 0 0 (Courier)  0 ] ] put } /bwipp.fontTooSmall er_tmpl
+{ dup (xalign) (unset) put dup (yalign) (unset) put dup (txt) [ [ (X) 0 0 (Courier) -1 ] ] put } /bwipp.fontTooSmall er_tmpl
 
 
 %
-% textfont textsize
+% content (alttext equivalent)
 %
-{ /includetext true def /alttext (TEST) def /textfont (Helvetica) def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textfont (Times-Roman) def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textsize 8.0 def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textsize 14.0 def } ok_tmpl
+{ dup () (TEST) put } ok_tmpl
 
 
 %
-% alttextsplit alttextsubspace
+% font size
 %
-{ /includetext true def /alttext (A|B) def /alttextsplit (|) def    } ok_tmpl
-{ /includetext true def /alttext (A_B) def /alttextsubspace (_) def } ok_tmpl
-
-{ /includetext true def /alttext (A|B) def /alttextsplit (||) def } /bwipp.alttextsplitBad er_tmpl
-{ /includetext true def /alttext (A_B) def /alttextsubspace (__) def } /bwipp.alttextsubspaceBad er_tmpl
-
-
-%
-% textcolor
-%
-{ /includetext true def /alttext (TEST) def /textcolor (FF0000) def   } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textcolor (00FF0000) def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textcolor (_testsep) def } ok_tmpl
+{ dup () (TEST) put dup (font) (Helvetica) put } ok_tmpl
+{ dup () (TEST) put dup (font) (Times-Roman) put } ok_tmpl
+{ dup () (TEST) put dup (size) 8.0 put } ok_tmpl
+{ dup () (TEST) put dup (size) 14.0 put } ok_tmpl
 
 
 %
-% textdirection
+% split subspace
 %
-{ /includetext true def /alttext (TEST) def /textdirection (forward) def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textdirection (backward) def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textdirection (upward) def   } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textdirection (downward) def } ok_tmpl
+{ dup () (A|B) put dup (split) (|) put } ok_tmpl
+{ dup () (A_B) put dup (subspace) (_) put } ok_tmpl
 
-
-%
-% textxoffset textyoffset
-%
-{ /includetext true def /alttext (TEST) def /textxoffset  5.0 def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxoffset -5.0 def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyoffset  5.0 def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyoffset -5.0 def } ok_tmpl
+{ dup () (A|B) put dup (split) (||) put } /bwipp.textsplitBad er_tmpl
+{ dup () (A_B) put dup (subspace) (__) put } /bwipp.textsubspaceBad er_tmpl
 
 
 %
-% textgaps textlinegaps
+% color
 %
-{ /includetext true def /alttext (TEST) def /textgaps 1.0 def     } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textlinegaps 2.0 def } ok_tmpl
-
-
-%
-% textxalign
-%
-{ /includetext true def /alttext (TEST) def /textxalign (left) def     } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (center) def   } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (right) def    } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (offleft) def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (offright) def } ok_tmpl
-
-{ /includetext true def /alttext (TEST) def /textxalign (justify) def /textdirection (forward) def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (justify) def /textdirection (backward) def } ok_tmpl
-{ /includetext true def /alttext (A) def /textxalign (justify) def /textdirection (forward) def    } ok_tmpl
-
-{ /includetext true def /alttext (TEST) def /textxalign (justify) def /textdirection (upward) def   } /bwipp.textxjustify er_tmpl
-{ /includetext true def /alttext (TEST) def /textxalign (justify) def /textdirection (downward) def } /bwipp.textxjustify er_tmpl
+{ dup () (TEST) put dup (color) (FF0000) put } ok_tmpl
+{ dup () (TEST) put dup (color) (00FF0000) put } ok_tmpl
+{ dup () (TEST) put dup (color) (_testsep) put } ok_tmpl
 
 
 %
-% textyalign
+% direction
 %
-{ /includetext true def /alttext (TEST) def /textyalign (above) def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (below) def  } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (top) def    } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (bottom) def } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (center) def } ok_tmpl
-
-{ /includetext true def /alttext (TEST) def /textyalign (justify) def /textdirection (upward) def   } ok_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (justify) def /textdirection (downward) def } ok_tmpl
-{ /includetext true def /alttext (A) def /textyalign (justify) def /textdirection (upward) def     } ok_tmpl
-
-{ /includetext true def /alttext (TEST) def /textyalign (justify) def /textdirection (forward) def  } /bwipp.textyjustify er_tmpl
-{ /includetext true def /alttext (TEST) def /textyalign (justify) def /textdirection (backward) def } /bwipp.textyjustify er_tmpl
+{ dup () (TEST) put dup (direction) (forward) put } ok_tmpl
+{ dup () (TEST) put dup (direction) (backward) put } ok_tmpl
+{ dup () (TEST) put dup (direction) (upward) put } ok_tmpl
+{ dup () (TEST) put dup (direction) (downward) put } ok_tmpl
 
 
 %
-% extratext
+% offsets
 %
-{ /extratext (EXTRA) def } ok_tmpl
-
-
-%
-% extratextfont extratextsize
-%
-{ /extratext (EXTRA) def /extratextfont (Helvetica) def } ok_tmpl
-{ /extratext (EXTRA) def /extratextfont (Times-Roman) def } ok_tmpl
-{ /extratext (EXTRA) def /extratextsize 8.0 def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextsize 14.0 def } ok_tmpl
+{ dup () (TEST) put dup (xoffset)  5.0 put } ok_tmpl
+{ dup () (TEST) put dup (xoffset) -5.0 put } ok_tmpl
+{ dup () (TEST) put dup (yoffset)  5.0 put } ok_tmpl
+{ dup () (TEST) put dup (yoffset) -5.0 put } ok_tmpl
 
 
 %
-% extratextcolor
+% gaps linegaps
 %
-{ /extratext (EXTRA) def /extratextcolor (FF0000) def   } ok_tmpl
-{ /extratext (EXTRA) def /extratextcolor (00FF0000) def } ok_tmpl
-{ /extratext (EXTRA) def /extratextcolor (_testsep) def } ok_tmpl
-
-
-%
-% extratextdirection
-%
-{ /extratext (EXTRA) def /extratextdirection (forward) def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextdirection (backward) def } ok_tmpl
-{ /extratext (EXTRA) def /extratextdirection (upward) def   } ok_tmpl
-{ /extratext (EXTRA) def /extratextdirection (downward) def } ok_tmpl
+{ dup () (TEST) put dup (gaps) 1.0 put } ok_tmpl
+{ dup () (TEST) put dup (linegaps) 2.0 put } ok_tmpl
 
 
 %
-% extratextxoffset extratextyoffset
+% xalign
 %
-{ /extratext (EXTRA) def /extratextxoffset  5.0 def } ok_tmpl
-{ /extratext (EXTRA) def /extratextxoffset -5.0 def } ok_tmpl
-{ /extratext (EXTRA) def /extratextyoffset  5.0 def } ok_tmpl
-{ /extratext (EXTRA) def /extratextyoffset -5.0 def } ok_tmpl
+{ dup () (TEST) put dup (xalign) (left) put } ok_tmpl
+{ dup () (TEST) put dup (xalign) (center) put } ok_tmpl
+{ dup () (TEST) put dup (xalign) (right) put } ok_tmpl
+{ dup () (TEST) put dup (xalign) (offleft) put } ok_tmpl
+{ dup () (TEST) put dup (xalign) (offright) put } ok_tmpl
 
+{ dup () (TEST) put dup (xalign) (justify) put dup (direction) (forward) put } ok_tmpl
+{ dup () (TEST) put dup (xalign) (justify) put dup (direction) (backward) put } ok_tmpl
+{ dup () (A) put dup (xalign) (justify) put dup (direction) (forward) put } ok_tmpl
 
-%
-% extratextgaps extratextlinegaps
-%
-{ /extratext (EXTRA) def /extratextgaps 1.0 def     } ok_tmpl
-{ /extratext (EXTRA) def /extratextlinegaps 2.0 def } ok_tmpl
-
-
-%
-% extratextsplit extratextsubspace
-%
-{ /extratext (A|B) def /extratextsplit (|) def    } ok_tmpl
-{ /extratext (A_B) def /extratextsubspace (_) def } ok_tmpl
-
-{ /extratext (A|B) def /extratextsplit (||) def } /bwipp.extratextsplitBad er_tmpl
-{ /extratext (A_B) def /extratextsubspace (__) def } /bwipp.extratextsubspaceBad er_tmpl
+{ dup () (TEST) put dup (xalign) (justify) put dup (direction) (upward) put } /bwipp.textxjustify er_tmpl
+{ dup () (TEST) put dup (xalign) (justify) put dup (direction) (downward) put } /bwipp.textxjustify er_tmpl
 
 
 %
-% extratextxalign
+% yalign
 %
-{ /extratext (EXTRA) def /extratextxalign (left) def     } ok_tmpl
-{ /extratext (EXTRA) def /extratextxalign (center) def   } ok_tmpl
-{ /extratext (EXTRA) def /extratextxalign (right) def    } ok_tmpl
-{ /extratext (EXTRA) def /extratextxalign (offleft) def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextxalign (offright) def } ok_tmpl
+{ dup () (TEST) put dup (yalign) (above) put } ok_tmpl
+{ dup () (TEST) put dup (yalign) (below) put } ok_tmpl
+{ dup () (TEST) put dup (yalign) (top) put } ok_tmpl
+{ dup () (TEST) put dup (yalign) (bottom) put } ok_tmpl
+{ dup () (TEST) put dup (yalign) (center) put } ok_tmpl
 
-{ /extratext (EXTRA) def /extratextxalign (justify) def /extratextdirection (forward) def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextxalign (justify) def /extratextdirection (backward) def } ok_tmpl
-{ /extratext (A) def /extratextxalign (justify) def /extratextdirection (forward) def     } ok_tmpl
+{ dup () (TEST) put dup (yalign) (justify) put dup (direction) (upward) put } ok_tmpl
+{ dup () (TEST) put dup (yalign) (justify) put dup (direction) (downward) put } ok_tmpl
+{ dup () (A) put dup (yalign) (justify) put dup (direction) (upward) put } ok_tmpl
 
-{ /extratext (EXTRA) def /extratextxalign (justify) def /extratextdirection (upward) def   } /bwipp.extratextxjustify er_tmpl
-{ /extratext (EXTRA) def /extratextxalign (justify) def /extratextdirection (downward) def } /bwipp.extratextxjustify er_tmpl
+{ dup () (TEST) put dup (yalign) (justify) put dup (direction) (forward) put } /bwipp.textyjustify er_tmpl
+{ dup () (TEST) put dup (yalign) (justify) put dup (direction) (backward) put } /bwipp.textyjustify er_tmpl
 
 
 %
-% extratextyalign
+% text2 errors (old names)
 %
-{ /extratext (EXTRA) def /extratextyalign (above) def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextyalign (below) def  } ok_tmpl
-{ /extratext (EXTRA) def /extratextyalign (top) def    } ok_tmpl
-{ /extratext (EXTRA) def /extratextyalign (bottom) def } ok_tmpl
-{ /extratext (EXTRA) def /extratextyalign (center) def } ok_tmpl
+{ dup () (A|B) put dup (split) (||) put } /bwipp.extratextsplitBad 2 er_grp
+{ dup () (A_B) put dup (subspace) (__) put } /bwipp.extratextsubspaceBad 2 er_grp
+{ dup () (TEST) put dup (xalign) (justify) put dup (direction) (upward) put } /bwipp.extratextxjustify 2 er_grp
+{ dup () (TEST) put dup (yalign) (justify) put dup (direction) (forward) put } /bwipp.extratextyjustify 2 er_grp
 
-{ /extratext (EXTRA) def /extratextyalign (justify) def /extratextdirection (upward) def   } ok_tmpl
-{ /extratext (EXTRA) def /extratextyalign (justify) def /extratextdirection (downward) def } ok_tmpl
-{ /extratext (A) def /extratextyalign (justify) def /extratextdirection (upward) def      } ok_tmpl
 
-{ /extratext (EXTRA) def /extratextyalign (justify) def /extratextdirection (forward) def  } /bwipp.extratextyjustify er_tmpl
-{ /extratext (EXTRA) def /extratextyalign (justify) def /extratextdirection (backward) def } /bwipp.extratextyjustify er_tmpl
+%
+% text3 (new group)
+%
+{ dup () (EXTRA) put } 3 ok_grp
+{ dup () (EXTRA) put dup (font) (Helvetica) put } 3 ok_grp
+{ dup () (EXTRA) put dup (xalign) (center) put dup (yalign) (below) put } 3 ok_grp
 
+{ dup () (EXTRA) put dup (xalign) (justify) put dup (direction) (upward) put }
+    /bwipp.text3xjustify 3 er_grp
+{ dup () (EXTRA) put dup (yalign) (justify) put dup (direction) (forward) put }
+    /bwipp.text3yjustify 3 er_grp
+{ dup () (A|B) put dup (split) (||) put } /bwipp.text3splitBad 3 er_grp
+{ dup () (A_B) put dup (subspace) (__) put } /bwipp.text3subspaceBad 3 er_grp
+
+
+%
+% unset alignment defaults (text1 slow path with txt extraction)
+%
+{ dup (xalign) (unset) put dup (yalign) (unset) put dup (txt) [ [ (A) 0 0 (Courier) 10 ] [ (B) 10 0 (Courier) 10 ] ] put } ok_tmpl
+
+
+%
+% /groupoptions returns the suffixes template
+%
+{
+    /groupoptions rendertext
+    type /dicttype eq
+} true isEqual
+
+
+%
+% /resolvealiases resolves text1 and text2 aliases
+%
+{
+    256 dict begin
+
+    % Generate primary names
+    (text) 2 /groupoptions rendertext /generategroup processoptions
+    /text1xalign (unset) def /text1yalign (unset) def
+
+    % text1 alias defaults (as in renderers)
+    /text () def /textcolor (unset) def /textxalign (unset) def /textyalign (unset) def
+    /textdirection (forward) def /textfont (Courier) def /textsize 10.0 def
+    /textxoffset 0.0 def /textyoffset 0.0 def /textgaps 0.0 def /textlinegaps 1.2 def
+    /textsubspace () def /textsplit () def /alttext () def
+    /alttextsubspace () def /alttextsplit () def
+
+    % text2 alias defaults
+    /extratext () def /extratextcolor (unset) def /extratextxalign (left) def
+    /extratextyalign (above) def /extratextdirection (forward) def
+    /extratextfont (Courier) def /extratextsize 10.0 def
+    /extratextxoffset 0.0 def /extratextyoffset 0.0 def
+    /extratextgaps 0.0 def /extratextlinegaps 1.2 def
+    /extratextsubspace () def /extratextsplit () def
+
+    % Simulate user/encoder setting some aliases
+    /textxalign /center def
+    /alttext (HELLO) def
+    /extratextfont (Helvetica) def
+
+    << (textxalign) /center (alttext) (HELLO) (extratextfont) (Helvetica) >>
+    /resolvealiases rendertext
+
+    text1xalign text1 text2font 3 array astore
+    end
+} [/center (HELLO) (Helvetica)] isEqual
+
+
+%
+% Multiple text groups active simultaneously
+%
+{
+    50 dict begin /pixx 100 def /pixy 100 def
+    100 100 1 mkdict dup () (ONE) put inject /render rendertext
+    100 100 3 mkdict dup () (TWO) put inject /render rendertext
+    and
+    end
+} true isEqual

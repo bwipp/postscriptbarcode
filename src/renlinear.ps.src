@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renlinear--
-% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor rendertext--
+% --REQUIRES preamble raiseerror processoptions setanycolor rendertext--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
@@ -43,21 +43,10 @@ dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 dup /rendertext dup /uk.co.terryburton.bwipp findresource put
 begin
 
-/renlinear.xalignopts <<
-    /offleft dup  /left dup  /center dup  /right dup  /offright dup  /justify dup
->> readonly def
-
-/renlinear.yalignopts <<
-    /above dup  /top dup  /center dup  /bottom dup  /below dup  /justify dup
->> readonly def
-
-/renlinear.directionoptions <<
-    /forward dup  /backward dup  /upward dup  /downward dup
->> readonly def
 
 /renlinear {
 
-    64 dict begin
+    256 dict begin
     {
 
     %
@@ -67,7 +56,15 @@ begin
     /bhs [] def
     /bbs [] def
     /txt [] def
-    /includetext false def
+
+    % text{1-9}* options with common defaults
+    (text) 9 /groupoptions //rendertext exec /generategroup //processoptions exec
+
+    % Overrides permitting encoder-positioned text
+    /text1xalign (unset) def
+    /text1yalign (unset) def
+
+    % text1 aliases
     /textcolor (unset) def
     /textxalign (unset) def
     /textyalign (unset) def
@@ -79,12 +76,11 @@ begin
     /textgaps 0.0 def
     /textlinegaps 1.2 def
     /alttext () def
-    /alttextsplit () def
-    /alttextsubspace () def
+    /alttextsubspace () def  % Misnomer
+    /alttextsplit () def     % Misnomer
+
+    % text2 aliases
     /extratext () def
-    /extratextsubspace () def
-    /extratextsplit () def
-    /extratextlinegaps 1.2 def
     /extratextcolor (unset) def
     /extratextxalign (left) def
     /extratextyalign (above) def
@@ -94,6 +90,11 @@ begin
     /extratextxoffset 0.0 def
     /extratextyoffset 0.0 def
     /extratextgaps 0.0 def
+    /extratextlinegaps 1.2 def
+    /extratextsubspace () def
+    /extratextsplit () def
+
+    /includetext false def
     /barcolor (unset) def
     /backgroundcolor (unset) def
     /bordercolor (unset) def
@@ -117,7 +118,13 @@ begin
     /guardheight 7.0 def
 
     {def} forall
-    opt currentdict /opt undef //processoptions exec /options exch def
+    opt currentdict /opt undef /apply //processoptions exec /options exch def
+
+    % Resolve text aliases: alttext=>text1, extratext=>text2
+    options /resolvealiases //rendertext exec
+
+    % Collect into an text options array
+    /textopts (text) 9 /groupoptions //rendertext exec /collectgroup //processoptions exec def
 
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /ctx exch def
@@ -130,43 +137,15 @@ begin
     inkspread null eq {/inkspread 0.15 def} if
 
     %
-    % Input validation
+    % Validate input
     %
-    textxalign (unset) ne {
-        //renlinear.xalignopts textxalign known not {
-            /bwipp.renlinearBadTextxalign (textxalign must be offleft, left, center, right, offright or justify) //raiseerror exec
-        } if
-    } if
 
-    textyalign (unset) ne {
-        //renlinear.yalignopts textyalign known not {
-            /bwipp.renlinearBadTextyalign (textyalign must be above, top, center, bottom, below or justify) //raiseerror exec
-        } if
-    } if
-
-    //renlinear.directionoptions textdirection known not {
-        /bwipp.renlinearBadTextdirection (textdirection must be forward, backward, upward or downward) //raiseerror exec
-    } if
-
-    textsize 0 le textsize 25 ge or {
-        /bwipp.renlinearBadTextsize (textsize must be greater than zero and less that 25) //raiseerror exec
-    } if
-
-    //renlinear.xalignopts extratextxalign known not {
-        /bwipp.renlinearBadExtratextxalign (extratextxalign must be offleft, left, center, right, offright or justify) //raiseerror exec
-    } if
-
-    //renlinear.yalignopts extratextyalign known not {
-        /bwipp.renlinearBadExtratextyalign (extratextyalign must be above, top, center, bottom, below or justify) //raiseerror exec
-    } if
-
-    //renlinear.directionoptions extratextdirection known not {
-        /bwipp.renlinearBadExtratextdirection (extratextdirection must be forward, backward, upward or downward) //raiseerror exec
-    } if
-
-    extratextsize 0 le extratextsize 25 ge or {
-        /bwipp.renlinearBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
-    } if
+    % Validate text{1-9}* options
+    1 1 9 {
+        /textgrp exch def
+        textgrp textopts textgrp 1 sub get
+        /validateoptions //rendertext exec not { //raiseerror exec } if
+    } for
 
     inkspread -1 lt inkspread 1 gt or {
         /bwipp.renlinearBadInkspread (inkspread must be from -1 to 1) //raiseerror exec
@@ -190,38 +169,6 @@ begin
 
     borderwidth 0 lt borderwidth 10 gt or {
         /bwipp.renlinearBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
-    } if
-
-    textxoffset -150 lt textxoffset 150 gt or {
-        /bwipp.renlinearBadTextxoffset (textxoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    textyoffset -150 lt textyoffset 150 gt or {
-        /bwipp.renlinearBadTextyoffset (textyoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    textgaps -20 lt textgaps 20 gt or {
-        /bwipp.renlinearBadTextgaps (textgaps must be from -20 to 20) //raiseerror exec
-    } if
-
-    textlinegaps 0 lt textlinegaps 20 gt or {
-        /bwipp.renlinearBadTextlinegaps (textlinegaps must be from 0 to 20) //raiseerror exec
-    } if
-
-    extratextxoffset -150 lt extratextxoffset 150 gt or {
-        /bwipp.renlinearBadExtratextxoffset (extratextxoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    extratextyoffset -150 lt extratextyoffset 150 gt or {
-        /bwipp.renlinearBadExtratextyoffset (extratextyoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    extratextgaps -20 lt extratextgaps 20 gt or {
-        /bwipp.renlinearBadExtratextgaps (extratextgaps must be from -20 to 20) //raiseerror exec
-    } if
-
-    extratextlinegaps 0 lt extratextlinegaps 20 gt or {
-        /bwipp.renlinearBadExtratextlinegaps (extratextlinegaps must be from 0 to 20) //raiseerror exec
     } if
 
     barratio 0.1 lt barratio 5 gt or {
@@ -367,9 +314,20 @@ begin
     grestore
 
     %
-    % Display the text
+    % Display text{1-9}
     %
-    //rendertext exec not { grestore //raiseerror exec } if
+    1 1 9 {
+        /textgrp exch def
+        textopts textgrp 1 sub get () get () ne              % Has manual contents
+        textgrp 1 eq txt length 0 gt and includetext and or  % or text1 with encoder txt and includetext
+        {
+            textopts textgrp 1 sub get
+            dup dup () get (content) exch put
+            dup (txt) textgrp 1 eq { txt } { [] } ifelse put
+            pixx pixy textgrp 4 -1 roll /render //rendertext exec
+            not { grestore //raiseerror exec } if
+        } if
+    } for
 
     %
     % Display the guard elements

@@ -36,7 +36,7 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+16 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
@@ -44,21 +44,10 @@ dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 dup /rendertext dup /uk.co.terryburton.bwipp findresource put
 begin
 
+
 /renmatrix [/before /after] //setuphooks exec
 
 (setup.define) //renmatrix.before exec
-
-/renmatrix.xalignopts <<
-    /offleft dup  /left dup  /center dup  /right dup  /offright dup  /justify dup
->> readonly def
-
-/renmatrix.yalignopts <<
-    /above dup  /top dup  /center dup  /bottom dup  /below dup  /justify dup
->> readonly def
-
-/renmatrix.directionoptions <<
-    /forward dup  /backward dup  /upward dup  /downward dup
->> readonly def
 
 /renmatrix.left  1 def
 /renmatrix.right 2 def
@@ -144,7 +133,7 @@ begin
 
 /renmatrix {
 
-    128 dict begin
+    256 dict begin
     {
 
     (input.processoptions) //renmatrix.before exec
@@ -161,7 +150,15 @@ begin
     /inkspreadh null def   % real sentinel
     /inkspreadv null def   % real sentinel
     /txt [] def
-    /includetext false def
+
+    % text{1-9}* options with common defaults
+    (text) 9 /groupoptions //rendertext exec /generategroup //processoptions exec
+
+    % Overrides permitting encoder-positioned text
+    /text1xalign (unset) def
+    /text1yalign (unset) def
+
+    % text1 aliases
     /textcolor (unset) def
     /textxalign (unset) def
     /textyalign (unset) def
@@ -173,12 +170,11 @@ begin
     /textgaps 0.0 def
     /textlinegaps 1.2 def
     /alttext () def
-    /alttextsplit () def
-    /alttextsubspace () def
+    /alttextsubspace () def  % Misnomer
+    /alttextsplit () def     % Misnomer
+
+    % text2 aliases
     /extratext () def
-    /extratextsubspace () def
-    /extratextsplit () def
-    /extratextlinegaps 1.2 def
     /extratextcolor (unset) def
     /extratextxalign (left) def
     /extratextyalign (above) def
@@ -188,6 +184,11 @@ begin
     /extratextxoffset 0.0 def
     /extratextyoffset 0.0 def
     /extratextgaps 0.0 def
+    /extratextlinegaps 1.2 def
+    /extratextsubspace () def
+    /extratextsplit () def
+
+    /includetext false def
     /showborder false def
     /borderleft 0.0 def
     /borderright 0.0 def
@@ -196,7 +197,10 @@ begin
     /borderwidth 0.5 def
 
     {def} forall
-    opt currentdict /opt undef //processoptions exec /options exch def
+    opt currentdict /opt undef /apply //processoptions exec /options exch def
+
+    % Resolve text aliases: alttext=>text1, extratext=>text2
+    options /resolvealiases //rendertext exec
 
     inkspread null eq {
         /uk.co.terryburton.bwipp.global_ctx dup where {
@@ -222,41 +226,21 @@ begin
     %
     (input.validate) //renmatrix.before exec
 
-    textxalign (unset) ne {
-        //renmatrix.xalignopts textxalign known not {
-            /bwipp.renmatrixBadTextxalign (textxalign must be offleft, left, center, right, offright or justify) //raiseerror exec
-        } if
-    } if
+    %
+    % Collect text options and validate
+    %
+    /textopts (text) 9 /groupoptions //rendertext exec /collectgroup //processoptions exec def
 
-    textyalign (unset) ne {
-        //renmatrix.yalignopts textyalign known not {
-            /bwipp.renmatrixBadTextyalign (textyalign must be above, top, center, bottom, below or justify) //raiseerror exec
-        } if
-    } if
+    %
+    % Validate input
+    %
 
-    //renmatrix.directionoptions textdirection known not {
-        /bwipp.renmatrixBadTextdirection (textdirection must be forward, backward, upward or downward) //raiseerror exec
-    } if
-
-    textsize 0 le textsize 25 ge or {
-        /bwipp.renmatrixBadTextsize (textsize must be greater than zero and less that 25) //raiseerror exec
-    } if
-
-    //renmatrix.xalignopts extratextxalign known not {
-        /bwipp.renmatrixBadExtratextxalign (extratextxalign must be offleft, left, center, right, offright or justify) //raiseerror exec
-    } if
-
-    //renmatrix.yalignopts extratextyalign known not {
-        /bwipp.renmatrixBadExtratextyalign (extratextyalign must be above, top, center, bottom, below or justify) //raiseerror exec
-    } if
-
-    //renmatrix.directionoptions extratextdirection known not {
-        /bwipp.renmatrixBadExtratextdirection (extratextdirection must be forward, backward, upward or downward) //raiseerror exec
-    } if
-
-    extratextsize 0 le extratextsize 25 ge or {
-        /bwipp.renmatrixBadTextsize (extratextsize must be greater than zero and less that 25) //raiseerror exec
-    } if
+    % text{1-9}* options validation
+    1 1 9 {
+        /textgrp exch def
+        textgrp textopts textgrp 1 sub get
+        /validateoptions //rendertext exec not { //raiseerror exec } if
+    } for
 
     inkspread -1 lt inkspread 1 gt or {
         /bwipp.renmatrixBadInkspread (inkspread must be from -1 to 1) //raiseerror exec
@@ -288,38 +272,6 @@ begin
 
     borderwidth 0 lt borderwidth 10 gt or {
         /bwipp.renmatrixBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
-    } if
-
-    textxoffset -150 lt textxoffset 150 gt or {
-        /bwipp.renmatrixBadTextxoffset (textxoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    textyoffset -150 lt textyoffset 150 gt or {
-        /bwipp.renmatrixBadTextyoffset (textyoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    textgaps -20 lt textgaps 20 gt or {
-        /bwipp.renmatrixBadTextgaps (textgaps must be from -20 to 20) //raiseerror exec
-    } if
-
-    textlinegaps 0 lt textlinegaps 20 gt or {
-        /bwipp.renmatrixBadTextlinegaps (textlinegaps must be from 0 to 20) //raiseerror exec
-    } if
-
-    extratextxoffset -150 lt extratextxoffset 150 gt or {
-        /bwipp.renmatrixBadExtratextxoffset (extratextxoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    extratextyoffset -150 lt extratextyoffset 150 gt or {
-        /bwipp.renmatrixBadExtratextyoffset (extratextyoffset must be from -150 to 150) //raiseerror exec
-    } if
-
-    extratextgaps -20 lt extratextgaps 20 gt or {
-        /bwipp.renmatrixBadExtratextgaps (extratextgaps must be from -20 to 20) //raiseerror exec
-    } if
-
-    extratextlinegaps 0 lt extratextlinegaps 20 gt or {
-        /bwipp.renmatrixBadExtratextlinegaps (extratextlinegaps must be from 0 to 20) //raiseerror exec
     } if
 
     width 0.01 lt width 50 gt or {
@@ -632,7 +584,18 @@ begin
     %
     % Display the text
     %
-    //rendertext exec not { grestore //raiseerror exec } if
+    1 1 9 {
+        /textgrp exch def
+        textopts textgrp 1 sub get () get () ne              % Has manual contents
+        textgrp 1 eq txt length 0 gt and includetext and or  % or text1 with encoder txt and includetext
+        {
+            textopts textgrp 1 sub get
+            dup (txt) txt put
+            dup dup () get (content) exch put
+            pixx pixy textgrp 4 -1 roll /render //rendertext exec
+            not { grestore //raiseerror exec } if
+        } if
+    } for
 
     grestore
 

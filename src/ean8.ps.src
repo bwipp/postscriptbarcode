@@ -64,10 +64,10 @@ begin
 
     /dontdraw false def
     /includetext false def              % Enable/disable text
-    /textfont /Helvetica def
-    /textsize 12.0 def
-    /textxoffset 7.25 def
-    /textyoffset -0.25 def
+    /text1font /Helvetica def
+    /text1size 12.0 def
+    /text1xoffset 7.25 def
+    /text1yoffset -0.25 def
     /height 1.0 def
     /permitaddon false def
     /addongap 12.0 def
@@ -76,7 +76,7 @@ begin
     /addontextxoffset null def  % realtype sentinel
     /addontextyoffset null def  % realtype sentinel
 
-    //processoptions exec /options exch def
+    /apply //processoptions exec /options exch def
     /barcode exch def
 
     /_render
@@ -157,7 +157,7 @@ begin
         pop pop                            % Discard seek and post
         /enc //ean8.encs indx get def             % Get the indxth encoding
         sbs i 4 mul 3 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul textxoffset add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul text1xoffset add text1yoffset text1font text1size] put
     } for
 
     %
@@ -176,7 +176,7 @@ begin
         pop pop                            % Discard seek and post
         /enc //ean8.encs indx get def             % Get the indxth encoding
         sbs i 4 mul 8 add enc putinterval  % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 7 mul textxoffset add 4 add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 7 mul text1xoffset add 4 add text1yoffset text1font text1size] put
     } for
 
     %
@@ -202,10 +202,10 @@ begin
         /addopts <<
             /includetext true
             /height height includetext { 0.15 sub } if
-            /textxoffset addontextxoffset null ne {addontextxoffset} {70.25 addongap add} ifelse
-            addontextyoffset null ne {/textyoffset addontextyoffset} if
-            /textsize addontextsize null ne {addontextsize} {textsize} ifelse
-            /textfont addontextfont (unset) ne {addontextfont} {textfont} ifelse
+            /text1xoffset addontextxoffset null ne {addontextxoffset} {70.25 addongap add} ifelse
+            addontextyoffset null ne {/text1yoffset addontextyoffset} if
+            /text1size addontextsize null ne {addontextsize} {text1size} ifelse
+            /text1font addontextfont (unset) ne {addontextfont} {text1font} ifelse
         >> def
 
         /uk.co.terryburton.bwipp._dontdraw true def

@@ -63,13 +63,13 @@ begin
 
     /dontdraw false def
     /includetext false def
-    /textfont /Helvetica def
-    /textsize 12.0 def
-    /textxoffset 3.25 def
-    /textyoffset null def  % sentinel realtype
+    /text1font /Helvetica def
+    /text1size 12.0 def
+    /text1xoffset 3.25 def
+    /text1yoffset null def  % sentinel realtype
     /height 0.7 def
 
-    //processoptions exec /options exch def
+    /apply //processoptions exec /options exch def
     /barcode exch def
 
     /_render
@@ -77,8 +77,8 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
-    textyoffset null eq {
-        /textyoffset height 72 mul 5.75 add def
+    text1yoffset null eq {
+        /text1yoffset height 72 mul 5.75 add def
     } if
 
     %
@@ -129,7 +129,7 @@ begin
             /enc revenc def
         } if
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
-        txt i [barcode i 1 getinterval i 1 sub 9 mul 10 add textxoffset add textyoffset textfont textsize] put
+        txt i [barcode i 1 getinterval i 1 sub 9 mul 10 add text1xoffset add text1yoffset text1font text1size] put
     } for
 
     <<
@@ -142,7 +142,7 @@ begin
     } if
     /opt options
     /guardrightpos 5.0
-    /guardrightypos textyoffset
+    /guardrightypos text1yoffset
     /borderleft 12.0
     /borderright 5.0
     /bordertop 10.0

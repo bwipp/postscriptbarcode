@@ -8,6 +8,11 @@
 
 /processoptions dup /uk.co.terryburton.bwipp findresource cvx def
 
+
+%
+% ========== /apply ==========
+%
+
 /setup {
     /stropt (default) def
     /boolopt false def
@@ -15,13 +20,13 @@
     /realopt 0.0 def
 } def
 
-/ok_tmpl {
+/ok_apply {
     { 10 dict begin setup 0 exec end }
     dup 3 -1 roll 4 exch put
     true isEqual
 } def
 
-/er_tmpl {
+/er_apply {
     exch
     { 10 dict begin setup { 0 exec } stopped {end stop} if end }
     dup 4 get 0 4 -1 roll put
@@ -29,75 +34,336 @@
 } def
 
 
-%
 % String input parsing
-%
-{ (stropt=hello) processoptions pop stropt (hello) eq } ok_tmpl
-{ (stropt=hello world) processoptions pop stropt (hello) eq } ok_tmpl
-{ (stropt=a boolopt) processoptions pop stropt (a) eq boolopt true eq and } ok_tmpl
-{ (intopt=1 realopt=2.5 stropt=foo) processoptions pop intopt 1 eq realopt 2.5 eq and stropt (foo) eq and } ok_tmpl
+{ (stropt=hello) /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=hello world) /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=a boolopt) /apply processoptions pop stropt (a) eq boolopt true eq and } ok_apply
+{ (intopt=1 realopt=2.5 stropt=foo) /apply processoptions pop intopt 1 eq realopt 2.5 eq and stropt (foo) eq and } ok_apply
 
-
-%
 % Dict input
-%
-{ << /stropt (test) >> processoptions pop stropt (test) eq } ok_tmpl
+{ << /stropt (test) >> /apply processoptions pop stropt (test) eq } ok_apply
 
-
-%
 % String type
-%
-{ (stropt=hello) processoptions pop stropt (hello) eq } ok_tmpl
-{ (stropt=123)   processoptions pop stropt (123)   eq } ok_tmpl
-{ (stropt=)      processoptions pop stropt ()      eq } ok_tmpl
-{ (stropt= )     processoptions pop stropt ()      eq } ok_tmpl
+{ (stropt=hello) /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=123)   /apply processoptions pop stropt (123)   eq } ok_apply
+{ (stropt=)      /apply processoptions pop stropt ()      eq } ok_apply
+{ (stropt= )     /apply processoptions pop stropt ()      eq } ok_apply
 
-
-%
 % Boolean type
-%
-{ (boolopt) processoptions pop boolopt true eq } ok_tmpl
-{ << /boolopt true  >> processoptions pop boolopt true  eq } ok_tmpl
-{ << /boolopt false >> processoptions pop boolopt false eq } ok_tmpl
+{ (boolopt) /apply processoptions pop boolopt true eq } ok_apply
+{ << /boolopt true  >> /apply processoptions pop boolopt true  eq } ok_apply
+{ << /boolopt false >> /apply processoptions pop boolopt false eq } ok_apply
+{ (boolopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (boolopt=1)    /apply processoptions } /bwipp.invalidOptionType er_apply
 
-{ (boolopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
-{ (boolopt=1)    processoptions } /bwipp.invalidOptionType er_tmpl
-
-
-%
 % Integer type
-%
-{ (intopt=42) processoptions pop intopt 42 eq } ok_tmpl
-{ (intopt=-5) processoptions pop intopt -5 eq } ok_tmpl
-{ (intopt=0)  processoptions pop intopt  0 eq } ok_tmpl
+{ (intopt=42) /apply processoptions pop intopt 42 eq } ok_apply
+{ (intopt=-5) /apply processoptions pop intopt -5 eq } ok_apply
+{ (intopt=0)  /apply processoptions pop intopt  0 eq } ok_apply
+{ (intopt=3.5)  /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (intopt=abc)  /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (intopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
 
-{ (intopt=3.5)  processoptions } /bwipp.invalidOptionType er_tmpl
-{ (intopt=abc)  processoptions } /bwipp.invalidOptionType er_tmpl
-{ (intopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
-
-
-%
 % Real type
-%
-{ (realopt=3.14) processoptions pop realopt 3.14 eq } ok_tmpl
-{ (realopt=-2.5) processoptions pop realopt -2.5 eq } ok_tmpl
-{ (realopt=42)   processoptions pop realopt 42.0 eq } ok_tmpl
+{ (realopt=3.14) /apply processoptions pop realopt 3.14 eq } ok_apply
+{ (realopt=-2.5) /apply processoptions pop realopt -2.5 eq } ok_apply
+{ (realopt=42)   /apply processoptions pop realopt 42.0 eq } ok_apply
+{ (realopt=abc)  /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (realopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
 
-{ (realopt=abc)  processoptions } /bwipp.invalidOptionType er_tmpl
-{ (realopt=true) processoptions } /bwipp.invalidOptionType er_tmpl
-
-
-%
 % Unknown options (silently ignored)
-%
-{ (unknown=foo) processoptions pop true } ok_tmpl
-{ (unknown)     processoptions pop true } ok_tmpl
+{ (unknown=foo) /apply processoptions pop true } ok_apply
+{ (unknown)     /apply processoptions pop true } ok_apply
 
-
-%
 % Meaningless (ignored)
-%
-{ (1=foo)       processoptions pop true } ok_tmpl
-{ (1)           processoptions pop true } ok_tmpl
-{ (=foo)        processoptions pop true } ok_tmpl
+{ (1=foo)       /apply processoptions pop true } ok_apply
+{ (1)           /apply processoptions pop true } ok_apply
+{ (=foo)        /apply processoptions pop true } ok_apply
 
+
+%
+% ========== /generategroup ==========
+%
+
+/tmpl << () () (font) (Courier) (size) 10.0 >> def
+
+
+%
+% generate: creates named options in currentdict
+%
+{
+    50 dict begin
+    (text) 3 tmpl /generategroup processoptions
+    text1
+    end
+} () isEqual
+
+{
+    50 dict begin
+    (text) 3 tmpl /generategroup processoptions
+    text2font
+    end
+} (Courier) isEqual
+
+{
+    50 dict begin
+    (text) 3 tmpl /generategroup processoptions
+    text3size
+    end
+} 10.0 isEqual
+
+
+%
+% generate: override after generate
+%
+{
+    50 dict begin
+    (text) 2 tmpl /generategroup processoptions
+    /text1size 14.0 def
+    text1size
+    end
+} 14.0 isEqual
+
+
+%
+% generate: single group
+%
+{
+    50 dict begin
+    (foo) 1 << (bar) 42 >> /generategroup processoptions
+    foo1bar
+    end
+} 42 isEqual
+
+
+%
+% generate: different prefix
+%
+{
+    50 dict begin
+    (opt) 9 << () false >> /generategroup processoptions
+    opt9
+    end
+} false isEqual
+
+
+%
+% generate: all 9 groups accessible
+%
+{
+    50 dict begin
+    (x) 9 << (v) 0 >> /generategroup processoptions
+    /x1v 1 def /x2v 2 def /x3v 3 def /x4v 4 def
+    /x5v 5 def /x6v 6 def /x7v 7 def /x8v 8 def /x9v 9 def
+    x1v x2v add x3v add x4v add x5v add x6v add x7v add x8v add x9v add
+    end
+} 45 isEqual
+
+
+%
+% generate: single-entry template
+%
+{
+    50 dict begin
+    (p) 2 << (only) 99 >> /generategroup processoptions
+    p1only p2only add
+    end
+} 198 isEqual
+
+
+%
+% collect: returns array of correct length
+%
+{
+    50 dict begin
+    (text) 3 tmpl /generategroup processoptions
+    (text) 3 tmpl /collectgroup processoptions
+    length
+    end
+} 3 isEqual
+
+
+%
+% collect: reads default values
+%
+{
+    50 dict begin
+    (text) 2 tmpl /generategroup processoptions
+    (text) 2 tmpl /collectgroup processoptions
+    0 get (font) get
+    end
+} (Courier) isEqual
+
+{
+    50 dict begin
+    (text) 2 tmpl /generategroup processoptions
+    (text) 2 tmpl /collectgroup processoptions
+    1 get (size) get
+    end
+} 10.0 isEqual
+
+
+%
+% collect: reads overridden values
+%
+{
+    50 dict begin
+    (text) 2 tmpl /generategroup processoptions
+    /text1size 14.0 def
+    /text2 (hello) def
+    (text) 2 tmpl /collectgroup processoptions
+    dup 0 get (size) get
+    exch 1 get () get
+    2 array astore
+    end
+} [14.0 (hello)] isEqual
+
+
+%
+% collect: empty suffix key holds content
+%
+{
+    50 dict begin
+    (text) 1 tmpl /generategroup processoptions
+    /text1 (content) def
+    (text) 1 tmpl /collectgroup processoptions
+    0 get () get
+    end
+} (content) isEqual
+
+
+%
+% collect: 9 groups, each dict has correct values
+%
+{
+    50 dict begin
+    (t) 9 << (v) 0 >> /generategroup processoptions
+    /t3v 33 def /t7v 77 def
+    (t) 9 << (v) 0 >> /collectgroup processoptions
+    dup 2 get (v) get     % t3v = 33
+    exch 6 get (v) get    % t7v = 77
+    add
+    end
+} 110 isEqual
+
+
+%
+% collect: dict keys are strings not names
+%
+{
+    50 dict begin
+    (a) 1 << (k) 1 >> /generategroup processoptions
+    (a) 1 << (k) 1 >> /collectgroup processoptions
+    0 get (k) get
+    end
+} 1 isEqual
+
+
+%
+% resolve: alias copied to primary when only alias set
+%
+{
+    50 dict begin
+    /primary () def
+    /alias (value) def
+    << (alias) (value) >> << /alias /primary >> /resolve processoptions
+    primary
+    end
+} (value) isEqual
+
+
+%
+% resolve: primary wins when both set
+%
+{
+    50 dict begin
+    /primary (winner) def
+    /alias (loser) def
+    << (alias) (loser) (primary) (winner) >> << /alias /primary >> /resolve processoptions
+    primary
+    end
+} (winner) isEqual
+
+
+%
+% resolve: no-op when alias not set
+%
+{
+    50 dict begin
+    /primary (original) def
+    /alias () def
+    << >> << /alias /primary >> /resolve processoptions
+    primary
+    end
+} (original) isEqual
+
+
+%
+% resolve: no-op when neither changed (same defaults)
+%
+{
+    50 dict begin
+    /primary (default) def
+    /alias (default) def
+    << >> << /alias /primary >> /resolve processoptions
+    primary
+    end
+} (default) isEqual
+
+
+%
+% resolve: multiple aliases in one table
+%
+{
+    50 dict begin
+    /p1 () def /p2 (Courier) def /p3 0.0 def
+    /a1 (hello) def /a2 (Helvetica) def /a3 5.0 def
+    << (a1) (hello) (a2) (Helvetica) (a3) 5.0 >>
+    << /a1 /p1 /a2 /p2 /a3 /p3 >> /resolve processoptions
+    p1 p2 p3
+    3 array astore
+    end
+} [(hello) (Helvetica) 5.0] isEqual
+
+
+%
+% resolve: real-valued alias
+%
+{
+    50 dict begin
+    /textsize 10.0 def
+    /text1size 10.0 def
+    /textsize 14.0 def
+    << (textsize) 14.0 >> << /textsize /text1size >> /resolve processoptions
+    text1size
+    end
+} 14.0 isEqual
+
+
+%
+% resolve: sequential tables (text1 then text2 pattern)
+%
+{
+    50 dict begin
+    /text1 () def /text2 () def
+    /alttext (HELLO) def /extratext (WORLD) def
+    << (alttext) (HELLO) (extratext) (WORLD) >>
+    dup << /alttext /text1 >> /resolve processoptions
+    << /extratext /text2 >> /resolve processoptions
+    text1 text2
+    2 array astore
+    end
+} [(HELLO) (WORLD)] isEqual
+
+
+%
+% resolve: alias with name-typed value
+%
+{
+    50 dict begin
+    /text1xalign (left) def
+    /textxalign /center def
+    << (textxalign) /center >> << /textxalign /text1xalign >> /resolve processoptions
+    text1xalign
+    end
+} /center isEqual
