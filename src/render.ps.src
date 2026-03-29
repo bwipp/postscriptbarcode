@@ -31,7 +31,7 @@
 % CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 % IN THE SOFTWARE.
 
-% --BEGIN RESOURCE rendertext--
+% --BEGIN RESOURCE render--
 % --REQUIRES preamble processoptions setanycolor--
 currentglobal
 true setglobal
@@ -42,7 +42,7 @@ dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 begin
 
 % Text position lookup table
-/rendertext.positions <<
+/render.positions <<
 %   direction
 %       x-align                                     y-align
     (forward) <<
@@ -76,7 +76,7 @@ begin
 >> readonly def
 
 % Template for text option groups
-/rendertext.suffixes <<
+/render.groupoptions <<
     ()           ()
     (subspace)   ()
     (split)      ()
@@ -93,24 +93,24 @@ begin
 >> readonly def
 
 % Validation dicts
-/rendertext.xalignopts <<
+/render.xalignopts <<
     /offleft dup  /left dup  /center dup  /right dup  /offright dup  /justify dup
 >> readonly def
 
-/rendertext.yalignopts <<
+/render.yalignopts <<
     /above dup  /top dup  /center dup  /bottom dup  /below dup  /justify dup
 >> readonly def
 
-/rendertext.directionoptions <<
+/render.directionoptions <<
     /forward dup  /backward dup  /upward dup  /downward dup
 >> readonly def
 
 %
 %  Validate a single text option dict
 %
-%  grp textdict /validate //rendertext exec => bool [errorname errorstring |]
+%  grp textdict /validateoptions //render exec => bool [errorname errorstring |]
 %
-/rendertext.validateoptions {
+/render.validateoptions {
 
     16 dict begin
 
@@ -141,18 +141,18 @@ begin
     1 {  % Common exit
 
         td (xalign) get dup (unset) ne {
-            //rendertext.xalignopts exch known not {
+            //render.xalignopts exch known not {
                 /xalign ( must be offleft, left, center, right, offright or justify) mkerr false exit
             } if
         } { pop } ifelse
 
         td (yalign) get dup (unset) ne {
-            //rendertext.yalignopts exch known not {
+            //render.yalignopts exch known not {
                 /yalign ( must be above, top, center, bottom, below or justify) mkerr false exit
             } if
         } { pop } ifelse
 
-        //rendertext.directionoptions td (direction) get known not {
+        //render.directionoptions td (direction) get known not {
             /direction ( must be forward, backward, upward or downward) mkerr false exit
         } if
 
@@ -185,20 +185,11 @@ begin
 } bind def
 
 %
-%  Install text rendering helpers into currentdict
-%
-%  /setup //rendertext exec
-%
-/rendertext.groupoptions {
-    //rendertext.suffixes
-} bind def
-
-%
 %  Render a single text element
 %
-%  pixx pixy grp textdict /render //rendertext exec => bool [errorname errorstring |]
+%  pixx pixy grp textdict /rendertext //render exec => bool [errorname errorstring |]
 %
-/rendertext.render {
+/render.rendertext {
 
     begin            % td on dict stack
     32 dict begin
@@ -238,7 +229,7 @@ begin
         /th exch def
         /tw exch def
         /nudge 1 def
-        //rendertext.positions exch get dup
+        //render.positions exch get dup
         4 -1 roll dup (center) eq {pop (xcenter)} if get exec exch
         3 -1 roll dup (center) eq {pop (ycenter)} if get exec
     } def
@@ -402,21 +393,21 @@ begin
 %
 %  Dispatcher table
 %
-/rendertext.dispatch <<
-    /groupoptions     //rendertext.groupoptions
-    /render           //rendertext.render
-    /validateoptions  //rendertext.validateoptions
+/render.dispatch <<
+    /groupoptions     //render.groupoptions
+    /rendertext       //render.rendertext
+    /validateoptions  //render.validateoptions
 >> readonly def
 
-/rendertext {
+/render {
 
-    //rendertext.dispatch exch get exec
+    //render.dispatch exch get exec
 
 }
 [/barcode] {null def} forall
 bind def
-/rendertext dup load /uk.co.terryburton.bwipp defineresource pop
+/render dup load /uk.co.terryburton.bwipp defineresource pop
 end
 /setpacking where {pop setpacking} if
 setglobal
-% --END RESOURCE rendertext--
+% --END RESOURCE render--

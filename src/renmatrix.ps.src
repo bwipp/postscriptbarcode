@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renmatrix--
-% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor rendertext--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
@@ -41,7 +41,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
-dup /rendertext dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 
@@ -152,7 +152,7 @@ begin
     /txt [] def
 
     % text{1-9}* options with common defaults
-    (text) 9 /groupoptions //rendertext exec /generategroup //processoptions exec
+    (text) 9 /groupoptions //render exec /generategroup //processoptions exec
 
     % Overrides permitting encoder-positioned text
     /text1xalign (unset) def
@@ -198,7 +198,7 @@ begin
     %
     % Collect text options and validate
     %
-    /textopts (text) 9 /groupoptions //rendertext exec /collectgroup //processoptions exec def
+    /textopts (text) 9 /groupoptions //render exec /collectgroup //processoptions exec def
 
     %
     % Validate input
@@ -208,7 +208,7 @@ begin
     1 1 9 {
         /textgrp exch def
         textgrp textopts textgrp 1 sub get
-        /validateoptions //rendertext exec not { //raiseerror exec } if
+        /validateoptions //render exec not { //raiseerror exec } if
     } for
 
     inkspread -1 lt inkspread 1 gt or {
@@ -561,7 +561,7 @@ begin
             textopts textgrp 1 sub get
             dup (txt) txt put
             dup dup () get (content) exch put
-            pixx pixy textgrp 4 -1 roll /render //rendertext exec
+            pixx pixy textgrp 4 -1 roll /rendertext //render exec
             not { grestore //raiseerror exec } if
         } if
     } for

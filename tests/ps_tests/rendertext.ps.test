@@ -7,7 +7,7 @@
 %
 
 /processoptions dup /uk.co.terryburton.bwipp findresource cvx def
-/rendertext dup /uk.co.terryburton.bwipp findresource cvx def
+/render dup /uk.co.terryburton.bwipp findresource cvx def
 
 /uk.co.terryburton.bwipp.global_ctx <<
     /named_colors <<
@@ -31,7 +31,7 @@
 % ok: { override-proc } grp ok_grp
 /ok_grp {
     /ok_grp.grp exch def
-    { 50 dict begin 100 100 0 mkdict 0 exec inject /render rendertext end }
+    { 50 dict begin 100 100 0 mkdict 0 exec inject /rendertext render end }
     dup 5 ok_grp.grp put
     dup 3 -1 roll 7 exch put
     true isEqual
@@ -42,7 +42,7 @@
 /er_grp {
     /er_grp.grp exch def
     exch
-    { 50 dict begin 100 100 0 mkdict 0 exec inject /render rendertext pop pop end }
+    { 50 dict begin 100 100 0 mkdict 0 exec inject /rendertext render pop pop end }
     dup 5 er_grp.grp put
     dup 3 -1 roll 7 exch put
     exch isEqual
@@ -193,7 +193,7 @@
 % /groupoptions returns the suffixes template
 %
 {
-    /groupoptions rendertext
+    /groupoptions render
     type /dicttype eq
 } true isEqual
 
@@ -218,8 +218,8 @@
 %
 {
     50 dict begin /pixx 100 def /pixy 100 def
-    100 100 1 mkdict dup () (ONE) put inject /render rendertext
-    100 100 3 mkdict dup () (TWO) put inject /render rendertext
+    100 100 1 mkdict dup () (ONE) put inject /rendertext render
+    100 100 3 mkdict dup () (TWO) put inject /rendertext render
     and
     end
 } true isEqual

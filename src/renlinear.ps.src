@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renlinear--
-% --REQUIRES preamble raiseerror processoptions setanycolor rendertext--
+% --REQUIRES preamble raiseerror processoptions setanycolor render--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
@@ -40,7 +40,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
-dup /rendertext dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 
@@ -58,7 +58,7 @@ begin
     /txt [] def
 
     % text{1-9}* options with common defaults
-    (text) 9 /groupoptions //rendertext exec /generategroup //processoptions exec
+    (text) 9 /groupoptions //render exec /generategroup //processoptions exec
 
     % Overrides permitting encoder-positioned text
     /text1xalign (unset) def
@@ -94,7 +94,7 @@ begin
     % Resolve text aliases: alttext=>text1, extratext=>text2
 
     % Collect into an text options array
-    /textopts (text) 9 /groupoptions //rendertext exec /collectgroup //processoptions exec def
+    /textopts (text) 9 /groupoptions //render exec /collectgroup //processoptions exec def
 
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /ctx exch def
@@ -114,7 +114,7 @@ begin
     1 1 9 {
         /textgrp exch def
         textgrp textopts textgrp 1 sub get
-        /validateoptions //rendertext exec not { //raiseerror exec } if
+        /validateoptions //render exec not { //raiseerror exec } if
     } for
 
     inkspread -1 lt inkspread 1 gt or {
@@ -294,7 +294,7 @@ begin
             textopts textgrp 1 sub get
             dup dup () get (content) exch put
             dup (txt) textgrp 1 eq { txt } { [] } ifelse put
-            pixx pixy textgrp 4 -1 roll /render //rendertext exec
+            pixx pixy textgrp 4 -1 roll /rendertext //render exec
             not { grestore //raiseerror exec } if
         } if
     } for
