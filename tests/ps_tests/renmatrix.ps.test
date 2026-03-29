@@ -632,3 +632,21 @@
 % Primary name: text1split
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A|B) /text1split (|) >> >> renmatrix true } true isEqual
 
+
+% gridfit renders without error
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /gridfit true /griddpi 300 >> >> renmatrix true } true isEqual
+
+% griddpi validation
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /griddpi 10 >> >> renmatrix } /bwipp.renmatrixBadGriddpi isError
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /griddpi 10000 >> >> renmatrix } /bwipp.renmatrixBadGriddpi isError
+
+% griddpi implies gridfit
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /griddpi 300 >> >> renmatrix true } true isEqual
+
+% default_griddpi from global_ctx implies gridfit
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_griddpi 300 >> def
+    0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << >> >> renmatrix
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual

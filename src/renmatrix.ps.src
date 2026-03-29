@@ -165,6 +165,8 @@ begin
     /bordertop 0.0 def
     /borderbottom 0.0 def
     /borderwidth 0.5 def
+    /gridfit false def
+    /griddpi 0 def
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
@@ -186,7 +188,11 @@ begin
         barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+        griddpi         0 eq       { ctx /default_griddpi         2 copy known {get /griddpi         exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    % Auto-enable gridfit when griddpi is specified
+    griddpi 0 ne { /gridfit true def } if
 
     (input.processoptions) //renmatrix.after exec
 
@@ -250,6 +256,10 @@ begin
     height 0.01 lt height 50 gt or {
         /bwipp.renmatrixBadHeight (height must be from 0.01 to 50) //raiseerror exec
     } if
+
+    griddpi 0 ne { griddpi 30 lt griddpi 9600 gt or {
+        /bwipp.renmatrixBadGriddpi (griddpi must be 0 or from 30 to 9600) //raiseerror exec
+    } if } if
 
     pixx 0 le pixy 0 le or {
         /bwipp.renmatrixBadDimensions (The symbol dimensions must be positive) //raiseerror exec
@@ -502,6 +512,11 @@ begin
     % Force symbol to given width
     %
     width pixx div 72 mul height pixy div 72 mul scale
+
+    %
+    % Grid fit: snap module boundaries to device pixel grid
+    %
+    gridfit { 1 true /gridfit //render exec } if
 
     %
     % Display the border and background

@@ -72,3 +72,20 @@
 { 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth -1 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderwidth isError
 { 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth 11 >> >> renmaximatrix } /bwipp.renmaximatrixBadBorderwidth isError
 
+% gridfit renders without error
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /gridfit true /griddpi 300 >> >> renmaximatrix grestore true } true isEqual
+
+% griddpi validation
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /griddpi 10 >> >> renmaximatrix } /bwipp.renmaximatrixBadGriddpi isError
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /griddpi 10000 >> >> renmaximatrix } /bwipp.renmaximatrixBadGriddpi isError
+
+% griddpi implies gridfit
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /griddpi 300 >> >> renmaximatrix grestore true } true isEqual
+
+% default_griddpi from global_ctx implies gridfit
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_griddpi 300 >> def
+    gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << >> >> renmaximatrix grestore
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual

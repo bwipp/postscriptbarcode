@@ -64,7 +64,6 @@ begin
     /text1xalign (unset) def
     /text1yalign (unset) def
 
-
     /includetext false def
     /barcolor (unset) def
     /backgroundcolor (unset) def
@@ -87,6 +86,8 @@ begin
     /guardrightypos 0.0 def
     /guardwidth 5.0 def
     /guardheight 7.0 def
+    /gridfit false def
+    /griddpi 0 def
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
@@ -102,7 +103,21 @@ begin
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
         inkspread       null eq    { ctx /default_inkspread       2 copy known {get /inkspread       exch def} {pop pop} ifelse } if
+        griddpi         0 eq       { ctx /default_griddpi         2 copy known {get /griddpi         exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    % Auto-enable gridfit when griddpi is specified
+    griddpi 0 ne { /gridfit true def } if
+
+    % Auto-disable gridfit for fractional-width bars (postal, pharmacode)
+    gridfit {
+        sbs {
+            dup floor sub abs 0.001 gt { /gridfit false def exit } if
+        } forall
+        barratio floor barratio ne spaceratio floor spaceratio ne or {
+            /gridfit false def
+        } if
+    } if
 
     inkspread null eq {/inkspread 0.15 def} if
 
@@ -177,6 +192,10 @@ begin
         /bwipp.renlinearBadGuardrightypos (guardrightypos must be from -50 to 150) //raiseerror exec
     } if
 
+    griddpi 0 ne { griddpi 30 lt griddpi 9600 gt or {
+        /bwipp.renlinearBadGriddpi (griddpi must be 0 or from 30 to 9600) //raiseerror exec
+    } if } if
+
     sbs length 0 ne {
         sbs length 1 add 2 idiv  % nbars
         bhs length 1 index lt bbs length 2 index lt or
@@ -223,6 +242,11 @@ begin
     width 0 ne pixx 0 ne and {
         width 72 mul pixx div 1 scale
     } if
+
+    %
+    % Grid fit: snap module boundaries to device pixel grid
+    %
+    gridfit { width 0 eq { 1 } { -1 } ifelse false /gridfit //render exec } if
 
     %
     % Display the border and background

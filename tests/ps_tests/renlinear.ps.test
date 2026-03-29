@@ -509,3 +509,27 @@
 % text9 rendering (highest group)
 { 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /text9 (NINE) >> >> renlinear true } true isEqual
 
+
+% gridfit renders without error
+{ 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /inkspread 0 /opt << /gridfit true /griddpi 300 >> >> renlinear true } true isEqual
+
+% gridfit with fractional sbs auto-disables (no error)
+{ 0 0 moveto << /ren /renlinear /sbs [1.44 1.872 1.44] /bhs [1 1] /bbs [0 0] /inkspread 0 /opt << /gridfit true /griddpi 300 >> >> renlinear true } true isEqual
+
+% gridfit with fractional barratio auto-disables (no error)
+{ 0 0 moveto << /ren /renlinear /sbs [2 1 2] /bhs [1 1] /bbs [0 0] /inkspread 0 /barratio 1.5 /opt << /gridfit true /griddpi 300 >> >> renlinear true } true isEqual
+
+% griddpi validation
+{ 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /griddpi 10 >> >> renlinear } /bwipp.renlinearBadGriddpi isError
+{ 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /griddpi 10000 >> >> renlinear } /bwipp.renlinearBadGriddpi isError
+
+% griddpi implies gridfit
+{ 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /inkspread 0 /opt << /griddpi 300 >> >> renlinear true } true isEqual
+
+% default_griddpi from global_ctx implies gridfit
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_griddpi 300 >> def
+    0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /inkspread 0 /opt << >> >> renlinear
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual

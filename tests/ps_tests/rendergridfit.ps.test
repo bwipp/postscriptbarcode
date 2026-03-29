@@ -1,0 +1,34 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Smoke test: round, uniform scaling
+%
+{ gsave 0 0 moveto 10 dict begin /griddpi 300 def 1 false /gridfit render end grestore true } true isEqual
+
+%
+% Smoke test: floor, uniform scaling
+%
+{ gsave 0 0 moveto 10 dict begin /griddpi 300 def -1 false /gridfit render end grestore true } true isEqual
+
+%
+% Smoke test: round, independent y
+%
+{ gsave 0 0 moveto 10 dict begin /griddpi 300 def 1 true /gridfit render end grestore true } true isEqual
+
+%
+% Smoke test: even, uniform (MaxiCode)
+%
+{ gsave 0 0 moveto 10 dict begin /griddpi 300 def 2 false /gridfit render end grestore true } true isEqual
+
+%
+% Smoke test: auto-detect (griddpi=0, nullpage disables)
+%
+{ gsave 0 0 moveto 10 dict begin /griddpi 0 def 1 false /gridfit render end grestore true } true isEqual

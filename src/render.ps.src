@@ -391,12 +391,78 @@ begin
 } bind def
 
 %
+%  Snap module boundaries to device pixel grid
+%
+/render.gridfit {
+
+    16 dict begin
+
+    %
+    %  0 => no snap; +/- N => round/floor to nearest multiple of N
+    %
+    /snapy exch def       % true: snap y independently; false: uniform with x
+    /mode exch def        % ±N: round/floor to nearest multiple of N
+
+    % val mode => factor; clamps to minimum 1 granularity unit
+    /snapdim {
+        /sdmode exch def /val exch def
+        val sdmode abs div
+        sdmode 0 gt { round } { floor } ifelse
+        dup 0 le { pop 1 } if
+        sdmode abs mul val div
+    } def
+
+    %
+    %  Detect device x and y resolution via default matrix
+    %
+    gsave matrix defaultmatrix setmatrix
+    72 0 dtransform abs exch abs 2 copy lt {exch} if pop /hwxres exch def
+    0 72 dtransform abs exch abs 2 copy lt {exch} if pop /hwyres exch def
+    grestore
+    griddpi 0 eq { /griddpi hwxres def } if
+
+    %
+    % Guard against bogus device (nullpage ~3e16)
+    %
+    hwxres 1 gt hwxres 100000 lt and hwyres 1 gt hwyres 100000 lt and and {
+
+        %
+        %  CTM scaled to target DPI pixel coordinates, per axis
+        %
+        [ griddpi hwxres div  0  0
+          griddpi hwyres div  0  0 ] matrix currentmatrix matrix concatmatrix
+        /gridmatrix exch def
+
+        %
+        %  Snap basepoint to target pixel boundary
+        %
+        0 0 gridmatrix transform round exch round exch gridmatrix itransform translate
+
+        %
+        %  Snap module dimensions to whole target pixels
+        %
+        1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
+        mode snapdim
+        snapy {
+            0 1 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
+            mode snapdim
+        } { dup } ifelse
+        scale
+
+    } if
+
+    end
+
+} bind def
+
+%
 %  Dispatcher table
 %
 /render.dispatch <<
     /groupoptions     //render.groupoptions
     /rendertext       //render.rendertext
     /validateoptions  //render.validateoptions
+    /gridfit          //render.gridfit
 >> readonly def
 
 /render {

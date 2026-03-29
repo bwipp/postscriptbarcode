@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RENDERER renmaximatrix--
-% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
@@ -40,6 +40,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 /renmaximatrix {
 
@@ -59,6 +60,8 @@ begin
     /bordertop 0.0 def
     /borderbottom 0.0 def
     /borderwidth 0.5 def
+    /gridfit false def
+    /griddpi 0 def
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
@@ -69,7 +72,11 @@ begin
         backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
         bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
         inkspread       null eq    { ctx /default_inkspread       2 copy known {get /inkspread       exch def} {pop pop} ifelse } if
+        griddpi         0 eq       { ctx /default_griddpi         2 copy known {get /griddpi         exch def} {pop pop} ifelse } if
     } { pop } ifelse
+
+    % Auto-enable gridfit when griddpi is specified
+    griddpi 0 ne { /gridfit true def } if
 
     inkspread null eq {/inkspread 0.15 def} if
 
@@ -97,6 +104,10 @@ begin
         /bwipp.renmaximatrixBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
     } if
 
+    griddpi 0 ne { griddpi 30 lt griddpi 9600 gt or {
+        /bwipp.renmaximatrixBadGriddpi (griddpi must be 0 or from 30 to 9600) //raiseerror exec
+    } if } if
+
     options /debughexagons known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debughexagons pixs //raiseerror exec } if
@@ -106,6 +117,11 @@ begin
     currentpoint translate
 
     2.4945 dup scale  % from 1pt to 0.88mm
+
+    %
+    % Grid fit: uniform even-pixel snap preserves hex aspect ratio
+    %
+    gridfit { 2 false /gridfit //render exec } if
 
     %
     % Display the border and background
