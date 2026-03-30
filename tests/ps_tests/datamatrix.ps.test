@@ -874,7 +874,73 @@
 % DMRE format
 { (Hello World) (format=rectangle dmre dontdraw) datamatrix pop true } true isEqual
 
+
+%
 % c40headerlength option
+%
+
 { (ABabc) (c40headerlength=2 dontdraw) datamatrix pop true } true isEqual
 { (A) (c40headerlength=10 dontdraw) datamatrix pop true } true isEqual
 
+% Honour for digits
+{ (1234) (debugcws c40headerlength=4) datamatrix } [
+    230      % lC40
+    32 56    % 123
+    254      % unlatch
+    53       % '4'+1
+] debugIsEqual
+
+{ (1) (debugcws c40headerlength=1) datamatrix } [
+    230      % lC40 - needless but harmless as would pad anyway (see below)
+    254      % unlatch
+    50       % '1'+1
+] debugIsEqual
+
+{ (1) (debugcws c40headerlength=0) datamatrix } [
+    50       % '1'+1
+    129 70   % PAD PAD
+] debugIsEqual
+
+{ (12) (debugcws c40headerlength=2) datamatrix } [
+    230      % lC40
+    32 49    % 12
+] debugIsEqual
+
+% Same due to C40 triplets
+{ (12) (debugcws c40headerlength=1) datamatrix } [
+    230 32 49
+] debugIsEqual
+
+{ (12345678) (debugcws c40headerlength=8) datamatrix } [
+    230      % lC40
+    32 56    % 123
+    51 115   % 456
+    254      % unlatch
+    208      % 78+130
+    129      % PAD
+] debugIsEqual
+
+% Same due to C40 triplets
+{ (12345678) (debugcws c40headerlength=4) datamatrix } [
+    230 32 56 51 115 254 208 129
+] debugIsEqual
+
+{ (12345678) (debugcws c40headerlength=3) datamatrix } [
+    230      % lC40
+    32 56    % 123
+    254      % unlatch
+    175      % 45+130
+    197      % 67+130
+    57       % '8'+1
+    129      % PAD
+] debugIsEqual
+
+% FNC1 in 1st position must be in ASCII (to be GS1)
+{ (^FNC1123456) (debugcws c40headerlength=4 parsefnc) datamatrix } [
+    232      % FNC1
+    230      % lC40
+    32 56    % 123
+    51 115   % 456
+    254      % unlatch
+    129      % PAD
+] debugIsEqual
