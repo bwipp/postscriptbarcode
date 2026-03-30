@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % GS1 General Specifications 21.0.1
@@ -57,3 +57,51 @@
 } [232 131 130 131 153 175 197 219 135 147 134 131 145 129 87 237 133 28] debugIsEqual
 
 { 4001 string (dontdraw) gs1datamatrix } /bwipp.gs1datamatrixinputTooLong isError
+
+
+%
+% c40headerlength FNC1 in 1st position
+%
+
+% FNC1 in 1st position must be in ASCII
+{ ((400)123(420)1) (debugcws c40headerlength=10 format=rectangle) gs1datamatrix } [
+    232      % FNC1
+    230      % lC40
+    50 165   % 400
+    32 56    % 123
+    10 129   % shift2 FNC1 4
+    38 38    % 201
+] debugIsEqual
+
+{ ((400)123(420)1) (debugcws c40headerlength=10 format=rectangle gssep) gs1datamatrix } [
+    232      % FNC1
+    230      % lC40
+    50 165   % 400
+    32 56    % 123
+    4 145    % shift1 GS 4
+    38 38    % 201
+] debugIsEqual
+
+% Unlatches after '123' due to c40headerlength compensation for FNC1 (otherwise would unlatch after '400')
+{ ((400)123(420)1) (debugcws c40headerlength=4 format=rectangle) gs1datamatrix } [
+    232      % FNC1
+    230      % lC40
+    50 165   % 400
+    32 56    % 123
+    254      % unlatch
+    232      % FNC1
+    172      % 42+130
+    131      % 01+130
+] debugIsEqual
+
+{ ((400)123(420)1) (debugcws c40headerlength=3 format=rectangle) gs1datamatrix } [
+    232      % FNC1
+    230      % lC40
+    50 165   % 400
+    254      % unlatch
+    142      % 12+130
+    52       % '3'+1
+    232      % FNC1
+    172      % 42+130
+    131      % 01+130
+] debugIsEqual

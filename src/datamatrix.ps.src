@@ -553,6 +553,8 @@ begin
         %
         (input.encoding) //datamatrix.before exec
 
+        c40headerlength msglen gt { /c40headerlength msglen def } if  % Make sure it's bounded as may increment
+
         /numD      [ msglen {0} repeat 0 ] def
         /nextXterm [ msglen {0} repeat 9999 ] def
         /nextNonX  [ msglen {0} repeat 9999 ] def
@@ -600,7 +602,7 @@ begin
             mode //datamatrix.B eq {/bc 0.0 def} if
             1 {  % common exit
                 isECI i get {//datamatrix.A exit} if  % ECI only in ASCII
-                c40headerlength -1 ne i c40headerlength lt and {//datamatrix.C exit} if  % C40 only for c40headerlength characters
+                i c40headerlength lt {//datamatrix.C exit} if  % C40 only for c40headerlength characters
                 /k 0 def {  % loop
                     i k add msglen eq {
                         [/ac /cc /tc /xc /ec /bc] {dup load ceiling def} forall
@@ -670,7 +672,7 @@ begin
                     /i i 1 add def
                     exit
                 } if
-                numD i get 2 ge {
+                i c40headerlength ge numD i get 2 ge and {
                     2 string dup 0 msg i get put dup 1 msg i 1 add get put Avals exch get addtocws
                     /i i 2 add def
                     exit
@@ -798,6 +800,7 @@ begin
                 ] CTXvalstocws addtocws
                 [//datamatrix.unlcw] addtocws
                 /mode //datamatrix.A def
+                /c40headerlength -1 def  % Disable when backtracking
                 % Encode something to avoid latching immediately back
                 i msglen ne isECI i get not and {
                     numD i get 2 ge {
@@ -878,6 +881,7 @@ begin
                 } if
                 edifactvals 0 p getinterval Evalstocws addtocws
                 /mode //datamatrix.A def
+                /c40headerlength -1 def  % Disable when backtracking
                 % Encode something to avoid latching immediately back
                 i msglen ne isECI i get not and {
                     numD i get 2 ge {
@@ -926,7 +930,15 @@ begin
         % Derive the codewords
         %
         /cws 1558 array def
-        /mode //datamatrix.A def /i 0 def /j 0 def {
+        /mode //datamatrix.A def /i 0 def /j 0 def
+        % FNC1 in 1st position must be in ASCII to be GS1
+        msg 0 get //datamatrix.fnc1 eq {
+            Avals //datamatrix.fnc1 get addtocws
+            /i 1 def
+            % Compensate c40headerlength if any
+            c40headerlength 0 gt { /c40headerlength c40headerlength 1 add def } if
+        } if
+        {
             i msglen ge {exit} if
             //datamatrix.encfuncs mode get load exec
         } loop
