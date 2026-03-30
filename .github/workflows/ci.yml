@@ -115,6 +115,42 @@ jobs:
           make -C libs/c -j "$(nproc)" test CC=gcc
           make -C libs/c test-valgrind
 
+  ci-macos:
+
+    needs: ci
+
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Load barcode.ps
+        uses: actions/download-artifact@v4
+        with:
+          name: monolithic-barcode-ps
+          path: build/monolithic
+
+      - name: clang CI (with sanitizers)
+        run: |
+          make -C libs/c \
+            -j "$(sysctl -n hw.logicalcpu)" \
+            test SANITIZE=yes
+
+      - name: Test with CRLF barcode.ps
+        run: |
+          cp build/monolithic/barcode_crlf.ps build/monolithic/barcode.ps
+          make -C libs/c \
+            -j "$(sysctl -n hw.logicalcpu)" \
+            test-static SANITIZE=yes
+
+      - name: clang shared library
+        run: |
+          make -C libs/c \
+            -j "$(sysctl -n hw.logicalcpu)" \
+            lib SANITIZE=yes
+
   ci-windows:
 
     needs: ci
@@ -289,6 +325,7 @@ jobs:
       - ci
       - ci-clang
       - ci-gcc
+      - ci-macos
       - ci-windows
       - ci-valgrind
       - ci-scan-build
