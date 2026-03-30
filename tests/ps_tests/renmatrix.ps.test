@@ -650,3 +650,27 @@
     currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
     true
 } true isEqual
+
+% default_gridfit true from global_ctx enables gridfit
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_gridfit true >> def
+    0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << >> >> renmatrix
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual
+
+% default_gridfit false from global_ctx does not enable gridfit
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_gridfit false >> def
+    0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << >> >> renmatrix
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual
+
+% explicit gridfit=true overrides default_gridfit false
+{
+    /uk.co.terryburton.bwipp.global_ctx << /default_gridfit false >> def
+    0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /gridfit true /griddpi 300 >> >> renmatrix
+    currentglobal true setglobal /uk.co.terryburton.bwipp.global_ctx << >> def setglobal
+    true
+} true isEqual
