@@ -68,7 +68,7 @@ static BWIPP *load_from(const char *filename) {
 
 
 static void write_mock_ps(const char *filename, const char *content) {
-	FILE *f = fopen(filename, "w");
+	FILE *f = fopen(filename, "wb");
 	if (!f) {
 		perror(filename);
 		abort();
@@ -584,7 +584,7 @@ static void test_load_long_requires_line(void) {
 	BWIPP *ctx;
 	FILE *f;
 
-	f = fopen(MOCK_PS, "w");
+	f = fopen(MOCK_PS, "wb");
 	if (!f) abort();
 	fputs("%!PS\n", f);
 	fputs("% Barcode Writer in Pure PostScript - Version 2099-01-01\n", f);
@@ -2447,6 +2447,7 @@ static void test_real_load(void) {
 
 	TEST_CHECK(bwipp_get_version(ctx) != NULL);
 	TEST_CHECK(strlen(bwipp_get_version(ctx)) >= 10);
+	TEST_CHECK(strchr(bwipp_get_version(ctx), '\r') == NULL);
 
 	bwipp_unload(ctx);
 }
@@ -2464,11 +2465,13 @@ static void test_real_emit_required(void) {
 	/* Resource with dependencies */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "code39ext")) != NULL);
 	TEST_CHECK(strlen(out) > 0);
+	TEST_CHECK(strchr(out, '\r') == NULL);
 	bwipp_free(out);
 
 	/* Resource without dependencies */
 	TEST_CHECK((out = bwipp_emit_required_resources(ctx, "preamble")) != NULL);
 	TEST_CHECK(strlen(out) > 0);
+	TEST_CHECK(strchr(out, '\r') == NULL);
 	bwipp_free(out);
 
 	/* Missing resource */
@@ -2491,6 +2494,7 @@ static void test_real_emit_all(void) {
 
 	TEST_CHECK((out = bwipp_emit_all_resources(ctx)) != NULL);
 	TEST_CHECK(strlen(out) > 100000);
+	TEST_CHECK(strchr(out, '\r') == NULL);
 	bwipp_free(out);
 
 	bwipp_unload(ctx);
@@ -2656,6 +2660,8 @@ static void test_real_lazy_emit_required(void) {
 	TEST_ASSERT(lazy_out != NULL);
 
 	TEST_CHECK(strcmp(eager_out, lazy_out) == 0);
+	TEST_CHECK(strchr(eager_out, '\r') == NULL);
+	TEST_CHECK(strchr(lazy_out, '\r') == NULL);
 
 	bwipp_free(eager_out);
 	bwipp_free(lazy_out);
@@ -2686,6 +2692,8 @@ static void test_real_lazy_emit_all(void) {
 	TEST_ASSERT(lazy_out != NULL);
 
 	TEST_CHECK(strcmp(eager_out, lazy_out) == 0);
+	TEST_CHECK(strchr(eager_out, '\r') == NULL);
+	TEST_CHECK(strchr(lazy_out, '\r') == NULL);
 
 	bwipp_free(eager_out);
 	bwipp_free(lazy_out);

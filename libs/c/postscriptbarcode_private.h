@@ -36,6 +36,11 @@
 #include "postscriptbarcode.h"
 #include <stddef.h>
 
+#ifdef _MSC_VER
+#define strdup _strdup
+#define strtok_r strtok_s
+#endif
+
 typedef struct Property {
 	char *key, *value;
 } Property;

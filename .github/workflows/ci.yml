@@ -43,6 +43,18 @@ jobs:
       - name: Test
         run: make test
 
+      - name: Create CRLF copy of barcode.ps
+        run: sed 's/$/\r/' build/monolithic/barcode.ps > build/monolithic/barcode_crlf.ps
+
+      - name: Store monolithic barcode.ps
+        uses: actions/upload-artifact@v4
+        with:
+          name: monolithic-barcode-ps
+          path: |
+            build/monolithic/barcode.ps
+            build/monolithic/barcode_crlf.ps
+          retention-days: 1
+
   #
   #  C library CI
   #
@@ -102,6 +114,49 @@ jobs:
           sudo apt-get -y --no-install-recommends install valgrind
           make -C libs/c -j "$(nproc)" test CC=gcc
           make -C libs/c test-valgrind
+
+  ci-windows:
+
+    needs: ci
+
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Load barcode.ps
+        uses: actions/download-artifact@v4
+        with:
+          name: monolithic-barcode-ps
+          path: build/monolithic
+
+      - name: MSVC build
+        working-directory: libs/c
+        run: |
+          cl /W4 /WX /Od /Zi ^
+            /D_CRT_SECURE_NO_WARNINGS ^
+            postscriptbarcode.c ^
+            postscriptbarcode_test.c ^
+            /Fe:postscriptbarcode_test.exe
+        shell: cmd
+
+      - name: Test with LF barcode.ps
+        working-directory: libs/c
+        run: postscriptbarcode_test.exe
+        shell: cmd
+
+      - name: Test with CRLF barcode.ps
+        working-directory: libs/c
+        run: |
+          copy /Y ..\..\build\monolithic\barcode_crlf.ps ..\..\build\monolithic\barcode.ps
+          postscriptbarcode_test.exe
+        shell: cmd
 
   ci-scan-build:
 
@@ -233,6 +288,7 @@ jobs:
       - ci
       - ci-clang
       - ci-gcc
+      - ci-windows
       - ci-valgrind
       - ci-scan-build
       - ci-bindings

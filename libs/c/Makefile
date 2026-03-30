@@ -60,7 +60,7 @@ TEST_STATIC = $(NAME)_test_static
 PREFIX = /usr/local
 LIBDIR = $(PREFIX)/lib
 
-.PHONY: default all clean lib libstatic libshared test test-valgrind fuzzer fuzzer-corpus-seeds clean-fuzzer-corpus install install-static install-shared uninstall
+.PHONY: default all clean lib libstatic libshared test test-static test-valgrind fuzzer fuzzer-corpus-seeds clean-fuzzer-corpus install install-static install-shared uninstall
 
 default: lib
 all: default test
@@ -93,6 +93,9 @@ $(TEST_STATIC): $(NAME).o $(NAME)_test.c
 
 test: $(TEST_SHARED) $(TEST_STATIC)
 	$(SAN_ENV) LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./$(TEST_SHARED)
+	$(SAN_ENV) ./$(TEST_STATIC)
+
+test-static: $(TEST_STATIC)
 	$(SAN_ENV) ./$(TEST_STATIC)
 
 # Valgrind: full memory checking with leak detection.
