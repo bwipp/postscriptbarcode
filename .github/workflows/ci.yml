@@ -175,24 +175,21 @@ jobs:
       - name: MSVC build
         working-directory: libs/c
         run: |
-          cl /W4 /WX /Od /Zi ^
-            /D_CRT_SECURE_NO_WARNINGS ^
-            postscriptbarcode.c ^
-            postscriptbarcode_test.c ^
+          cl /W4 /WX /Od /Zi `
+            /D_CRT_SECURE_NO_WARNINGS `
+            postscriptbarcode.c `
+            postscriptbarcode_test.c `
             /Fe:postscriptbarcode_test.exe
-        shell: cmd
 
       - name: Test with LF barcode.ps
         working-directory: libs/c
-        run: postscriptbarcode_test.exe
-        shell: cmd
+        run: ./postscriptbarcode_test.exe
 
       - name: Test with CRLF barcode.ps
         working-directory: libs/c
         run: |
-          copy /Y ..\..\build\monolithic\barcode_crlf.ps ..\..\build\monolithic\barcode.ps
-          postscriptbarcode_test.exe
-        shell: cmd
+          Copy-Item ..\..\build\monolithic\barcode_crlf.ps ..\..\build\monolithic\barcode.ps
+          ./postscriptbarcode_test.exe
 
   ci-scan-build:
 
