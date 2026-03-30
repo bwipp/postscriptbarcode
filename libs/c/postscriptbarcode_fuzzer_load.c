@@ -1,7 +1,9 @@
 /*
- * libpostscriptbarcode - postscriptbarcode_private.h
+ * libpostscriptbarcode - postscriptbarcode_fuzzer_load.c
  *
- * @file postscriptbarcode_private.h
+ * Fuzzer for the barcode.ps parser and lazy loader.
+ *
+ * @file postscriptbarcode_fuzzer_load.c
  * @author Copyright (c) 2004-2026 Terry Burton.
  *
  * Permission is hereby granted, free of charge, to any
@@ -30,54 +32,57 @@
  *
  */
 
-#ifndef BWIPP_PRIVATE_H
-#define BWIPP_PRIVATE_H
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "postscriptbarcode.h"
-#include <stddef.h>
-#include <stdio.h>
+#include "postscriptbarcode_private.h"  /* _bwipp_load_from_fp */
 
-#ifdef _MSC_VER
-#define strdup _strdup
-#define strtok_r strtok_s
-#endif
+int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
-typedef struct Property {
-	char *key, *value;
-} Property;
+	FILE *f;
+	BWIPP *ctx;
+	char *out;
 
-typedef struct PropertyList {
-	Property *entry;
-	struct PropertyList *next;
-} PropertyList;
+	f = fmemopen((void *)buf, len, "rb");
+	if (!f)
+		return 0;
 
-typedef struct Resource {
-	char *type, *name, *reqs, *code;
-	size_t code_len;
-	long code_offset;		/* File offset for lazy loading (-1 if eager) */
-	unsigned int numprops;
-	PropertyList *props;
-	PropertyList **props_tail;
-} Resource;
+	/* Eager load */
+	ctx = _bwipp_load_from_fp(f, bwipp_iDEFAULT, 0);
+	if (ctx) {
+		unsigned int count;
+		const char **list;
 
-typedef struct ResourceList {
-	Resource *entry;
-	struct ResourceList *next;
-} ResourceList;
+		(void)bwipp_get_version(ctx);
 
-typedef struct Family {
-	char *name;
-	const char **members;	/* NULL-terminated; pointers into Resource names */
-	unsigned int count;
-} Family;
+		list = bwipp_list_encoders(ctx, &count);
+		bwipp_free((void *)list);
 
-typedef struct FamilyList {
-	Family *entry;
-	struct FamilyList *next;
-} FamilyList;
+		list = bwipp_list_families(ctx, &count);
+		bwipp_free((void *)list);
 
-/* Private API for testing/fuzzing — takes ownership of f */
-BWIPP *_bwipp_load_from_fp(FILE *f, bwipp_load_init_flags_t flags,
-			   unsigned int hexify_width);
+		out = bwipp_emit_all_resources(ctx);
+		bwipp_free(out);
 
-#endif  /* BWIPP_PRIVATE_H */
+		bwipp_unload(ctx);
+	}
+
+	/* Lazy load */
+	f = fmemopen((void *)buf, len, "rb");
+	if (!f)
+		return 0;
+
+	ctx = _bwipp_load_from_fp(f, bwipp_iLAZY_LOAD, 0);
+	if (ctx) {
+		(void)bwipp_get_version(ctx);
+
+		out = bwipp_emit_all_resources(ctx);
+		bwipp_free(out);
+
+		bwipp_unload(ctx);
+	}
+
+	return 0;
+}

@@ -4,10 +4,12 @@ VERSION := $(shell head -n 1 ../CHANGES)
 MAJOR   := $(firstword $(subst ., ,$(VERSION)))
 
 FUZZER = $(NAME)_fuzzer
+FUZZER_LOAD = $(NAME)_fuzzer_load
 FUZZER_CORPUS = corpus
+FUZZER_LOAD_CORPUS = corpus_load
 
 # Fuzzer implies sanitizers
-ifneq ($(filter fuzzer fuzzer-corpus-seeds,$(MAKECMDGOALS)),)
+ifneq ($(filter fuzzer fuzzer-corpus-seeds fuzzer-load fuzzer-load-corpus-seeds,$(MAKECMDGOALS)),)
 SANITIZE = yes
 FUZZER_SAN_OPT = ,fuzzer
 endif
@@ -60,13 +62,19 @@ TEST_STATIC = $(NAME)_test_static
 PREFIX = /usr/local
 LIBDIR = $(PREFIX)/lib
 
-.PHONY: default all clean lib libstatic libshared test test-static test-valgrind fuzzer fuzzer-corpus-seeds clean-fuzzer-corpus install install-static install-shared uninstall
-
+.PHONY: default
 default: lib
+
+.PHONY: all
 all: default test
 
+.PHONY: lib
 lib: libshared libstatic
+
+.PHONY: libshared
 libshared: lib$(NAME).so.$(VERSION) lib$(NAME).so lib$(NAME).so.$(MAJOR)
+
+.PHONY: libstatic
 libstatic: lib$(NAME).a
 
 lib$(NAME).so: lib$(NAME).so.$(VERSION) lib$(NAME).so.$(MAJOR)
@@ -91,10 +99,12 @@ $(TEST_SHARED): lib$(NAME).so $(NAME)_test.c
 $(TEST_STATIC): $(NAME).o $(NAME)_test.c
 	$(CC) $(CFLAGS) $(NAME).o $(NAME)_test.c -o $@
 
+.PHONY: test
 test: $(TEST_SHARED) $(TEST_STATIC)
 	$(SAN_ENV) LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./$(TEST_SHARED)
 	$(SAN_ENV) ./$(TEST_STATIC)
 
+.PHONY: test-static
 test-static: $(TEST_STATIC)
 	$(SAN_ENV) ./$(TEST_STATIC)
 
@@ -103,6 +113,7 @@ test-static: $(TEST_STATIC)
 #
 #   make test-valgrind
 #
+.PHONY: test-valgrind
 test-valgrind: $(TEST_SHARED) $(TEST_STATIC)
 	LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH valgrind --leak-check=full --error-exitcode=1 ./$(TEST_SHARED)
 	valgrind --leak-check=full --error-exitcode=1 ./$(TEST_STATIC)
@@ -120,6 +131,7 @@ $(FUZZER): $(NAME).o $(NAME)_fuzzer.c
 $(FUZZER_CORPUS)/:
 	mkdir -p $@
 
+.PHONY: fuzzer
 fuzzer: $(FUZZER) | $(FUZZER_CORPUS)/
 	@echo
 	@echo "Fuzzer built: ./$(FUZZER)"
@@ -130,6 +142,7 @@ fuzzer: $(FUZZER) | $(FUZZER_CORPUS)/
 	@echo "Seed the corpus first with:"
 	@echo "  make fuzzer-corpus-seeds"
 
+.PHONY: fuzzer-corpus-seeds
 fuzzer-corpus-seeds: $(FUZZER) | $(FUZZER_CORPUS)/
 	@if [ -z "$$(ls -A $(FUZZER_CORPUS)/ 2>/dev/null)" ]; then \
 		printf 'qrcode\0TESTING123\0version=20' > $(FUZZER_CORPUS)/qrcode_opts; \
@@ -147,23 +160,72 @@ fuzzer-corpus-seeds: $(FUZZER) | $(FUZZER_CORPUS)/
 		echo "$(FUZZER_CORPUS)/ already populated; skipping seed"; \
 	fi
 
+.PHONY: clean-fuzzer-corpus
 clean-fuzzer-corpus:
-	$(RM) -r $(FUZZER_CORPUS)/
+	$(RM) -r $(FUZZER_CORPUS)/ $(FUZZER_LOAD_CORPUS)/
 
+#
+# Load fuzzer: fuzzes the barcode.ps parser via fmemopen.
+# Requires clang.
+#
+#   make fuzzer-load               - Build and print run instructions
+#   make fuzzer-load-corpus-seeds  - Seed the corpus from barcode.ps
+#   make clean-fuzzer-corpus       - Remove corpus directories
+#
+$(FUZZER_LOAD): $(NAME).o $(NAME)_fuzzer_load.c
+	$(CC) $(CFLAGS) $(NAME).o $(NAME)_fuzzer_load.c -o $@
+
+$(FUZZER_LOAD_CORPUS)/:
+	mkdir -p $@
+
+.PHONY: fuzzer-load
+fuzzer-load: $(FUZZER_LOAD) | $(FUZZER_LOAD_CORPUS)/
+	@echo
+	@echo "Load fuzzer built: ./$(FUZZER_LOAD)"
+	@echo
+	@echo "Run with:"
+	@echo "  cd libs/c && ./$(FUZZER_LOAD) -max_len=4096 $(FUZZER_LOAD_CORPUS)/"
+	@echo
+	@echo "Seed the corpus first with:"
+	@echo "  make fuzzer-load-corpus-seeds"
+
+.PHONY: fuzzer-load-corpus-seeds
+fuzzer-load-corpus-seeds: $(FUZZER_LOAD) | $(FUZZER_LOAD_CORPUS)/
+	@if [ -z "$$(ls -A $(FUZZER_LOAD_CORPUS)/ 2>/dev/null)" ]; then \
+		printf '' > $(FUZZER_LOAD_CORPUS)/empty; \
+		printf '%%!PS\n' > $(FUZZER_LOAD_CORPUS)/header_only; \
+		printf '%% Barcode Writer in Pure PostScript - Version 2099-01-01\n' > $(FUZZER_LOAD_CORPUS)/version_only; \
+		printf '%% Barcode Writer in Pure PostScript - Version 2099-01-01\n%% --BEGIN TEMPLATE--\n%% --END TEMPLATE--\n' > $(FUZZER_LOAD_CORPUS)/empty_template; \
+		printf '%% Barcode Writer in Pure PostScript - Version 2099-01-01\n%% --BEGIN TEMPLATE--\n%% --BEGIN RESOURCE foo--\ncode\n%% --END RESOURCE foo--\n%% --END TEMPLATE--\n' > $(FUZZER_LOAD_CORPUS)/one_resource; \
+		printf '%% Barcode Writer in Pure PostScript - Version 2099-01-01\n%% --BEGIN TEMPLATE--\n%% --BEGIN ENCODER bar--\n%% --REQUIRES foo--\n%% --DESC: Test\n%% --EXAM: data\n%% --EXOP: opts\n%% --RNDR: renlinear\n%% --FMLY: Test Family\ncode\n%% --END ENCODER bar--\n%% --END TEMPLATE--\n' > $(FUZZER_LOAD_CORPUS)/encoder_metadata; \
+		printf '%% --BEGIN TEMPLATE--\n%% --BEGIN RESOURCE a--\nA\n%% --END RESOURCE a--\n%% --BEGIN RESOURCE b--\nB\n%% --END RESOURCE b--\n%% --BEGIN RESOURCE c--\nC\n%% --END RESOURCE c--\n%% --END TEMPLATE--\n' > $(FUZZER_LOAD_CORPUS)/multi_resource; \
+		sed 's/$$/\r/' $(FUZZER_LOAD_CORPUS)/encoder_metadata > $(FUZZER_LOAD_CORPUS)/encoder_crlf; \
+		sed 's/$$/\r/' $(FUZZER_LOAD_CORPUS)/multi_resource > $(FUZZER_LOAD_CORPUS)/multi_crlf; \
+		printf '%% --BEGIN TEMPLATE--\n%% --BEGIN RESOURCE foo--\n' > $(FUZZER_LOAD_CORPUS)/truncated; \
+		echo "Seeded $(FUZZER_LOAD_CORPUS)/ with $$(ls $(FUZZER_LOAD_CORPUS)/ | wc -l) inputs"; \
+	else \
+		echo "$(FUZZER_LOAD_CORPUS)/ already populated; skipping seed"; \
+	fi
+
+.PHONY: clean
 clean:
-	$(RM) $(TEST_SHARED) $(TEST_STATIC) $(FUZZER) *.o *.so* *.a *.d
+	$(RM) $(TEST_SHARED) $(TEST_STATIC) $(FUZZER) $(FUZZER_LOAD) *.o *.so* *.a *.d
 
+.PHONY: install
 install: install-static install-shared
 
+.PHONY: install-headers
 install-headers:
 	install -d $(DESTDIR)$(PREFIX)/include
 	install -m 0644 $(NAME).h $(DESTDIR)$(PREFIX)/include
 	install -m 0644 ../bindings/cpp/$(NAME).hpp $(DESTDIR)$(PREFIX)/include
 
+.PHONY: install-static
 install-static: libstatic install-headers
 	install -d $(DESTDIR)$(LIBDIR)
 	install -m 0644 lib$(NAME).a $(DESTDIR)$(LIBDIR)
 
+.PHONY: install-shared
 install-shared: libshared install-headers
 	install -d $(DESTDIR)$(LIBDIR)
 	install -m 0644 lib$(NAME).so.$(VERSION) $(DESTDIR)$(LIBDIR)
@@ -171,6 +233,7 @@ install-shared: libshared install-headers
 	cd $(DESTDIR)$(LIBDIR) && ln -sf lib$(NAME).so.$(VERSION) lib$(NAME).so.$(MAJOR)
 	-ldconfig
 
+.PHONY: uninstall
 uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).h
 	$(RM) $(DESTDIR)$(PREFIX)/include/$(NAME).hpp

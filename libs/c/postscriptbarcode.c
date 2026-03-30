@@ -343,12 +343,10 @@ BWIPP_API BWIPP *bwipp_load(void) {
 	return bwipp_load_ex(NULL);
 }
 
-BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
+/* Core loader: takes an open FILE* (binary mode) */
+BWIPP *_bwipp_load_from_fp(FILE *f, bwipp_load_init_flags_t flags,
+			   unsigned int hexify_width) {
 	BWIPP *ctx;
-	FILE *f;
-	const char *filename = NULL;
-	bwipp_load_init_flags_t flags = bwipp_iDEFAULT;
-	unsigned int hexify_width = 0;
 
 	ResourceList **tail;
 	Resource *resource = NULL;
@@ -358,12 +356,6 @@ BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 	long code_start = 0;
 	bool skip;
 	bool lazy;
-
-	EXTRACT_OPT(filename);
-	EXTRACT_OPT(flags);
-	EXTRACT_OPT(hexify_width);
-	if (!filename)
-		filename = default_filename;
 
 	lazy = (flags & bwipp_iLAZY_LOAD) != 0;
 
@@ -380,10 +372,6 @@ BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
 	ctx->f = NULL;
 	ctx->hexify_width = hexify_width;
 	tail = &ctx->resourcelist;
-
-	f = fopen(filename, "rb");
-	if (!f)
-		goto error;
 
 	if (!lazy) {
 		code = malloc(MAX_CODE);
@@ -632,6 +620,25 @@ error:
 	bwipp_unload(ctx);
 
 	return NULL;
+}
+
+BWIPP_API BWIPP *bwipp_load_ex(const bwipp_load_init_opts_t *opts) {
+	FILE *f;
+	const char *filename = NULL;
+	bwipp_load_init_flags_t flags = bwipp_iDEFAULT;
+	unsigned int hexify_width = 0;
+
+	EXTRACT_OPT(filename);
+	EXTRACT_OPT(flags);
+	EXTRACT_OPT(hexify_width);
+	if (!filename)
+		filename = default_filename;
+
+	f = fopen(filename, "rb");
+	if (!f)
+		return NULL;
+
+	return _bwipp_load_from_fp(f, flags, hexify_width);  /* Takes ownership of f */
 }
 
 BWIPP_API BWIPP *bwipp_load_from_file(const char *filename) {
@@ -960,7 +967,10 @@ BWIPP_API char *bwipp_emit_all_resources(BWIPP *ctx) {
 
 	curr = ctx->resourcelist;
 
-	assert(ctx->resourcelist);
+	if (!curr) {
+		tmp = strdup("");
+		return tmp;  /* No resources */
+	}
 
 	code = malloc(MAX_CODE);
 	if (!code)
