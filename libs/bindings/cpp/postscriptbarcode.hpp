@@ -73,6 +73,8 @@
 
 namespace bwipp {
 
+class BWIPP;
+
 /**
  * @brief Initialisation options for BWIPP construction.
  */
