@@ -47,7 +47,7 @@ jobs:
         run: sed 's/$/\r/' build/monolithic/barcode.ps > build/monolithic/barcode_crlf.ps
 
       - name: Store monolithic barcode.ps
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: monolithic-barcode-ps
           path: |
@@ -127,7 +127,7 @@ jobs:
           persist-credentials: false
 
       - name: Load barcode.ps
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: monolithic-barcode-ps
           path: build/monolithic
@@ -167,7 +167,7 @@ jobs:
           arch: x64
 
       - name: Load barcode.ps
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: monolithic-barcode-ps
           path: build/monolithic
@@ -209,7 +209,7 @@ jobs:
           [ "$(find plist/ -name '*.html')" = '' ];
 
       - name: "clang static analyzer: Store assets on failure"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: clang-scan.tgz
           path: plist/**/*.html
@@ -350,23 +350,23 @@ jobs:
           make -j "$(nproc)" release
 
       - name: Load PDF docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs-pdf
 
       - name: Load HTML docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs-html
 
       - name: Load Scribus docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs-scribus
           path: wikidocs/__pandoc/scribus
 
       - name: Load AsciiDoc docs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: docs-adoc
           path: wikidocs/__pandoc/adoc
