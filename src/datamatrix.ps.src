@@ -603,11 +603,12 @@ begin
             1 {  % common exit
                 isECI i get {//datamatrix.A exit} if  % ECI only in ASCII
                 i c40headerlength lt {//datamatrix.C exit} if  % C40 only for c40headerlength characters
+                /isfnc1 msg i get //datamatrix.fnc1 eq def
                 /k 0 def {  % loop
                     i k add msglen eq {
                         [/ac /cc /tc /xc /ec /bc] {dup load ceiling def} forall
                         true [   cc tc xc ec bc] {ac exch le and} forall {//datamatrix.A exit} if
-                        true [ac cc tc xc ec   ] {bc exch lt and} forall {//datamatrix.B exit} if
+                        true [ac cc tc xc ec   ] {bc exch lt and} forall {isfnc1 {//datamatrix.A} {//datamatrix.B} ifelse exit} if
                         true [ac cc tc xc    bc] {ec exch lt and} forall {//datamatrix.E exit} if
                         true [ac cc    xc ec bc] {tc exch lt and} forall {//datamatrix.T exit} if
                         true [ac cc tc    ec bc] {xc exch lt and} forall {//datamatrix.X exit} if
@@ -622,8 +623,8 @@ begin
                     /bc bc isFN {4 add} {1 add} ifelse def
                     k 4 ge {
                         true [   cc tc xc ec bc] {ac 1 add exch le and} forall {//datamatrix.A exit} if
-                        bc 1 add ac le {//datamatrix.B exit} if
-                        true [   cc tc xc ec   ] {bc 1 add exch lt and} forall {//datamatrix.B exit} if
+                        bc 1 add ac le {isfnc1 {//datamatrix.A} {//datamatrix.B} ifelse exit} if
+                        true [   cc tc xc ec   ] {bc 1 add exch lt and} forall {isfnc1 {//datamatrix.A} {//datamatrix.B} ifelse exit} if
                         true [ac cc tc xc    bc] {ec 1 add exch lt and} forall {//datamatrix.E exit} if
                         true [ac cc    xc ec bc] {tc 1 add exch lt and} forall {//datamatrix.T exit} if
                         true [ac cc tc    ec bc] {xc 1 add exch lt and} forall {//datamatrix.X exit} if
