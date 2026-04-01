@@ -270,20 +270,33 @@ begin
         grestore
     } if
     showbearer {  % Overrides showborder
-        gsave
-        newpath
-        bl aload pop moveto br aload pop lineto
-        tl aload pop moveto tr aload pop lineto
-        bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
-        borderwidth inkspread 2 mul sub setlinewidth stroke
-        grestore
+        borderwidth inkspread gt {
+            gsave
+            newpath
+            bl aload pop moveto br aload pop lineto
+            tl aload pop moveto tr aload pop lineto
+            bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
+            borderwidth inkspread sub setlinewidth stroke
+            grestore
+        } if
     } {
     showborder {
-        gsave
-        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
-        borderwidth inkspread 2 mul sub setlinewidth stroke
-        grestore
+        /hw borderwidth inkspread sub 2 div def
+        hw 0 gt {
+            gsave
+            bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
+            newpath
+            bl aload pop hw sub exch hw sub exch moveto
+            br aload pop hw sub exch hw add exch lineto
+            tr aload pop hw add exch hw add exch lineto
+            tl aload pop hw add exch hw sub exch lineto closepath
+            bl aload pop hw add exch hw add exch moveto
+            tl aload pop hw sub exch hw add exch lineto
+            tr aload pop hw sub exch hw sub exch lineto
+            br aload pop hw add exch hw sub exch lineto closepath
+            eofill
+            grestore
+        } if
     } if } ifelse
 
     %
