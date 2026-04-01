@@ -710,6 +710,16 @@
     44 65 216 110  % randomised length+data bytes
 ] debugIsEqual
 
+% Unlatch from base256 if FNC1: "ロ^FNC1ワ" (UTF-8 Katakana)
+{ (^227^131^173^FNC1^227^131^175) (debugcws parse parsefnc) datamatrix } [
+    231             % lB256
+    47 164 218 153  % randomised length+data bytes
+    232             % FNC1
+    231             % lB256
+    176 38 91 29    % randomised length+data bytes
+    129             % PAD
+] debugIsEqual
+
 
 %
 % EDIFACT mode
