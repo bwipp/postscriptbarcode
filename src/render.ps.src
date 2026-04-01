@@ -32,11 +32,12 @@
 % IN THE SOFTWARE.
 
 % --BEGIN RESOURCE render--
-% --REQUIRES preamble processoptions setanycolor--
+% --REQUIRES preamble raiseerror processoptions setanycolor--
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-32 dict
+48 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -108,9 +109,9 @@ begin
 %
 %  Validate a single text option dict
 %
-%  grp textdict /validateoptions //render exec => bool [errorname errorstring |]
+%  grp textdict /validatetextoptions //render exec => bool [errorname errorstring |]
 %
-/render.validateoptions {
+/render.validatetextoptions {
 
     16 dict begin
 
@@ -391,6 +392,35 @@ begin
 } bind def
 
 %
+%  Render text groups 1-9
+%
+/render.textgroups {
+
+    4 dict begin
+
+    /pixy exch def
+    /pixx exch def
+
+    /ok true def
+    1 1 9 {
+        /textgrp exch def
+        textopts textgrp 1 sub get () get () ne              % Has manual contents
+        textgrp 1 eq txt length 0 gt and includetext and or  % or text1 with encoder txt and includetext
+        {
+            textopts textgrp 1 sub get
+            dup (txt) textgrp 1 eq { txt } { [] } ifelse put
+            dup dup () get (content) exch put
+            pixx pixy textgrp 4 -1 roll //render.rendertext exec
+            not { /ok false def exit } if
+        } if
+    } for
+    ok
+
+    end
+
+} bind def
+
+%
 %  Snap module boundaries to device pixel grid
 %
 /render.gridfit {
@@ -456,13 +486,177 @@ begin
 } bind def
 
 %
+%  Apply defaults from global context for properties common to all renderers
+%
+/render.global_defaults {
+
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get  % ctx
+        barcolor        (unset) eq { dup /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
+        backgroundcolor (unset) eq { dup /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
+        bordercolor     (unset) eq { dup /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
+        inkspread       null eq    { dup /default_inkspread       2 copy known {get /inkspread       exch def} {pop pop} ifelse } if
+        griddpi         0 eq       { dup /default_griddpi         2 copy known {get /griddpi         exch def} {pop pop} ifelse } if
+        gridfit         false eq   { dup /default_gridfit         2 copy known {get /gridfit         exch def} {pop pop} ifelse } if
+        pop
+    } { pop } ifelse
+
+} bind def
+
+%
+%  Validate common renderer options
+%
+/render.validate_common {
+
+    /textopts where {
+        pop
+        1 1 9 {
+            textopts 1 index 1 sub get
+            //render.validatetextoptions exec not { //raiseerror exec } if
+        } for
+    } if
+
+    inkspread -1 lt inkspread 1 gt or {
+        /bwipp.renderBadInkspread (inkspread must be from -1 to 1) //raiseerror exec
+    } if
+
+    borderleft -1 lt borderleft 50 gt or {
+        /bwipp.renderBadBorderleft (borderleft must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderright -1 lt borderright 50 gt or {
+        /bwipp.renderBadBorderright (borderright must be from -1 to 50) //raiseerror exec
+    } if
+
+    bordertop -1 lt bordertop 50 gt or {
+        /bwipp.renderBadBordertop (bordertop must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderbottom -1 lt borderbottom 50 gt or {
+        /bwipp.renderBadBorderbottom (borderbottom must be from -1 to 50) //raiseerror exec
+    } if
+
+    borderwidth 0 lt borderwidth 10 gt or {
+        /bwipp.renderBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
+    } if
+
+    griddpi 0 ne { griddpi 30 lt griddpi 9600 gt or {
+        /bwipp.renderBadGriddpi (griddpi must be 0 or from 30 to 9600) //raiseerror exec
+    } if } if
+
+} bind def
+
+%
+%  Draw border, bearer bars, and background
+%
+/render.renderborder {
+
+    16 dict begin
+
+    /yspread exch def
+    /xspread exch def
+    /pixy exch def
+    /pixx exch def
+
+    /showbearer /showbearer where { /showbearer get } { false } ifelse def
+
+    %
+    % Corner geometry
+    %
+    showborder showbearer or {
+        /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
+        /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
+        /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
+        /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
+    } {
+        /tl [ borderleft neg xspread add                  pixy bordertop add yspread sub           ] def
+        /tr [ pixx borderright add xspread sub            pixy bordertop add yspread sub           ] def
+        /bl [ borderleft neg xspread add                  borderbottom neg yspread add             ] def
+        /br [ pixx borderright add xspread sub            borderbottom neg yspread add             ] def
+    } ifelse
+
+    1 {  % Common exit
+
+        %
+        % Background fill
+        %
+        backgroundcolor (unset) ne {
+            gsave
+            newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
+            backgroundcolor //setanycolor exec not {
+                grestore
+                /bwipp.renderBadBackgroundColor (Invalid background color) false exit
+            } if fill
+            grestore
+        } if
+
+        %
+        % Bearer bars (horizontal rules at top and bottom)
+        %
+        showbearer {
+            borderwidth inkspread gt {
+                gsave
+                newpath
+                bl aload pop moveto br aload pop lineto
+                tl aload pop moveto tr aload pop lineto
+                bordercolor (unset) ne {
+                    bordercolor //setanycolor exec not {
+                        grestore
+                        /bwipp.renderBadBorderColor (Invalid border color) false exit
+                    } if
+                } if
+                borderwidth inkspread sub setlinewidth stroke
+                grestore
+            } if
+        } if
+
+        %
+        % Border (eofill rectangle frame)
+        %
+        showborder showbearer not and {
+            /hw borderwidth inkspread sub 2 div def
+            hw 0 gt {
+                gsave
+                bordercolor (unset) ne {
+                    bordercolor //setanycolor exec not {
+                        grestore
+                        /bwipp.renderBadBorderColor (Invalid border color) false exit
+                    } if
+                } if
+                newpath
+                bl aload pop hw sub exch hw sub exch moveto
+                br aload pop hw sub exch hw add exch lineto
+                tr aload pop hw add exch hw add exch lineto
+                tl aload pop hw add exch hw sub exch lineto closepath
+                bl aload pop hw add exch hw add exch moveto
+                tl aload pop hw sub exch hw add exch lineto
+                tr aload pop hw sub exch hw sub exch lineto
+                br aload pop hw add exch hw sub exch lineto closepath
+                eofill
+                grestore
+            } if
+        } if
+
+        true exit
+
+    } repeat
+
+    end
+
+} bind def
+
+%
 %  Dispatcher table
 %
 /render.dispatch <<
-    /groupoptions     //render.groupoptions
-    /rendertext       //render.rendertext
-    /validateoptions  //render.validateoptions
-    /gridfit          //render.gridfit
+    /groupoptions         //render.groupoptions
+    /textgroups           //render.textgroups
+    /rendertext           //render.rendertext
+    /validatetextoptions  //render.validatetextoptions
+    /gridfit              //render.gridfit
+    /global_defaults      //render.global_defaults
+    /validate_common      //render.validate_common
+    /renderborder         //render.renderborder
 >> readonly def
 
 /render {

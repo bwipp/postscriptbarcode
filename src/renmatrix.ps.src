@@ -170,30 +170,13 @@ begin
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
+    /global_defaults //render exec
 
-    % Resolve text aliases: alttext=>text1, extratext=>text2
+    griddpi 0 ne { /gridfit true def } if
 
-    inkspread null eq {
-        /uk.co.terryburton.bwipp.global_ctx dup where {
-            exch get /default_inkspread 2 copy known {get /inkspread exch def} {pop pop} ifelse
-        } {pop} ifelse
-    } if
-
-    inkspread null eq {/inkspread 0.15 def} if
+    inkspread null eq { /inkspread 0.15 def } if
     inkspreadh null eq {/inkspreadh inkspread def} if
     inkspreadv null eq {/inkspreadv inkspread def} if
-
-    /uk.co.terryburton.bwipp.global_ctx dup where {
-        exch get /ctx exch def
-        barcolor        (unset) eq { ctx /default_barcolor        2 copy known {get /barcolor        exch def} {pop pop} ifelse } if
-        backgroundcolor (unset) eq { ctx /default_backgroundcolor 2 copy known {get /backgroundcolor exch def} {pop pop} ifelse } if
-        bordercolor     (unset) eq { ctx /default_bordercolor     2 copy known {get /bordercolor     exch def} {pop pop} ifelse } if
-        griddpi         0 eq       { ctx /default_griddpi         2 copy known {get /griddpi         exch def} {pop pop} ifelse } if
-        gridfit         false eq   { ctx /default_gridfit         2 copy known {get /gridfit         exch def} {pop pop} ifelse } if
-    } { pop } ifelse
-
-    % Auto-enable gridfit when griddpi is specified
-    griddpi 0 ne { /gridfit true def } if
 
     (input.processoptions) //renmatrix.after exec
 
@@ -211,16 +194,7 @@ begin
     % Validate input
     %
 
-    % text{1-9}* options validation
-    1 1 9 {
-        /textgrp exch def
-        textgrp textopts textgrp 1 sub get
-        /validateoptions //render exec not { //raiseerror exec } if
-    } for
-
-    inkspread -1 lt inkspread 1 gt or {
-        /bwipp.renmatrixBadInkspread (inkspread must be from -1 to 1) //raiseerror exec
-    } if
+    /validate_common //render exec
 
     inkspreadh -1 lt inkspreadh 1 gt or {
         /bwipp.renmatrixBadInkspreadh (inkspreadh must be from -1 to 1) //raiseerror exec
@@ -228,26 +202,6 @@ begin
 
     inkspreadv -1 lt inkspreadv 1 gt or {
         /bwipp.renmatrixBadInkspreadv (inkspreadv must be from -1 to 1) //raiseerror exec
-    } if
-
-    borderleft -1 lt borderleft 50 gt or {
-        /bwipp.renmatrixBadBorderleft (borderleft must be from -1 to 50) //raiseerror exec
-    } if
-
-    borderright -1 lt borderright 50 gt or {
-        /bwipp.renmatrixBadBorderright (borderright must be from -1 to 50) //raiseerror exec
-    } if
-
-    bordertop -1 lt bordertop 50 gt or {
-        /bwipp.renmatrixBadBordertop (bordertop must be from -1 to 50) //raiseerror exec
-    } if
-
-    borderbottom -1 lt borderbottom 50 gt or {
-        /bwipp.renmatrixBadBorderbottom (borderbottom must be from -1 to 50) //raiseerror exec
-    } if
-
-    borderwidth 0 lt borderwidth 10 gt or {
-        /bwipp.renmatrixBadBorderwidth (borderwidth must be from 0 to 10) //raiseerror exec
     } if
 
     width 0.01 lt width 50 gt or {
@@ -258,10 +212,6 @@ begin
         /bwipp.renmatrixBadHeight (height must be from 0.01 to 50) //raiseerror exec
     } if
 
-    griddpi 0 ne { griddpi 30 lt griddpi 9600 gt or {
-        /bwipp.renmatrixBadGriddpi (griddpi must be 0 or from 30 to 9600) //raiseerror exec
-    } if } if
-
     pixx 0 le pixy 0 le or {
         /bwipp.renmatrixBadDimensions (The symbol dimensions must be positive) //raiseerror exec
     } if
@@ -271,6 +221,10 @@ begin
     } if
 
     (input.validate) //renmatrix.after exec
+
+    %
+    % Generate the symbol
+    %
 
     /xyget { pixx mul add pixs exch get } def
     /cget { pixx mul add cache exch get and } def
@@ -441,7 +395,6 @@ begin
         /pixx pixx 2 sub def
         /pixy pixy 2 sub def
 
-
         options /debugpaths known
         /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
         and { grestore /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
@@ -522,41 +475,8 @@ begin
     %
     % Display the border and background
     %
-    showborder {
-        /tl [ borderleft borderwidth 2 div add neg        pixy bordertop add borderwidth 2 div add ] def
-        /tr [ pixx borderright add borderwidth 2 div add  pixy bordertop add borderwidth 2 div add ] def
-        /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
-        /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
-    } {  % No need to extend background when there is no border
-        /tl [ borderleft neg inkspread add                pixy bordertop add inkspread sub         ] def
-        /tr [ pixx borderright add inkspread sub          pixy bordertop add inkspread sub         ] def
-        /bl [ borderleft neg inkspread add                borderbottom neg inkspread add           ] def
-        /br [ pixx borderright add inkspread sub          borderbottom neg inkspread add           ] def
-    } ifelse
-    backgroundcolor (unset) ne {
-        gsave
-        newpath bl aload pop moveto [ br tr tl ] { aload pop lineto } forall closepath
-        backgroundcolor //setanycolor exec not { grestore grestore //raiseerror exec } if fill
-        grestore
-    } if
-    showborder {
-        /hw borderwidth inkspread sub 2 div def
-        hw 0 gt {
-            gsave
-            bordercolor (unset) ne { bordercolor //setanycolor exec not { grestore grestore //raiseerror exec } if } if
-            newpath
-            bl aload pop hw sub exch hw sub exch moveto
-            br aload pop hw sub exch hw add exch lineto
-            tr aload pop hw add exch hw add exch lineto
-            tl aload pop hw add exch hw sub exch lineto closepath
-            bl aload pop hw add exch hw add exch moveto
-            tl aload pop hw sub exch hw add exch lineto
-            tr aload pop hw sub exch hw sub exch lineto
-            br aload pop hw add exch hw sub exch lineto closepath
-            eofill
-            grestore
-        } if
-    } if
+    pixx pixy inkspread inkspread /renderborder //render exec  % Inkspread in both axes for modules
+    not { grestore //raiseerror exec } if
 
     %
     % Display the matrix
@@ -580,18 +500,8 @@ begin
     %
     % Display the text
     %
-    1 1 9 {
-        /textgrp exch def
-        textopts textgrp 1 sub get () get () ne              % Has manual contents
-        textgrp 1 eq txt length 0 gt and includetext and or  % or text1 with encoder txt and includetext
-        {
-            textopts textgrp 1 sub get
-            dup (txt) txt put
-            dup dup () get (content) exch put
-            pixx pixy textgrp 4 -1 roll /rendertext //render exec
-            not { grestore //raiseerror exec } if
-        } if
-    } for
+    pixx pixy /textgroups //render exec
+    not { grestore //raiseerror exec } if
 
     grestore
 
