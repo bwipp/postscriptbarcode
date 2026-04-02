@@ -126,30 +126,6 @@ begin
         /bwipp.renlinearBadWidth (width must be 0 or from 0.01 to 20) //raiseerror exec
     } if } if
 
-    guardwidth 0 lt guardwidth 20 gt or {
-        /bwipp.renlinearBadGuardwidth (guardwidth must be from 0 to 20) //raiseerror exec
-    } if
-
-    guardheight 0 lt guardheight 20 gt or {
-        /bwipp.renlinearBadGuardheight (guardheight must be from 0 to 20) //raiseerror exec
-    } if
-
-    guardleftpos -50 lt guardleftpos 150 gt or {
-        /bwipp.renlinearBadGuardleftpos (guardleftpos must be from -50 to 150) //raiseerror exec
-    } if
-
-    guardleftypos -50 lt guardleftypos 150 gt or {
-        /bwipp.renlinearBadGuardleftypos (guardleftypos must be from -50 to 150) //raiseerror exec
-    } if
-
-    guardrightpos -50 lt guardrightpos 150 gt or {
-        /bwipp.renlinearBadGuardrightpos (guardrightpos must be from -50 to 150) //raiseerror exec
-    } if
-
-    guardrightypos -50 lt guardrightypos 150 gt or {
-        /bwipp.renlinearBadGuardrightypos (guardrightypos must be from -50 to 150) //raiseerror exec
-    } if
-
     sbs length 0 ne {
         sbs length 1 add 2 idiv  % nbars
         bhs length 1 index lt bbs length 2 index lt or
@@ -239,23 +215,8 @@ begin
     %
     % Display the guard elements
     %
-    guardwhitespace {
-        0.75 setlinewidth
-        guardleftpos 0 ne {
-            newpath
-            guardleftpos neg guardwidth add guardleftypos guardheight 2 div add moveto
-            guardwidth neg guardheight -2 div rlineto
-            guardwidth guardheight -2 div rlineto
-            stroke
-        } if
-        guardrightpos 0 ne {
-            newpath
-            guardrightpos pixx add guardwidth sub guardrightypos guardheight 2 div add moveto
-            guardwidth guardheight -2 div rlineto
-            guardwidth neg guardheight -2 div rlineto
-            stroke
-        } if
-    } if
+    pixx /renderguards //render exec
+    not { grestore //raiseerror exec } if
 
     grestore
 

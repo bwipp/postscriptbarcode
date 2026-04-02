@@ -646,6 +646,65 @@ begin
 } bind def
 
 %
+%  Draw whitespace guard brackets
+%
+%  pixx /renderguards //render exec
+%
+/render.renderguards {
+
+    /pixx exch def
+
+    1 {  % Common exit
+
+        guardwidth 0 lt guardwidth 20 gt or {
+            /bwipp.renderBadGuardwidth (guardwidth must be from 0 to 20) false exit
+        } if
+
+        guardheight 0 lt guardheight 20 gt or {
+            /bwipp.renderBadGuardheight (guardheight must be from 0 to 20) false exit
+        } if
+
+        guardleftpos -50 lt guardleftpos 150 gt or {
+            /bwipp.renderBadGuardleftpos (guardleftpos must be from -50 to 150) false exit
+        } if
+
+        guardleftypos -50 lt guardleftypos 150 gt or {
+            /bwipp.renderBadGuardleftypos (guardleftypos must be from -50 to 150) false exit
+        } if
+
+        guardrightpos -50 lt guardrightpos 150 gt or {
+            /bwipp.renderBadGuardrightpos (guardrightpos must be from -50 to 150) false exit
+        } if
+
+        guardrightypos -50 lt guardrightypos 150 gt or {
+            /bwipp.renderBadGuardrightypos (guardrightypos must be from -50 to 150) false exit
+        } if
+
+        guardwhitespace {
+            0.75 setlinewidth
+            guardleftpos 0 ne {
+                newpath
+                guardleftpos neg guardwidth add guardleftypos guardheight 2 div add moveto
+                guardwidth neg guardheight -2 div rlineto
+                guardwidth guardheight -2 div rlineto
+                stroke
+            } if
+            guardrightpos 0 ne {
+                newpath
+                guardrightpos pixx add guardwidth sub guardrightypos guardheight 2 div add moveto
+                guardwidth guardheight -2 div rlineto
+                guardwidth neg guardheight -2 div rlineto
+                stroke
+            } if
+        } if
+
+        true exit
+
+    } repeat
+
+} bind def
+
+%
 %  Dispatcher table
 %
 /render.dispatch <<
@@ -657,6 +716,7 @@ begin
     /global_defaults      //render.global_defaults
     /validate_common      //render.validate_common
     /renderborder         //render.renderborder
+    /renderguards         //render.renderguards
 >> readonly def
 
 /render {
