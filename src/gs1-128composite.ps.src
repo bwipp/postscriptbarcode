@@ -202,6 +202,21 @@ begin
 
         /pixx cclpad length ccpixx add ccrpad length add def
         /pixy pixs length pixx idiv def
+
+        /ccqz linktype (a) eq { 1 } { 2 } ifelse def
+        /borderleft
+            linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse linlpad length sub
+            ccqz cclpad length sub
+            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+        def
+        /borderright
+            linsym /borderright 2 copy known { get } { pop pop 10 } ifelse linrpad length sub
+            ccqz ccrpad length sub
+            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+        def
+        /bordertop ccqz def
+        /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
+
         <<
         /ren /renmatrix
         /pixs pixs
@@ -209,6 +224,10 @@ begin
         /pixy pixy
         /height pixy 72 div
         /width pixx 72 div
+        /borderleft borderleft
+        /borderright borderright
+        /bordertop bordertop
+        /borderbottom borderbottom
         /txt txt
         /opt options
         >>

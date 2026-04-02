@@ -178,6 +178,20 @@ begin
         ] def
 
         /pixy pixs length pixx idiv def
+
+        /borderleft
+            linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
+            1 pixx ccpixx sub 1 sub sub  % CC QZ; left inset pixx-ccpixx-1
+            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+        def
+        /borderright
+            linsym /borderright 2 copy known { get } { pop pop 10 } ifelse  % right inset 0
+            0  % CC QZ 1; right inset 1
+            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+        def
+        /bordertop 1 def
+        /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
+
         <<
         /ren /renmatrix
         /pixs pixs
@@ -185,6 +199,10 @@ begin
         /pixy pixy
         /height pixy 72 div
         /width pixx 72 div
+        /borderleft borderleft
+        /borderright borderright
+        /bordertop bordertop
+        /borderbottom borderbottom
         /txt txt
         /opt options
         >>
