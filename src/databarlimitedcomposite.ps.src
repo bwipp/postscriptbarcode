@@ -144,30 +144,31 @@ begin
         /ccpixx compsym /pixx get def
 
         /linpixs [ 0  % Begin with left guard space
-            linsbs { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall  % Alternates i 1/0's
+            linsbs 0 linsbs length 1 add 2 idiv 2 mul 1 sub getinterval  % Match renlinear: discard trailing space
+            { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall
         ] def
-        /sep [ 0 sep aload pop ] def  % Offset by 1
+        /sep [ 0 sep 0 linpixs length 1 sub getinterval aload pop ] def  % Offset by 1; trim to match
 
         /linheight linheight cvi def
-        % ccpixx is 72 for CC-A and 82 for CC-B; linpixs length is 79
+        % ccpixx is 72 for CC-A and 82 for CC-B; linpixs length is 74
         ccpixx 72 eq {  % 3-col CC-A
             /pixs [
-                0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space & right pad with 1 space + 5 right guard spaces
+                0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space & right pad with 1 space
                     /i exch def
-                    0 ccpixs i ccpixx getinterval aload pop 0 0 0 0 0 0
+                    0 ccpixs i ccpixx getinterval aload pop 0
                 } for
                 sep aload pop linheight { linpixs aload pop } repeat
             ] def
-            /pixx linpixs length def  % 79
+            /pixx linpixs length def  % 74
         } {  % 3-col CC-B
             /pixs [
-                0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space + 5 right guard spaces
+                0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
                     /i exch def
-                    ccpixs i ccpixx getinterval aload pop 0 0 0 0 0 0
+                    ccpixs i ccpixx getinterval aload pop 0
                 } for
                 0 0 0 0 0 0 0 0 0 sep aload pop linheight { 0 0 0 0 0 0 0 0 0 linpixs aload pop } repeat  % Left pad with 9 spaces
             ] def
-            /pixx ccpixx 6 add def  % 88
+            /pixx ccpixx 1 add def  % 83
         } ifelse
 
         /txt [
