@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /databaromni dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
@@ -63,6 +64,14 @@ begin
     /parse false def
     /dontlint false def
     /lintreqs true def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -82,6 +91,12 @@ begin
     } {
         pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
     } ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /databaromnicomposite ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     options (lintype) (databaromni) put
     options (linkage) true put
@@ -189,6 +204,11 @@ begin
     /bordertop bordertop
     /borderbottom borderbottom
     /txt txt
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

@@ -676,3 +676,22 @@
 (^ECI) (parse parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
 (^ECI1) (parse parsefnc dontdraw) /bwipp.truncatedECI er_tmpl
 
+%
+% Spec options
+%
+
+% AST default fills xmin from ISO 18004
+{ (Hello) (dontdraw physspec xdim=0.330) qrcode /xmin get 1 array astore } [0.250] isEqual
+
+% physspec renders without error
+{ 0 0 moveto (Hello) (physspec xdim=0.330) qrcode true } true isEqual
+
+% physspec with mag renders without error
+{ 0 0 moveto (Hello) (physspec xnom=0.330 mag=2.0) qrcode true } true isEqual
+
+% physspec without xnom or xdim should error
+{ (Hello) (dontdraw physspec) qrcode } /bwipp.renderNeedXnom isError
+
+% physspec with xdim below xmin should error
+{ (Hello) (dontdraw physspec xdim=0.100) qrcode } /bwipp.renderXdimTooSmall isError
+

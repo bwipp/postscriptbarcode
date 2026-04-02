@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-64 dict
+65 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -251,12 +252,28 @@ begin
     /suppressc false def          % Suppress code set C
     /unlatchextbeforec false def  % Suppress extended ASCII with code set C
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
     barcode length 500 gt {
         /bwipp.code128inputTooLong (The input data is too long) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /code128 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
@@ -739,13 +756,22 @@ begin
         sbs i 6 mul //code128.encs cws i get get putinterval
     } for
 
+    /sbs [sbs {48 sub} forall] def
+
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
-    /sbs [sbs {48 sub} forall]
+    /sbs sbs
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     /txt [ [text text1xoffset text1yoffset text1font text1size] ]
     /text1xalign (center)
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

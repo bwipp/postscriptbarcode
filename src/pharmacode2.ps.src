@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -59,6 +60,16 @@ begin
     /dontdraw false def
     /includetext false def      % Enable/disable text
     /height 4.0 def             % Height of short bars in millimetres
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -82,6 +93,12 @@ begin
     barcode cvi dup 4 lt exch 64570080 gt or {
         /bwipp.pharmacode2badValue (Two-track Pharmacode value must be between 4 and 64570080) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /pharmacode2 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Create the human readable text
@@ -111,6 +128,8 @@ begin
     } loop
     /encstr encstr i 1 add 15 i sub getinterval def
 
+    /resolve_height //render exec
+
     %
     % Generate the bar pattern
     %
@@ -131,6 +150,11 @@ begin
     /txt txt
     /text1xalign (center)
     /text1yoffset -4.0
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

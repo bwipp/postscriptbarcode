@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-32 dict
+33 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -97,6 +98,16 @@ begin
 
     /dontdraw false def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -116,7 +127,18 @@ begin
         /bwipp.symbolUnknownSymbol (Unknown symbol name provided) //raiseerror exec
     } if
 
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /symbol ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
     //symbol.symbols barcode get exec
+    dup /physspec physspec put
+    dup /xdim xdim put
+    dup /xmin xmin put
+    dup /xmax xmax put
+    dup /modunit modunit put
     dup /opt options put
 
     _render { dup /ren get //symbol.renmap exch get exec } if

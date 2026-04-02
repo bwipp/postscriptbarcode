@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /pharmacode {
@@ -52,10 +53,20 @@ begin
     {
 
     /dontdraw false def
-    /height 8.0 2.835 mul 72 div def
-    /nwidth 0.5 2.835 mul def
-    /wwidth 1.5 2.835 mul def
-    /swidth 1.0 2.835 mul def
+    /height 1.0 def
+    /nwidth 1 def
+    /wwidth 3 def
+    /swidth 2 def
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -79,6 +90,12 @@ begin
     barcode cvi dup 3 lt exch 131070 gt or {
         /bwipp.pharmacodeBadValue (Pharmacode value must be between 3 and 131070) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /pharmacode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Create the human readable text
@@ -109,6 +126,8 @@ begin
         sbs i 2 mul 1 add swidth put
     } for
 
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
     /sbs sbs
@@ -116,6 +135,11 @@ begin
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     /txt txt
     /text1xalign (center)
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

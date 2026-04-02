@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
@@ -66,6 +67,7 @@ begin
 
     /dontdraw false def
     /includetext false def
+
     /text1font /Helvetica def
     /text1size 12.0 def
     /text1xoffset -7.75 def
@@ -76,6 +78,16 @@ begin
     /addontextsize null def     % realtype sentinel
     /addontextxoffset null def  % realtype sentinel
     /addontextyoffset null def  % realtype sentinel
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -111,6 +123,12 @@ begin
     addon length 0 ne addon length 2 ne and addon length 5 ne and {
         /bwipp.ean13badAddOnLength (Add-on for EAN-13 must be 2 or 5 digits) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ean13 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Add checksum digit
@@ -201,9 +219,13 @@ begin
     sbs 56 //ean13.encs 12 get putinterval
 
     /sbs [sbs {48 sub} forall] def
+
+    /resolve_height //render exec
+
     includetext {
-        /bhs [height height 12{height .075 sub}repeat height height 12{height .075 sub}repeat height height] def
-        /bbs [0 0 12{.075}repeat 0 0 12{.075}repeat 0 0] def
+        /descent propspec physspec or { 5 modunit mul 72 div } { .075 } ifelse def  % Guard bar descent: 5X at spec
+        /bhs [height height 12{height descent sub}repeat height height 12{height descent sub}repeat height height] def
+        /bbs [0 0 12{descent}repeat 0 0 12{descent}repeat 0 0] def
     } {
         /bhs [30{height}repeat] def
         /bbs [30{0}repeat] def
@@ -248,6 +270,11 @@ begin
     /borderright addon () eq {7.0} {5.0} ifelse
     /bordertop 0.0
     /borderbottom 5.0
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     >>
 
     _render //renlinear if

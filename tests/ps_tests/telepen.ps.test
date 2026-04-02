@@ -21,3 +21,12 @@
 { (ABC\200) (dontdraw) telepen } /bwipp.telepenInvalidAlphaCharacter isError
 
 { 501 string (dontdraw) telepen } /bwipp.telepeninputTooLong isError
+
+%
+% Smoke test: propspec renders without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 telepen true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(ABCDEF)  (propspec)  ok_tmpl

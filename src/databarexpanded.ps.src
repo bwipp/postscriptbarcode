@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -188,6 +189,16 @@ begin
     /linkage false def
     /barxmult 34 def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -215,6 +226,12 @@ begin
             /bwipp.gs1databarexpandedBadSegments (The number of segments must be even from 2 to 22) //raiseerror exec
         } if
     } ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /databarexpanded ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     barcode /ai //gs1process exec
     /fncs exch def
@@ -836,6 +853,8 @@ begin
             1 1
         ] def
 
+        /resolve_height //render exec
+
         <<
         /ren /renlinear
         /sbs sbs
@@ -845,6 +864,11 @@ begin
         /borderright 0.0
         /bordertop 0.0
         /borderbottom 0.0
+        /physspec physspec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
         /opt options
         >>
 
@@ -960,6 +984,11 @@ begin
         /borderright 0.0
         /bordertop 0.0
         /borderbottom 0.0
+        /physspec physspec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
         /opt options
         >>
 

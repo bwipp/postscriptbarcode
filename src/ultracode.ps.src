@@ -41,13 +41,14 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 /ultracode [/before /after] //setuphooks exec
@@ -235,6 +236,14 @@ begin
     /link1 0 def
     /raw false def
     /rev 2 def             % Ultracode specification revision
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 2 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -243,6 +252,12 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ultracode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     (input.processoptions) //ultracode.after exec
 
@@ -527,6 +542,11 @@ begin
     /borderright 1.0
     /bordertop 1.0
     /borderbottom 1.0
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

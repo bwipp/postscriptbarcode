@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -100,6 +101,16 @@ begin
     /text1yoffset -7.0 def
     /height 0.175 def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -117,6 +128,12 @@ begin
     barcode length 500 gt {
         /bwipp.royalmailInputTooLong (The input data is too long) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /royalmail ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Validate the input
@@ -171,6 +188,8 @@ begin
     %
     encstr barlen 4 mul 5 add //royalmail.encs 37 get putinterval
 
+    /resolve_height //render exec
+
     /bbs encstr length array def
     /bhs encstr length array def
     0 1 encstr length 1 sub {
@@ -203,6 +222,11 @@ begin
         /txt [ [text 0 0 text1font text1size] ]
         /text1xalign (center)
     } if
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

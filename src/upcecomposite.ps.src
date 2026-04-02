@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /upce dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
@@ -61,6 +62,14 @@ begin
     /guardwhitespace false def
     /guardwidth 5.0 def
     /guardheight 7.0 def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -80,6 +89,12 @@ begin
     } {
         pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
     } ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /upcecomposite ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     options (lintype) (upce) put
     options (inkspreadv) 0.0 put
@@ -194,6 +209,11 @@ begin
     /guardwidth guardwidth
     /guardheight guardheight
     /txt txt
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

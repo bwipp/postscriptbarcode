@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -151,6 +152,16 @@ begin
     /includecheck false def
     /height 1.0 def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -175,6 +186,12 @@ begin
     barcode cvi //channelcode.maxvals barlen 2 sub get gt {
         /bwipp.channelcodeTooBig (The Channel Code value is too big for the number of channels) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /channelcode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Tail-call optimisation FTW!
@@ -280,6 +297,8 @@ begin
         check aload pop
     ] def
 
+    /resolve_height //render exec
+
     %
     % Create the human readable text
     %
@@ -298,6 +317,11 @@ begin
     /text1xalign (center)
     /borderleft 1.0
     /borderright 2.0
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

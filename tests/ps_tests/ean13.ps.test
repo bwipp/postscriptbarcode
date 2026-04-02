@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /ean13 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -49,3 +49,77 @@
 (7890123456784)       [1 1 1 1 2 1 3 2 1 1 3 3 2 1 1 1 2 2 2 2 1 2 2 1 1 4 1 1 1 1 1 1 1 1 3 2 1 2 3 1 1 1 1 4 1 3 1 2 1 2 1 3 1 1 3 2 1 1 1] eq_tmpl
 (8901234567890)       [1 1 1 3 1 1 2 1 1 2 3 2 2 2 1 2 2 1 2 1 1 4 1 1 1 3 2 1 1 1 1 1 1 2 3 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 1 1 1] eq_tmpl
 (9012345678906)       [1 1 1 3 2 1 1 1 2 2 2 2 2 1 2 1 4 1 1 2 3 1 1 1 2 3 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 1 1 1 4 1 1 1] eq_tmpl
+
+%
+% physspec: specification metadata passed to renderer
+%
+/physspec_tmpl {
+    3 1 roll { 0 0 ean13 dup /physspec get exch dup /xdim get exch /modunit get 3 array astore }
+    dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+(9520123456788)  (dontdraw physspec)          [true 0.330 1]   physspec_tmpl
+(9520123456788)  (dontdraw physspec mag=2.0)  [true 0.660 1]   physspec_tmpl
+
+%
+% Smoke test: propspec and physspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 ean13 true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(9520123456788)  (includetext propspec)          ok_tmpl
+(9520123456788)  (includetext physspec)           ok_tmpl
+(9520123456788)  (includetext physspec mag=2.0)   ok_tmpl
+
+%
+% physspec with xnom=-1 overridden by AST default, so no error
+%
+(9520123456788)  (physspec xnom=-1)  ok_tmpl
+
+%
+% physspec + width mutually exclusive (renlinear-specific)
+%
+{ 0 0 moveto (9520123456788) (physspec width=2) ean13 } /bwipp.renlinearPhysspecWidth isError
+
+%
+% physspec with direct xdim override
+%
+(9520123456788)  (physspec xdim=0.400)  ok_tmpl
+
+%
+% Addon with physspec renders without error
+%
+(9520123456788 12345)  (includetext physspec)  ok_tmpl
+
+%
+% Regression: no spec options = default behaviour unchanged
+%
+(9520123456788)  [1 1 1 1 2 3 1 2 2 1 2 1 1 2 3 2 2 2 1 2 2 1 2 1 4 1 1 1 1 1 1 1 1 1 3 2 1 2 3 1 1 1 1 4 1 3 1 2 1 2 1 3 1 2 1 3 1 1 1] eq_tmpl
+
+%
+% AST: default AST fills spec values
+%
+/ast_xdim_tmpl {
+    3 1 roll { 0 0 ean13 /xdim get 1 array astore }
+    dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+(9520123456788)  (dontdraw physspec)              [0.330]  ast_xdim_tmpl   % Default AST xnom
+(9520123456788)  (dontdraw physspec ast=gs1.sst2) [0.660]  ast_xdim_tmpl   % SST 2 xnom
+(9520123456788)  (dontdraw physspec mag=2.0)      [0.660]  ast_xdim_tmpl   % mag=2 * xnom=0.330
+
+%
+% AST: user override wins over AST
+%
+(9520123456788)  (dontdraw physspec xnom=0.500)    [0.500]  ast_xdim_tmpl   % User xnom override
+
+%
+% AST: unknown AST should error
+%
+{ (9520123456788) (dontdraw ast=nonexistent) ean13 } /bwipp.renderUnknownAST isError
+
+%
+% AST: gs1.sst2 with physspec renders without error
+%
+(9520123456788)  (physspec ast=gs1.sst2)  ok_tmpl

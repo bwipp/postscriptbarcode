@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /pharmacode2 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -21,3 +21,14 @@
 { (12A4) (dontdraw) pharmacode2 } /bwipp.pharmacode2badCharacter isError
 { (3) (dontdraw) pharmacode2 } /bwipp.pharmacode2badValue isError
 { (64570081) (dontdraw) pharmacode2 } /bwipp.pharmacode2badValue isError
+
+
+%
+% Smoke test: propspec and physspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 pharmacode2 true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(117480)  (includetext showborder propspec)   ok_tmpl
+(117480)  (includetext showborder physspec xdim=0.330)   ok_tmpl

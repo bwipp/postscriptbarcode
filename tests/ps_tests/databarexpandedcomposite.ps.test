@@ -171,3 +171,12 @@
 
 % Missing composite component (no pipe character)
 { ((01)93712345678904) (dontdraw) databarexpandedcomposite } /bwipp.missingCompositeComponent isError
+
+%
+% Smoke test: physspec renders without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 databarexpandedcomposite true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(\(01\)09521234543213\(3103\)001234|\(91\)1A2B3C4D5E)  (physspec xdim=0.330)  ok_tmpl

@@ -40,9 +40,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /daft {
@@ -52,6 +53,16 @@ begin
 
     /dontdraw false def
     /height 0.175 def
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -76,6 +87,14 @@ begin
     } forall
 
     /barlen barcode length def
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /daft ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    /resolve_height //render exec
 
     /bbs barlen array def
     /bhs barlen array def
@@ -105,6 +124,11 @@ begin
     /bbs bbs
     /bhs bhs
     /sbs [bhs length 1 sub {1.44 1.872} repeat 1.44]
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

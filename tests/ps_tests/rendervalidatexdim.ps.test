@@ -1,0 +1,49 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% validate_xdim: within bounds
+%
+{ 0.330 0.264 0.660 /validate_xdim render } true isEqual
+
+%
+% validate_xdim: below xmin => false with error info
+%
+{ 0.200 0.264 0.660 /validate_xdim render not { pop } if } /bwipp.renderXdimTooSmall isEqual
+
+%
+% validate_xdim: above xmax => false with error info
+%
+{ 0.700 0.264 0.660 /validate_xdim render not { pop } if } /bwipp.renderXdimTooLarge isEqual
+
+%
+% validate_xdim: no xmin (-1)
+%
+{ 0.100 -1 0.660 /validate_xdim render } true isEqual
+
+%
+% validate_xdim: no xmax (-1)
+%
+{ 9.999 0.264 -1 /validate_xdim render } true isEqual
+
+%
+% validate_xdim: no bounds at all
+%
+{ 0.330 -1 -1 /validate_xdim render } true isEqual
+
+%
+% validate_xdim: exactly at xmin
+%
+{ 0.264 0.264 0.660 /validate_xdim render } true isEqual
+
+%
+% validate_xdim: exactly at xmax
+%
+{ 0.660 0.264 0.660 /validate_xdim render } true isEqual

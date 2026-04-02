@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -176,6 +177,16 @@ begin
     /dontdraw false def
     /height 0.15 def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -195,6 +206,12 @@ begin
     barlen 20 ne barlen 25 ne and barlen 29 ne and barlen 31 ne and {
         /bwipp.onecodeInvalidLength (The data must be 20, 25, 29 or 31 digits) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /onecode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Create the human readable text
@@ -357,6 +374,8 @@ begin
         } if
     } for
 
+    /resolve_height //render exec
+
     %
     % Conversion from characters to the OneCode encoding
     %
@@ -394,6 +413,11 @@ begin
     /text1font /Helvetica
     /text1yoffset -1.0
     /text1xoffset -0.3
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

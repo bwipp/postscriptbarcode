@@ -41,11 +41,12 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 /codablockf.swa -1 def  /codablockf.swb -2 def  /codablockf.swc -3 def  /codablockf.sft -4 def
@@ -183,6 +184,14 @@ begin
     /sepheight 1 def
     /parse false def
     /parsefnc false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -191,6 +200,12 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /codablockf ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     //codablockf.latevars /init get exec
 
@@ -670,6 +685,11 @@ begin
     /pixy symhgt
     /height symhgt 72 div
     /width symwid 72 div
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

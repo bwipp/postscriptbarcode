@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -147,6 +148,16 @@ begin
     /height 0.175 def
     /custinfoenc (character) def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -192,6 +203,12 @@ begin
     encstr length 22 sub 14 sub gt {
         /bwipp.auspostTooLong (The message is too long) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /auspost ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     %
     % Put start character
@@ -290,6 +307,8 @@ begin
     encstr encstr length 14 sub checkcode putinterval
     encstr encstr length 2 sub //auspost.encs 74 get putinterval
 
+    /resolve_height //render exec
+
     /bbs encstr length array def
     /bhs encstr length array def
     0 1 encstr length 1 sub {
@@ -322,6 +341,11 @@ begin
         /txt [ [barcode 2 barlen 2 sub getinterval 0 0 text1font text1size] ]
         /text1xalign (center)
     } if
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

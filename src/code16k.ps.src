@@ -41,11 +41,12 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-32 dict
+33 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 /code16k.swa  -1 def  /code16k.swb  -2 def  /code16k.swc  -3 def
@@ -217,6 +218,14 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -229,6 +238,12 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /code16k ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     //code16k.latevars /init get exec
 
@@ -872,6 +887,11 @@ begin
     /pixy symhgt
     /height symhgt 72 div
     /width 81 72 div
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

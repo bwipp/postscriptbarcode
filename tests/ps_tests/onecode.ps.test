@@ -36,3 +36,13 @@
 
 { (0123456709498765432A) (dontdraw) onecode } /bwipp.onecodeBadCharacter isError
 { (012345670949876543210123456789) (dontdraw) onecode } /bwipp.onecodeInvalidLength isError
+
+
+%
+% Smoke test: physspec renders without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 onecode true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(0123456709498765432101234567891)  (physspec)  ok_tmpl

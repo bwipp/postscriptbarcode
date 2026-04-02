@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -231,12 +232,28 @@ begin
     /parse false def
     /parsefnc false def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
     barcode length 500 gt {
         /bwipp.posicodeinputTooLong (The input data is too long) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /posicode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
@@ -506,6 +523,8 @@ begin
     length j add /j exch def
     /sbs sbs 0 j getinterval def
 
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -515,6 +534,11 @@ begin
     /text1xalign (center)
     /borderleft  << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
     /borderright << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

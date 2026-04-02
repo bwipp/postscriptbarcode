@@ -174,6 +174,11 @@ begin
     /guardheight 7.0 def
     /gridfit false def
     /griddpi 0 def
+    /physspec false def
+    /xdim -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 2 def
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
@@ -475,9 +480,26 @@ begin
     width pixx div 72 mul height pixy div 72 mul scale
 
     %
+    % Scale to physical specification dimensions
+    %
+    physspec {
+        xdim 72 mul 25.4 div modunit div dup scale
+        % Adjust inkspread to fixed physical amount
+        modunit 25.4 mul xdim 72 mul div  % scale factor on stack
+        dup inkspread mul /inkspread exch def
+        dup inkspreadh mul /inkspreadh exch def
+        inkspreadv mul /inkspreadv exch def
+    } if
+
+    %
     % Grid fit: snap module boundaries to device pixel grid
     %
-    gridfit { 1 true /gridfit //render exec } if
+    gridfit {
+        1 physspec { xdim xmin xmax } { 0 -1 -1 } ifelse
+        false true /gridfit //render exec
+        not { grestore //raiseerror exec } if
+    } if
+
 
     %
     % Display the border and background

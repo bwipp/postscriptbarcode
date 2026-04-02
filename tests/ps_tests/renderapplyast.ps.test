@@ -1,0 +1,182 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+/raiseerror dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Encoder in AST table, ast=default: fills sentinel values
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom 1 array astore
+    end
+} [0.330] isEqual
+
+%
+% Encoder in AST table, ast=gs1.sst2: fills from SST 2
+%
+{
+    5 dict begin
+    /ast (gs1.sst2) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom xmin 2 array astore
+    end
+} [0.660 0.495] isEqual
+
+%
+% User override wins over AST
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom 0.500 def /xmax -1.0 def /hnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom 1 array astore
+    end
+} [0.500] isEqual
+
+%
+% Encoder not in AST table, ast=default: silently passes
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def
+    /nosuchencoder ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom 1 array astore
+    end
+} [-1.0] isEqual
+
+%
+% Encoder not in AST table, ast=something: error
+%
+{
+    3 dict begin
+    /ast (gs1.sst1) def /xmin -1.0 def /xnom -1.0 def
+    /nosuchencoder ast /apply_ast render
+    not { end //raiseerror exec } if
+    end
+} /bwipp.renderUnknownAST isError
+
+%
+% Encoder in AST table, unknown ast: error
+%
+{
+    3 dict begin
+    /ast (nonexistent) def /xmin -1.0 def /xnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    end
+} /bwipp.renderUnknownAST isError
+
+%
+% Multiple values filled, user partial override preserved
+%
+{
+    5 dict begin
+    /ast (default) def /xmin 0.200 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xmin xnom xmax 3 array astore
+    end
+} [0.200 0.330 0.660] isEqual
+
+%
+% Caller's dict missing a key that AST has: key is skipped, no error
+%
+{
+    3 dict begin
+    /ast (default) def /xnom -1.0 def /xmax -1.0 def
+    % No /xmin or /hnom defined - AST has them but they should be skipped
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom 1 array astore
+    end
+} [0.330] isEqual
+
+%
+% AST with xnom+hnom defined: both filled (ean13 default has both)
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom hnom 2 array astore
+    end
+} [0.330 22.85] isEqual
+
+%
+% AST without xnom or hnom: sentinels stay -1 (databaromni default has only xmin/xmax)
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /databaromni ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom hnom xmin xmax 4 array astore
+    end
+} [-1.0 -1.0 0.170 0.660] isEqual
+
+%
+% SST with xnom+hnom for encoder whose default lacks them
+%
+{
+    5 dict begin
+    /ast (gs1.sst1) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /databaromni ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom hnom 2 array astore
+    end
+} [0.330 15.19] isEqual
+
+%
+% AST without xnom: physspec with no xdim errors via resolve_physspec
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def
+    /ast (default) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    /databaromni ast /apply_ast render
+    not { end //raiseerror exec } if
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderNeedXnom isError
+
+%
+% AST with xnom: physspec without xdim succeeds
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def
+    /ast (default) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    /ean13 ast /apply_ast render
+    not { end //raiseerror exec } if
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [0.330] isEqual
+
+%
+% SST provides xnom where default doesn't: physspec succeeds
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def
+    /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    /databaromni ast /apply_ast render
+    not { end //raiseerror exec } if
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [0.330] isEqual

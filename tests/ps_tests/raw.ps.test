@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /raw dup /uk.co.terryburton.bwipp findresource cvx def
@@ -19,3 +19,14 @@
 { 2501 string (dontdraw) raw } /bwipp.rawinputTooLong isError
 
 { (120345) (dontdraw) raw } /bwipp.rawBadCharacter isError
+
+
+%
+% Smoke test: propspec and physspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 raw true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(331132131313411122131311333213114131131221323)  (propspec)   ok_tmpl
+(331132131313411122131311333213114131131221323)  (physspec xdim=0.330)   ok_tmpl

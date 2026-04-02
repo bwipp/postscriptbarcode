@@ -72,6 +72,11 @@ begin
 
     /gridfit false def
     /griddpi 0 def
+    /physspec false def
+    /xdim -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 2 def
 
     {def} forall
     opt currentdict /opt undef /apply //processoptions exec /options exch def
@@ -99,9 +104,22 @@ begin
     2.4945 dup scale  % from 1pt to 0.88mm
 
     %
+    % Scale to physical specification dimensions
+    %
+    physspec {
+        xdim 72 mul 25.4 div 2.4945 div dup scale  % Relative to existing 2.4945 scale
+        /inkspread inkspread 2.4945 mul 25.4 mul xdim 72 mul div def  % Fixed physical amount
+    } if
+
+    %
     % Grid fit: uniform even-pixel snap preserves hex aspect ratio
     %
-    gridfit { 2 false /gridfit //render exec } if
+    gridfit {
+        2 physspec { xdim xmin xmax } { 0 -1 -1 } ifelse
+        false false /gridfit //render exec
+        not { grestore //raiseerror exec } if
+    } if
+
 
     %
     % Display the border and background

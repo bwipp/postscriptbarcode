@@ -20,3 +20,13 @@
 { (12345678) (dontdraw) channelcode } /bwipp.channelcodeBadLength isError
 { (12A4) (dontdraw) channelcode } /bwipp.channelcodeBadCharacter isError
 { (7742863) (dontdraw) channelcode } /bwipp.channelcodeTooBig isError
+
+
+%
+% Smoke test: physspec renders without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 channelcode true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(3493)  (includetext physspec xdim=0.330)  ok_tmpl

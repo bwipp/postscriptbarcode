@@ -40,18 +40,29 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 /raw {
 
-    4 dict begin
+    16 dict begin
     {
 
     /dontdraw false def
     /height 1.0 def
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -74,11 +85,24 @@ begin
         } if
     } forall
 
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /raw ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
     /sbs [barcode {48 sub} forall]
     /bhs [barcode length 1 add 2 idiv {height} repeat]
     /bbs [barcode length 1 add 2 idiv {0} repeat]
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

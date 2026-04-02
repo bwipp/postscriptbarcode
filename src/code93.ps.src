@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-16 dict
+17 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -111,6 +112,16 @@ begin
     /parse false def
     /parsefnc false def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -147,6 +158,12 @@ begin
             /bwipp.code93BadCharacter (Code 93 must only contain digits, capital letters, spaces, the symbols -.$/+ and shift non-data characters) //raiseerror exec
         } if
     } forall
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /code93 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     includecheck {
         /sbs msglen 6 mul 25 add string def
@@ -186,15 +203,24 @@ begin
         sbs msglen 6 mul 6 add //code93.encs 48 get putinterval
     } ifelse
 
+    /sbs [sbs {48 sub} forall] def
+
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
-    /sbs [sbs {48 sub} forall]
+    /sbs sbs
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
         /txt [ [text 0 0 text1font text1size] ]
         /text1xalign (center)
     } if
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

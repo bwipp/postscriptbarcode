@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /planet dup /uk.co.terryburton.bwipp findresource cvx def
@@ -20,3 +20,14 @@
 { (123456789012) (dontdraw) planet } /bwipp.planetBadLength isError
 { (0123456789A) (dontdraw) planet } /bwipp.planetBadCharacter isError
 { (012345678901) (validatecheck dontdraw) planet } /bwipp.planetBadCheckDigit isError
+
+
+%
+% Smoke test: propspec and physspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 planet true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(01234567890)  (includetext propspec)   ok_tmpl
+(01234567890)  (includetext physspec xdim=0.330)   ok_tmpl

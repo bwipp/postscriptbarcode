@@ -40,9 +40,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -69,6 +70,16 @@ begin
     /text1yoffset null def  % sentinel realtype
     /height 0.7 def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -92,6 +103,12 @@ begin
             /bwipp.ean2badCharacter (EAN-2 add-on must contain only digits) //raiseerror exec
         } if
     } forall
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ean2 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     /mirrormap //ean2.mirrormaps barcode 0 2 getinterval cvi 4 mod get def
 
@@ -132,6 +149,8 @@ begin
         txt i [barcode i 1 getinterval i 1 sub 9 mul 10 add text1xoffset add text1yoffset text1font text1size] put
     } for
 
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
@@ -140,6 +159,11 @@ begin
     includetext {
         /txt txt
     } if
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     /guardrightpos 5.0
     /guardrightypos text1yoffset

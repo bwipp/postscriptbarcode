@@ -1,0 +1,208 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+/raiseerror dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% resolve_physspec: physspec=false is a no-op
+%
+{
+    8 dict begin
+    /physspec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [-1.0] isEqual
+
+%
+% resolve_physspec: resolves xdim from xnom * mag
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [0.330] isEqual
+
+%
+% resolve_physspec: resolves xdim with mag=2.0
+%
+{
+    8 dict begin
+    /physspec true def /mag 2.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [0.660] isEqual
+
+%
+% resolve_physspec: user xdim overrides xnom*mag
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim 0.500 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    xdim 1 array astore
+    end
+} [0.500] isEqual
+
+%
+% resolve_physspec: resolves hdim from hnom * mag
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.5 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    hdim 1 array astore
+    end
+} [34.275] isEqual
+
+%
+% resolve_physspec: hdim stays -1 when hnom is -1
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom -1.0 def /xmin 0.264 def /xmax 0.660 def
+    /resolve_physspec render
+    hdim 1 array astore
+    end
+} [-1.0] isEqual
+
+%
+% resolve_physspec: mag exclusive with xdim
+%
+{
+    8 dict begin
+    /physspec true def /mag 2.0 def /xdim 0.500 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderMagExclusive isError
+
+%
+% resolve_physspec: mag exclusive with hdim
+%
+{
+    8 dict begin
+    /physspec true def /mag 2.0 def /xdim -1.0 def /hdim 30.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderMagExclusive isError
+
+%
+% resolve_physspec: missing xnom without xdim
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom -1.0 def /hnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderNeedXnom isError
+
+%
+% resolve_physspec: xdim below xmin
+%
+{
+    8 dict begin
+    /physspec true def /mag 0.5 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderXdimTooSmall isError
+
+%
+% resolve_physspec: xdim above xmax
+%
+{
+    8 dict begin
+    /physspec true def /mag 3.0 def /xdim -1.0 def /hdim -1.0 def
+    /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderXdimTooLarge isError
+
+%
+% resolve_height: propspec adjusts height
+%
+{
+    6 dict begin
+    /propspec true def /physspec false def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    /resolve_height render
+    height 1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: physspec also adjusts height
+%
+{
+    6 dict begin
+    /propspec false def /physspec true def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    /resolve_height render
+    height 1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: no-op when hnom is -1
+%
+{
+    6 dict begin
+    /propspec true def /physspec false def
+    /hnom -1.0 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    /resolve_height render
+    height 1 array astore
+    end
+} [1.0] isEqual
+
+%
+% resolve_height: no-op when neither propspec nor physspec
+%
+{
+    6 dict begin
+    /propspec false def /physspec false def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    /resolve_height render
+    height 1 array astore
+    end
+} [1.0] isEqual
+
+%
+% resolve_height: missing xnom with hnom
+%
+{
+    6 dict begin
+    /propspec true def /physspec false def
+    /hnom 22.85 def /xnom -1.0 def /modunit 1 def /height 1.0 def
+    { /resolve_height render } stopped { end stop } if
+    end
+} /bwipp.renderHnomNeedXnom isError
+
+%
+% resolve_height: modunit=2 scales height
+%
+{
+    6 dict begin
+    /propspec true def /physspec false def
+    /hnom 22.85 def /xnom 0.330 def /modunit 2 def /height 1.0 def
+    /resolve_height render
+    height 1 array astore
+    end
+} [1.9234] isEqual

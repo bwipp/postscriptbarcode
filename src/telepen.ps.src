@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -97,6 +98,16 @@ begin
     /height 1.0 def
     /parse false def
 
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /apply //processoptions exec /options exch def
     /barcode exch def
 
@@ -124,6 +135,12 @@ begin
     numeric barlen 2 mod 0 ne and {
         /bwipp.telepenNumericOddLength (Telepen Numeric must have an even length) //raiseerror exec
     } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /telepen ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     /sbs barlen 16 mul 48 add string def
 
@@ -202,15 +219,24 @@ begin
         text i c 32 ge c 126 le and { c } { 32 } ifelse put
     } for
 
+    /sbs [sbs {48 sub} forall] def
+
+    /resolve_height //render exec
+
     <<
     /ren /renlinear
-    /sbs [sbs {48 sub} forall]
+    /sbs sbs
     /bhs [sbs length 1 add 2 idiv {height} repeat]
     /bbs [sbs length 1 add 2 idiv {0} repeat]
     includetext {
         /txt [ [text 0 0 text1font text1size] ]
         /text1xalign (center)
     } if
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     /opt options
     >>
 

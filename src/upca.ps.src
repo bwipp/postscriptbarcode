@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-8 dict
+9 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean2 dup /uk.co.terryburton.bwipp findresource put
 dup /ean5 dup /uk.co.terryburton.bwipp findresource put
@@ -69,6 +70,17 @@ begin
     /text1xoffset -5.75 def
     /text1yoffset -0.25 def
     /height 1.0 def
+
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
     /addongap 12.0 def
     /addontextfont (unset) def
     /addontextsize null def     % sentinel realtype
@@ -160,6 +172,12 @@ begin
     } if
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /upca ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Add checksum digit to barcode
     %
     /pad 12 string def   % Create pad one bigger than barcode
@@ -238,9 +256,13 @@ begin
     sbs 56 //upca.encs 12 get putinterval
 
     /sbs [sbs {48 sub} forall] def
+
+    /resolve_height //render exec
+
     includetext {
-        /bhs [4{height}repeat 10{height .075 sub}repeat height height 10{height .075 sub}repeat 4{height}repeat] def
-        /bbs [0 0 0 0 10{.075}repeat 0 0 10{.075}repeat 0 0 0 0] def
+        /descent propspec physspec or { 5 modunit mul 72 div } { .075 } ifelse def
+        /bhs [4{height}repeat 10{height descent sub}repeat height height 10{height descent sub}repeat 4{height}repeat] def
+        /bbs [0 0 0 0 10{descent}repeat 0 0 10{descent}repeat 0 0 0 0] def
     } {
         /bhs [30{height}repeat] def
         /bbs [30{0}repeat] def
@@ -285,6 +307,11 @@ begin
     /borderright addon () eq {9.0} {5.0} ifelse
     /bordertop 0.0
     /borderbottom 5.0
+    /physspec physspec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
     >>
 
     _render //renlinear if
