@@ -60,6 +60,9 @@ begin
     /parse false def
     /dontlint false def
     /lintreqs true def
+    /guardwhitespace false def
+    /guardwidth 5.0 def
+    /guardheight 7.0 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -199,6 +202,11 @@ begin
         /bordertop 1 def
         /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
 
+        /guardleftpos linsym /guardleftpos 2 copy known { get linpad length 1 add sub } { pop pop 0 } ifelse def
+        /guardleftypos linsym /guardleftypos 2 copy known { get } { pop pop 0 } ifelse def
+        /guardrightpos linsym /guardrightpos 2 copy known { get linpad length 1 add linwidth add pixx sub add } { pop pop 0 } ifelse def
+        /guardrightypos linsym /guardrightypos 2 copy known { get } { pop pop 0 } ifelse def
+
         <<
         /ren /renmatrix
         /pixs pixs
@@ -210,6 +218,13 @@ begin
         /borderright borderright
         /bordertop bordertop
         /borderbottom borderbottom
+        /guardwhitespace guardwhitespace
+        /guardleftpos guardleftpos
+        /guardleftypos guardleftypos
+        /guardrightpos guardrightpos
+        /guardrightypos guardrightypos
+        /guardwidth guardwidth
+        /guardheight guardheight
         /txt txt
         /opt options
         >>
