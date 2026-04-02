@@ -106,7 +106,7 @@ begin
     linear options //databarlimited exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
-    usematrix not { //renlinear exec } { pop } ifelse
+    usematrix not { //renlinear exec } { /linsym exch def } ifelse
 
     %
     % Plot the separator
@@ -170,6 +170,12 @@ begin
             /pixx ccpixx 6 add def  % 88
         } ifelse
 
+        /txt [
+            linsym /txt 2 copy known { get {
+                aload pop 4 -1 roll pixx linpixs length sub 1 add add 4 1 roll 5 array astore
+            } forall } { pop pop } ifelse
+        ] def
+
         /pixy pixs length pixx idiv def
         <<
         /ren /renmatrix
@@ -178,6 +184,7 @@ begin
         /pixy pixy
         /height pixy 72 div
         /width pixx 72 div
+        /txt txt
         /opt options
         >>
 

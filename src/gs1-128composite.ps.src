@@ -123,7 +123,7 @@ begin
     linear << options {} forall >> //gs1-128 exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
-    usematrix not { //renlinear exec } { pop } ifelse
+    usematrix not { //renlinear exec } { /linsym exch def } ifelse
 
     %
     % Plot the separator
@@ -184,6 +184,12 @@ begin
             /linrpad [ diff neg {0} repeat ] def
         } ifelse
 
+        /txt [
+            linsym /txt 2 copy known { get {
+                aload pop 4 -1 roll linlpad length add 4 1 roll 5 array astore
+            } forall } { pop pop } ifelse
+        ] def
+
         /linheight linheight cvi def
         /pixs [
             0 ccpixx ccpixs length 1 sub {
@@ -203,6 +209,7 @@ begin
         /pixy pixy
         /height pixy 72 div
         /width pixx 72 div
+        /txt txt
         /opt options
         >>
 
