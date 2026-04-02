@@ -36,7 +36,7 @@
 % --DESC: GS1 DataBar Expanded Stacked Composite
 % --EXAM: (01)09521234543213(10)ABCDEF|(21)12345678
 % --EXOP: segments=4
-% --RNDR: renmatrix renlinear
+% --RNDR: renmatrix
 % --FMLY: GS1 Composite Symbols
 currentglobal
 true setglobal
@@ -58,7 +58,6 @@ begin
     {
 
     /dontdraw false def
-    /usematrix false def
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -70,8 +69,6 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
-
-    _render not { /usematrix true def } if
 
     %
     % Split the linear and composite parts
@@ -104,7 +101,8 @@ begin
     linear options //databarexpandedstacked exec
     dup (pixs) get 0 2 index (pixx) get getinterval /bot exch def
     dup (pixy) get /linheight exch def
-    usematrix not { //renmatrix exec } { /pixs get /linpixs exch def } ifelse
+    /linsym exch def
+    /linpixs linsym /pixs get def
 
     %
     % Plot the separator
@@ -133,55 +131,59 @@ begin
         70 98 bot length 13 sub {} for
     ] {sepfinder} forall
 
-    usematrix not {
+    comp options //gs1-cc exec /compsym exch def
+    /ccpixs compsym /pixs get def
+    /ccpixx compsym /pixx get def
 
-        currentpoint
+    /pixx sep length def
+    /cclpad [ pixx ccpixx sub 1 add 2 idiv {0} repeat ] def  % Add 1 to allow for odd difference
+    /ccrpad [ pixx ccpixx sub 2 idiv {0} repeat ] def
+    /pixs [
+        0 ccpixx ccpixs length 1 sub {  % Centre align composite
+            /i exch def
+            cclpad aload pop ccpixs i ccpixx getinterval aload pop ccrpad aload pop
+        } for
+        sep aload pop linpixs aload pop
+    ] def
 
-        %
-        % Plot the 2D part
-        %
-        bot 0 get 0 eq {2} {0} ifelse linheight 1 add rmoveto
-        comp options //gs1-cc exec //renmatrix exec
+    /txt [
+        linsym /txt 2 copy known { get {
+            aload pop 5 array astore  % No x offset needed; linear at column 0
+        } forall } { pop pop } ifelse
+    ] def
 
-        linheight add moveto <<
-            /ren /renmatrix
-            /pixs sep
-            /pixx sep length
-            /pixy 1
-            /height 1 72 div
-            /width sep length 72 div
-            /opt options
-        >> //renmatrix exec
+    /pixy pixs length pixx idiv def
 
-    } {
-        comp options //gs1-cc exec /compsym exch def
-        /ccpixs compsym /pixs get def
-        /ccpixx compsym /pixx get def
+    % Quiet zone borders: T=2D, L/R=max(1D,2D), B=1D
+    /borderleft
+        linsym /borderleft 2 copy known { get } { pop pop 0 } ifelse  % linear left inset 0
+        1 cclpad length sub  % CC QZ; left inset cclpad
+        2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+    def
+    /borderright
+        linsym /borderright 2 copy known { get } { pop pop 0 } ifelse  % linear right inset 0
+        1 ccrpad length sub  % CC QZ; right inset ccrpad
+        2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+    def
+    /bordertop 1 def
+    /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
 
-        /pixx sep length def
-        /cclpad [ pixx ccpixx sub 1 add 2 idiv {0} repeat ] def  % Add 1 to allow for odd difference
-        /ccrpad [ pixx ccpixx sub 2 idiv {0} repeat ] def
-        /pixs [
-            0 ccpixx ccpixs length 1 sub {  % Centre align composite
-                /i exch def
-                cclpad aload pop ccpixs i ccpixx getinterval aload pop ccrpad aload pop
-            } for
-            sep aload pop linpixs aload pop
-        ] def
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx pixx
+    /pixy pixy
+    /height pixy 72 div
+    /width pixx 72 div
+    /borderleft borderleft
+    /borderright borderright
+    /bordertop bordertop
+    /borderbottom borderbottom
+    /txt txt
+    /opt options
+    >>
 
-        /pixy pixs length pixx idiv def
-        <<
-        /ren /renmatrix
-        /pixs pixs
-        /pixx pixx
-        /pixy pixy
-        /height pixy 72 div
-        /width pixx 72 div
-        /opt options
-        >>
-
-        _render //renmatrix if
-    } ifelse
+    _render //renmatrix if
 
     } stopped {end stop} if
     end

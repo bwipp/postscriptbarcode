@@ -36,7 +36,7 @@
 % --DESC: GS1 DataBar Limited Composite
 % --EXAM: (01)09521234543213|(21)abcdefghijklmnopqrst
 % --EXOP:
-% --RNDR: renlinear renmatrix
+% --RNDR: renmatrix
 % --FMLY: GS1 Composite Symbols
 currentglobal
 true setglobal
@@ -47,7 +47,6 @@ dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /databarlimited dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
-dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
@@ -60,7 +59,6 @@ begin
     {
 
     /dontdraw false def
-    /usematrix false def
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -72,8 +70,6 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
-
-    _render not { /usematrix true def } if
 
     %
     % Split the linear and composite parts
@@ -106,7 +102,7 @@ begin
     linear options //databarlimited exec
     dup (sbs) get /linsbs exch def
     dup (bhs) get 0 get 72 mul /linheight exch def
-    usematrix not { //renlinear exec } { /linsym exch def } ifelse
+    /linsym exch def
 
     %
     % Plot the separator
@@ -117,98 +113,75 @@ begin
     sep 0 //databarlimitedcomposite.sepleft putinterval
     sep sep length 9 sub //databarlimitedcomposite.sepright putinterval  % 4 + 5 right guard spaces
 
-    usematrix not {
+    comp options //gs1-cc exec /compsym exch def
+    /ccpixs compsym /pixs get def
+    /ccpixx compsym /pixx get def
 
-        currentpoint
+    /linpixs [ 0  % Begin with left guard space
+        linsbs 0 linsbs length 1 add 2 idiv 2 mul 1 sub getinterval  % Discard trailing space (even-length sbs)
+        { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall
+    ] def
+    /sep [ 0 sep 0 linpixs length 1 sub getinterval aload pop ] def  % Offset by 1; trim to match
 
-        %
-        % Plot the 2D part
-        %
-        comp options //gs1-cc exec
-        dup (pixx) get 72 exch sub linheight 1 add rmoveto
-        //renmatrix exec
-
-        linheight add moveto <<
-            /ren /renmatrix
-            /pixs sep
-            /pixx sep length
-            /pixy 1
-            /height 1 72 div
-            /width sep length 72 div
-            /opt options
-        >> //renmatrix exec
-
-    } {
-        comp options //gs1-cc exec /compsym exch def
-        /ccpixs compsym /pixs get def
-        /ccpixx compsym /pixx get def
-
-        /linpixs [ 0  % Begin with left guard space
-            linsbs 0 linsbs length 1 add 2 idiv 2 mul 1 sub getinterval  % Match renlinear: discard trailing space
-            { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall
+    /linheight linheight cvi def
+    % ccpixx is 72 for CC-A and 82 for CC-B; linpixs length is 74
+    ccpixx 72 eq {  % 3-col CC-A
+        /pixs [
+            0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space & right pad with 1 space
+                /i exch def
+                0 ccpixs i ccpixx getinterval aload pop 0
+            } for
+            sep aload pop linheight { linpixs aload pop } repeat
         ] def
-        /sep [ 0 sep 0 linpixs length 1 sub getinterval aload pop ] def  % Offset by 1; trim to match
-
-        /linheight linheight cvi def
-        % ccpixx is 72 for CC-A and 82 for CC-B; linpixs length is 74
-        ccpixx 72 eq {  % 3-col CC-A
-            /pixs [
-                0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space & right pad with 1 space
-                    /i exch def
-                    0 ccpixs i ccpixx getinterval aload pop 0
-                } for
-                sep aload pop linheight { linpixs aload pop } repeat
-            ] def
-            /pixx linpixs length def  % 74
-        } {  % 3-col CC-B
-            /pixs [
-                0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
-                    /i exch def
-                    ccpixs i ccpixx getinterval aload pop 0
-                } for
-                0 0 0 0 0 0 0 0 0 sep aload pop linheight { 0 0 0 0 0 0 0 0 0 linpixs aload pop } repeat  % Left pad with 9 spaces
-            ] def
-            /pixx ccpixx 1 add def  % 83
-        } ifelse
-
-        /txt [
-            linsym /txt 2 copy known { get {
-                aload pop 4 -1 roll pixx linpixs length sub 1 add add 4 1 roll 5 array astore
-            } forall } { pop pop } ifelse
+        /pixx linpixs length def  % 74
+    } {  % 3-col CC-B
+        /pixs [
+            0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
+                /i exch def
+                ccpixs i ccpixx getinterval aload pop 0
+            } for
+            0 0 0 0 0 0 0 0 0 sep aload pop linheight { 0 0 0 0 0 0 0 0 0 linpixs aload pop } repeat  % Left pad with 9 spaces
         ] def
-
-        /pixy pixs length pixx idiv def
-
-        /borderleft
-            linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
-            1 pixx ccpixx sub 1 sub sub  % CC QZ; left inset pixx-ccpixx-1
-            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
-        def
-        /borderright
-            linsym /borderright 2 copy known { get } { pop pop 10 } ifelse  % right inset 0
-            0  % CC QZ 1; right inset 1
-            2 copy lt { exch } if pop dup 0 lt { pop 0 } if
-        def
-        /bordertop 1 def
-        /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
-
-        <<
-        /ren /renmatrix
-        /pixs pixs
-        /pixx pixx
-        /pixy pixy
-        /height pixy 72 div
-        /width pixx 72 div
-        /borderleft borderleft
-        /borderright borderright
-        /bordertop bordertop
-        /borderbottom borderbottom
-        /txt txt
-        /opt options
-        >>
-
-        _render //renmatrix if
+        /pixx ccpixx 1 add def  % 83
     } ifelse
+
+    /txt [
+        linsym /txt 2 copy known { get {
+            aload pop 4 -1 roll pixx linpixs length sub 1 add add 4 1 roll 5 array astore
+        } forall } { pop pop } ifelse
+    ] def
+
+    /pixy pixs length pixx idiv def
+
+    /borderleft
+        linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
+        1 pixx ccpixx sub 1 sub sub  % CC QZ; left inset pixx-ccpixx-1
+        2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+    def
+    /borderright
+        linsym /borderright 2 copy known { get } { pop pop 10 } ifelse  % right inset 0
+        0  % CC QZ 1; right inset 1
+        2 copy lt { exch } if pop dup 0 lt { pop 0 } if
+    def
+    /bordertop 1 def
+    /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
+
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx pixx
+    /pixy pixy
+    /height pixy 72 div
+    /width pixx 72 div
+    /borderleft borderleft
+    /borderright borderright
+    /bordertop bordertop
+    /borderbottom borderbottom
+    /txt txt
+    /opt options
+    >>
+
+    _render //renmatrix if
 
     } stopped {end stop} if
     end
