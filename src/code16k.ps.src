@@ -836,10 +836,11 @@ begin
     } for
 
     %
-    % Populate the bitmap
+    % Populate the bitmap with one copy of each unique row
     %
     /symhgt sepheight r 1 add mul r rowheight mul add def
-    81 symhgt mul { array } stopped {
+    /numcomprows r 2 mul 1 add def
+    81 numcomprows mul { array } stopped {
         pop /bwipp.code16kSymbolTooLarge (The symbol size exceeds the implementation limits) //raiseerror exec
     } if /pixs exch def
 
@@ -847,44 +848,40 @@ begin
     /allone [ 81 {1} repeat ] def
     /seprow [ 10 {0} repeat 70 {1} repeat 0 ] def
 
-    /pos 0 def
+    /rowmult numcomprows array def
+    /pos 0 def  /ri 0 def
 
     % Top separator
-    sepheight {
-        pixs pos allone putinterval
-        /pos pos 81 add def
-    } repeat
+    pixs pos allone putinterval
+    /pos pos 81 add def
+    rowmult ri sepheight put  /ri ri 1 add def
 
     % Data rows with separators
     0 1 r 2 sub {
         /i exch def
-        rowheight {
-            pixs pos rowbits i get putinterval
-            /pos pos 81 add def
-        } repeat
-        sepheight {
-            pixs pos seprow putinterval
-            /pos pos 81 add def
-        } repeat
+        pixs pos rowbits i get putinterval
+        /pos pos 81 add def
+        rowmult ri rowheight put  /ri ri 1 add def
+        pixs pos seprow putinterval
+        /pos pos 81 add def
+        rowmult ri sepheight put  /ri ri 1 add def
     } for
 
     % Last data row
-    rowheight {
-        pixs pos rowbits r 1 sub get putinterval
-        /pos pos 81 add def
-    } repeat
+    pixs pos rowbits r 1 sub get putinterval
+    /pos pos 81 add def
+    rowmult ri rowheight put  /ri ri 1 add def
 
     % Bottom separator
-    sepheight {
-        pixs pos allone putinterval
-        /pos pos 81 add def
-    } repeat
+    pixs pos allone putinterval
+    rowmult ri sepheight put
 
     <<
     /ren /renmatrix
     /pixs pixs
     /pixx 81
     /pixy symhgt
+    /rowmult rowmult
     /height symhgt 72 div
     /width 81 72 div
     /physspec physspec

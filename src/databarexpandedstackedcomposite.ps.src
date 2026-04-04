@@ -118,6 +118,7 @@ begin
     dup (pixy) get /linheight exch def
     /linsym exch def
     /linpixs linsym /pixs get def
+    /linrowmult linsym /rowmult get def
 
     %
     % Plot the separator
@@ -153,6 +154,7 @@ begin
     /pixx sep length def
     /cclpad [ pixx ccpixx sub 1 add 2 idiv {0} repeat ] def  % Add 1 to allow for odd difference
     /ccrpad [ pixx ccpixx sub 2 idiv {0} repeat ] def
+    /ccrows ccpixs length ccpixx idiv def
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Centre align composite
             /i exch def
@@ -160,6 +162,7 @@ begin
         } for
         sep aload pop linpixs aload pop
     ] def
+    /rowmult [ ccrows { 1 } repeat 1 linrowmult aload pop ] def
 
     /txt [
         linsym /txt 2 copy known { get {
@@ -167,7 +170,7 @@ begin
         } forall } { pop pop } ifelse
     ] def
 
-    /pixy pixs length pixx idiv def
+    /pixy 0 rowmult {add} forall def
 
     % Quiet zone borders: T=2D, L/R=max(1D,2D), B=1D
     /borderleft
@@ -188,6 +191,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
+    /rowmult rowmult
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

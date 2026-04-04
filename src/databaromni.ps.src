@@ -443,11 +443,12 @@ begin
             sep 0  //databaromni.seppad putinterval
             sep 46 //databaromni.seppad putinterval
             /pixs [
-                5 {top aload pop} repeat
+                top aload pop
                 sep aload pop
-                7 {bot aload pop} repeat
+                bot aload pop
             ] def
-            /pixy pixs length 50 idiv def
+            /rowmult [5 1 7] def
+            /pixy 13 def
         } if
 
         %
@@ -492,13 +493,14 @@ begin
                 sep3 19 //databaromni.findersep putinterval
             } if
             /pixs [
-                barxmult {top aload pop} repeat
+                top aload pop
                 sep1 aload pop
                 sep2 aload pop
                 sep3 aload pop
-                barxmult {bot aload pop} repeat
+                bot aload pop
             ] def
-            /pixy pixs length 50 idiv def
+            /rowmult [barxmult 1 1 1 barxmult] def
+            /pixy barxmult 2 mul 3 add def
         } if
 
         <<
@@ -506,6 +508,7 @@ begin
         /pixs pixs
         /pixx 50
         /pixy pixy
+        /rowmult rowmult
         /height pixy 72 div
         /width 50 72 div
         /borderleft 0.0

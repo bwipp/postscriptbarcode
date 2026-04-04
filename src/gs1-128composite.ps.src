@@ -185,17 +185,19 @@ begin
     ] def
 
     /linheight linheight cvi def
+    /ccrows ccpixs length ccpixx idiv def
     /pixs [
         0 ccpixx ccpixs length 1 sub {
             /i exch def
             cclpad aload pop ccpixs i ccpixx getinterval aload pop ccrpad aload pop
         } for
         linlpad aload pop sep aload pop linrpad aload pop
-        linheight { linlpad aload pop linpixs aload pop linrpad aload pop } repeat
+        linlpad aload pop linpixs aload pop linrpad aload pop
     ] def
+    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
 
     /pixx cclpad length ccpixx add ccrpad length add def
-    /pixy pixs length pixx idiv def
+    /pixy ccrows 1 add linheight add def
 
     /ccqz linktype (a) eq { 1 } { 2 } ifelse def
     /borderleft
@@ -216,6 +218,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
+    /rowmult rowmult
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

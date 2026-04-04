@@ -1183,25 +1183,35 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
     } for
 
     %
-    % Populate the bitmap
+    % Populate the bitmap with one copy of each unique row
     %
+    /numcomprows r 2 mul 1 add def
     /pixs [
-        81 sepheight mul {1} repeat
+        81 {1} repeat
         0 1 r 2 sub {
             /i exch def
-            rowheight {rowbits i get aload pop} repeat
-            sepheight {10 {0} repeat 70 {1} repeat 0} repeat
+            rowbits i get aload pop
+            10 {0} repeat 70 {1} repeat 0
         } for
-        rowheight {rowbits r 1 sub get aload pop} repeat
-        81 sepheight mul {1} repeat
+        rowbits r 1 sub get aload pop
+        81 {1} repeat
+    ] def
+    /symhgt sepheight r 1 add mul r rowheight mul add def
+
+    /rowmult [
+        sepheight
+        0 1 r 2 sub { pop rowheight sepheight } for
+        rowheight
+        sepheight
     ] def
 
     <<
     /ren /renmatrix
     /pixs pixs
     /pixx 81
-    /pixy pixs length 81 idiv
-    /height pixs length 81 idiv 72 div
+    /pixy symhgt
+    /rowmult rowmult
+    /height symhgt 72 div
     /width 81 72 div
     /physspec physspec
     /xdim xdim

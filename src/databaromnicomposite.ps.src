@@ -161,14 +161,16 @@ begin
     /sep [ 0 sep aload pop ] def  % Offset by 1
 
     /linheight linheight cvi def
+    /ccrows ccpixs length ccpixx idiv def
     % ccpixx is 99 for both 4-col CC-A and 4-col CC-B; linpixs length is 96
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
             /i exch def
             ccpixs i ccpixx getinterval aload pop 0
         } for
-        0 0 0 0 sep aload pop linheight { 0 0 0 0 linpixs aload pop } repeat  % Left pad with 4 spaces
+        0 0 0 0 sep aload pop 0 0 0 0 linpixs aload pop  % Left pad with 4 spaces
     ] def
+    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
     /pixx ccpixx 1 add def  % 100
 
     /txt [
@@ -177,7 +179,7 @@ begin
         } forall } { pop pop } ifelse
     ] def
 
-    /pixy pixs length pixx idiv def
+    /pixy ccrows 1 add linheight add def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
@@ -197,6 +199,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
+    /rowmult rowmult
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

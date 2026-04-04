@@ -155,6 +155,7 @@ begin
     /sep [ 0 sep aload pop ] def  % Offset by 1
 
     /linheight linheight cvi def
+    /ccrows ccpixs length ccpixx idiv def
     /diff linpixs length ccpixx sub def  % Minimum linpixs length is 102, ccpixx is 99
     /ccrpad [ diff 2 sub {0} repeat ] def
     /pixs [
@@ -162,8 +163,9 @@ begin
             /i exch def
             0 0 ccpixs i ccpixx getinterval aload pop ccrpad aload pop
         } for
-        sep aload pop linheight { linpixs aload pop } repeat
+        sep aload pop linpixs aload pop
     ] def
+    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
 
     /pixx linpixs length def
 
@@ -173,7 +175,7 @@ begin
         } forall } { pop pop } ifelse
     ] def
 
-    /pixy pixs length pixx idiv def
+    /pixy ccrows 1 add linheight add def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
@@ -193,6 +195,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
+    /rowmult rowmult
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

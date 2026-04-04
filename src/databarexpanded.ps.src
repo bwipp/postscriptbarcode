@@ -957,7 +957,7 @@ begin
         sep pixx 4 sub //databarexpanded.seppad putinterval
 
         %
-        % Compose the symbol
+        % Compose the symbol with one copy of each unique row
         %
         /pixs [
             0 1 numrows 1 sub {
@@ -965,20 +965,30 @@ begin
                 r 0 ne {
                     seps r get aload pop
                 } if
-                barxmult {rows r get aload pop} repeat
+                rows r get aload pop
                 r numrows 1 sub ne {
                     seps r get aload pop
                     sep aload pop
                 } if
             } for
         ] def
+        /rowmult [
+            0 1 numrows 1 sub {
+                /r exch def
+                r 0 ne { 1 } if
+                barxmult
+                r numrows 1 sub ne { 1 1 } if
+            } for
+        ] def
+        /pixy 0 rowmult {add} forall def
 
         <<
         /ren /renmatrix
         /pixs pixs
         /pixx pixx
-        /pixy pixs length pixx idiv
-        /height pixs length pixx idiv 72 div
+        /pixy pixy
+        /rowmult rowmult
+        /height pixy 72 div
         /width pixx 72 div
         /borderleft 0.0
         /borderright 0.0
