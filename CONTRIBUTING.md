@@ -357,7 +357,13 @@ Example for an encoder:
     } if
 
     %
-    % 5. Main encoding logic using //encoder.staticdata and loaded data from latevars
+    % 5. Apply AST spec overrides and resolve physical specification
+    %
+    /encoder ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
+    % 6. Main encoding logic using //encoder.staticdata and loaded data from latevars
     %
     % The barcode generation process is typically some variation of these steps:
     %   - High-level encoding to codewords
@@ -371,17 +377,27 @@ Example for an encoder:
     %
 
     %
-    % 6. Build output dictionary
+    % 7. Resolve bar height from spec (linear only, before bhs/bbs construction)
+    %
+    /resolve_height //render exec
+
+    %
+    % 8. Build output dictionary
     %
     <<
         /ren /renlinear  % or /renmatrix, /renmaximatrix
         % /sbs [...]     % 1D: space-bar-space widths
         % /pixs [...]    % 2D: row-major pixel array
+        /physspec physspec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
         /opt options
     >>
 
     %
-    % 7. Conditional rendering
+    % 9. Conditional rendering
     %
     dontdraw not //renlinear if
 
@@ -554,6 +570,116 @@ Encoders create a common dictionary structure expected by their renderer:
 ```
 
 Callers can access the intermediate dictionary by setting the `dontdraw` options with `enabledontdraw` set in global context.
+
+
+### Default Normalised Units
+
+The renderers operate in harmonised normalised units chosen for integer
+pixel-locking at 72 DPI:
+
+- **Linear (`renlinear`):** 1pt per X-dimension module (narrow bar), 72pt
+  (1 inch) default bar height. At 72 DPI, 1 module = 1 device pixel.
+- **Matrix (`renmatrix`):** `modunit` points per module (1pt or 2pt depending
+  on symbology). Output dict `width`/`height` = `cols * modunit / 72` inches.
+- **MaxiCode (`renmaximatrix`):** Fixed 2.4945 scale from 1pt modules to
+  0.88mm hexagons. Hex geometry uses √3-based constants for correct aspect
+  ratio at any scale; pixel-locking of hex vertices is inherently imperfect
+  on a square grid.
+
+External scaling or the `width`/`height` options resize from these defaults.
+The `physspec` system (below) provides an alternative path that renders at
+specification-accurate physical dimensions.
+
+
+### Grid Fitting (`render.ps.src`)
+
+`render.gridfit` snaps module boundaries to whole device pixels, eliminating
+anti-aliasing artefacts in bitmap output.
+
+**Device resolution:** When `griddpi` is provided by the caller, it is used
+directly as the target resolution — no hardware probing occurs and gridfit
+can operate on devices that would otherwise be skipped (e.g., nullpage).
+When auto-detected (`griddpi=0`), `defaultmatrix` is queried; bogus values
+cause gridfit to silently skip via the `hwxres` guard.
+
+**Rounding modes:**
+- Default: round to nearest whole pixel per module
+- `width` forced (renlinear only): floor, to avoid exceeding requested width
+- `physspec` with spec bounds: smart rounding — try round first; if the
+  effective X-dimension falls outside `xmin`/`xmax`, try the alternate
+  direction; if neither fits, return `/errorname (info) false` to the caller
+
+**Signature:** `magnitude xdim xmin xmax usefloor snapy /gridfit //render exec`
+returns `true` on success, `/errorname (info) false` on spec violation. The
+caller (renderer) is responsible for cleanup (`grestore`) before raising the
+error via `raiseerror`.
+
+**EPS safety:** When `gridfit` is not enabled (and `griddpi` is not set), no
+device-dependent operators (`defaultmatrix`, `dtransform`) are executed.
+`physspec` without gridfit is fully EPS-safe.
+
+
+### Physical Specification System (`render.ps.src`, encoders)
+
+Shared helpers in the `render` resource enable encoders to generate output at
+physical specification dimensions.
+
+**Options:** `physspec` (bool), `propspec` (bool, linear only), `mag` (real,
+default 1.0), `xdim` (mm), `hdim` (mm), `ast` (string, default `(default)`),
+`xnom`/`hnom`/`xmin`/`xmax` (mm, sentinel -1.0), `modunit` (int).
+
+**Encoder integration pattern** (see `ean13.ps.src` for linear,
+`qrcode.ps.src` for matrix):
+
+1. Declare spec options with -1.0 sentinels after encoder-specific options
+2. After input validation, call AST and physspec resolution:
+   ```postscript
+   /ENCODER ast /apply_ast //render exec not { //raiseerror exec } if
+   /resolve_physspec //render exec
+   ```
+3. For linear encoders, call `/resolve_height //render exec` before bhs/bbs
+4. Pass `physspec`, `xdim`, `xmin`, `xmax`, `modunit` in the intermediate dict
+
+**Linear encoders** add `propspec`, `hdim`, `hnom` and call `resolve_height`.
+**Matrix encoders** omit these; `modunit` is typically 2 (1 for stacked-linear
+types such as pdf417, micropdf417, codablockf, code16k, code49).
+
+**Application Specification Tables (ASTs):** `render.ast` is a static readonly
+dict mapping encoder names to named spec profiles (GS1 SSTs 1-13, ISO
+defaults). Entries may share dicts via `index` to reduce allocation.
+`apply_ast` fills -1.0 sentinel values from the selected profile into the
+caller's dict using `currentdict`; user-provided values (non-sentinel) are
+preserved. GS1 wrappers must put their `ast` value into `options` so the
+inner encoder's `apply_ast` uses the wrapper's AST context rather than its
+own default.
+
+**Helpers in render (dispatch table):**
+
+- `apply_ast` — fills spec sentinels from AST; returns `true` or
+  `/errorname (info) false`
+- `resolve_physspec` — validates `mag`/`xdim` exclusivity, resolves `xdim`
+  from `xnom * mag`, resolves `hdim` from `hnom * mag` (if defined in
+  caller's dict), validates bounds via `validate_xdim`
+- `resolve_height` — sets linear `height` from `hnom/xnom * modunit / 72`
+  ratio; only runs when `propspec` or `physspec` is active and `hnom` is
+  defined
+- `validate_xdim` — low-level `xdim xmin xmax` bounds check; returns `true`
+  or `/errorname (info) false` with formatted error string
+
+**Renderer scaling:** Each renderer applies `xdim 72 mul 25.4 div modunit div
+dup scale` when `physspec` is true. `renmaximatrix` divides additionally by
+its existing 2.4945 scale factor.
+
+**Inkspread under physspec:** Renderers adjust inkspread to maintain a fixed
+physical amount (mm) rather than a proportional reduction. For `renlinear`,
+the adjustment is applied before bar width computation (since bars are
+pre-computed into the `bars` array). For `renmatrix` and `renmaximatrix`, it
+is applied after the physspec scale, before module rendering.
+
+**Wrappers:** Simple wrappers (isbn, code32, etc.) need no spec changes —
+options flow through via the `options` dict to the inner encoder. GS1 wrappers
+that tighten bounds must declare spec options and explicitly put them into
+`options` before calling the inner encoder (see `gs1qrcode.ps.src`).
 
 
 ## Performance
