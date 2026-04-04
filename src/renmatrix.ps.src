@@ -192,6 +192,20 @@ begin
 
     (input.processoptions) //renmatrix.after exec
 
+    % Default rowmult to all 1s if not provided
+    currentdict /rowmult known not {
+        /rowmult [ pixy { 1 } repeat ] def
+    } if
+
+    /pixycomp rowmult length def
+    /rowcumul pixycomp 1 add array def
+    rowcumul 0 0 put
+    0 1 pixycomp 1 sub {                       % i
+        dup rowcumul exch get                  % ... rowcumul[i]
+        1 index rowmult exch get add           % ... rowcumul[i] + rowmult[i]
+        exch 1 add exch rowcumul 3 1 roll put  % rowcumul[i+1] = rowcumul[i]+rowmult[i]
+    } for
+
     %
     % Input validation
     %
@@ -228,8 +242,12 @@ begin
         /bwipp.renmatrixBadDimensions (The symbol dimensions must be positive) //raiseerror exec
     } if
 
-    pixs length pixx pixy mul lt {
+    pixs length pixx pixycomp mul lt {
         /bwipp.renmatrixBadPixelData (The pixel data is shorter than the symbol dimensions require) //raiseerror exec
+    } if
+
+    rowcumul pixycomp get pixy ne {
+        /bwipp.renmatrixRowmultMismatch (rowmult sum does not equal pixy) //raiseerror exec
     } if
 
     (input.validate) //renmatrix.after exec
@@ -334,16 +352,16 @@ begin
 
         % Pad the bitmap on all sides
         /pixx pixx 2 add def
-        /pixy pixy 2 add def
+        /pixycomp pixycomp 2 add def
         /pixxpad pixx def
         /zerorow [ pixx {0} repeat ] def
-        pixx pixy mul { array } stopped {
+        pixx pixycomp mul { array } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /padded exch def
         0 pixx padded length 1 sub {
             padded exch zerorow putinterval
         } for
-        0 1 pixy 3 sub {
+        0 1 pixycomp 3 sub {
             /row exch def
             padded row 1 add pixx mul 1 add pixs row pixx 2 sub mul pixx 2 sub getinterval putinterval
         } for
@@ -363,11 +381,11 @@ begin
         % Pre-compute abcd values (printed neighbours) for all cells
         %
         /abcdw pixx 1 sub def
-        abcdw pixy 1 sub mul { array } stopped {
+        abcdw pixycomp 1 sub mul { array } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /abcdcache exch def
         /abcdrow abcdw array def
-        0 1 pixy 2 sub {
+        0 1 pixycomp 2 sub {
             /j exch def
             0 1 abcdw 1 sub {
                 dup j abcd  abcdrow 3 1 roll put
@@ -381,7 +399,7 @@ begin
         % Construct paths by tracing regions avoiding duplication by using the cache
         %
         /paths [
-            0 1 pixy 2 sub {
+            0 1 pixycomp 2 sub {
                 /j exch def
                 0 1 pixx 2 sub {
                     /i exch def
@@ -405,7 +423,7 @@ begin
         % Revert the bitmap size
         %
         /pixx pixx 2 sub def
-        /pixy pixy 2 sub def
+        /pixycomp pixycomp 2 sub def
 
         options /debugpaths known
         /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
@@ -422,11 +440,12 @@ begin
         paths {
             /p exch def
             /len p length def
-            p len 1 sub get unpack
-            p 0 get unpack
+            p len 1 sub get unpack rowcumul exch get
+            p 0 get unpack rowcumul exch get
             0 1 len 1 sub {                                % x1 y1 x2 y2
                 /i exch def
-                p i 1 add len mod get unpack 6 -2 roll     % x3 y3 x1 y1 x2 y2
+                p i 1 add len mod get unpack
+                rowcumul exch get 6 -2 roll                % x3 y3 x1 y1 x2 y2
                 5 index inkspreadh 2 div
                 4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+ih : x2-ih
                 4 1 roll
@@ -458,8 +477,11 @@ begin
             dup pixx mod /x exch def
             pixx idiv /y exch def
             x y xyget 1 eq {
-               x 0.5 add pixy y sub 0.5 sub moveto
-               x 0.5 add pixy y sub 0.5 sub 0.5 inkspread 2 div sub 0 360 arc
+                rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                    /vy exch def
+                    x 0.5 add pixy vy sub 0.5 sub moveto
+                    x 0.5 add pixy vy sub 0.5 sub 0.5 inkspread 2 div sub 0 360 arc
+                } for
             } if
         } for
         fill

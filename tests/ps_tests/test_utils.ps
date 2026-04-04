@@ -104,6 +104,22 @@
   } if
 } bind def
 
+% Expand compressed pixs using rowmult to full bitmap
+/expandpixs {  % dict -> expandedpixs
+    dup /rowmult known {
+        dup /pixs get /p exch def
+        dup /pixx get /w exch def
+        /rowmult get
+        mark exch {  % mult
+            { p 0 w getinterval aload pop } repeat
+            /p p w p length w sub getinterval def
+        } forall
+        counttomark array astore exch pop
+    } {
+        /pixs get
+    } ifelse
+} bind def
+
 /isEqual { //_isEqual //_doTest exec } def
 /isError { //_isError //_doTest exec } def
 /debugIsEqual { //_debugIsEqual //_doTest exec } def

@@ -586,6 +586,83 @@
 { 0 0 moveto << /ren /renmatrix /pixs [1 1] /pixx 0 /pixy 2 /opt <<>> >> renmatrix } /bwipp.renmatrixBadDimensions isError
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 3 /pixy 3 /opt <<>> >> renmatrix } /bwipp.renmatrixBadPixelData isError
 
+%
+% rowmult (vertical RLE)
+%
+
+% rowmult: debugpaths on compressed grid — 1x1 bitmap with rowmult=[3] maps to 1x3 visual
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1]
+        /pixx 1
+        /pixy 3
+        /rowmult [3]
+        /opt << /debugpaths true >>
+    >> renmatrix
+} [
+    8  0 0  1 0  1 1  0 1
+] debugIsEqual
+
+% rowmult: 2x2 compressed with non-uniform rowmult=[1 2] gives pixy=3
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1 1 1 1]
+        /pixx 2
+        /pixy 3
+        /rowmult [1 2]
+        /opt << /debugpaths true >>
+    >> renmatrix
+} [
+    8  0 0  2 0  2 2  0 2
+] debugIsEqual
+
+% rowmult: smoke test — renders without error
+{ 0 0 moveto << /ren /renmatrix /pixs [1 1 1 1] /pixx 2 /pixy 3 /height 3 72 div /width 2 72 div /rowmult [1 2] /opt <<>> >> renmatrix true } true isEqual
+
+% rowmult: checkerboard compressed with uniform rowmult
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1 0 0 1]
+        /pixx 2
+        /pixy 6
+        /rowmult [3 3]
+        /opt << /debugpaths true >>
+    >> renmatrix
+} [
+    8  0 0  1 0  1 1  0 1
+    8  1 1  2 1  2 2  1 2
+] debugIsEqual
+
+% rowmult: dotty mode renders without error
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 0 1] /pixx 2 /pixy 4 /height 4 72 div /width 2 72 div /rowmult [1 3] /opt << /dotty true >> >> renmatrix true } true isEqual
+
+% rowmult: identity rowmult [1 1 1] produces same debugpaths as no rowmult
+{
+    0 0 moveto
+    <<
+        /ren /renmatrix
+        /pixs [1 0 1 0 1 0]
+        /pixx 2
+        /pixy 3
+        /rowmult [1 1 1]
+        /opt << /debugpaths true >>
+    >> renmatrix
+} [
+    8  0 0  1 0  1 3  0 3
+] debugIsEqual
+
+% rowmult: error — sum does not equal pixy
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 2 /rowmult [3] /opt <<>> >> renmatrix } /bwipp.renmatrixRowmultMismatch isError
+
+% rowmult: error — pixs too short for compressed dimensions
+{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 2 /pixy 3 /rowmult [1 2] /opt <<>> >> renmatrix } /bwipp.renmatrixBadPixelData isError
+
 
 %
 % text3-9 options and validation
