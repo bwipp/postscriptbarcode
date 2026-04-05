@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 dup /gs1-cc dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
@@ -64,10 +65,10 @@ begin
     /physspec false def
     /mag 1.0 def
     /xdim -1.0 def
-    /hdim -1.0 def
-    /xnom 0.330 def    % GS1 General Specifications: nominal X in mm
-    /xmin 0.264 def    % 80% magnification
-    /xmax 0.660 def    % 200% magnification
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
     /modunit 1 def
 
     /apply //processoptions exec /options exch def
@@ -88,6 +89,12 @@ begin
     } {
         pop /bwipp.missingCompositeComponent (A Composite Component must be provided following a pipe character) //raiseerror exec
     } ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ean13composite ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
 
     options (lintype) (ean13) put
     options (inkspreadv) 0.0 put
