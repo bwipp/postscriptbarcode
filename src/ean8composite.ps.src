@@ -145,36 +145,59 @@ begin
         /pixx ccpixx def
     } ifelse
 
+    /ccrows ccpixs length ccpixx idiv def
+
+    % Pre-compute bbs and bbs+bhs in row units to avoid repeated calculation
+    /nbars sbs length 1 add 2 idiv def
+    /bbsrow nbars array def
+    /bhsrow nbars array def
+    0 1 nbars 1 sub {
+        /b exch def
+        bbsrow b bbs b get 72 mul cvi put
+        bhsrow b bbsrow b get bhs b get 72 mul add put
+    } for
+
+    % Rasterize linear rows, deduplicating identical adjacent rows using a string buffer
+    /rowbuf pixx string def
+    /prevrow () def  /linrowmult 72 array def  /lri 0 def
+    /linpixs [
+        71 -1 0 {
+            /y exch def
+            /p 0 def
+            linpad { rowbuf p 3 -1 roll put /p p 1 add def } forall
+            rowbuf p 0 put  /p p 1 add def
+            0 1 sbs length 1 sub {
+                /i exch def
+                i 2 mod 0 eq {
+                    bbsrow i 2 idiv get y gt bhsrow i 2 idiv get y lt or { 0 } { 1 } ifelse
+                } { 0 } ifelse
+                sbs i get cvi { rowbuf p 2 index put /p p 1 add def } repeat pop
+            } for
+            diff 0 lt { rowbuf p 0 put /p p 1 add def } if
+            rowbuf prevrow eq {
+                linrowmult lri 1 sub 2 copy get 1 add put  % Bump multiplier
+            } {
+                prevrow length 0 gt { prevrow {} forall } if  % Commit previous batch
+                /prevrow rowbuf pixx string copy def
+                linrowmult lri 1 put  /lri lri 1 add def
+            } ifelse
+        } for
+        prevrow {} forall  % Commit final batch
+    ] def
+    /linrowmult linrowmult 0 lri getinterval def
+
     /pixs [
         0 ccpixx ccpixs length 1 sub {
             /i exch def
             ccpixs i ccpixx getinterval aload pop ccrpad aload pop
         } for
-        2 { linpad aload pop 0 1  65 {0} repeat  1 0 ccrpad aload pop } repeat
-        2 { linpad aload pop 1 0  65 {0} repeat  0 1 ccrpad aload pop } repeat
-        2 { linpad aload pop 0 1  65 {0} repeat  1 0 ccrpad aload pop } repeat
-        71 -1 0 {
-            /y exch def
-            linpad aload pop
-            0
-            0 1 sbs length 1 sub {
-                /i exch def
-                i 2 mod 0 eq {
-                    % Don't print when bbs > y || (bbs + bhs) < y (i.e. add-on or includetext offsets)
-                    bbs i 2 idiv get 72 mul cvi dup y gt exch bhs i 2 idiv get 72 mul add y lt or {
-                        sbs i get cvi {0} repeat
-                    } {
-                        sbs i get cvi {1} repeat
-                    } ifelse
-                } {
-                    sbs i get cvi {0} repeat
-                } ifelse
-            } for
-            diff 0 lt {0} if  % Allow for middle separator overhang on RHS if no add-on
-        } for
+        linpad aload pop 0 1  65 {0} repeat  1 0 ccrpad aload pop
+        linpad aload pop 1 0  65 {0} repeat  0 1 ccrpad aload pop
+        linpad aload pop 0 1  65 {0} repeat  1 0 ccrpad aload pop
+        linpixs aload pop
     ] def
-
-    /pixy pixs length pixx idiv def
+    /rowmult [ ccrows { 1 } repeat 2 2 2 linrowmult aload pop ] def
+    /pixy 0 rowmult {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse linpad length 1 add sub
@@ -200,6 +223,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
+    /rowmult rowmult
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft
