@@ -148,11 +148,19 @@ begin
         bhsrow b bbsrow b get bhs b get 72 mul add put
     } for
 
+    % Main symbol bars extend to full height connecting to separator; add-on bars keep their height
+    /linheight 0 bhsrow { ceiling cvi 2 copy lt { exch } if pop } forall def
+    /mainbars nbars def
+    0 1 sbs length 1 sub {
+        dup sbs exch get type /realtype eq { 1 add 2 idiv /mainbars exch def exit } { pop } ifelse
+    } for
+    0 1 mainbars 1 sub { bhsrow exch linheight put } for
+
     % Rasterize linear rows, deduplicating identical adjacent rows using a string buffer
     /rowbuf pixx string def
     /prevrow () def  /linrowmult 72 array def  /lri 0 def
     /linpixs [
-        71 -1 0 {
+        linheight 1 sub -1 0 {
             /y exch def
             /p 0 def
             linpad { rowbuf p 3 -1 roll put /p p 1 add def } forall

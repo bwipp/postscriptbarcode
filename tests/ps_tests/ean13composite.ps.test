@@ -197,5 +197,11 @@
     0 0 0 1 0 1 0 1 1 1 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 1 1 0 0 1 0 0 1 1 0 1 0 0 0 0 1 0 1 0 0 0 1 1 0 1 0 1 0 1 0 0 1 1 1 0 1 0 1 0 0 0 0 1 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 1 0 1 0 0 1 1 1 0 0 1 0 1 0 1 0 0 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 0 1 0 0 1 0 0 1 1
 ] eq_tmpl
 
+% height option affects only linear bars, not the CC component
+{
+    (331234567890|(99)1234-abcd) (dontdraw ccversion=a height=0.5) ean13composite
+    dup /height get exch /pixy get 72 div sub abs 0.001 lt  % height = pixy/72 (natural, not user's 0.5)
+} true isEqual
+
 % Missing composite component (no pipe character)
 { (331234567890) (dontdraw) ean13composite } /bwipp.missingCompositeComponent isError
