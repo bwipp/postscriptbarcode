@@ -154,6 +154,7 @@ begin
 
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /linpixs [ 0  % Begin with left guard space
@@ -162,7 +163,7 @@ begin
     /sep [ 0 sep aload pop ] def  % Offset by 1
 
     /linheight linheight cvi def
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
     % ccpixx is 99 for both 4-col CC-A and 4-col CC-B; linpixs length is 96
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
@@ -171,7 +172,7 @@ begin
         } for
         0 0 0 0 sep aload pop 0 0 0 0 linpixs aload pop  % Left pad with 4 spaces
     ] def
-    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
+    /rowmult [ ccrowmult aload pop 1 linheight ] def
     /pixx ccpixx 1 add def  % 100
 
     /txt [
@@ -182,7 +183,7 @@ begin
     /text1xalign linsym /text1xalign 2 copy known { get } { pop pop (unset) } ifelse def
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
-    /pixy ccrows 1 add linheight add def
+    /pixy 0 rowmult {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub

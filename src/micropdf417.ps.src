@@ -1310,14 +1310,14 @@ begin
     %
     /rwid //micropdf417.rwids c 1 sub get def
     c 3 eq cca and {/rwid 72 def} if
-    rwid r mul rowmult mul { array } stopped {
-        pop /bwipp.micropdf417PixsTooLarge (The resulting symbol with the given rowmult exceeds the implementation maximum array size) //raiseerror exec
+    rwid r mul { array } stopped {
+        pop /bwipp.micropdf417PixsTooLarge (The resulting symbol exceeds the implementation maximum array size) //raiseerror exec
     } if /pixs exch def
 
     0 1 r 1 sub {
         /i exch def
         /clst i rapl add 1 sub 3 mod def
-        [
+        pixs i rwid mul [
             c 1 eq {
                 i rapl add 1 sub 52 mod 0 raptobits aload pop
                 cws i get clst cwtobits aload pop
@@ -1349,11 +1349,7 @@ begin
                 i rapr add 1 sub 52 mod 0 raptobits aload pop
             } if
             1
-        ]
-        0 1 rowmult 1 sub {
-            i rowmult mul add rwid mul pixs exch 2 index putinterval
-        } for
-        pop
+        ] putinterval
     } for
 
     (matrix.layout) //micropdf417.after exec
@@ -1363,6 +1359,7 @@ begin
     /pixs pixs
     /pixx rwid
     /pixy r rowmult mul
+    /rowmult [ r { rowmult } repeat ]
     /height r rowmult mul 72 div
     /width rwid 72 div
     /borderleft 1.0

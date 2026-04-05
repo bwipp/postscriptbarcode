@@ -152,10 +152,11 @@ begin
 
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /linwidth sep length def  % 50
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
     % ccpixx is 55 for both 2-col CC-A and 2-col CC-B
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space
@@ -168,7 +169,7 @@ begin
             linpixs i linwidth getinterval aload pop 0 0 0 0 0 0
         } for
     ] def
-    /rowmult [ ccrows { 1 } repeat 1 linrowmult aload pop ] def
+    /rowmult [ ccrowmult aload pop 1 linrowmult aload pop ] def
     /pixx ccpixx 1 add def  % 56
 
     /txt [

@@ -130,6 +130,7 @@ begin
 
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /linpixs [ 0  % Begin with left guard space
@@ -139,7 +140,7 @@ begin
     /sep [ 0 sep 0 linpixs length 1 sub getinterval aload pop ] def  % Offset by 1; trim to match
 
     /linheight linheight cvi def
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
     % ccpixx is 72 for CC-A and 82 for CC-B; linpixs length is 74
     ccpixx 72 eq {  % 3-col CC-A
         /pixs [
@@ -160,7 +161,7 @@ begin
         ] def
         /pixx ccpixx 1 add def  % 83
     } ifelse
-    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
+    /rowmult [ ccrowmult aload pop 1 linheight ] def
 
     /txt [
         linsym /txt 2 copy known { get {
@@ -170,7 +171,7 @@ begin
     /text1xalign linsym /text1xalign 2 copy known { get } { pop pop (unset) } ifelse def
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
-    /pixy ccrows 1 add linheight add def
+    /pixy 0 rowmult {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub

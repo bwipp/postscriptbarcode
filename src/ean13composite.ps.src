@@ -114,6 +114,7 @@ begin
 
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /linpad [ ccpixx 97 sub {0} repeat ] def
@@ -135,7 +136,7 @@ begin
         /pixx ccpixx def
     } ifelse
 
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
 
     % Pre-compute bbs and bbs+bhs in row units to avoid repeated calculation
     /nbars sbs length 1 add 2 idiv def
@@ -186,7 +187,7 @@ begin
         linpad aload pop 0 1  93 {0} repeat  1 0 ccrpad aload pop
         linpixs aload pop
     ] def
-    /rowmult [ ccrows { 1 } repeat 2 2 2 linrowmult aload pop ] def
+    /rowmult [ ccrowmult aload pop 2 2 2 linrowmult aload pop ] def
     /pixy 0 rowmult {add} forall def
 
     /borderleft

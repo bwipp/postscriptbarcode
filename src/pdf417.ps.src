@@ -1201,8 +1201,8 @@ begin
     } {
         /rwid 17 c mul 17 add 17 add 17 add 18 add def
     } ifelse
-    rwid r mul rowmult mul { array } stopped {
-        pop /bwipp.pdf417PixsTooLarge (The resulting symbol with the given rowmult exceeds the implementation maximum array size) //raiseerror exec
+    rwid r mul { array } stopped {
+        pop /bwipp.pdf417PixsTooLarge (The resulting symbol exceeds the implementation maximum array size) //raiseerror exec
     } if /pixs exch def
 
     0 1 r 1 sub {
@@ -1221,7 +1221,7 @@ begin
             /rcw i 3 idiv 30 mul eclevel 3 mul add r 1 sub 3 mod add def
         } if
 
-        [
+        pixs i rwid mul [
             1 1 1 1 1 1 1 1 0 1 0 1 0 1 0 0 0
             lcw i 3 mod cwtobits aload pop
             cws c i mul c getinterval { i 3 mod cwtobits aload pop } forall
@@ -1231,11 +1231,7 @@ begin
                 rcw i 3 mod cwtobits aload pop
                 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 0 0 1
             } ifelse
-        ]
-        0 1 rowmult 1 sub {
-            i rowmult mul add rwid mul pixs exch 2 index putinterval
-        } for
-        pop
+        ] putinterval
     } for
 
     (matrix.layout) //pdf417.after exec
@@ -1245,6 +1241,7 @@ begin
     /pixs pixs
     /pixx rwid
     /pixy r rowmult mul
+    /rowmult [ r { rowmult } repeat ]
     /height r rowmult mul 72 div
     /width rwid 72 div
     /borderleft 2.0

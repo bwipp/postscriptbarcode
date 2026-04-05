@@ -149,12 +149,13 @@ begin
 
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /pixx sep length def
     /cclpad [ pixx ccpixx sub 1 add 2 idiv {0} repeat ] def  % Add 1 to allow for odd difference
     /ccrpad [ pixx ccpixx sub 2 idiv {0} repeat ] def
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Centre align composite
             /i exch def
@@ -162,7 +163,7 @@ begin
         } for
         sep aload pop linpixs aload pop
     ] def
-    /rowmult [ ccrows { 1 } repeat 1 linrowmult aload pop ] def
+    /rowmult [ ccrowmult aload pop 1 linrowmult aload pop ] def
 
     /txt [
         linsym /txt 2 copy known { get {

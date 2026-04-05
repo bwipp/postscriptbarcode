@@ -155,6 +155,7 @@ begin
     } ifelse
 
     /ccpixs compsym /pixs get def
+    /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
     /linpixs [
@@ -187,7 +188,7 @@ begin
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
     /linheight linheight cvi def
-    /ccrows ccpixs length ccpixx idiv def
+    /ccrows ccrowmult length def
     /pixs [
         0 ccpixx ccpixs length 1 sub {
             /i exch def
@@ -196,10 +197,10 @@ begin
         linlpad aload pop sep aload pop linrpad aload pop
         linlpad aload pop linpixs aload pop linrpad aload pop
     ] def
-    /rowmult [ ccrows { 1 } repeat 1 linheight ] def
+    /rowmult [ ccrowmult aload pop 1 linheight ] def
 
     /pixx cclpad length ccpixx add ccrpad length add def
-    /pixy ccrows 1 add linheight add def
+    /pixy 0 rowmult {add} forall def
 
     /ccqz linktype (a) eq { 1 } { 2 } ifelse def
     /borderleft
