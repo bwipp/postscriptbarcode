@@ -539,13 +539,18 @@ begin
     colormap {
         dup (unset) ne { //setanycolor exec not { 3 -1 roll pop grestore //raiseerror exec } if } { pop } ifelse
         /key exch def
-        pixs length { array } stopped {
-            pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
-        } if /layer exch def
-        0 1 pixs length 1 sub {
-            dup pixs exch get key eq {layer exch 1 put} {layer exch 0 put} ifelse
-        } for
-        layer dotty {drawlayerdots} {drawlayer} ifelse
+        key 1 eq colormap length 1 eq and {
+            pixs  % Single colour with key=1: pixs is already the binary layer
+        } {
+            pixs length { array } stopped {
+                pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
+            } if /layer exch def
+            0 1 pixs length 1 sub {
+                dup pixs exch get key eq {layer exch 1 put} {layer exch 0 put} ifelse
+            } for
+            layer
+        } ifelse
+        dotty {drawlayerdots} {drawlayer} ifelse
     } forall
 
     %
