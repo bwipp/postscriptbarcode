@@ -253,6 +253,13 @@ begin
     (input.validate) //renmatrix.after exec
 
     %
+    % Convert pixs to string for efficient padding and comparison
+    %
+    /spixs pixs length string def
+    0 1 pixs length 1 sub { dup pixs exch get spixs 3 1 roll put } for
+    /pixs spixs def
+
+    %
     % Generate the symbol
     %
 
@@ -350,17 +357,13 @@ begin
 
         (render.tracepaths) //renmatrix.before exec
 
-        % Pad the bitmap on all sides
+        % Pad the bitmap on all sides (string is zero-initialized)
         /pixx pixx 2 add def
         /pixycomp pixycomp 2 add def
         /pixxpad pixx def
-        /zerorow [ pixx {0} repeat ] def
-        pixx pixycomp mul { array } stopped {
+        pixx pixycomp mul { string } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /padded exch def
-        0 pixx padded length 1 sub {
-            padded exch zerorow putinterval
-        } for
         0 1 pixycomp 3 sub {
             /row exch def
             padded row 1 add pixx mul 1 add pixs row pixx 2 sub mul pixx 2 sub getinterval putinterval
@@ -368,23 +371,20 @@ begin
         /pixs padded def
 
         %
-        % Cache of visited corners for each direction
+        % Cache of visited corners for each direction (string is zero-initialized)
         %
-        pixs length { array } stopped {
+        pixs length { string } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /cache exch def
-        0 pixx cache length 1 sub {
-            cache exch zerorow putinterval
-        } for
 
         %
         % Pre-compute abcd values (printed neighbours) for all cells
         %
         /abcdw pixx 1 sub def
-        abcdw pixycomp 1 sub mul { array } stopped {
+        abcdw pixycomp 1 sub mul { string } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /abcdcache exch def
-        /abcdrow abcdw array def
+        /abcdrow abcdw string def
         0 1 pixycomp 2 sub {
             /j exch def
             0 1 abcdw 1 sub {
@@ -542,7 +542,7 @@ begin
         key 1 eq colormap length 1 eq and {
             pixs  % Single colour with key=1: pixs is already the binary layer
         } {
-            pixs length { array } stopped {
+            pixs length { string } stopped {
                 pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
             } if /layer exch def
             0 1 pixs length 1 sub {
