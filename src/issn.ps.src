@@ -74,8 +74,9 @@ begin
     /modunit 1 def
 
     /apply //processoptions exec /options exch def
-    /issntxt exch def
     /global_encoder_defaults //render exec
+
+    /barcode exch def
 
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
@@ -85,8 +86,8 @@ begin
     %
     % Split off the ISSN
     %
-    issntxt ( ) search {
-        /issntxt exch def
+    barcode ( ) search {
+        /barcode exch def
         pop
         /seqvar exch def
     } {
@@ -109,24 +110,24 @@ begin
     %
     % Validate the input
     %
-    issntxt length 8 ne issntxt length 9 ne and {
+    barcode length 8 ne barcode length 9 ne and {
         /bwipp.issnBadLength (ISSN must be 8 or 9 characters including dash, in the format XXXX-XXXX) //raiseerror exec
     } if
-    issntxt 0 4 getinterval {
+    barcode 0 4 getinterval {
         dup 48 lt exch 57 gt or {
             /bwipp.issnFirstThroughFourthNotNumeric (ISSN first four characters must be numeral characters) //raiseerror exec
         } if
     } forall
-    issntxt 4 1 getinterval (-) ne {
+    barcode 4 1 getinterval (-) ne {
         /bwipp.issnNeedsDash (ISSN fifth character must be a dash) //raiseerror exec
     } if
-    issntxt 5 3 getinterval {
+    barcode 5 3 getinterval {
         dup 48 lt exch 57 gt or {
             /bwipp.issnSixthThroughEighthNotNumeric (ISSN sixth through eighth characters must be numerals) //raiseerror exec
         } if
     } forall
-    issntxt length 9 eq {
-        issntxt 8 get dup dup 48 lt exch 57 gt or exch 88 ne and {  % Digits or X
+    barcode length 9 eq {
+        barcode 8 get dup dup 48 lt exch 57 gt or exch 88 ne and {  % Digits or X
             /bwipp.issnNinthCharacterBadFormat (ISSN ninth character must be a number or the character X) //raiseerror exec
         } if
     } if
@@ -143,13 +144,13 @@ begin
     } if
 
     %
-    % Read the digits from issntxt and calculate checksums
+    % Read the digits from barcode and calculate checksums
     %
     /issn 8 string def
     /checksum 0 def
     /i 0 def /n 0 def
     { % loop
-        /issnchar issntxt i get 48 sub def
+        /issnchar barcode i get 48 sub def
         issnchar -3 ne {           % Ignore dashes
             issn n issnchar 48 add put
             n 7 lt {
@@ -158,22 +159,22 @@ begin
             /n n 1 add def
         } if
         /i i 1 add def
-        i issntxt length eq {exit} if
+        i barcode length eq {exit} if
     } loop
     /checksum 11 checksum 11 mod sub 11 mod def
     /checksum checksum 48 add dup 58 eq {pop 88} if def
-    issntxt length 9 eq {
-        issntxt 8 get checksum ne {
+    barcode length 9 eq {
+        barcode 8 get checksum ne {
             /bwipp.issnBadCheckDigit (Incorrect ISSN check digit provided) //raiseerror exec
         } if
     } if
 
     %
-    % Add the ISSN header and checksum to the issntxt
+    % Build the ISSN display text
     %
     /pad 14 string def
     pad 0 (ISSN ) putinterval
-    pad 5 issntxt putinterval  % Add issntxt to the pad
+    pad 5 barcode putinterval  % Add barcode to the pad
     pad 13 checksum put
     /issntxt pad def
 
