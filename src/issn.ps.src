@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -58,8 +59,18 @@ begin
     /issntextsize 9.0 def
     /issntextxoffset null def  % sentinel realtype
     /issntextyoffset null def  % sentinel realtype
-    /height 1.0 def
+    /height -1.0 def
     /addongap 12.0 def
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /issntxt exch def
@@ -189,9 +200,24 @@ begin
     } if
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /issn ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with ean13
     %
     options (addongap) addongap put
+    options (ast) undef
+    options (propspec) propspec put
+    options (physspec) physspec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom put
+    options (modunit) modunit put
 
     /uk.co.terryburton.bwipp._dontdraw true def
     barcode options //ean13 exec /args exch def

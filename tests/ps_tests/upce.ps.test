@@ -61,3 +61,16 @@
 } def
 (01234558)  (physspec)  ok_tmpl
 
+
+% AST bounds: xdim below xmin fails
+{ (01234558) (dontdraw physspec xdim=0.200) upce } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: height derived from AST hnom/xnom, pixel-locked
+% hnom=22.85 xnom=0.330: round(22.85/0.330)=69, 69/72=0.9583
+%
+{ (01234565) (dontdraw) upce /bhs get 0 get 1 array astore } [1.0] isEqual
+{ (01234565) (dontdraw propspec) upce /bhs get 0 get 1 array astore } [0.9583] isEqual
+
+% propspec + user height: user wins
+{ (01234565) (dontdraw propspec height=0.5) upce /bhs get 0 get 1 array astore } [0.5] isEqual

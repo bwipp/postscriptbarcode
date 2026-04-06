@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-5 dict
+6 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -61,8 +62,9 @@ begin
     /mag 1.0 def
     /xdim -1.0 def
     /hdim -1.0 def
-    /xnom -1.0 def     % GS1 General Specifications: no nominal, user must supply
-    /xmin 0.396 def    % GS1 General Specifications: minimum X in mm
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
     /xmax -1.0 def
     /modunit 2 def
 
@@ -115,9 +117,16 @@ begin
     /barcode barcode 0 j getinterval def
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /gs1qrcode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with qrcode
     %
     options (parse) undef
+    options (ast) undef
     options (parsefnc) true put
     options (physspec) physspec put
     options (mag) mag put

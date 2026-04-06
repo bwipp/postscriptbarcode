@@ -32,3 +32,13 @@
 } def
 (117480)  (showborder propspec)   ok_tmpl
 (117480)  (showborder physspec)   ok_tmpl
+
+%
+% propspec: height derived from AST hnom/xnom, pixel-locked
+% hnom=8.000 xnom=0.500: round(8.000/0.500)=16, 16/72=0.2222
+%
+{ (117480) (dontdraw) pharmacode /bhs get 0 get 1 array astore } [1.0] isEqual
+{ (117480) (dontdraw propspec) pharmacode /bhs get 0 get 1 array astore } [0.2222] isEqual
+
+% propspec + user height: user wins
+{ (117480) (dontdraw propspec height=0.5) pharmacode /bhs get 0 get 1 array astore } [0.5] isEqual

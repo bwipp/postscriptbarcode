@@ -428,3 +428,32 @@
     true isEqual
 } def
 (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG)  (ccversion=c physspec xdim=0.330)  ok_tmpl
+
+%
+% AST bounds (default): xdim below xmin (0.170) fails
+%
+{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c physspec xdim=0.100) gs1-128composite } /bwipp.renderXdimTooSmall isError
+
+%
+% AST bounds (gs1.sst2): tighter xmin (0.495) applied via composite AST
+%
+{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c physspec ast=gs1.sst2 xdim=0.330) gs1-128composite } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: linear height from sst2 AST flows through composite → gs1-128 → code128
+% hnom=31.75 xnom=0.495: round(31.75/0.495)=64 modules = 64pt linear bar height
+%
+{
+    (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c propspec ast=gs1.sst2) gs1-128composite
+    /rowmult get dup length 1 sub get  % Last entry is linear bar height
+    1 array astore
+} [64] isEqual
+
+%
+% propspec without hnom (default AST): linear bar height falls back to 0.5 inches = 36pt
+%
+{
+    (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c propspec) gs1-128composite
+    /rowmult get dup length 1 sub get
+    1 array astore
+} [36] isEqual

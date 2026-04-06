@@ -36,3 +36,43 @@
 
 % physspec smoke test
 { 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext physspec xdim=0.330) gs1-128 true } true isEqual
+
+%
+% AST bounds (default): xdim below xmin (0.170) fails
+%
+{ (\(01\)09521234543213) (dontdraw physspec xdim=0.100) gs1-128 } /bwipp.renderXdimTooSmall isError
+
+%
+% AST bounds (default): xdim above xmax (1.016) fails
+%
+{ (\(01\)09521234543213) (dontdraw physspec xdim=1.100) gs1-128 } /bwipp.renderXdimTooLarge isError
+
+%
+% AST bounds (gs1.sst2): tighter xmin (0.495) applied via wrapper AST
+%
+{ (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst2 xdim=0.330) gs1-128 } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: height derived from sst2 AST hnom/xnom through wrapper
+% hnom=31.75 xnom=0.495: round(31.75/0.495)=64, 64/72=0.8889
+%
+{
+    (\(01\)09521234543213) (dontdraw propspec ast=gs1.sst2) gs1-128 /bhs get 0 get 1 array astore
+} [0.8889] isEqual
+
+%
+% propspec without hnom (default AST): falls back to wrapper height default (0.5)
+%
+{
+    (\(01\)09521234543213) (dontdraw propspec) gs1-128 /bhs get 0 get 1 array astore
+} [0.5] isEqual
+
+%
+% physspec with sst2: xdim resolves from xnom (0.495)
+%
+{
+    (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst2) gs1-128 dup /physspec get exch /xdim get 2 array astore
+} [true 0.495] isEqual
+
+% propspec + user height with SST: user wins
+{ (\(01\)09521234543213) (dontdraw propspec ast=gs1.sst2 height=0.3) gs1-128 /bhs get 0 get 1 array astore } [0.3] isEqual

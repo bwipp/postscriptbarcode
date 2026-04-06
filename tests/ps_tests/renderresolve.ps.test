@@ -218,3 +218,39 @@
     1 array astore
     end
 } [1.9167] isEqual
+
+%
+% resolve_height: physspec overrides user-set height
+%
+{
+    7 dict begin
+    /propspec false def /physspec true def /height 0.5 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: physspec without hnom returns current height
+%
+{
+    7 dict begin
+    /propspec false def /physspec true def /height 0.5 def
+    /hnom -1.0 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.5] isEqual
+
+%
+% resolve_height: physspec with sentinel height and no hnom returns sentinel
+%
+{
+    7 dict begin
+    /propspec false def /physspec true def /height -1.0 def
+    /hnom -1.0 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [-1.0] isEqual

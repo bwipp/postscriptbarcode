@@ -218,3 +218,12 @@
     true isEqual
 } def
 (95200002|\(21\)A12345678)  (physspec xdim=0.330)  ok_tmpl
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)03612345678904|\(21\)A1B2C3D4E5F6G7H8) (dontdraw physspec xdim=0.200) ean8composite } /bwipp.renderXdimTooSmall isError
+
+% physspec with SST smoke test
+{ 0 0 moveto (95200002|\(21\)A12345678) (physspec) ean8composite true } true isEqual
+
+% propspec with SST smoke test
+{ 0 0 moveto (95200002|\(21\)A12345678) (propspec) ean8composite true } true isEqual

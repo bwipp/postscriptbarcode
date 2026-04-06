@@ -46,3 +46,14 @@
     true isEqual
 } def
 (0123456709498765432101234567891)  (physspec)  ok_tmpl
+
+% AST bounds: xdim below xmin fails
+{ (0123456709498765432101234567891) (dontdraw physspec xdim=0.300) onecode } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: height derived from AST hnom/xnom, pixel-locked
+% hnom=3.683 xnom=0.508: round(3.683/0.508)=7, 7/72=0.0972
+% bhs[0] is 5*height/8 for ascender bar
+%
+{ (0123456709498765432101234567891) (dontdraw) onecode /bhs get 0 get 1 array astore } [0.0938] isEqual
+{ (0123456709498765432101234567891) (dontdraw propspec) onecode /bhs get 0 get 1 array astore } [0.0608] isEqual

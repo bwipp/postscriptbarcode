@@ -32,3 +32,9 @@
 ((01)000123456789)      /bwipp.databartruncatedBadLength        er_tmpl
 ((01)0001234567890A)    /bwipp.databartruncatedBadCharacter     er_tmpl
 ((02)0001234567890)     /bwipp.databartruncatedBadAI            er_tmpl
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)09521234543213) (dontdraw physspec xdim=0.100) databartruncated } /bwipp.renderXdimTooSmall isError
+
+% propspec smoke test
+{ 0 0 moveto (\(01\)09521234543213) (propspec) databartruncated true } true isEqual

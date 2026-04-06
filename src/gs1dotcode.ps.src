@@ -41,10 +41,11 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+6 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /dotcode dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -115,14 +116,20 @@ begin
     /barcode barcode 0 j getinterval def
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /gs1dotcode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with dotcode
     %
     options (parse) undef
+    options (ast) undef
     options (parsefnc) true put
     options (physspec) physspec put
     options (mag) mag put
     options (xdim) xdim put
-    options (ast) ast put
     options (xnom) xnom put
     options (xmin) xmin put
     options (xmax) xmax put

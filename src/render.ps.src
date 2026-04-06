@@ -437,6 +437,12 @@ begin
     >>
     /upca 1 index
     /upce 1 index
+    /isbn 1 index
+    /ismn 1 index
+    /issn 1 index
+    /ean13composite 1 index
+    /upcacomposite 1 index
+    /upcecomposite 1 index
 
     /ean8 <<
         /default                         << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 18.23 >>
@@ -448,6 +454,7 @@ begin
         /gs1.sst8             5 index  % << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 36.46 >>
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 18.23 >>
     >>
+    /ean8composite 1 index
 
     /itf14 <<
         /default                         << /xmin 0.495  /xnom 0.495  /xmax 1.016  /hnom 31.75 >>
@@ -472,6 +479,7 @@ begin
         /gs1.sst12.logistic  13 index  % << /xmin 0.495  /xnom 0.495  /xmax 0.940  /hnom 31.75 >>
         /gs1.sst13                       << /xmin 0.495               /xmax 0.940  /hnom 12.70 >>
     >>
+    /gs1-128composite 1 index
 
     /databaromni <<
         /default                         << /xmin 0.170               /xmax 0.660              >>
@@ -483,6 +491,7 @@ begin
         /gs1.sst8             7 index  % << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 21.78 >>
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 10.89 >>
     >>
+    /databaromnicomposite 1 index
 
     /databartruncated <<
         /default                         << /xmin 0.170               /xmax 0.660             >>
@@ -491,6 +500,7 @@ begin
         /gs1.sst8                        << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 8.58 >>
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 4.29 >>
     >>
+    /databartruncatedcomposite 1 index
 
     /databarstacked <<
         /default                         << /xmin 0.170               /xmax 0.660             >>
@@ -500,6 +510,7 @@ begin
         /gs1.sst8             5 index  % << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 8.58 >>
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 4.29 >>
     >>
+    /databarstackedcomposite 1 index
 
     /databarstackedomni <<
         /default                         << /xmin 0.170               /xmax 0.660              >>
@@ -511,6 +522,7 @@ begin
         /gs1.sst8             7 index  % << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 45.54 >>
         /gs1.sst10                       << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 27.78 >>
     >>
+    /databarstackedomnicomposite 1 index
 
     /databarlimited <<
         /default                         << /xmin 0.170               /xmax 0.660             >>
@@ -520,6 +532,7 @@ begin
         /gs1.sst8             5 index  % << /xmin 0.495  /xnom 0.660  /xmax 0.660  /hnom 6.60 >>
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 3.30 >>
     >>
+    /databarlimitedcomposite 1 index
 
     /databarexpanded <<
         /default                         << /xmin 0.170               /xmax 0.660              >>
@@ -532,6 +545,7 @@ begin
         /gs1.sst10            5 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 11.23 >>
         /gs1.sst11            1 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 11.23 >>
     >>
+    /databarexpandedcomposite 1 index
 
     /databarexpandedstacked <<
         /default                         << /xmin 0.170               /xmax 0.660              >>
@@ -544,6 +558,8 @@ begin
         /gs1.sst10           11 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 23.44 >>
         /gs1.sst11            1 index  % << /xmin 0.264  /xnom 0.330  /xmax 0.660  /hnom 23.44 >>
     >>
+    /databarexpandedstackedcomposite 1 index
+    /gs1northamericancoupon 1 index
 
     /gs1datamatrix <<
         /default                         << /xmin 0.100               /xmax 3.500              >>
@@ -566,6 +582,8 @@ begin
         /gs1.sst12.logistic   1 index  % << /xmin 0.750  /xnom 0.750  /xmax 1.520              >>
         /gs1.sst13                       << /xmin 0.495               /xmax 3.500              >>
     >>
+    /gs1datamatrixrectangular 1 index
+    /gs1datamatrixrectangularextension 1 index
 
     /gs1qrcode <<
         /default                         << /xmin 0.254               /xmax 3.500              >>
@@ -649,7 +667,7 @@ begin
             pop pop astname /default eq exit
         } if
 
-        get astname 2 copy known not { pop pop false exit } if
+        get astname 2 copy known not { pop pop astname /default eq exit } if
 
         get {  % key value
             tgt 2 index known {

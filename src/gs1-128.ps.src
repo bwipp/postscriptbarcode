@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code128 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -60,12 +61,13 @@ begin
     /text1size 10.0 def
     /text1xoffset 0.0 def
     /text1yoffset -7.0 def
-    /height 0.5 def
+    /height -1.0 def
     /linkagea false def
     /linkagec false def
     /parse false def
     /dontlint false def
     /lintreqs false def
+    /propspec false def
     /physspec false def
     /mag 1.0 def
     /xdim -1.0 def
@@ -73,6 +75,7 @@ begin
     /xnom -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
+    /hnom -1.0 def
     /modunit 1 def
 
     /apply //processoptions exec /options exch def
@@ -134,18 +137,27 @@ begin
     /barcode barcode 0 j getinterval def
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /gs1-128 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+    height -1.0 eq { propspec hnom -1 ne and not { /height 0.5 def } if } if
+
+    %
     % Get the result of encoding with code128
     %
     options (parse) undef
     options (height) height put
     options (parsefnc) true put
+    options (propspec) propspec put
     options (physspec) physspec put
     options (mag) mag put
     options (xdim) xdim put
-    options (ast) ast put
+    options (ast) undef
     options (xnom) xnom put
     options (xmin) xmin put
     options (xmax) xmax put
+    options (hnom) hnom put
     options (modunit) modunit put
 
     /uk.co.terryburton.bwipp._dontdraw true def

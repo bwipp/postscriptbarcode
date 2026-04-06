@@ -32,3 +32,19 @@
 { (1-56581-231X7) (dontdraw) isbn } /bwipp.isbn10character12 isError
 { (1-56581-231-?) (dontdraw) isbn } /bwipp.isbn10character13 isError
 { (1-56581-231-0) (dontdraw) isbn } /bwipp.isbn10badCheckDigit isError
+
+% AST bounds: xdim below xmin fails
+{ (978-1-56581-231-4 90000) (dontdraw physspec xdim=0.200) isbn } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: height derived through wrapper
+%
+{ (978-1-56581-231-4) (dontdraw propspec) isbn /bhs get 0 get 1 array astore } [0.9583] isEqual
+
+%
+% propspec + user height: user wins through wrapper
+%
+{ (978-1-56581-231-4) (dontdraw propspec height=0.5) isbn /bhs get 0 get 1 array astore } [0.5] isEqual
+
+% AST consumption: SST profile resolves through wrapper
+{ (978-1-56581-231-4) (dontdraw physspec ast=gs1.sst2) isbn dup /physspec get exch /xdim get 2 array astore } [true 0.660] isEqual

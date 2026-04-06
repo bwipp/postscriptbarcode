@@ -205,3 +205,23 @@
 
 % Missing composite component (no pipe character)
 { (331234567890) (dontdraw) ean13composite } /bwipp.missingCompositeComponent isError
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)09521234543213|\(21\)A1B2C3D4E5F6G7H8) (dontdraw physspec xdim=0.200) ean13composite } /bwipp.renderXdimTooSmall isError
+
+% physspec smoke test
+{ 0 0 moveto (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (physspec) ean13composite true } true isEqual
+
+% physspec with SST smoke test
+{ 0 0 moveto (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (physspec) ean13composite true } true isEqual
+
+% propspec with SST smoke test
+{ 0 0 moveto (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (propspec) ean13composite true } true isEqual
+
+%
+% physspec: xdim resolves from default AST xnom through composite → ean13
+%
+{
+    (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (dontdraw physspec) ean13composite
+    dup /physspec get exch /xdim get 2 array astore
+} [true 0.330] isEqual

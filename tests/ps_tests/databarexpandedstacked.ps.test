@@ -101,3 +101,9 @@
 { () (segments=0 dontdraw) databarexpandedstacked } /bwipp.gs1databarexpandedBadSegments isError
 { () (segments=-1 dontdraw) databarexpandedstacked } /bwipp.GS1aiMissingOpenParen isError
 { () (segments=99 dontdraw) databarexpandedstacked } /bwipp.gs1databarexpandedBadSegments isError
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)09521234543213\(3103\)000123) (dontdraw physspec xdim=0.100) databarexpandedstacked } /bwipp.renderXdimTooSmall isError
+
+% propspec smoke test
+{ 0 0 moveto (\(01\)09521234543213\(3103\)000123) (propspec segments=4) databarexpandedstacked true } true isEqual

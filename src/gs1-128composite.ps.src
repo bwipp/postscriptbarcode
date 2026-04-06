@@ -59,6 +59,7 @@ begin
     /parse false def
     /dontlint false def
     /lintreqs true def
+    /propspec false def
     /physspec false def
     /mag 1.0 def
     /xdim -1.0 def
@@ -66,6 +67,7 @@ begin
     /xnom -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
+    /hnom -1.0 def
     /modunit 1 def
 
     /apply //processoptions exec /options exch def
@@ -92,6 +94,15 @@ begin
     %
     /gs1-128composite ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_physspec //render exec
+    options (ast) undef
+    options (propspec) propspec put
+    options (physspec) physspec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom put
+    options (modunit) modunit put
 
     options (inkspreadv) 0.0 put
     options (dontlint) true put
@@ -117,7 +128,7 @@ begin
     %
     options (lintype) (gs1-128) put
     options (linwidth) linwidth put
-    comp << options {} forall >> //gs1-cc exec /compsym exch def
+    comp << options {} forall >> dup (physspec) undef dup (propspec) undef //gs1-cc exec /compsym exch def
     compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def
     compsym (borderbottom) 0 put
 

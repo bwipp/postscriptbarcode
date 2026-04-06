@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpanded dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -53,6 +54,16 @@ begin
     {
 
     /dontdraw false def
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     /apply //processoptions exec /options exch def
     /barcode exch def
@@ -63,9 +74,24 @@ begin
     def
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /databarexpandedstacked ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with databarexpanded with format=expandedstacked
     %
     options (format) (expandedstacked) put
+    options (ast) undef
+    options (propspec) propspec put
+    options (physspec) physspec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom put
+    options (modunit) modunit put
 
     /uk.co.terryburton.bwipp._dontdraw true def
     barcode options //databarexpanded exec /args exch def

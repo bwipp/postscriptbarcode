@@ -212,3 +212,15 @@
 
 % Missing composite component (no pipe character)
 { (12345678901) (dontdraw) upcacomposite } /bwipp.missingCompositeComponent isError
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)00612345678905|\(21\)A1B2C3D4E5F6G7H8) (dontdraw physspec xdim=0.200) upcacomposite } /bwipp.renderXdimTooSmall isError
+
+% physspec smoke test
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (physspec) upcacomposite true } true isEqual
+
+% physspec with SST smoke test
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (physspec) upcacomposite true } true isEqual
+
+% propspec with SST smoke test
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (propspec) upcacomposite true } true isEqual

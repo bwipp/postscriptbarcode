@@ -180,3 +180,27 @@
     xdim 1 array astore
     end
 } [0.330] isEqual
+
+%
+% Encoder in AST but no default profile: ast=default is a no-op
+%
+{
+    5 dict begin
+    /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /gs1dotcode ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom xmin 2 array astore
+    end
+} [-1.0 -1.0] isEqual
+
+%
+% Encoder in AST but no default profile: named profile works
+%
+{
+    5 dict begin
+    /ast (gs1.sst12.trade) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
+    /gs1dotcode ast /apply_ast render
+    not { end //raiseerror exec } if
+    xnom xmin 2 array astore
+    end
+} [0.380 0.380] isEqual

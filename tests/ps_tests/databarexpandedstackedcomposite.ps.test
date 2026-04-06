@@ -237,3 +237,12 @@
     true isEqual
 } def
 (\(01\)09521234543213\(10\)ABCDEF|\(21\)12345678)  (segments=4 physspec xdim=0.330)  ok_tmpl
+
+% AST bounds: xdim below xmin fails
+{ (\(01\)09521234543213\(10\)ABCDEF|\(21\)12345678) (dontdraw physspec xdim=0.100) databarexpandedstackedcomposite } /bwipp.renderXdimTooSmall isError
+
+% physspec with SST smoke test
+{ 0 0 moveto (\(01\)09521234543213\(10\)ABCDEF|\(21\)12345678) (physspec ast=gs1.sst2 segments=4) databarexpandedstackedcomposite true } true isEqual
+
+% propspec with SST smoke test
+{ 0 0 moveto (\(01\)09521234543213\(10\)ABCDEF|\(21\)12345678) (propspec ast=gs1.sst2 segments=4) databarexpandedstackedcomposite true } true isEqual

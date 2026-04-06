@@ -51,3 +51,12 @@
     true isEqual
 } def
 (THIS IS CODE 39)  (propspec)  ok_tmpl
+
+% AST bounds: xdim below xmin fails
+{ (THIS IS CODE 39) (dontdraw physspec xdim=0.100) code39 } /bwipp.renderXdimTooSmall isError
+
+%
+% propspec: no-op when AST has no hnom
+%
+{ (TEST) (dontdraw propspec) code39 /bhs get 0 get 1 array astore } [1.0] isEqual
+{ (TEST) (dontdraw propspec height=0.5) code39 /bhs get 0 get 1 array astore } [0.5] isEqual

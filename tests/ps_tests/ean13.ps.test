@@ -68,6 +68,19 @@
     { 0 0 moveto 0 0 ean13 true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
     true isEqual
 } def
+%
+% propspec: height derived from AST hnom/xnom, pixel-locked
+% hnom=22.85 xnom=0.330: round(22.85/0.330)=69, 69/72=0.9583
+%
+{
+    (9520123456788) (dontdraw propspec) ean13 /bhs get 0 get 1 array astore
+} [0.9583] isEqual
+
+%
+% physspec without explicit xdim resolves from AST xnom
+%
+(9520123456788)  (dontdraw physspec)  [true 0.330 1]   physspec_tmpl
+
 (9520123456788)  (includetext propspec)          ok_tmpl
 (9520123456788)  (includetext physspec)           ok_tmpl
 (9520123456788)  (includetext physspec mag=2.0)   ok_tmpl
@@ -86,6 +99,16 @@
 % physspec with direct xdim override
 %
 (9520123456788)  (physspec xdim=0.400)  ok_tmpl
+
+%
+% AST bounds: xdim below xmin (0.264) fails
+%
+{ (9520123456788) (dontdraw physspec xdim=0.200) ean13 } /bwipp.renderXdimTooSmall isError
+
+%
+% AST bounds: xdim above xmax (0.660) fails
+%
+{ (9520123456788) (dontdraw physspec xdim=0.700) ean13 } /bwipp.renderXdimTooLarge isError
 
 %
 % Addon with physspec renders without error
@@ -123,3 +146,13 @@
 % AST: gs1.sst2 with physspec renders without error
 %
 (9520123456788)  (physspec ast=gs1.sst2)  ok_tmpl
+
+%
+% physspec overrides user-supplied height (spec dimensions take precedence)
+%
+{ (9520123456788) (dontdraw physspec height=0.5) ean13 /bhs get 0 get 1 array astore } [0.9617] isEqual
+
+%
+% propspec is no-op when user supplies height
+%
+{ (9520123456788) (dontdraw propspec height=0.5) ean13 /bhs get 0 get 1 array astore } [0.5] isEqual

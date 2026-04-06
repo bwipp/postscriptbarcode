@@ -53,4 +53,10 @@
 ] eq_tmpl
 
 % physspec smoke test
-{ 0 0 moveto (HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (includetext physspec xdim=0.330) gs1dlqrcode true } true isEqual
+{ 0 0 moveto (HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (includetext physspec xdim=0.495) gs1dlqrcode true } true isEqual
+
+% AST bounds: xdim below xmin fails
+{ (HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw physspec xdim=0.300) gs1dlqrcode } /bwipp.renderXdimTooSmall isError
+
+% physspec: xdim resolves from default AST xnom (0.495)
+{ (HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw physspec) gs1dlqrcode dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual

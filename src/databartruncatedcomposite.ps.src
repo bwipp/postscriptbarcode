@@ -66,12 +66,14 @@ begin
     /dontlint false def
     /lintreqs true def
     /physspec false def
+    /propspec false def
     /mag 1.0 def
     /xdim -1.0 def
     /ast (default) def
     /xnom -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
+    /hnom -1.0 def
     /modunit 1 def
 
     /apply //processoptions exec /options exch def
@@ -98,6 +100,15 @@ begin
     %
     /databartruncatedcomposite ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_physspec //render exec
+    options (ast) undef
+    options (propspec) propspec put
+    options (physspec) physspec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom put
+    options (modunit) modunit put
 
     options (lintype) (databartruncated) put
     options (linkage) true put
@@ -152,6 +163,7 @@ begin
     sep sep length 4 sub //databaromnicomposite.seppadright putinterval
     18 sepfinder 64 sepfinder
 
+    options (physspec) undef options (propspec) undef
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
     /ccrowmult compsym /rowmult get def

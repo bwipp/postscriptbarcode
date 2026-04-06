@@ -41,16 +41,18 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+7 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
 /gs1dlqrcode {
 
-    16 dict begin
+    17 dict begin
     {
 
     /includetext false def
@@ -96,13 +98,19 @@ begin
     hri key length 2 add val putinterval
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /gs1dlqrcode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with qrcode
     %
     options (parse) undef
+    options (ast) undef
     options (physspec) physspec put
     options (mag) mag put
     options (xdim) xdim put
-    options (ast) ast put
     options (xnom) xnom put
     options (xmin) xmin put
     options (xmax) xmax put
