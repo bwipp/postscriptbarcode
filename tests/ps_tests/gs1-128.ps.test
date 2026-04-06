@@ -76,3 +76,17 @@
 
 % propspec + user height with SST: user wins
 { (\(01\)09521234543213) (dontdraw propspec ast=gs1.sst2 height=0.3) gs1-128 /bhs get 0 get 1 array astore } [0.3] isEqual
+
+%
+% bestfit: falls back when default AST has no xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (\(01\)09521234543213\(3103\)000123) (dontdraw) gs1-128 /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit: activates with SST that provides xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (\(01\)09521234543213\(3103\)000123) (dontdraw ast=gs1.sst2) gs1-128 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def

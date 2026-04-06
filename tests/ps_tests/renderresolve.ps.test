@@ -254,3 +254,108 @@
     1 array astore
     end
 } [-1.0] isEqual
+
+%
+% resolve_physspec: bestfit disables physspec when xnom missing
+%
+{
+    8 dict begin
+    /physspec true def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    /resolve_physspec render
+    physspec 1 array astore
+    end
+} [false] isEqual
+
+%
+% resolve_physspec: bestfit suppresses bounds error, preserves bounds for gridfit
+%
+{
+    8 dict begin
+    /physspec true def /bestfit true def /mag 1.0 def /xdim 0.200 def
+    /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
+    /resolve_physspec render
+    physspec xdim xmin xmax 4 array astore
+    end
+} [true 0.200 0.264 0.660] isEqual
+
+%
+% resolve_physspec: bestfit preserves bounds when xdim is in-spec
+%
+{
+    8 dict begin
+    /physspec true def /bestfit true def /mag 1.0 def /xdim 0.400 def
+    /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
+    /resolve_physspec render
+    xmin xmax 2 array astore
+    end
+} [0.264 0.660] isEqual
+
+%
+% resolve_physspec: without bestfit, missing xnom errors
+%
+{
+    8 dict begin
+    /physspec true def /bestfit false def /mag 1.0 def /xdim -1.0 def
+    /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderNeedXnom isError
+
+%
+% resolve_physspec: without bestfit, bounds violation errors
+%
+{
+    8 dict begin
+    /physspec true def /bestfit false def /mag 1.0 def /xdim 0.200 def
+    /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderXdimTooSmall isError
+
+%
+% resolve_physspec: bestfit with valid input is a no-op
+%
+{
+    8 dict begin
+    /physspec true def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    /xnom 0.330 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
+    /resolve_physspec render
+    physspec xdim xmin xmax 4 array astore
+    end
+} [true 0.330 0.264 0.660] isEqual
+
+%
+% resolve_physspec: bestfit defaults to false from global_ctx
+%
+{
+    8 dict begin
+    /physspec true def /mag 1.0 def /xdim -1.0 def
+    /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    { /resolve_physspec render } stopped { end stop } if
+    end
+} /bwipp.renderNeedXnom isError
+
+%
+% resolve_physspec: bestfit implies physspec
+%
+{
+    8 dict begin
+    /physspec false def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    /xnom 0.330 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
+    /resolve_physspec render
+    physspec xdim 2 array astore
+    end
+} [true 0.330] isEqual
+
+%
+% resolve_physspec: bestfit implies physspec, but no xnom disables it
+%
+{
+    8 dict begin
+    /physspec false def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
+    /resolve_physspec render
+    physspec 1 array astore
+    end
+} [false] isEqual

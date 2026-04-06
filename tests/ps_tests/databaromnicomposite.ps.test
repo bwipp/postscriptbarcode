@@ -149,3 +149,17 @@
     (\(01\)09521234543213|\(11\)990102) (dontdraw physspec ast=gs1.sst1) databaromnicomposite
     dup /physspec get exch /xdim get 2 array astore
 } [true 0.330] isEqual
+
+%
+% bestfit: falls back when default AST has no xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (\(01\)09521234543213|\(11\)990102) (dontdraw) databaromnicomposite /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit: activates with SST that provides xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (\(01\)09521234543213|\(11\)990102) (dontdraw ast=gs1.sst1) databaromnicomposite dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def

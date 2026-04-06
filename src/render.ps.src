@@ -734,16 +734,22 @@ begin
         } if
         xdim -1 eq {
             xnom -1 eq {
-                /bwipp.renderNeedXnom (physspec requires xnom or xdim to be defined) //raiseerror exec
+                bestfit { /physspec false def } {
+                    /bwipp.renderNeedXnom (physspec requires xnom or xdim to be defined) //raiseerror exec
+                } ifelse
             } if
-            /xdim xnom mag mul def
+            physspec { /xdim xnom mag mul def } if
         } if
-        currentdict /hdim known currentdict /hnom known and {
-            hdim -1 eq hnom -1 ne and {
-                /hdim hnom mag mul def
+        physspec {
+            currentdict /hdim known currentdict /hnom known and {
+                hdim -1 eq hnom -1 ne and {
+                    /hdim hnom mag mul def
+                } if
+            } if
+            xdim xmin xmax //render.validate_xdim exec not {
+                bestfit { pop pop } { //raiseerror exec } ifelse
             } if
         } if
-        xdim xmin xmax //render.validate_xdim exec not { //raiseerror exec } if
     } if
 } bind def
 
@@ -786,6 +792,10 @@ begin
     /xmin exch def
     /xdim exch def
     /mag exch def
+
+    /bestfit
+        /uk.co.terryburton.bwipp.global_ctx dup where { exch get /bestfit 2 copy known { get } { pop pop false } ifelse } { pop false } ifelse
+    def
 
     % val => snapped; snaps to whole device pixels per module, clamps to minimum 1
     /snapto {  % val mode => snapped
@@ -848,19 +858,32 @@ begin
             snapped effx xmin xmax //render.validate_xdim exec
             not {
                 pop pop  % Discard error details
+                /snap1 snapped def
                 devpx mag div dup floor sub 0.5 lt { 2 } { 1 } ifelse
                 devpx exch snapto /snapped exch def
                 snapped effx xmin xmax //render.validate_xdim exec
                 not {
-                    pop pop  % Discard error details and make our own
-                    /bwipp.renderGridfitXdimOutOfSpec
-                    [ (No gridfit possible for X-dimension between xmin=)
-                      xmin 20 string cvs (mm and xmax=)
-                      xmax 20 string cvs (mm at )
-                      griddpi cvi 20 string cvs ( DPI)
-                    ] dup 0 exch {length add} forall string
-                    exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
-                    false exit
+                    pop pop  % Discard error details
+                    bestfit {
+                        % Pick whichever snap is closest to being in spec
+                        /eff1 snap1 effx def  /eff2 snapped effx def
+                        /dist {  % eff => distance outside [xmin,xmax]
+                            0
+                            xmin -1 ne { xmin 2 index sub dup 0 gt { add } { pop } ifelse } if
+                            xmax -1 ne { 1 index xmax sub dup 0 gt { add } { pop } ifelse } if
+                            exch pop
+                        } def
+                        eff1 dist eff2 dist lt { /snapped snap1 def } if
+                    } {
+                        /bwipp.renderGridfitXdimOutOfSpec
+                        [ (No gridfit possible for X-dimension between xmin=)
+                          xmin 20 string cvs (mm and xmax=)
+                          xmax 20 string cvs (mm at )
+                          griddpi cvi 20 string cvs ( DPI)
+                        ] dup 0 exch {length add} forall string
+                        exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                        false exit
+                    } ifelse
                 } if
             } if
             snapped devpx div
@@ -884,9 +907,25 @@ begin
 } bind def
 
 %
+%  Apply defaults from global context for properties common to all encoders
+%  Guarded by _dontdraw so sub-encoders do not re-read global defaults
+%
+/render.global_encoder_defaults {
+    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+        /uk.co.terryburton.bwipp.global_ctx dup where {
+            exch get
+            dup /bestfit  2 copy known { get { /bestfit  true def } if } { pop pop } ifelse
+            dup /physspec 2 copy known { get { /physspec true def } if } { pop pop } ifelse
+                /propspec 2 copy known { get { /propspec true def } if } { pop pop } ifelse
+        } {pop} ifelse
+        bestfit { /physspec true def } if
+    } if
+} bind def
+
+%
 %  Apply defaults from global context for properties common to all renderers
 %
-/render.global_defaults {
+/render.global_renderer_defaults {
 
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get  % ctx
@@ -1113,7 +1152,8 @@ begin
     /rendertext           //render.rendertext
     /validatetextoptions  //render.validatetextoptions
     /gridfit              //render.gridfit
-    /global_defaults      //render.global_defaults
+    /global_encoder_defaults  //render.global_encoder_defaults
+    /global_renderer_defaults //render.global_renderer_defaults
     /validate_common      //render.validate_common
     /renderborder         //render.renderborder
     /renderguards         //render.renderguards

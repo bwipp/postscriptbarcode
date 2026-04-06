@@ -695,3 +695,17 @@
 % physspec with xdim below xmin should error
 { (Hello) (dontdraw physspec xdim=0.100) qrcode } /bwipp.renderXdimTooSmall isError
 
+
+%
+% bestfit: falls back when no xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (Hello) (dontdraw) qrcode /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit: activates when user provides xnom
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (Hello) (dontdraw xnom=0.500) qrcode dup /physspec get exch /xdim get 2 array astore } [true 0.500] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def

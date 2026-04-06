@@ -156,3 +156,36 @@
 % propspec is no-op when user supplies height
 %
 { (9520123456788) (dontdraw propspec height=0.5) ean13 /bhs get 0 get 1 array astore } [0.5] isEqual
+
+%
+% bestfit: output matches physspec for valid input
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (9520123456788) (dontdraw) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
+{ (9520123456788) (dontdraw) ean13 /bhs get 0 get 1 array astore } [0.9617] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit: bounds violation renders without error
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (9520123456788) (dontdraw xdim=0.200) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.200] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit + gridfit: renders when strict gridfit would fail on bounds
+%
+/uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+{ 0 0 moveto (9520123456788) (xdim=0.330 xmin=0.320 xmax=0.340 gridfit griddpi=72) ean13 true } true isEqual
+/uk.co.terryburton.bwipp.global_ctx << >> def
+
+%
+% bestfit + gridfit: both snaps out of bounds, picks closest to spec
+% xdim=0.348 in [0.345,0.350]; at 200 DPI: snap to 3px (0.381mm>xmax) or 2px (0.254mm<xmin)
+% bestfit picks 3px (dist 0.031) over 2px (dist 0.091)
+%
+{ (9520123456788) (physspec xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 } /bwipp.renderGridfitXdimOutOfSpec isError
+
+/uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+{ 0 0 moveto (9520123456788) (xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 true } true isEqual
+/uk.co.terryburton.bwipp.global_ctx << >> def

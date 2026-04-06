@@ -60,3 +60,11 @@
 %
 { (TEST) (dontdraw propspec) code39 /bhs get 0 get 1 array astore } [1.0] isEqual
 { (TEST) (dontdraw propspec height=0.5) code39 /bhs get 0 get 1 array astore } [0.5] isEqual
+
+%
+% bestfit: falls back to default when no xnom available
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ (TEST) (dontdraw) code39 /physspec get 1 array astore } [false] isEqual
+{ (TEST) (dontdraw) code39 /bhs get 0 get 1 array astore } [1.0] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
