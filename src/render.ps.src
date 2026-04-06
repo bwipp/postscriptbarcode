@@ -732,15 +732,19 @@ begin
 %
 %  Resolve linear bar height from spec proportions
 %
+%  Returns derived height, current height, or -1 sentinel
+%
 /render.resolve_height {
-    propspec physspec or hnom -1 ne and {
+    hnom -1 ne physspec propspec height -1.0 eq and or and {
         xnom -1 eq {
             /bwipp.renderHnomNeedXnom (hnom requires xnom to be defined) //raiseerror exec
         } if
-        /height hnom xnom div modunit mul
-            physspec not { round } if  % Pixel-lock height for propspec
-        72 div def
-    } if
+        hnom xnom div modunit mul
+            physspec not { round } if  % Pixel-lock derived height
+        72 div
+    } {
+        height
+    } ifelse
 } bind def
 
 %

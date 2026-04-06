@@ -59,7 +59,7 @@ begin
 
     /dontdraw false def
     /includetext false def      % Enable/disable text
-    /height 4.0 def             % Height of short bars in millimetres
+    /height -1.0 def             % Height of short bars in millimetres
 
     /propspec false def
     /physspec false def
@@ -99,6 +99,7 @@ begin
     %
     /pharmacode2 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_physspec //render exec
+    /height /resolve_height //render exec dup -1 eq { pop 4.0 } if def
 
     %
     % Create the human readable text
@@ -127,8 +128,6 @@ begin
         /i i 1 sub def
     } loop
     /encstr encstr i 1 add 15 i sub getinterval def
-
-    /resolve_height //render exec
 
     %
     % Generate the bar pattern

@@ -137,72 +137,84 @@
 } /bwipp.renderXdimTooLarge isError
 
 %
-% resolve_height: propspec adjusts height, pixel-locked
+% resolve_height: propspec with sentinel height derives pixel-locked
 %
 {
-    6 dict begin
-    /propspec true def /physspec false def
-    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    7 dict begin
+    /propspec true def /physspec false def /height -1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
-    height 1 array astore
+    1 array astore
     end
 } [0.9583] isEqual
 
 %
-% resolve_height: physspec also adjusts height
+% resolve_height: physspec derives height (not pixel-locked)
 %
 {
-    6 dict begin
-    /propspec false def /physspec true def
-    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    7 dict begin
+    /propspec false def /physspec true def /height -1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
-    height 1 array astore
+    1 array astore
     end
 } [0.9617] isEqual
 
 %
-% resolve_height: no-op when hnom is -1
+% resolve_height: propspec with user-set height returns user height
 %
 {
-    6 dict begin
-    /propspec true def /physspec false def
-    /hnom -1.0 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    7 dict begin
+    /propspec true def /physspec false def /height 0.5 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
-    height 1 array astore
+    1 array astore
     end
-} [1.0] isEqual
+} [0.5] isEqual
 
 %
-% resolve_height: no-op when neither propspec nor physspec
+% resolve_height: returns sentinel when hnom is -1
 %
 {
-    6 dict begin
-    /propspec false def /physspec false def
-    /hnom 22.85 def /xnom 0.330 def /modunit 1 def /height 1.0 def
+    7 dict begin
+    /propspec true def /physspec false def /height -1.0 def
+    /hnom -1.0 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
-    height 1 array astore
+    1 array astore
     end
-} [1.0] isEqual
+} [-1.0] isEqual
 
 %
-% resolve_height: missing xnom with hnom
+% resolve_height: returns sentinel when neither propspec nor physspec
 %
 {
-    6 dict begin
-    /propspec true def /physspec false def
-    /hnom 22.85 def /xnom -1.0 def /modunit 1 def /height 1.0 def
+    7 dict begin
+    /propspec false def /physspec false def /height -1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [-1.0] isEqual
+
+%
+% resolve_height: missing xnom with propspec and hnom
+%
+{
+    7 dict begin
+    /propspec true def /physspec false def /height -1.0 def
+    /hnom 22.85 def /xnom -1.0 def /modunit 1 def
     { /resolve_height render } stopped { end stop } if
     end
 } /bwipp.renderHnomNeedXnom isError
 
 %
-% resolve_height: modunit=2 scales height, pixel-locked
+% resolve_height: propspec modunit=2, pixel-locked
 %
 {
-    6 dict begin
-    /propspec true def /physspec false def
-    /hnom 22.85 def /xnom 0.330 def /modunit 2 def /height 1.0 def
+    7 dict begin
+    /propspec true def /physspec false def /height -1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 2 def
     /resolve_height render
-    height 1 array astore
+    1 array astore
     end
 } [1.9167] isEqual

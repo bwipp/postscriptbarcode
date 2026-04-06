@@ -71,7 +71,7 @@ begin
     /text1size 12.0 def
     /text1xoffset 3.25 def
     /text1yoffset null def  % realtype sentinel
-    /height 0.7 def
+    /height -1.0 def
 
     /propspec false def
     /physspec false def
@@ -91,10 +91,6 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
-    text1yoffset null eq {
-        /text1yoffset height 72 mul 5.75 add def
-    } if
-
     %
     % Validate input
     %
@@ -112,6 +108,12 @@ begin
     %
     /ean5 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_physspec //render exec
+
+    /height /resolve_height //render exec dup -1 eq { pop 0.7 } if def
+
+    text1yoffset null eq {
+        /text1yoffset height 72 mul 5.75 add def
+    } if
 
     /checksum 0 def
     0 1 4 {
@@ -162,8 +164,6 @@ begin
         sbs i 6 mul 3 add enc putinterval   % Put encoded digit into sbs
         txt i [barcode i 1 getinterval i 1 sub 9 mul 10 add text1xoffset add text1yoffset text1font text1size] put
     } for
-
-    /resolve_height //render exec
 
     <<
     /ren /renlinear
