@@ -737,7 +737,9 @@ begin
         xnom -1 eq {
             /bwipp.renderHnomNeedXnom (hnom requires xnom to be defined) //raiseerror exec
         } if
-        /height hnom xnom div modunit mul 72 div def
+        /height hnom xnom div modunit mul
+            physspec not { round } if  % Pixel-lock height for propspec
+        72 div def
     } if
 } bind def
 
