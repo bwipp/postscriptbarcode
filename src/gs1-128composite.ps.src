@@ -116,7 +116,7 @@ begin
     /ai //gs1process exec pop pop pop
 
     %
-    % Dummy plot of linear part with CC-A to get width
+    % Dummy linear metrics with CC-A to get width
     %
     options (linkagea) true put
     /uk.co.terryburton.bwipp._dontdraw true def
@@ -124,7 +124,7 @@ begin
     (sbs) get 0 exch {add} forall /linwidth exch def
 
     %
-    % Create 2D part and determine type
+    % Generate metrics for the 2D part
     %
     options (lintype) (gs1-128) put
     options (linwidth) linwidth put
@@ -133,7 +133,7 @@ begin
     compsym (borderbottom) 0 put
 
     %
-    % Plot linear part
+    % Generate metrics for the linear part
     %
     linktype (a) eq {
         options (linkagea) true put
@@ -155,7 +155,7 @@ begin
     counttomark 1 sub array astore /sep exch def pop pop
 
     %
-    % Plot the 2D part
+    % Construct the composite symbol from the linear and 2D parts
     %
     linktype (a) eq {
         /s linwidth 2 sub 11 idiv def
