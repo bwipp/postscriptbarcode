@@ -41,9 +41,10 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
 begin
@@ -59,7 +60,17 @@ begin
     /text1size 10.0 def
     /text1xoffset 0.0 def
     /text1yoffset -3.5 def
-    /height 0.5 def
+    /height -1.0 def
+    /propspec false def
+    /physspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
     /showborder true def
     /borderwidth 4.0 def
     /borderleft 10.0 def
@@ -122,6 +133,12 @@ begin
     } ifelse
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /itf14 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_physspec //render exec
+
+    %
     % Get the result of encoding with interleaved2of5
     %
     options (showborder) showborder put
@@ -130,8 +147,17 @@ begin
     options (borderright) borderright put
     options (bordertop) bordertop put
     options (borderbottom) borderbottom put
+    height -1.0 eq propspec not and { /height 0.5 def } if
     options (height) height put
     options (text1yoffset) text1yoffset put
+    options (propspec) propspec put
+    options (physspec) physspec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom put
+    options (modunit) modunit put
 
     /uk.co.terryburton.bwipp._dontdraw true def
     barcode options //interleaved2of5 exec /args exch def
