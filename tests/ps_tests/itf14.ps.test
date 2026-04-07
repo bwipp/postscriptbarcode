@@ -64,10 +64,12 @@
 %
 % bestfit: output matches physspec through wrapper
 %
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/tmp uk.co.terryburton.bwipp.global_ctx def
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { (0952876543210) (dontdraw) itf14 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
 { (0952876543210) (dontdraw) itf14 /bhs get 0 get 1 array astore } [0.8909] isEqual
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % physspec mag through wrapper: mag consumed at outer layer
@@ -83,4 +85,7 @@
 %
 % bestfit + mag + gridfit through wrapper
 %
-{ 0 0 moveto (0952876543210) (bestfit mag=3 gridfit griddpi=72) itf14 true } true isEqual
+{
+    (0952876543210) (dontdraw bestfit mag=3 gridfit griddpi=72) itf14
+    dup /physspec get exch /bestfit get 2 array astore
+} [true true] isEqual

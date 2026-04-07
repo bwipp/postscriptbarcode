@@ -224,3 +224,12 @@
 
 % propspec with SST smoke test
 { 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (propspec) upcacomposite true } true isEqual
+
+
+%
+% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) () upcacomposite true } true isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def

@@ -229,12 +229,23 @@
 %
 % bestfit: output matches physspec through composite
 %
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/tmp uk.co.terryburton.bwipp.global_ctx def
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (dontdraw) ean13composite dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % ast consumed: does not leak to gs1-cc/micropdf417
 % (micropdf417 would error on ast=gs1.sst2 if it leaked)
 %
 { 0 0 moveto (9520123456788|\(21\)A1B2C3D4E5F6G7H8) (ast=gs1.sst2) ean13composite true } true isEqual
+
+
+%
+% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ 0 0 moveto (9520123456788|\(21\)A1B2C3D4E5F6G7H8) () ean13composite true } true isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def

@@ -236,4 +236,16 @@
 %
 % bestfit + mag + gridfit through composite
 %
-{ 0 0 moveto (95200002|\(21\)A12345678) (bestfit mag=3 gridfit griddpi=72) ean8composite true } true isEqual
+{
+    (95200002|\(21\)A12345678) (dontdraw bestfit mag=3 gridfit griddpi=72) ean8composite
+    dup /physspec get exch /bestfit get 2 array astore
+} [true true] isEqual
+
+
+%
+% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{ 0 0 moveto (95200002|\(21\)A12345678) () ean8composite true } true isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def

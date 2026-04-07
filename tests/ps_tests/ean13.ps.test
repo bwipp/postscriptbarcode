@@ -93,7 +93,7 @@
 %
 % physspec + width mutually exclusive (renlinear-specific)
 %
-{ 0 0 moveto (9520123456788) (physspec width=2) ean13 } /bwipp.renlinearPhysspecWidth isError
+{ (9520123456788) (dontdraw physspec width=2) ean13 } /bwipp.renderPhysspecDimOverride isError
 
 %
 % physspec with direct xdim override
@@ -148,9 +148,9 @@
 (9520123456788)  (physspec ast=gs1.sst2)  ok_tmpl
 
 %
-% physspec overrides user-supplied height (spec dimensions take precedence)
+% physspec + height is an error
 %
-{ (9520123456788) (dontdraw physspec height=0.5) ean13 /bhs get 0 get 1 array astore } [0.9617] isEqual
+{ (9520123456788) (dontdraw physspec height=0.5) ean13 } /bwipp.renderPhysspecDimOverride isError
 
 %
 % propspec is no-op when user supplies height
@@ -160,24 +160,27 @@
 %
 % bestfit: output matches physspec for valid input
 %
+/tmp uk.co.terryburton.bwipp.global_ctx def
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { (9520123456788) (dontdraw) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
 { (9520123456788) (dontdraw) ean13 /bhs get 0 get 1 array astore } [0.9617] isEqual
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % bestfit: bounds violation renders without error
 %
+/tmp uk.co.terryburton.bwipp.global_ctx def
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { (9520123456788) (dontdraw xdim=0.200) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.200] isEqual
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % bestfit + gridfit: renders when strict gridfit would fail on bounds
 %
-/uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { 0 0 moveto (9520123456788) (xdim=0.330 xmin=0.320 xmax=0.340 gridfit griddpi=72) ean13 true } true isEqual
-/uk.co.terryburton.bwipp.global_ctx << >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % bestfit + gridfit: both snaps out of bounds, picks closest to spec
@@ -186,11 +189,61 @@
 %
 { (9520123456788) (physspec xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 } /bwipp.renderGridfitXdimOutOfSpec isError
 
-/uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
 { 0 0 moveto (9520123456788) (xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 true } true isEqual
-/uk.co.terryburton.bwipp.global_ctx << >> def
+/uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % bestfit + mag + gridfit: no gridfit error when both snaps out of bounds
 %
 { 0 0 moveto (9520123456788) (includetext bestfit mag=5 gridfit griddpi=72) ean13 true } true isEqual
+
+%
+% bestfit + height: bestfit silently disables, physspec off, user height preserved
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+{
+    (9520123456788) (dontdraw bestfit height=0.5) ean13
+    dup /physspec get exch /bhs get 0 get 2 array astore
+} [false 0.5] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% bestfit + width: bestfit silently disables
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+{
+    (9520123456788) (dontdraw bestfit width=2) ean13
+    /physspec get 1 array astore
+} [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% physspec + height is an error
+%
+{ (9520123456788) (dontdraw physspec height=0.5) ean13 } /bwipp.renderPhysspecDimOverride isError
+
+%
+% physspec + width is an error
+%
+{ (9520123456788) (dontdraw physspec width=2) ean13 } /bwipp.renderPhysspecDimOverride isError
+
+%
+% bestfit + mag + gridfit: bestfit and physspec active
+%
+{
+    (9520123456788) (dontdraw bestfit mag=5 gridfit griddpi=72) ean13
+    dup /physspec get exch /bestfit get 2 array astore
+} [true true] isEqual
+
+%
+% bestfit via global_ctx + gridfit
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{
+    (9520123456788) (dontdraw xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13
+    dup /physspec get exch /bestfit get 2 array astore
+} [true true] isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def

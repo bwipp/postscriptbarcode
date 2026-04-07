@@ -462,3 +462,14 @@
 % ast consumed: does not leak to gs1-cc/pdf417
 %
 { 0 0 moveto (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (ast=gs1.sst2 ccversion=c) gs1-128composite true } true isEqual
+
+%
+% bestfit via global_ctx does not leak to gs1-cc
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+{
+    (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ast=gs1.sst2 ccversion=c) gs1-128composite
+    dup /physspec get exch /bestfit get 2 array astore
+} [true true] isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def
