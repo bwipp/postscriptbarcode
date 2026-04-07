@@ -707,11 +707,11 @@ begin
     /max exch def /min exch def /dim exch def
     min -1 ne dim min lt and {
         /bwipp.renderXdimTooSmall
-        [ (Effective X-dimension ) dim 20 string cvs (mm is below xmin ) min 20 string cvs (mm) ]
+        [ (Effective X-dimension ) dim 20 string cvs (mm is below the minimum ) min 20 string cvs (mm for the ast) ]
     } {
         max -1 ne dim max gt and {
             /bwipp.renderXdimTooLarge
-            [ (Effective X-dimension ) dim 20 string cvs (mm is above xmax ) max 20 string cvs (mm) ]
+            [ (Effective X-dimension ) dim 20 string cvs (mm is above the maximum ) max 20 string cvs (mm for the ast) ]
         } {
             null null  % Sentinel: ok
         } ifelse
@@ -734,19 +734,19 @@ begin
             currentdict /width known { width 0 ne } { false } ifelse
             or {
                 bestfit { /bestfit false def /physspec false def } {
-                    /bwipp.renderPhysspecDimOverride (physspec is incompatible with user-supplied height or width) //raiseerror exec
+                    /bwipp.renderPhysspecDimOverride (width and height options are not compatible with physspec; use xdim and hdim to directly specify physical dimensions) //raiseerror exec
                 } ifelse
             } if
         } if
     } if
     physspec {
         mag 1.0 ne xdim -1 ne currentdict /hdim known { hdim -1 ne } { false } ifelse or and {
-            /bwipp.renderMagExclusive (mag is mutually exclusive with xdim and hdim) //raiseerror exec
+            /bwipp.renderMagExclusive (use either mag \(to scale nominal dimensions\) or explicit xdim/hdim options, not both) //raiseerror exec
         } if
         xdim -1 eq {
             xnom -1 eq {
                 bestfit { /physspec false def } {
-                    /bwipp.renderNeedXnom (physspec requires xnom or xdim to be defined) //raiseerror exec
+                    /bwipp.renderNeedXnom (physspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
                 } ifelse
             } if
             physspec { /xdim xnom mag mul def } if
@@ -772,7 +772,7 @@ begin
 /render.resolve_height {
     hnom -1 ne physspec propspec height -1.0 eq and or and {
         xnom -1 eq {
-            /bwipp.renderHnomNeedXnom (hnom requires xnom to be defined) //raiseerror exec
+            /bwipp.renderHnomNeedXnom (Proportional bar height derivation requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
         } if
         hnom xnom div modunit mul
             physspec not { round } if  % Pixel-lock derived height
@@ -883,9 +883,9 @@ begin
                         eff1 dist eff2 dist lt { /snapped snap1 def } if
                     } {
                         /bwipp.renderGridfitXdimOutOfSpec
-                        [ (No gridfit possible for X-dimension between xmin=)
-                          xmin 20 string cvs (mm and xmax=)
-                          xmax 20 string cvs (mm at )
+                        [ (No X-dimension within the permissible range )
+                          xmin 20 string cvs ( to )
+                          xmax 20 string cvs (mm produces a fixed pixel grid at )
                           griddpi cvi 20 string cvs ( DPI)
                         ] dup 0 exch {length add} forall string
                         exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
