@@ -639,7 +639,9 @@ physical specification dimensions.
   remain pixel-locked at 72 DPI — the user applies a single scale factor
   to hit both their target X-dimension and resolution. Silently falls back
   to default height when `hnom` is not available (harmless no-op).
-  User-supplied `height` overrides the derived value. EPS-safe.
+  User-supplied `height` acts as a multiplier on the derived value
+  (e.g. `height=1.5` for 150% of spec height; `height=1.0` is identity).
+  EPS-safe.
 
 - **`strictspec`**: The renderer scales the symbol to physical spec
   dimensions derived from `xnom` (or explicit `xdim`). Bar height is
@@ -704,9 +706,12 @@ is not found, `default` silently passes; non-default profiles error.
   silently disables `strictspec` when `xnom`/`xdim` missing, suppresses
   bounds errors
 - `resolve_height` — pure function, returns derived height on the stack
-  (or current `height` if not applicable). Derives when
-  `hnom != -1 AND (strictspec OR (propspec AND height == sentinel))`.
-  Pixel-locks (rounds) under propspec; not under strictspec.
+  (or current `height` if not applicable). Under strictspec with `hdim`,
+  derives from `hdim/xdim`. Otherwise derives from `hnom/xnom` when
+  `hnom != -1 AND (strictspec OR propspec)`. Pixel-locks (rounds) under
+  propspec; not under strictspec. Under propspec, `height` acts as a
+  multiplier on the derived value (1.0 = identity); under strictspec,
+  `height` is not permitted (use `hdim`).
 - `validate_xdim` — low-level `xdim xmin xmax` bounds check; returns `true`
   or `/errorname (info) false` with formatted error string
 

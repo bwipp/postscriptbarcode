@@ -161,7 +161,7 @@
 } [0.9617] isEqual
 
 %
-% resolve_height: propspec with user-set height returns user height
+% resolve_height: propspec with user height applies as multiplier
 %
 {
     7 dict begin
@@ -170,7 +170,31 @@
     /resolve_height render
     1 array astore
     end
-} [0.5] isEqual
+} [0.4792] isEqual
+
+%
+% resolve_height: propspec height=1.0 is identity
+%
+{
+    7 dict begin
+    /propspec true def /strictspec false def /height 1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9583] isEqual
+
+%
+% resolve_height: propspec height=1.5 scales up
+%
+{
+    7 dict begin
+    /propspec true def /strictspec false def /height 1.5 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [1.4375] isEqual
 
 %
 % resolve_height: returns sentinel when hnom is -1

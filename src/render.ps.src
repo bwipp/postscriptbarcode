@@ -809,13 +809,14 @@ begin
         % strictspec with resolved hdim: derive from hdim/xdim
         hdim xdim div modunit mul 72 div
     } {
-        hnom -1 ne strictspec propspec height -1.0 eq and or and {
+        hnom -1 ne strictspec propspec or and {
             xnom -1 eq {
                 /bwipp.renderHnomNeedXnom (Proportional bar height derivation requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
             } if
             hnom xnom div modunit mul
                 strictspec not { round } if  % Pixel-lock derived height
             72 div
+            propspec { height -1.0 ne { height mul } if } if  % height is a multiplier under propspec
         } {
             height
         } ifelse
