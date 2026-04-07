@@ -359,3 +359,76 @@
     physspec 1 array astore
     end
 } [false] isEqual
+
+%
+% global_encoder_defaults: bestfit from global_ctx implies physspec
+%
+{
+    8 dict begin
+    /propspec false def /bestfit false def /physspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+    /global_encoder_defaults render
+    physspec bestfit 2 array astore
+    end
+} [true true] isEqual
+
+%
+% global_encoder_defaults: physspec from global_ctx
+%
+{
+    8 dict begin
+    /propspec false def /bestfit false def /physspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /physspec true >> def
+    /global_encoder_defaults render
+    physspec bestfit 2 array astore
+    end
+} [true false] isEqual
+
+%
+% global_encoder_defaults: propspec from global_ctx
+%
+{
+    8 dict begin
+    /propspec false def /bestfit false def /physspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /propspec true >> def
+    /global_encoder_defaults render
+    propspec physspec 2 array astore
+    end
+} [true false] isEqual
+
+%
+% global_encoder_defaults: user option overrides (not downgraded by global_ctx)
+%
+{
+    8 dict begin
+    /propspec true def /bestfit false def /physspec true def
+    /uk.co.terryburton.bwipp.global_ctx << >> def
+    /global_encoder_defaults render
+    physspec propspec 2 array astore
+    end
+} [true true] isEqual
+
+%
+% global_encoder_defaults: suppressed by _dontdraw (sub-encoder)
+%
+{
+    8 dict begin
+    /propspec false def /bestfit false def /physspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /bestfit true /propspec true >> def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /global_encoder_defaults render
+    physspec propspec bestfit 3 array astore
+    end
+} [false false false] isEqual
+
+%
+% global_encoder_defaults: not suppressed without _dontdraw
+%
+{
+    8 dict begin
+    /propspec false def /bestfit false def /physspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /bestfit true /propspec true >> def
+    /global_encoder_defaults render
+    physspec propspec bestfit 3 array astore
+    end
+} [true true true] isEqual

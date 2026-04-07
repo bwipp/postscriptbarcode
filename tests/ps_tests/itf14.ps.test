@@ -68,3 +68,14 @@
 { (0952876543210) (dontdraw) itf14 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
 { (0952876543210) (dontdraw) itf14 /bhs get 0 get 1 array astore } [0.8909] isEqual
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
+
+%
+% physspec mag through wrapper: mag consumed at outer layer
+%
+{ 0 0 moveto (0952876543210) (physspec mag=1.5) itf14 true } true isEqual
+
+%
+% ast consumed: does not leak to interleaved2of5
+% (interleaved2of5 would error on ast=gs1.sst2 if it leaked)
+%
+{ 0 0 moveto (0952876543210) (ast=gs1.sst2) itf14 true } true isEqual
