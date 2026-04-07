@@ -53,7 +53,7 @@
 (THIS IS CODE 39)  (propspec)  ok_tmpl
 
 % AST bounds: xdim below xmin fails
-{ (THIS IS CODE 39) (dontdraw physspec xdim=0.100) code39 } /bwipp.renderXdimTooSmall isError
+{ (THIS IS CODE 39) (dontdraw strictspec xdim=0.100) code39 } /bwipp.renderXdimTooSmall isError
 
 %
 % propspec: no-op when AST has no hnom
@@ -62,11 +62,11 @@
 { (TEST) (dontdraw propspec height=0.5) code39 /bhs get 0 get 1 array astore } [0.5] isEqual
 
 %
-% bestfit: falls back to default when no xnom available
+% loosespec: falls back to default when no xnom available
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (TEST) (dontdraw) code39 /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (TEST) (dontdraw) code39 /strictspec get 1 array astore } [false] isEqual
 { (TEST) (dontdraw) code39 /bhs get 0 get 1 array astore } [1.0] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

@@ -11,55 +11,55 @@
 %
 % Smoke test: simple round, no spec bounds, uniform scaling
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0 -1 -1 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0 -1 -1 false false /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: simple round, no spec bounds, independent y
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0 -1 -1 false true /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0 -1 -1 false true /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: floor mode, no spec bounds, uniform scaling
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0 -1 -1 true false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0 -1 -1 true false /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: even magnitude, no spec bounds, uniform (MaxiCode)
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 2 0 -1 -1 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 2 0 -1 -1 false false /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: auto-detect (griddpi=0, nullpage disables)
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 0 def 1 0 -1 -1 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 0 def 1 0 -1 -1 false false /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: spec bounds, within range
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0.330 0.264 0.660 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.330 0.264 0.660 false false /gridfit render end grestore } true isEqual
 
 %
 % Smoke test: spec bounds, no min/max
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0.330 -1 -1 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.330 -1 -1 false false /gridfit render end grestore } true isEqual
 
 %
 % Round goes below xmin, ceiling saves it
 % 300 DPI: xdim=0.280 -> 3.307 dev px, round=3, eff=0.254 < xmin=0.260; ceil=4, eff=0.339 OK
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0.280 0.260 0.400 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.280 0.260 0.400 false false /gridfit render end grestore } true isEqual
 
 %
 % Round goes above xmax, floor saves it
 % 200 DPI: xdim=0.380 -> 2.992 dev px, round=3, eff=0.381 > xmax=0.379; floor=2, eff=0.254 OK
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 200 def 1 0.380 0.200 0.379 false false /gridfit render end grestore } true isEqual
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 200 def 1 0.380 0.200 0.379 false false /gridfit render end grestore } true isEqual
 
 %
 % Gridfit out of spec: impossibly tight bounds
 %
 % Returns errorname on failure: check it
 %
-{ gsave 0 0 moveto 10 dict begin /bestfit false def /griddpi 300 def 1 0.330 0.3295 0.3305 false false /gridfit render end
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.330 0.3295 0.3305 false false /gridfit render end
   not { pop grestore } if  % Discard info string, grestore
 } /bwipp.renderGridfitXdimOutOfSpec isEqual

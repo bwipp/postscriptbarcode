@@ -125,54 +125,54 @@
 { (\(01\)09521234543213) (dontdraw) databaromnicomposite } /bwipp.missingCompositeComponent isError
 
 %
-% Smoke test: physspec renders without error
+% Smoke test: strictspec renders without error
 %
 /ok_tmpl {
     { 0 0 moveto 0 0 databaromnicomposite true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
     true isEqual
 } def
-(\(01\)09521234543213|\(11\)990102)  (physspec xdim=0.330)  ok_tmpl
+(\(01\)09521234543213|\(11\)990102)  (strictspec xdim=0.330)  ok_tmpl
 
 % AST bounds: xdim below xmin fails
-{ (\(01\)09521234543213|\(11\)990102) (dontdraw physspec xdim=0.100) databaromnicomposite } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213|\(11\)990102) (dontdraw strictspec xdim=0.100) databaromnicomposite } /bwipp.renderXdimTooSmall isError
 
-% physspec with SST smoke test
-{ 0 0 moveto (\(01\)09521234543213|\(11\)990102) (physspec ast=gs1.sst1) databaromnicomposite true } true isEqual
+% strictspec with SST smoke test
+{ 0 0 moveto (\(01\)09521234543213|\(11\)990102) (strictspec ast=gs1.sst1) databaromnicomposite true } true isEqual
 
 % propspec with SST smoke test
 { 0 0 moveto (\(01\)09521234543213|\(11\)990102) (propspec ast=gs1.sst1) databaromnicomposite true } true isEqual
 
 %
-% physspec with SST: xdim resolves from xnom through composite → databaromni
+% strictspec with SST: xdim resolves from xnom through composite → databaromni
 %
 {
-    (\(01\)09521234543213|\(11\)990102) (dontdraw physspec ast=gs1.sst1) databaromnicomposite
-    dup /physspec get exch /xdim get 2 array astore
+    (\(01\)09521234543213|\(11\)990102) (dontdraw strictspec ast=gs1.sst1) databaromnicomposite
+    dup /strictspec get exch /xdim get 2 array astore
 } [true 0.330] isEqual
 
 %
-% bestfit: falls back when default AST has no xnom
+% loosespec: falls back when default AST has no xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (\(01\)09521234543213|\(11\)990102) (dontdraw) databaromnicomposite /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (\(01\)09521234543213|\(11\)990102) (dontdraw) databaromnicomposite /strictspec get 1 array astore } [false] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit: activates with SST that provides xnom
+% loosespec: activates with SST that provides xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (\(01\)09521234543213|\(11\)990102) (dontdraw ast=gs1.sst1) databaromnicomposite dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (\(01\)09521234543213|\(11\)990102) (dontdraw ast=gs1.sst1) databaromnicomposite dup /strictspec get exch /xdim get 2 array astore } [true 0.330] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 
 %
-% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+% loosespec via global_ctx: does not leak to gs1-cc (would error on missing xnom)
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 { 0 0 moveto (\(01\)09521234543213|\(11\)990102) () databaromnicomposite true } true isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

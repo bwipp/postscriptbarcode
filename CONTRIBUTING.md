@@ -123,6 +123,9 @@ containing optional keys that affect the behaviour of BWIPP:
 - `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
 - `hooks`          - Dictionary of hook procedures for debugging purposes, including profiling
 - `default_*`      - Defaults for certain renderer options set by the user, e.g. `default_barcolor`
+- `loosespec`        - Enable best-fit specification mode globally (implies `strictspec`, lenient)
+- `strictspec`       - Enable strict physical specification mode globally
+- `propspec`       - Enable proportional specification mode globally (linear only)
 
 For example:
 
@@ -360,7 +363,7 @@ Example for an encoder:
     % 5. Apply AST spec overrides and resolve physical specification
     %
     /encoder ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
 
     %
     % 6. Main encoding logic using //encoder.staticdata and loaded data from latevars
@@ -388,7 +391,7 @@ Example for an encoder:
         /ren /renlinear  % or /renmatrix, /renmaximatrix
         % /sbs [...]     % 1D: space-bar-space widths
         % /pixs [...]    % 2D: row-major pixel array
-        /physspec physspec
+        /strictspec strictspec
         /xdim xdim
         /xmin xmin
         /xmax xmax
@@ -587,7 +590,7 @@ pixel-locking at 72 DPI:
   on a square grid.
 
 External scaling or the `width`/`height` options resize from these defaults.
-The `physspec` system (below) provides an alternative path that renders at
+The `strictspec` system (below) provides an alternative path that renders at
 specification-accurate physical dimensions.
 
 
@@ -605,7 +608,7 @@ cause gridfit to silently skip via the `hwxres` guard.
 **Rounding modes:**
 - Default: round to nearest whole pixel per module
 - `width` forced (renlinear only): floor, to avoid exceeding requested width
-- `physspec` with spec bounds: smart rounding — try round first; if the
+- `strictspec` with spec bounds: smart rounding — try round first; if the
   effective X-dimension falls outside `xmin`/`xmax`, try the alternate
   direction; if neither fits, return `/errorname (info) false` to the caller
 
@@ -616,7 +619,7 @@ error via `raiseerror`.
 
 **EPS safety:** When `gridfit` is not enabled (and `griddpi` is not set), no
 device-dependent operators (`defaultmatrix`, `dtransform`) are executed.
-`physspec` without gridfit is fully EPS-safe.
+`strictspec` without gridfit is fully EPS-safe.
 
 
 ### Physical Specification System (`render.ps.src`, encoders)
@@ -624,62 +627,155 @@ device-dependent operators (`defaultmatrix`, `dtransform`) are executed.
 Shared helpers in the `render` resource enable encoders to generate output at
 physical specification dimensions.
 
-**Options:** `physspec` (bool), `propspec` (bool, linear only), `mag` (real,
-default 1.0), `xdim` (mm), `hdim` (mm), `ast` (string, default `(default)`),
-`xnom`/`hnom`/`xmin`/`xmax` (mm, sentinel -1.0), `modunit` (int).
+**Specification modes** control how symbology dimensions relate to spec:
 
-**Encoder integration pattern** (see `ean13.ps.src` for linear,
-`qrcode.ps.src` for matrix):
+- **No spec** (default): 1pt per module. Encoder's default bar height.
+  Modules land on pixel boundaries at 72 DPI. The user scales externally
+  to reach their target X-dimension.
 
-1. Declare spec options with -1.0 sentinels after encoder-specific options
-2. After input validation, call AST and physspec resolution:
-   ```postscript
-   /ENCODER ast /apply_ast //render exec not { //raiseerror exec } if
-   /resolve_physspec //render exec
-   ```
-3. For linear encoders, call `/resolve_height //render exec` before bhs/bbs
-4. Pass `physspec`, `xdim`, `xmin`, `xmax`, `modunit` in the intermediate dict
+- **`propspec`** (linear only): 1pt per module, but bar height is derived
+  from the spec ratio `hnom/xnom`, rounded to a whole number of points
+  (pixel-locked). The coordinate system stays at 1pt-per-module so modules
+  remain pixel-locked at 72 DPI — the user applies a single scale factor
+  to hit both their target X-dimension and resolution. Silently falls back
+  to default height when `hnom` is not available (harmless no-op).
+  User-supplied `height` overrides the derived value. EPS-safe.
 
-**Linear encoders** add `propspec`, `hdim`, `hnom` and call `resolve_height`.
-**Matrix encoders** omit these; `modunit` is typically 2 (1 for stacked-linear
-types such as pdf417, micropdf417, codablockf, code16k, code49).
+- **`strictspec`**: The renderer scales the symbol to physical spec
+  dimensions derived from `xnom` (or explicit `xdim`). Bar height is
+  derived from `hnom/xnom` (not pixel-locked). The output is at the
+  correct absolute size for direct placement in a page layout. Use with
+  `gridfit`/`griddpi` to additionally snap to device pixels for bitmap
+  output. EPS-safe without gridfit. `gridfit` without explicit `griddpi`
+  probes the device via `defaultmatrix`/`dtransform` (not EPS-safe).
+  Strict: errors if `xnom`/`xdim` missing or effective X outside bounds.
+
+- **`loosespec`**: Implies `strictspec`. Lenient variant that silently falls
+  back to default dimensions when `xnom`/`xdim` is missing, suppresses
+  bounds violations, and picks the closest-to-spec gridfit snap when
+  neither rounding direction is in-spec. The recommended mode for
+  general-purpose output.
+
+`propspec` exists because `strictspec` changes the coordinate system away
+from 1pt-per-module, which makes external scaling for bitmap generation
+less predictable. `propspec` retains the 1pt base while applying the spec
+height ratio — the only spec-aware mode that is fully EPS-safe and
+naturally pixel-locked.
+
+All three modes (`strictspec`, `propspec`, `loosespec`) can be set per-symbol
+via options or globally via `global_ctx`. Each encoder reads global
+defaults via the `global_encoder_defaults` dispatch helper, guarded by
+`_dontdraw` so that sub-encoders called by wrappers do not re-read
+global defaults. Typical global configurations:
+
+```postscript
+/uk.co.terryburton.bwipp.global_ctx << /loosespec true >> def                  % General purpose (vector, EPS)
+/uk.co.terryburton.bwipp.global_ctx << /loosespec true /gridfit true >> def    % Bitmap output
+/uk.co.terryburton.bwipp.global_ctx << /strictspec true >> def                 % Strict validation
+```
+
+**Options:** `strictspec` (bool), `propspec` (bool, linear only), `loosespec`
+(bool), `mag` (real, default 1.0), `xdim` (mm), `hdim` (mm), `ast`
+(string, default `(default)`), `xnom`/`hnom`/`xmin`/`xmax` (mm, sentinel
+-1.0), `modunit` (int). `height` defaults to -1.0 (sentinel); each
+encoder falls back to its own default when the sentinel survives.
 
 **Application Specification Tables (ASTs):** `render.ast` is a static readonly
 dict mapping encoder names to named spec profiles (GS1 SSTs 1-13, ISO
 defaults). Entries may share dicts via `index` to reduce allocation.
 `apply_ast` fills -1.0 sentinel values from the selected profile into the
 caller's dict using `currentdict`; user-provided values (non-sentinel) are
-preserved. GS1 wrappers must put their `ast` value into `options` so the
-inner encoder's `apply_ast` uses the wrapper's AST context rather than its
-own default.
+preserved. When the encoder is in the AST table but the requested profile
+is not found, `default` silently passes; non-default profiles error.
 
 **Helpers in render (dispatch table):**
 
+- `global_encoder_defaults` — reads `loosespec`, `strictspec`, `propspec` from
+  `global_ctx` when local values are false; guarded by `_dontdraw` to
+  prevent sub-encoders from re-reading. `loosespec` implies `strictspec`.
+- `global_renderer_defaults` — reads `default_barcolor`,
+  `default_backgroundcolor`, `default_bordercolor`, `default_inkspread`,
+  `default_griddpi`, `default_gridfit` from `global_ctx`
 - `apply_ast` — fills spec sentinels from AST; returns `true` or
   `/errorname (info) false`
-- `resolve_physspec` — validates `mag`/`xdim` exclusivity, resolves `xdim`
+- `resolve_strictspec` — validates `mag`/`xdim` exclusivity, resolves `xdim`
   from `xnom * mag`, resolves `hdim` from `hnom * mag` (if defined in
-  caller's dict), validates bounds via `validate_xdim`
-- `resolve_height` — sets linear `height` from `hnom/xnom * modunit / 72`
-  ratio; only runs when `propspec` or `physspec` is active and `hnom` is
-  defined
+  caller's dict), validates bounds via `validate_xdim`. Under `loosespec`:
+  silently disables `strictspec` when `xnom`/`xdim` missing, suppresses
+  bounds errors
+- `resolve_height` — pure function, returns derived height on the stack
+  (or current `height` if not applicable). Derives when
+  `hnom != -1 AND (strictspec OR (propspec AND height == sentinel))`.
+  Pixel-locks (rounds) under propspec; not under strictspec.
 - `validate_xdim` — low-level `xdim xmin xmax` bounds check; returns `true`
   or `/errorname (info) false` with formatted error string
 
+**Encoder integration pattern** (see `ean13.ps.src` for linear,
+`qrcode.ps.src` for matrix):
+
+1. Declare spec options with -1.0 sentinels (including `height`,
+   `loosespec`, `propspec`, `strictspec`)
+2. After processoptions, apply global defaults:
+   ```postscript
+   /apply //processoptions exec /options exch def
+   /global_encoder_defaults //render exec
+   ```
+3. After input validation, call AST and strictspec resolution:
+   ```postscript
+   /ENCODER ast /apply_ast //render exec not { //raiseerror exec } if
+   /resolve_strictspec //render exec
+   ```
+4. For linear encoders, resolve height with fallback to encoder default:
+   ```postscript
+   /height /resolve_height //render exec dup -1 eq { pop <default> } if def
+   ```
+5. Pass `strictspec`, `loosespec`, `xdim`, `xmin`, `xmax`, `modunit` in the
+   intermediate dict
+
+**Linear encoders** add `propspec`, `hdim`, `hnom` and call `resolve_height`.
+**Matrix encoders** omit these; `modunit` is typically 2 (1 for stacked-linear
+types such as pdf417, micropdf417, codablockf, code16k, code49).
+
 **Renderer scaling:** Each renderer applies `xdim 72 mul 25.4 div modunit div
-dup scale` when `physspec` is true. `renmaximatrix` divides additionally by
+dup scale` when `strictspec` is true. `renmaximatrix` divides additionally by
 its existing 2.4945 scale factor.
 
-**Inkspread under physspec:** Renderers adjust inkspread to maintain a fixed
+**Inkspread under strictspec:** Renderers adjust inkspread to maintain a fixed
 physical amount (mm) rather than a proportional reduction. For `renlinear`,
 the adjustment is applied before bar width computation (since bars are
 pre-computed into the `bars` array). For `renmatrix` and `renmaximatrix`, it
-is applied after the physspec scale, before module rendering.
+is applied after the strictspec scale, before module rendering.
 
-**Wrappers:** Simple wrappers (isbn, code32, etc.) need no spec changes —
-options flow through via the `options` dict to the inner encoder. GS1 wrappers
-that tighten bounds must declare spec options and explicitly put them into
-`options` before calling the inner encoder (see `gs1qrcode.ps.src`).
+**Wrapper framework:** The outermost encoder consumes the AST. All wrappers
+that have their own AST entry must:
+
+1. Declare spec options (including `propspec`, `hnom`, `ast`)
+2. Call `apply_ast` under their own encoder name
+3. Call `resolve_strictspec`
+4. `options (ast) undef` and `options (mag) undef` — consumed, do not
+   leak to inner encoder
+5. Put all resolved spec values into `options` for the inner encoder
+6. For wrappers with a non-1.0 height default: fall back only when the
+   sentinel survives and propspec won't derive:
+   ```postscript
+   height -1.0 eq { propspec hnom -1 ne and not { /height <default> def } if } if
+   ```
+
+Simple wrappers without their own AST (code32, hibccode128, etc.) need no
+spec handling — options flow through transparently. Their `height` should
+default to -1.0 (sentinel) so propspec/strictspec can derive via the inner
+encoder.
+
+**Composite wrappers** call both a linear encoder and gs1-cc. Spec options
+must reach the linear encoder but NOT gs1-cc (the 2D component has
+independent scaling). Strip `strictspec`/`propspec` from options after the
+linear encoder call and before the gs1-cc call:
+```postscript
+options (strictspec) undef
+options (propspec) undef
+```
+For `gs1-128composite` which uses `<< options {} forall >>` clones, strip
+from the clone passed to gs1-cc.
 
 
 ## Performance

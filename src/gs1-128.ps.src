@@ -69,8 +69,8 @@ begin
     /dontlint false def
     /lintreqs false def
     /propspec false def
-    /bestfit false def
-    /physspec false def
+    /loosespec false def
+    /strictspec false def
     /mag 1.0 def
     /xdim -1.0 def
     /ast (default) def
@@ -144,7 +144,7 @@ begin
     % Apply AST spec overrides and resolve physical specification
     %
     /gs1-128 ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
     height -1.0 eq { propspec hnom -1 ne and not { /height 0.5 def } if } if
 
     %
@@ -154,8 +154,8 @@ begin
     options (height) height put
     options (parsefnc) true put
     options (propspec) propspec put
-    options (physspec) physspec put
-    options (bestfit) bestfit put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
     options (xdim) xdim put
     options (ast) undef
     options (mag) undef

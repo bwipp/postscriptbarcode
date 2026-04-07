@@ -34,23 +34,23 @@
 
 { 501 string (dontdraw) gs1-128 } /bwipp.gs1128inputTooLong isError
 
-% physspec smoke test
-{ 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext physspec xdim=0.330) gs1-128 true } true isEqual
+% strictspec smoke test
+{ 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext strictspec xdim=0.330) gs1-128 true } true isEqual
 
 %
 % AST bounds (default): xdim below xmin (0.170) fails
 %
-{ (\(01\)09521234543213) (dontdraw physspec xdim=0.100) gs1-128 } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213) (dontdraw strictspec xdim=0.100) gs1-128 } /bwipp.renderXdimTooSmall isError
 
 %
 % AST bounds (default): xdim above xmax (1.016) fails
 %
-{ (\(01\)09521234543213) (dontdraw physspec xdim=1.100) gs1-128 } /bwipp.renderXdimTooLarge isError
+{ (\(01\)09521234543213) (dontdraw strictspec xdim=1.100) gs1-128 } /bwipp.renderXdimTooLarge isError
 
 %
 % AST bounds (gs1.sst2): tighter xmin (0.495) applied via wrapper AST
 %
-{ (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst2 xdim=0.330) gs1-128 } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213) (dontdraw strictspec ast=gs1.sst2 xdim=0.330) gs1-128 } /bwipp.renderXdimTooSmall isError
 
 %
 % propspec: height derived from sst2 AST hnom/xnom through wrapper
@@ -68,34 +68,34 @@
 } [0.5] isEqual
 
 %
-% physspec with sst2: xdim resolves from xnom (0.495)
+% strictspec with sst2: xdim resolves from xnom (0.495)
 %
 {
-    (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst2) gs1-128 dup /physspec get exch /xdim get 2 array astore
+    (\(01\)09521234543213) (dontdraw strictspec ast=gs1.sst2) gs1-128 dup /strictspec get exch /xdim get 2 array astore
 } [true 0.495] isEqual
 
 % propspec + user height with SST: user wins
 { (\(01\)09521234543213) (dontdraw propspec ast=gs1.sst2 height=0.3) gs1-128 /bhs get 0 get 1 array astore } [0.3] isEqual
 
 %
-% bestfit: falls back when default AST has no xnom
+% loosespec: falls back when default AST has no xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (\(01\)09521234543213\(3103\)000123) (dontdraw) gs1-128 /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (\(01\)09521234543213\(3103\)000123) (dontdraw) gs1-128 /strictspec get 1 array astore } [false] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit: activates with SST that provides xnom
+% loosespec: activates with SST that provides xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (\(01\)09521234543213\(3103\)000123) (dontdraw ast=gs1.sst2) gs1-128 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (\(01\)09521234543213\(3103\)000123) (dontdraw ast=gs1.sst2) gs1-128 dup /strictspec get exch /xdim get 2 array astore } [true 0.495] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
 % ast consumed: does not leak to code128
 %
-{ 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext ast=gs1.sst2) gs1-128 true } true isEqual
+{ 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext loosespec ast=gs1.sst2) gs1-128 true } true isEqual

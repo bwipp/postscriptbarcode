@@ -51,18 +51,18 @@
 (9012345678906)       [1 1 1 3 2 1 1 1 2 2 2 2 2 1 2 1 4 1 1 2 3 1 1 1 2 3 1 1 1 1 1 1 1 1 1 4 1 3 1 2 1 2 1 3 3 1 1 2 3 2 1 1 1 1 1 4 1 1 1] eq_tmpl
 
 %
-% physspec: specification metadata passed to renderer
+% strictspec: specification metadata passed to renderer
 %
-/physspec_tmpl {
-    3 1 roll { 0 0 ean13 dup /physspec get exch dup /xdim get exch /modunit get 3 array astore }
+/strictspec_tmpl {
+    3 1 roll { 0 0 ean13 dup /strictspec get exch dup /xdim get exch /modunit get 3 array astore }
     dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
     exch isEqual
 } def
-(9520123456788)  (dontdraw physspec)          [true 0.330 1]   physspec_tmpl
-(9520123456788)  (dontdraw physspec mag=2.0)  [true 0.660 1]   physspec_tmpl
+(9520123456788)  (dontdraw strictspec)          [true 0.330 1]   strictspec_tmpl
+(9520123456788)  (dontdraw strictspec mag=2.0)  [true 0.660 1]   strictspec_tmpl
 
 %
-% Smoke test: propspec and physspec render without error
+% Smoke test: propspec and strictspec render without error
 %
 /ok_tmpl {
     { 0 0 moveto 0 0 ean13 true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
@@ -77,43 +77,43 @@
 } [0.9583] isEqual
 
 %
-% physspec without explicit xdim resolves from AST xnom
+% strictspec without explicit xdim resolves from AST xnom
 %
-(9520123456788)  (dontdraw physspec)  [true 0.330 1]   physspec_tmpl
+(9520123456788)  (dontdraw strictspec)  [true 0.330 1]   strictspec_tmpl
 
 (9520123456788)  (includetext propspec)          ok_tmpl
-(9520123456788)  (includetext physspec)           ok_tmpl
-(9520123456788)  (includetext physspec mag=2.0)   ok_tmpl
+(9520123456788)  (includetext strictspec)           ok_tmpl
+(9520123456788)  (includetext strictspec mag=2.0)   ok_tmpl
 
 %
-% physspec with xnom=-1 overridden by AST default, so no error
+% strictspec with xnom=-1 overridden by AST default, so no error
 %
-(9520123456788)  (physspec xnom=-1)  ok_tmpl
+(9520123456788)  (strictspec xnom=-1)  ok_tmpl
 
 %
-% physspec + width mutually exclusive (renlinear-specific)
+% strictspec + width mutually exclusive (renlinear-specific)
 %
-{ (9520123456788) (dontdraw physspec width=2) ean13 } /bwipp.renderPhysspecDimOverride isError
+{ (9520123456788) (dontdraw strictspec width=2) ean13 } /bwipp.renderStrictspecDimOverride isError
 
 %
-% physspec with direct xdim override
+% strictspec with direct xdim override
 %
-(9520123456788)  (physspec xdim=0.400)  ok_tmpl
+(9520123456788)  (strictspec xdim=0.400)  ok_tmpl
 
 %
 % AST bounds: xdim below xmin (0.264) fails
 %
-{ (9520123456788) (dontdraw physspec xdim=0.200) ean13 } /bwipp.renderXdimTooSmall isError
+{ (9520123456788) (dontdraw strictspec xdim=0.200) ean13 } /bwipp.renderXdimTooSmall isError
 
 %
 % AST bounds: xdim above xmax (0.660) fails
 %
-{ (9520123456788) (dontdraw physspec xdim=0.700) ean13 } /bwipp.renderXdimTooLarge isError
+{ (9520123456788) (dontdraw strictspec xdim=0.700) ean13 } /bwipp.renderXdimTooLarge isError
 
 %
-% Addon with physspec renders without error
+% Addon with strictspec renders without error
 %
-(9520123456788 12345)  (includetext physspec)  ok_tmpl
+(9520123456788 12345)  (includetext strictspec)  ok_tmpl
 
 %
 % Regression: no spec options = default behaviour unchanged
@@ -128,14 +128,14 @@
     dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
     exch isEqual
 } def
-(9520123456788)  (dontdraw physspec)              [0.330]  ast_xdim_tmpl   % Default AST xnom
-(9520123456788)  (dontdraw physspec ast=gs1.sst2) [0.660]  ast_xdim_tmpl   % SST 2 xnom
-(9520123456788)  (dontdraw physspec mag=2.0)      [0.660]  ast_xdim_tmpl   % mag=2 * xnom=0.330
+(9520123456788)  (dontdraw strictspec)              [0.330]  ast_xdim_tmpl   % Default AST xnom
+(9520123456788)  (dontdraw strictspec ast=gs1.sst2) [0.660]  ast_xdim_tmpl   % SST 2 xnom
+(9520123456788)  (dontdraw strictspec mag=2.0)      [0.660]  ast_xdim_tmpl   % mag=2 * xnom=0.330
 
 %
 % AST: user override wins over AST
 %
-(9520123456788)  (dontdraw physspec xnom=0.500)    [0.500]  ast_xdim_tmpl   % User xnom override
+(9520123456788)  (dontdraw strictspec xnom=0.500)    [0.500]  ast_xdim_tmpl   % User xnom override
 
 %
 % AST: unknown AST should error
@@ -143,14 +143,14 @@
 { (9520123456788) (dontdraw ast=nonexistent) ean13 } /bwipp.renderUnknownAST isError
 
 %
-% AST: gs1.sst2 with physspec renders without error
+% AST: gs1.sst2 with strictspec renders without error
 %
-(9520123456788)  (physspec ast=gs1.sst2)  ok_tmpl
+(9520123456788)  (strictspec ast=gs1.sst2)  ok_tmpl
 
 %
-% physspec + height is an error
+% strictspec + height is an error
 %
-{ (9520123456788) (dontdraw physspec height=0.5) ean13 } /bwipp.renderPhysspecDimOverride isError
+{ (9520123456788) (dontdraw strictspec height=0.5) ean13 } /bwipp.renderStrictspecDimOverride isError
 
 %
 % propspec is no-op when user supplies height
@@ -158,92 +158,92 @@
 { (9520123456788) (dontdraw propspec height=0.5) ean13 /bhs get 0 get 1 array astore } [0.5] isEqual
 
 %
-% bestfit: output matches physspec for valid input
+% loosespec: output matches strictspec for valid input
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (9520123456788) (dontdraw) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.330] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (9520123456788) (dontdraw) ean13 dup /strictspec get exch /xdim get 2 array astore } [true 0.330] isEqual
 { (9520123456788) (dontdraw) ean13 /bhs get 0 get 1 array astore } [0.9617] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit: bounds violation renders without error
+% loosespec: bounds violation renders without error
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (9520123456788) (dontdraw xdim=0.200) ean13 dup /physspec get exch /xdim get 2 array astore } [true 0.200] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (9520123456788) (dontdraw xdim=0.200) ean13 dup /strictspec get exch /xdim get 2 array astore } [true 0.200] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit + gridfit: renders when strict gridfit would fail on bounds
+% loosespec + gridfit: renders when strict gridfit would fail on bounds
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 { 0 0 moveto (9520123456788) (xdim=0.330 xmin=0.320 xmax=0.340 gridfit griddpi=72) ean13 true } true isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit + gridfit: both snaps out of bounds, picks closest to spec
+% loosespec + gridfit: both snaps out of bounds, picks closest to spec
 % xdim=0.348 in [0.345,0.350]; at 200 DPI: snap to 3px (0.381mm>xmax) or 2px (0.254mm<xmin)
-% bestfit picks 3px (dist 0.031) over 2px (dist 0.091)
+% loosespec picks 3px (dist 0.031) over 2px (dist 0.091)
 %
-{ (9520123456788) (physspec xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 } /bwipp.renderGridfitXdimOutOfSpec isError
+{ (9520123456788) (strictspec xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 } /bwipp.renderGridfitXdimOutOfSpec isError
 
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 { 0 0 moveto (9520123456788) (xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13 true } true isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit + mag + gridfit: no gridfit error when both snaps out of bounds
+% loosespec + mag + gridfit: no gridfit error when both snaps out of bounds
 %
-{ 0 0 moveto (9520123456788) (includetext bestfit mag=5 gridfit griddpi=72) ean13 true } true isEqual
+{ 0 0 moveto (9520123456788) (includetext loosespec mag=5 gridfit griddpi=72) ean13 true } true isEqual
 
 %
-% bestfit + height: bestfit silently disables, physspec off, user height preserved
+% loosespec + height: loosespec silently disables, strictspec off, user height preserved
 %
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
 {
-    (9520123456788) (dontdraw bestfit height=0.5) ean13
-    dup /physspec get exch /bhs get 0 get 2 array astore
+    (9520123456788) (dontdraw loosespec height=0.5) ean13
+    dup /strictspec get exch /bhs get 0 get 2 array astore
 } [false 0.5] isEqual
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
 
 %
-% bestfit + width: bestfit silently disables
+% loosespec + width: loosespec silently disables
 %
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
 {
-    (9520123456788) (dontdraw bestfit width=2) ean13
-    /physspec get 1 array astore
+    (9520123456788) (dontdraw loosespec width=2) ean13
+    /strictspec get 1 array astore
 } [false] isEqual
 /uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true >> def
 
 %
-% physspec + height is an error
+% strictspec + height is an error
 %
-{ (9520123456788) (dontdraw physspec height=0.5) ean13 } /bwipp.renderPhysspecDimOverride isError
+{ (9520123456788) (dontdraw strictspec height=0.5) ean13 } /bwipp.renderStrictspecDimOverride isError
 
 %
-% physspec + width is an error
+% strictspec + width is an error
 %
-{ (9520123456788) (dontdraw physspec width=2) ean13 } /bwipp.renderPhysspecDimOverride isError
+{ (9520123456788) (dontdraw strictspec width=2) ean13 } /bwipp.renderStrictspecDimOverride isError
 
 %
-% bestfit + mag + gridfit: bestfit and physspec active
+% loosespec + mag + gridfit: loosespec and strictspec active
 %
 {
-    (9520123456788) (dontdraw bestfit mag=5 gridfit griddpi=72) ean13
-    dup /physspec get exch /bestfit get 2 array astore
+    (9520123456788) (dontdraw loosespec mag=5 gridfit griddpi=72) ean13
+    dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual
 
 %
-% bestfit via global_ctx + gridfit
+% loosespec via global_ctx + gridfit
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 {
     (9520123456788) (dontdraw xdim=0.348 xmin=0.345 xmax=0.350 gridfit griddpi=200) ean13
-    dup /physspec get exch /bestfit get 2 array astore
+    dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

@@ -99,8 +99,8 @@ begin
     /dontdraw false def
 
     /propspec false def
-    /bestfit false def
-    /physspec false def
+    /loosespec false def
+    /strictspec false def
     /width 0 def
     /mag 1.0 def
     /xdim -1.0 def
@@ -135,11 +135,11 @@ begin
     % Apply AST spec overrides and resolve physical specification
     %
     /symbol ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
 
     //symbol.symbols barcode get exec
-    dup /physspec physspec put
-    dup /bestfit bestfit put
+    dup /strictspec strictspec put
+    dup /loosespec loosespec put
     dup /xdim xdim put
     dup /xmin xmin put
     dup /xmax xmax put

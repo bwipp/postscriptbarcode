@@ -54,27 +54,27 @@
 
 { 4001 string (dontdraw) gs1qrcode } /bwipp.gs1qrcodeinputTooLong isError
 
-% physspec smoke test
-{ 0 0 moveto (\(01\)09521234543213\(8200\)http://www.abc.net\(10\)ABCD1234\(410\)9501101020917) (physspec xdim=0.500) gs1qrcode true } true isEqual
+% strictspec smoke test
+{ 0 0 moveto (\(01\)09521234543213\(8200\)http://www.abc.net\(10\)ABCD1234\(410\)9501101020917) (strictspec xdim=0.500) gs1qrcode true } true isEqual
 
 %
 % AST bounds (default): xdim below xmin (0.254) fails
 %
-{ (\(01\)09521234543213) (dontdraw physspec xdim=0.200) gs1qrcode } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213) (dontdraw strictspec xdim=0.200) gs1qrcode } /bwipp.renderXdimTooSmall isError
 
 %
 % AST bounds (default): xdim above xmax (3.500) fails
 %
-{ (\(01\)09521234543213) (dontdraw physspec xdim=4.000) gs1qrcode } /bwipp.renderXdimTooLarge isError
+{ (\(01\)09521234543213) (dontdraw strictspec xdim=4.000) gs1qrcode } /bwipp.renderXdimTooLarge isError
 
 %
 % AST bounds (gs1.sst1): tighter xmin (0.375) applied
 %
-{ (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst1 xdim=0.300) gs1qrcode } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213) (dontdraw strictspec ast=gs1.sst1 xdim=0.300) gs1qrcode } /bwipp.renderXdimTooSmall isError
 
 %
-% physspec with sst1: xdim resolves from xnom (0.625) through wrapper AST
+% strictspec with sst1: xdim resolves from xnom (0.625) through wrapper AST
 %
 {
-    (\(01\)09521234543213) (dontdraw physspec ast=gs1.sst1) gs1qrcode dup /physspec get exch /xdim get 2 array astore
+    (\(01\)09521234543213) (dontdraw strictspec ast=gs1.sst1) gs1qrcode dup /strictspec get exch /xdim get 2 array astore
 } [true 0.625] isEqual

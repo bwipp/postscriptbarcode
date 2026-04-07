@@ -174,8 +174,8 @@ begin
     /guardheight 7.0 def
     /gridfit false def
     /griddpi 0 def
-    /physspec false def
-    /bestfit false def
+    /strictspec false def
+    /loosespec false def
     /xdim -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
@@ -505,7 +505,7 @@ begin
     %
     % Scale to physical specification dimensions
     %
-    physspec {
+    strictspec {
         xdim 72 mul 25.4 div modunit div dup scale
         % Adjust inkspread to fixed physical amount
         modunit 25.4 mul xdim 72 mul div  % scale factor on stack
@@ -518,7 +518,7 @@ begin
     % Grid fit: snap module boundaries to device pixel grid
     %
     gridfit {
-        1 physspec { xdim xmin xmax } { 0 -1 -1 } ifelse
+        1 strictspec { xdim xmin xmax } { 0 -1 -1 } ifelse
         false true /gridfit //render exec
         not { grestore //raiseerror exec } if
     } if

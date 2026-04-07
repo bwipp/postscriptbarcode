@@ -60,8 +60,8 @@ begin
     /dontlint false def
     /lintreqs true def
     /propspec false def
-    /bestfit false def
-    /physspec false def
+    /loosespec false def
+    /strictspec false def
     /width 0 def
     /mag 1.0 def
     /xdim -1.0 def
@@ -97,12 +97,12 @@ begin
     % Apply AST spec overrides and resolve physical specification
     %
     /gs1-128composite ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
     options (ast) undef
     options (mag) undef
     options (propspec) propspec put
-    options (physspec) physspec put
-    options (bestfit) bestfit put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
     options (xdim) xdim put
     options (xnom) xnom put
     options (xmin) xmin put
@@ -134,7 +134,7 @@ begin
     %
     options (lintype) (gs1-128) put
     options (linwidth) linwidth put
-    comp << options {} forall >> dup (physspec) undef dup (propspec) undef dup (bestfit) undef //gs1-cc exec /compsym exch def
+    comp << options {} forall >> dup (strictspec) undef dup (propspec) undef dup (loosespec) undef //gs1-cc exec /compsym exch def
     compsym (pixx) get 99 eq {(a)} {(c)} ifelse /linktype exch def
     compsym (borderbottom) 0 put
 
@@ -251,8 +251,8 @@ begin
     /txt txt
     /text1xalign text1xalign
     /text1yalign text1yalign
-    /physspec physspec
-    /bestfit bestfit
+    /strictspec strictspec
+    /loosespec loosespec
     /xdim xdim
     /xmin xmin
     /xmax xmax

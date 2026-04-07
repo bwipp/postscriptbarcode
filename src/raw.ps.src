@@ -56,8 +56,8 @@ begin
     /width 0 def
 
     /propspec false def
-    /bestfit false def
-    /physspec false def
+    /loosespec false def
+    /strictspec false def
     /mag 1.0 def
     /xdim -1.0 def
     /hdim -1.0 def
@@ -93,7 +93,7 @@ begin
     % Apply AST spec overrides and resolve physical specification
     %
     /raw ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
 
     /height /resolve_height //render exec dup -1 eq { pop 1.0 } if def
 
@@ -102,8 +102,8 @@ begin
     /sbs [barcode {48 sub} forall]
     /bhs [barcode length 1 add 2 idiv {height} repeat]
     /bbs [barcode length 1 add 2 idiv {0} repeat]
-    /physspec physspec
-    /bestfit bestfit
+    /strictspec strictspec
+    /loosespec loosespec
     /xdim xdim
     /xmin xmin
     /xmax xmax

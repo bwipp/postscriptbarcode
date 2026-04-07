@@ -97,28 +97,28 @@
 { (\(01\)09521234543213) (dontdraw) databarstackedcomposite } /bwipp.missingCompositeComponent isError
 
 %
-% Smoke test: physspec renders without error
+% Smoke test: strictspec renders without error
 %
 /ok_tmpl {
     { 0 0 moveto 0 0 databarstackedcomposite true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
     true isEqual
 } def
-(\(01\)09521234543213|\(17\)010200)  (physspec xdim=0.330)  ok_tmpl
+(\(01\)09521234543213|\(17\)010200)  (strictspec xdim=0.330)  ok_tmpl
 
 % AST bounds: xdim below xmin fails
-{ (\(01\)09521234543213|\(17\)010200) (dontdraw physspec xdim=0.100) databarstackedcomposite } /bwipp.renderXdimTooSmall isError
+{ (\(01\)09521234543213|\(17\)010200) (dontdraw strictspec xdim=0.100) databarstackedcomposite } /bwipp.renderXdimTooSmall isError
 
-% physspec with SST smoke test
-{ 0 0 moveto (\(01\)09521234543213|\(17\)010200) (physspec ast=gs1.sst2) databarstackedcomposite true } true isEqual
+% strictspec with SST smoke test
+{ 0 0 moveto (\(01\)09521234543213|\(17\)010200) (strictspec ast=gs1.sst2) databarstackedcomposite true } true isEqual
 
 % propspec with SST smoke test
 { 0 0 moveto (\(01\)09521234543213|\(17\)010200) (propspec ast=gs1.sst2) databarstackedcomposite true } true isEqual
 
 
 %
-% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+% loosespec via global_ctx: does not leak to gs1-cc (would error on missing xnom)
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 { 0 0 moveto (\(01\)09521234543213|\(17\)010200) () databarstackedcomposite true } true isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

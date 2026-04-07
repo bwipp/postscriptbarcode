@@ -421,23 +421,23 @@
 { (\(01\)09521234543213) (dontdraw) gs1-128composite } /bwipp.missingCompositeComponent isError
 
 %
-% Smoke test: physspec renders without error
+% Smoke test: strictspec renders without error
 %
 /ok_tmpl {
     { 0 0 moveto 0 0 gs1-128composite true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
     true isEqual
 } def
-(\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG)  (ccversion=c physspec xdim=0.330)  ok_tmpl
+(\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG)  (ccversion=c strictspec xdim=0.330)  ok_tmpl
 
 %
 % AST bounds (default): xdim below xmin (0.170) fails
 %
-{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c physspec xdim=0.100) gs1-128composite } /bwipp.renderXdimTooSmall isError
+{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c strictspec xdim=0.100) gs1-128composite } /bwipp.renderXdimTooSmall isError
 
 %
 % AST bounds (gs1.sst2): tighter xmin (0.495) applied via composite AST
 %
-{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c physspec ast=gs1.sst2 xdim=0.330) gs1-128composite } /bwipp.renderXdimTooSmall isError
+{ (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c strictspec ast=gs1.sst2 xdim=0.330) gs1-128composite } /bwipp.renderXdimTooSmall isError
 
 %
 % propspec: linear height from sst2 AST flows through composite → gs1-128 → code128
@@ -461,15 +461,15 @@
 %
 % ast consumed: does not leak to gs1-cc/pdf417
 %
-{ 0 0 moveto (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (ast=gs1.sst2 ccversion=c) gs1-128composite true } true isEqual
+{ 0 0 moveto (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (loosespec ast=gs1.sst2 ccversion=c) gs1-128composite true } true isEqual
 
 %
-% bestfit via global_ctx does not leak to gs1-cc
+% loosespec via global_ctx does not leak to gs1-cc
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 {
     (\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ast=gs1.sst2 ccversion=c) gs1-128composite
-    dup /physspec get exch /bestfit get 2 array astore
+    dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

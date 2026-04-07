@@ -10,129 +10,129 @@
 /raiseerror dup /uk.co.terryburton.bwipp findresource cvx def
 
 %
-% resolve_physspec: physspec=false is a no-op
+% resolve_strictspec: strictspec=false is a no-op
 %
 {
-    8 dict begin
-    /physspec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec false def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [-1.0] isEqual
 
 %
-% resolve_physspec: resolves xdim from xnom * mag
+% resolve_strictspec: resolves xdim from xnom * mag
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [0.330] isEqual
 
 %
-% resolve_physspec: resolves xdim with mag=2.0
+% resolve_strictspec: resolves xdim with mag=2.0
 %
 {
-    8 dict begin
-    /physspec true def /mag 2.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 2.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [0.660] isEqual
 
 %
-% resolve_physspec: user xdim overrides xnom*mag
+% resolve_strictspec: user xdim overrides xnom*mag
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim 0.500 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim 0.500 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [0.500] isEqual
 
 %
-% resolve_physspec: resolves hdim from hnom * mag
+% resolve_strictspec: resolves hdim from hnom * mag
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.5 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.5 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     hdim 1 array astore
     end
 } [34.275] isEqual
 
 %
-% resolve_physspec: hdim stays -1 when hnom is -1
+% resolve_strictspec: hdim stays -1 when hnom is -1
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom -1.0 def /xmin 0.264 def /xmax 0.660 def
-    /resolve_physspec render
+    /resolve_strictspec render
     hdim 1 array astore
     end
 } [-1.0] isEqual
 
 %
-% resolve_physspec: mag exclusive with xdim
+% resolve_strictspec: mag exclusive with xdim
 %
 {
-    8 dict begin
-    /physspec true def /mag 2.0 def /xdim 0.500 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 2.0 def /xdim 0.500 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderMagExclusive isError
 
 %
-% resolve_physspec: mag exclusive with hdim
+% resolve_strictspec: mag exclusive with hdim
 %
 {
-    8 dict begin
-    /physspec true def /mag 2.0 def /xdim -1.0 def /hdim 30.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 2.0 def /xdim -1.0 def /hdim 30.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderMagExclusive isError
 
 %
-% resolve_physspec: missing xnom without xdim
+% resolve_strictspec: missing xnom without xdim
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom -1.0 def /hnom -1.0 def /xmin -1.0 def /xmax -1.0 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderNeedXnom isError
 
 %
-% resolve_physspec: xdim below xmin
+% resolve_strictspec: xdim below xmin
 %
 {
-    8 dict begin
-    /physspec true def /mag 0.5 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 0.5 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderXdimTooSmall isError
 
 %
-% resolve_physspec: xdim above xmax
+% resolve_strictspec: xdim above xmax
 %
 {
-    8 dict begin
-    /physspec true def /mag 3.0 def /xdim -1.0 def /hdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 3.0 def /xdim -1.0 def /hdim -1.0 def
     /xnom 0.330 def /hnom 22.85 def /xmin 0.264 def /xmax 0.660 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderXdimTooLarge isError
 
@@ -141,7 +141,7 @@
 %
 {
     7 dict begin
-    /propspec true def /physspec false def /height -1.0 def
+    /propspec true def /strictspec false def /height -1.0 def
     /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -149,11 +149,11 @@
 } [0.9583] isEqual
 
 %
-% resolve_height: physspec derives height (not pixel-locked)
+% resolve_height: strictspec derives height (not pixel-locked)
 %
 {
     7 dict begin
-    /propspec false def /physspec true def /height -1.0 def
+    /propspec false def /strictspec true def /height -1.0 def
     /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -165,7 +165,7 @@
 %
 {
     7 dict begin
-    /propspec true def /physspec false def /height 0.5 def
+    /propspec true def /strictspec false def /height 0.5 def
     /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -177,7 +177,7 @@
 %
 {
     7 dict begin
-    /propspec true def /physspec false def /height -1.0 def
+    /propspec true def /strictspec false def /height -1.0 def
     /hnom -1.0 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -185,11 +185,11 @@
 } [-1.0] isEqual
 
 %
-% resolve_height: returns sentinel when neither propspec nor physspec
+% resolve_height: returns sentinel when neither propspec nor strictspec
 %
 {
     7 dict begin
-    /propspec false def /physspec false def /height -1.0 def
+    /propspec false def /strictspec false def /height -1.0 def
     /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -201,7 +201,7 @@
 %
 {
     7 dict begin
-    /propspec true def /physspec false def /height -1.0 def
+    /propspec true def /strictspec false def /height -1.0 def
     /hnom 22.85 def /xnom -1.0 def /modunit 1 def
     { /resolve_height render } stopped { end stop } if
     end
@@ -212,7 +212,7 @@
 %
 {
     7 dict begin
-    /propspec true def /physspec false def /height -1.0 def
+    /propspec true def /strictspec false def /height -1.0 def
     /hnom 22.85 def /xnom 0.330 def /modunit 2 def
     /resolve_height render
     1 array astore
@@ -220,11 +220,11 @@
 } [1.9167] isEqual
 
 %
-% resolve_height: physspec overrides user-set height
+% resolve_height: strictspec overrides user-set height
 %
 {
     7 dict begin
-    /propspec false def /physspec true def /height 0.5 def
+    /propspec false def /strictspec true def /height 0.5 def
     /hnom 22.85 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -232,11 +232,11 @@
 } [0.9617] isEqual
 
 %
-% resolve_height: physspec without hnom returns current height
+% resolve_height: strictspec without hnom returns current height
 %
 {
     7 dict begin
-    /propspec false def /physspec true def /height 0.5 def
+    /propspec false def /strictspec true def /height 0.5 def
     /hnom -1.0 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -244,11 +244,11 @@
 } [0.5] isEqual
 
 %
-% resolve_height: physspec with sentinel height and no hnom returns sentinel
+% resolve_height: strictspec with sentinel height and no hnom returns sentinel
 %
 {
     7 dict begin
-    /propspec false def /physspec true def /height -1.0 def
+    /propspec false def /strictspec true def /height -1.0 def
     /hnom -1.0 def /xnom 0.330 def /modunit 1 def
     /resolve_height render
     1 array astore
@@ -256,131 +256,208 @@
 } [-1.0] isEqual
 
 %
-% resolve_physspec: bestfit disables physspec when xnom missing
+% resolve_height: strictspec with explicit hdim derives from hdim/xdim
 %
 {
-    8 dict begin
-    /physspec true def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /propspec false def /strictspec true def /height -1.0 def
+    /hdim 20.0 def /xdim 0.330 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.8418] isEqual
+
+%
+% resolve_height: strictspec with hdim from hnom*mag equals hnom/xnom derivation
+%
+{
+    9 dict begin
+    /propspec false def /strictspec true def /height -1.0 def
+    /hdim 22.85 def /xdim 0.330 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: strictspec with hdim and modunit=2
+%
+{
+    9 dict begin
+    /propspec false def /strictspec true def /height -1.0 def
+    /hdim 20.0 def /xdim 0.330 def
+    /hnom -1.0 def /xnom 0.330 def /modunit 2 def
+    /resolve_height render
+    1 array astore
+    end
+} [1.6835] isEqual
+
+%
+% resolve_height: strictspec without hdim still uses hnom/xnom
+%
+{
+    7 dict begin
+    /propspec false def /strictspec true def /height -1.0 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: hdim sentinel (-1) falls through to hnom/xnom derivation
+%
+{
+    9 dict begin
+    /propspec false def /strictspec true def /height -1.0 def
+    /hdim -1.0 def /xdim 0.330 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9617] isEqual
+
+%
+% resolve_height: propspec ignores hdim (propspec uses hnom/xnom ratio)
+%
+{
+    9 dict begin
+    /propspec true def /strictspec false def /height -1.0 def
+    /hdim 20.0 def /xdim 0.330 def
+    /hnom 22.85 def /xnom 0.330 def /modunit 1 def
+    /resolve_height render
+    1 array astore
+    end
+} [0.9583] isEqual
+
+%
+% resolve_strictspec: loosespec disables strictspec when xnom missing
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim -1.0 def
     /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
-    /resolve_physspec render
-    physspec 1 array astore
+    /resolve_strictspec render
+    strictspec 1 array astore
     end
 } [false] isEqual
 
 %
-% resolve_physspec: bestfit suppresses bounds error, preserves bounds for gridfit
+% resolve_strictspec: loosespec suppresses bounds error, preserves bounds for gridfit
 %
 {
-    8 dict begin
-    /physspec true def /bestfit true def /mag 1.0 def /xdim 0.200 def
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim 0.200 def
     /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
-    /resolve_physspec render
-    physspec xdim xmin xmax 4 array astore
+    /resolve_strictspec render
+    strictspec xdim xmin xmax 4 array astore
     end
 } [true 0.200 0.264 0.660] isEqual
 
 %
-% resolve_physspec: bestfit preserves bounds when xdim is in-spec
+% resolve_strictspec: loosespec preserves bounds when xdim is in-spec
 %
 {
-    8 dict begin
-    /physspec true def /bestfit true def /mag 1.0 def /xdim 0.400 def
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim 0.400 def
     /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
-    /resolve_physspec render
+    /resolve_strictspec render
     xmin xmax 2 array astore
     end
 } [0.264 0.660] isEqual
 
 %
-% resolve_physspec: without bestfit, missing xnom errors
+% resolve_strictspec: without loosespec, missing xnom errors
 %
 {
-    8 dict begin
-    /physspec true def /bestfit false def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def
     /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderNeedXnom isError
 
 %
-% resolve_physspec: without bestfit, bounds violation errors
+% resolve_strictspec: without loosespec, bounds violation errors
 %
 {
-    8 dict begin
-    /physspec true def /bestfit false def /mag 1.0 def /xdim 0.200 def
+    9 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim 0.200 def
     /xnom -1.0 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderXdimTooSmall isError
 
 %
-% resolve_physspec: bestfit with valid input is a no-op
+% resolve_strictspec: loosespec with valid input is a no-op
 %
 {
-    8 dict begin
-    /physspec true def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim -1.0 def
     /xnom 0.330 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
-    /resolve_physspec render
-    physspec xdim xmin xmax 4 array astore
+    /resolve_strictspec render
+    strictspec xdim xmin xmax 4 array astore
     end
 } [true 0.330 0.264 0.660] isEqual
 
 %
-% resolve_physspec: bestfit defaults to false from global_ctx
+% resolve_strictspec: loosespec defaults to false from global_ctx
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def
     /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderNeedXnom isError
 
 %
-% resolve_physspec: bestfit implies physspec
+% resolve_strictspec: loosespec implies strictspec
 %
 {
-    8 dict begin
-    /physspec false def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim -1.0 def
     /xnom 0.330 def /xmin 0.264 def /xmax 0.660 def /modunit 1 def
-    /resolve_physspec render
-    physspec xdim 2 array astore
+    /resolve_strictspec render
+    strictspec xdim 2 array astore
     end
 } [true 0.330] isEqual
 
 %
-% resolve_physspec: bestfit implies physspec, but no xnom disables it
+% resolve_strictspec: loosespec implies strictspec, but no xnom disables it
 %
 {
-    8 dict begin
-    /physspec false def /bestfit true def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec true def /mag 1.0 def /xdim -1.0 def
     /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
-    /resolve_physspec render
-    physspec 1 array astore
+    /resolve_strictspec render
+    strictspec 1 array astore
     end
 } [false] isEqual
 
 %
-% global_encoder_defaults: bestfit from global_ctx implies physspec
+% global_encoder_defaults: loosespec from global_ctx implication deferred to resolve_strictspec
 %
 {
     8 dict begin
-    /propspec false def /bestfit false def /physspec false def
-    /uk.co.terryburton.bwipp.global_ctx << /bestfit true >> def
+    /propspec false def /loosespec false def /strictspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /loosespec true >> def
     /global_encoder_defaults render
-    physspec bestfit 2 array astore
+    strictspec loosespec 2 array astore
     end
-} [true true] isEqual
+} [false true] isEqual
 
 %
-% global_encoder_defaults: physspec from global_ctx
+% global_encoder_defaults: strictspec from global_ctx
 %
 {
     8 dict begin
-    /propspec false def /bestfit false def /physspec false def
-    /uk.co.terryburton.bwipp.global_ctx << /physspec true >> def
+    /propspec false def /loosespec false def /strictspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /strictspec true >> def
     /global_encoder_defaults render
-    physspec bestfit 2 array astore
+    strictspec loosespec 2 array astore
     end
 } [true false] isEqual
 
@@ -389,10 +466,10 @@
 %
 {
     8 dict begin
-    /propspec false def /bestfit false def /physspec false def
+    /propspec false def /loosespec false def /strictspec false def
     /uk.co.terryburton.bwipp.global_ctx << /propspec true >> def
     /global_encoder_defaults render
-    propspec physspec 2 array astore
+    propspec strictspec 2 array astore
     end
 } [true false] isEqual
 
@@ -401,10 +478,10 @@
 %
 {
     8 dict begin
-    /propspec true def /bestfit false def /physspec true def
+    /propspec true def /loosespec false def /strictspec true def
     /uk.co.terryburton.bwipp.global_ctx << >> def
     /global_encoder_defaults render
-    physspec propspec 2 array astore
+    strictspec propspec 2 array astore
     end
 } [true true] isEqual
 
@@ -413,11 +490,11 @@
 %
 {
     8 dict begin
-    /propspec false def /bestfit false def /physspec false def
-    /uk.co.terryburton.bwipp.global_ctx << /bestfit true /propspec true >> def
+    /propspec false def /loosespec false def /strictspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /loosespec true /propspec true >> def
     /uk.co.terryburton.bwipp._dontdraw true def
     /global_encoder_defaults render
-    physspec propspec bestfit 3 array astore
+    strictspec propspec loosespec 3 array astore
     end
 } [false false false] isEqual
 
@@ -426,9 +503,181 @@
 %
 {
     8 dict begin
-    /propspec false def /bestfit false def /physspec false def
-    /uk.co.terryburton.bwipp.global_ctx << /bestfit true /propspec true >> def
+    /propspec false def /loosespec false def /strictspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /loosespec true /propspec true >> def
     /global_encoder_defaults render
-    physspec propspec bestfit 3 array astore
+    strictspec propspec loosespec 3 array astore
     end
-} [true true true] isEqual
+} [false true true] isEqual
+
+%
+% Spec mode mutex: strictspec + loosespec errors
+%
+{
+    8 dict begin
+    /strictspec true def /loosespec true def /propspec false def
+    /mag 1.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderSpecModeMutex isError
+
+%
+% Spec mode mutex: strictspec + propspec errors
+%
+{
+    8 dict begin
+    /strictspec true def /loosespec false def /propspec true def
+    /mag 1.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderSpecModeMutex isError
+
+%
+% Spec mode mutex: loosespec + propspec errors
+%
+{
+    8 dict begin
+    /strictspec false def /loosespec true def /propspec true def
+    /mag 1.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderSpecModeMutex isError
+
+%
+% Orphaned option validation: xdim without spec mode errors
+%
+{
+    8 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedXdim isError
+
+%
+% Orphaned option validation: hdim without spec mode errors
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /hdim 10.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedHdim isError
+
+%
+% Orphaned option validation: mag without spec mode errors
+%
+{
+    8 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 2.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedMag isError
+
+%
+% Orphaned option validation: xdim with propspec errors (propspec does not use xdim)
+%
+{
+    8 dict begin
+    /strictspec false def /propspec true def /loosespec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedXdim isError
+
+%
+% Orphaned option validation: mag with propspec errors
+%
+{
+    8 dict begin
+    /strictspec false def /propspec true def /loosespec false def
+    /mag 2.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedMag isError
+
+%
+% Orphaned option validation: ast (non-default) without spec mode errors
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedAST isError
+
+%
+% Orphaned option validation: ast=default without spec mode is OK
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /ast (default) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /resolve_strictspec render
+    true 1 array astore
+    end
+} [true] isEqual
+
+%
+% Orphaned option validation: xdim with strictspec is OK
+%
+{
+    8 dict begin
+    /strictspec true def /loosespec false def /propspec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /resolve_strictspec render
+    xdim 1 array astore
+    end
+} [0.500] isEqual
+
+%
+% Orphaned option validation: xdim with loosespec is OK
+%
+{
+    8 dict begin
+    /strictspec false def /loosespec true def /propspec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /resolve_strictspec render
+    xdim 1 array astore
+    end
+} [0.500] isEqual
+
+%
+% Orphaned option validation: ast with propspec is OK
+%
+{
+    9 dict begin
+    /strictspec false def /loosespec false def /propspec true def
+    /mag 1.0 def /xdim -1.0 def /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /resolve_strictspec render
+    true 1 array astore
+    end
+} [true] isEqual
+
+%
+% Orphaned option validation: default sentinels without spec mode is OK
+%
+{
+    8 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /resolve_strictspec render
+    true 1 array astore
+    end
+} [true] isEqual
+
+%
+% Orphaned option validation: suppressed by _dontdraw (sub-encoder)
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /resolve_strictspec render
+    true 1 array astore
+    end
+} [true] isEqual

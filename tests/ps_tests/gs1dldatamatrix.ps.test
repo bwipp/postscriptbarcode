@@ -51,11 +51,11 @@
     1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 ] eq_tmpl
 
-% physspec smoke test
-{ 0 0 moveto (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (includetext physspec xdim=0.495) gs1dldatamatrix true } true isEqual
+% strictspec smoke test
+{ 0 0 moveto (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (includetext strictspec xdim=0.495) gs1dldatamatrix true } true isEqual
 
 % AST bounds: xdim below xmin fails
-{ (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw physspec xdim=0.300) gs1dldatamatrix } /bwipp.renderXdimTooSmall isError
+{ (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw strictspec xdim=0.300) gs1dldatamatrix } /bwipp.renderXdimTooSmall isError
 
-% physspec: xdim resolves from default AST xnom (0.495)
-{ (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw physspec) gs1dldatamatrix dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
+% strictspec: xdim resolves from default AST xnom (0.495)
+{ (https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw strictspec) gs1dldatamatrix dup /strictspec get exch /xdim get 2 array astore } [true 0.495] isEqual

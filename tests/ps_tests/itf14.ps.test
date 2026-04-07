@@ -24,17 +24,17 @@
 %
 % AST bounds: xdim below xmin (0.495) fails
 %
-{ (0952876543210) (dontdraw physspec xdim=0.400) itf14 } /bwipp.renderXdimTooSmall isError
+{ (0952876543210) (dontdraw strictspec xdim=0.400) itf14 } /bwipp.renderXdimTooSmall isError
 
 %
 % AST bounds: xdim above xmax (1.016) fails
 %
-{ (0952876543210) (dontdraw physspec xdim=1.100) itf14 } /bwipp.renderXdimTooLarge isError
+{ (0952876543210) (dontdraw strictspec xdim=1.100) itf14 } /bwipp.renderXdimTooLarge isError
 
 %
 % AST bounds: xdim within bounds succeeds
 %
-{ 0 0 moveto (0952876543210) (physspec xdim=0.600) itf14 true } true isEqual
+{ 0 0 moveto (0952876543210) (strictspec xdim=0.600) itf14 true } true isEqual
 
 %
 % propspec: height derived from AST hnom/xnom through wrapper
@@ -45,10 +45,10 @@
 } [0.8889] isEqual
 
 %
-% physspec without explicit xdim resolves from AST xnom (0.495)
+% strictspec without explicit xdim resolves from AST xnom (0.495)
 %
 {
-    (0952876543210) (dontdraw physspec) itf14 dup /physspec get exch /xdim get 2 array astore
+    (0952876543210) (dontdraw strictspec) itf14 dup /strictspec get exch /xdim get 2 array astore
 } [true 0.495] isEqual
 
 %
@@ -59,33 +59,33 @@
 } [0.3] isEqual
 
 % AST consumption: SST profile resolves through wrapper
-{ (0952876543210) (dontdraw physspec ast=gs1.sst2) itf14 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
+{ (0952876543210) (dontdraw strictspec ast=gs1.sst2) itf14 dup /strictspec get exch /xdim get 2 array astore } [true 0.495] isEqual
 
 %
-% bestfit: output matches physspec through wrapper
+% loosespec: output matches strictspec through wrapper
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (0952876543210) (dontdraw) itf14 dup /physspec get exch /xdim get 2 array astore } [true 0.495] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (0952876543210) (dontdraw) itf14 dup /strictspec get exch /xdim get 2 array astore } [true 0.495] isEqual
 { (0952876543210) (dontdraw) itf14 /bhs get 0 get 1 array astore } [0.8909] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% physspec mag through wrapper: mag consumed at outer layer
+% strictspec mag through wrapper: mag consumed at outer layer
 %
-{ 0 0 moveto (0952876543210) (physspec mag=1.5) itf14 true } true isEqual
+{ 0 0 moveto (0952876543210) (strictspec mag=1.5) itf14 true } true isEqual
 
 %
 % ast consumed: does not leak to interleaved2of5
 % (interleaved2of5 would error on ast=gs1.sst2 if it leaked)
 %
-{ 0 0 moveto (0952876543210) (ast=gs1.sst2) itf14 true } true isEqual
+{ 0 0 moveto (0952876543210) (loosespec ast=gs1.sst2) itf14 true } true isEqual
 
 %
-% bestfit + mag + gridfit through wrapper
+% loosespec + mag + gridfit through wrapper
 %
 {
-    (0952876543210) (dontdraw bestfit mag=3 gridfit griddpi=72) itf14
-    dup /physspec get exch /bestfit get 2 array astore
+    (0952876543210) (dontdraw loosespec mag=3 gridfit griddpi=72) itf14
+    dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual

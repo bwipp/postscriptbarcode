@@ -141,66 +141,66 @@
 } [0.330 15.19] isEqual
 
 %
-% AST without xnom: physspec with no xdim errors via resolve_physspec
+% AST without xnom: strictspec with no xdim errors via resolve_strictspec
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def
+    9 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def
     /ast (default) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
     /databaromni ast /apply_ast render
     not { end //raiseerror exec } if
-    { /resolve_physspec render } stopped { end stop } if
+    { /resolve_strictspec render } stopped { end stop } if
     end
 } /bwipp.renderNeedXnom isError
 
 %
-% AST with xnom: physspec without xdim succeeds
+% AST with xnom: strictspec without xdim succeeds
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def
     /ast (default) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
     /ean13 ast /apply_ast render
     not { end //raiseerror exec } if
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [0.330] isEqual
 
 %
-% SST provides xnom where default doesn't: physspec succeeds
+% SST provides xnom where default doesn't: strictspec succeeds
 %
 {
-    8 dict begin
-    /physspec true def /mag 1.0 def /xdim -1.0 def
+    10 dict begin
+    /strictspec true def /propspec false def /loosespec false def /mag 1.0 def /xdim -1.0 def
     /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def /modunit 1 def
     /databaromni ast /apply_ast render
     not { end //raiseerror exec } if
-    /resolve_physspec render
+    /resolve_strictspec render
     xdim 1 array astore
     end
 } [0.330] isEqual
 
 %
-% Encoder in AST but no default profile: ast=default is a no-op
+% gs1dotcode default profile fills values
 %
 {
     5 dict begin
     /ast (default) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
     /gs1dotcode ast /apply_ast render
     not { end //raiseerror exec } if
-    xnom xmin 2 array astore
+    xnom xmin xmax 3 array astore
     end
-} [-1.0 -1.0] isEqual
+} [0.380 0.380 0.990] isEqual
 
 %
-% Encoder in AST but no default profile: named profile works
+% gs1dotcode gs1.sst12.trade same as default
 %
 {
     5 dict begin
     /ast (gs1.sst12.trade) def /xmin -1.0 def /xnom -1.0 def /xmax -1.0 def /hnom -1.0 def
     /gs1dotcode ast /apply_ast render
     not { end //raiseerror exec } if
-    xnom xmin 2 array astore
+    xnom xmin xmax 3 array astore
     end
-} [0.380 0.380] isEqual
+} [0.380 0.380 0.990] isEqual

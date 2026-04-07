@@ -728,40 +728,72 @@ begin
 } bind def
 
 %
-%  Resolve physspec dimensions
+%  Resolve strictspec dimensions
 %
-/render.resolve_physspec {
-    physspec {
+/render.resolve_strictspec {
+    % Validate spec mode mutual exclusivity (outermost encoder only)
+    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+        strictspec loosespec and {
+            /bwipp.renderSpecModeMutex (strictspec and loosespec are mutually exclusive) //raiseerror exec
+        } if
+        strictspec propspec and {
+            /bwipp.renderSpecModeMutex (strictspec and propspec are mutually exclusive) //raiseerror exec
+        } if
+        loosespec propspec and {
+            /bwipp.renderSpecModeMutex (loosespec and propspec are mutually exclusive) //raiseerror exec
+        } if
+    } if
+    loosespec { /strictspec true def } if
+    % Validate spec options are not orphaned (outermost encoder only)
+    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+        strictspec not {
+            xdim -1 ne {
+                /bwipp.renderOrphanedXdim (xdim requires strictspec or loosespec) //raiseerror exec
+            } if
+            currentdict /hdim known { hdim -1 ne } { false } ifelse {
+                /bwipp.renderOrphanedHdim (hdim requires strictspec or loosespec) //raiseerror exec
+            } if
+            mag 1.0 ne {
+                /bwipp.renderOrphanedMag (mag requires strictspec or loosespec) //raiseerror exec
+            } if
+        } if
+        strictspec not propspec not and {
+            currentdict /ast known { ast (default) ne } { false } ifelse {
+                /bwipp.renderOrphanedAST (ast requires strictspec, loosespec, or propspec) //raiseerror exec
+            } if
+        } if
+    } if
+    strictspec {
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
             currentdict /height known { height -1.0 ne } { false } ifelse
             currentdict /width known { width 0 ne } { false } ifelse
             or {
-                bestfit { /bestfit false def /physspec false def } {
-                    /bwipp.renderPhysspecDimOverride (width and height options are not compatible with physspec; use xdim and hdim to directly specify physical dimensions) //raiseerror exec
+                loosespec { /loosespec false def /strictspec false def } {
+                    /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim and hdim to directly specify physical dimensions) //raiseerror exec
                 } ifelse
             } if
         } if
     } if
-    physspec {
+    strictspec {
         mag 1.0 ne xdim -1 ne currentdict /hdim known { hdim -1 ne } { false } ifelse or and {
             /bwipp.renderMagExclusive (use either mag \(to scale nominal dimensions\) or explicit xdim/hdim options, not both) //raiseerror exec
         } if
         xdim -1 eq {
             xnom -1 eq {
-                bestfit { /physspec false def } {
-                    /bwipp.renderNeedXnom (physspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
+                loosespec { /strictspec false def } {
+                    /bwipp.renderNeedXnom (strictspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
                 } ifelse
             } if
-            physspec { /xdim xnom mag mul def } if
+            strictspec { /xdim xnom mag mul def } if
         } if
-        physspec {
+        strictspec {
             currentdict /hdim known currentdict /hnom known and {
                 hdim -1 eq hnom -1 ne and {
                     /hdim hnom mag mul def
                 } if
             } if
             xdim xmin xmax //render.validate_xdim exec not {
-                bestfit { pop pop } { //raiseerror exec } ifelse
+                loosespec { pop pop } { //raiseerror exec } ifelse
             } if
         } if
     } if
@@ -773,15 +805,20 @@ begin
 %  Returns derived height, current height, or -1 sentinel
 %
 /render.resolve_height {
-    hnom -1 ne physspec propspec height -1.0 eq and or and {
-        xnom -1 eq {
-            /bwipp.renderHnomNeedXnom (Proportional bar height derivation requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
-        } if
-        hnom xnom div modunit mul
-            physspec not { round } if  % Pixel-lock derived height
-        72 div
+    currentdict /hdim known { hdim -1 ne } { false } ifelse strictspec and {
+        % strictspec with resolved hdim: derive from hdim/xdim
+        hdim xdim div modunit mul 72 div
     } {
-        height
+        hnom -1 ne strictspec propspec height -1.0 eq and or and {
+            xnom -1 eq {
+                /bwipp.renderHnomNeedXnom (Proportional bar height derivation requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
+            } if
+            hnom xnom div modunit mul
+                strictspec not { round } if  % Pixel-lock derived height
+            72 div
+        } {
+            height
+        } ifelse
     } ifelse
 } bind def
 
@@ -862,7 +899,7 @@ begin
         %
         1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
 
-        xdim 0 ne {  % physspec is provided
+        xdim 0 ne {  % strictspec is provided
             /devpx exch def
             /snapped devpx 0 snapto def
             snapped effx xmin xmax //render.validate_xdim exec
@@ -874,7 +911,7 @@ begin
                 snapped effx xmin xmax //render.validate_xdim exec
                 not {
                     pop pop  % Discard error details
-                    bestfit {
+                    loosespec {
                         % Pick whichever snap is closest to being in spec
                         /eff1 snap1 effx def  /eff2 snapped effx def
                         /dist {  % eff => distance outside [xmin,xmax]
@@ -897,7 +934,7 @@ begin
                 } if
             } if
             snapped devpx div
-        } {  % No physspec
+        } {  % No strictspec
             dup mag div usefloor { floor } { round } ifelse dup 0 le { pop 1 } if mag mul exch div
         } ifelse
 
@@ -924,11 +961,10 @@ begin
     /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
         /uk.co.terryburton.bwipp.global_ctx dup where {
             exch get
-            dup /bestfit  2 copy known { get { /bestfit  true def } if } { pop pop } ifelse
-            dup /physspec 2 copy known { get { /physspec true def } if } { pop pop } ifelse
+            dup /loosespec  2 copy known { get { /loosespec  true def } if } { pop pop } ifelse
+            dup /strictspec 2 copy known { get { /strictspec true def } if } { pop pop } ifelse
                 /propspec 2 copy known { get { /propspec true def } if } { pop pop } ifelse
         } {pop} ifelse
-        bestfit { /physspec true def } if
     } if
 } bind def
 
@@ -1168,7 +1204,7 @@ begin
     /renderborder         //render.renderborder
     /renderguards         //render.renderguards
     /validate_xdim        //render.validate_xdim
-    /resolve_physspec     //render.resolve_physspec
+    /resolve_strictspec     //render.resolve_strictspec
     /resolve_height       //render.resolve_height
 >> readonly def
 

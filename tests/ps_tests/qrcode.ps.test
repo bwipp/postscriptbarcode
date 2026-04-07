@@ -681,43 +681,43 @@
 %
 
 % AST default fills xmin from ISO 18004
-{ (Hello) (dontdraw physspec xdim=0.330) qrcode /xmin get 1 array astore } [0.250] isEqual
+{ (Hello) (dontdraw strictspec xdim=0.330) qrcode /xmin get 1 array astore } [0.250] isEqual
 
-% physspec renders without error
-{ 0 0 moveto (Hello) (physspec xdim=0.330) qrcode true } true isEqual
+% strictspec renders without error
+{ 0 0 moveto (Hello) (strictspec xdim=0.330) qrcode true } true isEqual
 
-% physspec with mag renders without error
-{ 0 0 moveto (Hello) (physspec xnom=0.330 mag=2.0) qrcode true } true isEqual
+% strictspec with mag renders without error
+{ 0 0 moveto (Hello) (strictspec xnom=0.330 mag=2.0) qrcode true } true isEqual
 
-% physspec without xnom or xdim should error
-{ (Hello) (dontdraw physspec) qrcode } /bwipp.renderNeedXnom isError
+% strictspec without xnom or xdim should error
+{ (Hello) (dontdraw strictspec) qrcode } /bwipp.renderNeedXnom isError
 
-% physspec with xdim below xmin should error
-{ (Hello) (dontdraw physspec xdim=0.100) qrcode } /bwipp.renderXdimTooSmall isError
+% strictspec with xdim below xmin should error
+{ (Hello) (dontdraw strictspec xdim=0.100) qrcode } /bwipp.renderXdimTooSmall isError
 
 
 %
-% bestfit: falls back when no xnom
+% loosespec: falls back when no xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (Hello) (dontdraw) qrcode /physspec get 1 array astore } [false] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (Hello) (dontdraw) qrcode /strictspec get 1 array astore } [false] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit: activates when user provides xnom
+% loosespec: activates when user provides xnom
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
-{ (Hello) (dontdraw xnom=0.500) qrcode dup /physspec get exch /xdim get 2 array astore } [true 0.500] isEqual
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
+{ (Hello) (dontdraw xnom=0.500) qrcode dup /strictspec get exch /xdim get 2 array astore } [true 0.500] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
 
 %
-% bestfit + mag + gridfit on matrix encoder
+% loosespec + mag + gridfit on matrix encoder
 %
 {
-    (Hello) (dontdraw bestfit mag=5 xnom=0.250 gridfit griddpi=72) qrcode
-    dup /physspec get exch /bestfit get 2 array astore
+    (Hello) (dontdraw loosespec mag=5 xnom=0.250 gridfit griddpi=72) qrcode
+    dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual

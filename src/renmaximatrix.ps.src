@@ -72,8 +72,8 @@ begin
 
     /gridfit false def
     /griddpi 0 def
-    /physspec false def
-    /bestfit false def
+    /strictspec false def
+    /loosespec false def
     /xdim -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
@@ -107,7 +107,7 @@ begin
     %
     % Scale to physical specification dimensions
     %
-    physspec {
+    strictspec {
         xdim 72 mul 25.4 div 2.4945 div dup scale  % Relative to existing 2.4945 scale
         /inkspread inkspread 2.4945 mul 25.4 mul xdim 72 mul div def  % Fixed physical amount
     } if
@@ -116,7 +116,7 @@ begin
     % Grid fit: uniform even-pixel snap preserves hex aspect ratio
     %
     gridfit {
-        2 physspec { xdim xmin xmax } { 0 -1 -1 } ifelse
+        2 strictspec { xdim xmin xmax } { 0 -1 -1 } ifelse
         false false /gridfit //render exec
         not { grestore //raiseerror exec } if
     } if

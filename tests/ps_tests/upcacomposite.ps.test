@@ -214,22 +214,22 @@
 { (12345678901) (dontdraw) upcacomposite } /bwipp.missingCompositeComponent isError
 
 % AST bounds: xdim below xmin fails
-{ (\(01\)00612345678905|\(21\)A1B2C3D4E5F6G7H8) (dontdraw physspec xdim=0.200) upcacomposite } /bwipp.renderXdimTooSmall isError
+{ (\(01\)00612345678905|\(21\)A1B2C3D4E5F6G7H8) (dontdraw strictspec xdim=0.200) upcacomposite } /bwipp.renderXdimTooSmall isError
 
-% physspec smoke test
-{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (physspec) upcacomposite true } true isEqual
+% strictspec smoke test
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (strictspec) upcacomposite true } true isEqual
 
-% physspec with SST smoke test
-{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (physspec) upcacomposite true } true isEqual
+% strictspec with SST smoke test
+{ 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (strictspec) upcacomposite true } true isEqual
 
 % propspec with SST smoke test
 { 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) (propspec) upcacomposite true } true isEqual
 
 
 %
-% bestfit via global_ctx: does not leak to gs1-cc (would error on missing xnom)
+% loosespec via global_ctx: does not leak to gs1-cc (would error on missing xnom)
 %
 /tmp uk.co.terryburton.bwipp.global_ctx def
-/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /bestfit true >> def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /loosespec true >> def
 { 0 0 moveto (012345678905|\(21\)A1B2C3D4E5F6G7H8) () upcacomposite true } true isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def

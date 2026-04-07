@@ -60,9 +60,9 @@ begin
     /dontlint false def
     /lintreqs true def
     /dontdraw false def
-    /physspec false def
+    /strictspec false def
     /propspec false def
-    /bestfit false def
+    /loosespec false def
     /mag 1.0 def
     /xdim -1.0 def
     /ast (default) def
@@ -105,7 +105,7 @@ begin
     % Apply AST spec overrides and resolve physical specification
     %
     /gs1dlqrcode ast /apply_ast //render exec not { //raiseerror exec } if
-    /resolve_physspec //render exec
+    /resolve_strictspec //render exec
 
     %
     % Get the result of encoding with qrcode
@@ -113,8 +113,8 @@ begin
     options (parse) undef
     options (ast) undef
     options (mag) undef
-    options (physspec) physspec put
-    options (bestfit) bestfit put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
     options (xdim) xdim put
     options (xnom) xnom put
     options (xmin) xmin put
