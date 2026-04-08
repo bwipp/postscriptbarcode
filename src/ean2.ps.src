@@ -69,6 +69,7 @@ begin
     /text1xoffset 3.25 def
     /text1yoffset null def  % sentinel realtype
     /height -1.0 def
+    /guarddescent 5 def
     /width 0 def
 
     /propspec false def
@@ -111,6 +112,8 @@ begin
     /resolve_strictspec //render exec
 
     /height /resolve_height //render exec dup -1 eq { pop 0.7 } if def
+
+    /descent guarddescent modunit mul 72 div def  % Guard bar descent
 
     text1yoffset null eq {
         /text1yoffset height 72 mul 5.75 add def
@@ -158,8 +161,8 @@ begin
     <<
     /ren /renlinear
     /sbs [sbs {48 sub} forall]
-    /bhs [12{height}repeat]
-    /bbs [12{0}repeat]
+    /bhs [12{height descent add}repeat]
+    /bbs [12{descent neg}repeat]
     includetext {
         /txt txt
     } if

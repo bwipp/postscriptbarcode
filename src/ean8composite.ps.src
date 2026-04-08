@@ -183,6 +183,8 @@ begin
 
     % Main symbol bars extend to full height connecting to separator; add-on bars keep their height
     /linheight 0 bhsrow { ceiling cvi 2 copy lt { exch } if pop } forall def
+    /lindescent 0 bbsrow { floor cvi 2 copy gt { exch } if pop } forall def
+    txt { dup 2 get lindescent neg add 2 exch put } forall
     /mainbars nbars def
     0 1 sbs length 1 sub {
         dup sbs exch get type /realtype eq { 1 add 2 idiv /mainbars exch def exit } { pop } ifelse
@@ -193,7 +195,7 @@ begin
     /rowbuf pixx string def
     /prevrow () def  /linrowmult 72 array def  /lri 0 def
     /linpixs [
-        linheight 1 sub -1 0 {
+        linheight 1 sub -1 lindescent {
             /y exch def
             /p 0 def
             linpad { rowbuf p 3 -1 roll put /p p 1 add def } forall
@@ -242,13 +244,13 @@ begin
         2 copy lt { exch } if pop dup 0 lt { pop 0 } if
     def
     /bordertop 1 def
-    /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse def
+    /borderbottom linsym /borderbottom 2 copy known { get } { pop pop 0 } ifelse lindescent add def
 
     % Guard positions adjusted for linear offset within matrix
     /guardleftpos linsym /guardleftpos 2 copy known { get linpad length 1 add sub } { pop pop 0 } ifelse def
-    /guardleftypos linsym /guardleftypos 2 copy known { get } { pop pop 0 } ifelse def
+    /guardleftypos linsym /guardleftypos 2 copy known { get lindescent neg add } { pop pop 0 } ifelse def
     /guardrightpos linsym /guardrightpos 2 copy known { get linpad length 1 add linwidth add pixx sub add } { pop pop 0 } ifelse def
-    /guardrightypos linsym /guardrightypos 2 copy known { get } { pop pop 0 } ifelse def
+    /guardrightypos linsym /guardrightypos 2 copy known { get lindescent neg add } { pop pop 0 } ifelse def
 
     % Height is already applied to the linear bars via bhs; don't let renmatrix rescale
     options /height undef

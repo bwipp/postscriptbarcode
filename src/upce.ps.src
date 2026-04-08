@@ -73,8 +73,9 @@ begin
     /text1font /Helvetica def
     /text1size 12.0 def
     /text1xoffset -5.75 def
-    /text1yoffset -0.25 def
+    /text1yoffset -5.25 def
     /height -1.0 def
+    /guarddescent 5 def
     /width 0 def
 
     /propspec false def
@@ -188,6 +189,8 @@ begin
     %
     /upce ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
+
+    /descent guarddescent modunit mul 72 div def  % Guard bar descent
 
     %
     % Derive the equivalent UPC-A for its checksum
@@ -304,15 +307,15 @@ begin
     /height /resolve_height //render exec dup -1 eq { pop 1.0 } if def
 
     includetext {
-        /descent 5 modunit mul 72 div def  % Guard bar descent: 5X
-        /bhs [height height 12{height descent sub}repeat height height height] def
-        /bbs [0 0 12{descent}repeat 0 0 0] def
+        /guardheight height descent add def
+        /bhs [guardheight guardheight 12{height}repeat guardheight guardheight guardheight] def
+        /bbs [descent neg descent neg 12{0}repeat descent neg descent neg descent neg] def
     } {
         /bhs [17{height}repeat] def
         /bbs [17{0}repeat] def
         /txt [] def
     } ifelse
-    /guardrightypos 0.0 def
+    /guardrightypos -5.0 def
 
     %
     % Append the addon
@@ -321,6 +324,7 @@ begin
         /addopts <<
             /includetext true
             /height height includetext { 0.15 sub } if
+            /guarddescent guarddescent
             /text1xoffset addontextxoffset null ne {addontextxoffset} {54.25 addongap add} ifelse
             addontextyoffset null ne {/text1yoffset addontextyoffset} if
             /text1size addontextsize null ne {addontextsize} {text1size} ifelse
@@ -350,7 +354,7 @@ begin
     /borderleft 9.0
     /borderright addon () eq {9.0} {5.0} ifelse
     /bordertop 0.0
-    /borderbottom 5.0
+    /borderbottom 5.0 guarddescent modunit mul add
     /strictspec strictspec
     /loosespec loosespec
     /xdim xdim

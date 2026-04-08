@@ -68,8 +68,9 @@ begin
     /text1font /Helvetica def
     /text1size 12.0 def
     /text1xoffset 7.25 def
-    /text1yoffset -0.25 def
+    /text1yoffset -5.25 def
     /height -1.0 def
+    /guarddescent 5 def
     /width 0 def
 
     /propspec false def
@@ -135,6 +136,8 @@ begin
     %
     /ean8 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
+
+    /descent guarddescent modunit mul 72 div def  % Guard bar descent
 
     %
     % Add checksum digit
@@ -211,15 +214,15 @@ begin
     /height /resolve_height //render exec dup -1 eq { pop 1.0 } if def
 
     includetext {
-        /descent 5 modunit mul 72 div def  % Guard bar descent: 5X
-        /bhs [height height 8{height descent sub}repeat height height 8{height descent sub}repeat height height] def
-        /bbs [0 0 8{descent}repeat 0 0 8{descent}repeat 0 0] def
+        /guardheight height descent add def
+        /bhs [guardheight guardheight 8{height}repeat guardheight guardheight 8{height}repeat guardheight guardheight] def
+        /bbs [descent neg descent neg 8{0}repeat descent neg descent neg 8{0}repeat descent neg descent neg] def
     } {
         /bhs [22{height}repeat] def
         /bbs [22{0}repeat] def
         /txt [] def
     } ifelse
-    /guardrightypos 0.0 def
+    /guardrightypos -5.0 def
 
     %
     % Append the addon
@@ -228,6 +231,7 @@ begin
         /addopts <<
             /includetext true
             /height height includetext { 0.15 sub } if
+            /guarddescent guarddescent
             /text1xoffset addontextxoffset null ne {addontextxoffset} {70.25 addongap add} ifelse
             addontextyoffset null ne {/text1yoffset addontextyoffset} if
             /text1size addontextsize null ne {addontextsize} {text1size} ifelse
@@ -253,12 +257,13 @@ begin
     /txt txt
     /opt options
     /guardleftpos 7.0
+    /guardleftypos -5.0
     /guardrightpos addon () eq {7.0} {5.0} ifelse
     /guardrightypos guardrightypos
     /borderleft 7.0
     /borderright addon () eq {7.0} {5.0} ifelse
     /bordertop 0.0
-    /borderbottom 5.0
+    /borderbottom 5.0 guarddescent modunit mul add
     /strictspec strictspec
     /loosespec loosespec
     /xdim xdim
