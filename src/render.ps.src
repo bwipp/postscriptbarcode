@@ -900,6 +900,11 @@ begin
         %
         1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
 
+        % Snap mode used for x (0=round, 1=floor, 2=ceiling). The snapy
+        % branch replays this against the y-axis devpx so square matrix
+        % symbols stay square when the x-axis retry bumps to floor/ceiling.
+        /xsnapmode 0 def
+
         xdim 0 ne {  % strictspec is provided
             /devpx exch def
             /snapped devpx 0 snapto def
@@ -908,6 +913,7 @@ begin
                 pop pop  % Discard error details
                 /snap1 snapped def
                 devpx mag div dup floor sub 0.5 lt { 2 } { 1 } ifelse
+                dup /xsnapmode exch def
                 devpx exch snapto /snapped exch def
                 snapped effx xmin xmax //render.validate_xdim exec
                 not {
@@ -921,7 +927,7 @@ begin
                             xmax -1 ne { 1 index xmax sub dup 0 gt { add } { pop } ifelse } if
                             exch pop
                         } def
-                        eff1 dist eff2 dist lt { /snapped snap1 def } if
+                        eff1 dist eff2 dist lt { /snapped snap1 def /xsnapmode 0 def } if
                     } {
                         /bwipp.renderGridfitXdimOutOfSpec
                         [ (No X-dimension within the permissible range )
@@ -941,7 +947,7 @@ begin
 
         snapy {
             0 1 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
-            dup mag div round dup 0 le { pop 1 } if mag mul exch div
+            dup xsnapmode snapto exch div
         } { dup } ifelse
 
         scale

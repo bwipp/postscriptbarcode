@@ -63,3 +63,44 @@
 { gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.330 0.3295 0.3305 false false /gridfit render end
   not { pop grestore } if  % Discard info string, grestore
 } /bwipp.renderGridfitXdimOutOfSpec isEqual
+
+%
+% snapy=true must mirror the x-axis retry direction so square matrix
+% symbols (QR, Data Matrix, Aztec, ...) stay square.  The three cases
+% below exercise each xsnapmode outcome and assert scale_x == scale_y
+% by comparing |dtransform(1,0)| against |dtransform(0,1)| after gridfit.
+% Dev-px calculations assume the test device's 72 DPI resolution so
+% devpx = griddpi / 72 per user unit.
+%
+% snapy=true + ceiling retry (xsnapmode=2)
+% griddpi=300: devpx=4.167, round=4 eff=0.288 < xmin=0.295, frac=0.167 <0.5
+% so retry picks ceiling=5 eff=0.360 within [0.295, 0.400].  y must
+% also snap to 5 rather than its independent round=4.
+%
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def 1 0.300 0.295 0.400 false true /gridfit render
+  { 1 0 dtransform abs exch abs add 0 1 dtransform abs exch abs add sub abs 0.0001 lt }
+  { pop false } ifelse
+  end grestore } true isEqual
+
+%
+% snapy=true + floor retry (xsnapmode=1)
+% griddpi=200: devpx=2.778, round=3 eff=0.410 > xmax=0.379, frac=0.778 >=0.5
+% so retry picks floor=2 eff=0.274 within [0.200, 0.379].  y must
+% also snap to 2 rather than its independent round=3.
+%
+{ gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 200 def 1 0.380 0.200 0.379 false true /gridfit render
+  { 1 0 dtransform abs exch abs add 0 1 dtransform abs exch abs add sub abs 0.0001 lt }
+  { pop false } ifelse
+  end grestore } true isEqual
+
+%
+% snapy=true + loosespec revert to snap1 (xsnapmode reset to 0)
+% griddpi=300: devpx=4.167, round=4 eff=0.288 < xmin=0.295 fail,
+% retry ceiling=5 eff=0.360 > xmax=0.350 fail.  loosespec picks closer:
+% dist(0.288)=0.007 < dist(0.360)=0.010, so snap1 (round=4) wins and
+% xsnapmode must reset to 0 so y also rounds to 4, not stay at ceil=5.
+%
+{ gsave 0 0 moveto 10 dict begin /loosespec true def /griddpi 300 def 1 0.300 0.295 0.350 false true /gridfit render
+  { 1 0 dtransform abs exch abs add 0 1 dtransform abs exch abs add sub abs 0.0001 lt }
+  { pop false } ifelse
+  end grestore } true isEqual
