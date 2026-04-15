@@ -386,7 +386,6 @@ begin
     /xnom -1.0 def
     /xmin -1.0 def
     /xmax -1.0 def
-    /modunit 2 def
 
     /apply //processoptions exec /options exch def
     /global_encoder_defaults //render exec
@@ -397,6 +396,11 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
+
+    /modunit 2 def
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get /default_modunit 2 copy known {get /modunit exch def} {pop pop} ifelse
+    } {pop} ifelse
 
     %
     % Apply AST spec overrides and resolve physical specification
@@ -1202,8 +1206,8 @@ begin
     /pixs pixs
     /pixx cols
     /pixy rows
-    /height rows 2 mul 72 div
-    /width cols 2 mul 72 div
+    /height rows modunit mul 72 div
+    /width cols modunit mul 72 div
     /borderleft 1.0
     /borderright 1.0
     /bordertop 1.0
