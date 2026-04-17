@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER qrcode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix--
 % --DESC: QR Code
 % --EXAM: http://goo.gl/0bis
 % --EXOP: eclevel=M
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
@@ -1345,21 +1346,9 @@ begin
 
     /rscodes {
         /rscws exch def
-        /rsnd rscws length def
-        /rscws [ rscws aload pop ecpb {0} repeat ] def
-        0 1 rsnd 1 sub {  % m
-            rscws 1 index get                               % k = rscws[m]
-            0 1 ecpb 1 sub {  % j
-                rscws 3 index 2 index add 1 add 2 copy get  % ... rcws m+j+1 rscws[m+j+1]
-                coeffs ecpb 6 -1 roll sub 1 sub get         % ... coeffs[ecpb-j-1]
-                4 index                                     % ... k
-                //qrcode.rsprod exec                        % p = coeffs[ecpb-j-1] * k
-                xor put                                     % rscws[m+j+1] = rscws[m+j+1] ^ p
-            } for
-            pop  % k
-            pop  % m
-        } for
-        rscws rsnd ecpb getinterval
+        /lfsr ecpb array def
+        {rscws exch get} rscws length coeffs ecpb lfsr //qrcode.rsprod //rsecbinary exec
+        lfsr
     } def
 
     %

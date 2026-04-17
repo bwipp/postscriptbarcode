@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER datamatrix--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix--
 % --DESC: Data Matrix
 % --EXAM: This is Data Matrix!
 % --EXOP:
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -1032,46 +1033,23 @@ begin
     (ecc.cws) //datamatrix.before exec
 
     %
-    % De-interleave the codewords into blocks
+    % Calculate the error correction codewords for each block. Data is read
+    % directly from cws via interleaved indexing.
     %
-    /cwbs rsbl array def  % Array of data codeword blocks
-    /ecbs rsbl array def  % Array of error correction blocks
+    /ecbs rsbl array def
+    /ecpb rscw rsbl idiv def
     0 1 rsbl 1 sub {
-        /i exch def
+        /blk exch def
         cws length 1558 ne {
             /cwbsize cws length rsbl idiv def
         } {
-            i 7 le {/cwbsize 156 def} {/cwbsize 155 def} ifelse
+            blk 7 le {/cwbsize 156 def} {/cwbsize 155 def} ifelse
         } ifelse
-        /cwb cwbsize array def
-        0 1 cwbsize 1 sub {
-            /j exch def
-            cwb j cws j rsbl mul i add get put
-        } for
-        cwbs i cwb put
-        ecbs i [ rscw rsbl idiv {0} repeat ] put
-    } for
-
-    %
-    % Calculate the error correction codewords for each block
-    %
-    0 1 cwbs length 1 sub {
-        /i exch def
-        /cwb cwbs i get def
-        /ecb ecbs i get def
-        /rsnc-1 ecb length 1 sub def
-        0 1 cwb length 1 sub {  % i
-            cwb exch get ecb 0 get xor                   % t = cwb[i] ^ ecb[0]
-            rsnc-1 -1 1 {  % j
-                ecb rsnc-1 2 index sub 2 copy 1 add get  % ... ecb rsnc-1-j ecb[rnsc-1-j]
-                4 index                                  % ... t
-                coeffs 6 -1 roll get                     % ... coeffs[j]
-                //datamatrix.rsprod exec                 % p = t * coeffs[j]
-                xor put                                  % ecb[rnsc-1-j] = p ^ ecb[rnsc-1-j]
-            } for
-            ecb rsnc-1 2 index coeffs 0 get //datamatrix.rsprod exec put  % ecb[rnnc-1] = t * coeffs[0]
-            pop
-        } for
+        ecbs blk
+        /lfsr ecpb array def
+        {cws exch rsbl mul blk add get} cwbsize coeffs ecpb lfsr //datamatrix.rsprod //rsecbinary exec
+        lfsr
+        put
     } for
 
     %
@@ -1091,7 +1069,7 @@ begin
     %
     % Extend codewords with the interleaved error correction codes
     %
-    /cws [ cws aload pop rscw {0} repeat ] def
+    /cws cws length rscw add array dup 0 cws putinterval def
     0 1 rscw 1 sub {
         /i exch def
         cws ncws i add ecbs i rsbl mod get i rsbl idiv get put

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER micropdf417--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecprime render renmatrix--
 % --DESC: MicroPDF417
 % --EXAM: MicroPDF417
 % --EXOP:
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecprime dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -1245,43 +1246,22 @@ begin
     (ecc.cws) //micropdf417.before exec
 
     %
-    % Create codewords array with one extra working space element and add padding
+    % Create codewords array sized for data + ECC, and add padding
     %
     /m datcws length def
     /n c r mul k sub def
-    /cws c r mul 1 add array def
+    /cws c r mul array def
     cws 0 datcws putinterval
     cws m [ n m sub {900} repeat ] putinterval
-    cws n [ k {0} repeat 0 ] putinterval
 
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws cws 0 n getinterval //raiseerror exec } if
 
     %
-    % Derive the error codewords
+    % Derive the error codewords directly into cws[n..n+k)
     %
-    0 1 n 1 sub {  % i
-        cws exch get cws n get add 929 mod       % t = (cws[i] + cws[n]) mod 929
-        0 1 k 1 sub {  % j
-            cws n 2 index add 2 copy 1 add get   % ... cws n+j cws[n+j+1]
-            929                                  % ... 929
-            5 index                              % ... t
-            coeffs k 8 -1 roll sub 1 sub get     % ... coeffs[k-j-1]
-            mul 929 mod                          % p = (t * coeffs[k-j-1]) mod 929
-            sub add 929 mod put                  % cws[n+j] = (cws[n+j+1] + (929 - p)) mod 929
-        } for
-        pop  % t
-    } for
-    n 1 n k add {  % i
-         cws exch 2 copy get                     % ... cws i cws[i]
-         929 exch sub 929 mod put                % cws[i] = (929 - cws[i]) mod 929
-    } for
-
-    %
-    % Trim the working space from the end of the codewords
-    %
-    /cws cws 0 cws length 1 sub getinterval def
+    {cws exch get} n coeffs k cws n k getinterval 929 //rsecprime exec
 
     options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse

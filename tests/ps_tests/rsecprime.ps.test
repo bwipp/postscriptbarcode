@@ -1,0 +1,104 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+%
+% Standalone tests for the rsecprime helper (streaming RSEC over GF(p)).
+% Uses small primes so expected values can be hand-computed.
+%
+
+/rsecprime dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Test 1: Minimal case. p=11, nc=1, nd=1, data=[3], coeffs=[7].
+% Hand-computed:
+%   lfsr = [0]
+%   m=0: fb = (3 - 0) mod 11 = 3
+%     inner j loop has nc-2 = -1 range -> no iterations
+%     lfsr[0] = (coeffs[0] * fb) mod 11 = (7*3) mod 11 = 10
+% Expected ECC = [10]
+%
+/rsdata [3] def
+/lfsr 1 array def
+{ rsdata exch get } 1 [7] 1 lfsr 11 //rsecprime exec
+lfsr 0 1 getinterval
+[10] debugIsEqual
+
+%
+% Test 2: nc=2, nd=1, p=11, data=[3], coeffs=[2, 3].
+% Hand-computed:
+%   lfsr = [0, 0]
+%   m=0: fb = (3 - 0) mod 11 = 3
+%     j=0: lfsr[0] = (lfsr[1] + coeffs[1]*fb) mod 11 = (0 + 3*3) mod 11 = 9
+%     lfsr[1] = (coeffs[0] * fb) mod 11 = (2*3) mod 11 = 6
+% Expected ECC = [9, 6]
+%
+/lfsr 2 array def
+{ rsdata exch get } 1 [2 3] 2 lfsr 11 //rsecprime exec
+lfsr 0 2 getinterval
+[9 6] debugIsEqual
+
+%
+% Test 3: nc=2, nd=2, p=11, data=[3, 5], coeffs=[2, 3].
+% After m=0 as Test 2: lfsr = [9, 6]
+%   m=1: fb = (5 - 9 + 11) mod 11 = 7
+%     j=0: lfsr[0] = (lfsr[1] + 3*7) mod 11 = (6 + 21) mod 11 = 5
+%     lfsr[1] = (2 * 7) mod 11 = 14 mod 11 = 3
+% Expected ECC = [5, 3]
+%
+/rsdata [3 5] def
+{ rsdata exch get } 2 [2 3] 2 lfsr 11 //rsecprime exec
+lfsr 0 2 getinterval
+[5 3] debugIsEqual
+
+%
+% Test 4: nd=0 boundary. Empty data -> ECC stays all zero.
+%
+/lfsr 3 array def
+{ rsdata exch get } 0 [1 2 3] 3 lfsr 11 //rsecprime exec
+lfsr 0 3 getinterval
+[0 0 0] debugIsEqual
+
+%
+% Test 5: Reuse of lfsr across calls with different primes. Validates the
+% helper zero-fills on entry and re-reads p each invocation.
+%
+/lfsr 2 array def
+/rsdata [3] def
+% p=11
+{ rsdata exch get } 1 [2 3] 2 lfsr 11 //rsecprime exec
+lfsr 0 2 getinterval
+[9 6] debugIsEqual
+% p=13 with same buffer. Hand-computed:
+%   fb = 3 mod 13 = 3
+%   j=0: lfsr[0] = (0 + 3*3) mod 13 = 9
+%   lfsr[1] = (2*3) mod 13 = 6
+{ rsdata exch get } 1 [2 3] 2 lfsr 13 //rsecprime exec
+lfsr 0 2 getinterval
+[9 6] debugIsEqual
+
+%
+% Test 6: Smoke test with p=929 (PDF417's field). Not hand-computed; captures
+% the helper's output as a regression guard for PDF417-sized arithmetic.
+%
+/rsdata [100 200 300] def
+/lfsr 2 array def
+{ rsdata exch get } 3 [500 600] 2 lfsr 929 //rsecprime exec
+% Expected: verified against direct computation with the helper in current state.
+%   m=0: fb = (100-0) mod 929 = 100
+%     j=0: S[0] = (0 + 600*100) mod 929 = 60000 mod 929 = 60000 - 64*929 = 544
+%     S[1] = (500*100) mod 929 = 50000 mod 929 = 50000 - 53*929 = 763
+%   m=1: fb = (200-544+929) mod 929 = 585
+%     j=0: S[0] = (763 + 600*585) mod 929 = (763+351000) mod 929 = 351763 mod 929 = ?
+%       929*378 = 351162; 351763-351162 = 601
+%     S[1] = (500*585) mod 929 = 292500 mod 929; 929*314 = 291706; 292500-291706 = 794
+%   m=2: fb = (300-601+929) mod 929 = 628
+%     j=0: S[0] = (794 + 600*628) mod 929 = (794+376800) mod 929 = 377594 mod 929; 929*406 = 377174; 377594-377174 = 420
+%     S[1] = (500*628) mod 929 = 314000 mod 929; 929*337 = 313073; 314000-313073 = 927
+% Expected ECC = [420 927]
+lfsr 0 2 getinterval
+[420 927] debugIsEqual

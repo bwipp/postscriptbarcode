@@ -1,0 +1,103 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+%
+% Standalone tests for the rsecbinary helper (streaming RSEC over GF(2^n)).
+% Uses a self-contained GF(8) rsprod so the tests don't depend on any encoder.
+% GF(8) with primitive polynomial x^3 + x + 1, alpha = 2.
+%
+
+/rsecbinary dup /uk.co.terryburton.bwipp findresource cvx def
+
+% log table: gf8_log[x] = i such that alpha^i = x (log[0] unused; set 0 for safety)
+/gf8_log  [0 0 1 3 2 6 4 5] def
+% alog table: gf8_alog[i] = alpha^i, cycles every 7
+/gf8_alog [1 2 4 3 6 7 5] def
+
+/gf8_rsprod {
+    dup 0 ne { 1 index 0 ne {
+        gf8_log exch get exch gf8_log exch get add 7 mod gf8_alog exch get
+    } { pop pop 0 } ifelse } { pop pop 0 } ifelse
+} bind def
+
+%
+% Test 1: Minimal case. nc=2, nd=1, data=[3], coeffs=[2, 3].
+% Hand-computed expected ECC = [5, 6]:
+%   lfsr = [0, 0]
+%   m=0: fb = 3 XOR 0 = 3
+%     j=0: lfsr[0] = lfsr[1] XOR (coeffs[1] * fb) = 0 XOR (3*3) = alpha^6 = 5
+%     lfsr[1] = coeffs[0] * fb = 2*3 = alpha^4 = 6
+%
+/rsdata [3] def
+/lfsr 2 array def
+{ rsdata exch get } 1 [2 3] 2 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 2 getinterval
+[5 6] debugIsEqual
+
+%
+% Test 2: Two-codeword input. nc=2, nd=2, data=[3, 1].
+% After m=0 (as Test 1): lfsr = [5, 6]
+%   m=1: fb = 1 XOR 5 = 4
+%     j=0: lfsr[0] = lfsr[1] XOR (3*4) = 6 XOR (alpha^3*alpha^2) = 6 XOR alpha^5 = 6 XOR 7 = 1
+%     lfsr[1] = 2*4 = alpha*alpha^2 = alpha^3 = 3
+% Expected ECC = [1, 3]
+%
+/rsdata [3 1] def
+{ rsdata exch get } 2 [2 3] 2 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 2 getinterval
+[1 3] debugIsEqual
+
+%
+% Test 3: nc=1 boundary. data=[5], coeffs=[7]. nd=1.
+%   lfsr = [0]
+%   m=0: fb = 5 XOR 0 = 5
+%     inner j loop has nc-2 = -1 range -> no iterations
+%     lfsr[0] = coeffs[0] * fb = 7*5 = alpha^5*alpha^6 = alpha^11 = alpha^4 = 6
+% Expected ECC = [6]
+%
+/rsdata [5] def
+/lfsr 1 array def
+{ rsdata exch get } 1 [7] 1 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 1 getinterval
+[6] debugIsEqual
+
+%
+% Test 4: nd=0 boundary. Empty data -> ECC stays all zero.
+%
+/lfsr 3 array def
+{ rsdata exch get } 0 [1 2 3] 3 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 3 getinterval
+[0 0 0] debugIsEqual
+
+%
+% Test 5: Reuse of lfsr across calls. Same buffer, two calls with different
+% nc/coeffs. Validates the helper zero-fills on entry (no state leak).
+%
+/lfsr 4 array def   % sized for the larger call
+/rsdata [2] def
+% First: nc=2
+{ rsdata exch get } 1 [2 3] 2 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 2 getinterval
+[6 4] debugIsEqual
+% Second: nc=3 using same lfsr. First 3 cells overwritten; cell 3 stale
+% but irrelevant because caller reads only the first nc cells.
+{ rsdata exch get } 1 [1 2 3] 3 lfsr /gf8_rsprod load //rsecbinary exec
+% Hand-compute: fb=2, j=0: S[0] = S[1] ^ (3*2) = 0 ^ alpha^4 = 6
+%                 j=1: S[1] = S[2] ^ (2*2) = 0 ^ alpha^2 = 4
+%                 S[2] = 1*2 = alpha^1 = 2
+lfsr 0 3 getinterval
+[6 4 2] debugIsEqual
+
+%
+% Test 6: getdata procedure isn't assumed to be a trivial array read.
+% Use a stride-2 access into a flat array to prove the helper is indifferent.
+%
+/rsflat [0 3 0 1] def  % stride 2 starting at 1: [3, 1]
+{ 2 mul 1 add rsflat exch get } 2 [2 3] 2 lfsr /gf8_rsprod load //rsecbinary exec
+lfsr 0 2 getinterval
+[1 3] debugIsEqual   % same result as Test 2

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER azteccode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix--
 % --DESC: Aztec Code
 % --EXAM: This is Aztec Code
 % --EXOP: format=full
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -895,7 +896,8 @@ begin
     (input.encoding) //azteccode.after exec
 
     %
-    % Reed-Solomon algorithm
+    % Reed-Solomon algorithm. Returns rsnc ECC codewords. The GF parameters
+    % (and hence rsprod) vary with rsbt, so both are bound per call.
     %
     /rscodes {
 
@@ -924,27 +926,9 @@ begin
         /coeffs rsnc rsbt //azteccode.coeffscachefetch exec def
         (ecc.coeffs) //azteccode.after exec
 
-        %
-        % Extend the input with the error correction values
-        %
-        /nd rscws length def
-        /rscws [ rscws aload pop rsnc {0} repeat 0 ] def
-        0 1 nd 1 sub {  % i
-            rscws exch get rscws nd get xor          % k = rscws[i] ^ rscw[nd]
-            0 1 rsnc 1 sub {  % j
-                dup
-                rscws exch nd add 2 copy 1 add get   % ... rscws nd+j rscws[nd+j+1]
-                coeffs rsnc 6 -1 roll sub 1 sub get  % ... coeffs[rsnc-1-j]
-                4 index                              % ... k
-                rsprod xor put                       % rscws[nd+j] = rscws[nd+j+1] ^ (coeffs[rsnc-1-j] * k)
-            } for
-            pop  % k
-        } for
-
-        %
-        % Return all but the last codeword
-        %
-        rscws 0 rscws length 1 sub getinterval
+        /lfsr rsnc array def
+        {rscws exch get} rscws length coeffs rsnc lfsr /rsprod load //rsecbinary exec
+        lfsr
 
         (ecc.cws) //azteccode.after exec
 
@@ -962,7 +946,7 @@ begin
             mode 2#0000000011110000 and -4 bitshift
             mode 2#0000000000001111 and
         ] def
-        /mode mode 6 4 rscodes def
+        /mode [ mode aload pop mode 6 4 rscodes aload pop ] def
     } if
     format (compact) eq {
         /mode layers 1 sub 6 bitshift cws length 1 sub add def
@@ -971,7 +955,7 @@ begin
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
         ] def
-        /mode mode 5 4 rscodes def
+        /mode [ mode aload pop mode 5 4 rscodes aload pop ] def
     } if
     format (rune) eq {
         /mode barcode cvi def
@@ -979,7 +963,7 @@ begin
             mode 2#11110000 and -4 bitshift
             mode 2#00001111 and
         ] def
-        /mode mode 5 4 rscodes def
+        /mode [ mode aload pop mode 5 4 rscodes aload pop ] def
         /mode [mode {2#1010 xor} forall] def  % Invert alternate bits
     } if
     /modebits mode length 4 mul string def
@@ -996,9 +980,9 @@ begin
 
     options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
-    and { /bwipp.debugecc ecws cws length ecws length cws length sub getinterval //raiseerror exec } if
+    and { /bwipp.debugecc ecws //raiseerror exec } if
 
-    /cws ecws def
+    /cws [ cws aload pop ecws aload pop ] def
     format (full) eq {
         /databits layers layers mul 16 mul layers 112 mul add string def
     } {

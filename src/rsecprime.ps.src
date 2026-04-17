@@ -1,0 +1,86 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE rsecprime--
+% --REQUIRES preamble--
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+4 dict
+begin
+
+%
+% Reed-Solomon encoder for prime-field GF(p).
+%
+% Runs a streaming LFSR over nd data codewords using the generator polynomial
+% coeffs. The caller-owned lfsr is the shift register; on return, its first
+% nc cells are the ECC codewords in the negated form expected by callers
+% (pdf417, micropdf417, ultracode): this fuses what used to be a separate
+% post-pass of (p - cws[i]) mod p into the inner update.
+%
+/rsecprime {
+
+    7 dict begin
+
+    /p exch def        % Prime modulus
+    /lfsr exch def     % Workspace of length at least nc
+    /nc exch def       % Number of ECC codewords to produce
+    /coeffs exch def   % Generator polynomial coefficients
+    /nd exch def       % Number of data codewords
+    /getdata exch def  % Implements fetching nth codeword
+
+    0 1 nc 1 sub {lfsr exch 0 put} for
+
+    0 1 nd 1 sub {  % m
+        getdata exec lfsr 0 get sub p add p mod   % fb = (data[m] - S[0]) mod p
+        0 1 nc 2 sub {  % j
+            lfsr exch dup 1 add                   % ... lfsr j j+1
+            2 index exch get                      % ... lfsr j S[j+1]
+            coeffs nc 3 index sub 1 sub get       % ... coeffs[nc-1-j]
+            4 index                               % ... fb
+            mul p mod                             % prod = (coeffs[nc-1-j] * fb) mod p
+            add p mod put                         % S[j] = (S[j+1] + prod) mod p
+        } for
+        lfsr nc 1 sub coeffs 0 get 3 index        % S[nc-1] = (coeffs[0] * fb) mod p
+        mul p mod put
+        pop  % fb
+    } for
+
+    end
+
+} bind def
+/rsecprime dup load /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END RESOURCE rsecprime--

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hanxin--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix--
 % --DESC: Han Xin Code
 % --EXAM: This is Han Xin
 % --EXOP:
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -761,30 +762,12 @@ begin
         (ecc.coeffs) //hanxin.after exec
 
         %
-        % Extend the input with the error correction values
+        % Calculate the error correction codewords
         %
         (ecc.cws) //hanxin.before exec
-
-        /nd rscws length def
-        /rscws [ rscws aload pop rsnc {0} repeat 0 ] def
-        0 1 nd 1 sub {  % i
-            rscws exch get rscws nd get xor          % k = rscws[i] ^ rscws[nd]
-            0 1 rsnc 1 sub {  % j
-                dup
-                rscws exch nd add 2 copy 1 add get   % ... rscws nd+j rscws[nd+j+1]
-                coeffs rsnc 6 -1 roll sub 1 sub get  % ... coeffs[rsnc-1-j]
-                4 index                              % ... k
-                //hanxin.rsprod exec                 % p = coeffs[rsnc-1-j] * k
-                xor put                              % rscws[nd+j] = rscws[nd+j+1] ^ p
-            } for
-            pop  % k
-        } for
-
-        %
-        % Return all but the last codeword
-        %
-        rscws 0 rscws length 1 sub getinterval
-
+        /lfsr rsnc array def
+        {rscws exch get} rscws length coeffs rsnc lfsr //hanxin.rsprod //rsecbinary exec
+        lfsr
         (ecc.cws) //hanxin.after exec
 
     } def
@@ -796,21 +779,18 @@ begin
     /ecwsb dcwsb length array def
     /in 0 def  /out 0 def
     e1nb {
-        cws in e1dcws getinterval e1ecws 8 rscodes
-        dup 0 e1dcws getinterval dcwsb exch out exch put
-        e1dcws e1ecws getinterval ecwsb exch out exch put
+        cws in e1dcws getinterval dup dcwsb out 3 -1 roll put
+        e1ecws 8 rscodes ecwsb out 3 -1 roll put
         /in in e1dcws add def  /out out 1 add def
     } repeat
     e2nb {
-        cws in e2dcws getinterval e2ecws 8 rscodes
-        dup 0 e2dcws getinterval dcwsb exch out exch put
-        e2dcws e2ecws getinterval ecwsb exch out exch put
+        cws in e2dcws getinterval dup dcwsb out 3 -1 roll put
+        e2ecws 8 rscodes ecwsb out 3 -1 roll put
         /in in e2dcws add def  /out out 1 add def
     } repeat
     e3nb {
-        cws in e3dcws getinterval e3ecws 8 rscodes
-        dup 0 e3dcws getinterval dcwsb exch out exch put
-        e3dcws e3ecws getinterval ecwsb exch out exch put
+        cws in e3dcws getinterval dup dcwsb out 3 -1 roll put
+        e3ecws 8 rscodes ecwsb out 3 -1 roll put
         /in in e3dcws add def  /out out 1 add def
     } repeat
 
@@ -1112,14 +1092,12 @@ begin
     % Add the function information
     %
     /funval size 21 sub 2 idiv 20 add 4 mul eclval add 4 mul bestmaskval add def
-    [ funval 16#0F00 and -8 bitshift
-      funval 16#00F0 and -4 bitshift
-      funval 16#000F and ]
-    4 4 rscodes /funvals exch def
+    /fundata [ funval 16#0F00 and -8 bitshift
+               funval 16#00F0 and -4 bitshift
+               funval 16#000F and ] def
     /funbits [
-        funvals {
-            4 tobin {48 sub} forall
-        } forall
+        fundata { 4 tobin {48 sub} forall } forall
+        fundata 4 4 rscodes { 4 tobin {48 sub} forall } forall
         0 1 0 1 0 1
     ] def
     0 1 functionmap length 1 sub {

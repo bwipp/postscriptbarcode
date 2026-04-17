@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER codeone--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix--
 % --DESC: Code One
 % --EXAM: Code One
 % --EXOP:
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -1092,39 +1093,17 @@ begin
     (ecc.cws) //codeone.before exec
 
     %
-    % De-interleave the codewords into blocks
+    % Reed-Solomon algorithm. Each block's data is read directly from cws via
+    % interleaved indexing.
     %
-    /cwbs rsbl array def  % Array of data codeword blocks
-    /ecbs rsbl array def  % Array of error correction blocks
+    /ecbs rsbl array def
     0 1 rsbl 1 sub {
-        /i exch def
-        /cwb dcpb array def
-        0 1 dcpb 1 sub {
-            /j exch def
-            cwb j cws j rsbl mul i add get put
-        } for
-        cwbs i cwb put
-    } for
-
-    %
-    % Reed-Solomon algorithm to derive the error correction codewords
-    %
-    0 1 cwbs length 1 sub {
-        /i exch def
-        /rscws [ cwbs i get aload pop ecpb {0} repeat ] def
-        0 1 dcpb 1 sub {  % m
-            rscws 1 index get                               % k = rscws[m]
-            0 1 ecpb 1 sub {  % j
-                rscws 3 index 2 index add 1 add 2 copy get  % ... rscws m+j+1 rscws[m+j+1]
-                coeffs ecpb 6 -1 roll sub 1 sub get         % ... coeffs[ecpb-j-1]
-                4 index                                     % ... k
-                //codeone.rsprod exec                       % p = coeffs[ecpb-j-1] * k
-                xor put                                     % rscws[m+j+1] = rscws[m+j+1] ^ p
-            } for
-            pop  % k
-            pop  % m
-        } for
-        ecbs i rscws dcpb ecpb getinterval put
+        /blk exch def
+        ecbs blk
+        /lfsr ecpb array def
+        {cws exch rsbl mul blk add get} dcpb coeffs ecpb lfsr //codeone.rsprod //rsecbinary exec
+        lfsr
+        put
     } for
 
     options /debugecc known
@@ -1134,7 +1113,7 @@ begin
     %
     % Extend codewords with the interleaved error correction codes
     %
-    /cws [ cws aload pop rscw {0} repeat ] def
+    /cws cws length rscw add array dup 0 cws putinterval def
     0 1 rscw 1 sub {
         /i exch def
         cws dcws i add ecbs i rsbl mod get i rsbl idiv get put

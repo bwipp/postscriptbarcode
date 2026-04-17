@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER dotcode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecprime render renmatrix--
 % --DESC: DotCode
 % --EXAM: This is DotCode
 % --EXOP: inkspread=0.16
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecprime dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -217,7 +218,10 @@ begin
         } for
         pop  % i
     } for
-    coeffs
+    % Flip to standard g(x) form: drop the leading 1 and reverse coeffs[1..NC]
+    % so the constant term ends up at index 0.
+    NC -1 1 { coeffs exch get } for
+    NC array astore
 } bind def
 
 %
@@ -1173,28 +1177,18 @@ begin
 
             (ecc.cws) //dotcode.before exec
 
-            0 1 ND 1 sub {  % i
-                rscws exch offset get                                     % ... rscws[offset(i)]
-                rscws ND offset get                                       % ... rscws[offset(ND)]
-                add 113 mod                                               % t = (rscws[offset(i)] + rscws[offset(ND)]) mod 113
-                0 1 NC 2 sub {  % j
-                    rscws ND 2 index add dup offset exch                  % ... rscws offset(ND+j) ND+j
-                    1 add offset rscws exch get 113 add                   % ... rscws[offset(ND+j+1)]+113
-                    4 index                                               % ... t
-                    coeffs 6 -1 roll 1 add get                            % ... coeffs[j+1]
-                    mul 113 mod                                           % p = (t * coeffs[j+1]) mod 113
-                    sub 113 mod put                                       % rscws[offset(ND+j)] = (rscws[offset(ND+j+1)]+113 - p) mod 113
-                } for
-                rscws ND NC add 1 sub offset                              % ... rscws offset(ND+NC-1)
-                113                                                       % ... 113
-                3 index                                                   % ... t
-                coeffs NC get                                             % ... coeffs[NC]
-                mul 113 mod                                               % p = (t * coeffs[NC]) mod 113
-                sub 113 mod put                                           % rscws[offset(ND+NC-1)] = (113 - p) mod 113
-                pop  % t
+            %
+            % Compute ECC via the shared rsecprime helper. Data lives at
+            % interleaved positions rscws[offset(0..ND-1)]; ECC goes back to
+            % rscws[offset(ND..NW-1)]. The helper leaves codewords in the
+            % spec's negated form in lfsr[0..NC), so no post-pass is needed.
+            %
+            /lfsr NC array def
+            {step mul start add rscws exch get} ND coeffs NC lfsr 113 //rsecprime exec
+            0 1 NC 1 sub {
+                /j exch def
+                rscws ND j add offset lfsr j get put
             } for
-
-            ND 1 NW 1 sub { dup rscws exch offset 113 rscws 5 -1 roll offset get sub 113 mod put } for
 
             (ecc.cws) //dotcode.after exec
 

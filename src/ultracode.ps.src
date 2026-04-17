@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER ultracode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache render renmatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecprime render renmatrix--
 % --DESC: Ultracode
 % --EXAM: Awesome colours!
 % --EXOP: eclevel=EC2
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecprime dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
@@ -419,37 +420,12 @@ begin
     (ecc.cws) //ultracode.before exec
 
     %
-    % Reed-Solomon error correction
+    % Reed-Solomon error correction over GF(283). Input is the concatenation
+    % [start, mcc, acc, dcws...].
     %
-    /rsseq [
-        start
-        mcc
-        acc
-        dcws aload pop
-        qcc {0} repeat
-        0  % Working space
-    ] def
-
-    %
-    % Derive the error codewords
-    %
-    0 1 n 1 sub {  % i
-        rsseq exch get rsseq n get add 283 mod    % t = (rsseq[i] + rsseq[n]) mod 283
-        0 1 k 1 sub {  % j
-            rsseq n 2 index add 2 copy 1 add get  % ... rsseq n+j rsseq[n+j+1]
-            283                                   % ... 283
-            5 index                               % ... t
-            coeffs k 8 -1 roll sub 1 sub get      % ... coeffs[k-j-1]
-            mul 283 mod                           % p = (t * coeffs[k-j-1]) mod 283
-            sub add 283 mod put                   % rsseq[n+j] = (rsseq[n+j+1] + (283 - p)) mod 283
-        } for
-        pop  % t
-    } for
-    n 1 n k add {  % i
-         rsseq exch 2 copy get                    % ... rsseq i rsseq[i]
-         283 exch sub 283 mod put                 % rsseq[i] = (283 - rsseq[i]) mod 283
-    } for
-    /ecws rsseq n k getinterval def
+    /rsdata [ start mcc acc dcws aload pop ] def
+    /ecws k array def
+    {rsdata exch get} n coeffs k ecws 283 //rsecprime exec
 
     options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse

@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER maxicode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache renmaximatrix--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary renmaximatrix--
 % --DESC: MaxiCode
 % --EXAM: [)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004
 % --EXOP: mode=2 parse
@@ -46,6 +46,7 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /fifocache dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
 dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
@@ -1074,23 +1075,9 @@ begin
         %
         % Calculate the error correction codewords
         %
-        /ecb [ rsnum {0} repeat ] def
-        /rsnc-1 ecb length 1 sub def
-        0 1 cwb length 1 sub {  % i
-            cwb exch get ecb 0 get xor                   % t = cwb[i] ^ ecb[0]
-            rsnc-1 -1 1 {  % j
-                ecb rsnc-1 2 index sub 2 copy 1 add get  % ... ecb rsnc-1-j ecb[rsnc-1-j+1]
-                4 index                                  % ... t
-                coeffs 6 -1 roll get                     % ... coeffs[j]
-                //maxicode.rsprod exec                   % p = t * coeffs[j]
-                xor put                                  % ecb[rsnc-1-j] = p ^ ecb[rsnc-1-j+1]
-            } for
-            ecb rsnc-1 2 index coeffs 0 get
-            //maxicode.rsprod exec put                   % ecb[rsnc-1] = t * coeffs[0]
-            pop  % t
-        } for
-
-        ecb
+        /lfsr rsnum array def
+        {cwb exch get} cwb length coeffs rsnum lfsr //maxicode.rsprod //rsecbinary exec
+        lfsr
 
     } def
 
