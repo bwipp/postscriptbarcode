@@ -11,6 +11,49 @@
 
 /azteccode dup /uk.co.terryburton.bwipp findresource cvx def
 
+% ECC check: error correction codewords for the data stream.
+% compact layers=1 uses bpcw=6 (GF 64).
+{
+    (Aztec) (format=compact debugecc) azteccode
+} [46 34 26 4 41 36 60 18 32 49 20 60] debugIsEqual
+
+% ECC check: full layers=3 uses bpcw=8 (GF 256).
+{
+    (Aztec full) (format=full layers=3 debugecc) azteccode
+} [
+    121 34 121 11 162 33 210 190 97 25 208 8 178 121 36
+    191 192 25 249 167 26 217 47 65 166 76 88 162 251 188
+    12 79 35 246 111 133 236 53 192 82 132 195 39 137 61
+    180 228 66 102 78 89 159 22
+] debugIsEqual
+
+% ECC check: full layers=10 uses bpcw=10 (GF 1024).
+{
+    (Aztec big) (format=full layers=10 debugecc) azteccode
+} [
+    154 433 456 972 906 104 413 47 324 2 1003 761 593 91 931
+    830 854 919 898 18 401 15 811 681 666 391 1009 781 236 138
+    116 489 840 132 730 839 107 130 722 816 793 353 863 97 767
+    37 458 645 673 884 680 465 226 565 71 188 517 833 55 929
+    444 180 151 934 425 567 755 757 585 147 274 640 329 777 970
+    697 609 83 504 929 169 950 981 524 364 219 180 595 90 953
+    823 208 613 238 439 682 666 917 288 160 606 143 993 617 27
+    576 896 452 896 87 60 719 167 667 788 587 446 497 489 936
+    40 91 382 789 708 730 326 279 297 14 531 98 902 140 61
+    821 812 439 158 304 985 571 1020 712 868 796 633 430 132 899
+    351 97 398 235 360 39 716 815 264 631 647 901 846 56 915
+    250 516 155 348 612 155 355 988 512 585 136 11 203 521 491
+    611 63 946 310 643 273 515 917 818 20 178 595 331 288 608
+    814 709 806 705 903 612 297 855 961 134 641 424 631 372 386
+    379 502 566 487 600 270 532 49 993 554 918 975 493 969 249
+    415 438 190 471 602 993 111 41 962 629 994 39 609 328 97
+    478 605 681 70 532 13 131 939 533 646 320 82 396 779 179
+    295 453 194 333 987 290 512 656 400 572 1023 179
+] debugIsEqual
+
+% ECC check: rune format has no main-cws ECC pass (ncws=0), so empty array.
+{ (42) (format=rune debugecc) azteccode } [] debugIsEqual
+
 /_bitsEqual {
     % Stack: errorname errorinfo (expected)
     ne {/testError pstack quit} if

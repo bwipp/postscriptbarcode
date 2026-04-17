@@ -1113,11 +1113,13 @@ begin
     /secchk [ 0 1 scodes 1 sub { dup secochk exch get exch secechk exch get } for ] def
 
     %
-    % Concatenate the data into final codewords
+    % Compute primary parity and concatenate the data into final codewords
     %
+    /prichk pri 10 rscodes exec def
+
     /codewords [
         pri aload pop
-        pri 10 rscodes exec aload pop
+        prichk aload pop
         sec aload pop
         secchk aload pop
     ] def
@@ -1125,6 +1127,10 @@ begin
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
     and { /bwipp.debugcws codewords //raiseerror exec } if
+
+    options /debugecc known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugecc [ prichk aload pop secchk aload pop ] //raiseerror exec } if
 
     (ecc.cws) //maxicode.after exec
 

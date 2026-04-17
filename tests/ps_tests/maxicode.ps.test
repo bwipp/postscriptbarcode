@@ -11,6 +11,26 @@
 
 /maxicode dup /uk.co.terryburton.bwipp findresource cvx def
 
+% ECC check: flat concat of [prichk, secchk] (primary + secondary parity codewords).
+% mode=4: SEC (scodes=20, 10 pri + 40 sec = 50 total).
+{
+    (This is MaxiCode) (mode=4 debugecc) maxicode
+} [
+    62 12 29 35 50 25 63 20 27 21 29 57 56 0 40 42 17 58 16 36 40 20 38 26 1
+    11 61 34 3 23 28 8 35 20 50 0 0 39 23 57 10 50 10 29 17 53 3 1 22 10
+] debugIsEqual
+
+% ECC check: mode=5: EEC (scodes=28, 10 pri + 56 sec = 66 total).
+{
+    (MaxiCode mode 5 test data) (mode=5 debugecc) maxicode
+} [
+    37 34 58 58 12 43 3 1 28 36 56 58 51 36 0
+    56 47 24 34 17 63 32 14 52 47 13 41 54 60 60
+    1 9 7 11 20 44 52 42 43 59 14 20 2 5 22
+    60 38 40 30 45 30 57 4 63 1 44 6 32 15 48
+    2 59 18 23 61 7
+] debugIsEqual
+
 /eq_tmpl {
     3 1 roll { 0 0 maxicode /p 990 array def 0 1 989 { p exch 0 put } for /pixs get { p exch 1 put } forall p }  % Convert to 0/1 array
     dup 3 -1 roll 1 exch put

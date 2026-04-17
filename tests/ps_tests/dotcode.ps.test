@@ -58,6 +58,46 @@
     (^128^128a) (parse debugcws) dotcode  % Binary latch ending in single non-binary
 } [112 3 14 11 110 65] debugIsEqual
 
+% ECC check: step=1 (no interleaving). rscws layout = [mask, mixed_cws ..., ECC ...].
+% mask forced for deterministic output.
+{
+    (2741) (mask=0 debugecc) dotcode
+} [0 107 27 41 85 10 91 83] debugIsEqual
+
+% ECC check: step=2 (112 <= nw < 224): 2-way interleaved RSEC. 80 'A' chars -> nw=125.
+/dc2data 80 string def 0 1 79 { dc2data exch 65 put } for
+{
+    dc2data (mask=0 debugecc) dotcode
+} [
+    0 106 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 59 47 61 2 27 24 71 59 40 37 91 8 0 106 16 90 101 10
+    85 61 103 29 100 72 53 59 83 43 75 77 39 45 34 109 108 83 43 51
+    85 90 50 35 76
+] debugIsEqual
+
+% ECC check: step=3 (nw >= 224): 3-way interleaved RSEC with stride-3 data read.
+% 150 'A' chars -> nw=229.
+/dc3data 150 string def 0 1 149 { dc3data exch 65 put } for
+{
+    dc3data (mask=0 debugecc) dotcode
+} [
+    0 106 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33 33
+    33 33 33 33 33 33 33 33 33 33 33 33 90 90 2 71 71 59 10 10
+    60 94 94 89 2 2 55 19 19 105 101 101 38 44 44 111 21 21 9 87
+    87 110 79 79 112 8 8 68 75 75 88 15 15 87 41 41 66 68 68 2
+    78 78 98 49 49 31 110 110 92 85 85 102 2 2 0 68 68 29 30 30
+    84 64 64 46 46 46 0 54 54 102
+] debugIsEqual
+
 
 % Figures
 

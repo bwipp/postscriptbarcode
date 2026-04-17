@@ -992,7 +992,13 @@ begin
     %
     % Extend the data codewords with error correction codewords to create the bit string for the data
     %
-    /cws cws ncws cws length sub bpcw rscodes def
+    /ecws cws ncws cws length sub bpcw rscodes def
+
+    options /debugecc known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugecc ecws cws length ecws length cws length sub getinterval //raiseerror exec } if
+
+    /cws ecws def
     format (full) eq {
         /databits layers layers mul 16 mul layers 112 mul add string def
     } {

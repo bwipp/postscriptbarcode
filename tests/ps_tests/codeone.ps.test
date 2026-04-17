@@ -11,6 +11,22 @@
 
 /codeone dup /uk.co.terryburton.bwipp findresource cvx def
 
+% ECC check: flat concat of per-block ECC codewords (ecbs). Version B uses rsbl=2.
+{
+    (TESTING 123) (version=B debugecc) codeone
+} [7 248 244 66 132 61 242 13 72 183 231 84 75 96 176 166] debugIsEqual
+
+% ECC check: T-32 (truncated) variant.
+/coT32data 30 string def 0 1 29 { coT32data exch 65 put } for
+{
+    coT32data (version=T-32 debugecc) codeone
+} [174 132 164 249 157 181 7 170 101 58 195 217 144 3 84 105] debugIsEqual
+
+% ECC check: S-20 uses 5-bit GF(32) codewords (digit-packing symbology).
+{
+    (12345678) (version=S-20 debugecc) codeone
+} [27 19 21 1 28 15 27 26] debugIsEqual
+
 /er_tmpl {
     3 1 roll { 0 0 codeone }
     dup 3 -1 roll 1 exch put

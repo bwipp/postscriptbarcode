@@ -1127,6 +1127,10 @@ begin
         ecbs i rscws dcpb ecpb getinterval put
     } for
 
+    options /debugecc known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugecc [ ecbs {aload pop} forall ] //raiseerror exec } if
+
     %
     % Extend codewords with the interleaved error correction codes
     %

@@ -11,6 +11,16 @@
 
 /pdf417 dup /uk.co.terryburton.bwipp findresource cvx def
 
+% ECC check: eclevel=5 (k=64 ECC codewords) over GF(929).
+{
+    (Hello) (fixedeclevel eclevel=5 debugecc) pdf417
+} [
+    750 476 180 598 383 499 521 699 649 490 197 427 713 136 509 377 387 450 219 479
+    390 482 213 135 598 401 388 806 322 272 346 3 897 728 59 274 606 216 128 671 727
+    796 645 418 386 738 791 263 199 530 593 859 116 494 754 837 353 854 172 821 41
+    894 584 582
+] debugIsEqual
+
 /er_tmpl {
     3 1 roll { 0 0 pdf417 }
     dup 3 -1 roll 1 exch put

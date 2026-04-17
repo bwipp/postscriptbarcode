@@ -56,6 +56,20 @@
     (TESTING) (fixedeclevel debugecc) qrcode
 } [32 61 39 161 45 5 0 236 17 236 17 236 17 236 17 236 124 49 125 89 133 221 9 38 29 92] debugIsEqual
 
+% ECC check: v5-Q has mixed block sizes (2 blocks @15dcpb + 2 blocks @16dcpb, 18 ecpb).
+{
+    (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ012345) (eclevel=Q fixedeclevel debugecc) qrcode
+} [
+    34 53 85 93 33 150 194 23 205 224 207 32 69 225 92 236 42 208
+    203 17 21 2 245 236 112 23 138 17 179 69 50 236 215 201 182 17
+    50 21 132 236 253 46 214 17 98 39 91 236 140 53 131 17 173 20
+    135 236 161 168 64 17 8 236 14 195 153 252 33 19 34 93 193 20
+    154 30 0 43 113 16 179 174 181 2 161 160 24 68 243 233 77 115
+    62 1 98 82 214 33 19 12 234 201 53 225 189 253 181 98 179 36
+    95 39 151 246 252 139 245 103 7 161 41 159 17 110 123 92 131
+    107 34 4 26 25 156 16 28 208 0
+] debugIsEqual
+
 % K4 (点茗点茗); 7.4.6 examples 点 0x935F (^147^095) and 茗 0xE4AA (^228^170); 4 Kanji max for version 1-H (Table 7)
 (^147^095^228^170^147^095^228^170) (parse version=1 eclevel=H fixedeclevel debugbitseqs) 0 [
     (1000)             % Kanji mode
