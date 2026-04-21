@@ -176,6 +176,44 @@
 ] debugIsEqual
 
 %
+% Zero-width bar is zero-width regardless of barratio (does not shift pixx)
+%
+{
+    0 0 moveto
+    <<
+        /ren /renlinear
+        /sbs [1 1 0 1 1]
+        /bhs [1 1 1]
+        /bbs [0 0 0]
+        /inkspread 0
+        /barratio 2
+        /opt << /debugbars true >>
+    >> renlinear
+} [
+    72 0.5 0 1
+    72 3.5 0 1
+] debugIsEqual
+
+%
+% Zero-width space is zero-width regardless of spaceratio (does not shift pixx)
+%
+{
+    0 0 moveto
+    <<
+        /ren /renlinear
+        /sbs [1 0 1]
+        /bhs [1 1]
+        /bbs [0 0]
+        /inkspread 0
+        /spaceratio 2
+        /opt << /debugbars true >>
+    >> renlinear
+} [
+    72 0.5 0 1
+    72 1.5 0 1
+] debugIsEqual
+
+%
 % DataBar Omnidirectional
 %
 {
