@@ -152,14 +152,17 @@ begin
         } for
     } def
     mark
-    0 linsbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
-    counttomark 1 sub array astore /bot exch def pop pop
+    0 1 linsbs length 1 sub {
+        /i exch def
+        linsbs i get cvi { i 2 mod 0 eq {1} {0} ifelse } repeat  % Emit sbs[i] pixels of bar(1)/space(0) per index parity
+    } for
+    counttomark array astore /bot exch def pop
     /sep [ bot {1 exch sub} forall ] def
-    sep 0 [0 0 0] putinterval
+    sep 0 [0 0 0 0] putinterval
     sep sep length 4 sub [0 0 0 0] putinterval
-    [  % Finder pattern module positions
-        18 98 bot length 13 sub {} for
-        69 98 bot length 13 sub {} for
+    [  % Finder pattern module positions (shifted +1 from 18, 69 for the 96/100-module layout that now includes the left guard space)
+        19 98 bot length 13 sub {} for
+        70 98 bot length 13 sub {} for
     ] {sepfinder} forall
 
     %
@@ -173,10 +176,12 @@ begin
     /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
-    /linpixs [ 0  % Begin with left guard space
-        linsbs { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall  % Alternates i 1/0's
+    /linpixs [
+        0 1 linsbs length 1 sub {
+            /i exch def
+            linsbs i get cvi { i 2 mod 0 eq {1} {0} ifelse } repeat  % Emit sbs[i] pixels of bar(1)/space(0) per index parity
+        } for
     ] def
-    /sep [ 0 sep aload pop ] def  % Offset by 1
 
     /linheight linheight cvi def
     /ccrows ccrowmult length def

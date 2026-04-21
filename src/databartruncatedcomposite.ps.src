@@ -51,10 +51,9 @@ dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
-/databaromnicomposite.seppadleft [ 0 0 0 ] readonly def
-/databaromnicomposite.seppadright [ 0 0 0 0 ] readonly def
-/databaromnicomposite.findersep [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] readonly def
-/databaromnicomposite.f3pat [ 1 1 1 1 1 1 1 1 1 0 1 1 1 ] readonly def
+/databartruncatedcomposite.seppad [ 0 0 0 0 ] readonly def
+/databartruncatedcomposite.findersep [ 0 0 0 0 0 0 0 0 0 0 1 0 0 ] readonly def
+/databartruncatedcomposite.f3pat [ 1 1 1 1 1 1 1 1 1 0 1 1 1 ] readonly def
 
 /databartruncatedcomposite {
 
@@ -156,18 +155,21 @@ begin
             } ifelse
             sep exch i exch put
         } for
-        true 0 1 12 {dup bot exch fp add get exch //databaromnicomposite.f3pat exch get eq and} for {
+        true 0 1 12 {dup bot exch fp add get exch //databartruncatedcomposite.f3pat exch get eq and} for {
             % Right shifted module for value 3 finder
-            sep fp //databaromnicomposite.findersep putinterval
+            sep fp //databartruncatedcomposite.findersep putinterval
         } if
     } def
     mark
-    0 linsbs {1 index 1 eq {{0}} {{1}} ifelse repeat} forall
-    counttomark 1 sub array astore /bot exch def pop pop
+    0 1 linsbs length 1 sub {
+        /i exch def
+        linsbs i get cvi { i 2 mod 0 eq {1} {0} ifelse } repeat  % Emit sbs[i] pixels of bar(1)/space(0) per index parity
+    } for
+    counttomark array astore /bot exch def pop
     /sep [ bot {1 exch sub} forall ] def
-    sep 0 //databaromnicomposite.seppadleft putinterval
-    sep sep length 4 sub //databaromnicomposite.seppadright putinterval
-    18 sepfinder 64 sepfinder
+    sep 0 //databartruncatedcomposite.seppad putinterval
+    sep sep length 4 sub //databartruncatedcomposite.seppad putinterval
+    19 sepfinder 65 sepfinder  % Finder positions shifted for the 96-module linear layout (was 18 and 64 for the former 95-module layout)
 
     %
     % Generate metrics for the 2D part
@@ -180,10 +182,12 @@ begin
     /ccrowmult compsym /rowmult get def
     /ccpixx compsym /pixx get def
 
-    /linpixs [ 0  % Begin with left guard space
-        linsbs { cvi 1 index 0 eq {{1}} {{0}} ifelse repeat } forall  % Alternates i 1/0's
+    /linpixs [
+        0 1 linsbs length 1 sub {
+            /i exch def
+            linsbs i get cvi { i 2 mod 0 eq {1} {0} ifelse } repeat  % Emit sbs[i] pixels of bar(1)/space(0) per index parity
+        } for
     ] def
-    /sep [ 0 sep aload pop ] def  % Offset by 1
 
     /linheight linheight cvi def
     /ccrows ccrowmult length def

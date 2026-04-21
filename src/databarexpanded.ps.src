@@ -842,19 +842,14 @@ begin
 
     format (expandedstacked) ne {  % Linear
 
-        %
-        % Remove leading space
-        %
-        /sbs rows 0 get dup length 1 sub 1 exch getinterval def
-
         /sbs [
-            1
+            0 1 1                                     % 0-width placeholder + left guard (space + bar)
             0 1 datalen 1 sub {
                 /i exch def
                 dxw i get aload pop
                 i 2 mod 0 eq {fxw i 2 idiv get aload pop} if
             } for
-            1 1
+            1 1                                       % right guard (bar + space)
         ] def
 
         /height /resolve_height //render exec dup -1 eq { pop 34.0 72 div } if def
