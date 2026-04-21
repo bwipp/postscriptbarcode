@@ -75,7 +75,8 @@ begin
     /text1xoffset -5.75 def
     /text1yoffset -5.25 def
     /height -1.0 def
-    /guarddescent 5 def
+    /guarddescent 5.0 def
+    /addondescent null def  % realtype sentinel: defaults to guarddescent
     /width 0 def
 
     /propspec false def
@@ -191,6 +192,7 @@ begin
     /resolve_strictspec //render exec
 
     /descent guarddescent modunit mul 72 div def  % Guard bar descent
+    addondescent null eq { /addondescent guarddescent def } if  % Default add-on descent to guard descent
 
     %
     % Derive the equivalent UPC-A for its checksum
@@ -324,7 +326,7 @@ begin
         /addopts <<
             /includetext true
             /height height includetext { 0.15 sub } if
-            /guarddescent guarddescent
+            /addondescent addondescent
             /text1xoffset addontextxoffset null ne {addontextxoffset} {54.25 addongap add} ifelse
             addontextyoffset null ne {/text1yoffset addontextyoffset} if
             /text1size addontextsize null ne {addontextsize} {text1size} ifelse

@@ -247,3 +247,21 @@
     dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
+
+%
+% addondescent: primary's add-on descent propagates to the add-on symbol
+% and defaults to guarddescent. Inspect bbs[0] (primary left guard) and
+% bbs[length-1] (last add-on bar).
+%
+/descents_tmpl {
+    3 1 roll { 0 0 ean13 /bbs get dup 0 get exch dup length 1 sub get 2 array astore }
+    dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+(9780123456786 12345) (includetext dontdraw)                               [-0.0694 -0.0694] descents_tmpl  % Default: addon inherits guard
+(9780123456786 12345) (includetext dontdraw addondescent=0)                [-0.0694  0.0   ] descents_tmpl  % Addon only
+(9780123456786 12345) (includetext dontdraw addondescent=8)                [-0.0694 -0.1111] descents_tmpl  % Addon deeper
+(9780123456786 12345) (includetext dontdraw guarddescent=8)                [-0.1111 -0.1111] descents_tmpl  % Addon inherits override
+(9780123456786 12345) (includetext dontdraw guarddescent=8 addondescent=0) [-0.1111  0.0   ] descents_tmpl  % Both controlled independently
+% Same with EAN-2 add-on
+(9780123456786 12) (includetext dontdraw addondescent=0) [-0.0694 0.0] descents_tmpl

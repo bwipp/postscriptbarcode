@@ -72,3 +72,20 @@
 
 % strictspec: xdim resolves from default AST xnom (0.330)
 { (12345670) (dontdraw strictspec) ean8 dup /strictspec get exch /xdim get 2 array astore } [true 0.330] isEqual
+
+
+%
+% addondescent: primary's add-on descent propagates to the add-on symbol
+% and defaults to guarddescent. Inspect bbs[0] (primary left guard) and
+% bbs[length-1] (last add-on bar).
+%
+/descents_tmpl {
+    3 1 roll { 0 0 ean8 /bbs get dup 0 get exch dup length 1 sub get 2 array astore }
+    dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+(02345673 12345) (includetext permitaddon dontdraw)                               [-0.0694 -0.0694] descents_tmpl
+(02345673 12345) (includetext permitaddon dontdraw addondescent=0)                [-0.0694  0.0   ] descents_tmpl
+(02345673 12345) (includetext permitaddon dontdraw addondescent=8)                [-0.0694 -0.1111] descents_tmpl
+(02345673 12345) (includetext permitaddon dontdraw guarddescent=8)                [-0.1111 -0.1111] descents_tmpl
+(02345673 12345) (includetext permitaddon dontdraw guarddescent=8 addondescent=0) [-0.1111  0.0   ] descents_tmpl

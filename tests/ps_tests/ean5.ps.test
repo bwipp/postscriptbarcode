@@ -29,3 +29,19 @@
 } def
 (90200)  (includetext propspec)   ok_tmpl
 (90200)  (includetext strictspec xdim=0.330)   ok_tmpl
+
+
+%
+% addondescent: controls the descent of the add-on bars below the baseline
+% (replaces the former guarddescent option on the add-on)
+%
+/descent_tmpl {
+    3 1 roll { 0 0 ean5 /bbs get 0 get 1 array astore }
+    dup 3 -1 roll 1 exch put dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+(90200) (dontdraw)                [-0.0694] descent_tmpl  % Default 5X
+(90200) (dontdraw addondescent=0) [ 0.0   ] descent_tmpl  % No descent
+(90200) (dontdraw addondescent=8) [-0.1111] descent_tmpl  % 8X
+% Legacy guarddescent option is no longer recognized on the add-on (silently ignored)
+(90200) (dontdraw guarddescent=0) [-0.0694] descent_tmpl
