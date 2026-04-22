@@ -31,3 +31,22 @@
 
 % propspec smoke test
 { 0 0 moveto (0311-175X 00 17) (propspec) issn true } true isEqual
+
+%
+% Extratext (text2) migration tests
+%
+
+% ISSN label populates text2 in options when includetext is set
+{ (0311-175X 00 17) (dontdraw includetext) issn /opt get (text2) get }
+(ISSN 0311-175X) isEqual
+
+% text2 is not set when includetext is off
+{ (0311-175X) (dontdraw) issn /opt get (text2) known not 1 array astore }
+[true] isEqual
+
+% Backward compat: issntextfont flows to text2font
+{ (0311-175X 00 17) (dontdraw includetext issntextfont=/Helvetica) issn /opt get (text2font) get 127 string cvs }
+(/Helvetica) isEqual
+
+% Smoke test: renders with extratextgaps
+{ 0 0 moveto (0311-175X 00 17) (includetext extratextgaps=2) issn true } true isEqual

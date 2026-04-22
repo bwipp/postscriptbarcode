@@ -38,3 +38,22 @@
 
 % propspec smoke test
 { 0 0 moveto (979-0-2605-3211-3) (propspec) ismn true } true isEqual
+
+%
+% Extratext (text2) migration tests
+%
+
+% ISMN label populates text2 in options when includetext is set
+{ (979-0-2605-3211-3) (dontdraw includetext) ismn /opt get (text2) get }
+(ISMN 979-0-2605-3211-3) isEqual
+
+% text2 is not set when includetext is off
+{ (979-0-2605-3211-3) (dontdraw) ismn /opt get (text2) known not 1 array astore }
+[true] isEqual
+
+% Backward compat: ismntextfont flows to text2font
+{ (979-0-2605-3211-3) (dontdraw includetext ismntextfont=/Helvetica) ismn /opt get (text2font) get 127 string cvs }
+(/Helvetica) isEqual
+
+% Smoke test: renders with extratextgaps
+{ 0 0 moveto (979-0-2605-3211-3) (includetext extratextgaps=2) ismn true } true isEqual

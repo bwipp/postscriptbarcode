@@ -48,3 +48,40 @@
 
 % AST consumption: SST profile resolves through wrapper
 { (978-1-56581-231-4) (dontdraw strictspec ast=gs1.sst2) isbn dup /strictspec get exch /xdim get 2 array astore } [true 0.660] isEqual
+
+%
+% Extratext (text2) migration tests
+%
+
+% ISBN label populates text2 in options when includetext is set
+{ (978-1-56581-231-4) (dontdraw includetext) isbn /opt get (text2) get }
+(ISBN 978-1-56581-231-4) isEqual
+
+% txt array has 13 entries (EAN-13 digits only, no ISBN label tuple)
+{ (978-1-56581-231-4) (dontdraw includetext) isbn /txt get length 1 array astore }
+[13] isEqual
+
+% text2 is not set when includetext is off
+{ (978-1-56581-231-4) (dontdraw) isbn /opt get (text2) known not 1 array astore }
+[true] isEqual
+
+% Backward compat: isbntextfont flows to text2font
+{ (978-1-56581-231-4) (dontdraw includetext isbntextfont=/Helvetica) isbn /opt get (text2font) get 127 string cvs }
+(/Helvetica) isEqual
+
+% New option extratextfont overrides isbntextfont: text2font is not in opt
+{ (978-1-56581-231-4) (dontdraw includetext isbntextfont=/Helvetica extratextfont=/Times-Roman) isbn /opt get (text2font) known not 1 array astore }
+[true] isEqual
+
+% User-supplied extratext overrides encoder label: text2 is not in opt
+{ (978-1-56581-231-4) (dontdraw includetext extratext=Custom) isbn /opt get (text2) known not 1 array astore }
+[true] isEqual
+
+% Smoke test: renders with extratextgaps
+{ 0 0 moveto (978-1-56581-231-4) (includetext extratextgaps=2) isbn true } true isEqual
+
+% Smoke test: renders with extratextcolor
+{ 0 0 moveto (978-1-56581-231-4) (includetext extratextcolor=FF0000) isbn true } true isEqual
+
+% Smoke test: renders with extratextxalign=center
+{ 0 0 moveto (978-1-56581-231-4) (includetext extratextxalign=center) isbn true } true isEqual

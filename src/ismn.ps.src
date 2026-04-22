@@ -282,24 +282,44 @@ begin
     barcode options //ean13 exec /args exch def
 
     %
-    % Add the ISMN text
+    % Populate ISMN text as text2.
+    % Compatibility rule:
+    %   set text2* defaults only when neither text2* nor extratext*
+    %   values were explicitly provided.
     %
     includetext {
-        ismntextxoffset null eq {
-            /ismntextxoffset ismntxt length 18 eq {-1.0} {-12.0} ifelse def
-        } if
+        /textUnset    options (text2) known not        options (extratext) known not        and def
+        /fontUnset    options (text2font) known not    options (extratextfont) known not    and def
+        /sizeUnset    options (text2size) known not    options (extratextsize) known not    and def
+        /xalignUnset  options (text2xalign) known not  options (extratextxalign) known not  and def
+        /xoffsetUnset options (text2xoffset) known not options (extratextxoffset) known not and def
+        /yalignUnset  options (text2yalign) known not  options (extratextyalign) known not  and def
+        /yoffsetUnset options (text2yoffset) known not options (extratextyoffset) known not and def
+
+        /xoffsetExplicit ismntextxoffset null ne def
+
         ismntextyoffset null eq {
-            /ismntextyoffset args (bhs) get 2 get 72 mul 3 add def
+            /ismntextyoffset 2.0 def
         } if
-        args (txt) known {
-            /txt args (txt) get def
-            /newtxt txt length 1 add array def
-            newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] put
-            args (txt) newtxt put
+
+        textUnset  { options (text2)     ismntxt      put } if
+        fontUnset  { options (text2font) ismntextfont put } if
+        sizeUnset  { options (text2size) ismntextsize put } if
+
+        xalignUnset {
+            options (text2xalign) (left) put
+            xoffsetExplicit not {
+                /ismntextxoffset ismntxt length 18 eq { -1.0 } { -12.0 } ifelse def
+            } if
+            xoffsetUnset { options (text2xoffset) ismntextxoffset put } if
         } {
-            args (txt) [ [ismntxt ismntextxoffset ismntextyoffset ismntextfont ismntextsize] ] put
+            xoffsetExplicit xoffsetUnset and {
+                options (text2xoffset) ismntextxoffset put
+            } if
         } ifelse
+
+        yalignUnset  { options (text2yalign)  (above)           put } if
+        yoffsetUnset { options (text2yoffset) ismntextyoffset   put } if
     } if
 
     args (opt) options put
