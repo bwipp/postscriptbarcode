@@ -48,6 +48,23 @@ dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/issn.aliases <<
+    (issntext)            /text2
+    (issntextsubspace)    /text2subspace
+    (issntextsplit)       /text2split
+    (issntextlinegaps)    /text2linegaps
+    (issntextcolor)       /text2color
+    (issntextxalign)      /text2xalign
+    (issntextyalign)      /text2yalign
+    (issntextdirection)   /text2direction
+    (issntextfont)        /text2font
+    (issntextsize)        /text2size
+    (issntextxoffset)     /text2xoffset
+    (issntextyoffset)     /text2yoffset
+    (issntextgaps)        /text2gaps
+>> readonly def
+
 /issn {
 
     32 dict begin
@@ -55,10 +72,12 @@ begin
 
     /dontdraw false def
     /includetext false def
-    /issntextfont /Courier def
-    /issntextsize 9.0 def
-    /issntextxoffset null def  % sentinel realtype
-    /issntextyoffset null def  % sentinel realtype
+    /text2 (unset) def      % sentinel: user-supplied label content overrides default
+    /text2font (unset) def
+    /text2size 9.0 def
+    /text2xalign (unset) def  % sentinel: user-supplied alignment opts out of default xoffset
+    /text2xoffset null def  % sentinel realtype
+    /text2yoffset null def  % sentinel realtype
     /height -1.0 def
     /width 0 def
     /addongap 12.0 def
@@ -74,7 +93,7 @@ begin
     /hnom -1.0 def
     /modunit 1 def
 
-    null /apply //processoptions exec /options exch def
+    //issn.aliases /apply //processoptions exec /options exch def
     /global_encoder_defaults //render exec
 
     /barcode exch def
@@ -224,26 +243,21 @@ begin
     options (xmax) xmax put
     options (hnom) hnom put
     options (modunit) modunit put
+    includetext {
+        options (text2) text2 (unset) eq { issntxt } { text2 } ifelse put
+        text2font (unset) ne { options (text2font) text2font put } if
+        options (text2size) text2size put
+        text2xalign (unset) eq {  % Default xoffset is anchored to default left alignment
+            options (text2xoffset) text2xoffset null eq { 10.0 } { text2xoffset } ifelse put
+        } {
+            options (text2xalign) text2xalign put
+            text2xoffset null ne { options (text2xoffset) text2xoffset put } if
+        } ifelse
+        options (text2yoffset) text2yoffset null eq { 3 } { text2yoffset } ifelse put
+    } if
 
     /uk.co.terryburton.bwipp._dontdraw true def
     barcode options //ean13 exec /args exch def
-
-    %
-    % Add the ISSN text
-    %
-    includetext {
-        issntextxoffset null eq {/issntextxoffset 10.0 def} if
-        issntextyoffset null eq {/issntextyoffset args (bhs) get 2 get 72 mul 3 add def} if
-        args (txt) known {
-            /txt args (txt) get def
-            /newtxt txt length 1 add array def
-            newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [issntxt issntextxoffset issntextyoffset issntextfont issntextsize] put
-            args (txt) newtxt put
-        } {
-            args (txt) [ [issntxt issntextxoffset issntextyoffset issntextfont issntextsize] ] put
-        } ifelse
-    } if
 
     args (opt) options put
     args

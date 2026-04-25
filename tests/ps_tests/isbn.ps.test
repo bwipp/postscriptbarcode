@@ -48,3 +48,43 @@
 
 % AST consumption: SST profile resolves through wrapper
 { (978-1-56581-231-4) (dontdraw strictspec ast=gs1.sst2) isbn dup /strictspec get exch /xdim get 2 array astore } [true 0.660] isEqual
+
+%
+% Label text migrated to text2 framework
+%
+
+% Default ISBN label is populated as text2 content
+{ (978-1-56581-231-4) (dontdraw includetext) isbn /opt get (text2) get } (ISBN 978-1-56581-231-4) isEqual
+
+% text2 absent when includetext is off
+{ (978-1-56581-231-4) (dontdraw) isbn /opt get (text2) known 1 array astore } [false] isEqual
+
+% Default xoffset is length-dependent: -12.0 for ISBN-13 form
+{ (978-1-56581-231-4) (dontdraw includetext) isbn /opt get (text2xoffset) get 1 array astore } [-12.0] isEqual
+
+% Default xoffset is -1.0 for legacy ISBN-10
+{ (1-56581-231-X) (dontdraw includetext legacy) isbn /opt get (text2xoffset) get 1 array astore } [-1.0] isEqual
+
+% User overrides label content via text2=
+{ (978-1-56581-231-4) (dontdraw includetext text2=CUSTOM) isbn /opt get (text2) get } (CUSTOM) isEqual
+
+% extratext alias overrides label content
+{ (978-1-56581-231-4) (dontdraw includetext extratext=Alt) isbn /opt get (text2) get } (Alt) isEqual
+
+% isbntext legacy alias overrides label content
+{ (978-1-56581-231-4) (dontdraw includetext isbntext=Legacy) isbn /opt get (text2) get } (Legacy) isEqual
+
+% Legacy isbntextfont alias flows to text2font
+{ (978-1-56581-231-4) (dontdraw includetext isbntextfont=Helvetica) isbn /opt get (text2font) get } (Helvetica) isEqual
+
+% User-set xalign opts out of default xoffset injection
+{ (978-1-56581-231-4) (dontdraw includetext text2xalign=center) isbn /opt get (text2xoffset) known 1 array astore } [false] isEqual
+
+% xoffset is preserved when user supplies it alongside non-default xalign
+{ (978-1-56581-231-4) (dontdraw includetext text2xalign=center text2xoffset=42) isbn /opt get (text2xoffset) get 1 array astore } [42.0] isEqual
+
+% Smoke test: extratextcolor renders without error
+{ 0 0 moveto (978-1-56581-231-4) (includetext extratextcolor=FF0000) isbn true } true isEqual
+
+% Smoke test: extratextgaps renders without error
+{ 0 0 moveto (978-1-56581-231-4) (includetext extratextgaps=2) isbn true } true isEqual

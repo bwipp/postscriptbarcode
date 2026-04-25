@@ -31,3 +31,37 @@
 
 % propspec smoke test
 { 0 0 moveto (0311-175X 00 17) (propspec) issn true } true isEqual
+
+%
+% Label text migrated to text2 framework
+%
+
+% Default ISSN label is populated as text2 content
+{ (0311-175X 00 17) (dontdraw includetext) issn /opt get (text2) get } (ISSN 0311-175X) isEqual
+
+% text2 absent when includetext is off
+{ (0311-175X) (dontdraw) issn /opt get (text2) known 1 array astore } [false] isEqual
+
+% Default xoffset is 10.0 for ISSN
+{ (0311-175X 00 17) (dontdraw includetext) issn /opt get (text2xoffset) get 1 array astore } [10.0] isEqual
+
+% User overrides label content via text2=
+{ (0311-175X 00 17) (dontdraw includetext text2=CUSTOM) issn /opt get (text2) get } (CUSTOM) isEqual
+
+% extratext alias overrides label content
+{ (0311-175X 00 17) (dontdraw includetext extratext=Alt) issn /opt get (text2) get } (Alt) isEqual
+
+% issntext legacy alias overrides label content
+{ (0311-175X 00 17) (dontdraw includetext issntext=Legacy) issn /opt get (text2) get } (Legacy) isEqual
+
+% Legacy issntextfont alias flows to text2font
+{ (0311-175X 00 17) (dontdraw includetext issntextfont=Helvetica) issn /opt get (text2font) get } (Helvetica) isEqual
+
+% User-set xalign opts out of default xoffset injection
+{ (0311-175X 00 17) (dontdraw includetext text2xalign=center) issn /opt get (text2xoffset) known 1 array astore } [false] isEqual
+
+% xoffset is preserved when user supplies it alongside non-default xalign
+{ (0311-175X 00 17) (dontdraw includetext text2xalign=center text2xoffset=42) issn /opt get (text2xoffset) get 1 array astore } [42.0] isEqual
+
+% Smoke test: extratextcolor renders without error
+{ 0 0 moveto (0311-175X 00 17) (includetext extratextcolor=FF0000) issn true } true isEqual

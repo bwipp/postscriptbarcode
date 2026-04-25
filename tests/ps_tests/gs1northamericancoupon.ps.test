@@ -118,3 +118,34 @@ eq_tmpl_opts
 
 % AST bounds: xdim below xmin fails
 { (\(8110\)106141416543213500110000310123196000) (dontdraw strictspec xdim=0.100) gs1northamericancoupon } /bwipp.renderXdimTooSmall isError
+
+%
+% Coupon label populated as text1 (renmatrix encoder-positioned text)
+%
+
+% Default label is GCP-OfferCode populated as text1 content
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext) gs1northamericancoupon /opt get (text1) get } (0614141-654321) isEqual
+
+% text1 absent when includetext is off
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw) gs1northamericancoupon /opt get (text1) known 1 array astore } [false] isEqual
+
+% Encoder asserts xalign=left and yalign=above (overrides renmatrix's (unset))
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext) gs1northamericancoupon /opt get dup (text1xalign) get exch (text1yalign) get 2 array astore } [(left) (above)] isEqual
+
+% User overrides label content via text1=
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext text1=CUSTOM) gs1northamericancoupon /opt get (text1) get } (CUSTOM) isEqual
+
+% alttext alias overrides label content
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext alttext=Alt) gs1northamericancoupon /opt get (text1) get } (Alt) isEqual
+
+% coupontext legacy alias overrides label content
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext coupontext=Legacy) gs1northamericancoupon /opt get (text1) get } (Legacy) isEqual
+
+% Legacy coupontextfont alias flows to text1font
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext coupontextfont=Times-Bold) gs1northamericancoupon /opt get (text1font) get } (Times-Bold) isEqual
+
+% User-supplied xalign overrides encoder's default
+{ (\(8110\)106141416543213500110000310123196000) (dontdraw includetext text1xalign=center) gs1northamericancoupon /opt get (text1xalign) get } (center) isEqual
+
+% Smoke test: text1color renders without error
+{ 0 0 moveto (\(8110\)106141416543213500110000310123196000) (includetext text1color=FF0000) gs1northamericancoupon true } true isEqual

@@ -49,6 +49,23 @@ dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /databarexpandedstacked dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/gs1northamericancoupon.aliases <<
+    (coupontext)            /text1
+    (coupontextsubspace)    /text1subspace
+    (coupontextsplit)       /text1split
+    (coupontextlinegaps)    /text1linegaps
+    (coupontextcolor)       /text1color
+    (coupontextxalign)      /text1xalign
+    (coupontextyalign)      /text1yalign
+    (coupontextdirection)   /text1direction
+    (coupontextfont)        /text1font
+    (coupontextsize)        /text1size
+    (coupontextxoffset)     /text1xoffset
+    (coupontextyoffset)     /text1yoffset
+    (coupontextgaps)        /text1gaps
+>> readonly def
+
 /gs1northamericancoupon {
 
     32 dict begin
@@ -56,10 +73,13 @@ begin
 
     /dontdraw false def
     /includetext false def  % Enable/disable coupon text
-    /coupontextfont /Helvetica def
-    /coupontextsize 9.0 def
-    /coupontextxoffset null def
-    /coupontextyoffset null def
+    /text1 (unset) def      % sentinel: user-supplied label content overrides default
+    /text1font (unset) def
+    /text1size 9.0 def
+    /text1xalign (unset) def
+    /text1yalign (unset) def
+    /text1xoffset null def  % sentinel realtype
+    /text1yoffset null def  % sentinel realtype
     /parse false def
     /dontlint false def
     /lintreqs true def
@@ -75,7 +95,7 @@ begin
     /xmax -1.0 def
     /modunit 1 def
 
-    null /apply //processoptions exec /options exch def
+    //gs1northamericancoupon.aliases /apply //processoptions exec /options exch def
     /global_encoder_defaults //render exec
 
     /barcode exch def
@@ -130,28 +150,18 @@ begin
     options (xmin) xmin put
     options (xmax) xmax put
     options (modunit) modunit put
-    /uk.co.terryburton.bwipp._dontdraw true def
-
-    barcode options //databarexpandedstacked exec /args exch def
-
-    % Add the coupon text
     includetext {
-        coupontextxoffset null eq {
-            /coupontextxoffset 0.0 def
-        } if
-        coupontextyoffset null eq {
-            /coupontextyoffset args (height) get 72 mul 3 add def
-        } if
-        args (txt) known {
-            /txt args (txt) get def
-            /newtxt txt length 1 add array def
-            newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [coupontext coupontextxoffset coupontextyoffset coupontextfont coupontextsize] put
-            args (txt) newtxt put
-        } {
-            args (txt) [ [coupontext coupontextxoffset coupontextyoffset coupontextfont coupontextsize] ] put
-        } ifelse
+        options (text1)       text1       (unset) eq { coupontext } { text1       } ifelse put
+        options (text1font)   text1font   (unset) eq { /Helvetica } { text1font   } ifelse put
+        options (text1size)   text1size put
+        options (text1xalign) text1xalign (unset) eq { (left) }     { text1xalign } ifelse put
+        options (text1yalign) text1yalign (unset) eq { (above) }    { text1yalign } ifelse put
+        text1xoffset null ne { options (text1xoffset) text1xoffset put } if
+        options (text1yoffset) text1yoffset null eq { 3 } { text1yoffset } ifelse put
     } if
+
+    /uk.co.terryburton.bwipp._dontdraw true def
+    barcode options //databarexpandedstacked exec /args exch def
 
     args (opt) options put
     args

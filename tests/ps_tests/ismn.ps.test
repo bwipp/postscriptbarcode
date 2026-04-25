@@ -38,3 +38,40 @@
 
 % propspec smoke test
 { 0 0 moveto (979-0-2605-3211-3) (propspec) ismn true } true isEqual
+
+%
+% Label text migrated to text2 framework
+%
+
+% Default ISMN label is populated as text2 content
+{ (979-0-2605-3211-3) (dontdraw includetext) ismn /opt get (text2) get } (ISMN 979-0-2605-3211-3) isEqual
+
+% text2 absent when includetext is off
+{ (979-0-2605-3211-3) (dontdraw) ismn /opt get (text2) known 1 array astore } [false] isEqual
+
+% Default xoffset is -12.0 for full-form ISMN-13 label
+{ (979-0-2605-3211-3) (dontdraw includetext) ismn /opt get (text2xoffset) get 1 array astore } [-12.0] isEqual
+
+% Default xoffset is -1.0 for legacy ISMN-10 label (shorter)
+{ (M-2605-3211-3) (dontdraw includetext legacy) ismn /opt get (text2xoffset) get 1 array astore } [-1.0] isEqual
+
+% User overrides label content via text2=
+{ (979-0-2605-3211-3) (dontdraw includetext text2=CUSTOM) ismn /opt get (text2) get } (CUSTOM) isEqual
+
+% extratext alias overrides label content
+{ (979-0-2605-3211-3) (dontdraw includetext extratext=Alt) ismn /opt get (text2) get } (Alt) isEqual
+
+% ismntext legacy alias overrides label content
+{ (979-0-2605-3211-3) (dontdraw includetext ismntext=Legacy) ismn /opt get (text2) get } (Legacy) isEqual
+
+% Legacy ismntextfont alias flows to text2font
+{ (979-0-2605-3211-3) (dontdraw includetext ismntextfont=Helvetica) ismn /opt get (text2font) get } (Helvetica) isEqual
+
+% User-set xalign opts out of default xoffset injection
+{ (979-0-2605-3211-3) (dontdraw includetext text2xalign=center) ismn /opt get (text2xoffset) known 1 array astore } [false] isEqual
+
+% xoffset is preserved when user supplies it alongside non-default xalign
+{ (979-0-2605-3211-3) (dontdraw includetext text2xalign=center text2xoffset=42) ismn /opt get (text2xoffset) get 1 array astore } [42.0] isEqual
+
+% Smoke test: extratextcolor renders without error
+{ 0 0 moveto (979-0-2605-3211-3) (includetext extratextcolor=FF0000) ismn true } true isEqual

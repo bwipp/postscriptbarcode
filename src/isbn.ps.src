@@ -48,6 +48,23 @@ dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /ean13 dup /uk.co.terryburton.bwipp findresource put
 begin
+
+/isbn.aliases <<
+    (isbntext)            /text2
+    (isbntextsubspace)    /text2subspace
+    (isbntextsplit)       /text2split
+    (isbntextlinegaps)    /text2linegaps
+    (isbntextcolor)       /text2color
+    (isbntextxalign)      /text2xalign
+    (isbntextyalign)      /text2yalign
+    (isbntextdirection)   /text2direction
+    (isbntextfont)        /text2font
+    (isbntextsize)        /text2size
+    (isbntextxoffset)     /text2xoffset
+    (isbntextyoffset)     /text2yoffset
+    (isbntextgaps)        /text2gaps
+>> readonly def
+
 /isbn {
 
     32 dict begin
@@ -55,10 +72,12 @@ begin
 
     /dontdraw false def
     /includetext false def  % Enable/disable ISBN text
-    /isbntextfont /Courier def
-    /isbntextsize 9.0 def
-    /isbntextxoffset null def  % sentinel realtype
-    /isbntextyoffset null def  % sentinel realtype
+    /text2 (unset) def      % sentinel: user-supplied label content overrides default
+    /text2font (unset) def
+    /text2size 9.0 def
+    /text2xalign (unset) def  % sentinel: user-supplied alignment opts out of default xoffset
+    /text2xoffset null def  % sentinel realtype
+    /text2yoffset null def  % sentinel realtype
     /height -1.0 def
     /width 0 def
     /addongap 12.0 def
@@ -75,7 +94,7 @@ begin
     /hnom -1.0 def
     /modunit 1 def
 
-    null /apply //processoptions exec /options exch def
+    //isbn.aliases /apply //processoptions exec /options exch def
     /global_encoder_defaults //render exec
 
     /barcode exch def
@@ -298,30 +317,21 @@ begin
     options (xmax) xmax put
     options (hnom) hnom put
     options (modunit) modunit put
+    includetext {
+        options (text2) text2 (unset) eq { isbntxt } { text2 } ifelse put
+        text2font (unset) ne { options (text2font) text2font put } if
+        options (text2size) text2size put
+        text2xalign (unset) eq {  % Default xoffset is anchored to default left alignment
+            options (text2xoffset) text2xoffset null eq { isbn length 9 eq {-1.0} {-12.0} ifelse } { text2xoffset } ifelse put
+        } {
+            options (text2xalign) text2xalign put
+            text2xoffset null ne { options (text2xoffset) text2xoffset put } if
+        } ifelse
+        options (text2yoffset) text2yoffset null eq { 3 } { text2yoffset } ifelse put
+    } if
 
     /uk.co.terryburton.bwipp._dontdraw true def
     barcode options //ean13 exec /args exch def
-
-    %
-    % Add the ISBN text
-    %
-    includetext {
-        isbntextxoffset null eq {
-            /isbntextxoffset isbn length 9 eq {-1.0} {-12.0} ifelse def
-        } if
-        isbntextyoffset null eq {
-            /isbntextyoffset args (bhs) get 2 get 72 mul 3 add def
-        } if
-        args (txt) known {
-            /txt args (txt) get def
-            /newtxt txt length 1 add array def
-            newtxt 0 txt putinterval
-            newtxt newtxt length 1 sub [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] put
-            args (txt) newtxt put
-        } {
-            args (txt) [ [isbntxt isbntextxoffset isbntextyoffset isbntextfont isbntextsize] ] put
-        } ifelse
-    } if
 
     args (opt) options put
     args
