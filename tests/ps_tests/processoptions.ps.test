@@ -43,50 +43,50 @@
 
 
 % String input parsing
-{ (stropt=hello) /apply processoptions pop stropt (hello) eq } ok_apply
-{ (stropt=hello world) /apply processoptions pop stropt (hello) eq } ok_apply
-{ (stropt=a boolopt) /apply processoptions pop stropt (a) eq boolopt true eq and } ok_apply
-{ (intopt=1 realopt=2.5 stropt=foo) /apply processoptions pop intopt 1 eq realopt 2.5 eq and stropt (foo) eq and } ok_apply
+{ (stropt=hello) null /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=hello world) null /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=a boolopt) null /apply processoptions pop stropt (a) eq boolopt true eq and } ok_apply
+{ (intopt=1 realopt=2.5 stropt=foo) null /apply processoptions pop intopt 1 eq realopt 2.5 eq and stropt (foo) eq and } ok_apply
 
 % Dict input
-{ << /stropt (test) >> /apply processoptions pop stropt (test) eq } ok_apply
+{ << /stropt (test) >> null /apply processoptions pop stropt (test) eq } ok_apply
 
 % String type
-{ (stropt=hello) /apply processoptions pop stropt (hello) eq } ok_apply
-{ (stropt=123)   /apply processoptions pop stropt (123)   eq } ok_apply
-{ (stropt=)      /apply processoptions pop stropt ()      eq } ok_apply
-{ (stropt= )     /apply processoptions pop stropt ()      eq } ok_apply
+{ (stropt=hello) null /apply processoptions pop stropt (hello) eq } ok_apply
+{ (stropt=123)   null /apply processoptions pop stropt (123)   eq } ok_apply
+{ (stropt=)      null /apply processoptions pop stropt ()      eq } ok_apply
+{ (stropt= )     null /apply processoptions pop stropt ()      eq } ok_apply
 
 % Boolean type
-{ (boolopt) /apply processoptions pop boolopt true eq } ok_apply
-{ << /boolopt true  >> /apply processoptions pop boolopt true  eq } ok_apply
-{ << /boolopt false >> /apply processoptions pop boolopt false eq } ok_apply
-{ (boolopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
-{ (boolopt=1)    /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (boolopt) null /apply processoptions pop boolopt true eq } ok_apply
+{ << /boolopt true  >> null /apply processoptions pop boolopt true  eq } ok_apply
+{ << /boolopt false >> null /apply processoptions pop boolopt false eq } ok_apply
+{ (boolopt=true) null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (boolopt=1)    null /apply processoptions } /bwipp.invalidOptionType er_apply
 
 % Integer type
-{ (intopt=42) /apply processoptions pop intopt 42 eq } ok_apply
-{ (intopt=-5) /apply processoptions pop intopt -5 eq } ok_apply
-{ (intopt=0)  /apply processoptions pop intopt  0 eq } ok_apply
-{ (intopt=3.5)  /apply processoptions } /bwipp.invalidOptionType er_apply
-{ (intopt=abc)  /apply processoptions } /bwipp.invalidOptionType er_apply
-{ (intopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (intopt=42) null /apply processoptions pop intopt 42 eq } ok_apply
+{ (intopt=-5) null /apply processoptions pop intopt -5 eq } ok_apply
+{ (intopt=0)  null /apply processoptions pop intopt  0 eq } ok_apply
+{ (intopt=3.5)  null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (intopt=abc)  null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (intopt=true) null /apply processoptions } /bwipp.invalidOptionType er_apply
 
 % Real type
-{ (realopt=3.14) /apply processoptions pop realopt 3.14 eq } ok_apply
-{ (realopt=-2.5) /apply processoptions pop realopt -2.5 eq } ok_apply
-{ (realopt=42)   /apply processoptions pop realopt 42.0 eq } ok_apply
-{ (realopt=abc)  /apply processoptions } /bwipp.invalidOptionType er_apply
-{ (realopt=true) /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (realopt=3.14) null /apply processoptions pop realopt 3.14 eq } ok_apply
+{ (realopt=-2.5) null /apply processoptions pop realopt -2.5 eq } ok_apply
+{ (realopt=42)   null /apply processoptions pop realopt 42.0 eq } ok_apply
+{ (realopt=abc)  null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ (realopt=true) null /apply processoptions } /bwipp.invalidOptionType er_apply
 
 % Unknown options (silently ignored)
-{ (unknown=foo) /apply processoptions pop true } ok_apply
-{ (unknown)     /apply processoptions pop true } ok_apply
+{ (unknown=foo) null /apply processoptions pop true } ok_apply
+{ (unknown)     null /apply processoptions pop true } ok_apply
 
 % Meaningless (ignored)
-{ (1=foo)       /apply processoptions pop true } ok_apply
-{ (1)           /apply processoptions pop true } ok_apply
-{ (=foo)        /apply processoptions pop true } ok_apply
+{ (1=foo)       null /apply processoptions pop true } ok_apply
+{ (1)           null /apply processoptions pop true } ok_apply
+{ (=foo)        null /apply processoptions pop true } ok_apply
 
 
 %
@@ -270,34 +270,94 @@
 %
 % apply: alias resolved to canonical name
 %
-{ (textfont=Helvetica) /apply processoptions pop text1font (Helvetica) eq } ok_apply
+{ (textfont=Helvetica) null /apply processoptions pop text1font (Helvetica) eq } ok_apply
 
 
 %
 % apply: canonical name wins over alias
 %
-{ (text1font=Courier textfont=Helvetica) /apply processoptions pop text1font (Courier) eq } ok_apply
+{ (text1font=Courier textfont=Helvetica) null /apply processoptions pop text1font (Courier) eq } ok_apply
 
 
 %
 % apply: alias not applied when canonical not in currentdict
 %
-{ (textfont=Helvetica) /apply processoptions pop true } ok_apply
+{ (textfont=Helvetica) null /apply processoptions pop true } ok_apply
 
 
 %
 % apply: text1 alias for alttext
 %
-{ (alttext=HELLO) /apply processoptions pop text1 (HELLO) eq } ok_apply
+{ (alttext=HELLO) null /apply processoptions pop text1 (HELLO) eq } ok_apply
 
 
 %
 % apply: text2 alias for extratext
 %
-{ (extratext=WORLD) /apply processoptions pop text2 (WORLD) eq } ok_apply
+{ (extratext=WORLD) null /apply processoptions pop text2 (WORLD) eq } ok_apply
 
 
 %
 % apply: real-typed alias
 %
-{ (textyoffset=-5) /apply processoptions pop text1yoffset -5.0 eq } ok_apply
+{ (textyoffset=-5) null /apply processoptions pop text1yoffset -5.0 eq } ok_apply
+
+
+%
+% ========== /apply with supplementary aliases ==========
+%
+
+% sup alias: caller-supplied alias resolves to canonical that is known locally
+{ (myfont=Helvetica) << (myfont) /text1font >> /apply processoptions pop text1font (Helvetica) eq } ok_apply
+
+% sup alias: alias whose canonical is not in currentdict is silently ignored
+{ (myfoo=bar)        << (myfoo)  /nosuch    >> /apply processoptions pop true } ok_apply
+
+% sup alias: canonical in user options wins over alias (clash detection)
+{ (text1font=Courier myfont=Helvetica) << (myfont) /text1font >> /apply processoptions pop text1font (Courier) eq } ok_apply
+
+% sup alias: supplementary tried before global; sup wins when both map the same name
+{ (textfont=Helvetica) << (textfont) /text2font >> /apply processoptions pop text2font (Helvetica) eq text1font (Courier) eq and } ok_apply
+
+% sup alias: when sup misses, fall through to global
+{ (textfont=Helvetica) << (otheralias) /text1font >> /apply processoptions pop text1font (Helvetica) eq } ok_apply
+
+% sup alias: error path with sup non-null still cleans operand stack
+{ (boolopt=true) << (myalias) /text1font >> /apply processoptions } /bwipp.invalidOptionType er_apply
+
+% sup alias: empty supplementary dict behaves identically to null
+{ (textfont=Helvetica) << >> /apply processoptions pop text1font (Helvetica) eq } ok_apply
+
+% Alias whose canonical is NOT locally known must propagate canonical=v into
+% the returned options dict so downstream resources (e.g. renlinear) can pick
+% it up when the same options are passed through.
+{ (myopt=hello) << (myopt) /downstream >> /apply processoptions (downstream) get (hello) eq } ok_apply
+
+% Same propagation requirement for aliases in the global table. Downstream
+% apply will type-convert the raw user value, so the propagated entry holds
+% the original user-supplied form.
+{ (textsize=14) null /apply processoptions (text1size) get (14) eq } ok_apply
+
+% Multiple aliases in one input must all resolve (regression: a buggy snapshot
+% iteration used to drop all but one when several aliases were resolved at once).
+{
+    (textfont=Helvetica alttext=HELLO textyoffset=-5) null /apply processoptions pop
+    text1font (Helvetica) eq text1 (HELLO) eq and text1yoffset -5.0 eq and
+} ok_apply
+
+% Empty input (string and dict) returns without error and yields an empty result.
+{ ()    null /apply processoptions length 0 eq } ok_apply
+{ << >> null /apply processoptions length 0 eq } ok_apply
+
+% End-to-end propagation: a first apply with a supplementary alias whose canonical
+% is NOT locally known propagates the canonical key into options; a second apply
+% (simulating a downstream resource where the canonical IS locally known) then
+% picks it up via the canonical name.
+{
+    50 dict begin
+        /downstream (default) def
+        (myopt=hello) << (myopt) /downstream >> /apply processoptions
+        null /apply processoptions pop
+        downstream (hello) eq
+    end
+} true isEqual

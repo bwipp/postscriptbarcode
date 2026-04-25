@@ -41,9 +41,11 @@ dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 begin
 
 %
-%  Apply user options to defaults in currentdict with type checking
+%  Apply user options to defaults in currentdict with type checking.
+%  Caller may pass a supplementary alias dict for encoder-specific aliases;
+%  pass null when none are needed.
 %
-%  options /apply //processoptions exec => optionsdict
+%  options supaliases /apply //processoptions exec => optionsdict
 %
 /processoptions.typemap <<
     /booleantype { false or } bind                             % Force a type error if not boolean value
@@ -56,6 +58,7 @@ begin
 
 % Alias maps: old option names => canonical names
 /processoptions.aliases <<
+
     (alttext)              /text1
     (alttextsubspace)      /text1subspace
     (alttextsplit)         /text1split
@@ -69,6 +72,7 @@ begin
     (textxoffset)          /text1xoffset
     (textyoffset)          /text1yoffset
     (textgaps)             /text1gaps
+
     (extratext)            /text2
     (extratextsubspace)    /text2subspace
     (extratextsplit)       /text2split
@@ -82,12 +86,19 @@ begin
     (extratextxoffset)     /text2xoffset
     (extratextyoffset)     /text2yoffset
     (extratextgaps)        /text2gaps
+
 >> readonly def
 
 /processoptions.apply {
 
     %
-    % Convert string to dict
+    %  Alias-search list: [ supaliases general ], or just [ general ] when no
+    %  supplementary dict was provided.
+    %
+    [ exch dup null eq { pop } if  //processoptions.aliases ] exch  % aliasdicts options
+
+    %
+    %  Convert string to dict
     %
     dup type /stringtype eq {
         << exch
@@ -101,20 +112,34 @@ begin
     } if
 
     %
-    % Apply options that exist in currentdict, converting values to existing types.
-    % Unknown options are checked against the alias map and applied to the canonical name.
+    %  Pre-resolve aliases. We mutate options in place; iterating a snapshot
+    %  of its keys (rather than options itself) sidesteps the PostScript
+    %  "modify dict during forall" pitfall.
     %
-    mark exch dup
-    {
-        exch dup currentdict exch known not {  % Not known, but we might have been given an alias
-            //processoptions.aliases 1 index 2 copy known {
-                get dup 4 index exch known not { exch } if  % Replace alias key with canonical, if no clash
-                pop
+    [ 1 index { pop } forall ] {                 % Iterate over a snapshot of keys
+        1 index 1 index get                      % aliasdicts opts k v
+        3 index {                                % For each aliasdict
+            dup 3 index known {
+                2 index get                      % aliasdicts opts k v canonical
+                3 index 1 index known {
+                    pop                          % Canonical clash
+                } {
+                    3 index 1 index 3 index put  % opts[canonical] = v
+                    pop exit                     % First hit wins
+                } ifelse
             } {
-                pop pop
+                pop                              % No match in this dict
             } ifelse
-        } if
-        dup currentdict exch known {
+        } forall
+        pop pop                                  % Drop k v
+    } forall
+
+    %
+    %  Apply resolved options that exist in currentdict, converting values to
+    %  existing types
+    %
+    mark exch dup {
+        exch dup currentdict exch known {
             dup load type 3 -1 roll exch
             //processoptions.typemap exch get stopped {
                 pop pop
@@ -122,14 +147,16 @@ begin
                 dup 0 (Invalid type for option ) putinterval
                 dup 24 4 -1 roll putinterval
                 counttomark {exch pop} repeat
+                exch pop                                        % Drop aliasdicts (sat below mark)
                 /bwipp.invalidOptionType exch //raiseerror exec
             } if
             def
         } {
-            pop pop  % Ignore unknown options
+            pop pop                                             % Ignore unknown options
         } ifelse
     } forall
-    exch pop
+
+    exch pop exch pop  % Drop mark and aliasdicts, returning resolved options
 
 } bind def
 
