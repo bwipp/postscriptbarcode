@@ -596,12 +596,12 @@ retained as aliases: `+alttext+` = `+text1+`, `+extratext+` = `+text2+`,
 `+textfont+` = `+text1font+`, `+extratextfont+` = `+text2font+`, and so
 on for the remaining properties.
 
-*Note:* Some encoders (e.g. EAN/UPC, ISBN, ISSN, ISMN) provide
-directly-positioned text where each character is placed by the encoder
-at a specific location. The font, size and color options apply to
-encoder-positioned text. The subspace, split, linegaps and gaps options
-do not apply unless the text content is overridden using `+text1+` (or
-`+alttext+`), which switches to the general text layout engine.
+*Note:* Some encoders (e.g. EAN/UPC) provide directly-positioned text
+where each character is placed by the encoder at a specific location.
+The font, size and color options apply to encoder-positioned text. The
+subspace, split, linegaps and gaps options do not apply unless the text
+content is overridden using `+text1+` (or `+alttext+`), which switches
+to the general text layout engine.
 
 ==== includetext
 
@@ -741,8 +741,8 @@ Encoder: qrcode
 Specify a set of characters that will be replaced with spaces within the
 text content.
 
-Aliases: `+alttextsubspace+` = `+text1subspace+`, `+extratextsubspace+`
-= `+text2subspace+`
+Aliases: `+textsubspace+` = `+text1subspace+`, `+extratextsubspace+` =
+`+text2subspace+`
 
 ===== Note
 
@@ -753,7 +753,7 @@ Aliases: `+alttextsubspace+` = `+text1subspace+`, `+extratextsubspace+`
 
 ....
 Data:    ABC123
-Options: includetext alttext=WITH~SPACES alttextsubspace=~
+Options: includetext alttext=WITH~SPACES textsubspace=~
 Encoder: code128
 ....
 
@@ -764,7 +764,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 Specify a character by which to split the text content into separate
 lines.
 
-Aliases: `+alttextsplit+` = `+text1split+`, `+extratextsplit+` =
+Aliases: `+textsplit+` = `+text1split+`, `+extratextsplit+` =
 `+text2split+`
 
 ===== Note
@@ -776,7 +776,7 @@ Aliases: `+alttextsplit+` = `+text1split+`, `+extratextsplit+` =
 
 ....
 Data:    ABC123
-Options: includetext alttext=LINE~ONE|LINE~TWO alttextsubspace=~ alttextsplit=|
+Options: includetext alttext=LINE~ONE|LINE~TWO textsubspace=~ textsplit=|
 Encoder: code128
 ....
 
@@ -792,14 +792,14 @@ Aliases: `+textlinegaps+` = `+text1linegaps+`, `+extratextlinegaps+` =
 ===== Note
 
 * This option should be used in combination with *text__N__split* (or
-*alttextsplit*/*extratextsplit*).
+*textsplit*/*extratextsplit*).
 
 ===== Example
 
 ....
 Data:    ABC123
-Options: includetext alttext=LINE~ONE|LINE~TWO alttextsubspace=~
-         alttextsplit=| textlinegaps=10
+Options: includetext alttext=LINE~ONE|LINE~TWO textsubspace=~
+         textsplit=| textlinegaps=10
 Encoder: code128
 ....
 
