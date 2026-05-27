@@ -423,7 +423,7 @@ begin
     } if
 
     barcode length 15000 gt {
-        /bwipp.datamatrixinputTooLong (The input data is too long) //raiseerror exec
+        /bwipp.datamatrixInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     version (unset) ne rows 0 ne columns 0 ne or and {
@@ -569,6 +569,11 @@ begin
             } if
         } if
         /msglen msg length def
+
+        % Absolute capacity is 144x144 numeric.
+        msglen 3116 gt {
+            /bwipp.datamatrixInputTooLong (The input data is too long) //raiseerror exec
+        } if
 
         (input.preprocess) //datamatrix.after exec
 

@@ -100,8 +100,11 @@
 % Error tests
 %
 
-% Input too long
+% Input too long (raw input guard, before parseinput)
 25001 string (dontdraw) /bwipp.codablockfinputTooLong er_tmpl
+
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 5453 string 0 1 5452 { 1 index exch 49 put } for (dontdraw) codablockf } /bwipp.codablockfinputTooLong isError
 
 % Invalid columns (valid: 4-62)
 (TEST) (columns=3 dontdraw) /bwipp.codablockfBadColumns er_tmpl

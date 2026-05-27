@@ -366,7 +366,7 @@ begin
     } if
 
     barcode length 20000 gt {
-        /bwipp.azteccodeinputTooLong (The input data is too long) //raiseerror exec
+        /bwipp.azteccodeInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     eclevel 5 lt eclevel 95 gt or {
@@ -441,6 +441,11 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    % Absolute capacity is 32-layer full at eclevel=5 ecaddchars=3, numeric.
+    msglen 4729 gt {
+        /bwipp.azteccodeInputTooLong (The input data is too long) //raiseerror exec
+    } if
 
     (input.preprocess) //azteccode.after exec
 

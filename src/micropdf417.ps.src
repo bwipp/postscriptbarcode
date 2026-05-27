@@ -790,6 +790,11 @@ begin
         } if
         /msglen msg length def
 
+        % Absolute capacity is 4x44 numeric.
+        msglen 366 gt {
+            /bwipp.micropdf417inputTooLong (The input data is too long) //raiseerror exec
+        } if
+
         (input.preprocess) //micropdf417.after exec
 
         (input.encoding) //micropdf417.before exec

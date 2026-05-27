@@ -570,7 +570,7 @@ begin
     } if
 
     eclevel -1 ne eclevel 0 lt eclevel 8 gt or and {
-        /bwipp.pdf417InvalidErrorCorrectionLevel (Valid error correction levels are 0 to 8) //raiseerror exec
+        /bwipp.pdf417invalidErrorCorrectionLevel (Valid error correction levels are 0 to 8) //raiseerror exec
     } if
 
     ccc raw and {
@@ -680,6 +680,11 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        % Absolute capacity is 30x90 numeric at eclevel=0.
+        msglen 2713 gt {
+            /bwipp.pdf417inputTooLong (The input data is too long) //raiseerror exec
+        } if
 
         (input.preprocess) //pdf417.after exec
 

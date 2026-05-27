@@ -498,10 +498,11 @@
 % Data too long for symbol
 (ABCDEFGHIJKLMNOPQRSTUVWXYZ) (version=1 dontdraw) /bwipp.hanxinNoValidSymbol er_tmpl
 
+% Input too long (raw input guard, before parseinput)
 14001 string (dontdraw) /bwipp.hanxinInputTooLong er_tmpl
 
-% Byte-mode character count exceeds 13-bit count field (8192+ bytes)
-{ 8200 string 0 1 8199 { 1 index exch 65 put } for (dontdraw) hanxin } /bwipp.hanxinInputTooLarge isError
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 7828 string 0 1 7827 { 1 index exch 49 put } for (dontdraw) hanxin } /bwipp.hanxinInputTooLong isError
 
 % FNC1 outside first position is invalid when GS1 mode isn't active
 (ABC^FNC1123) (parsefnc dontdraw) /bwipp.hanxinFNC1NotFirstPosition er_tmpl

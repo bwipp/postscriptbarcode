@@ -375,7 +375,7 @@ begin
 
     % 93 max alphanumeric; 4x for ^NNN parse expansion
     barcode length 1000 gt {
-        /bwipp.maxicodeinputTooLong (The input data is too long) //raiseerror exec
+        /bwipp.maxicodeInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     mode -1 ne mode 2 lt mode 6 gt or and {
@@ -516,6 +516,11 @@ begin
         /msg [ barcode {} forall msg msglen difflen sub difflen getinterval aload pop ] def
         /msglen msg length def
 
+    } if
+
+    % Absolute capacity is mode 4/6 numeric.
+    msglen 138 gt {
+        /bwipp.maxicodeInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     (input.preprocess) //maxicode.after exec

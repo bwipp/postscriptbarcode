@@ -367,7 +367,7 @@ mdata 0 65 put mdata 1 66 put mdata 2 67 put
 
 {
     (12345678) (debugcws eclevel=9) pdf417
-} /bwipp.pdf417InvalidErrorCorrectionLevel isError
+} /bwipp.pdf417invalidErrorCorrectionLevel isError
 
 {  % Defaults to eclevel 2: 8 ECC codewords
     (12345678) (debugcws eclevel=-1) pdf417
@@ -379,7 +379,7 @@ mdata 0 65 put mdata 1 66 put mdata 2 67 put
 
 {
     (12345678) (debugcws eclevel=-2) pdf417
-} /bwipp.pdf417InvalidErrorCorrectionLevel isError
+} /bwipp.pdf417invalidErrorCorrectionLevel isError
 
 
 % Example
@@ -423,11 +423,14 @@ mdata 0 65 put mdata 1 66 put mdata 2 67 put
 % Error tests
 %
 
-% Input too long
+% Input too long (raw input guard, before parseinput)
 12501 string (dontdraw) /bwipp.pdf417inputTooLong er_tmpl
 
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 2714 string 0 1 2713 { 1 index exch 49 put } for (dontdraw) pdf417 } /bwipp.pdf417inputTooLong isError
+
 % Long text input must not crash the text submode optimizer
-/s 10000 string def 0 1 9999 { s exch 65 put } for
+/s 1900 string def 0 1 1899 { s exch 65 put } for
 s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 
 % Empty data
@@ -485,7 +488,7 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 (TEST) (rows=999 dontdraw) /bwipp.pdf417invalidRows er_tmpl
 
 % Option edges: eclevel
-(TEST) (eclevel=9 dontdraw) /bwipp.pdf417InvalidErrorCorrectionLevel er_tmpl
+(TEST) (eclevel=9 dontdraw) /bwipp.pdf417invalidErrorCorrectionLevel er_tmpl
 
 % Option edges: columns and rows combined
 { (TEST) (columns=1 rows=3 dontdraw) pdf417 pop true } true isEqual

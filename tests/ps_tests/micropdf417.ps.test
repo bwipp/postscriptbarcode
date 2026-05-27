@@ -471,11 +471,14 @@ mdata 0 65 put mdata 1 66 put mdata 2 67 put mdata 3 68 put mdata 4 69 put
 % Error tests
 %
 
-% Input too long
+% Input too long (raw input guard, before parseinput)
 5001 string (dontdraw) /bwipp.micropdf417inputTooLong er_tmpl
 
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 367 string 0 1 366 { 1 index exch 49 put } for (dontdraw) micropdf417 } /bwipp.micropdf417inputTooLong isError
+
 % Long text input must not crash the text submode optimizer
-/s 5000 string def 0 1 4999 { s exch 65 put } for
+/s 300 string def 0 1 299 { s exch 65 put } for
 s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 
 % Empty data
@@ -506,8 +509,8 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 (^929) (raw dontdraw) /bwipp.micropdf417badRawCodeword er_tmpl
 (^999) (raw dontdraw) /bwipp.micropdf417badRawCodeword er_tmpl
 
-% Data too long
-{ 400 string 0 1 399 { 1 index exch 65 put } for (dontdraw) micropdf417 } /bwipp.micropdf417noValidSymbol isError
+% Data within absolute bound but exceeding the chosen mode's capacity
+{ 260 string 0 1 259 { 1 index exch 65 put } for (dontdraw) micropdf417 } /bwipp.micropdf417noValidSymbol isError
 
 % Option edges: version
 (TEST) (version=-1 dontdraw) /bwipp.micropdf417badVersionFormat er_tmpl

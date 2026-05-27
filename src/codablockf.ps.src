@@ -259,6 +259,11 @@ begin
     counttomark array astore /msg exch def pop
     /msglen msg length def
 
+    % Absolute capacity is 62 columns x 44 rows numeric.
+    msglen 5452 gt {
+        /bwipp.codablockfinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     %
     % Determine digit runlength and characters from given position
     %

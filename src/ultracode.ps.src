@@ -276,7 +276,7 @@ begin
 
     % 282 max codewords; 4x for ^NNN parse expansion
     barcode length 2500 gt {
-        /bwipp.ultracodeinputTooLong (The input data is too long) //raiseerror exec
+        /bwipp.ultracodeInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     rev dup 1 ne exch 2 ne and {
@@ -335,6 +335,11 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        % Absolute capacity at rev=1 eclevel=EC0.
+        msglen 276 gt {
+            /bwipp.ultracodeInputTooLong (The input data is too long) //raiseerror exec
+        } if
 
         (input.preprocess) //ultracode.after exec
 

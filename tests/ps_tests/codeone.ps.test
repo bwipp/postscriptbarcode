@@ -201,7 +201,7 @@ systemdict /STRING_CONTINUE_BUG known not {
 2218 (A) (H) dcap_tmpl true isEqual
 2219 (A) (H) dcap_tmpl /bwipp.codeoneTooLong isError
 3550 (1) (H) dcap_tmpl true isEqual
-3551 (1) (H) dcap_tmpl /bwipp.codeoneTooLong isError
+3551 (1) (H) dcap_tmpl /bwipp.codeoneInputTooLong isError
 1480 <01> (H) dcap_tmpl true isEqual
 1481 <01> (H) dcap_tmpl /bwipp.codeoneTooLong isError
 
@@ -214,7 +214,11 @@ systemdict /STRING_CONTINUE_BUG known not {
 % S-type must be numeric only
 (ABC) (version=S-10 dontdraw) /bwipp.codeoneStypeNonDigit er_tmpl
 
-4001 string (dontdraw) /bwipp.codeoneinputTooLong er_tmpl
+% Input too long (raw input guard, before parseinput)
+4001 string (dontdraw) /bwipp.codeoneInputTooLong er_tmpl
+
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 3551 string 0 1 3550 { 1 index exch 49 put } for (dontdraw) codeone } /bwipp.codeoneInputTooLong isError
 
 % Data exceeds maximum symbol capacity
 2500 string 0 1 2499 { 2 copy 65 put pop } for (dontdraw) /bwipp.codeoneTooLong er_tmpl
@@ -228,8 +232,6 @@ systemdict /STRING_CONTINUE_BUG known not {
 % Data exceeds symbol capacity via X12 encoding
 { 2500 string 0 1 2499 { 1 index exch 42 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
 
-% Data exceeds symbol capacity via Decimal encoding
-{ 4000 string 0 1 3999 { 1 index exch 49 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
 
 % ECI range
 { (^ECI000000TEST) (parsefnc dontdraw) codeone pop true } true isEqual

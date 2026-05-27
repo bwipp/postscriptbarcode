@@ -404,7 +404,7 @@ begin
     /barcode exch def
 
     barcode length 4000 gt {
-        /bwipp.codeoneinputTooLong (The input data is too long) //raiseerror exec
+        /bwipp.codeoneInputTooLong (The input data is too long) //raiseerror exec
     } if
 
     /_render
@@ -592,6 +592,11 @@ begin
             } for
             /msg msgtmp 0 j getinterval def
             /msglen msg length def
+        } if
+
+        % Absolute capacity is H format numeric.
+        msglen 3550 gt {
+            /bwipp.codeoneInputTooLong (The input data is too long) //raiseerror exec
         } if
 
         (input.preprocess) //codeone.after exec

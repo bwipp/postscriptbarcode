@@ -898,8 +898,11 @@
 % Error tests
 %
 
-% Input too long
-20001 string (dontdraw) /bwipp.azteccodeinputTooLong er_tmpl
+% Input too long (raw input guard, before parseinput)
+20001 string (dontdraw) /bwipp.azteccodeInputTooLong er_tmpl
+
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 4730 string 0 1 4729 { 1 index exch 49 put } for (dontdraw) azteccode } /bwipp.azteccodeInputTooLong isError
 
 % Empty data
 () (dontdraw) /bwipp.aztecEmptyData er_tmpl

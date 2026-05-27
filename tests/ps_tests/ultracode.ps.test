@@ -141,8 +141,11 @@
 % Error tests
 %
 
-% Input too long
-2501 string (dontdraw) /bwipp.ultracodeinputTooLong er_tmpl
+% Input too long (raw input guard, before parseinput)
+2501 string (dontdraw) /bwipp.ultracodeInputTooLong er_tmpl
+
+% Input too long (post-parse guard: any input larger than the absolute symbol capacity)
+{ 277 string 0 1 276 { 1 index exch 49 put } for (dontdraw) ultracode } /bwipp.ultracodeInputTooLong isError
 
 % Invalid revision (valid: 1-2)
 (TEST) (rev=0 dontdraw) /bwipp.ultracodeInvalidRevision er_tmpl
@@ -163,8 +166,8 @@
 (^285) (raw dontdraw) /bwipp.ultracodeBadRawCodeword er_tmpl
 (^999) (raw dontdraw) /bwipp.ultracodeBadRawCodeword er_tmpl
 
-% Data too long for symbol
-{ 300 string 0 1 299 { 1 index exch 65 put } for (dontdraw) ultracode } /bwipp.ultracodeNoValidSymbol isError
+% Data within absolute bound but exceeding the default eclevel's capacity
+{ 260 string 0 1 259 { 1 index exch 65 put } for (dontdraw) ultracode } /bwipp.ultracodeNoValidSymbol isError
 
 (TEST) (eclevel=EC0 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
 (TEST) (eclevel=EC7 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
