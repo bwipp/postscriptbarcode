@@ -852,40 +852,40 @@ begin
     /allone [ 81 {1} repeat ] def
     /seprow [ 10 {0} repeat 70 {1} repeat 0 ] def
 
-    /rowmult numcomprows array def
+    /rowheights numcomprows array def
     /pos 0 def  /ri 0 def
 
     % Top separator
     pixs pos allone putinterval
     /pos pos 81 add def
-    rowmult ri sepheight put  /ri ri 1 add def
+    rowheights ri sepheight put  /ri ri 1 add def
 
     % Data rows with separators
     0 1 r 2 sub {
         /i exch def
         pixs pos rowbits i get putinterval
         /pos pos 81 add def
-        rowmult ri rowheight put  /ri ri 1 add def
+        rowheights ri rowheight put  /ri ri 1 add def
         pixs pos seprow putinterval
         /pos pos 81 add def
-        rowmult ri sepheight put  /ri ri 1 add def
+        rowheights ri sepheight put  /ri ri 1 add def
     } for
 
     % Last data row
     pixs pos rowbits r 1 sub get putinterval
     /pos pos 81 add def
-    rowmult ri rowheight put  /ri ri 1 add def
+    rowheights ri rowheight put  /ri ri 1 add def
 
     % Bottom separator
     pixs pos allone putinterval
-    rowmult ri sepheight put
+    rowheights ri sepheight put
 
     <<
     /ren /renmatrix
     /pixs pixs
     /pixx 81
     /pixy symhgt
-    /rowmult rowmult
+    /rowheights rowheights
     /height symhgt 72 div
     /width 81 72 div
     /strictspec strictspec

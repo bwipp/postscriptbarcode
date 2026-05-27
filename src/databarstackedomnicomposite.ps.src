@@ -137,7 +137,7 @@ begin
     dup (pixy) get /linheight exch def
     /linsym exch def
     /linpixs linsym /pixs get def
-    /linrowmult linsym /rowmult get def
+    /linrowheights linsym /rowheights get def
 
     %
     % Plot the separator
@@ -175,11 +175,11 @@ begin
     options (propspec) undef
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
-    /ccrowmult compsym /rowmult get def
+    /ccrowheights compsym /rowheights get def
     /ccpixx compsym /pixx get def
 
     /linwidth sep length def  % 50
-    /ccrows ccrowmult length def
+    /ccrows ccrowheights length def
     % ccpixx is 55 for both 2-col CC-A and 2-col CC-B
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Left pad composite with 1 space
@@ -192,7 +192,7 @@ begin
             linpixs i linwidth getinterval aload pop 0 0 0 0 0 0
         } for
     ] def
-    /rowmult [ ccrowmult aload pop 1 linrowmult aload pop ] def
+    /rowheights [ ccrowheights aload pop 1 linrowheights aload pop ] def
     /pixx ccpixx 1 add def  % 56
 
     /txt [
@@ -203,7 +203,7 @@ begin
     /text1xalign linsym /text1xalign 2 copy known { get } { pop pop (unset) } ifelse def
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
-    /pixy 0 rowmult {add} forall def
+    /pixy 0 rowheights {add} forall def
 
     % Quiet zone borders: T=2D, L/R=max(1D,2D), B=1D
     /borderleft
@@ -227,7 +227,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
-    /rowmult rowmult
+    /rowheights rowheights
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

@@ -179,7 +179,7 @@ begin
     options (propspec) undef
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
-    /ccrowmult compsym /rowmult get def
+    /ccrowheights compsym /rowheights get def
     /ccpixx compsym /pixx get def
 
     /linpixs [
@@ -190,7 +190,7 @@ begin
     ] def
 
     /linheight linheight cvi def
-    /ccrows ccrowmult length def
+    /ccrows ccrowheights length def
     % ccpixx is 99 for both 4-col CC-A and 4-col CC-B; linpixs length is 96
     /pixs [
         0 ccpixx ccpixs length 1 sub {  % Right pad composite with 1 space
@@ -199,7 +199,7 @@ begin
         } for
         0 0 0 0 sep aload pop 0 0 0 0 linpixs aload pop  % Left pad with 4 spaces
     ] def
-    /rowmult [ ccrowmult aload pop 1 linheight ] def
+    /rowheights [ ccrowheights aload pop 1 linheight ] def
     /pixx ccpixx 1 add def  % 100
 
     /txt [
@@ -210,7 +210,7 @@ begin
     /text1xalign linsym /text1xalign 2 copy known { get } { pop pop (unset) } ifelse def
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
-    /pixy 0 rowmult {add} forall def
+    /pixy 0 rowheights {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
@@ -233,7 +233,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
-    /rowmult rowmult
+    /rowheights rowheights
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

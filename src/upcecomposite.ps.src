@@ -144,7 +144,7 @@ begin
     options (propspec) undef
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
-    /ccrowmult compsym /rowmult get def
+    /ccrowheights compsym /rowheights get def
     /ccpixx compsym /pixx get def
 
     /linpad [ ccpixx 53 sub {0} repeat ] def
@@ -166,7 +166,7 @@ begin
         /pixx ccpixx def
     } ifelse
 
-    /ccrows ccrowmult length def
+    /ccrows ccrowheights length def
 
     % Pre-compute bbs and bbs+bhs in row units to avoid repeated calculation
     /nbars sbs length 1 add 2 idiv def
@@ -190,7 +190,7 @@ begin
 
     % Rasterize linear rows, deduplicating identical adjacent rows using a string buffer
     /rowbuf pixx string def
-    /prevrow () def  /linrowmult 72 array def  /lri 0 def
+    /prevrow () def  /linrowheights 72 array def  /lri 0 def
     /linpixs [
         linheight 1 sub -1 lindescent {
             /y exch def
@@ -206,16 +206,16 @@ begin
             } for
             diff 0 lt { rowbuf p 0 put /p p 1 add def } if
             rowbuf prevrow eq {
-                linrowmult lri 1 sub 2 copy get 1 add put  % Bump multiplier
+                linrowheights lri 1 sub 2 copy get 1 add put  % Bump multiplier
             } {
                 prevrow length 0 gt { prevrow {} forall } if  % Commit previous batch
                 /prevrow rowbuf pixx string copy def
-                linrowmult lri 1 put  /lri lri 1 add def
+                linrowheights lri 1 put  /lri lri 1 add def
             } ifelse
         } for
         prevrow {} forall  % Commit final batch
     ] def
-    /linrowmult linrowmult 0 lri getinterval def
+    /linrowheights linrowheights 0 lri getinterval def
 
     /pixs [
         0 ccpixx ccpixs length 1 sub {
@@ -227,8 +227,8 @@ begin
         linpad aload pop 0 1  49 {0} repeat  1 0 ccrpad aload pop
         linpixs aload pop
     ] def
-    /rowmult [ ccrowmult aload pop 2 2 2 linrowmult aload pop ] def
-    /pixy 0 rowmult {add} forall def
+    /rowheights [ ccrowheights aload pop 2 2 2 linrowheights aload pop ] def
+    /pixy 0 rowheights {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse linpad length 1 add sub
@@ -257,7 +257,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
-    /rowmult rowmult
+    /rowheights rowheights
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft

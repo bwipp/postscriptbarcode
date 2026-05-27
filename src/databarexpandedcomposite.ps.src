@@ -173,7 +173,7 @@ begin
     options (propspec) undef
     comp options //gs1-cc exec /compsym exch def
     /ccpixs compsym /pixs get def
-    /ccrowmult compsym /rowmult get def
+    /ccrowheights compsym /rowheights get def
     /ccpixx compsym /pixx get def
 
     /linpixs [
@@ -184,7 +184,7 @@ begin
     ] def
 
     /linheight linheight cvi def
-    /ccrows ccrowmult length def
+    /ccrows ccrowheights length def
     /diff linpixs length ccpixx sub def  % Minimum linpixs length is 102, ccpixx is 99
     /ccrpad [ diff 2 sub {0} repeat ] def
     /pixs [
@@ -194,7 +194,7 @@ begin
         } for
         sep aload pop linpixs aload pop
     ] def
-    /rowmult [ ccrowmult aload pop 1 linheight ] def
+    /rowheights [ ccrowheights aload pop 1 linheight ] def
 
     /pixx linpixs length def
 
@@ -206,7 +206,7 @@ begin
     /text1xalign linsym /text1xalign 2 copy known { get } { pop pop (unset) } ifelse def
     /text1yalign linsym /text1yalign 2 copy known { get } { pop pop (unset) } ifelse def
 
-    /pixy 0 rowmult {add} forall def
+    /pixy 0 rowheights {add} forall def
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
@@ -229,7 +229,7 @@ begin
     /pixs pixs
     /pixx pixx
     /pixy pixy
-    /rowmult rowmult
+    /rowheights rowheights
     /height pixy 72 div
     /width pixx 72 div
     /borderleft borderleft
