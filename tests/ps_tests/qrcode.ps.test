@@ -638,8 +638,11 @@
 % Empty data
 () (dontdraw) /bwipp.qrcodeEmptyData er_tmpl
 
-% Input too long
+% Input too long (raw input guard, before parseinput)
 30001 string (dontdraw) /bwipp.qrcodeinputTooLong er_tmpl
+
+% Input too long (post-parse guard: any input larger than V40-L numeric capacity)
+{ 7090 string 0 1 7089 { 1 index exch 49 put } for (dontdraw) qrcode } /bwipp.qrcodeinputTooLong isError
 
 % Invalid format
 (TEST) (format=invalid dontdraw) /bwipp.qrcodeInvalidFormat er_tmpl
@@ -654,8 +657,8 @@
 % Invalid mask (valid: 0-7)
 (TEST) (mask=9 dontdraw) /bwipp.qrcodeBadMask er_tmpl
 
-% Data exceeds maximum symbol capacity
-{ 7100 string 0 1 7099 { 1 index exch 49 put } for (dontdraw) qrcode } /bwipp.qrcodeNoValidSymbol isError
+% Data within absolute bound but exceeding the chosen mode's capacity
+{ 5000 string 0 1 4999 { 1 index exch 65 put } for (dontdraw) qrcode } /bwipp.qrcodeNoValidSymbol isError
 
 % Option edges
 (TEST) (eclevel=Z dontdraw) /bwipp.qrcodeInvalidEClevel er_tmpl
