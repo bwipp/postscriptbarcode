@@ -357,24 +357,36 @@ begin
         /msglen msg length def
 
         %
-        % Determine digit runlength and characters from given position
+        % Pre-compute setC digit runlength from each position; two parity
+        % arrays because FNC1 only counts when s is even.
         %
+        /numsAtNEven [ msglen 1 add {0} repeat ] def
+        /numsAtSEven [ msglen 1 add {0} repeat ] def
+        /numsAtNOdd  [ msglen 1 add {0} repeat ] def
+        /numsAtSOdd  [ msglen 1 add {0} repeat ] def
+        msglen 1 sub -1 0 {
+            /i exch def
+            /ch msg i get def
+            setc ch known not {
+                numsAtNEven i 0 put  numsAtSEven i 0 put
+                numsAtNOdd  i 0 put  numsAtSOdd  i 0 put
+            } {
+                ch //code16k.fn1 eq {
+                    numsAtNEven i 1 numsAtNEven i 1 add get add put
+                    numsAtSEven i 2 numsAtSEven i 1 add get add put
+                    numsAtNOdd  i 0 put
+                    numsAtSOdd  i 0 put
+                } {
+                    numsAtNEven i 1 numsAtNOdd  i 1 add get add put
+                    numsAtSEven i 1 numsAtSOdd  i 1 add get add put
+                    numsAtNOdd  i 1 numsAtNEven i 1 add get add put
+                    numsAtSOdd  i 1 numsAtSEven i 1 add get add put
+                } ifelse
+            } ifelse
+        } for
         /numsscr {
-            /n 0 def /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                //code16k.fn1 eq {
-                    % FNC1 in odd position of run like two digits
-                    s 2 mod 0 eq {/s s 1 add def} {exit} ifelse
-                } if
-                /n n 1 add def
-                /s s 1 add def
-                /p p 1 add def
-            } loop
-            n s
-        } def
+            dup numsAtNEven exch get exch numsAtSEven exch get
+        } bind def
 
         %
         % Encoding for each alphabet

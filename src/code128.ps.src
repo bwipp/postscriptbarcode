@@ -383,25 +383,28 @@ begin
         /msglen msg length def
 
         %
-        % Determine digit runlength from given position
+        % Pre-compute setC digit runlength from each position; two parity
+        % arrays because FNC1 only counts when s is even.
         %
-        /numsscr {
-            /s 0 def
-            /p exch def {
-                p msglen ge {exit} if
-                msg p get
-                dup setc exch known not {pop exit} if
-                dup -1 le {
-                    % FNC1 in odd position of run like two digits
-                    //code128.fn1 eq s 2 mod 0 eq and {/s s 1 add def} {exit} ifelse
+        /numsAtEven [ msglen 1 add {0} repeat ] def
+        /numsAtOdd  [ msglen 1 add {0} repeat ] def
+        msglen 1 sub -1 0 {
+            /i exch def
+            /c msg i get def
+            c //code128.fn1 eq {
+                numsAtEven i 2 numsAtEven i 1 add get add put
+                numsAtOdd  i 0 put
+            } {
+                c 48 ge c 57 le and {
+                    numsAtEven i 1 numsAtOdd  i 1 add get add put
+                    numsAtOdd  i 1 numsAtEven i 1 add get add put
                 } {
-                    pop
+                    numsAtEven i 0 put
+                    numsAtOdd  i 0 put
                 } ifelse
-                /s s 1 add def
-                /p p 1 add def
-            } loop
-            s
-        } def
+            } ifelse
+        } for
+        /numsscr { numsAtEven exch get } bind def
 
         %
         % Encoding for each alphabet
