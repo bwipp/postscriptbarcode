@@ -74,9 +74,14 @@ consider reporting it openly via the
 transparency is more useful than embargo.
 
 If you determine that the issue is so serious as to place users' systems at
-grave risk then feel free to contact the maintainer directly. But it is
-unlikely to result in coordinated disclosure: the ecosystem is too diverse,
-with the code finding itself in many esoteric places.
+grave risk, report it privately using GitHub's private vulnerability reporting:
+the "Report a vulnerability" button on the repository's
+[Security Advisories page](https://github.com/bwipp/postscriptbarcode/security/advisories)
+(under the repository's
+[Security tab](https://github.com/bwipp/postscriptbarcode/security)). But be
+aware that private disclosure is unlikely to result in coordinated disclosure:
+the ecosystem is too diverse, with the code finding itself in many esoteric
+places.
 
 ## Known Security Issues
 
