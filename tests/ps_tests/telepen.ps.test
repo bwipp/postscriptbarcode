@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /telepen dup /uk.co.terryburton.bwipp findresource cvx def
@@ -16,9 +16,14 @@
 % Error tests
 %
 
-{ (123) (numeric dontdraw) telepen } /bwipp.telepenNumericOddLength isError
+{ (123) (numeric dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
 { (X123) (numeric dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
 { (ABC\200) (dontdraw) telepen } /bwipp.telepenInvalidAlphaCharacter isError
+{ (123^016) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
+{ (123^200) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
+{ (12^0153) (numeric parse dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
+{ (12^1273) (numeric parse dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
+{ (12^20034) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericControlCharacter isError
 
 { 501 string (dontdraw) telepen } /bwipp.telepeninputTooLong isError
 

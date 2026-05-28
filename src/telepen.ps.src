@@ -136,10 +136,6 @@ begin
     /barlen barcode length def
     options (parse) undef
 
-    numeric barlen 2 mod 0 ne and {
-        /bwipp.telepenNumericOddLength (Telepen Numeric must have an even length) //raiseerror exec
-    } if
-
     %
     % Apply AST spec overrides and resolve physical specification
     %
@@ -156,11 +152,14 @@ begin
     /l enc length def
 
     /checksum 0 def
-    /i 0 def /j 0 def
+    /i 0 def
     { % loop
         i barlen eq {exit} if
         numeric {
-            barcode i get 16 gt {  % 00-99 or 0X-9X
+            barcode i get dup 16 gt exch 127 lt and {  % 00-99 or 0X-9X
+                barlen i sub 2 lt {  % Check for pair
+                    /bwipp.telepenNumericNotDigitPair (Telepen Numeric must be in digit pairs) //raiseerror exec
+                } if
                 /np barcode i 2 getinterval def
                 np 0 get dup 48 lt exch 57 gt or
                 np 1 get dup 48 lt 1 index 57 gt or exch 88 eq not and
@@ -177,8 +176,11 @@ begin
                 /indx exch def
                 % numeric pair displayed via barcode
                 /i i 2 add def
-            } {  % Ordinal values 0-16
+            } {  % Ordinal values 0-16 and 127 (DEL)
                 /indx barcode i get def
+                indx 127 gt {
+                    /bwipp.telepenInvalidNumericControlCharacter (Telepen Numeric control characters must have ordinal values 0 to 16 or 127) //raiseerror exec
+                } if
                 /i i 1 add def
             } ifelse
         } {  % ASCII mode
@@ -192,7 +194,6 @@ begin
         /enc //telepen.encs indx get def
         sbs l enc putinterval          % Put encoded digit into sbs
         /l l enc length add def
-        /j j 1 add def
     } loop
 
     %
