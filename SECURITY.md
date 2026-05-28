@@ -36,24 +36,29 @@ causes any of the following:
 
 ## What Is Not a Vulnerability
 
-Most reported security bugs in BWIPP are "just bugs." The following are not
-considered security vulnerabilities, and should be reported openly via the
-[issue tracker](https://github.com/bwipp/postscriptbarcode/issues):
+Most reported security bugs in BWIPP are "just bugs".
+
+The following are not considered security vulnerabilities, and should be reported
+openly via the [issue tracker](https://github.com/bwipp/postscriptbarcode/issues):
 
 - **Incorrect barcode output** from valid input (a correctness bug).
 - **PostScript errors** (e.g. `stackunderflow`, `rangecheck`) caused by
   malformed input data or options — the library validates input and raises
   descriptive errors; unhandled cases are ordinary bugs.
-- **API misuse** — calling encoders with incorrect stack state, wrong argument
-  types, or outside the [documented calling convention](https://github.com/bwipp/postscriptbarcode/wiki/PostScript-Calling-Convention).
 - **Issues in debug/development features** that require `enabledebug` or
   `enabledontdraw` to be explicitly set in global context.
-- **Interpreter bugs** — crashes or misbehaviour in the hosting interpreter
-  triggered by valid PostScript operations (e.g. font loading side effects from
-  user-specified `textfont`). These are the interpreter's responsibility.
+
+These are user issues that should be reported to the relevant projects that
+host BWIPP, call it, or consume its output:
+
+- **API misuse** — calling encoders with incorrect stack state, wrong argument
+  types, or outside the [documented calling convention](https://github.com/bwipp/postscriptbarcode/wiki/PostScript-Calling-Convention).
 - **Downstream scanning injection** — BWIPP faithfully encodes whatever data
   fits the symbology's character set. Sanitisation of scanned barcode message
   content is the responsibility of downstream systems.
+- **Interpreter bugs** — crashes or misbehaviour in the hosting interpreter
+  (RIP) triggered by valid PostScript operations (e.g. font loading side effects
+  from user-specified `textfont`). These are the interpreter's responsibility.
 
 ## Supported Versions
 
