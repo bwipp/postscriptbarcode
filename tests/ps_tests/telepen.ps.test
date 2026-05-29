@@ -19,11 +19,14 @@
 { (123) (numeric dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
 { (X123) (numeric dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
 { (ABC\200) (dontdraw) telepen } /bwipp.telepenInvalidAlphaCharacter isError
-{ (123^016) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
+{ (123^016) (numeric parse dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError  % DLE now indicates trailing ASCII
+{ (123^015) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
 { (123^200) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericCharacter isError
+{ (^016A) (numeric parse dontdraw) telepen } /bwipp.telepenNumericDLEFirstCharacter isError
 { (12^0153) (numeric parse dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
 { (12^1273) (numeric parse dontdraw) telepen } /bwipp.telepenNumericNotDigitPair isError
 { (12^20034) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidNumericControlCharacter isError
+{ (12^016^200) (numeric parse dontdraw) telepen } /bwipp.telepenInvalidAlphaCharacter isError
 
 { 501 string (dontdraw) telepen } /bwipp.telepeninputTooLong isError
 

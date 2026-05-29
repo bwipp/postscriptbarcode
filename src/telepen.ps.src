@@ -137,12 +137,30 @@ begin
     options (parse) undef
 
     %
+    % Check numeric for DLE (ASCII 16) indicating switch to trailing ASCII
+    %
+    /trailasclen 0 def
+    numeric {
+        barcode <10> search {
+            /barcode exch def
+            /trailasc barlen barcode length sub string def
+            trailasc exch 0 exch putinterval  % DLE
+            trailasc exch 1 exch putinterval
+            /barlen barcode length def
+            barlen 0 eq {
+                /bwipp.telepenNumericDLEFirstCharacter (DLE cannot be first character in Telepen Numeric) //raiseerror exec
+            } if
+            /trailasclen trailasc length def
+        } { pop } ifelse
+    } if
+
+    %
     % Apply AST spec overrides and resolve physical specification
     %
     /telepen ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
 
-    /sbs barlen 16 mul 48 add string def
+    /sbs barlen trailasclen add 16 mul 48 add string def
 
     %
     % Put the start character ASCII 95
@@ -196,6 +214,17 @@ begin
         /l l enc length add def
     } loop
 
+    0 1 trailasclen 1 sub {
+        trailasc exch get /indx exch def
+        indx 127 gt {
+            /bwipp.telepenInvalidAlphaCharacter (Telepen Alpha characters must have ordinal values 0 to 127) //raiseerror exec
+        } if
+        /checksum checksum indx add def
+        /enc //telepen.encs indx get def
+        sbs l enc putinterval
+        /l l enc length add def
+    } for
+
     %
     % Put the checksum character
     %
@@ -217,11 +246,16 @@ begin
     /sbs sbs 0 l getinterval def
 
     % Build display text: replace non-printable chars with spaces
-    /text barcode length string def
+    /text barcode length trailasclen add string def
     0 1 barcode length 1 sub {
         /i exch def
         /c barcode i get def
         text i c 32 ge c 126 le and { c } { 32 } ifelse put
+    } for
+    1 1 trailasclen 1 sub {  % Skip initial DLE
+        /i exch def
+        /c trailasc i get def
+        text i 1 sub barcode length add c 32 ge c 126 le and { c } { 32 } ifelse put
     } for
 
     /sbs [sbs {48 sub} forall] def
