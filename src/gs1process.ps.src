@@ -3302,21 +3302,17 @@ begin
             /this exch def
             /patt exch def
             1 {  % common exit
-                aivals patt known {true exit} if  % Fast path
+                aivals patt known { true exit } if  % Fast path
                 patt length 4 eq {
                     patt 3 1 getinterval (n) eq {
+                        % XXXn or XXnn
                         /pfxlen patt 2 1 getinterval (n) eq {2} {3} ifelse def
-                        false
-                        ais {
-                            dup dup this ne exch length 4 eq and {
-                                0 pfxlen getinterval patt 0 pfxlen getinterval eq {
-                                    pop true
-                                } if
-                            } {
-                                pop
-                            } ifelse
-                        } forall
-                        exit
+                        patt 0 pfxlen getinterval
+                        aipfx exch 2 copy known { get } { pop pop 0 } ifelse
+                        this length 4 eq {
+                            this 0 pfxlen getinterval patt 0 pfxlen getinterval eq { 1 sub } if
+                        } if
+                        0 gt exit
                     } if
                     false exit
                 } if
@@ -3324,8 +3320,9 @@ begin
             } repeat
         } def
 
-        % Build AI dict and validate repeats
+        % Build AI dict and 2- and 3-char prefixes of 4-char AIs; validate repeats
         /aivals vals length dict def
+        /aipfx vals length 2 mul 1 add dict def
         0 1 vals length 1 sub {
             dup ais exch get /ai exch def
             vals exch get /val exch def
@@ -3339,6 +3336,10 @@ begin
                 } if
             } {
                 aivals ai val put
+                ai length 4 eq {
+                    ai 0 2 getinterval aipfx exch 2 copy known { 2 copy get 1 add } { 1 } ifelse put
+                    ai 0 3 getinterval aipfx exch 2 copy known { 2 copy get 1 add } { 1 } ifelse put
+                } if
             } ifelse
         } for
 

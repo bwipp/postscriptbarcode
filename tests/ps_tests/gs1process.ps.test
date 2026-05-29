@@ -1010,6 +1010,24 @@
 ((01)12345678901231(3925)12599(3600)654321) good_tmpl
 ((01)12345678901231(3925)12599(3695)654321) good_tmpl
 
+% Wildcard family exclusion (XXXn) resolved via the AI-prefix index
+((01)12345678901231(3100)123456(3100)123456) good_tmpl                                   % a repeated AI is not exclusive with itself
+((01)12345678901231(3100)123456(3110)123456) good_tmpl                                   % distinct families (310n vs 311n) are not exclusive
+((01)12345678901231(3100)123456(3110)123456(3100)123456(3110)123456) good_tmpl           % two families, each repeated
+((01)12345678901231(3100)123456(3100)123456(3110)123456) good_tmpl                       % a repeat plus a different family
+((01)12345678901231(3100)123456(3101)123456) /bwipp.GS1exclusiveAIs er_tmpl              % two members of one family (310n) are exclusive
+((01)12345678901231(3100)123456(3101)123456(3102)123456) /bwipp.GS1exclusiveAIs er_tmpl  % three members of one family
+((01)12345678901231(3100)123456(3100)123456(3101)123456) /bwipp.GS1exclusiveAIs er_tmpl  % a repeat plus a distinct family member
+
+% Many repeated wildcard-family AIs validate (prefix counts are per distinct AI)
+{
+    /pre (\(01\)12345678901231) def  /seg (\(3100\)123456) def
+    /s pre length seg length 100 mul add string def
+    s 0 pre putinterval
+    0 1 99 { /i exch def s pre length seg length i mul add seg putinterval } for
+    s /ai gs1process pop pop pop null
+} null isEqual
+
 % lintiso5218 (biological sex code)
 ((8018)123123123123123121(7252)0) good_tmpl
 ((8018)123123123123123121(7252)1) good_tmpl
