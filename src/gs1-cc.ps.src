@@ -243,6 +243,10 @@ begin
         } if
     } if
 
+    barcode length 10000 gt {  % (90) + numeric capacity (2372) at 4:1 ^NNN parse expansion
+        /bwipp.gs1ccinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
     barcode /ai //gs1process exec
     /fncs exch def
     /vals exch def

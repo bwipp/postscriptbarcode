@@ -1047,6 +1047,12 @@
 % Missing close paren in AI
 (\(01) /bwipp.GS1aiMissingCloseParen er_tmpl
 
+% Multi-AI parse preserves AI and value order and pairing
+{ ((01)12312312312319(21)ABC123(8030)1) /ai gs1process pop pop }
+[ (01) (21) (8030) ] isEqual
+{ ((01)12312312312319(21)ABC123(8030)1) /ai gs1process pop exch pop }
+[ (12312312312319) (ABC123) (1) ] isEqual
+
 % Requisite linting disabled
 /lintreqs false def
 ((02)12345678901231) good_tmpl

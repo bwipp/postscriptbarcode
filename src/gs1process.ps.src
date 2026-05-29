@@ -2376,12 +2376,11 @@ begin
             exch pop exch
             (\() search { exch pop exch } { () } ifelse
         } loop
-        counttomark dup 0 gt {dup 2 idiv 1 add -1 exch {-1 roll} for} {pop} ifelse
-        counttomark 2 idiv array astore /ais exch def
-        counttomark array astore [ exch {  % Expand ordinals of the form ^NNN to ASCII
-            << /parse parse /parseonly true /parsefnc false >> //parseinput exec
-        } forall ] /vals exch def
-        pop
+        counttomark array astore exch pop /aivals exch def
+        /ais [ 0 2 aivals length 1 sub { aivals exch get } for ] def
+        /vals [ 1 2 aivals length 1 sub {  % Expand ordinals of the form ^NNN to ASCII
+            aivals exch get << /parse parse /parseonly true /parsefnc false >> //parseinput exec
+        } for ] def
 
     } {  % Digital Link URI
 
