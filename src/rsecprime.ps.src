@@ -50,7 +50,7 @@ begin
 %
 /rsecprime {
 
-    7 dict begin
+    8 dict begin
 
     /p exch def        % Prime modulus
     /lfsr exch def     % Workspace of length at least nc
@@ -59,21 +59,30 @@ begin
     /nd exch def       % Number of data codewords
     /getdata exch def  % Implements fetching nth codeword
 
-    0 1 nc 1 sub {lfsr exch 0 put} for
+    0 1 nc 1 sub {lfsr exch 0 put} for  % Zero LFSR
+
+    %
+    % Reverse coeffs to simplify the inner loop
+    %
+    /coeffsrev nc array def
+    0 1 nc 1 sub {
+        /j exch def
+        coeffsrev j coeffs nc 1 sub j sub get put
+    } for
 
     0 1 nd 1 sub {  % m
         getdata exec lfsr 0 get sub p add p mod   % fb = (data[m] - S[0]) mod p
         0 1 nc 2 sub {  % j
-            lfsr exch dup 1 add                   % ... lfsr j j+1
-            2 index exch get                      % ... lfsr j S[j+1]
-            coeffs nc 3 index sub 1 sub get       % ... coeffs[nc-1-j]
+            lfsr exch dup 1 add                   % ... fb lfsr j j+1
+            2 index exch get                      % ... fb lfsr j S[j+1]
+            coeffsrev 2 index get                 % ... fb lfsr j S[j+1] coeffsrev[j]
             4 index                               % ... fb
-            mul p mod                             % prod = (coeffs[nc-1-j] * fb) mod p
+            mul p mod                             % prod = (coeffsrev[j] * fb) mod p
             add p mod put                         % S[j] = (S[j+1] + prod) mod p
         } for
-        lfsr nc 1 sub coeffs 0 get 3 index        % S[nc-1] = (coeffs[0] * fb) mod p
-        mul p mod put
-        pop  % fb
+        lfsr exch nc 1 sub exch                   % ... lfsr nc-1 fb
+        coeffsrev nc 1 sub get                    % ... lfsr nc-1 fb coeffsrev[nc-1]
+        mul p mod put                             % S[nc-1] = (coeffsrev[nc-1] * fb) mod p
     } for
 
     end
