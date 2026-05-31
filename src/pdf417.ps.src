@@ -775,32 +775,47 @@ begin
             /in exch def
 
             %
-            % Each char adds 1 codeword, latches add up to 2
+            % Codeword sequences are held as persistent chains of segments.
+            % Each chain head is null or a node [parent_node, segment_array];
+            % the final sequence is materialised once by walking the chain.
             %
-            /maxseqlen in length 3 mul 4 add def
-
-            /seq0 [ 4 { maxseqlen array } repeat ] def
-            /seq1 [ 4 { maxseqlen array } repeat ] def
-            /len0 4 array def  len0 0 0 put  len0 1 0 put  len0 2 0 put  len0 3 0 put
-            /len1 4 array def
-
-            /curseq seq0 def  /curseqlen len0 def
-            /nxtseq seq1 def  /nxtseqlen len1 def
+            /curseqhd  [ //pdf417.textsubmodes length { null } repeat ] def
+            /nxtseqhd  [ //pdf417.textsubmodes length { null } repeat ] def
+            /curseqlen [ //pdf417.textsubmodes length { 0    } repeat ] def
+            /nxtseqlen [ //pdf417.textsubmodes length { 0    } repeat ] def
 
             /curlen [ //pdf417.e //pdf417.e //pdf417.e //pdf417.e ] def
             curlen submode 0 put
 
             %
-            % Derive the optimal sequences ending in each submode
+            % Flatten a chain of [parent, segment] cons cells of total length L
+            % into a fresh array. The chain's deepest node holds the prefix, so
+            % we walk head-to-root and write each segment into the tail of the
+            % output, advancing pos backwards.
             %
+            /flatten {  % hd len -> array
+
+                dup array 3 1 roll                           % pos = len; out = array(len)
+
+                {                                            % out hd pos
+                    1 index null eq { exit } if              % done when hd is null
+                    1 index 1 get                            % ... seg = hd[1]
+                    exch 1 index length sub                  % ... pos -= length(seg)
+                    3 index 1 index 3 index putinterval      % out[pos..] = seg
+                    exch pop                                 % drop seg
+                    exch 0 get exch                          % hd = hd[0]
+                } loop
+
+                pop pop                                      % return out
+
+            } def
+
             in {
 
                 /char exch def
 
-                %
-                % Check for optimisations in the current sequences by latching from x to y
-                %
-                {  % loop
+                % Phase 1: relax curlen[*] via the static latch graph
+                {
                     /imp false def
                     //pdf417.textsubmodes {
                         /x exch def
@@ -809,67 +824,52 @@ begin
                             /cost curlen x get //pdf417.latlen x get y get add def
                             cost curlen y get lt {
                                 curlen y cost put
-                                % Copy curseq[x] to curseq[y] and append latseq codes
-                                /srclen curseqlen x get def
-                                srclen 0 gt {
-                                    curseq y get 0 curseq x get 0 srclen getinterval putinterval
-                                } if
-                                //pdf417.latseq x get y get {
-                                    curseq y get srclen 3 -1 roll put
-                                    /srclen srclen 1 add def
-                                } forall
-                                curseqlen y srclen put
+                                /latyseg //pdf417.latseq x get y get def
+                                curseqhd y
+                                    latyseg length 0 eq
+                                    { curseqhd x get }
+                                    { [ curseqhd x get latyseg ] }
+                                    ifelse
+                                put
+                                curseqlen y curseqlen x get latyseg length add put
                                 /imp true def
                             } if
                         } forall
                     } forall
-                    imp not {exit} if  % Repeat unless no improvement
+                    imp not {exit} if
                 } loop
 
-                %
-                % Determine optimal next sequences for each valid encoding
-                %
                 /nxtlen [ //pdf417.e //pdf417.e //pdf417.e //pdf417.e ] def
-                nxtseqlen 0 0 put  nxtseqlen 1 0 put  nxtseqlen 2 0 put  nxtseqlen 3 0 put
+                //pdf417.textsubmodes { nxtseqhd exch null put } forall
+                //pdf417.textsubmodes { nxtseqlen exch 0 put } forall
 
                 //pdf417.textsubmodes {
                     /x exch def
 
-                    { % loop for common exit
+                    {  % loop for common exit
 
                         charvals x get char known not {exit} if
 
-                        %
-                        % Extend directly: copy curseq[x] + char to nxtseq[x]
-                        %
+                        % Phase 2: nxtseq[x] := curseq[x] + [char]
                         /cost curlen x get 1 add def
                         cost nxtlen x get lt {
                             nxtlen x cost put
-                            /srclen curseqlen x get def
-                            srclen 0 gt {
-                                nxtseq x get 0 curseq x get 0 srclen getinterval putinterval
-                            } if
-                            nxtseq x get srclen char put
-                            nxtseqlen x srclen 1 add put
+                            nxtseqhd x [ curseqhd x get [ char ] ] put
+                            nxtseqlen x curseqlen x get 1 add put
                         } if
 
-                        %
-                        % Optimise for direct shifts from y to x
-                        %
+                        % Phase 3: shift y -> x for one char (y != x; stays in y)
                         //pdf417.textsubmodes {
                             /y exch def
                             x y ne {
                                 /cost curlen y get //pdf417.shftlen y get x get add 1 add def
                                 cost nxtlen y get lt {
                                     nxtlen y cost put
-                                    % Copy curseq[y] + shift + char to nxtseq[y]
-                                    /srclen curseqlen y get def
-                                    srclen 0 gt {
-                                        nxtseq y get 0 curseq y get 0 srclen getinterval putinterval
-                                    } if
-                                    nxtseq y get srclen x //pdf417.a eq {//pdf417.as} {//pdf417.ps} ifelse put
-                                    nxtseq y get srclen 1 add char put
-                                    nxtseqlen y srclen 2 add put
+                                    nxtseqhd y [
+                                        curseqhd y get
+                                        [ x //pdf417.a eq {//pdf417.as} {//pdf417.ps} ifelse  char ]
+                                    ] put
+                                    nxtseqlen y curseqlen y get 2 add put
                                 } if
                             } if
                         } forall
@@ -880,9 +880,8 @@ begin
                 } forall
 
                 /curlen nxtlen def
-                % Swap cur and nxt buffers
-                curseq nxtseq /curseq exch def /nxtseq exch def
-                curseqlen nxtseqlen /curseqlen exch def /nxtseqlen exch def
+                curseqhd  nxtseqhd   /curseqhd exch def   /nxtseqhd exch def
+                curseqlen nxtseqlen  /curseqlen exch def  /nxtseqlen exch def
 
             } forall
 
@@ -890,13 +889,17 @@ begin
             % Select the optimal sequence
             %
             /minseq //pdf417.e def
+            /bestsm -1 def
             //pdf417.textsubmodes {
                 /k exch def
                 curlen k get minseq lt {
                     /minseq curlen k get def
-                    /txtseq curseq k get 0 curseqlen k get getinterval def
+                    /bestsm k def
                 } if
             } forall
+            bestsm -1 ne {
+                /txtseq curseqhd bestsm get curseqlen bestsm get flatten def
+            } if
 
             %
             % Encode the sequence
