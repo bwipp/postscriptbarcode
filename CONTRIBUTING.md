@@ -1107,7 +1107,7 @@ create a hooks entries named like `qrcode.before`.
 
 ### Profiling Results
 
-Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code is mask evaluation bound; Data Matrix, Aztec, and PDF417 are RSEC bound (mitigated by FIFO caches). See encoder source for attempted optimizations.
+Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code is mask evaluation bound; Data Matrix is RSEC bound (mitigated by FIFO caches). Aztec splits roughly evenly between input encoding and RSEC. PDF417 and MicroPDF417 are fast enough that no single phase dominates. See encoder source for attempted optimizations.
 
 
 ## Testing
