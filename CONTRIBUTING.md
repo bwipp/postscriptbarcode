@@ -899,6 +899,20 @@ Cache parameter guidelines:
 - Set `max` and `limit` high enough to avoid evictions when memory allows
 
 
+**Persistent chain of segments for per-state DP**
+
+When an optimiser maintains a candidate sequence per state and extends them
+per character, the naive `getinterval putinterval` copy-and-extend pattern is
+O(n^2) overall. Represent each candidate as a persistent chain of segments —
+a linked list of `[parent_node, segment_array]` cons cells where extension
+adds a new head node sharing the existing prefix via the parent pointer.
+Materialise once at the end by walking head-to-root.
+
+This is the pattern used by `azteccode`, `pdf417` and `micropdf417` in their
+encoding optimisers; see `pdf417.ps.src` (simplest variant) for the
+canonical form including the `flatten` helper.
+
+
 ### Anti-patterns
 
 - Creating variables (dictionary entries) in hot loops
@@ -943,6 +957,9 @@ pre-allocate and, if size is bounded, over-size then trim with `getinterval`.
 
 Extension of small arrays with `/arr [ arr aload pop ... ] def` is
 acceptable for one-time operations outside loops.
+
+For the per-state case where many candidate sequences are extended in
+parallel, see "Persistent chain of segments for per-state DP" above.
 
 
 **Hot Loop Stack Pattern**
