@@ -44,35 +44,65 @@ begin
 %
 % Runs a streaming LFSR over nd data codewords using the generator polynomial
 % coeffs. The caller-owned lfsr is the shift register; on return, its first
-% nc cells are the ECC codewords. Addition is XOR; multiplication is delegated
-% to the caller-supplied rsprod procedure (typically a log/alog table lookup).
+% nc cells are the ECC codewords. Addition is XOR; multiplication is inlined
+% via the caller-supplied log/alog tables. coeffs is reversed once and log(fb)
+% is hoisted out of the inner loop, so each iteration is a single get,
+% log-add-mod, alog get, xor and put.
 %
 /rsecbinary {
 
-    7 dict begin
+    10 dict begin
 
-    /rsprod exch def   % Implements GF multiplication.
+    /gfm1 exch def     % GF size minus one (modulus for log-sum)
+    /rsalog exch def   % Anti-log table
+    /rslog exch def    % Log table
     /lfsr exch def     % Workspace of length at least nc
     /nc exch def       % Number of ECC codewords to produce
     /coeffs exch def   % Generator polynomial coefficients
     /nd exch def       % Number of data codewords
     /getdata exch def  % Implements fetching nth codeword
 
-    0 1 nc 1 sub {lfsr exch 0 put} for
+    0 1 nc 1 sub {lfsr exch 0 put} for  % Zero LFSR
+
+    %
+    % Reverse coeffs to simplify the inner loop
+    %
+    /coeffsrev nc array def
+    0 1 nc 1 sub {
+        /j exch def
+        coeffsrev j coeffs nc 1 sub j sub get put
+    } for
 
     0 1 nd 1 sub {  % m
-        getdata exec lfsr 0 get xor           % fb = data[m] ^ S[0]
-        0 1 nc 2 sub {  % j
-            lfsr exch dup 1 add               % ... lfsr j j+1
-            2 index exch get                  % ... lfsr j S[j+1]
-            coeffs nc 3 index sub 1 sub get   % ... coeffs[nc-1-j]
-            4 index                           % ... fb
-            rsprod exec                       % p = coeffs[nc-1-j] * fb
-            xor put                           % S[j] = S[j+1] ^ p
-        } for
-        lfsr nc 1 sub coeffs 0 get 3 index    % S[nc-1] = coeffs[0] * fb
-        rsprod exec put
-        pop  % fb
+        getdata exec lfsr 0 get xor               % fb = data[m] ^ S[0]
+        dup 0 ne {  % fb != 0
+            rslog exch get                        % log_fb (replaces fb on stack)
+            0 1 nc 2 sub {  % j
+                lfsr exch dup 1 add               % ... log_fb lfsr j j+1
+                2 index exch get                  % ... log_fb lfsr j S[j+1]
+                coeffsrev 2 index get             % ... log_fb lfsr j S[j+1] coeffsrev[j]
+                dup 0 ne {
+                    rslog exch get 4 index add gfm1 mod rsalog exch get
+                } {
+                    pop 0
+                } ifelse                          % ... log_fb lfsr j S[j+1] p
+                xor put                           % S[j] = S[j+1] ^ p
+            } for
+            lfsr exch nc 1 sub exch               % ... lfsr nc-1 log_fb
+            coeffsrev nc 1 sub get                % ... lfsr nc-1 log_fb coeffsrev[nc-1]
+            dup 0 ne {
+                rslog exch get exch add gfm1 mod rsalog exch get
+            } {
+                pop pop 0
+            } ifelse
+            put                                   % S[nc-1] = coeffsrev[nc-1] * fb
+        } {  % fb == 0
+            pop                                   % drop fb
+            0 1 nc 2 sub {
+                lfsr exch dup 1 add 2 index exch get put
+            } for
+            lfsr nc 1 sub 0 put
+        } ifelse
     } for
 
     end
