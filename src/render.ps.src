@@ -1090,17 +1090,24 @@ begin
         %
         showbearer {
             borderwidth inkspread gt {
+                /hw borderwidth inkspread sub 2 div def
                 gsave
                 newpath
-                bl aload pop moveto br aload pop lineto
-                tl aload pop moveto tr aload pop lineto
+                bl aload pop hw sub moveto
+                br aload pop hw sub lineto
+                br aload pop hw add lineto
+                bl aload pop hw add lineto closepath
+                tl aload pop hw sub moveto
+                tr aload pop hw sub lineto
+                tr aload pop hw add lineto
+                tl aload pop hw add lineto closepath
                 bordercolor (unset) ne {
                     bordercolor //setanycolor exec not {
                         grestore
                         /bwipp.renderBadBorderColor (Invalid border color) false exit
                     } if
                 } if
-                borderwidth inkspread sub setlinewidth stroke
+                fill
                 grestore
             } if
         } if
