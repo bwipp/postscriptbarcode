@@ -49,13 +49,11 @@ begin
     /targetdict exch def
 
     %
-    % Get hooks dict from global_ctx if enabledebug is set
+    % Get hooks dict from global_ctx, if present
     %
     /hooksdict null def
     /uk.co.terryburton.bwipp.global_ctx dup where {
-        exch get dup /enabledebug known {
-            /hooks 2 copy known {get /hooksdict exch def} {pop pop} ifelse
-        } {pop} ifelse
+        exch get /hooks 2 copy known {get /hooksdict exch def} {pop pop} ifelse
     } {pop} ifelse
 
     hooks {

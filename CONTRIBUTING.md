@@ -119,7 +119,7 @@ large values at define time from small operands and reference via `//name`.
 containing optional keys that affect the behaviour of BWIPP:
 
 - `preload`        - Perform eager initialisation of normally lazy variables during resource definition
-- `enabledebug`    - Allow the user to set debug options (e.g. `debugcws`), for development purposes including activation of hooks
+- `enabledebug`    - Allow the user to set debug options (e.g. `debugcws`), for development purposes
 - `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
 - `hooks`          - Dictionary of hook procedures for debugging purposes, including profiling
 - `default_*`      - Defaults for certain renderer options set by the user, e.g. `default_barcolor`
@@ -1074,13 +1074,12 @@ By default hooks will do nothing other than pop the parameter.
 The above pair of hooks is intended to allow measurement of time spent in each
 phase via the definition of suitable procedures within global context.
 
-The global context must be configured with `enabledebug` set and a `hooks`
-dictionary containing custom procedures related to the hooks, for example:
+The global context must be configured with a `hooks` dictionary containing
+custom procedures related to the hooks, for example:
 
 ```postscript
 currentglobal true setglobal
 /uk.co.terryburton.bwipp.global_ctx <<
-    /enabledebug true
     /hooks <<
         /before {20 string cvs print ( before ) print print ( ) print realtime =}
         /after  {20 string cvs print ( after  ) print print ( ) print realtime =}

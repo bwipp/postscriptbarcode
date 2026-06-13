@@ -101,19 +101,18 @@
 
 
 %
-% Without enabledebug, hooks are default no-ops
+% Hooks activate from the presence of a hooks dict; enabledebug is not required
 %
 /uk.co.terryburton.bwipp.global_ctx <<
-    /hooks << /_test.nodebug.hook { pop pop /_test.nodebug.hook_wrong } >>
+    /hooks << /_test.nodebug.hook { pop pop /_test.nodebug.hook_ran } >>
 >> def
 
 {
     10 dict begin
     /_test.nodebug.enc [/_test.nodebug.hook] setuphooks
     (phase) _test.nodebug.enc._test.nodebug.hook
-    true
     end
-} true isEqual
+} /_test.nodebug.hook_ran isEqual
 
 
 %
