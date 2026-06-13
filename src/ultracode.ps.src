@@ -450,6 +450,9 @@ begin
     /columns columns 6 add def
     /pixs [ rows columns mul {-1} repeat ] def
     /qmv {columns mul add} def
+
+    (matrix.layout.fixtures) //ultracode.before exec
+
     0 1 columns 1 sub {
         /i exch def
         0 6 rows 1 sub {
@@ -473,6 +476,10 @@ begin
         pixs columns 1 sub i qmv 9 put
     } for
 
+    (matrix.layout.fixtures) //ultracode.after exec
+
+    (matrix.layout.reserve) //ultracode.before exec
+
     %
     % DCCU and DCCL tiles
     %
@@ -485,6 +492,10 @@ begin
         pixs 2 i qmv 3 -1 roll put
         /i i 1 add def
     } forall
+
+    (matrix.layout.reserve) //ultracode.after exec
+
+    (matrix.layout.data) //ultracode.before exec
 
     %
     % Data tiles
@@ -516,6 +527,8 @@ begin
               } if
          } ifelse
     } forall
+
+    (matrix.layout.data) //ultracode.after exec
 
     (matrix.layout) //ultracode.after exec
 

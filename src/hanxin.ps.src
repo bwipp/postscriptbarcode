@@ -1046,6 +1046,8 @@ begin
     /pixs [ size size mul {-1} repeat ] def
     /qmv {size mul add} def
 
+    (matrix.layout.fixtures) //hanxin.before exec
+
     %
     % Alignment patterns
     %
@@ -1123,6 +1125,10 @@ begin
         } for
     } for
 
+    (matrix.layout.fixtures) //hanxin.after exec
+
+    (matrix.layout.reserve) //hanxin.before exec
+
     %
     % Derive the function module map
     %
@@ -1138,6 +1144,10 @@ begin
     functionmap {
         { aload pop qmv pixs exch 0 put } forall
     } forall
+
+    (matrix.layout.reserve) //hanxin.after exec
+
+    (matrix.layout.data) //hanxin.before exec
 
     /maskfuncs //hanxin.maskfuncs def
     mask -1 ne {  % User specifies a mask
@@ -1180,6 +1190,8 @@ begin
         /posx posx 1 add def
         posx size eq {/posx 0 def /posy posy 1 add def} if
     } loop
+
+    (matrix.layout.data) //hanxin.after exec
 
     (matrix.layout) //hanxin.after exec
 

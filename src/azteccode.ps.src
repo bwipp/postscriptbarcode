@@ -1050,6 +1050,8 @@ begin
     /pixs [size size mul {-1} repeat] def
     /mid size 1 sub 2 idiv size mul size 1 sub 2 idiv add def
 
+    (matrix.layout.data) //azteccode.before exec
+
     %
     % Data layers
     %
@@ -1062,6 +1064,10 @@ begin
             /i i 1 add def
         } for
     } for
+
+    (matrix.layout.data) //azteccode.after exec
+
+    (matrix.layout.fixtures) //azteccode.before exec
 
     %
     % For full symbols expand the pixel map by inserting the reference grid
@@ -1117,6 +1123,10 @@ begin
       [ fw 1 add neg   fw 1 add neg   0 ] [ fw 1 add neg   fw neg         0 ]
     ] {pixs exch aload pop 3 1 roll cmv exch put} forall
 
+    (matrix.layout.fixtures) //azteccode.after exec
+
+    (matrix.layout.reserve) //azteccode.before exec
+
     %
     % Mode ring
     %
@@ -1125,6 +1135,8 @@ begin
         pixs modemap 2 index get aload pop cmv modebits 3 index get 48 sub put
         pop
     } for
+
+    (matrix.layout.reserve) //azteccode.after exec
 
     (matrix.layout) //azteccode.after exec
 

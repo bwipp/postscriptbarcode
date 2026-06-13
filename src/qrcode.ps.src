@@ -1433,6 +1433,8 @@ begin
     /pixs [ rows cols mul {-1} repeat ] def
     /qmv {cols mul add} def
 
+    (matrix.layout.fixtures) //qrcode.before exec
+
     %
     % Timing patterns
     %
@@ -1531,6 +1533,10 @@ begin
         } for
     } if
 
+    (matrix.layout.fixtures) //qrcode.after exec
+
+    (matrix.layout.reserve) //qrcode.before exec
+
     %
     % Derive the format information module map
     %
@@ -1573,6 +1579,10 @@ begin
     format (full) eq {
         pixs 8 rows 8 sub qmv 0 put
     } if
+
+    (matrix.layout.reserve) //qrcode.after exec
+
+    (matrix.layout.data) //qrcode.before exec
 
     %
     % Lookup the mask bits corresponding to the mask functions applicable to
@@ -1636,6 +1646,8 @@ begin
             } if
         } ifelse
     } loop
+
+    (matrix.layout.data) //qrcode.after exec
 
     (matrix.layout) //qrcode.after exec
 
