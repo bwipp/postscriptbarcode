@@ -266,14 +266,14 @@ jobs:
   docs:
     if: github.repository == 'bwipp/postscriptbarcode'
     runs-on: ubuntu-24.04
-    container: pandoc/latex:2.9
+    container: pandoc/latex:3.10-debian  # glibc base; Alpine musl lacks symbols needed by Node 24
 
     steps:
       - name: Install dependencies
-        run: apk add --no-cache git make
+        run: apt-get update && apt-get install -y git make
 
       - name: Checkout
-        uses: actions/checkout@v4  # v6 requires Node 24 which is incompatible with Alpine musl
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           submodules: true
