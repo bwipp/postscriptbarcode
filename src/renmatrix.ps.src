@@ -131,6 +131,19 @@ begin
 
 ] readonly def
 
+%
+% Corner codes at which a region boundary trace starts:
+%
+%   1 = black region stem corners:   0 0        1 0
+%                                     *    and   *
+%                                    0 1        0 1
+%
+%   2 = white region stem corner:    1 1
+%                                     *
+%                                    1 0
+%
+/renmatrix.stemclass <00010000000000000001000000000200> readonly def
+
 /renmatrix {
 
     256 dict begin
@@ -397,26 +410,35 @@ begin
         /abcdget { pixx 1 sub mul add abcdcache exch get } def
 
         %
-        % Construct paths by tracing regions avoiding duplication by using the cache
+        % Construct paths by tracing regions, avoiding duplication by using
+        % the cache. Each raster line of corner codes is scanned with the
+        % column kept on the stack; stem corners are rare, so only they
+        % spill to variables.
         %
         /paths [
             0 1 pixycomp 2 sub {
                 /j exch def
-                0 1 pixx 2 sub {
-                    /i exch def
-                    /k i j abcdget def
-                    k 2#0001 eq                           % Black region stem corners:
-                    k 2#1001 eq or {                      %
-                        //renmatrix.up i j cget 0 eq {    %   0 0       1 0
-                            i j trace                     %    *   and   *
-                        } if                              %   0 1       0 1
-                    } if
-                    k 2#1110 eq {                         % White region stem corner:
-                        //renmatrix.left i j cget 0 eq {  %
-                            i j trace                     %   1 1
-                        } if                              %    *
-                    } if                                  %   1 0
-                } for
+                0
+                abcdcache j abcdw mul abcdw getinterval {  % i code
+                    //renmatrix.stemclass exch get         % i class
+                    dup 0 ne {
+                        exch /i exch def                   % class
+                        1 eq {  % Black region stem corner
+                            //renmatrix.up i j cget 0 eq {
+                                i j trace
+                            } if
+                        } {     % White region stem corner
+                            //renmatrix.left i j cget 0 eq {
+                                i j trace
+                            } if
+                        } ifelse
+                        i
+                    } {
+                        pop
+                    } ifelse
+                    1 add
+                } forall
+                pop
             } for
         ] def
 
