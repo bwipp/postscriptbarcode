@@ -209,6 +209,8 @@ begin
 
 /azteccode.encfuncs [ /encu /encl /encm /encp /encd ] readonly def
 /azteccode.states [ //azteccode.u //azteccode.l //azteccode.m //azteccode.p //azteccode.d //azteccode.b ] readonly def
+/azteccode.statesnotb //azteccode.states 0 5 getinterval readonly def
+/azteccode.statesbackto //azteccode.states 0 3 getinterval readonly def  % backto is only ever U, L or M
 /azteccode.charsizes [ 5 5 5 5 4 8 ] readonly def
 
 %
@@ -289,6 +291,26 @@ begin
             } {
                 pop []
             } ifelse
+        } forall
+    ] readonly def
+
+    %
+    % Latch sequences for resuming from Binary, indexed by backto then by
+    % target state: the free in-band return marker to backto followed by
+    % the re-latch from backto to the target, at cost latlen[backto][target]
+    %
+    /bexitseq [
+        //azteccode.statesbackto {
+            /bt exch def
+            [
+                //azteccode.states {
+                    /y exch def
+                    [
+                        //azteccode.latseq //azteccode.b get bt get aload pop
+                        //azteccode.latseq bt get y get aload pop
+                    ]
+                } forall
+            ]
         } forall
     ] readonly def
 
@@ -538,40 +560,56 @@ begin
                 /curseqbb nb def
                 /backto x //azteccode.p eq x //azteccode.d eq or {//azteccode.u} {x} ifelse def
             } if
-            /imp true def
+        } def
+
+        %
+        % Adopt an improved resumption of the B chain, re-latching from
+        % backto to y. Re-entering B never improves on staying in B, so y
+        % is never B here and backto and the byte-run count are unchanged.
+        %
+        /bexitimprove {  % y cost -> --
+            /cost exch def
+            /y exch def
+            curlen y cost put
+            /latyseg bexitseqbt y get def
+            curseqhd y [ curseqhd //azteccode.b get latyseg ] put
+            curseqlen y curseqlen //azteccode.b get latyseg length add put
         } def
 
         msg {
 
             /char exch def
 
-            % Phase 1: relax curlen[*] via the static latch graph
-            {
-                /imp false def
-                //azteccode.states {
-                    /x exch def
-                    /costx curlen x get def
-                    /latrowx //azteccode.latlen x get def
-                    x //azteccode.b ne {
-                        //azteccode.states {                 % y
-                            latrowx 1 index get costx add    % y cost
-                            dup curlen 3 index get lt {
-                                x 3 1 roll relaximprove
-                            } {
-                                pop pop
-                            } ifelse
-                        } forall
-                    } {  % Only B -> backto
-                        backto latrowx backto get costx add  % y cost
-                        dup curlen backto get lt {
-                            x 3 1 roll relaximprove
-                        } {
-                            pop pop
-                        } ifelse
+            % Phase 1: relax curlen[*] via the latch graph in a single pass.
+            % The latlen/latseq tables are transitively closed and passing
+            % through B never improves a chain, so one hop from each non-B
+            % state reaches every target optimally. The B chain resumes at
+            % backto for free and re-latches from there, also in one hop,
+            % via the composite bexitseq sequences.
+            //azteccode.statesnotb {
+                /x exch def
+                /costx curlen x get def
+                /latrowx //azteccode.latlen x get def
+                //azteccode.states {                 % y
+                    latrowx 1 index get costx add    % y cost
+                    dup curlen 3 index get lt {
+                        x 3 1 roll relaximprove
+                    } {
+                        pop pop
                     } ifelse
                 } forall
-                imp not {exit} if
-            } loop
+            } forall
+            /costb curlen //azteccode.b get def
+            /latrowbt //azteccode.latlen backto get def
+            /bexitseqbt bexitseq backto get def
+            //azteccode.states {                     % y
+                latrowbt 1 index get costb add       % y cost
+                dup curlen 3 index get lt {
+                    bexitimprove
+                } {
+                    pop pop
+                } ifelse
+            } forall
 
             %          U  L  M  P  D  B
             /nxtlen [  e  e  e  e  e  e ] def
