@@ -515,6 +515,32 @@ begin
 
         } def
 
+        %
+        % Adopt an improved latch path x -> y found during relaxation
+        %
+        /relaximprove {  % x y cost -> --
+            /cost exch def
+            /y exch def
+            /x exch def
+            curlen y cost put
+            /latyseg //azteccode.latseq x get y get def
+            curseqhd y
+                latyseg length 0 eq
+                { curseqhd x get }
+                { [ curseqhd x get latyseg ] }
+                ifelse
+            put
+            curseqlen y curseqlen x get latyseg length add put
+            y //azteccode.b eq {
+                % Recompute B-chain byte-count: latseg may contain sb
+                /nb 0 def
+                latyseg { //azteccode.sb eq {0} {nb 1 add} ifelse /nb exch def } forall
+                /curseqbb nb def
+                /backto x //azteccode.p eq x //azteccode.d eq or {//azteccode.u} {x} ifelse def
+            } if
+            /imp true def
+        } def
+
         msg {
 
             /char exch def
@@ -524,31 +550,25 @@ begin
                 /imp false def
                 //azteccode.states {
                     /x exch def
-                    //azteccode.states {
-                        /y exch def
-                        x //azteccode.b ne y backto eq or {  % Only B -> backto
-                            /cost curlen x get //azteccode.latlen x get y get add def
-                            cost curlen y get lt {
-                                curlen y cost put
-                                /latyseg //azteccode.latseq x get y get def
-                                curseqhd y
-                                    latyseg length 0 eq
-                                    { curseqhd x get }
-                                    { [ curseqhd x get latyseg ] }
-                                    ifelse
-                                put
-                                curseqlen y curseqlen x get latyseg length add put
-                                y //azteccode.b eq {
-                                    % Recompute B-chain byte-count: latseg may contain sb
-                                    /nb 0 def
-                                    latyseg { //azteccode.sb eq {0} {nb 1 add} ifelse /nb exch def } forall
-                                    /curseqbb nb def
-                                    /backto x //azteccode.p eq x //azteccode.d eq or {//azteccode.u} {x} ifelse def
-                                } if
-                                /imp true def
-                            } if
-                        } if
-                    } forall
+                    /costx curlen x get def
+                    /latrowx //azteccode.latlen x get def
+                    x //azteccode.b ne {
+                        //azteccode.states {                 % y
+                            latrowx 1 index get costx add    % y cost
+                            dup curlen 3 index get lt {
+                                x 3 1 roll relaximprove
+                            } {
+                                pop pop
+                            } ifelse
+                        } forall
+                    } {  % Only B -> backto
+                        backto latrowx backto get costx add  % y cost
+                        dup curlen backto get lt {
+                            x 3 1 roll relaximprove
+                        } {
+                            pop pop
+                        } ifelse
+                    } ifelse
                 } forall
                 imp not {exit} if
             } loop
@@ -574,7 +594,8 @@ begin
                     } ifelse
 
                     % Phase 2: nxtseq[x] := curseq[x] + [char]
-                    /cost curlen x get x char charsize add def
+                    /csize x char charsize def
+                    /cost curlen x get csize add def
                     cost nxtlen x get lt {
                         nxtlen x cost put
                         nxtseqhd x [ curseqhd x get [ char ] ] put
@@ -585,20 +606,26 @@ begin
                     x //azteccode.b eq {exit} if  % B is treated as a latch
 
                     % Phase 3: shift y -> x for one char (y != x, y != B; stays in y)
-                    //azteccode.states {
-                        /y exch def
-                        y //azteccode.b eq {exit} if
-                        x y ne {
-                            /cost curlen y get //azteccode.shftlen y get x get add x char charsize add def
-                            cost nxtlen y get lt {
+                    //azteccode.states {                                            % y
+                        dup //azteccode.b eq {pop exit} if
+                        dup x eq {
+                            pop
+                        } {
+                            curlen 1 index get
+                            //azteccode.shftlen 2 index get x get add csize add     % y cost
+                            dup nxtlen 3 index get lt {
+                                /cost exch def
+                                /y exch def
                                 nxtlen y cost put
                                 nxtseqhd y [
                                     curseqhd y get
                                     [ x  //azteccode.u eq {//azteccode.su} {//azteccode.sp} ifelse  char ]
                                 ] put
                                 nxtseqlen y curseqlen y get 2 add put
-                            } if
-                        } if
+                            } {
+                                pop pop
+                            } ifelse
+                        } ifelse
                     } forall
 
                     exit
