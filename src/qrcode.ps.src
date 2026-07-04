@@ -1606,19 +1606,24 @@ begin
 
     %
     % Build masklayers from the extruded funcpatlayers, with function cell
-    % values included (as 0 or 255)
+    % values included (as 0 or 255), walking positions sequentially with
+    % the column kept on the stack
     %
     /masklayers rows cols mul array def
     0 1 rows 1 sub {
         /j exch def
-        0 1 cols 1 sub {
-            /i exch def
-            /pos i j qmv def
-            masklayers pos pixs pos get dup -1 eq {
-                pop funcpatlayers j 6 mul 72 mod i 6 mod add get
+        /jc j cols mul def
+        /fprow funcpatlayers j 6 mul 72 mod 6 getinterval def
+        0 1 cols 1 sub {         % i
+            jc 1 index add       % i pos
+            pixs 1 index get     % i pos v
+            dup -1 eq {
+                pop fprow 2 index 6 mod get
             } {
                 255 mul
-            } ifelse put
+            } ifelse             % i pos val
+            masklayers 3 1 roll put
+            pop
         } for
     } for
 
@@ -1634,8 +1639,9 @@ begin
         posx 0 lt {exit} if
         /pos posx posy qmv def
         pixs pos get -1 eq {
-            /bit cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and def
-            masklayers pos masklayers pos get bit 255 mul xor put
+            masklayers pos 2 copy get
+            cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and 255 mul
+            xor put
             /num num 1 add def
         } if
         col 1 eq {
@@ -1783,11 +1789,10 @@ begin
     /bestscore 999999999 def
     0 1 nmasks 1 sub {
         /m exch def
-        /maskbit maskbits m get def
+        /mbneg maskbits m get neg def
         /masksym rows cols mul array def
         0 1 rows cols mul 1 sub {
-            /i exch def
-            masksym i masklayers i get maskbit neg bitshift 1 and put
+            masksym exch dup masklayers exch get mbneg bitshift 1 and put
         } for
         nmasks 1 ne {  % Not rMQR nor user-specified mask
             /score masksym format (full) eq {evalfull} {evalmicro} ifelse def
