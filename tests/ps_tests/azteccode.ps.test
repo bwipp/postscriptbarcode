@@ -974,3 +974,255 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
 
 % strictspec smoke test
 { 0 0 moveto (This is Aztec Code) (strictspec xdim=0.330) azteccode true } true isEqual
+
+% Encoding optimiser regression corpus: pinned codeword streams covering
+% mode latches and shifts, punctuation pair compression, binary shift
+% runs (including the 32-byte length field extension and backto
+% re-latching), FNC1/ECI and both formats
+{
+    (ABCDEF) (debugcws) azteccode
+} [ 4 12 33 19 7 ] debugIsEqual
+{
+    (abcdef) (debugcws) azteccode
+} [ 56 8 25 2 38 15 ] debugIsEqual
+{
+    (012345) (debugcws) azteccode
+} [ 60 17 40 43 15 ] debugIsEqual
+{
+    (!"#$%&) (debugcws) azteccode
+} [ 59 56 49 52 9 20 47 ] debugIsEqual
+{
+    (:;<=>?[]{}) (debugcws) azteccode
+} [ 59 58 45 43 56 51 43 31 14 62 31 ] debugIsEqual
+{
+    (ABC def GHI) (debugcws) azteccode
+} [ 4 12 39 1 18 38 15 56 30 16 37 23 ] debugIsEqual
+{
+    (AB.CD) (debugcws) azteccode
+} [ 4 12 4 50 5 ] debugIsEqual
+{
+    (ab,cd) (debugcws) azteccode
+} [ 56 8 24 8 36 11 ] debugIsEqual
+{
+    (AB12CD) (debugcws) azteccode
+} [ 4 15 49 41 49 2 62 ] debugIsEqual
+{
+    (A1B2C3) (debugcws) azteccode
+} [ 5 56 62 35 19 50 11 ] debugIsEqual
+{
+    (a.b.c.d) (debugcws) azteccode
+} [ 56 8 4 49 32 38 16 4 50 62 ] debugIsEqual
+{
+    (A b1C d2E f3) (debugcws) azteccode
+} [ 5 48 8 62 35 56 39 1 18 62 9 49 46 1 39 60 47 ] debugIsEqual
+{
+    (Hello, World! 123 test.) (debugcws) azteccode
+} [ 19 48 51 22 48 1 9 51 4 9 45 11 56 3 2 26 10 15 28 42 26 37 31 27 ] debugIsEqual
+{
+    (HELLO WORLD 12345 #&*) (debugcws) azteccode
+} [ 18 25 43 24 1 56 33 13 41 31 2 26 10 51 34 2 1 11 1 62 ] debugIsEqual
+{
+    ([{\(\)}]) (debugcws) azteccode
+} [ 59 59 31 22 46 61 51 ] debugIsEqual
+{
+    (012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789) (debugcws) azteccode
+} [ 241 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 89 26 43 60 77 95 ] debugIsEqual
+{
+    (^001^002^003) (parse debugcws) azteccode
+} [ 58 8 25 15 ] debugIsEqual
+{
+    (A^009B^010C) (parse debugcws) azteccode
+} [ 5 60 24 18 33 1 40 39 ] debugIsEqual
+{
+    (ABC^013^010DEF) (parse debugcws) azteccode
+} [ 4 12 32 1 34 38 15 ] debugIsEqual
+{
+    (. . . . . ) (debugcws) azteccode
+} [ 59 56 24 49 35 7 ] debugIsEqual
+{
+    (, , , , , ) (debugcws) azteccode
+} [ 59 56 33 2 4 9 ] debugIsEqual
+{
+    (a: b: c: ) (debugcws) azteccode
+} [ 56 8 1 40 48 5 8 1 23 ] debugIsEqual
+{
+    (Mr. Smith, Dr. Jones: OK.) (debugcws) azteccode
+} [ 29 50 24 1 62 10 14 21 21 8 2 28 11 12 1 31 5 48 30 26 39 32 11 60 15 25 47 ] debugIsEqual
+{
+    (^013^010^013^010^013^010^013^010) (parse debugcws) azteccode
+} [ 59 56 16 33 2 ] debugIsEqual
+{
+    (^128) (parse debugcws) azteccode
+} [ 62 3 1 15 ] debugIsEqual
+{
+    (^128^129^130) (parse debugcws) azteccode
+} [ 62 7 1 8 6 2 ] debugIsEqual
+{
+    (A^200B) (parse debugcws) azteccode
+} [ 5 60 14 16 15 ] debugIsEqual
+{
+    (abc^200^201def) (parse debugcws) azteccode
+} [ 56 8 25 15 34 50 12 36 41 35 62 ] debugIsEqual
+{
+    (^001^200^001) (parse debugcws) azteccode
+} [ 62 6 1 28 32 1 62 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200) (parse debugcws) azteccode
+} [ 254 249 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 31 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200) (parse debugcws) azteccode
+} [ 248 1 7 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200) (parse debugcws) azteccode
+} [ 248 1 39 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200) (parse debugcws) azteccode
+} [ 248 1 119 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 ] debugIsEqual
+{
+    (123^200^201456) (parse debugcws) azteccode
+} [ 60 26 11 55 49 25 6 19 57 39 35 ] debugIsEqual
+{
+    (!!!^200???) (parse debugcws) azteccode
+} [ 62 14 16 36 9 3 36 7 57 62 15 62 ] debugIsEqual
+{
+    (^200 ^201 ^202) (parse debugcws) azteccode
+} [ 62 11 36 4 6 18 16 25 23 ] debugIsEqual
+{
+    (A^200123456) (parse debugcws) azteccode
+} [ 5 60 14 17 56 52 21 39 35 ] debugIsEqual
+{
+    (ABC^200^200^200^200^200^200^200^200DEF) (parse debugcws) azteccode
+} [ 4 12 39 52 25 6 17 36 25 6 17 36 25 6 16 20 49 62 ] debugIsEqual
+{
+    (^200. ^201, ^202) (parse debugcws) azteccode
+} [ 62 15 36 5 49 1 50 18 48 32 50 47 ] debugIsEqual
+{
+    (aAbBcCdD0.1,2:3 ^128) (parse debugcws) azteccode
+} [ 56 11 32 33 60 6 19 33 2 62 30 20 45 15 4 2 42 35 55 48 48 7 ] debugIsEqual
+{
+    (^FNC10195212345678903) (parsefnc debugcws) azteccode
+} [ 60 1 1 4 29 46 33 40 43 15 4 53 25 11 ] debugIsEqual
+{
+    (^ECI000003ABCDEF) (parsefnc debugcws) azteccode
+} [ 1 1 10 34 6 16 41 35 62 ] debugIsEqual
+{
+    (AB^ECI000026CD) (parsefnc debugcws) azteccode
+} [ 4 12 1 2 18 2 5 ] debugIsEqual
+{
+    (^FNC1^ECI000010A) (parsefnc debugcws) azteccode
+} [ 1 1 1 1 2 12 33 31 ] debugIsEqual
+{
+    (ABC123) (format=compact debugcws) azteccode
+} [ 4 12 39 35 17 31 ] debugIsEqual
+{
+    (Aztec Code) (format=full debugcws) azteccode
+} [ 5 51 29 19 4 3 48 36 2 38 ] debugIsEqual
+{
+    (Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.) (debugcws) azteccode
+} [ 111 33 51 56 42 141 44 224 150 13 132 195 69 84 34 113 170 2 18 15 161 137 83 86 211 8 138 168 170 132 83 208 19 53 85 1 148 49 66 88 4 202 181 29 2 134 166 116 97 48 169 228 81 84 91 62 161 181 66 209 14 19 55 183 ] debugIsEqual
+
+% Punctuation pair edge cases: pairs at boundaries, in each mode context,
+% almost-pairs, pairs adjacent to and inside binary runs including at the
+% 32-byte length field boundary, and pairs adjacent to FNC1/ECI
+{
+    (. Hello) (debugcws) azteccode
+} [ 1 6 39 33 38 45 33 ] debugIsEqual
+{
+    (Hello. ) (debugcws) azteccode
+} [ 19 48 51 22 48 1 7 ] debugIsEqual
+{
+    (: X) (debugcws) azteccode
+} [ 1 11 39 ] debugIsEqual
+{
+    (. ) (debugcws) azteccode
+} [ 1 7 ] debugIsEqual
+{
+    (A. ) (debugcws) azteccode
+} [ 4 1 15 ] debugIsEqual
+{
+    (. A) (debugcws) azteccode
+} [ 1 6 11 ] debugIsEqual
+{
+    (. . . . . . . . . . . . . . . . . . . . ) (debugcws) azteccode
+} [ 59 56 24 49 35 6 12 24 49 35 6 12 24 49 35 6 12 24 62 ] debugIsEqual
+{
+    (12. 34) (debugcws) azteccode
+} [ 60 26 26 10 45 ] debugIsEqual
+{
+    (1. 2. 3. ) (debugcws) azteccode
+} [ 60 30 34 38 34 46 35 ] debugIsEqual
+{
+    (mr. x) (debugcws) azteccode
+} [ 56 58 24 1 60 62 ] debugIsEqual
+{
+    (a, b: c. ) (debugcws) azteccode
+} [ 56 8 1 32 48 5 8 1 15 ] debugIsEqual
+{
+    (a: b) (debugcws) azteccode
+} [ 56 8 1 40 62 ] debugIsEqual
+{
+    (A: B) (debugcws) azteccode
+} [ 4 1 20 31 ] debugIsEqual
+{
+    (1: 2) (debugcws) azteccode
+} [ 60 24 5 19 ] debugIsEqual
+{
+    (!!!. ???) (debugcws) azteccode
+} [ 59 56 49 35 3 53 43 23 ] debugIsEqual
+{
+    (aaa. bbb. ccc. ddd) (debugcws) azteccode
+} [ 56 8 16 32 3 6 12 24 1 50 4 8 1 12 41 18 62 ] debugIsEqual
+{
+    (No. 10, Fl. 2: OK. ) (debugcws) azteccode
+} [ 31 50 7 45 4 50 48 30 15 49 47 45 5 1 5 58 3 1 1 62 ] debugIsEqual
+{
+    (.X) (debugcws) azteccode
+} [ 1 39 39 ] debugIsEqual
+{
+    (,5) (debugcws) azteccode
+} [ 61 35 62 ] debugIsEqual
+{
+    (:q) (debugcws) azteccode
+} [ 56 2 44 47 ] debugIsEqual
+{
+    ( .) (debugcws) azteccode
+} [ 60 14 62 ] debugIsEqual
+{
+    (A.) (debugcws) azteccode
+} [ 5 59 31 ] debugIsEqual
+{
+    (A^013^010B) (parse debugcws) azteccode
+} [ 4 1 8 31 ] debugIsEqual
+{
+    (a^013^010b) (parse debugcws) azteccode
+} [ 56 8 1 16 62 ] debugIsEqual
+{
+    (^046^032) (parse debugcws) azteccode
+} [ 1 7 ] debugIsEqual
+{
+    (^200. ^201) (parse debugcws) azteccode
+} [ 62 9 36 5 49 1 50 31 ] debugIsEqual
+{
+    (^200^201. ^200^200) (parse debugcws) azteccode
+} [ 62 13 36 25 9 28 16 25 6 17 ] debugIsEqual
+{
+    (. ^200 ) (parse debugcws) azteccode
+} [ 1 7 60 14 16 7 ] debugIsEqual
+{
+    (^200^200^200. . . ^200) (parse debugcws) azteccode
+} [ 62 7 36 25 6 17 55 48 49 35 62 62 3 36 31 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200. ^201^201^201^201^201) (parse debugcws) azteccode
+} [ 254 249 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 5 193 249 114 114 114 114 114 127 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200. ^201^201^201^201^201) (parse debugcws) azteccode
+} [ 254 249 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 25 1 15 229 201 201 201 201 201 ] debugIsEqual
+{
+    (^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200^200. ^201^201^201^201^201) (parse debugcws) azteccode
+} [ 248 1 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 35 32 184 131 39 39 39 39 39 ] debugIsEqual
+{
+    (^FNC1. A) (parsefnc debugcws) azteccode
+} [ 1 1 1 1 24 47 ] debugIsEqual
+{
+    (AB^ECI000003. CD) (parsefnc debugcws) azteccode
+} [ 4 12 1 1 42 1 12 33 31 ] debugIsEqual
