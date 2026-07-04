@@ -252,7 +252,14 @@ begin
         coeffs 0 2 copy get 3 index rsprod put   % coeffs[0] = coeffs[0] * ai
         pop  % ai
     } for
-    coeffs
+
+    %
+    % Deliver the coefficients reversed and in the log domain, with -1
+    % denoting a zero coefficient, as rsecbinary requires
+    %
+    [ rsnc 1 sub -1 0 {
+        coeffs exch get dup 0 ne { rslog exch get } { pop -1 } ifelse
+    } for ]
 } bind def
 
 /azteccode.coeffscache azteccode.coeffscachemax azteccode.coeffscachelimit //fifocache exec def
@@ -289,13 +296,15 @@ begin
     /charvals charvals readonly def
 
     %
-    % Calculate the log and anti-log tables for each GF
+    % Calculate the log and anti-log tables for each GF, the anti-log
+    % tables spanning two periods so that log-sums resolve without a
+    % modulo reduction
     %
     /rstables [
         //azteccode.rsparams {
             dup length 0 ne {
                 aload pop /rspm exch def /rsgf exch def
-                /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
+                /rsalog [ 1 rsgf 2 mul 2 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
                 /rslog rsgf array def
                 1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
                 [ rslog rsalog ]
@@ -1013,9 +1022,8 @@ begin
         /rscws exch def
 
         %
-        % Lookup the Reed Solomon error correction parameters for the codeword size
+        % Lookup the Reed Solomon log tables for the codeword size
         %
-        //azteccode.rsparams rsbt get aload pop /rspm exch def /rsgf-1 exch 1 sub def
         rstables rsbt get aload pop /rsalog exch def /rslog exch def
 
         %
@@ -1023,7 +1031,7 @@ begin
         %
         /rsprod {
             dup 0 ne { 1 index 0 ne {
-               rslog exch get exch rslog exch get add rsgf-1 mod rsalog exch get
+               rslog exch get exch rslog exch get add rsalog exch get
             } { pop pop 0 } ifelse } { pop pop 0 } ifelse
         } def
 
@@ -1032,7 +1040,7 @@ begin
         (ecc.coeffs) //azteccode.after exec
 
         /lfsr rsnc array def
-        {rscws exch get} rscws length coeffs rsnc lfsr rslog rsalog rsgf-1 //rsecbinary exec
+        {rscws exch get} rscws length coeffs lfsr rslog rsalog //rsecbinary exec
         lfsr
 
         (ecc.cws) //azteccode.after exec

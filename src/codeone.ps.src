@@ -284,13 +284,15 @@ begin
     /encvals [ avals cvals tvals xvals -1 bvals ] readonly def
 
     %
-    % Calculate the log and anti-log tables for each Galois field
+    % Calculate the log and anti-log tables for each Galois field, the
+    % anti-log tables spanning two periods so that log-sums resolve
+    % without a modulo reduction
     %
     /rstables [
         //codeone.rsparams {
             dup length 0 ne {
                 aload pop /rspm exch def /rsgf exch def
-                /rsalog [ 1 rsgf 1 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
+                /rsalog [ 1 rsgf 2 mul 2 sub { dup 2 mul dup rsgf ge {rspm xor} if } repeat ] def
                 /rslog rsgf array def
                 1 1 rsgf 1 sub {dup rsalog exch get exch rslog 3 1 roll put} for
                 [ rslog rsalog ]
@@ -321,7 +323,7 @@ begin
 %
 /codeone.rsprod {
     dup 0 ne { 1 index 0 ne {
-        rslog exch get exch rslog exch get add gf-1 mod rsalog exch get
+        rslog exch get exch rslog exch get add rsalog exch get
     } { pop pop 0 } ifelse } { pop pop 0 } ifelse
 } bind def
 
@@ -346,7 +348,13 @@ begin
         //codeone.rsprod exec put                 % coeffs[0] = coeffs[0] * ai
         pop  % ai
     } for
-    coeffs 0 coeffs length 1 sub getinterval
+    %
+    % Deliver the coefficients reversed and in the log domain, with -1
+    % denoting a zero coefficient, as rsecbinary requires
+    %
+    [ ecpb 1 sub -1 0 {
+        coeffs exch get dup 0 ne { rslog exch get } { pop -1 } ifelse
+    } for ]
 } bind def
 
 %
@@ -369,8 +377,6 @@ begin
     /ecpb exch def
     /rslog rstables rsbt get 0 get def
     /rsalog rstables rsbt get 1 get def
-    /gf rsalog length def
-    /gf-1 gf 1 sub def
     rsbt 10000 mul ecpb add  % key = rsbt * 10000 + ecpb
     { //codeone.gencoeffs exec }
     { length }
@@ -1106,7 +1112,7 @@ begin
         /blk exch def
         ecbs blk
         /lfsr ecpb array def
-        {cws exch rsbl mul blk add get} dcpb coeffs ecpb lfsr rslog rsalog gf-1 //rsecbinary exec
+        {cws exch rsbl mul blk add get} dcpb coeffs lfsr rslog rsalog //rsecbinary exec
         lfsr
         put
     } for
