@@ -932,7 +932,8 @@ begin
 
                 /char exch def
 
-                % Phase 1: relax curlen[*] via the static latch graph
+                % Let each state adopt a cheaper chain from another state by
+                % latching, relaxing repeatedly until no improvement remains
                 {
                     /imp false def
                     //micropdf417.textsubmodes {
@@ -968,7 +969,7 @@ begin
 
                         charvals x get char known not {exit} if
 
-                        % Phase 2: nxtseq[x] := curseq[x] + [char]
+                        % Append the character in state x: nxtseq[x] := curseq[x] + [char]
                         /cost curlen x get 1 add def
                         cost nxtlen x get lt {
                             nxtlen x cost put
@@ -976,7 +977,7 @@ begin
                             nxtseqlen x curseqlen x get 1 add put
                         } if
 
-                        % Phase 3: shift y -> x for one char (y != x; stays in y)
+                        % Append the character by shifting y -> x (y != x; stays in y)
                         //micropdf417.textsubmodes {
                             /y exch def
                             x y ne {

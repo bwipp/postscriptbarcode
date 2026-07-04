@@ -637,12 +637,13 @@ begin
 
             /char exch def
 
-            % Phase 1: relax curlen[*] via the latch graph in a single pass.
-            % The latlen/latseq tables are transitively closed and passing
-            % through B never improves a chain, so one hop from each non-B
-            % state reaches every target optimally. The B chain resumes at
-            % backto for free and re-latches from there, also in one hop,
-            % via the composite bexitseq sequences.
+            % Let each state adopt a cheaper chain from another state by
+            % latching, in a single pass: the latlen/latseq tables are
+            % transitively closed and passing through B never improves a
+            % chain, so one hop from each non-B state reaches every target
+            % optimally. The B chain resumes at backto for free and
+            % re-latches from there, also in one hop, via the composite
+            % bexitseq sequences.
             //azteccode.statesnotb {
                 /x exch def
                 /costx curlen x get def
@@ -677,10 +678,11 @@ begin
             char //azteccode.p2 le char //azteccode.p5 ge and {
 
                 %
-                % Phases 2/3 for a pair token: a single codeword in P
-                % (reached by latching, which relaxation has already
-                % offered, or by shifting); the two characters natively in
-                % M (CR LF) or D (". " and ", "); or two bytes in B
+                % Append a pair token to each state as the cheapest of: a
+                % single codeword in P (reached by latching, which
+                % relaxation has already offered, or by shifting); the two
+                % characters natively in M (CR LF) or D (". " and ", ");
+                % or two bytes extending a B run
                 %
                 pairdata char get aload pop /pnative exch def /praw exch def
 
@@ -738,7 +740,7 @@ begin
                         x //azteccode.p ne {exit} if  % Only P can encode FNC1 and ECI
                     } ifelse
 
-                    % Phase 2: nxtseq[x] := curseq[x] + [char]
+                    % Append the character in state x: nxtseq[x] := curseq[x] + [char]
                     /csize x char charsize def
                     /cost curlen x get csize add def
                     cost nxtlen x get lt {
@@ -750,7 +752,7 @@ begin
 
                     x //azteccode.b eq {exit} if  % B is treated as a latch
 
-                    % Phase 3: shift y -> x for one char (y != x, y != B; stays in y)
+                    % Append the character by shifting y -> x (y != x, y != B; stays in y)
                     //azteccode.states {                                            % y
                         dup //azteccode.b eq {pop exit} if
                         dup x eq {
@@ -780,8 +782,9 @@ begin
 
             } ifelse
 
-            % Phase 5: binary extension overhead (11-bit length field
-            % crossed at 32 bytes, stepping by one or by a byte pair)
+            % Charge the extended-length overhead when a B run grows past
+            % 31 bytes (the 11-bit length field, crossed stepping by one
+            % character or by a byte pair)
             nxtseqbb 32 eq nxtseqbb 33 eq curseqbb 31 eq and or {
                 nxtlen //azteccode.b 2 copy get 11 add put
             } if
