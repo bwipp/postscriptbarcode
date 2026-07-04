@@ -42,33 +42,25 @@ begin
 %
 % Reed-Solomon encoder for prime-field GF(p).
 %
-% Runs a streaming LFSR over nd data codewords using the generator polynomial
-% coeffs. The caller-owned lfsr is the shift register; on return, its first
-% nc cells are the ECC codewords in the negated form expected by callers
-% (pdf417, micropdf417, ultracode): this fuses what used to be a separate
-% post-pass of (p - cws[i]) mod p into the inner update.
+% Runs a streaming LFSR over nd data codewords using the generator
+% polynomial. The caller-owned lfsr is the shift register; on return, its
+% first nc cells are the ECC codewords, where nc is the length of
+% coeffsrev, negated ((p - c) mod p) as the callers expect. The caller
+% must supply the generator coefficients reversed.
 %
 /rsecprime {
 
     8 dict begin
 
-    /p exch def        % Prime modulus
-    /lfsr exch def     % Workspace of length at least nc
-    /nc exch def       % Number of ECC codewords to produce
-    /coeffs exch def   % Generator polynomial coefficients
-    /nd exch def       % Number of data codewords
-    /getdata exch def  % Implements fetching nth codeword
+    /p exch def          % Prime modulus
+    /lfsr exch def       % Workspace of length at least nc
+    /coeffsrev exch def  % Reversed generator polynomial coefficients
+    /nd exch def         % Number of data codewords
+    /getdata exch def    % Implements fetching nth codeword
+
+    /nc coeffsrev length def  % Number of ECC codewords to produce
 
     0 1 nc 1 sub {lfsr exch 0 put} for  % Zero LFSR
-
-    %
-    % Reverse coeffs to simplify the inner loop
-    %
-    /coeffsrev nc array def
-    0 1 nc 1 sub {
-        /j exch def
-        coeffsrev j coeffs nc 1 sub j sub get put
-    } for
 
     0 1 nd 1 sub {  % m
         getdata exec lfsr 0 get sub p add p mod   % fb = (data[m] - S[0]) mod p

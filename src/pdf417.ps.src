@@ -433,7 +433,11 @@ begin
     } for
     /coeffs coeffs 0 k getinterval def
     k 1 sub -2 0 { coeffs exch 2 copy get 929 exch sub put } for
-    coeffs
+
+    %
+    % Deliver the coefficients reversed, as rsecprime requires
+    %
+    [ k 1 sub -1 0 { coeffs exch get } for ]
 } bind def
 
 %
@@ -1167,7 +1171,7 @@ begin
     %
     % Derive the error codewords directly into cws[n..n+k)
     %
-    {cws exch get} n coeffs k cws n k getinterval 929 //rsecprime exec
+    {cws exch get} n coeffs cws n k getinterval 929 //rsecprime exec
 
     options /debugecc known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
