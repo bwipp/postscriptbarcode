@@ -1156,47 +1156,72 @@ begin
 
     (matrix.layout.data) //hanxin.before exec
 
-    /maskfuncs //hanxin.maskfuncs def
-    mask -1 ne {  % User specifies a mask
-        /maskfuncs [//hanxin.maskfuncs mask 1 sub get] def
-        /bestmaskval mask 1 sub def
-    } if
-
     %
-    % Build a candidate mask layer for each mask function
+    % Build the candidate mask layers, walking positions sequentially and
+    % testing for data modules once per position. The identity mask
+    % function would yield an all-zero layer, denoted null so that
+    % evaluation can use the unmasked symbol directly; the other layers
+    % are filled together in a single pass.
     %
-    /masks maskfuncs length array def
-    0 1 masks length 1 sub {
-        /m exch def
-        /mask size size mul array def
-        0 1 size 1 sub {
-            /j exch def
-            0 1 size 1 sub {
-                /i exch def
-                i 1 add j 1 add maskfuncs m get exec 0 eq
-                pixs i j qmv get -1 eq and {1} {0} ifelse
-                mask i j qmv 3 -1 roll put
+    mask -1 eq {
+        /masks [ null //hanxin.maskfuncs length 1 sub { size size mul array } repeat ] def
+        /mf2 //hanxin.maskfuncs 1 get def  /lyr2 masks 1 get def
+        /mf3 //hanxin.maskfuncs 2 get def  /lyr3 masks 2 get def
+        /mf4 //hanxin.maskfuncs 3 get def  /lyr4 masks 3 get def
+        /pos 0 def
+        1 1 size {
+            /jp exch def
+            1 1 size {  % ip on stack
+                pixs pos get -1 eq {
+                    dup jp mf2 exec 0 eq {1} {0} ifelse lyr2 pos 3 -1 roll put
+                    dup jp mf3 exec 0 eq {1} {0} ifelse lyr3 pos 3 -1 roll put
+                        jp mf4 exec 0 eq {1} {0} ifelse lyr4 pos 3 -1 roll put
+                } {
+                    pop
+                    lyr2 pos 0 put
+                    lyr3 pos 0 put
+                    lyr4 pos 0 put
+                } ifelse
+                /pos pos 1 add def
             } for
         } for
-        masks m mask put
-    } for
+    } {  % User specifies a mask: build just its layer
+        /bestmaskval mask 1 sub def
+        //hanxin.maskfuncs bestmaskval get //hanxin.maskfuncs 0 get eq {
+            /masks [ null ] def
+        } {
+            /mfunc //hanxin.maskfuncs bestmaskval get def
+            /msklyr size size mul array def
+            /pos 0 def
+            1 1 size {
+                /jp exch def
+                1 1 size {  % ip on stack
+                    pixs pos get -1 eq {
+                        jp mfunc exec 0 eq {1} {0} ifelse
+                    } {
+                        pop 0
+                    } ifelse
+                    msklyr pos 3 -1 roll put
+                    /pos pos 1 add def
+                } for
+            } for
+            /masks [ msklyr ] def
+        } ifelse
+    } ifelse
 
     %
-    % Walk the symbol placing the bitstream
+    % Walk the symbol placing the bitstream in the data modules
     %
-    /posx 0 def
-    /posy 0 def
     /num 0 def
-    { % loop
-        posy size eq {exit} if
-        pixs posx posy qmv get -1 eq {
-            cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and
-            pixs posx posy qmv 3 -1 roll put
+    0 1 size size mul 1 sub {  % pos
+        pixs 1 index get -1 eq {
+            cws num 8 idiv get 7 num 8 mod sub neg bitshift 1 and  % pos bit
+            pixs 3 1 roll put
             /num num 1 add def
-        } if
-        /posx posx 1 add def
-        posx size eq {/posx 0 def /posy posy 1 add def} if
-    } loop
+        } {
+            pop
+        } ifelse
+    } for
 
     (matrix.layout.data) //hanxin.after exec
 
@@ -1293,11 +1318,15 @@ begin
     /bestscore 999999999 def
     0 1 masks length 1 sub {
         /m exch def
-        /masksym size size mul array def
-        0 1 size size mul 1 sub {
-            /i exch def
-            masksym i pixs i get masks m get i get xor put
-        } for
+        /msklyr masks m get def
+        msklyr null eq {  % Identity mask
+            /masksym pixs def
+        } {
+            /masksym size size mul array def
+            0 1 size size mul 1 sub {
+                masksym exch dup pixs exch get msklyr 2 index get xor put
+            } for
+        } ifelse
         masks length 1 ne {
             masksym evalfull /score exch def
             score bestscore lt {
