@@ -1226,3 +1226,11 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
 {
     (AB^ECI000003. CD) (parsefnc debugcws) azteccode
 } [ 4 12 1 1 42 1 12 33 31 ] debugIsEqual
+
+% Entry to a binary run can tie between origins with different backto
+% states; only one candidate is kept, so the adopted resumption mode can
+% cost a few bits against the alternative on some inputs. Pin the chosen
+% encoding for a minimal such case.
+{
+    (^038^044^047^038^096^032^058^058^032^206^050^050) (parse debugcws) azteccode
+} [ 59 57 28 26 11 62 59 32 8 10 32 11 60 30 28 25 6 23 ] debugIsEqual
