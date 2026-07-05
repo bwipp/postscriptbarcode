@@ -371,6 +371,8 @@ begin
 
         (render.tracepaths) //renmatrix.before exec
 
+        (render.tracepaths.prep) //renmatrix.before exec
+
         % Pad the bitmap on all sides (string is zero-initialized)
         /pixx pixx 2 add def
         /pixycomp pixycomp 2 add def
@@ -391,9 +393,13 @@ begin
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /cache exch def
 
+        (render.tracepaths.prep) //renmatrix.after exec
+
         %
         % Pre-compute abcd values (printed neighbours) for all cells
         %
+        (render.tracepaths.corners) //renmatrix.before exec
+
         /abcdw pixx 1 sub def
         abcdw pixycomp 1 sub mul { string } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
@@ -409,12 +415,16 @@ begin
 
         /abcdget { pixx 1 sub mul add abcdcache exch get } def
 
+        (render.tracepaths.corners) //renmatrix.after exec
+
         %
         % Construct paths by tracing regions, avoiding duplication by using
         % the cache. Each raster line of corner codes is scanned with the
         % column kept on the stack; stem corners are rare, so only they
         % spill to variables.
         %
+        (render.tracepaths.scan) //renmatrix.before exec
+
         /paths [
             0 1 pixycomp 2 sub {
                 /j exch def
@@ -441,6 +451,8 @@ begin
                 pop
             } for
         ] def
+
+        (render.tracepaths.scan) //renmatrix.after exec
 
         %
         % Revert the bitmap size
