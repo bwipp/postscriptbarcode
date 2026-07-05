@@ -1789,13 +1789,17 @@ begin
     /bestscore 999999999 def
     0 1 nmasks 1 sub {
         /m exch def
+        (matrix.masking.apply) //qrcode.before exec
         /mbneg maskbits m get neg def
         /masksym rows cols mul array def
         0 1 rows cols mul 1 sub {
             masksym exch dup masklayers exch get mbneg bitshift 1 and put
         } for
+        (matrix.masking.apply) //qrcode.after exec
         nmasks 1 ne {  % Not rMQR nor user-specified mask
+            (matrix.masking.eval) //qrcode.before exec
             /score masksym format (full) eq {evalfull} {evalmicro} ifelse def
+            (matrix.masking.eval) //qrcode.after exec
             score bestscore lt {
                 /bestsym masksym def
                 /bestmaskval m def
