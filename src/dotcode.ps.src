@@ -1057,6 +1057,52 @@ begin
         outline exch aload pop dmv 1 put
     } forall
 
+    %
+    % Fixed per-geometry aids for scoring each symbol together with its
+    % variant that has the six edge dots forcibly lit: the dots falling on
+    % each scanned side (two per side), the interior columns and rows
+    % containing a dot, and the padded void-scan positions whose
+    % neighbourhood contains a dot
+    %
+    /sidedots [
+        [ sixedges { aload pop /sy exch def /sx exch def sy 0 eq             { [ sx  sx sy dmv ] } if } forall ]
+        [ sixedges { aload pop /sy exch def /sx exch def sy rows 1 sub eq    { [ sx  sx sy dmv ] } if } forall ]
+        [ sixedges { aload pop /sy exch def /sx exch def sx 0 eq             { [ sy  sx sy dmv ] } if } forall ]
+        [ sixedges { aload pop /sy exch def /sx exch def sx columns 1 sub eq { [ sy  sx sy dmv ] } if } forall ]
+    ] def
+    /evalsides [
+        [ /x 0 sidedots 0 get ]  % Top
+        [ /x 1 sidedots 1 get ]  % Bottom
+        [ /y 0 sidedots 2 get ]  % Left
+        [ /y 1 sidedots 3 get ]  % Right
+    ] def
+    /litpencols [ sixedges { 0 get dup 1 ge 1 index columns 2 sub le and not {pop} if } forall ] def
+    /litpc0 litpencols 0 get def
+    /litpc1 litpencols dup length 1 sub get def
+    /litpenrows [ sixedges { 1 get dup 1 ge 1 index rows 2 sub le and not {pop} if } forall ] def
+    /litpr0 litpenrows 0 get def
+    /litpr1 litpenrows dup length 1 sub get def
+    /pcols columns 4 add def
+    /litsetposs [ sixedges { aload pop 2 add pcols mul exch 2 add add } forall ] def
+    /voidoffs [ 0  2  -2  pcols dup add  pcols dup add neg
+                pcols 1 add  pcols 1 sub  pcols 1 add neg  pcols 1 sub neg ] def
+    /voidposs 54 array def
+    /nvoid 0 def
+    litsetposs {
+        voidoffs {
+            1 index add /vq exch def
+            vq pcols mod dup 2 ge exch pcols 3 sub le and
+            vq pcols idiv dup 2 ge exch rows 1 add le and
+            and {  % Within the void scan window
+                /seenq false def
+                0 1 nvoid 1 sub { voidposs exch get vq eq { /seenq true def } if } for
+                seenq not { voidposs nvoid vq put /nvoid nvoid 1 add def } if
+            } if
+        } forall
+        pop
+    } forall
+    /voidposs voidposs 0 nvoid getinterval def
+
     /clearcol {
         /x exch def
         true
@@ -1073,18 +1119,40 @@ begin
         } for
     } def
 
+    /voidat {  % Whether a padded void-scan position counts as a void or an isolated dot
+        /vi exch def
+        1 {  % Common exit
+            symp vi pcols sub 1 sub get 1 eq {false exit} if
+            symp vi pcols sub 1 add get 1 eq {false exit} if
+            symp vi pcols add 1 sub get 1 eq {false exit} if
+            symp vi pcols add 1 add get 1 eq {false exit} if
+            symp vi get 0 eq {true exit} if
+            symp vi 2 sub get 1 eq {false exit} if
+            symp vi 2 add get 1 eq {false exit} if
+            symp vi pcols dup add sub get 1 eq {false exit} if
+            symp vi pcols dup add add get 1 eq {false exit} if
+            true
+        } repeat
+    } def
+
     %
-    % Evaluate the symbol
+    % Evaluate the symbol, returning its score together with the score of
+    % its variant that has the six edge dots forcibly lit. The variant
+    % differs only at those dots, so its score is derived from the same
+    % traversal by adjusting each tally where the dots contribute
     %
     /evalsymbol {
         /sym exch def
 
         %
-        % Identify the worst side
+        % Identify the worst side; the dots lie on the scanned sides so the
+        % lit tallies extend each side's count and span. Every side gains
+        % two dots, hence the lit variant never has an unlit edge
         %
         /worst 9999999 def
-        [ [ /x 0 ] [ /x 1 ] [ /y 0 ] [ /y 1 ] ] {  % Top Bottom Left Right
-            aload pop  /fl exch def  /dir exch def
+        /litworst 9999999 def
+        evalsides {  % Top Bottom Left Right
+            aload pop  /dots exch def  /fl exch def  /dir exch def
             /sum 0 def  /first -1 def  /last -1 def
             0 1 dir /x eq {columns} {rows} ifelse 1 sub {
                 dir exch def
@@ -1098,51 +1166,94 @@ begin
                     /sum sum 1 add def
                 } if
             } for
+            /lsum sum def  /lfirst first def  /llast last def
+            dots {
+                aload pop sym exch get 0 eq {
+                    /spos exch def
+                    /lsum lsum 1 add def
+                    lfirst -1 eq lfirst spos gt or {/lfirst spos def} if
+                    llast spos lt {/llast spos def} if
+                } {pop} ifelse
+            } forall
             sum last add first sub
             dir /x eq {rows} {columns} ifelse mul
             dup worst lt {/worst exch def} {pop} ifelse
+            lsum llast add lfirst sub
+            dir /x eq {rows} {columns} ifelse mul
+            dup litworst lt {/litworst exch def} {pop} ifelse
         } forall
 
         /pen 0 def
+        /litpen 0 def
 
         %
         % Check for groups of blank columns unless data is encoded vertically
         % in a symbol of sufficient height to overcome up to six consecutive 0s
-        % in two neighbouring 5 of 9 dot patterns
+        % in two neighbouring 5 of 9 dot patterns. A forcibly lit dot breaks
+        % the lit variant's group at its column
         %
         rows 2 mod 1 eq rows 12 le or {
             /sum 0 def  /p 0 def
-            1 1 columns 2 sub {
-                clearcol {
+            /lsum 0 def  /lp 0 def
+            1 1 columns 2 sub {  % cx kept on stack
+                dup clearcol {
                     /sum sum 1 add def
                     /p sum 1 eq {rows} {p rows mul} ifelse def
+                    dup litpc0 eq exch litpc1 eq or {
+                        /lsum 0 def
+                        /litpen litpen lp add def
+                        /lp 0 def
+                    } {
+                        /lsum lsum 1 add def
+                        /lp lsum 1 eq {rows} {lp rows mul} ifelse def
+                    } ifelse
                 } {
+                    pop
                     /sum 0 def
                     /pen pen p add def
                     /p 0 def
+                    /lsum 0 def
+                    /litpen litpen lp add def
+                    /lp 0 def
                 } ifelse
             } for
             /pen pen p add def
+            /litpen litpen lp add def
         } if
 
         %
         % Check for groups of blank rows unless data is encoded horizontally
         % in a symbol of sufficient width to overcome up to six consecutive 0s
-        % in two neighbouring 5 of 9 dot patterns
+        % in two neighbouring 5 of 9 dot patterns. A forcibly lit dot breaks
+        % the lit variant's group at its row
         %
         rows 2 mod 0 eq columns 12 le or {
             /sum 0 def  /p 0 def
-            1 1 rows 2 sub {
-                clearrow {
+            /lsum 0 def  /lp 0 def
+            1 1 rows 2 sub {  % cy kept on stack
+                dup clearrow {
                     /sum sum 1 add def
                     /p sum 1 eq {columns} {p columns mul} ifelse def
+                    dup litpr0 eq exch litpr1 eq or {
+                        /lsum 0 def
+                        /litpen litpen lp add def
+                        /lp 0 def
+                    } {
+                        /lsum lsum 1 add def
+                        /lp lsum 1 eq {columns} {lp columns mul} ifelse def
+                    } ifelse
                 } {
+                    pop
                     /sum 0 def
                     /pen pen p add def
                     /p 0 def
+                    /lsum 0 def
+                    /litpen litpen lp add def
+                    /lp 0 def
                 } ifelse
             } for
             /pen pen p add def
+            /litpen litpen lp add def
         } if
 
         %
@@ -1185,11 +1296,22 @@ begin
         /columns columns 4 sub def
         /rows    rows    4 sub def
 
+        %
+        % Only positions whose neighbourhood contains an edge dot can count
+        % differently in the lit variant, so rescore just those positions
+        % before and after lighting the dots in the padded copy
+        %
+        /litsum sum def
+        voidposs { voidat {/litsum litsum 1 sub def} if } forall
+        litsetposs { symp exch 1 put } forall
+        voidposs { voidat {/litsum litsum 1 add def} if } forall
+
         worst 0 eq {  % Fixed penalty to disqualify a symbol with an unlit edge
             -99999
         } {
             worst sum sum mul sub pen sub
         } ifelse
+        litworst litsum litsum mul sub litpen sub
 
     } def
 
@@ -1197,7 +1319,8 @@ begin
     /offset {step mul start add} def
 
     %
-    % Evaluate the symbols in the following order:
+    % Each evaluation scores a symbol m and its lit-edge variant m' in a
+    % single pass. Selection order:
     % fast mode: m3 -> m3' -> m2 -> m2' -> m1 -> m1' -> m0 -> m0'
     % dflt mode: (m0 m1 m2 m3) -> (m0' m1' m2' m3')
     % -> : Test if we have met the HxW/2 threshold
@@ -1210,7 +1333,8 @@ begin
     } {
         fast { [ 2#11 2#10 2#01 2#00 ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
     } ifelse def
-    /litmasks 4 array def
+    /masksyms 4 array def
+    /litscores 4 array def
 
     %
     % The walk visits vacant positions in an order that is independent of the
@@ -1351,34 +1475,25 @@ begin
         (matrix.evaluate.normal) //dotcode.before exec
 
         %
-        % Evaluate the symbol to find the most suitable mask
+        % Evaluate the symbol and its lit-edge variant to find the most
+        % suitable mask
         %
-        /score pixs evalsymbol def
+        pixs evalsymbol /litscore exch def /score exch def
+        masksyms mask pixs put
+        litscores mask litscore put
         score bestscore gt {
-            /bestsym pixs def
+            /bestsym pixs def  /bestlit false def
             /bestscore score def
             fast bestscore rows columns mul 2 idiv gt and {exit} if
         } if
 
         %
-        % Make a copy with lit edges for possible later evaluation
-        %
-        /litmask pixs dup length array copy def
-        0 1 5 {  % Light last six edge dots
-            /i exch def
-            litmask sixedges i get aload pop dmv
-            1 put
-        } for
-        litmasks mask litmask put
-
-        %
-        % In fast mode immediately score the lit symbol
+        % In fast mode the lit symbol competes immediately
         %
         fast {
-            /score litmask evalsymbol def
-            score bestscore gt {
-                /bestsym litmask def
-                /bestscore score def
+            litscore bestscore gt {
+                /bestsym pixs def  /bestlit true def
+                /bestscore litscore def
                 bestscore rows columns mul 2 idiv gt {exit} if
             } if
         } if
@@ -1386,10 +1501,9 @@ begin
         (matrix.evaluate.normal) //dotcode.after exec
 
     } forall
-    /pixs bestsym def
 
     %
-    % For default mode, if best mask fails threshold then recalculate with lit corners and pick best
+    % For default mode, if best mask fails threshold then pick the best lit variant
     %
     fast not bestscore rows columns mul 2 idiv le and {
 
@@ -1397,17 +1511,24 @@ begin
 
         /bestscore -99999999 def
         masks {
-            litmasks exch get /litmask exch def
-            /score litmask evalsymbol def
-            score bestscore gt {
-                /bestsym litmask def
-                /bestscore score def
+            /mask exch def
+            litscores mask get bestscore gt {
+                /bestsym masksyms mask get def  /bestlit true def
+                /bestscore litscores mask get def
             } if
         } forall
-        /pixs bestsym def
 
         (matrix.evaluate.fixup) //dotcode.after exec
 
+    } if
+
+    %
+    % Only the winning symbol ever needs its edge dots lit, so light them
+    % after selection
+    %
+    /pixs bestsym def
+    bestlit {
+        sixedges { pixs exch aload pop dmv 1 put } forall
     } if
 
     <<

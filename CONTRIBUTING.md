@@ -806,6 +806,7 @@ from the clone passed to gs1-cc.
 - Skip a transform whose result is a known no-op rather than computing it (the identity mask yields an all-zero layer, so evaluate the unmasked symbol directly; see `hanxin`).
 - Classify positions in a hot scan by indexing a static string with a small per-position code, spilling to variables only on the rare matching branch (stem-corner detection in the region trace; see `renmatrix`).
 - Hoist a traversal whose result is candidate-invariant out of the per-candidate loop (the codeword placement walk visits vacant positions in a mask-independent order, so resolve the position sequence once and share it between masks; see `dotcode`).
+- Score a symbol together with a variant that differs at a few known positions by keeping a second set of tallies in the same traversal, adjusted only where the variant differs (the lit-edge variant in mask evaluation; see `dotcode`).
 
 **Conditional Assignment Pattern**
 
@@ -1137,7 +1138,12 @@ create a hooks entries named like `qrcode.before`.
 
 ### Profiling Results
 
-Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code, Han Xin and DotCode are mask evaluation bound (DotCode's cost roughly doubles when the score threshold fails and the lit-edge variants are re-scored); Data Matrix is RSEC bound (mitigated by FIFO caches). Aztec splits roughly evenly between input encoding and RSEC. PDF417 and MicroPDF417 are fast enough that no single phase dominates. See encoder source for attempted optimizations.
+Performance enhancements are welcome, but significant gains are hard won.
+Large 2D symbols have different bottlenecks: QR Code, Han Xin and DotCode are
+mask evaluation bound; Data Matrix is RSEC bound (mitigated by FIFO caches).
+Aztec splits roughly evenly between input encoding and RSEC. PDF417 and
+MicroPDF417 are fast enough that no single phase dominates. See encoder
+source for attempted optimizations.
 
 
 ## Testing
