@@ -1153,6 +1153,38 @@ begin
         fast { [ 2#11 2#10 2#01 2#00 ] } { [ 2#00 2#01 2#10 2#11 ] } ifelse
     } ifelse def
     /litmasks 4 array def
+
+    %
+    % The walk visits vacant positions in an order that is independent of the
+    % mask, so resolve the position sequence once and share it between masks
+    %
+    (matrix.layout.walk) //dotcode.before exec
+    /dataposs ndots 6 sub array def
+    /scratch outline dup length array copy def
+    /posx 0 def
+    /posy rows 2 mod 0 eq {0} {rows 1 sub} ifelse def
+    0 1 dataposs length 1 sub {
+        /i exch def
+        {  % Move to next vacant position
+            scratch posx posy dmv get -1 eq {exit} if
+            rows 2 mod 0 eq {
+                /posy posy 1 add def
+                posy rows eq {
+                    /posy 0 def
+                    /posx posx 1 add def
+                } if
+            } {
+                /posx posx 1 add def
+                posx columns eq {
+                    /posx 0 def
+                    /posy posy 1 sub def
+                } if
+            } ifelse
+        } loop
+        dataposs i posx posy dmv put
+        scratch posx posy dmv 0 put
+    } for
+    (matrix.layout.walk) //dotcode.after exec
     masks {  % For each mask pattern
 
         /mask exch def
@@ -1214,30 +1246,14 @@ begin
         } if
 
         %
-        % Walk the symbol placing the bitstream
+        % Place the bitstream at the pre-resolved walk positions
         %
         /pixs outline dup length array copy def
-        /posx 0 def
-        /posy rows 2 mod 0 eq {0} {rows 1 sub} ifelse def
-        bits 0 bits length 6 sub getinterval {
-            {  % Move to next vacant position
-                pixs posx posy dmv get -1 eq {exit} if
-                rows 2 mod 0 eq {
-                    /posy posy 1 add def
-                    posy rows eq {
-                        /posy 0 def
-                        /posx posx 1 add def
-                    } if
-                } {
-                    /posx posx 1 add def
-                    posx columns eq {
-                        /posx 0 def
-                        /posy posy 1 sub def
-                    } if
-                } ifelse
-            } loop
-            pixs posx posy dmv 3 -1 roll 48 sub put
-        } forall
+        0 1 ndots 7 sub {              % i
+            dup dataposs exch get      % i pos
+            exch bits exch get 48 sub  % pos bit
+            pixs 3 1 roll put
+        } for
         0 1 5 {  % Last six edge dots
             /i exch def
             pixs sixedges i get aload pop dmv
