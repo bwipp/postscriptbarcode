@@ -800,6 +800,12 @@ from the clone passed to gs1-cc.
 - Defer expensive computation to lazy init (first-run cost, cached thereafter)
 - When `latevars` needs a helper function, define it in static scope (bind it; see `auspost.rsprod`) and reference via `//encoder.helper exec`
 
+**Hot scan techniques**
+
+- Fuse related per-position outputs into one traversal, testing the shared per-position predicate once (build the mask layers together, testing data-vs-function module membership once per module; see `hanxin`, `qrcode`).
+- Skip a transform whose result is a known no-op rather than computing it (the identity mask yields an all-zero layer, so evaluate the unmasked symbol directly; see `hanxin`).
+- Classify positions in a hot scan by indexing a static string with a small per-position code, spilling to variables only on the rare matching branch (stem-corner detection in the region trace; see `renmatrix`).
+
 **Conditional Assignment Pattern**
 
 Use an inline condition when performing simple conditional assignments:
@@ -898,6 +904,13 @@ Cache parameter guidelines:
 - Set `limit=0` to disable caching
 - Set `max` and `limit` high enough to avoid evictions when memory allows
 
+Shape what you cache into the exact form the inner loop consumes, so no per-call
+massaging is needed: the Reed-Solomon caches hold generator coefficients
+reversed and in the log domain with a sentinel for a zero coefficient,
+`readonly`, and a companion lazy-init anti-log table spanning two field periods
+resolves log-sums without a modulo, so that each RSEC inner-loop step is a
+single `get`, log-add, `get` and `xor`/`put`. See `rsecbinary`, `rsecprime`.
+
 
 **Persistent chain of segments for per-state DP**
 
@@ -911,6 +924,14 @@ Materialise once at the end by walking head-to-root.
 This is the pattern used by `azteccode`, `pdf417` and `micropdf417` in their
 encoding optimisers; see `pdf417.ps.src` (simplest variant) for the
 canonical form including the `flatten` helper.
+
+
+**Collapse relaxation passes via precomputed closure**
+
+When a per-state optimiser relaxes candidate costs to a fixed point, precompute
+the transitive closure of the transition tables so that a single relaxation pass
+per character reaches the fixed point rather than iterating to convergence. See
+`azteccode`, whose latch tables are transitively closed.
 
 
 ### Anti-patterns
@@ -1106,7 +1127,7 @@ create a hooks entries named like `qrcode.before`.
 
 ### Profiling Results
 
-Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code is mask evaluation bound; Data Matrix is RSEC bound (mitigated by FIFO caches). Aztec splits roughly evenly between input encoding and RSEC. PDF417 and MicroPDF417 are fast enough that no single phase dominates. See encoder source for attempted optimizations.
+Performance enhancements are welcome, but significant gains are hard won. Large 2D symbols have different bottlenecks: QR Code and Han Xin are mask evaluation bound; Data Matrix is RSEC bound (mitigated by FIFO caches). Aztec splits roughly evenly between input encoding and RSEC. PDF417 and MicroPDF417 are fast enough that no single phase dominates. See encoder source for attempted optimizations.
 
 
 ## Testing
@@ -1301,7 +1322,8 @@ Outputs:
 - `__pandoc/barcodewriter.pdf` - Complete PDF manual
 - `__pandoc/barcodewriter.html` - Self-contained HTML documentation
 
-The build requires Pandoc, the Haskell runtime and LaTeX.
+The build requires Pandoc 3.x (the LaTeX template targets Pandoc 3.x output),
+the Haskell runtime and LaTeX.
 
 
 ### Wiki Example Images
