@@ -247,6 +247,64 @@ begin
     //dotcode.coeffscache /fetch get exec
 } bind def
 
+%
+% Generate the ECC codewords of the mask components for a given data capacity.
+% Reed-Solomon codes are linear over GF(113), so the ECC of a masked message
+% is the ECC of the unmasked message plus the ECC of the mask codeword and of
+% the mask ramp, scaled by the mask parameters. Both component vectors depend
+% only on the symbol geometry, which is fully derived from the data capacity.
+%
+/dotcode.genmaskecc {
+    16 dict begin
+    /nd exch def
+    /nc nd 2 idiv 3 add def
+    /nw nd nc add def
+    /step nw 112 idiv 1 add def
+    /e0vals nc array def
+    /rampvals nc array def
+    /k 0 def
+    0 1 step 1 sub {
+        /start exch def
+        /ND nd 1 add start sub step add 1 sub step idiv def
+        /NW nw 1 add start sub step add 1 sub step idiv def
+        /NC NW ND sub def
+        /coeffs NC //dotcode.coeffscachefetch exec def
+        /lfsr NC array def
+        {step mul start add 0 eq {1} {0} ifelse} ND coeffs lfsr 113 //rsecprime exec
+        /lfsrramp NC array def
+        {step mul start add dup 2 lt {pop 0} {1 sub 113 mod} ifelse} ND coeffs lfsrramp 113 //rsecprime exec
+        0 1 NC 1 sub {
+            /j exch def
+            e0vals   k j add lfsr     j get put
+            rampvals k j add lfsrramp j get put
+        } for
+        /k k NC add def
+    } for
+    [ e0vals readonly rampvals readonly ] readonly
+    end
+} bind def
+
+%
+% FIFO cache for mask component ECC codewords
+%
+/dotcode.maskecccachemax 10 def       % Override with global_ctx.dotcode.maskecccachemax
+/dotcode.maskecccachelimit 10000 def  % Override with global_ctx.dotcode.maskecccachelimit
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get
+    dup /dotcode.maskecccachemax 2 copy known {get /dotcode.maskecccachemax exch def} {pop pop} ifelse
+    /dotcode.maskecccachelimit 2 copy known {get /dotcode.maskecccachelimit exch def} {pop pop} ifelse
+} {pop} ifelse
+
+/dotcode.maskecccache dotcode.maskecccachemax dotcode.maskecccachelimit //fifocache exec def
+
+/dotcode.maskecccachefetch {
+    /nd exch def
+    nd
+    { nd //dotcode.genmaskecc exec }
+    { aload pop length exch length add }
+    //dotcode.maskecccache /fetch get exec
+} bind def
+
 /dotcode {
 
     128 dict begin
@@ -1185,46 +1243,74 @@ begin
         scratch posx posy dmv 0 put
     } for
     (matrix.layout.walk) //dotcode.after exec
+
+    %
+    % Calculate the error correction codewords of the unmasked message once;
+    % each mask's ECC is later derived from these by adding the cached mask
+    % component ECC codewords, scaled by the mask parameters
+    %
+    (ecc.masks) //dotcode.before exec
+    /maskecc nd //dotcode.maskecccachefetch exec def
+    /e0vals maskecc 0 get def
+    /rampvals maskecc 1 get def
+    (ecc.masks) //dotcode.after exec
+
+    /rscws [ 0 cws aload pop nc {0} repeat ] def
+    /eccposs nc array def
+    /eccbase nc array def
+    /k 0 def
+    0 1 step 1 sub {
+        /start exch def
+        /ND nd 1 add start sub step add 1 sub step idiv def
+        /NW nw 1 add start sub step add 1 sub step idiv def
+        /NC NW ND sub def
+
+        (ecc.coeffs) //dotcode.before exec
+        /coeffs NC //dotcode.coeffscachefetch exec def
+        (ecc.coeffs) //dotcode.after exec
+
+        (ecc.cws) //dotcode.before exec
+
+        %
+        % Compute ECC via the shared rsecprime helper. Data lives at
+        % interleaved positions rscws[offset(0..ND-1)]. The helper leaves
+        % codewords in the spec's negated form in lfsr[0..NC), so no
+        % post-pass is needed.
+        %
+        /lfsr NC array def
+        {step mul start add rscws exch get} ND coeffs lfsr 113 //rsecprime exec
+        0 1 NC 1 sub {
+            /j exch def
+            eccposs k j add ND j add offset put
+            eccbase k j add lfsr j get put
+        } for
+        /k k NC add def
+
+        (ecc.cws) //dotcode.after exec
+
+    } for
     masks {  % For each mask pattern
 
         /mask exch def
 
         %
-        % Calculate the error correction codewords for each block
+        % Mask the message and combine the unmasked message ECC with the
+        % scaled mask component ECC codewords
         %
+        (ecc.cws) //dotcode.before exec
+        /mv //dotcode.maskvals mask get def
         /rscws [
              mask
-             //dotcode.maskvals mask get 0 cws {1 index add 113 mod exch 2 index add exch 3 1 roll} forall pop pop
+             mv 0 cws {1 index add 113 mod exch 2 index add exch 3 1 roll} forall pop pop
              nc {0} repeat
         ] def
-        0 1 step 1 sub {
-            /start exch def
-            /ND nd 1 add start sub step add 1 sub step idiv def
-            /NW nw 1 add start sub step add 1 sub step idiv def
-            /NC NW ND sub def
-
-            (ecc.coeffs) //dotcode.before exec
-            /coeffs NC //dotcode.coeffscachefetch exec def
-            (ecc.coeffs) //dotcode.after exec
-
-            (ecc.cws) //dotcode.before exec
-
-            %
-            % Compute ECC via the shared rsecprime helper. Data lives at
-            % interleaved positions rscws[offset(0..ND-1)]; ECC goes back to
-            % rscws[offset(ND..NW-1)]. The helper leaves codewords in the
-            % spec's negated form in lfsr[0..NC), so no post-pass is needed.
-            %
-            /lfsr NC array def
-            {step mul start add rscws exch get} ND coeffs lfsr 113 //rsecprime exec
-            0 1 NC 1 sub {
-                /j exch def
-                rscws ND j add offset lfsr j get put
-            } for
-
-            (ecc.cws) //dotcode.after exec
-
+        0 1 nc 1 sub {
+            /j exch def
+            rscws eccposs j get
+            eccbase j get mask e0vals j get mul add mv rampvals j get mul add 113 mod
+            put
         } for
+        (ecc.cws) //dotcode.after exec
 
         options /debugecc known
         /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
