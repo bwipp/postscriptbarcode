@@ -805,6 +805,7 @@ from the clone passed to gs1-cc.
 - Fuse related per-position outputs into one traversal, testing the shared per-position predicate once (build the mask layers together, testing data-vs-function module membership once per module; see `hanxin`, `qrcode`).
 - Skip a transform whose result is a known no-op rather than computing it (the identity mask yields an all-zero layer, so evaluate the unmasked symbol directly; see `hanxin`).
 - Classify positions in a hot scan by indexing a static string with a small per-position code, spilling to variables only on the rare matching branch (stem-corner detection in the region trace; see `renmatrix`).
+- Hoist a traversal whose result is candidate-invariant out of the per-candidate loop (the codeword placement walk visits vacant positions in a mask-independent order, so resolve the position sequence once and share it between masks; see `dotcode`).
 
 **Conditional Assignment Pattern**
 
@@ -932,6 +933,15 @@ When a per-state optimiser relaxes candidate costs to a fixed point, precompute
 the transitive closure of the transition tables so that a single relaxation pass
 per character reaches the fixed point rather than iterating to convergence. See
 `azteccode`, whose latch tables are transitively closed.
+
+
+**Derive per-candidate ECC via code linearity**
+
+Reed-Solomon codes are linear over their field, so when each candidate message
+is the base message plus scaled fixed component vectors (e.g. masking adds a
+mask codeword and a ramp), compute the ECC of the base message once, cache the
+geometry-dependent component ECCs, and derive each candidate's ECC as a cheap
+scaled sum — replacing a full Reed-Solomon pass per candidate. See `dotcode`.
 
 
 ### Anti-patterns
