@@ -1080,7 +1080,7 @@ begin
         %
         % Derive optimal sequence using stack-based accumulation
         %
-        /mode -1 def /seqok true def mark /i 0 def {
+        /mode -1 def /seqok true def /i 0 def /segstart -1 def mark {
             i msglen ge {exit} if
             /numK numKs i get def
             /numB numBs i get def
@@ -1160,23 +1160,25 @@ begin
                 } if
             } loop
             dup //qrcode.K eq fnc1first and {pop //qrcode.B} if  % No kanji with fnc1first
-            dup mode eq {  % Same mode encode directly - extend data on stack
+            dup mode eq {  % Same mode - grow the pending segment, deferring extraction
                 pop
-                /dat msg i mode //qrcode.K eq {2} {1} ifelse getinterval def
-                [ exch aload pop dat aload pop ]  % Extend top data array with dat
-            } {  % Change mode - push mode and data to stack
-                /mode exch def
-                mode //qrcode.K eq {//qrcode.K msg i numK 2 mul getinterval} if
-                mode //qrcode.B eq {//qrcode.B msg i numB getinterval} if
-                mode //qrcode.A eq {//qrcode.A msg i numA getinterval} if
-                mode //qrcode.N eq {//qrcode.N msg i numN getinterval} if
-                mode //qrcode.E eq {//qrcode.E msg i 1 getinterval  /mode -1 def} if
-                /dat 1 index def  % Copy data to dat variable (sw and data stay on stack)
+                /i i mode //qrcode.K eq {2} {1} ifelse add def
+            } {  % Change mode - materialise the pending segment beneath the new mode, then start a new one
+                segstart 0 ge {msg segstart i segstart sub getinterval exch} if
+                dup /mode exch def
+                /segstart i def
+                mode //qrcode.K eq {/i i numK 2 mul add def} if
+                mode //qrcode.B eq {/i i numB add def} if
+                mode //qrcode.A eq {/i i numA add def} if
+                mode //qrcode.N eq {/i i numN add def} if
+                mode //qrcode.E eq {/i i 1 add def  /mode -1 def} if
             } ifelse
-            /i i dat length add def
         } loop
-        % Build seq from stack (or set to -1 if invalid)
-        seqok {counttomark array astore exch pop} {cleartomark -1} ifelse /seq exch def
+        % Build seq from stack, materialising the final pending segment (or set to -1 if invalid)
+        seqok {
+            segstart 0 ge {msg segstart i segstart sub getinterval} if
+            counttomark array astore exch pop
+        } {cleartomark -1} ifelse /seq exch def
 
         %
         % Encode the sequence
