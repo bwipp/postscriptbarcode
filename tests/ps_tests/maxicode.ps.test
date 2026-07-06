@@ -202,7 +202,7 @@
 (123456789^029840^02912A^029) (mode=2 parse dontdraw) /bwipp.maxicodeBadServiceClass er_tmpl
 
 % Mode 2/3 secondary message too long (>84 chars)
-{ (123456789^029840^029001^029) 90 string 0 1 89 { 1 index exch 65 put } for concatstrings (mode=2 parse dontdraw) maxicode } /bwipp.maxicodeMode23TooLong isError
+{ (123456789^029840^029001^029) dup length 90 add string 0 1 2 index length 1 sub { 1 index exch 65 put } for dup 0 4 -1 roll putinterval (mode=2 parse dontdraw) maxicode } /bwipp.maxicodeMode23TooLong isError
 
 % Mode 5/6 message too long
 { 100 string 0 1 99 { 1 index exch 65 put } for (mode=5 dontdraw) maxicode } /bwipp.maxicodeMode56TooLong isError
