@@ -157,7 +157,9 @@ begin
     % 0-filled matrix. Each cell is half a D3-X; each host module
     % occupies hostmod x hostmod cells.
     %
-    /pixs size size mul array def
+    size size mul { array } stopped {
+        pop /bwipp.d3aqrSymbolTooLarge (The resulting symbol exceeds the implementation maximum array size) //raiseerror exec
+    } if /pixs exch def
     0 1 size size mul 1 sub { pixs exch 0 put } for
 
     %
