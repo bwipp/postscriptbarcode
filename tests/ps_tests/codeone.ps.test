@@ -184,26 +184,14 @@
 370 <01> (F) dcap_tmpl true isEqual
 371 <01> (F) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
 
-732 <01> (G) dcap_tmpl true isEqual
-733 <01> (G) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
 
 systemdict /STRING_CONTINUE_BUG known not {
 
-886 (1) (F) dcap_tmpl true isEqual
 887 (1) (F) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
 
-1096 (A) (G) dcap_tmpl true isEqual
 1097 (A) (G) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
-1755 (1) (G) dcap_tmpl true isEqual
-1756 (1) (G) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
-1754 (1) (G) dcap_tmpl /bwipp.codeoneNoValidSymbol isError  % Quirk of DECIMAL end-of-data encoding when capacity multiple of 3
 
-2218 (A) (H) dcap_tmpl true isEqual
-2219 (A) (H) dcap_tmpl /bwipp.codeoneTooLong isError
-3550 (1) (H) dcap_tmpl true isEqual
 3551 (1) (H) dcap_tmpl /bwipp.codeoneInputTooLong isError
-1480 <01> (H) dcap_tmpl true isEqual
-1481 <01> (H) dcap_tmpl /bwipp.codeoneTooLong isError
 
 } if
 
@@ -219,9 +207,6 @@ systemdict /STRING_CONTINUE_BUG known not {
 
 % Input too long (post-parse guard: any input larger than the absolute symbol capacity)
 { 3551 string 0 1 3550 { 1 index exch 49 put } for (dontdraw) codeone } /bwipp.codeoneInputTooLong isError
-
-% Data exceeds maximum symbol capacity
-2500 string 0 1 2499 { 2 copy 65 put pop } for (dontdraw) /bwipp.codeoneTooLong er_tmpl
 
 % Data exceeds symbol capacity via binary encoding
 { 1500 string 0 1 1499 { 1 index exch 128 put } for (dontdraw) codeone } /bwipp.codeoneTooLong isError
