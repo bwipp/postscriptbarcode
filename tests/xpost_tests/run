@@ -70,7 +70,8 @@ run_one() {
 	local out
 	SECONDS=0
 	if out=$(timeout "$TIMEOUT" "$XPOST" -q -d null "$driver" </dev/null 2>/dev/null) &&
-			echo "$out" | grep -qF 'FILE-PASSED'; then
+			echo "$out" | grep -qF 'FILE-PASSED' &&
+			! echo "$out" | grep -qE 'testError|stackImbalance|dict leak|global VM leak'; then
 		printf 'PASS %s (%ds)\n' "$name" "$SECONDS"
 		return 0
 	fi
