@@ -1,0 +1,47 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2026 Terry Burton
+
+%
+% Resource machinery shim for interpreters that lack a working
+% implementation of the Level 2 resource operators (e.g. xpost).
+%
+% Provides operator-level defineresource, findresource, resourcestatus
+% and undefineresource backed by a dict of per-category instance dicts.
+% Category implementation dicts are accepted but ignored, which is
+% sufficient for BWIPP: the preamble copies the Generic category
+% implementation and registers it under /uk.co.terryburton.bwipp, and
+% thereafter only instance definition and lookup are used.
+%
+
+currentglobal true setglobal
+
+/.instancesof 16 dict def
+% Pre-seed /Category with a Generic entry for the preamble to copy
+.instancesof /Category 16 dict dup /Generic 4 dict put put
+
+% cat -- instdict   (creating on first reference)
+/.instof {
+  //.instancesof exch 2 copy known not { 2 copy 128 dict put } if get
+} bind def
+
+userdict /defineresource { % key instance category -- instance
+  .instof 2 index 2 index put exch pop
+} bind put
+
+userdict /findresource { % key category -- instance
+  .instof exch get
+} bind put
+
+userdict /resourcestatus { % key category -- status size true | false
+  .instof exch known { 0 0 true } { false } ifelse
+} bind put
+
+userdict /undefineresource { % key category --
+  .instof exch undef
+} bind put
+
+setglobal

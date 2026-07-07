@@ -1,0 +1,56 @@
+---
+name: BWIPP xpost CI
+
+on:
+  push:
+    branches:
+      - "*"
+  pull_request:
+    branches:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  #
+  #  Run the PostScript test suite against the xpost interpreter
+  #
+
+  ci-xpost:
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Fix PATH for CI
+        run: sed -i "s|/usr/local/bin:||" build/make_resource.pl
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ghostscript autoconf automake libtool pkg-config \
+            libfreetype-dev libfontconfig-dev fonts-dejavu-core
+
+      - name: Fetch and build xpost
+        run: |
+          git clone --depth 1 --branch interpreter-fixes \
+            https://github.com/terryburton/xpost.git xpost-src
+          cd xpost-src
+          autoreconf -fi
+          ./configure --prefix="$GITHUB_WORKSPACE/xpost-inst" --without-x
+          make -j "$(nproc)"
+          make install
+
+      - name: Build monolithic
+        run: make -j "$(nproc)" monolithic
+
+      - name: Test
+        run: XPOST="$GITHUB_WORKSPACE/xpost-inst/bin/xpost" tests/xpost_tests/run

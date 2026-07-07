@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Barcode Writer in Pure PostScript
+# https://bwipp.terryburton.co.uk
+#
+# Copyright (c) 2004-2026 Terry Burton
+
+#
+# Run the PostScript test suite against the xpost interpreter.
+#
+# Each test file runs in its own interpreter instance since a test
+# failure quits the interpreter. Requires build/monolithic/barcode.ps.
+#
+#   XPOST    xpost binary (default: xpost from PATH)
+#   JOBS     parallel test processes (default: nproc)
+#   TIMEOUT  per-file timeout in seconds (default: 900; renmatrix is slow)
+#
+
+set -e
+set -u
+set -o pipefail
+
+TEST=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$TEST/../.." && pwd)
+
+XPOST=${XPOST:-xpost}
+JOBS=${JOBS:-$(nproc)}
+TIMEOUT=${TIMEOUT:-900}
+
+MONOLITHIC="$ROOT/build/monolithic/barcode.ps"
+
+# d3aqr: one test requires a pixs array beyond the PLRM minimum
+# implementation limit of 65535 elements, which xpost enforces
+SKIP="d3aqr"
+
+if ! "$XPOST" --version </dev/null >/dev/null 2>&1; then
+	echo "SKIPPED xpost not available"
+	exit 0
+fi
+
+if [ ! -f "$MONOLITHIC" ]; then
+	echo "FAIL missing $MONOLITHIC (run make first)"
+	exit 1
+fi
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+run_one() {
+	local file=$1
+	local name
+	name=$(basename "$file" .ps.test)
+
+	for skip in $SKIP; do
+		if [ "$name" = "$skip" ]; then
+			echo "SKIP $name"
+			return 0
+		fi
+	done
+
+	local driver="$WORK/$name.ps"
+	cat > "$driver" <<-EOF
+		($TEST/shim.ps) run
+		($ROOT/tests/ps_tests/test_utils.ps) run
+		($MONOLITHIC) run
+		($file) run
+		(FILE-PASSED\n) print flush
+		quit
+	EOF
+
+	local out
+	SECONDS=0
+	if out=$(timeout "$TIMEOUT" "$XPOST" -q -d null "$driver" </dev/null 2>/dev/null) &&
+			echo "$out" | grep -qF 'FILE-PASSED'; then
+		printf 'PASS %s (%ds)\n' "$name" "$SECONDS"
+		return 0
+	fi
+
+	printf 'FAIL %s (%ds)\n%s\n' "$name" "$SECONDS" "$(echo "$out" | tail -40)"
+	return 1
+}
+
+export -f run_one
+export TEST ROOT XPOST TIMEOUT WORK SKIP MONOLITHIC
+
+echo "Running tests/xpost_tests with $("$XPOST" --version </dev/null 2>/dev/null | head -1)"
+echo "$(find "$ROOT/tests/ps_tests" -name '*.ps.test' | wc -l) test files, $JOBS jobs"
+
+if find "$ROOT/tests/ps_tests" -name '*.ps.test' -print0 | sort -z |
+		xargs -0 -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {} | tee "$WORK/results"; then
+	:
+fi
+
+PASS=$(grep -c '^PASS' "$WORK/results" || true)
+SKIPPED=$(grep -c '^SKIP' "$WORK/results" || true)
+FAILED=$(grep -c '^FAIL' "$WORK/results" || true)
+
+echo "xpost tests: $PASS passed, $SKIPPED skipped, $FAILED failed"
+
+[ "$FAILED" -eq 0 ]
