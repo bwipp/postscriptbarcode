@@ -410,31 +410,9 @@
         /pixs [1]
         /pixx 1
         /pixy 1
-        /opt << /includetext true /alttext (TEST) /textxalign /justify /textdirection /forward >>
-    >> renmatrix true
-} true isEqual
-
-{
-    0 0 moveto
-    <<
-        /ren /renmatrix
-        /pixs [1]
-        /pixx 1
-        /pixy 1
         /opt << /includetext true /alttext (TEST) /textxalign /justify /textdirection /upward >>
     >> renmatrix
 } /bwipp.textxjustify isError
-
-{
-    0 0 moveto
-    <<
-        /ren /renmatrix
-        /pixs [1]
-        /pixx 1
-        /pixy 1
-        /opt << /includetext true /alttext (TEST) /textyalign /justify /textdirection /upward >>
-    >> renmatrix true
-} true isEqual
 
 {
     0 0 moveto
@@ -454,31 +432,9 @@
         /pixs [1]
         /pixx 1
         /pixy 1
-        /opt << /extratext (EXTRA) /extratextxalign /justify /extratextdirection /forward >>
-    >> renmatrix true
-} true isEqual
-
-{
-    0 0 moveto
-    <<
-        /ren /renmatrix
-        /pixs [1]
-        /pixx 1
-        /pixy 1
         /opt << /extratext (EXTRA) /extratextxalign /justify /extratextdirection /upward >>
     >> renmatrix
 } /bwipp.extratextxjustify isError
-
-{
-    0 0 moveto
-    <<
-        /ren /renmatrix
-        /pixs [1]
-        /pixx 1
-        /pixy 1
-        /opt << /extratext (EXTRA) /extratextyalign /justify /extratextdirection /upward >>
-    >> renmatrix true
-} true isEqual
 
 {
     0 0 moveto
@@ -667,12 +623,16 @@
 %
 % text3-9 options and validation
 %
+% Cases that paint text use a 10x10 grid: a 1x1 symbol is normalised to a
+% large per-module scale, making glyph rasterisation needlessly expensive
+% on some interpreters. Text mechanics are covered by rendertext.ps.test.
+%
 
 % text3 rendering
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /text3 (EXTRA) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /text3 (EXTRA) >> >> renmatrix true } true isEqual
 
 % text3 with font/alignment options
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /text3 (HELLO) /text3font (Helvetica) /text3xalign /center /text3yalign /below >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /text3 (HELLO) /text3font (Helvetica) /text3xalign /center /text3yalign /below >> >> renmatrix true } true isEqual
 
 % text3 validation errors
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /text3xalign /invalid >> >> renmatrix } /bwipp.text3Badxalign isError
@@ -692,28 +652,28 @@
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /text3 (TEST) /text3yalign /justify /text3direction /forward >> >> renmatrix } /bwipp.text3yjustify isError
 
 % Alias backward compatibility: alttext => text1
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (TEST) /textxalign /center >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (TEST) /textxalign /center >> >> renmatrix true } true isEqual
 
 % Alias backward compatibility: extratext => text2
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /extratext (EXTRA) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /extratext (EXTRA) >> >> renmatrix true } true isEqual
 
 % Alias: textsubspace => text1subspace
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A_B) /textsubspace (_) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A_B) /textsubspace (_) >> >> renmatrix true } true isEqual
 
 % Alias: textsplit => text1split
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A|B) /textsplit (|) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A|B) /textsplit (|) >> >> renmatrix true } true isEqual
 
 % Alias: alttextsubspace => text1subspace
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A_B) /alttextsubspace (_) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A_B) /alttextsubspace (_) >> >> renmatrix true } true isEqual
 
 % Alias: alttextsplit => text1split
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A|B) /alttextsplit (|) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A|B) /alttextsplit (|) >> >> renmatrix true } true isEqual
 
 % Primary name: text1subspace
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A_B) /text1subspace (_) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A_B) /text1subspace (_) >> >> renmatrix true } true isEqual
 
 % Primary name: text1split
-{ 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /includetext true /alttext (A|B) /text1split (|) >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [ 100 { 1 } repeat ] /pixx 10 /pixy 10 /opt << /includetext true /alttext (A|B) /text1split (|) >> >> renmatrix true } true isEqual
 
 
 % gridfit renders without error
