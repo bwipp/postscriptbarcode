@@ -67,16 +67,18 @@ run_one() {
 		quit
 	EOF
 
-	local out
-	SECONDS=0
+	local out t0 secs
+	t0=$EPOCHREALTIME
 	if out=$(timeout "$TIMEOUT" "$XPOST" -q -d null "$driver" </dev/null 2>/dev/null) &&
 			echo "$out" | grep -qF 'FILE-PASSED' &&
 			! echo "$out" | grep -qE 'testError|stackImbalance|dict leak|global VM leak'; then
-		printf 'PASS %s (%ds)\n' "$name" "$SECONDS"
+		secs=$(awk -v a="$t0" -v b="$EPOCHREALTIME" 'BEGIN{printf "%.2f", b-a}')
+		printf 'PASS %s (%ss)\n' "$name" "$secs"
 		return 0
 	fi
 
-	printf 'FAIL %s (%ds)\n%s\n' "$name" "$SECONDS" "$(echo "$out" | tail -40)"
+	secs=$(awk -v a="$t0" -v b="$EPOCHREALTIME" 'BEGIN{printf "%.2f", b-a}')
+	printf 'FAIL %s (%ss)\n%s\n' "$name" "$secs" "$(echo "$out" | tail -40)"
 	return 1
 }
 
