@@ -1,0 +1,42 @@
+%!PS
+
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% Copyright (c) 2004-2026 Terry Burton
+
+%
+% Map the classic base-14 PostScript font names to the host equivalents the
+% interpreter's font catalogue exposes, so includetext rendering resolves.
+% Applied whenever the host equivalent is present; the equivalent's font
+% dictionary is copied with the classic FontName stamped on it (a bare
+% definefont would raise invalidfont on the name mismatch).
+%
+
+currentglobal true setglobal
+
+/tryalias {  % /alias /real --
+    /real exch def /alias exch def
+    real /Font resourcestatus {
+        pop pop
+        real findfont dup length dict copy
+        dup /FontName alias put
+        alias exch definefont pop
+    } if
+} bind def
+
+/Courier             /CourierNewPSMT              tryalias
+/Courier-Bold        /CourierNewPS-BoldMT         tryalias
+/Courier-Oblique     /CourierNewPS-ItalicMT       tryalias
+/Courier-BoldOblique /CourierNewPS-BoldItalicMT   tryalias
+/Helvetica             /ArialMT                   tryalias
+/Helvetica-Bold        /Arial-BoldMT              tryalias
+/Helvetica-Oblique     /Arial-ItalicMT            tryalias
+/Helvetica-BoldOblique /Arial-BoldItalicMT        tryalias
+/Times-Roman      /TimesNewRomanPSMT              tryalias
+/Times-Bold       /TimesNewRomanPS-BoldMT         tryalias
+/Times-Italic     /TimesNewRomanPS-ItalicMT       tryalias
+/Times-BoldItalic /TimesNewRomanPS-BoldItalicMT   tryalias
+/Symbol /SymbolMT tryalias
+
+setglobal
