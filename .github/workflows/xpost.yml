@@ -45,7 +45,9 @@ jobs:
             https://github.com/terryburton/xpost.git xpost-src
           cd xpost-src
           autoreconf -fi
-          ./configure --prefix="$GITHUB_WORKSPACE/xpost-inst" --without-x
+          ./configure --prefix="$GITHUB_WORKSPACE/xpost-inst" --without-x \
+            --enable-release \
+            CFLAGS="-O2 -flto -fno-semantic-interposition" LDFLAGS="-flto"
           make -j "$(nproc)"
           make install
 
