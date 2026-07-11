@@ -51,10 +51,15 @@ jobs:
           make install
 
       - name: Build monolithic
-        run: make -j "$(nproc)" monolithic
+        run: make -j "$(nproc)" monolithic monolithic_package
 
       - name: Test
         run: XPOST="$GITHUB_WORKSPACE/xpost-inst/bin/xpost" tests/xpost_tests/run
+
+      - name: Test packaged
+        run: >
+          MONOLITHIC="$GITHUB_WORKSPACE/build/monolithic_package/barcode.ps"
+          XPOST="$GITHUB_WORKSPACE/xpost-inst/bin/xpost" tests/xpost_tests/run
 
       - name: Render tests
         run: XPOST="$GITHUB_WORKSPACE/xpost-inst/bin/xpost" tests/xpost_tests/render
