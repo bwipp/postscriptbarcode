@@ -167,8 +167,9 @@ fi
 # Rotation: the rotated symbol must carry close to the same ink as the
 # upright rendering; a broken inverse transform displaces the symbol
 # off the page or collapses it, losing nearly all ink. The tolerance
-# allows for the scan converter's rounding on diagonal module edges,
-# which currently costs the rotated rendering about a sixth of its ink
+# allows for diagonal module edges dilating under the any-part-of-pixel
+# fill rule, which gains the rotated rendering about a sixth of its ink
+# (Ghostscript shows the same overshoot on this rendering)
 #
 if render rotbase qrcode "Hello World" "" "2 2 scale" &&
    render rot45   qrcode "Hello World" "" "306 0 translate 45 rotate 2 2 scale"; then
