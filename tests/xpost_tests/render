@@ -1,0 +1,182 @@
+#!/bin/bash
+
+# Barcode Writer in Pure PostScript
+# https://bwipp.terryburton.co.uk
+#
+# Copyright (c) 2004-2026 Terry Burton
+
+#
+# Render regression checks against the xpost interpreter: rasterize a
+# spread of encoders through xpost's PGM device and verify each raster
+# structurally against the encoder's own dontdraw output via
+# render_check.pl, so no golden images are kept. Cases cover the
+# rendering paths that have regressed in the past: matrix and linear
+# structure, sub-pixel dotty symbols, an option name that shadows an
+# operator name, a clip path with a hole, and a rotated invocation.
+#
+# Requires build/monolithic/barcode.ps.
+#
+#   XPOST    xpost binary (default: xpost from PATH)
+#   TIMEOUT  per-case timeout in seconds (default: 300)
+#
+
+set -u
+set -o pipefail
+
+TEST=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$TEST/../.." && pwd)
+
+XPOST=${XPOST:-xpost}
+TIMEOUT=${TIMEOUT:-300}
+
+MONOLITHIC="$ROOT/build/monolithic/barcode.ps"
+
+if ! "$XPOST" --version </dev/null >/dev/null 2>&1; then
+	echo "SKIPPED xpost not available"
+	exit 0
+fi
+
+if [ ! -f "$MONOLITHIC" ]; then
+	echo "SKIPPED $MONOLITHIC not built (run make first)"
+	exit 0
+fi
+
+WORK=$(mktemp -d)
+trap 'rm -rf "$WORK"' EXIT
+
+PASS=0
+FAIL=0
+
+# name encoder data options extra-ps -> $WORK/$name.pgm
+render() {
+	local name=$1 enc=$2 data=$3 opts=$4 extra=$5
+	cat > "$WORK/$name.ps" <<-EOF
+		($TEST/shim.ps) run
+		($MONOLITHIC) run
+		$extra
+		20 20 moveto ($data) ($opts) /$enc /uk.co.terryburton.bwipp findresource exec
+		showpage
+	EOF
+	timeout "$TIMEOUT" "$XPOST" -q -d pgm -o "$WORK/$name.pgm" "$WORK/$name.ps" \
+		</dev/null >/dev/null 2>&1 && [ -s "$WORK/$name.pgm" ]
+}
+
+# name encoder data options -> $WORK/$name.info (PIXX/PIXY/PIXS or SBS)
+info() {
+	local name=$1 enc=$2 data=$3 opts=$4
+	cat > "$WORK/$name.info.ps" <<-EOF
+		($TEST/shim.ps) run
+		currentglobal true setglobal
+		/uk.co.terryburton.bwipp.global_ctx << /enabledontdraw true >> def
+		setglobal
+		($MONOLITHIC) run
+		20 20 moveto ($data) (dontdraw $opts) /$enc /uk.co.terryburton.bwipp findresource exec
+		dup /ren get /renmatrix eq {
+		    dup /pixx get (PIXX ) print 8 string cvs print (\n) print
+		    dup /pixy get (PIXY ) print 8 string cvs print (\n) print
+		    dup /pixs get (PIXS ) print { 8 string cvs print ( ) print } forall (\n) print
+		} {
+		    dup /sbs get (SBS ) print { 8 string cvs print ( ) print } forall (\n) print
+		} ifelse
+		pop (INFO-DONE\n) print flush
+		quit
+	EOF
+	timeout "$TIMEOUT" "$XPOST" -q -d null "$WORK/$name.info.ps" \
+		</dev/null 2>/dev/null > "$WORK/$name.info" &&
+		grep -q INFO-DONE "$WORK/$name.info"
+}
+
+result() {
+	local name=$1 ok=$2
+	if [ "$ok" -eq 0 ]; then
+		echo "PASS $name"; PASS=$((PASS+1))
+	else
+		echo "FAIL $name"; FAIL=$((FAIL+1))
+	fi
+}
+
+# structural: raster modules against dontdraw pixs
+matrix_case() {
+	local name=$1 enc=$2 data=$3 opts=$4
+	if render "$name" "$enc" "$data" "$opts" "" && info "$name" "$enc" "$data" "$opts"; then
+		"$TEST/render_check.pl" matrix "$WORK/$name.pgm" "$WORK/$name.info"
+		result "$name" $?
+	else
+		result "$name" 1
+	fi
+}
+
+# structural: raster bar runs against dontdraw sbs
+linear_case() {
+	local name=$1 enc=$2 data=$3 opts=$4
+	if render "$name" "$enc" "$data" "$opts" "" && info "$name" "$enc" "$data" "$opts"; then
+		"$TEST/render_check.pl" linear "$WORK/$name.pgm" "$WORK/$name.info"
+		result "$name" $?
+	else
+		result "$name" 1
+	fi
+}
+
+#
+# Matrix structure, including the dotty renderer at its default scale
+#
+matrix_case qrcode     qrcode     "Hello World"       ""
+matrix_case datamatrix datamatrix "This is Data Matrix" ""
+matrix_case azteccode  azteccode  "This is Aztec Code" "format=full"
+
+#
+# An option whose name matches an operator name must not derail the
+# renderer (the interpreter's graphics internals resolve names with
+# the caller's dictionaries on the dict stack)
+#
+matrix_case mailmark mailmark "JGB 012100123412345678AB19XY1A 0             www.xyz.com" "type=29"
+
+#
+# Linear structure with text and guards
+#
+linear_case ean13   ean13   "9520123456788"  "includetext guardwhitespace"
+linear_case code128 code128 "Count01234567!" ""
+
+#
+# Dotty rendering at sub-pixel dot sizes: every dot must mark at least
+# a pixel and no scanline may smear (a scan-converter parity failure
+# runs ink across the row)
+#
+if render dotsubpix dotcode "This is DotCode" "inkspread=0.16" "0.5 0.5 scale"; then
+	# 173 dark modules render as isolated sub-pixel dots
+	"$TEST/render_check.pl" presence "$WORK/dotsubpix.pgm" 100 700 4
+	result dotsubpix $?
+else
+	result dotsubpix 1
+fi
+
+#
+# A clip path with an opposite-wound hole subpath: the Swiss QR Code
+# clips a hole for its cross; the cross must render and the corridor
+# around it must stay clear, so total ink sits between the QR without
+# a hole and an empty render
+#
+if render swissqrcode swissqrcode "SPC\n0200\n1\nCH4431999123000889012\nS\nRobert Schneider AG\nRue du Lac\n1268\n2501\nBiel\nCH\n\n\n\n\n\n\n\n1949.75\nCHF\nS\nPia-Maria Rutschmann-Schnyder\nGrosse Marktgasse\n28\n9400\nRorschach\nCH\nQRR\n210000000003139471430009017\nOrder of 15 June 2020\nEPD" "" ""; then
+	"$TEST/render_check.pl" presence "$WORK/swissqrcode.pgm" 4000 20000 200
+	result swissqrcode $?
+else
+	result swissqrcode 1
+fi
+
+#
+# Rotation: the rotated symbol must carry close to the same ink as the
+# upright rendering; a broken inverse transform displaces the symbol
+# off the page or collapses it, losing nearly all ink. The tolerance
+# allows for the scan converter's rounding on diagonal module edges,
+# which currently costs the rotated rendering about a sixth of its ink
+#
+if render rotbase qrcode "Hello World" "" "2 2 scale" &&
+   render rot45   qrcode "Hello World" "" "306 0 translate 45 rotate 2 2 scale"; then
+	"$TEST/render_check.pl" area "$WORK/rot45.pgm" "$WORK/rotbase.pgm" 25
+	result rot45 $?
+else
+	result rot45 1
+fi
+
+echo "render tests: $PASS passed, $FAIL failed"
+[ "$FAIL" -eq 0 ]
