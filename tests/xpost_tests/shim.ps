@@ -17,6 +17,11 @@
 % thereafter only instance definition and lookup are used.
 %
 
+% Interpreters providing the resource operators natively (xpost defines
+% /.resources alongside them) need no shim; the definitions below would
+% shadow the native ones from userdict.
+/.resources where { pop }{
+
 currentglobal true setglobal
 
 /.instancesof 16 dict def
@@ -45,3 +50,5 @@ userdict /undefineresource { % key category --
 } bind put
 
 setglobal
+
+} ifelse
