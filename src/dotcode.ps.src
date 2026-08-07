@@ -971,6 +971,10 @@ begin
         /w wsq sqrt cvi def
         w 1 add dup mul wsq le {/w w 1 add def} if
         w dup mul wsq gt {/w w 1 sub def} if
+        % Extreme ratios can undershoot the minimum dimension; clamp and
+        % rebalance the other dimension, as in the fixed-dimension branches
+        h 5 lt { /h 5 def /w minarea h add 1 sub h idiv dup h add 2 mod 0 eq {1 add} if def } if
+        w 5 lt { /w 5 def /h minarea w add 1 sub w idiv dup w add 2 mod 0 eq {1 add} if def } if
         h w add 2 mod 1 eq {
             h w mul minarea lt {/h h 1 add def  /w w 1 add def} if
         } {
