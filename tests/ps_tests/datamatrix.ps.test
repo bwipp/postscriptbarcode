@@ -1034,6 +1034,13 @@
     240 106 65 133 21 110 46 124 89 93 230 31 164 9 133 217 228 147 226 254 129 118
 ] debugIsEqual
 
+% A look-ahead reversal immediately after latching to Base 256 must not
+% emit an empty field, whose length header would be misread as extending
+% to the end of the symbol
+{ (VTXM8M2TDUKQ^FNC1^138^209^255^184^118) (debugcws parse parsefnc) datamatrix } [
+    230 224 14 164 123 42 186 254 231 219 195 79 234 232 231 95 121 86 26 104 188 129
+] debugIsEqual
+
 % strictspec smoke test
 { 0 0 moveto (This is Data Matrix!) (strictspec xdim=0.330) datamatrix true } true isEqual
 

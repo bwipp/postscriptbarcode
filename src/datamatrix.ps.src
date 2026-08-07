@@ -939,7 +939,10 @@ begin
         /encB {
             /p 0 def /bvals 1558 array def {
                 i msglen eq {exit} if
-                lookup mode ne {exit} if
+                % Consume at least one byte so that a look-ahead reversal
+                % cannot emit an empty field, whose length header would be
+                % misread as extending to the end of the symbol
+                p 0 ne { lookup mode ne {exit} if } if
                 p bvals length ge {
                     /bwipp.datamatrixTooMuchData (The input data exceeds the symbol capacity) //raiseerror exec
                 } if
