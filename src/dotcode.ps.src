@@ -385,8 +385,11 @@ begin
         /ratio 3 2 div def
     } if
     ratio -1 ne {
-        ratio 0 le {
-            /bwipp.dotcodeRatio (The ratio must be greater than 0) //raiseerror exec
+        % Aspect ratios beyond 40:1 are unrepresentable within the 5 to 200
+        % row and column limits; the bounds also keep the rational sizing
+        % arithmetic within 32-bit integers
+        ratio 0.025 lt ratio 40 gt or {
+            /bwipp.dotcodeRatio (The ratio must be from 0.025 to 40) //raiseerror exec
         } if
     } if
 
@@ -951,13 +954,31 @@ begin
     /nd cws length def
     /minarea nd 3 add nd 2 idiv add 9 mul 2 add 2 mul def
     ratio -1 ne {        % Fixed ratio
-        /hgt minarea ratio div sqrt def
-        /wid minarea ratio mul sqrt def
-        /h hgt cvi def  /w wid cvi def
+        % The ratio is quantised to the rational rn/rd so that the symbol
+        % shape is determined in integer arithmetic, independent of the
+        % interpreter's real number precision; 1/240 resolution is finer than
+        % the aspect granularity of a symbol within the size limits
+        /rn ratio 240 mul round cvi def
+        /rd 240 def
+        % h and w are the integer square roots of minarea/ratio and
+        % minarea*ratio; sqrt provides an estimate that is corrected in
+        % integer arithmetic
+        /hsq minarea rd mul rn idiv def
+        /wsq minarea rn mul rd idiv def
+        /h hsq sqrt cvi def
+        h 1 add dup mul hsq le {/h h 1 add def} if
+        h dup mul hsq gt {/h h 1 sub def} if
+        /w wsq sqrt cvi def
+        w 1 add dup mul wsq le {/w w 1 add def} if
+        w dup mul wsq gt {/w w 1 sub def} if
         h w add 2 mod 1 eq {
             h w mul minarea lt {/h h 1 add def  /w w 1 add def} if
         } {
-            hgt w mul wid h mul lt {
+            % Grow the dimension with the greater relative shortfall,
+            % w/wid < h/hgt reducing to w*rd < h*rn; a tie is broken
+            % towards the closer resulting aspect ratio by growing the
+            % larger dimension
+            w rd mul h rn mul 2 copy eq { pop pop w h gt } { lt } ifelse {
                 /w w 1 add def
                 h w mul minarea lt {
                     /w w 1 sub def  /h h 1 add def
