@@ -976,6 +976,13 @@ begin
             % Compensate c40headerlength if any
             c40headerlength 0 gt { /c40headerlength c40headerlength 1 add def } if
         } if
+        % Macro 05/06 is only recognised when its codeword is first
+        msg 0 get //datamatrix.m05 eq msg 0 get //datamatrix.m06 eq or {
+            Avals msg 0 get get addtocws
+            /i 1 def
+            % Compensate c40headerlength if any
+            c40headerlength 0 gt { /c40headerlength c40headerlength 1 add def } if
+        } if
         {
             i msglen ge {exit} if
             //datamatrix.encfuncs mode get load exec

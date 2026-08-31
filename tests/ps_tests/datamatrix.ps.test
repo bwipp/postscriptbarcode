@@ -68,7 +68,7 @@
 } def
 
 
-% Macro 05
+% Macro 05/06
 
 {
     ([\)>^03005^029214^030^004) (debugcws parse) datamatrix  % Short 05
@@ -77,6 +77,14 @@
 {
     ([\)>^03005^02921456^030^004) (debugcws parse) datamatrix  % 05 with 6 in processed position 5
 } [236 151 175 55 129] debugIsEqual
+
+{
+    ([\)>^03005^029AAAAAAA^030^004) (debugcws parse) datamatrix  % 05 macro codeword must be first, so it precedes a C40 latch
+} [236 230 89 191 89 191 254 66] debugIsEqual
+
+{
+    ([\)>^03006^029tttttttt^030^004) (debugcws parse) datamatrix  % 06 ahead of a Text latch
+} [237 239 211 138 211 138 211 105] debugIsEqual
 
 
 % Metrics loops
