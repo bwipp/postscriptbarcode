@@ -1,0 +1,40 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+%
+% Every resource instance is defined executeonly so that a job cannot traverse
+% a resource procedure to reach and mutate the static data shared with later
+% jobs in a persistent interpreter. Placed last in the suite, by which point
+% every resource has been loaded by the preceding tests.
+%
+
+%
+% No registered instance is readable: all are executeonly
+%
+{
+    /readable 0 def
+    (*) {
+        /uk.co.terryburton.bwipp findresource rcheck { /readable readable 1 add def } if
+    } 128 string /uk.co.terryburton.bwipp resourceforall
+    readable
+} 0 isEqual
+
+%
+% Spot check: the instance procedure is not readable
+%
+{
+    /qrcode /uk.co.terryburton.bwipp findresource rcheck
+} false isEqual
+
+%
+% Restricting access does not prevent the instance from executing
+%
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true >> def
+{
+    (AB0) (debugcws) /qrcode /uk.co.terryburton.bwipp findresource exec
+} [ 32 25 205 0 0 236 17 236 17 ] debugIsEqual
