@@ -584,10 +584,9 @@ pixel-locking at 72 DPI:
   (1 inch) default bar height. At 72 DPI, 1 module = 1 device pixel.
 - **Matrix (`renmatrix`):** `modunit` points per module (1pt or 2pt depending
   on symbology). Output dict `width`/`height` = `cols * modunit / 72` inches.
-- **MaxiCode (`renmaximatrix`):** Fixed 2.4945 scale from 1pt modules to
-  0.88mm hexagons. Hex geometry uses √3-based constants for correct aspect
-  ratio at any scale; pixel-locking of hex vertices is inherently imperfect
-  on a square grid.
+- **MaxiCode (`renmaximatrix`):** 1 unit per module scaled to the nominal
+  0.88mm pitch (2.4945pt). Module geometry uses the specification's √3-based
+  proportions; dark hexagons are the pitch less 0.12mm.
 
 External scaling or the `width`/`height` options resize from these defaults.
 The `strictspec` system (below) provides an alternative path that renders at
@@ -616,6 +615,64 @@ cause gridfit to silently skip via the `hwxres` guard.
 returns `true` on success, `/errorname (info) false` on spec violation. The
 caller (renderer) is responsible for cleanup (`grestore`) before raising the
 error via `raiseerror`.
+
+**Device setup:** `render.gridsetup` performs the resolution probing, target
+pixel matrix and basepoint snapping shared by all grid fitting, returning
+`devpx devpy griddpi true` (target pixels per user unit per axis, and the
+target resolution) or `false` when the device resolution is bogus.
+`render.gridfit` builds on it; renderers with symbology-specific pixel
+geometry call it directly.
+
+**Pixel fonts:** Round and hexagonal elements that gridfit places on the
+pixel grid are drawn, below a per-renderer threshold of pixels per module,
+from a pixel font: the first dark column of each row, or null, for a shape
+symmetric about its middle row and column. Fonts are computed in integer
+arithmetic on doubled coordinates, with `render.isqrtlt` bounding circular
+rows exactly at any real precision, so the bitmap is identical on every
+interpreter. `render.fontrects` converts a font into the rectangles of its
+bands of equal-width rows for one `rectfill`, a band reaching a row into a
+wider neighbour so that bands meet without seams. Every exposed edge is moved
+`render.pixelinset` (1/16 px) towards the dark side so that no edge lies on a
+pixel boundary. Edges exactly on boundaries survive a decimal vector
+intermediate only by luck: a PDF writer's six-decimal scale puts them a few
+millionths of a pixel over, and an any-part-of-pixel rasteriser then paints
+the neighbouring row. The inset is invisible at the target resolution and
+keeps the round trip through PDF exact under both any-part-of-pixel and
+antialiased rasterisation. A rasteriser that samples general polygons at a
+pixel corner loses a row and a column of each non-rectangular outline
+instead; rectangles are unaffected, and no edge placement for a polygon
+satisfies both rules. At or above the threshold, paths on the same pixel
+geometry are used, so the switch moves no edge by more than a pixel. Without
+gridfit, output is always paths.
+
+**MaxiCode (`renmaximatrix`):** Follows the specification's practical
+printing guidance rather than uniform snapping. The module pitch X is a whole
+number of target pixels, and under `strictspec` the rounding is retried the
+other way when either the symbol width (29X) or the row pitch (round(X√3/2),
+as an equivalent X-dimension) falls outside `xmin`/`xmax`. The CTM is then
+one unit per pixel. The gap between hexagons, which carries the inkspread, is
+a whole number of pixels, the finder radii are half pixels, and each hexagon
+lies within half a pixel of the centre of its cell. Below
+`renmaximatrix.vectorminpx` pixels per module the hexagons are pixel fonts:
+the pixel centres within the module's cell of the integer lattice, inset so
+that hexagons are `s` pixels apart in a row. Below
+`renmaximatrix.stepfontpx` the cell has the city-block boundaries of the
+specification's filling from the centre out, which keep small hexagons
+tapered where Euclidean cells square them off; above it the cell is Euclidean
+and diagonal neighbours at a positive gap are never 8-connected. A negative
+gap moves the diagonal edges outward and adds font rows. The finder rings
+sample pixel centres between half-pixel quantised radii, each ring an outer
+and an inner staircase outline (`eofill`) derived for one quadrant and
+reflected into the other three in a centred matrix.
+
+**Dots (`renmatrix`):** With `dotty`, when gridfit makes modules square and a
+whole number of pixels, each dot is a disc of whole-pixel diameter within
+half a pixel of the module's centre: the largest disc up to the module whose
+diagonal neighbours share neither an edge nor a corner, less the inkspread in
+whole pixels. Below `renmatrix.dotvectorminpx` pixels per module each dot is
+one `rectfill` of the disc's font; at or above, an arc of the same diameter.
+From that size rasterisers agree on the width of arcs on the pixel grid,
+though not on their outline, and arcs give the smaller document.
 
 **EPS safety:** When `gridfit` is not enabled (and `griddpi` is not set), no
 device-dependent operators (`defaultmatrix`, `dtransform`) are executed.
@@ -742,14 +799,23 @@ is not found, `default` silently passes; non-default profiles error.
 types such as pdf417, micropdf417, codablockf, code16k, code49).
 
 **Renderer scaling:** Each renderer applies `xdim 72 mul 25.4 div modunit div
-dup scale` when `strictspec` is true. `renmaximatrix` divides additionally by
-its existing 2.4945 scale factor.
+dup scale` when `strictspec` is true. `renmaximatrix` scales to `xdim` per
+module in place of the nominal 0.88mm.
+
+**Inkspread semantics:** `inkspread` is the total reduction in the width of
+each dark element, half on each edge, as a fraction of the module, and every
+renderer defaults it to 0.15. An inkspread of 0 renders the nominal geometry
+of the specification, so spacing that a specification makes part of the
+symbol, such as the 0.12mm undercut of MaxiCode's dark hexagons, is built in
+rather than expressed as inkspread.
 
 **Inkspread under strictspec:** Renderers adjust inkspread to maintain a fixed
 physical amount (mm) rather than a proportional reduction. For `renlinear`,
 the adjustment is applied before bar width computation (since bars are
 pre-computed into the `bars` array). For `renmatrix` and `renmaximatrix`, it
-is applied after the strictspec scale, before module rendering.
+is applied after the strictspec scale, before module rendering. A fixed amount
+can span many modules at a small X-dimension, so geometry whose cost grows
+with it, the MaxiCode geometry and gridfit dots, limits it to one module.
 
 **Wrapper framework:** The outermost encoder consumes the AST. All wrappers
 that have their own AST entry must:
