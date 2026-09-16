@@ -72,8 +72,39 @@
 { 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth -1 >> >> renmaximatrix } /bwipp.renderBadBorderwidth isError
 { 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /borderwidth 11 >> >> renmaximatrix } /bwipp.renderBadBorderwidth isError
 
-% gridfit renders without error
+% gridfit renders without error, as pixel fonts (J.4) or as paths on the pixel grid
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /gridfit true /griddpi 200 >> >> renmaximatrix grestore true } true isEqual
 { gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /gridfit true /griddpi 300 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /gridfit true /griddpi 600 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /gridfit true /griddpi 1200 >> >> renmaximatrix grestore true } true isEqual
+
+% inkspread across its whole range renders as pixel fonts, as paths on the pixel grid and without gridfit
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 300 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 300 /inkspread 1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 600 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 600 /inkspread 1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 1200 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /gridfit true /griddpi 1200 /inkspread 1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /inkspread 1 >> >> renmaximatrix grestore true } true isEqual
+
+% a negative gap, from a small X-dimension, grows the hexagons beyond their cells
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /strictspec true /loosespec true /xdim 0.05 /gridfit true /griddpi 9600 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /strictspec true /loosespec true /xdim 0.2 /gridfit true /griddpi 1200 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+
+% inkspread many modules wide, from a smaller X-dimension, is limited to a module
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /strictspec true /loosespec true /xdim 0.00001 /gridfit true /griddpi 9600 /inkspread -1 >> >> renmaximatrix grestore true } true isEqual
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0 1 30 31] /opt << /strictspec true /loosespec true /xdim 0.00001 /gridfit true /griddpi 9600 /inkspread 1 >> >> renmaximatrix grestore true } true isEqual
+
+% strictspec gridfit retries the other rounding of the module pitch when the
+% symbol size (J.3) is violated: 12 dpmm gives 10 pixels, not the nearest 11
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /strictspec true /xdim 0.88 /xmin 0.828 /xmax 0.931 /gridfit true /griddpi 305 >> >> renmaximatrix grestore true } true isEqual
+
+% strictspec gridfit fails when no whole number of pixels per module fits the symbol size
+{ 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /strictspec true /xdim 0.88 /xmin 0.828 /xmax 0.931 /gridfit true /griddpi 100 >> >> renmaximatrix } /bwipp.renderGridfitXdimOutOfSpec isError
+
+% loosespec gridfit falls back to the nearest whole number of pixels per module
+{ gsave 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /strictspec true /loosespec true /xdim 0.88 /xmin 0.828 /xmax 0.931 /gridfit true /griddpi 100 >> >> renmaximatrix grestore true } true isEqual
 
 % griddpi validation
 { 0 0 moveto << /ren /renmaximatrix /pixs [0] /opt << /griddpi 10 >> >> renmaximatrix } /bwipp.renderBadGriddpi isError

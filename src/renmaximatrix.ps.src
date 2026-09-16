@@ -42,9 +42,104 @@ dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /setanycolor dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
+%
+% Finder pattern ring transitions R1 to R6 (Table 8) and the nominal module
+% pitch W, in hundredths of a millimetre so that pixel quantities derived
+% from them are exact ratios of integers
+%
+/renmaximatrix.radii [ 51 118 186 253 320 387 ] readonly def
+/renmaximatrix.wnom 88 def
+
+%
+% Pixel fonts are used below this many device pixels per module. At or
+% above it a one pixel rasterisation difference between interpreters is
+% within a quarter of the dark hexagon width tolerance (0.12mm, Table 6),
+% so vector paths on the pixel-locked grid suffice.
+%
+/renmaximatrix.vectorminpx //renmaximatrix.wnom 12 4 div div ceiling cvi def
+
+%
+% Below this many device pixels per module the hexagon font is bounded as by
+% filling each hexagon from the centre out (J.4), whose city-block boundaries
+% keep small hexagons tapered and reproduce Figure J1. From this size the 30
+% degree edges of the true hexagon are resolvable.
+%
+/renmaximatrix.stepfontpx 12 def
+
+%
+% Whether a module pitch of X device pixels keeps the symbol width and the
+% row pitch within the permitted range (J.3)
+%
+/renmaximatrix.fits {  % X => bool
+    dup xdim mul devpx div xmin xmax /validate_xdim //render exec {
+        3 sqrt mul 2 div round 2 mul 3 sqrt div  % Row pitch as an equivalent X
+        xdim mul devpx div xmin xmax /validate_xdim //render exec { true } { pop pop false } ifelse
+    } { pop pop pop false } ifelse
+} bind def
+
+%
+% Diagonal neighbours are 8-connected unless the gap between them exceeds
+% the diagonal of a pixel: the least half-pixel gap that does, doubled and
+% squared for comparison in doubled integer coordinates
+%
+/renmaximatrix.mingd2 2 sqrt 2 mul ceiling dup mul cvi def
+
+%
+% Append the closed outline of the pixels whose doubled centres lie strictly
+% within doubled radius R of the doubled centre cx cy, with every edge moved
+% e towards the inside (negative e for a hole). Only the upper right
+% quadrant is derived; the other three are its reflections in the centred
+% matrix ctm, since the pixel lattice is symmetric about the centre.
+%
+/renmaximatrix.disc {  % cx cy ctm R e => -
+    16 dict begin
+    /e exch def /R exch def /ctm exch def /cy exch def /cx exch def
+    /rowhi {  % j => last dark column of row j, or -1 if the row is empty
+        2 mul 1 add cy sub dup mul R dup mul exch sub
+        dup 0 gt {
+            /isqrtlt //render exec cx add 1 sub 2 idiv
+            dup 2 mul cx 1 sub lt { pop -1 } if
+        } { pop -1 } ifelse
+    } def
+    /j cy 2 idiv def
+    /h j rowhi def
+    h 0 ge {
+        /A [  % From the right edge on the centre line to the top edge on the centre column
+            h 1 add e sub cx 2 div sub  0
+            {  % loop
+                /h2 j 1 add rowhi def
+                h2 0 lt { exit } if
+                h2 h ne {
+                    /y j 1 add e sub cy 2 div sub def
+                    h 1 add e sub cx 2 div sub  y
+                    h2 1 add e sub cx 2 div sub  y
+                    /h h2 def
+                } if
+                /j j 1 add def
+            } loop
+            h 1 add e sub cx 2 div sub  j 1 add e sub cy 2 div sub
+            0  j 1 add e sub cy 2 div sub
+        ] def
+        /B [ A length 2 sub -2 2 { A exch 2 getinterval aload pop } for ] def  % Points reversed, less the first
+        /Ar A 0 A length 2 sub getinterval def                                   % Points less the last
+        ctm setmatrix
+        A 0 get A 1 get moveto
+        mark B aload pop counttomark 2 idiv { lineto } repeat pop
+        ctm setmatrix -1 1 scale
+        mark Ar aload pop counttomark 2 idiv { lineto } repeat pop
+        ctm setmatrix -1 -1 scale
+        mark B aload pop counttomark 2 idiv { lineto } repeat pop
+        ctm setmatrix 1 -1 scale
+        mark Ar aload pop counttomark 2 idiv { lineto } repeat pop
+        closepath
+        ctm setmatrix
+    } if
+    end
+} bind def
+
 /renmaximatrix {
 
-    32 dict begin
+    256 dict begin
     {
 
     %
@@ -102,72 +197,233 @@ begin
 
     currentpoint translate
 
-    2.4945 dup scale  % from 1pt to 0.88mm
+    %
+    % Scale to one unit per module: the nominal 0.88mm, or the physical specification
+    %
+    /modpt strictspec { xdim } { //renmaximatrix.wnom 100 div } ifelse 72 mul 25.4 div def
+    modpt dup scale
+    /inkspread inkspread //renmaximatrix.wnom 100 div 72 mul 25.4 div mul modpt div  % Fraction of the module, at most one
+    dup -1 lt { pop -1 } if dup 1 gt { pop 1 } if def
 
     %
-    % Scale to physical specification dimensions
+    % Module geometry (Table 7) in current units, later whole pixels under gridfit
     %
-    strictspec {
-        xdim 72 mul 25.4 div 2.4945 div dup scale  % Relative to existing 2.4945 scale
-        /inkspread inkspread 2.4945 mul 25.4 mul xdim 72 mul div def  % Fixed physical amount
-    } if
+    /X 1 def
+    /Y 3 sqrt 2 div def
+    /V 2 3 sqrt div def
+    /ox 0.5 def                                            % Odd row offset
+    /pixelgrid false def
 
     %
-    % Grid fit: uniform even-pixel snap preserves hex aspect ratio
+    % Grid fit: whole device pixels per module, row pitch and module height (J.4)
     %
     gridfit {
-        2 strictspec { xdim xmin xmax } { 0 -1 -1 } ifelse
-        false false /gridfit //render exec
-        not { grestore //raiseerror exec } if
+        /gridsetup //render exec {  % devpx devpy griddpi
+            /griddpi exch def /devpy exch def /devpx exch def
+            /X devpx round cvi def
+            strictspec {
+                X //renmaximatrix.fits exec not {
+                    devpx dup floor sub 0.5 lt { X 1 add } { X 1 sub } ifelse  % Round the other way
+                    dup //renmaximatrix.fits exec {
+                        /X exch def
+                    } {
+                        pop
+                        loosespec not {
+                            grestore
+                            /bwipp.renderGridfitXdimOutOfSpec
+                            [ (No X-dimension within the permissible range )
+                              xmin 20 string cvs ( to )
+                              xmax 20 string cvs (mm produces a fixed pixel grid at )
+                              griddpi cvi 20 string cvs ( DPI)
+                            ] dup 0 exch {length add} forall string
+                            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                            //raiseerror exec
+                        } if
+                    } ifelse
+                } if
+            } if
+            X 1 lt { /X 1 def } if
+            /Y X 3 sqrt mul 2 div round cvi def
+            /V X 2 mul 3 sqrt div round cvi def
+            /ox X 2 idiv def
+            1 devpx div 1 devpy div scale  % One unit per device pixel
+            /pixelgrid true def
+        } if
     } if
-
+    /pixelfont pixelgrid X //renmaximatrix.vectorminpx lt and def
 
     %
-    % Display the border and background
+    % Gap between dark hexagons, which are W-0.12mm wide (Table 6) less the
+    % inkspread, and the doubled inner and outer radii of each dark finder
+    % ring, each edge moved by half the inkspread. On the pixel grid these
+    % are whole and half pixels, each hexagon lies within half a pixel of the
+    % centre of its cell, and exposed edges are inset, identically for pixel
+    % fonts and paths.
     %
-    30 29 inkspread inkspread /renderborder //render exec  % 30x29 hex grid
-    not { grestore //raiseerror exec } if
+    /s X 12 mul //renmaximatrix.wnom div inkspread X mul add pixelgrid { round cvi } if def  % Exact ratio: no rounding ties
+    /dc pixelgrid { s 2 idiv 2 mul s sub } { 0 } ifelse def  % Doubled offset of hexagon centres from cell centres
+    /eg pixelgrid { /pixelinset //render exec } { 0 } ifelse def
+    /rings [
+        0 2 4 {
+            dup //renmaximatrix.radii exch get X mul 2 mul //renmaximatrix.wnom div inkspread X mul add pixelgrid { round cvi } if
+            exch 1 add //renmaximatrix.radii exch get X mul 2 mul //renmaximatrix.wnom div inkspread X mul sub pixelgrid { round cvi } if
+            2 copy gt { exch } if  % A ring inverted by inkspread still insets its outer edge
+        } for
+    ] def
+
+    /pixx 30 X mul def
+    /pixy 32 Y mul V add def
+
+    %
+    % Display the border and background, in modules
+    %
+    gsave
+    X dup scale
+    30 pixy X div inkspread inkspread /renderborder //render exec
+    not { grestore grestore //raiseerror exec } if
+    grestore
 
     barcolor (unset) ne { barcolor //setanycolor exec not { grestore //raiseerror exec } if } if
 
-    /g 0.06 inkspread add def
+    pixelfont {
 
-    0.5 0.5774 translate
+        %
+        % Hexagon font: the pixels whose centres lie within the module's cell
+        % of the pixel lattice, inset so that hexagons in a row are s pixels
+        % apart. Below renmaximatrix.stepfontpx the cell has the city-block
+        % boundaries of filling from the centre out. Otherwise the cell is
+        % Euclidean and diagonal neighbours at a positive gap are never
+        % 8-connected. The tips of a city-block cell and hexagons grown by a
+        % negative gap reach beyond the cell, so the font gains e rows above
+        % and below.
+        % Coordinates are doubled to keep the tests in integer arithmetic.
+        % Rows of a single pixel, which arise at the vertices of an odd cell
+        % width, are dropped as they print unreliably.
+        %
+        /a1 X 2 idiv def  /q1 a1 dup mul Y dup mul add def   % Diagonal neighbour offsets, squared
+        /a2 X a1 sub def  /q2 a2 dup mul Y dup mul add def
+        /buildfont {
+            /Vf V e 2 mul add def
+            /font Vf array def  % Per row: first dark column, or null
+            0 1 Vf 1 sub {
+                /j exch def
+                /PY j 2 mul 1 add Vf sub abs def
+                /i0 null def
+                s 2 idiv 1 X 1 sub s s 2 idiv sub sub {
+                    dup 2 mul 1 add X sub dc sub abs  % i PX
+                    dup a1 q1 incell exch a2 q2 incell and { /i0 exch def exit } { pop } ifelse
+                } for
+                i0 null ne { i0 2 mul X dc add 1 sub ge { /i0 null def } if } if  % Single pixel
+                font j i0 put
+            } for
+        } def
+        X //renmaximatrix.stepfontpx lt {
+            /incell {  % PX a q => bool
+                pop Y add s 2 mul sub exch PY add ge
+            } def
+            /e a1 Y add s 2 mul sub 2 add V sub 2 idiv def
+            e 0 lt { /e 0 def } if
+            buildfont
+        } {
+            /incell s 0 lt {  % PX a q => bool
+                {  % Beyond the bisector by no more than the negative gap / 2
+                    3 1 roll mul Y PY mul add  % q u
+                    2 copy sub dup 0 ge { pop pop pop true } {
+                        dup mul 4 mul exch pop exch gd2 mul le
+                    } ifelse
+                }
+            } {
+                {  % Within the bisector by at least the gap / 2
+                    3 1 roll mul Y PY mul add  % q u
+                    2 copy lt { pop pop false } {
+                        2 copy sub dup mul 4 mul 3 1 roll pop gd2 mul ge
+                    } ifelse
+                }
+            } ifelse def
+            /e s 0 lt { s neg } { 0 } ifelse def
+            /gd2 s 2 mul dup mul s 0 gt { //renmaximatrix.mingd2 2 copy lt { exch } if pop } if def  % (2 * gap)^2
+            buildfont
+        } ifelse
 
-    newpath
-    pixs {
-        dup
-        /x exch 30 mod def
-        /y exch 30 idiv def
-        y 2 mod 0 eq {x} {x 0.5 add} ifelse
-        32 y sub 0.8661 mul
-        moveto
-        0              0.5774 g       sub rmoveto
-       -0.5 g add     -0.2887 g 2 div add rlineto
-        0             -0.5774 g       add rlineto
-        0.5 g sub     -0.2887 g 2 div add rlineto
-        0.5 g sub      0.2887 g 2 div sub rlineto
-        0              0.5774 g       sub rlineto
-       -0.5 g add      0.2887 g 2 div sub rlineto
-        closepath
-    } forall
-    fill
+        %
+        % Paint each module with one rectfill of the font
+        %
+        /hexrects font X dc add e neg /fontrects //render exec def
+        hexrects length 0 gt {
+            /cellctm matrix currentmatrix def
+            pixs {
+                dup 30 mod X mul exch 30 idiv
+                dup 2 mod 0 ne { exch ox add exch } if
+                32 exch sub Y mul
+                cellctm setmatrix translate hexrects rectfill
+            } forall
+            cellctm setmatrix
+        } if
+
+        %
+        % Finder pattern: pixel centres between ring transitions, quantised to
+        % half pixels, as an outer and an inner outline per ring
+        %
+        /rcx 29 X mul dc add def  % Doubled centre
+        /rcy pixy def
+        /pixctm matrix currentmatrix def
+        rcx 2 div rcy 2 div translate
+        /discctm matrix currentmatrix def
+        0 2 4 {
+            /k exch def
+            newpath
+            rcx rcy discctm rings k 1 add get eg //renmaximatrix.disc exec
+            rcx rcy discctm rings k get eg neg //renmaximatrix.disc exec
+            eofill
+        } for
+        pixctm setmatrix
+
+    } {
+
+        %
+        % Hexagons as paths
+        %
+        /hw X s sub 2 div eg sub def  % Half width
+        /hv hw 3 sqrt div def         % Half height of the flat sides
+        /cx0 X dc add 2 div def       % Centre within the cell
+        newpath
+        pixs {
+            dup 30 mod X mul cx0 add exch 30 idiv
+            dup 2 mod 0 ne { exch ox add exch } if
+            32 exch sub Y mul V 2 div add
+            hv 2 mul add moveto
+            hw hv neg rlineto
+            0 hv 2 mul neg rlineto
+            hw neg hv neg rlineto
+            hw neg hv rlineto
+            0 hv 2 mul rlineto
+            closepath
+        } forall
+        fill
+
+        %
+        % Finder pattern
+        %
+        /rcx 29 X mul dc add 2 div def
+        /rcy pixy 2 div def
+        0 2 4 {
+            /k exch def
+            newpath
+            rcx rcy rings k get 2 div eg add 0 360 arc closepath
+            rcx rcy rings k 1 add get 2 div eg sub 360 0 arcn closepath
+            fill
+        } for
+
+    } ifelse
 
     %
-    % Plot the locator symbol
+    % Display text{1-9}, in modules
     %
-    newpath 14 13.8576 0.5774 inkspread add 0 360 arc closepath
-            14 13.8576 1.3359 inkspread sub 360 0 arcn closepath fill
-    newpath 14 13.8576 2.1058 inkspread add 0 360 arc closepath
-            14 13.8576 2.8644 inkspread sub 360 0 arcn closepath fill
-    newpath 14 13.8576 3.6229 inkspread add 0 360 arc closepath
-            14 13.8576 4.3814 inkspread sub 360 0 arcn closepath fill
-
-    %
-    % Display text{1-9}
-    %
-    30 29 /textgroups //render exec
-    not { grestore //raiseerror exec } if
+    gsave
+    X dup scale
+    30 pixy X div /textgroups //render exec
+    not { grestore grestore //raiseerror exec } if
+    grestore
 
     grestore
 
