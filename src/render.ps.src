@@ -829,6 +829,65 @@ begin
 } bind def
 
 %
+%  Snap the origin to the device pixel grid at the target resolution
+%
+%  Returns the number of target pixels per user unit along each axis and the
+%  target resolution, or false when the device resolution is bogus and no
+%  griddpi was supplied
+%
+%  - => devpx devpy griddpi true | false
+%
+/render.gridsetup {
+
+    8 dict begin
+
+    %
+    %  Determine device resolution
+    %
+    /usergriddpi griddpi 0 ne def
+    gsave matrix defaultmatrix setmatrix
+    72 0 dtransform abs exch abs 2 copy lt {exch} if pop /hwxres exch def
+    0 72 dtransform abs exch abs 2 copy lt {exch} if pop /hwyres exch def
+    grestore
+    griddpi 0 eq { /griddpi hwxres def } if
+
+    %
+    % Guard against bogus auto-detected resolution (skip unless user provided griddpi)
+    %
+    1 {  % Common exit
+
+        hwxres 1 gt hwxres 100000 lt and hwyres 1 gt hwyres 100000 lt and and not {
+            usergriddpi not { false exit } if
+            /hwxres griddpi def /hwyres griddpi def  % Bogus hardware but user knows the target DPI
+        } if
+
+        %
+        %  CTM scaled to target DPI pixel coordinates, per axis
+        %
+        [ griddpi hwxres div  0  0
+          griddpi hwyres div  0  0 ] matrix currentmatrix matrix concatmatrix
+        /gridmatrix exch def
+
+        %
+        %  Snap basepoint to target pixel boundary
+        %
+        0 0 gridmatrix transform round exch round exch gridmatrix itransform translate
+
+        %
+        %  Target pixels per user unit
+        %
+        1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
+        0 1 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
+        griddpi
+        true
+
+    } repeat  % Common exit
+
+    end
+
+} bind def
+
+%
 %  Snap module boundaries to device pixel grid
 %
 /render.gridfit {
@@ -866,44 +925,17 @@ begin
     } def
 
     % snapped => effective X; compute effective X dimension from snapped device pixels
-    /effx { xdim mul 1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop div } def
+    /effx { xdim mul devpx div } def
 
-    %
-    %  Determine device resolution
-    %
-    /usergriddpi griddpi 0 ne def
-    gsave matrix defaultmatrix setmatrix
-    72 0 dtransform abs exch abs 2 copy lt {exch} if pop /hwxres exch def
-    0 72 dtransform abs exch abs 2 copy lt {exch} if pop /hwyres exch def
-    grestore
-    griddpi 0 eq { /griddpi hwxres def } if
-
-    %
-    % Guard against bogus auto-detected resolution (skip unless user provided griddpi)
-    %
     1 {  % Common exit
 
-        hwxres 1 gt hwxres 100000 lt and hwyres 1 gt hwyres 100000 lt and and not {
-            usergriddpi not { true exit } if
-            /hwxres griddpi def /hwyres griddpi def  % Bogus hardware but user knows the target DPI
-        } if
-
-        %
-        %  CTM scaled to target DPI pixel coordinates, per axis
-        %
-        [ griddpi hwxres div  0  0
-          griddpi hwyres div  0  0 ] matrix currentmatrix matrix concatmatrix
-        /gridmatrix exch def
-
-        %
-        %  Snap basepoint to target pixel boundary
-        %
-        0 0 gridmatrix transform round exch round exch gridmatrix itransform translate
+        //render.gridsetup exec not { true exit } if  % Bogus device resolution: leave the CTM alone
 
         %
         %  Snap module dimensions to whole target pixels
         %
-        1 0 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
+        /griddpi exch def
+        /devpy exch def
 
         % Snap mode used for x (0=round, 1=floor, 2=ceiling). The snapy
         % branch replays this against the y-axis devpx so square matrix
@@ -951,8 +983,7 @@ begin
         } ifelse
 
         snapy {
-            0 1 gridmatrix dtransform abs exch abs 2 copy lt {exch} if pop
-            dup xsnapmode snapto exch div
+            devpy dup xsnapmode snapto exch div
         } { dup } ifelse
 
         scale
@@ -1217,6 +1248,7 @@ begin
     /rendertext                //render.rendertext
     /validatetextoptions       //render.validatetextoptions
     /gridfit                   //render.gridfit
+    /gridsetup                 //render.gridsetup
     /global_encoder_defaults   //render.global_encoder_defaults
     /global_renderer_defaults  //render.global_renderer_defaults
     /validate_common           //render.validate_common
