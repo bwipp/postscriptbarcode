@@ -144,6 +144,62 @@ begin
 %
 /renmatrix.stemclass <00010000000000000001000000000200> readonly def
 
+%
+% Below this many device pixels per module, dots on the pixel grid are drawn
+% from a pixel font rather than as paths. Rasterisers agree on the width of
+% dots drawn as paths on the pixel grid, but not on their outline, and from
+% this size paths give the smaller document.
+%
+/renmatrix.dotvectorminpx 30 def
+
+%
+% Pixel font of a dot of diameter d within a cell of X pixels: the pixels whose
+% doubled centres lie strictly within the doubled diameter, positioned within
+% half a pixel of the cell's centre
+%
+/renmatrix.dotfont {  % X d => font span y0
+    4 dict begin
+    /d exch def /X exch def
+    /o X d sub dup 0 lt { 1 sub } if 2 idiv def  % Box offset within the cell
+    [
+        0 1 d 1 sub {
+            2 mul 1 add d sub dup mul d dup mul exch sub  % d^2 - PY^2
+            dup 0 gt {
+                /isqrtlt //render exec
+                dup d 1 add sub 2 mod 0 ne { 1 sub } if  % Largest PX of the row's parity
+                dup 0 lt { pop null } { d 1 sub exch sub 2 idiv o add } ifelse
+            } { pop null } ifelse
+        } for
+    ]
+    o 2 mul d add
+    o
+    end
+} bind def
+
+%
+% Whether dots at diagonally adjacent modules X pixels apart share an edge or a
+% corner
+%
+/renmatrix.dotstouch {  % font span X => bool
+    6 dict begin
+    /X exch def /span exch def /font exch def
+    false
+    0 1 font length 1 sub {
+        /j exch def
+        font j get null ne {
+            -1 1 1 {
+                j X sub add /k exch def
+                k 0 ge k font length lt and {
+                    font k get null ne {
+                        span font j get sub  font k get X add  ge { pop true } if
+                    } if
+                } if
+            } for
+        } if
+    } for
+    end
+} bind def
+
 /renmatrix {
 
     256 dict begin
@@ -527,6 +583,62 @@ begin
 
     } def
 
+    /drawlayergriddots {
+
+        (render.drawdots) //renmatrix.before exec
+
+        /pixsorig pixs def
+        /pixs exch def
+
+        %
+        % Whole-pixel dots, in units of one pixel
+        %
+        /modctm matrix currentmatrix def
+        1 devpx div 1 devpy div scale
+        /cellctm matrix currentmatrix def
+        dotfont {
+            dotrects length 0 gt {
+                0 1 pixs length 1 sub {
+                    dup pixx mod /x exch def
+                    pixx idiv /y exch def
+                    x y xyget 1 eq {
+                        rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                            /vy exch def
+                            cellctm setmatrix
+                            x modpx mul pixy vy sub 1 sub modpx mul translate
+                            dotrects rectfill
+                        } for
+                    } if
+                } for
+            } if
+        } {
+            /dotr dotd 2 div /pixelinset //render exec sub def
+            dotr 0 gt {
+                /dotc doto dotd 2 div add def
+                newpath
+                0 1 pixs length 1 sub {
+                    dup pixx mod /x exch def
+                    pixx idiv /y exch def
+                    x y xyget 1 eq {
+                        rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                            /vy exch def
+                            x modpx mul dotc add  pixy vy sub 1 sub modpx mul dotc add
+                            2 copy exch dotr add exch moveto
+                            dotr 0 360 arc closepath
+                        } for
+                    } if
+                } for
+                fill
+            } if
+        } ifelse
+        modctm setmatrix
+
+        /pixs pixsorig def
+
+        (render.drawdots) //renmatrix.after exec
+
+    } def
+
     gsave
 
     currentpoint translate
@@ -565,6 +677,38 @@ begin
     not { grestore //raiseerror exec } if
 
     %
+    % Dots on square modules of whole pixels: the nominal dot is the largest disc
+    % up to the module that keeps diagonal neighbours apart, less the inkspread
+    % limited to a module
+    %
+    /dotgrid false def
+    /dotfont false def
+    dotty gridfit and {
+        /gridsetup //render exec {  % devpx devpy griddpi
+            pop /devpy exch def /devpx exch def
+            /modpx devpx round cvi def
+            modpx devpy round cvi eq modpx 0 gt and {
+                /dotgrid true def
+                /dotfont modpx //renmatrix.dotvectorminpx lt def
+                /dotd modpx def
+                dotfont {  % Larger discs are well apart
+                    {  % loop
+                        dotd 1 le { exit } if
+                        modpx dotd //renmatrix.dotfont exec pop modpx //renmatrix.dotstouch exec not { exit } if
+                        /dotd dotd 1 sub def
+                    } loop
+                } if
+                /dotd dotd inkspread dup -1 lt { pop -1 } if dup 1 gt { pop 1 } if modpx mul round cvi sub def
+                dotd 0 lt { /dotd 0 def } if
+                /doto modpx dotd sub dup 0 lt { 1 sub } if 2 idiv def
+                dotfont {
+                    /dotrects modpx dotd //renmatrix.dotfont exec /fontrects //render exec def
+                } if
+            } if
+        } if
+    } if
+
+    %
     % Display the matrix
     %
     colormap (unset) eq {
@@ -585,7 +729,7 @@ begin
             } for
             layer
         } ifelse
-        dotty {drawlayerdots} {drawlayer} ifelse
+        dotty { dotgrid {drawlayergriddots} {drawlayerdots} ifelse } {drawlayer} ifelse
     } forall
 
     %

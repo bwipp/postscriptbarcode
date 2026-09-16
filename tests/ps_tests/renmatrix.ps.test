@@ -679,6 +679,32 @@
 % gridfit renders without error
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /gridfit true /griddpi 300 >> >> renmatrix true } true isEqual
 
+% dotty gridfit renders without error, as pixel fonts or as paths on the pixel grid
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 72 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 300 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 2400 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 9600 >> >> renmatrix true } true isEqual
+
+% dotty gridfit with inkspread across its whole range
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 300 /inkspread -1 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 300 /inkspread 1 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 2400 /inkspread -1 >> >> renmatrix true } true isEqual
+{ 0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3 /opt << /dotty true /gridfit true /griddpi 2400 /inkspread 1 >> >> renmatrix true } true isEqual
+
+% dotty gridfit with inkspread many modules wide, from a small X-dimension, is limited to a module
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3
+        /strictspec true /xdim 0.00001 /xmin -1 /xmax -1 /modunit 2
+        /opt << /dotty true /gridfit true /griddpi 9600 /inkspread -1 >>
+    >> renmatrix true
+} true isEqual
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 1 0 1 0 1 0 1] /pixx 3 /pixy 3
+        /strictspec true /xdim 0.00001 /xmin -1 /xmax -1 /modunit 2
+        /opt << /dotty true /gridfit true /griddpi 9600 /inkspread 1 >>
+    >> renmatrix true
+} true isEqual
+
 % griddpi validation
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /griddpi 10 >> >> renmatrix } /bwipp.renderBadGriddpi isError
 { 0 0 moveto << /ren /renmatrix /pixs [1] /pixx 1 /pixy 1 /opt << /griddpi 10000 >> >> renmatrix } /bwipp.renderBadGriddpi isError
