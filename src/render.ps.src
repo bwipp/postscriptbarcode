@@ -997,6 +997,86 @@ begin
 } bind def
 
 %
+%  Exposed edges of pixel shapes are moved this far towards their dark side so
+%  that no edge lies on a pixel boundary: far above the coordinate error of a
+%  decimal vector intermediate, far below any coverage rule's threshold
+%
+/render.pixelinset 1 16 div def
+
+%
+%  Largest integer whose square is less than q, exact at any real precision
+%
+/render.isqrtlt {  % q => m, for q > 0
+    dup sqrt floor cvi
+    {  % loop
+        dup dup mul 2 index lt { exit } if
+        1 sub
+    } loop
+    {  % loop
+        dup 1 add dup mul 2 index ge { exit } if
+        1 add
+    } loop
+    exch pop
+} bind def
+
+%
+%  Rectangles painting a pixel font within its cell: the bands of equal width
+%  rows, each inset where it is exposed and reaching a row into a wider
+%  neighbour so that bands meet without seams. The font gives the first dark
+%  column of each row, or null, is symmetric about its middle row, and its
+%  rows end at column span - 1 - first. Row 0 lies at cell row y0.
+%
+%  font span y0 => [x y w h ...]
+%
+/render.fontrects {
+
+    12 dict begin
+
+    /y0 exch def
+    /span exch def
+    /font exch def
+
+    /n font length def
+    /jmin 0 def
+    {  % loop
+        jmin n eq { exit } if
+        font jmin get null ne { exit } if
+        /jmin jmin 1 add def
+    } loop
+    /jmax n 1 sub jmin sub def
+
+    [
+    jmin jmax le {
+        /lo font jmin jmax jmin sub 1 add getinterval def
+        /r 0 def
+        {  % loop
+            r lo length ge { exit } if
+            /l lo r get def
+            /b r def
+            {  % loop
+                b 1 add lo length ge { exit } if
+                lo b 1 add get l ne { exit } if
+                /b b 1 add def
+            } loop
+            l //render.pixelinset add                                       % x
+            r jmin add y0 add                                               % Bottom
+            l r 0 eq { span } { lo r 1 sub get } ifelse lt                  % Wider than the band below
+            { //render.pixelinset } { -1 } ifelse add                       % y
+            span l 2 mul sub //render.pixelinset 2 mul sub                  % width
+            b 1 add jmin add y0 add                                         % Top
+            l b lo length 1 sub eq { span } { lo b 1 add get } ifelse lt    % Wider than the band above
+            { //render.pixelinset neg } { 1 } ifelse add
+            2 index sub                                                     % height
+            /r b 1 add def
+        } loop
+    } if
+    ]
+
+    end
+
+} bind def
+
+%
 %  Apply defaults from global context for properties common to all encoders
 %  Guarded by _dontdraw so sub-encoders do not re-read global defaults
 %
@@ -1249,6 +1329,9 @@ begin
     /validatetextoptions       //render.validatetextoptions
     /gridfit                   //render.gridfit
     /gridsetup                 //render.gridsetup
+    /pixelinset                //render.pixelinset
+    /isqrtlt                   //render.isqrtlt
+    /fontrects                 //render.fontrects
     /global_encoder_defaults   //render.global_encoder_defaults
     /global_renderer_defaults  //render.global_renderer_defaults
     /validate_common           //render.validate_common

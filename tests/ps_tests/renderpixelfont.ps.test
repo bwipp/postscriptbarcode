@@ -1,0 +1,31 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Largest integer whose square is less than q, including either side of a
+% perfect square beyond the exact range of single precision reals
+%
+{ [ [ 1 2 4 5 16 17 2147395600 2147395601 ] { /isqrtlt render } forall ] } [ 0 1 1 2 3 4 46339 46340 ] isEqual
+
+%
+% Rectangles of a disc of diameter 4 in a 4 pixel cell: exposed edges inset,
+% narrower bands reach a row into the wider band
+%
+{ [ 1 0 0 1 ] 4 0 /fontrects render } [ 1.0625 0.0625 1.875 1.9375  0.0625 1.0625 3.875 1.875  1.0625 2 1.875 1.9375 ] isEqual
+
+%
+% Empty rows are skipped and the cell is offset by y0
+%
+{ [ null 0 null ] 1 5 /fontrects render } [ 0.0625 6.0625 0.875 0.875 ] isEqual
+
+%
+% An empty font has no rectangles
+%
+{ [ null null ] 2 0 /fontrects render } [ ] isEqual
