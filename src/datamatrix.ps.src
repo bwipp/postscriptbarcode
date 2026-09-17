@@ -309,33 +309,23 @@ begin
 } {pop} ifelse
 
 %
-% Function to calculate the product in the field
-%
-/datamatrix.rsprod {
-    dup 0 ne { 1 index 0 ne {
-        rslog exch get exch rslog exch get add rsalog exch get
-    } { pop pop 0 } ifelse } { pop pop 0 } ifelse
-} bind def
-
-%
 % Generate Reed-Solomon coefficients for a given k
 %
 /datamatrix.gencoeffs {
     /coeffs [ 1 k {0} repeat ] def
     1 1 k {  % i
         coeffs 1 index 2 copy 1 sub get put      % coeffs[i] = coeffs[i-1]
-        rsalog 1 index get                       % ai = rsalog[i]
-        exch 1 sub -1 1 {  % j
+        dup 1 sub -1 1 {  % j
             coeffs exch 2 copy get               % ... coeffs j coeffs[j]
-            3 index                              % ... ai
-            //datamatrix.rsprod exec             % p = coeffs[j] * ai
+            rslog exch get 3 index add           % ... log(coeffs[j]) + i
+            rsalog exch get                      % p = coeffs[j] * ai
             coeffs 2 index 1 sub get             % ... coeffs[j-1]
             xor put                              % coeffs[j] = p ^ coeffs[j-1]
         } for
         coeffs 0 2 copy get                      % ... coeffs 0 coeffs[0]
-        3 index                                  % ... ai
-        //datamatrix.rsprod exec put             % coeffs[0] = coeffs[0] * ai
-        pop  % ai
+        rslog exch get 3 index add               % ... log(coeffs[0]) + i
+        rsalog exch get put                      % coeffs[0] = coeffs[0] * ai
+        pop  % i
     } for
     %
     % Deliver the coefficients reversed and in the log domain, with -1
