@@ -51,6 +51,20 @@
     295 453 194 333 987 290 512 656 400 572 1023 179
 ] debugIsEqual
 
+% ECC check: full layers=23 uses bpcw=12 (GF 4096).
+% Input is 2000 'A' characters; eclevel=5 leaves 86 ECC codewords.
+/az23data 2000 string def 0 1 1999 { az23data exch 65 put } for
+{
+    az23data (format=full layers=23 eclevel=5 debugecc) azteccode
+} [
+    1093 1641 1545 2250 1614 1622 1043 1518 2850 686 973 2578 701 2402 855
+    327 3690 475 783 2286 2077 1996 2491 3680 3398 1725 1082 3687 3013 931
+    2613 1319 987 844 142 2576 1275 2932 699 398 1377 1688 3117 1107 2447
+    337 1701 4089 1743 3381 2732 1532 144 2397 3344 1255 3452 795 2807 2129
+    2110 561 999 3612 208 2964 2522 1690 4079 4079 3613 920 738 1252 2681
+    2282 2577 2763 1214 25 547 1321 2485 3573 3249 1585
+] debugIsEqual
+
 % ECC check: rune format has no main-cws ECC pass (ncws=0), so empty array.
 { (42) (format=rune debugecc) azteccode } [] debugIsEqual
 
