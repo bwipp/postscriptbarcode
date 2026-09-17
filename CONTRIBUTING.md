@@ -19,7 +19,7 @@ These must be followed, otherwise you must be prepared to defend your choices:
 
 - Create atomic, logical commits that complete one task.
 - If a file is updated then its copyright date should be bumped. Ensure that the current year is used.
-- Create an entry in CHANGES for each user-visible change. If the current change block has been published, create a new block dated "XXXX-XX-XX". Observe the layout and style of pre-existing contents.
+- Create an entry in CHANGES for each user-visible change, one line per distinct user-visible impact: a fix that both stops an error and corrects output gets two lines. If the current change block has been published, create a new block dated "XXXX-XX-XX". Observe the layout and style of pre-existing contents.
 - Unless the changes are tiny and consistent, there should be one commit per updated resource.
 - Use sparse comments explaining "why" not "how".
 - Ensure that code comments describe only the current code and do not reference changes made with respect to old code - that's what commit descriptions are for.
