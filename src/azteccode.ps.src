@@ -942,8 +942,47 @@ begin
     and { /bwipp.debugbits msgbits //raiseerror exec } if
 
     %
+    % Expand message bits into codewords of bpcw bits avoiding codewords with all zeros or all ones
+    %
+    /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} def
+    /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} def
+    /tocws {
+        /cws msgbits length bpcw 1 sub idiv 1 add array def  % Each codeword takes at least bpcw-1 bits
+        /m 0 def /c 0 def
+        {
+            msgbits length m le {exit} if
+            msgbits length m sub bpcw ge {
+                /cwb msgbits m bpcw 1 sub getinterval def        % All but last bit
+                /cwf msgbits m bpcw add 1 sub 1 getinterval def  % Last bit
+                cwb allzero {/cwf (1) def /m m 1 sub def} if     % Flip last bit to avoid zeros
+                cwb allones {/cwf (0) def /m m 1 sub def} if     % Flip last bit to avoid ones
+                % Concatenate the bits
+                12 string dup 0 cwb putinterval
+                dup bpcw 1 sub cwf putinterval
+                0 bpcw getinterval
+                /cwb exch def
+            } {  %  Final codeword
+                /cwb msgbits m msgbits length m sub getinterval def
+                /cwb (111111111111) 12 string copy dup 0 cwb putinterval 0 bpcw getinterval def
+                cwb allones {cwb cwb length 1 sub (0) putinterval} if  % Prevent all ones
+            } ifelse
+            % Conversion of binary data into byte array
+            /cw 0 def
+            0 1 bpcw 1 sub {
+                /i exch def
+                /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
+            } for
+            cws c cw put
+            /m m bpcw add def
+            /c c 1 add def
+        } loop
+        cws 0 c getinterval
+    } def
+
+    %
     % Lookup the most appropriate symbol specification
     %
+    /stuffedbpcw -1 def
     //azteccode.metrics {
         /m exch def
         /frmt m 0 get def                          % Format of the symbol
@@ -959,6 +998,10 @@ begin
         readerinit icap 1 ne and {/okay false def} if
         layers -1 ne layers mlyr ne and {/okay false def} if
         msgbits length bpcw div ceiling cvi numdcw gt {/okay false def} if
+        okay {  % Bit stuffing may add codewords
+            stuffedbpcw bpcw ne {/stuffed tocws def /stuffedbpcw bpcw def} if
+            stuffed length numdcw gt {/okay false def} if
+        } if
         okay {exit} if
     } forall
 
@@ -967,42 +1010,7 @@ begin
     } if
 
     /layers mlyr def
-
-    %
-    % Expand message bits into codewords avoiding codewords with all zeros or all ones
-    %
-    /allzero {dup length (000000000000) 0 3 -1 roll getinterval eq} def
-    /allones {dup length (111111111111) 0 3 -1 roll getinterval eq} def
-    /cws ncws array def
-    /m 0 def /c 0 def
-    {
-        msgbits length m le {exit} if
-        msgbits length m sub bpcw ge {
-            /cwb msgbits m bpcw 1 sub getinterval def        % All but last bit
-            /cwf msgbits m bpcw add 1 sub 1 getinterval def  % Last bit
-            cwb allzero {/cwf (1) def /m m 1 sub def} if     % Flip last bit to avoid zeros
-            cwb allones {/cwf (0) def /m m 1 sub def} if     % Flip last bit to avoid ones
-            % Concatenate the bits
-            12 string dup 0 cwb putinterval
-            dup bpcw 1 sub cwf putinterval
-            0 bpcw getinterval
-            /cwb exch def
-        } {  %  Final codeword
-            /cwb msgbits m msgbits length m sub getinterval def
-            /cwb (111111111111) 12 string copy dup 0 cwb putinterval 0 bpcw getinterval def
-            cwb allones {cwb cwb length 1 sub (0) putinterval} if  % Prevent all ones
-        } ifelse
-        % Conversion of binary data into byte array
-        /cw 0 def
-        0 1 bpcw 1 sub {
-            /i exch def
-            /cw cw 2 bpcw i sub 1 sub exp cvi cwb i get 48 sub mul add def
-        } for
-        cws c cw put
-        /m m bpcw add def
-        /c c 1 add def
-    } loop
-    /cws cws 0 c getinterval def
+    /cws stuffed def
 
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
