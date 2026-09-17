@@ -948,6 +948,11 @@
 % Bit stuffing selects a larger symbol
 { 24 string (format=compact eclevel=5 dontdraw) azteccode /pixx get } 23 isEqual
 
+% Compact mode message counts at most 64 data codewords
+/azc4data 104 string def 0 1 103 { azc4data exch 65 put } for
+{ azc4data 0 102 getinterval (format=compact layers=4 eclevel=5 dontdraw) azteccode /pixx get } 27 isEqual  % 64 data codewords
+azc4data (format=compact layers=4 eclevel=5 dontdraw) /bwipp.aztecNoValidSymbol er_tmpl  % 65 data codewords
+
 % Large binary input that requires segment splitting
 { 2100 string 0 1 2099 { 1 index exch 128 put } for (dontdraw) azteccode } /bwipp.aztecNoValidSymbol isError
 

@@ -993,6 +993,7 @@ begin
         /numecw ncws eclevel mul 100 div ecaddchars add ceiling cvi def
         msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords
         /numdcw ncws numecw sub def                % Data codewords
+        frmt (compact) eq numdcw 64 gt and {/numdcw 64 def} if  % Compact mode message counts at most 64
         /okay true def
         format frmt ne {/okay false def} if
         readerinit icap 1 ne and {/okay false def} if
