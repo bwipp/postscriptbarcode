@@ -28,9 +28,9 @@ $ErrorActionPreference = "Continue"
 $test = $PSScriptRoot
 $root = (Resolve-Path (Join-Path $test "..\..")).Path
 if (-not $Monolithic) { $Monolithic = Join-Path $root "build\monolithic\barcode.ps" }
-$testsdir   = Join-Path $root "tests\ps_tests"
-$testutils  = Join-Path $testsdir "test_utils.ps"
-$fontalias  = Join-Path $test "fontalias.ps"
+$testsdir = Join-Path $root "tests\ps_tests"
+$testutils = Join-Path $testsdir "test_utils.ps"
+$fontalias = Join-Path $test "fontalias.ps"
 
 # Treat a missing or bogus path as "interpreter not available" and skip.
 if (-not $Distiller -or -not (Test-Path $Distiller)) {
@@ -49,8 +49,8 @@ $skipset = @($Skip -split '\s+' | Where-Object { $_ })
 $work = Join-Path $env:TEMP ("distiller_tests_" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 
-$faF = $fontalias  -replace '\\','/'
-$tuF = $testutils  -replace '\\','/'
+$faF = $fontalias -replace '\\','/'
+$tuF = $testutils -replace '\\','/'
 $moF = $Monolithic -replace '\\','/'
 
 $files = Get-ChildItem (Join-Path $testsdir "$Filter.ps.test") | Sort-Object Name
@@ -76,13 +76,15 @@ try {
 
         $sw = [Diagnostics.Stopwatch]::StartNew()
         $p = Start-Process -FilePath $Distiller -ArgumentList "/N","/Q",$drv `
-                 -PassThru -WorkingDirectory $distdir -WindowStyle Hidden
+            -PassThru -WorkingDirectory $distdir -WindowStyle Hidden
         $ok = $p.WaitForExit($Timeout * 1000)
         $sw.Stop()
         $secs = "{0:0.00}" -f $sw.Elapsed.TotalSeconds
 
         if (-not $ok) {
-            try { $p.Kill() } catch {}
+            try { $p.Kill() } catch {
+                Write-Error "Failed to stop timed-out Distiller process for $name"
+            }
             Write-Output "FAIL $name (${secs}s)"
             Write-Output "  timeout after ${Timeout}s"
             $failed++
@@ -94,14 +96,16 @@ try {
             $t -notmatch "testError|stackImbalance|dict leak|global VM leak|%%\[ Error") {
             Write-Output "PASS $name (${secs}s)"
             $pass++
-        } else {
+        }
+        else {
             Write-Output "FAIL $name (${secs}s)"
             ($t -replace "`r","" -split "`n" | Select-Object -Last 40) |
                 ForEach-Object { Write-Output $_ }
             $failed++
         }
     }
-} finally {
+}
+finally {
     Remove-Item $work -Recurse -Force -EA SilentlyContinue
 }
 

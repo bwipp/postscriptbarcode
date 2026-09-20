@@ -50,12 +50,12 @@ pwsh tests/distiller_tests/run.ps1 `
 ```
 
 | `run.ps1` parameter | Default          | Purpose                          |
-|---------------------|------------------|----------------------------------|
-| `-Distiller`        | `$env:ACRODIST`  | path to `acrodist.exe`            |
-| `-Monolithic`       | repo build path  | built `barcode.ps`                |
-| `-Timeout`          | `900`            | per-file timeout in seconds       |
-| `-Skip`             | *(empty)*        | test names to skip                |
-| `-Filter`           | `*`              | restrict to matching test names   |
+| ------------------- | ---------------- | -------------------------------- |
+| `-Distiller`        | `$env:ACRODIST`  | path to `acrodist.exe`           |
+| `-Monolithic`       | repo build path  | built `barcode.ps`               |
+| `-Timeout`          | `900`            | per-file timeout in seconds      |
+| `-Skip`             | *(empty)*        | test names to skip               |
+| `-Filter`           | `*`              | restrict to matching test names  |
 
 Prints `PASS`/`FAIL`/`SKIP` per file with a summary, and exits non-zero on
 failure.
