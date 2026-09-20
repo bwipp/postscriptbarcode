@@ -35,7 +35,10 @@ ROOT=$(cd "$HERE/../.." && pwd)
 MONO="$ROOT/build/monolithic/barcode.ps"
 PSDIR="$ROOT/tests/ps_tests"
 
-[ -f "$MONO" ] || { echo "error: missing $MONO (run: make monolithic)" >&2; exit 1; }
+[ -f "$MONO" ] || {
+	echo "error: missing $MONO (run: make monolithic)" >&2
+	exit 1
+}
 
 # Reachability: skip cleanly rather than fail the caller if the host is down.
 if ! ssh -o BatchMode=yes -o ConnectTimeout=10 "$HOST" "exit" >/dev/null 2>&1; then
@@ -50,7 +53,10 @@ psh "New-Item -ItemType Directory -Force -Path '$REMOTE_DIR/tests/distiller_test
 # Provision a portable Distiller when a source is supplied and it is absent
 # (or FORCE is set).
 if [ -n "$DIST_SRC" ]; then
-	[ -f "$DIST_SRC/acrodist.exe" ] || { echo "error: $DIST_SRC has no acrodist.exe" >&2; exit 1; }
+	[ -f "$DIST_SRC/acrodist.exe" ] || {
+		echo "error: $DIST_SRC has no acrodist.exe" >&2
+		exit 1
+	}
 	present=$(psh "Test-Path '$ACRODIST'" | tr -d '\r')
 	if [ "$present" != "True" ] || [ -n "$FORCE" ]; then
 		echo "Provisioning Distiller -> $REMOTE_DIR/Distiller"
