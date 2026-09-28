@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Barcode Writer in Pure PostScript
+# https://bwipp.terryburton.co.uk
+#
+# Copyright (c) 2026 Terry Burton
+
+set -e
+set -u
+set -o pipefail
+
+TEST=$(dirname "$0")
+
+echo -n "Running $TEST: "
+
+if problems=$(perl "$TEST/check_requires.pl"); then
+	echo "PASS"
+	exit 0
+else
+	echo "FAIL"
+	echo "$problems"
+	exit 1
+fi
