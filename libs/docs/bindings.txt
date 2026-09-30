@@ -7,7 +7,7 @@
 Public API for the libpostscriptbarcode bindings that provide an object oriented interface to
 Barcode Writer in Pure PostScript.
 
-Bindings are available for [C++](@ref cpp), [Java](@ref java), [Perl](@ref perl), [Python](@ref python) and [Ruby](@ref ruby).
+Bindings are available for [C++](@ref cpp), [Java](@ref java), [Lua](@ref lua), [Perl](@ref perl), [Python](@ref python) and [Ruby](@ref ruby).
 
 The methods of each binding relate to an equivalent C library function as follows:
 
@@ -87,6 +87,22 @@ example.java:
       }
     
     }
+
+
+\subsection lua Lua
+
+The Lua binding uses the LuaJIT FFI, so requires LuaJIT (or OpenResty) rather
+than PUC Lua. Methods return nil where the C library returns NULL, and the
+constructor returns nil and a message when loading fails.
+
+example.lua:
+
+    local bwipp = require("postscriptbarcode")
+
+    local ctx = assert(bwipp.new{filename = "/path/to/barcode.ps", lazy_load = true})
+    print("Version: " .. ctx:get_version())
+    local _, lines = ctx:emit_all_resources():gsub("\n", "")
+    print("Lines: " .. lines)
 
 
 \subsection perl Perl
