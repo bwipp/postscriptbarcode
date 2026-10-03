@@ -737,7 +737,7 @@ begin
 %
 /render.resolve_strictspec {
     % Validate spec mode mutual exclusivity (outermost encoder only)
-    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+    /uk.co.terryburton.bwipp._nested dup where {exch get} {pop false} ifelse not {
         strictspec loosespec and {
             /bwipp.renderSpecModeMutex (strictspec and loosespec are mutually exclusive) //raiseerror exec
         } if
@@ -750,7 +750,7 @@ begin
     } if
     loosespec { /strictspec true def } if
     % Validate spec options are not orphaned (outermost encoder only)
-    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+    /uk.co.terryburton.bwipp._nested dup where {exch get} {pop false} ifelse not {
         strictspec not {
             xdim -1 ne {
                 /bwipp.renderOrphanedXdim (xdim requires strictspec or loosespec) //raiseerror exec
@@ -769,7 +769,7 @@ begin
         } if
     } if
     strictspec {
-        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+        /uk.co.terryburton.bwipp._nested dup where {exch get} {pop false} ifelse not {
             currentdict /height known { height -1.0 ne } { false } ifelse
             currentdict /width known { width 0 ne } { false } ifelse
             or {
@@ -1078,10 +1078,10 @@ begin
 
 %
 %  Apply defaults from global context for properties common to all encoders
-%  Guarded by _dontdraw so sub-encoders do not re-read global defaults
+%  Guarded by _nested so sub-encoders do not re-read global defaults
 %
 /render.global_encoder_defaults {
-    /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse not {
+    /uk.co.terryburton.bwipp._nested dup where {exch get} {pop false} ifelse not {
         /uk.co.terryburton.bwipp.global_ctx dup where {
             exch get
             dup /loosespec  2 copy known { get { /loosespec  true def } if } { pop pop } ifelse

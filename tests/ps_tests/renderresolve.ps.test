@@ -510,7 +510,20 @@
 } [true true] isEqual
 
 %
-% global_encoder_defaults: suppressed by _dontdraw (sub-encoder)
+% global_encoder_defaults: suppressed by _nested (sub-encoder)
+%
+{
+    8 dict begin
+    /propspec false def /loosespec false def /strictspec false def
+    /uk.co.terryburton.bwipp.global_ctx << /loosespec true /propspec true >> def
+    /uk.co.terryburton.bwipp._nested true def
+    /global_encoder_defaults render
+    strictspec propspec loosespec 3 array astore
+    end
+} [false false false] isEqual
+
+%
+% global_encoder_defaults: not suppressed by _dontdraw (host requesting the structure)
 %
 {
     8 dict begin
@@ -520,7 +533,7 @@
     /global_encoder_defaults render
     strictspec propspec loosespec 3 array astore
     end
-} [false false false] isEqual
+} [false true true] isEqual
 
 %
 % global_encoder_defaults: not suppressed without _dontdraw
@@ -694,14 +707,139 @@
 } [true] isEqual
 
 %
-% Orphaned option validation: suppressed by _dontdraw (sub-encoder)
+% Orphaned option validation: suppressed by _nested (sub-encoder)
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested true def
+    /resolve_strictspec render
+    true 1 array astore
+    end
+} [true] isEqual
+
+%
+% Orphaned option validation: not suppressed by _dontdraw (host requesting the structure)
 %
 {
     9 dict begin
     /strictspec false def /propspec false def /loosespec false def
     /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
     /uk.co.terryburton.bwipp._dontdraw true def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedXdim isError
+
+%
+% Orphaned option validation: _nested false is not suppression
+%
+{
+    9 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested false def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedXdim isError
+
+%
+% Orphaned ast: suppressed by _nested (sub-encoder)
+%
+{
+    10 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested true def
     /resolve_strictspec render
     true 1 array astore
     end
 } [true] isEqual
+
+%
+% Orphaned ast: not suppressed by _dontdraw (host requesting the structure)
+%
+{
+    10 dict begin
+    /strictspec false def /propspec false def /loosespec false def
+    /mag 1.0 def /xdim -1.0 def /ast (gs1.sst1) def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderOrphanedAST isError
+
+%
+% Spec mode mutex: suppressed by _nested (sub-encoder)
+%
+{
+    9 dict begin
+    /strictspec true def /loosespec false def /propspec true def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested true def
+    /resolve_strictspec render
+    xdim 1 array astore
+    end
+} [0.500] isEqual
+
+%
+% Spec mode mutex: not suppressed by _dontdraw (host requesting the structure)
+%
+{
+    9 dict begin
+    /strictspec true def /loosespec false def /propspec true def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderSpecModeMutex isError
+
+%
+% strictspec with height: suppressed by _nested (sub-encoder)
+%
+{
+    10 dict begin
+    /strictspec true def /loosespec false def /propspec false def /height 0.5 def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested true def
+    /resolve_strictspec render
+    strictspec xdim 2 array astore
+    end
+} [true 0.500] isEqual
+
+%
+% strictspec with height: not suppressed by _dontdraw (host requesting the structure)
+%
+{
+    10 dict begin
+    /strictspec true def /loosespec false def /propspec false def /height 0.5 def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    { /resolve_strictspec render } stopped { end stop } if
+    end
+} /bwipp.renderStrictspecDimOverride isError
+
+%
+% loosespec with width: spec mode kept under _nested (sub-encoder)
+%
+{
+    10 dict begin
+    /strictspec false def /loosespec true def /propspec false def /width 1.0 def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._nested true def
+    /resolve_strictspec render
+    strictspec loosespec 2 array astore
+    end
+} [true true] isEqual
+
+%
+% loosespec with width: spec mode dropped under _dontdraw (host requesting the structure)
+%
+{
+    10 dict begin
+    /strictspec false def /loosespec true def /propspec false def /width 1.0 def
+    /mag 1.0 def /xdim 0.500 def /xnom -1.0 def /xmin -1.0 def /xmax -1.0 def
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /resolve_strictspec render
+    strictspec loosespec 2 array astore
+    end
+} [false false] isEqual

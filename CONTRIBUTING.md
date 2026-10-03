@@ -436,6 +436,23 @@ modified options:
 barcode options //innerencoder exec /args exch def
 ```
 
+Before delegating, the wrapper defines markers in its own dictionary, which
+the inner encoder finds with `where` and which vanish with the wrapper's `end`:
+
+```postscript
+/uk.co.terryburton.bwipp._dontdraw true def  % Return the structure; do not render
+/uk.co.terryburton.bwipp._nested true def    % Skip outermost-only work
+barcode options //innerencoder exec /args exch def
+```
+
+`_dontdraw` means only "return the structure", so a host may set it to encode
+once and render the structure itself. `_nested` suppresses the work that
+belongs to the outermost encoder: reading global spec defaults and validating
+the combination of spec options. Only a wrapper that does that work itself
+sets `_nested`; a wrapper that passes the options through sets only
+`_dontdraw`, leaving the work to the inner encoder. A host must not set
+`_nested`.
+
 
 ### Implementation Limit Guards
 
@@ -724,7 +741,7 @@ naturally pixel-locked.
 All three modes (`strictspec`, `propspec`, `loosespec`) can be set per-symbol
 via options or globally via `global_ctx`. Each encoder reads global
 defaults via the `global_encoder_defaults` dispatch helper, guarded by
-`_dontdraw` so that sub-encoders called by wrappers do not re-read
+`_nested` so that sub-encoders called by wrappers do not re-read
 global defaults. Typical global configurations:
 
 ```postscript
@@ -750,7 +767,7 @@ is not found, `default` silently passes; non-default profiles error.
 **Helpers in render (dispatch table):**
 
 - `global_encoder_defaults` — reads `loosespec`, `strictspec`, `propspec` from
-  `global_ctx` when local values are false; guarded by `_dontdraw` to
+  `global_ctx` when local values are false; guarded by `_nested` to
   prevent sub-encoders from re-reading. `loosespec` implies `strictspec`.
 - `global_renderer_defaults` — reads `default_barcolor`,
   `default_backgroundcolor`, `default_bordercolor`, `default_inkspread`,
@@ -832,10 +849,13 @@ that have their own AST entry must:
    height -1.0 eq { propspec hnom -1 ne and not { /height <default> def } if } if
    ```
 
+Such wrappers also set `_nested` before calling the inner encoder.
+
 Simple wrappers without their own AST (code32, hibccode128, etc.) need no
-spec handling — options flow through transparently. Their `height` should
-default to -1.0 (sentinel) so propspec/strictspec can derive via the inner
-encoder.
+spec handling — options flow through transparently, and since they do not set
+`_nested` the inner encoder reads the global spec defaults and validates the
+spec options. Their `height` should default to -1.0 (sentinel) so
+propspec/strictspec can derive via the inner encoder.
 
 **Composite wrappers** call both a linear encoder and gs1-cc. Spec options
 must reach the linear encoder but NOT gs1-cc (the 2D component has
