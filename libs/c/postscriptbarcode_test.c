@@ -1320,6 +1320,42 @@ static void test_metadata_fmly_property(void) {
 	remove(MOCK_PS);
 }
 
+static void test_metadata_qualified_property(void) {
+	BWIPP *ctx;
+	const char **list;
+	unsigned int count;
+
+	/* Qualified keys: one property per qualifier, value may contain ':' */
+	write_mock_ps(MOCK_PS,
+		"%!PS\n"
+		"% Barcode Writer in Pure PostScript - Version 2099-01-01\n"
+		"% --BEGIN TEMPLATE--\n"
+		"% --BEGIN RESOURCE render--\n"
+		"% --AST app.one: Application one\n"
+		"% --AST app.two: Application two: with a colon\n"
+		"% code\n"
+		"% --END RESOURCE render--\n"
+		"% --END TEMPLATE--\n"
+	);
+	TEST_ASSERT((ctx = load_from(MOCK_PS)) != NULL);
+
+	TEST_CHECK(strcmp(bwipp_get_property(ctx, "render", "AST app.one"),
+			  "Application one") == 0);
+	TEST_CHECK(strcmp(bwipp_get_property(ctx, "render", "AST app.two"),
+			  "Application two: with a colon") == 0);
+	TEST_CHECK(bwipp_get_property(ctx, "render", "AST") == NULL);
+
+	list = bwipp_list_properties(ctx, "render", &count);
+	TEST_ASSERT(list != NULL);
+	TEST_CHECK(count == 3);
+	TEST_CHECK(strcmp(list[1], "AST app.one") == 0);
+	TEST_CHECK(strcmp(list[2], "AST app.two") == 0);
+	bwipp_free((void *)list);
+
+	bwipp_unload(ctx);
+	remove(MOCK_PS);
+}
+
 
 /* ========================================================================
  *  Integration tests for new API (real barcode.ps)
@@ -1547,6 +1583,25 @@ static void test_real_list_family_members(void) {
 
 	/* Unknown family */
 	TEST_CHECK(bwipp_list_family_members(ctx, "Nonexistent", NULL) == NULL);
+
+	bwipp_unload(ctx);
+}
+
+static void test_real_ast_properties(void) {
+	BWIPP *ctx;
+	const char *desc;
+
+	ctx = load_from(BARCODE_PS);
+	if (!ctx) {
+		TEST_MSG("Skipped: %s not found", BARCODE_PS);
+		return;
+	}
+
+	desc = bwipp_get_property(ctx, "render", "AST gs1.sst2");
+	TEST_ASSERT(desc != NULL);
+	TEST_CHECK(strncmp(desc, "GS1 SST 2: ", 11) == 0);
+
+	TEST_CHECK(bwipp_get_property(ctx, "d3aqr", "AST 15") != NULL);
 
 	bwipp_unload(ctx);
 }
@@ -2806,6 +2861,7 @@ TEST_LIST = {
 	{"meta_not_outside_resource",        test_metadata_not_parsed_outside_resource},
 	{"meta_after_requires",              test_metadata_after_requires},
 	{"meta_fmly_property",               test_metadata_fmly_property},
+	{"meta_qualified_property",          test_metadata_qualified_property},
 
 	/* List families */
 	{"list_families_basic",              test_list_families_basic},
@@ -2868,6 +2924,7 @@ TEST_LIST = {
 	{"real_all_encoders_have_fmly",      test_real_all_encoders_have_fmly},
 	{"real_list_families",               test_real_list_families},
 	{"real_list_family_members",         test_real_list_family_members},
+	{"real_ast_properties",              test_real_ast_properties},
 
 	/* Lazy loading */
 	{"lazy_load_mock",                   test_lazy_load_mock},

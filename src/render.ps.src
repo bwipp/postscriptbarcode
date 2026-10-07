@@ -33,6 +33,25 @@
 
 % --BEGIN RESOURCE render--
 % --REQUIRES preamble raiseerror setuphooks processoptions setanycolor--
+% --AST gs1.sst1: GS1 SST 1: Trade items scanned in general retail POS and not general distribution
+% --AST gs1.sst1.ai8200: GS1 SST 1 addendum 1: 2D barcodes carrying AI (8200) on general retail trade items
+% --AST gs1.sst1.dl: GS1 SST 1 addendum 2: 2D barcodes, including GS1 Digital Link URIs, on retail trade items scanned at POS
+% --AST gs1.sst2: GS1 SST 2: Trade items scanned in general distribution only
+% --AST gs1.sst3: GS1 SST 3: Trade items scanned at general retail POS and general distribution
+% --AST gs1.sst4: GS1 SST 4: Trade items not scanned at POS or general retail, nor in general distribution or regulated healthcare
+% --AST gs1.sst5: GS1 SST 5: Logistic units scanned in general distribution
+% --AST gs1.sst6: GS1 SST 6: Regulated healthcare non-retail consumer trade items not scanned in general distribution
+% --AST gs1.sst7: GS1 SST 7: Direct part marking
+% --AST gs1.sst7.dpm.a: GS1 SST 7: Direct part marking A, connected finder modules (e.g. laser or chemical etching)
+% --AST gs1.sst7.dpm.b: GS1 SST 7: Direct part marking B, non-connected finder modules (e.g. dot peen)
+% --AST gs1.sst8: GS1 SST 8: Trade items scanned in retail or non-retail pharmacy and general distribution
+% --AST gs1.sst9: GS1 SST 9: GS1 keys GDTI, GRAI, GIAI and GLN
+% --AST gs1.sst10: GS1 SST 10: Regulated healthcare retail consumer trade items not scanned in general distribution
+% --AST gs1.sst11: GS1 SST 11: GS1 GSRNs
+% --AST gs1.sst12.trade: GS1 SST 12: EU Regulation 2018/574 tobacco traceability, unit packs
+% --AST gs1.sst12.group: GS1 SST 12: EU Regulation 2018/574 tobacco traceability, aggregations of unit packs
+% --AST gs1.sst12.logistic: GS1 SST 12: EU Regulation 2018/574 tobacco traceability, logistic units
+% --AST gs1.sst13: GS1 SST 13: Durable labelling and durable marking enabling long distance scanning
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
@@ -424,6 +443,9 @@ begin
 %  GS1 General Specifications, Release 26.0, section 5.12.3. Where those tables
 %  print a different minimum height for the same symbol and X-dimension, the
 %  common value is used.
+%
+%  Each profile is described by an AST metadata comment in the header of this
+%  resource, or of the encoder for a profile that only one encoder defines.
 %
 /render.ast <<
 
