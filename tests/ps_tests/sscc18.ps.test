@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /sscc18 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -30,3 +30,27 @@
 ((00)0952876543210123)    /bwipp.sscc18badLength      er_tmpl
 ((00)0952876543210123A)   /bwipp.sscc18badCharacter   er_tmpl
 ((01)095287654321012345)  /bwipp.sscc18badAI          er_tmpl
+
+
+%
+% Spec options: the GS1-128 ASTs
+%
+
+% gs1.sst5: xdim resolves from xnom; bounds and height from the AST
+{
+    (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst5) sscc18 dup /xdim get exch dup /xmin get exch /xmax get 3 array astore
+} [0.495 0.495 0.940] isEqual
+{ 0 0 moveto (\(00\)095287654321012346) (strictspec ast=gs1.sst5) sscc18 true } true isEqual
+
+% mag scales the height with the X-dimension, as for GS1-128
+{
+    (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst5 mag=1.5) sscc18 /bhs get 0 get
+    (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst5 mag=1.5) /gs1-128 /uk.co.terryburton.bwipp findresource exec /bhs get 0 get
+    eq
+} true isEqual
+
+{ (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst1) sscc18 } /bwipp.renderUnknownAST isError
+{ (\(00\)095287654321012346) (dontdraw strictspec xdim=0.100) sscc18 } /bwipp.renderXdimTooSmall isError
+{ (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst5 width=2) sscc18 } /bwipp.renderStrictspecDimOverride isError
+{ (\(00\)095287654321012346) (dontdraw strictspec ast=gs1.sst5 height=0.5) sscc18 } /bwipp.renderStrictspecDimOverride isError
+{ (\(00\)095287654321012346) (dontdraw ast=gs1.sst5) sscc18 } /bwipp.renderOrphanedAST isError

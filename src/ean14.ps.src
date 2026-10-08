@@ -41,15 +41,16 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-4 dict
+5 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
 dup /code128 dup /uk.co.terryburton.bwipp findresource put
 begin
 /ean14 {
 
-    16 dict begin
+    32 dict begin
     {
 
     /dontdraw false def
@@ -59,8 +60,22 @@ begin
     /text1xoffset 0.0 def
     /text1yoffset -7.0 def
     /height -1.0 def
+    /width 0 def
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
 
     null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
     /barcode exch def
 
     /_render
@@ -126,11 +141,30 @@ begin
     barcode 7 gtin putinterval
 
     %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ean14 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
     % Get the result of encoding with code128
     %
+    options (height) height put
     options (parsefnc) true put
+    options (propspec) propspec put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
+    options (xdim) xdim put
+    options (ast) undef
+    options (mag) undef
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom dup -1 ne { mag mul } if put  % Magnified, since mag is not passed on
+    options (modunit) modunit put
 
     /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
     barcode options //code128 exec /args exch def
 
     args (txt) [ [text text1xoffset text1yoffset text1font text1size] ] put
