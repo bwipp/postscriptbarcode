@@ -522,13 +522,17 @@ loss resulting from the properties of the printing process or substrate.
 ==== inkspread
 
 For linear barcodes, the amount by which to reduce the bar widths to
-compensate for inkspread, in points.
+compensate for inkspread, as a fraction of the X-dimension.
 
 For matrix barcodes, the amount by which to reduce the width and height
-of dark modules to compensate for inkspread, in points.
+of dark modules to compensate for inkspread, as a fraction of the module
+size.
 
 For MaxiCode, the amount by which to reduce the width and height of
-hexagons to compensate for inkspread, in points.
+hexagons and the thickness of the finder pattern rings to compensate for
+inkspread, as a fraction of the module pitch. The hexagons are drawn
+0.12mm narrower than the module pitch, as the specification requires,
+before any inkspread is applied.
 
 ===== Notes
 
@@ -584,6 +588,10 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 For matrix barcodes, render the modules as dots rather than squares. The
 dot radius can be adjusted using the *inkspread* option.
+
+When <<_gridfit,gridfit>> is enabled, each dot is a disc of whole device
+pixels: the largest that keeps diagonally adjacent dots apart, reduced
+by the inkspread.
 
 ===== Example
 

@@ -497,11 +497,15 @@ print loss resulting from the properties of the printing process or
 substrate.</p>
 <h3 id="inkspread">inkspread</h3>
 <p>For linear barcodes, the amount by which to reduce the bar widths to
-compensate for inkspread, in points.</p>
+compensate for inkspread, as a fraction of the X-dimension.</p>
 <p>For matrix barcodes, the amount by which to reduce the width and
-height of dark modules to compensate for inkspread, in points.</p>
+height of dark modules to compensate for inkspread, as a fraction of the
+module size.</p>
 <p>For MaxiCode, the amount by which to reduce the width and height of
-hexagons to compensate for inkspread, in points.</p>
+hexagons and the thickness of the finder pattern rings to compensate for
+inkspread, as a fraction of the module pitch. The hexagons are drawn
+0.12mm narrower than the module pitch, as the specification requires,
+before any inkspread is applied.</p>
 <h4 id="notes-10">Notes</h4>
 <ul>
 <li>Negative values will increase the bar width.</li>
@@ -536,6 +540,9 @@ Encoder: ultracode</code></pre>
 <p>For matrix barcodes, render the modules as dots rather than squares.
 The dot radius can be adjusted using the <strong>inkspread</strong>
 option.</p>
+<p>When <a href="#gridfit"><strong>gridfit</strong></a> is enabled, each
+dot is a disc of whole device pixels: the largest that keeps diagonally
+adjacent dots apart, reduced by the inkspread.</p>
 <h4 id="example-17">Example</h4>
 <pre><code>Data:    DOTTY
 Options: dotty inkspread=-0.2 height=2 width=2
