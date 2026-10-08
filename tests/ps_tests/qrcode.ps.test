@@ -712,6 +712,13 @@
 % strictspec with xdim below xmin should error
 { (Hello) (dontdraw strictspec xdim=0.100) qrcode } /bwipp.renderXdimTooSmall isError
 
+% strictspec with the renderer's width or height should error
+{ 0 0 moveto (Hello) (strictspec xdim=0.500 width=2) qrcode } /bwipp.renderStrictspecDimOverride isError
+{ 0 0 moveto (Hello) (strictspec xdim=0.500 height=2) qrcode } /bwipp.renderStrictspecDimOverride isError
+
+% loosespec with the renderer's width draws without spec mode
+{ 0 0 moveto (Hello) (loosespec xdim=0.500 width=2) qrcode true } true isEqual
+
 
 %
 % loosespec: falls back when no xnom

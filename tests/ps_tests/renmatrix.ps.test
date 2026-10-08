@@ -779,3 +779,23 @@
         /opt << /gridfit true >>
     >> renmatrix true
 } true isEqual
+
+% strictspec with width or height in the options: error, or no spec mode under loosespec
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 0 1] /pixx 2 /pixy 2
+        /strictspec true /xdim 0.330 /xmin -1 /xmax -1 /modunit 2
+        /opt << /width 2 >>
+    >> renmatrix
+} /bwipp.renderStrictspecDimOverride isError
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 0 1] /pixx 2 /pixy 2
+        /strictspec true /xdim 0.330 /xmin -1 /xmax -1 /modunit 2
+        /opt << /height 2 >>
+    >> renmatrix
+} /bwipp.renderStrictspecDimOverride isError
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 0 1] /pixx 2 /pixy 2
+        /strictspec true /loosespec true /xdim 0.330 /xmin -1 /xmax -1 /modunit 2
+        /opt << /width 2 >>
+    >> renmatrix true
+} true isEqual
