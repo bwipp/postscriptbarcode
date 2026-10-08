@@ -17,7 +17,7 @@
     10 dict begin /uk.co.terryburton.bwipp.report 10 dict def
     gsave 0 0 moveto /uk.co.terryburton.bwipp findresource exec grestore
     [
-        [/fallback /hdim /xdim /xmax /xmin /ydim] {
+        [/fallback /hdim /hnom /xdim /xmax /xmin /ydim] {
             uk.co.terryburton.bwipp.report 1 index known {
                 uk.co.terryburton.bwipp.report 1 index get
                 dup type /nametype ne { 10000 mul round cvi } if
@@ -35,11 +35,26 @@
 { (Hello) () /qrcode report } [] isEqual
 
 % Linear: the specification's dimensions, with the bar height above the baseline
-{ (9520123456788) (strictspec ast=gs1.sst2) /ean13 report } [/hdim 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
-{ (9520123456788) (strictspec ast=gs1.sst2 includetext) /ean13 report } [/hdim 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
+{ (9520123456788) (strictspec ast=gs1.sst2) /ean13 report } [/hdim 457000 /hnom 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
+{ (9520123456788) (strictspec ast=gs1.sst2 includetext) /ean13 report } [/hdim 457000 /hnom 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
 
 % Linear grid-fitted at 300 DPI: 0.330mm -> 3.898 px, round=4, eff=0.3387; height follows
-{ (9520123456788) (strictspec gridfit griddpi=300) /ean13 report } [/hdim 234501 /xdim 3387 /xmax 6600 /xmin 2640] isEqual
+{ (9520123456788) (strictspec gridfit griddpi=300) /ean13 report } [/hdim 234501 /hnom 234501 /xdim 3387 /xmax 6600 /xmin 2640] isEqual
+
+% The specified height, at the specification's magnification: a user hdim falls short of it
+{ (9520123456788) (strictspec ast=gs1.sst1 hdim=18.28) /ean13 report } [/hdim 182800 /hnom 228500 /xdim 3300 /xmax 6600 /xmin 2640] isEqual
+{ (9520123456788) (strictspec ast=gs1.sst1 mag=0.8) /ean13 report } [/hdim 182800 /hnom 182800 /xdim 2640 /xmax 6600 /xmin 2640] isEqual
+{ (9520123456788) (strictspec xdim=0.500) /ean13 report } [/hdim 228500 /hnom 228500 /xdim 5000 /xmax 6600 /xmin 2640] isEqual
+
+% A wrapper's specified height, derived by the encoder that it wraps
+{ ((01)09521234543213) (strictspec ast=gs1.sst5) /gs1-128 report } [/hdim 317500 /hnom 317500 /xdim 4950 /xmax 9400 /xmin 4950] isEqual
+{ ((01)09521234543213) (strictspec ast=gs1.sst5 hdim=20) /gs1-128 report } [/hdim 200000 /hnom 317500 /xdim 4950 /xmax 9400 /xmin 4950] isEqual
+
+% Grid-fitted at 300 DPI: 0.495mm -> 5.85 px, round=6, eff=0.5080; both heights follow
+{ ((01)09521234543213) (strictspec ast=gs1.sst5 gridfit griddpi=300) /gs1-128 report } [/hdim 325838 /hnom 325838 /xdim 5080 /xmax 9400 /xmin 4950] isEqual
+
+% No specified height: none recorded
+{ (01234567) (strictspec xdim=0.500) /code128 report } [/hdim 360000 /xdim 5000] isEqual
 
 % Matrix: the module height equals the X-dimension; an absent maximum is omitted
 { (Hello) (strictspec xdim=0.500) /qrcode report } [/xdim 5000 /xmin 2500 /ydim 5000] isEqual
@@ -60,7 +75,7 @@
 { (Hello) (loosespec xdim=0.500 width=2) /qrcode report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
 
 % Composite: the 2D component, without specification, does not report a fallback
-{ (9520123456788|(21)ABC) (loosespec) /ean13composite report } [/xdim 3300 /xmax 6600 /xmin 2640 /ydim 3300] isEqual
+{ (9520123456788|(21)ABC) (loosespec) /ean13composite report } [/hnom 228500 /xdim 3300 /xmax 6600 /xmin 2640 /ydim 3300] isEqual
 
 % gridfit with a non-square grid of user space: x and y snap separately
 % 300 DPI, 1 x 1.1 pt per unit: x 4.167 px -> 4, eff 0.3168; y 4.583 px -> 5, 0.330*5/4.583=0.3600

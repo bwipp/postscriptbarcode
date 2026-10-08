@@ -856,6 +856,8 @@ begin
                 hdim -1 eq hnom -1 ne and {
                     /hdim hnom mag mul def
                 } if
+                % The specified height, which a user hdim may fall short of
+                hnom -1 ne { /hnom hnom mag mul //render.report exec } if
             } if
             xdim xmin xmax //render.validate_xdim exec not {
                 loosespec { pop pop } { //raiseerror exec } ifelse
@@ -1047,8 +1049,13 @@ begin
             devpy dup xsnapmode snapto exch div
         } { dup } ifelse
 
-        xdim 0 ne {  % The module height snaps independently; the bar height snaps with x
-            snapy { /ydim } { /hdim } ifelse 1 index //render.reportscale exec
+        xdim 0 ne {  % The module height snaps independently; bar heights snap with x
+            snapy {
+                /ydim 1 index //render.reportscale exec
+            } {
+                /hdim 1 index //render.reportscale exec
+                /hnom 1 index //render.reportscale exec
+            } ifelse
         } if
 
         scale

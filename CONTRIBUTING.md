@@ -793,7 +793,10 @@ is not found, `default` silently passes; non-default profiles error.
   does nothing. Renderers record `xdim`, `ydim` (matrix) or `hdim` (linear),
   `xmin` and `xmax` in mm as they apply the strictspec scale; `gridfit`
   replaces `xdim` with the snapped value and rescales the caller's vertical
-  key. `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
+  keys. `resolve_strictspec` records `hnom` (`hnom * mag`, in mm) where it
+  derives a linear encoder's default `hdim`, so that a user `hdim` below it
+  shows truncation; wrappers leave this to the encoder that they wrap.
+  `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
   `fallback` as the name of the error that loosespec suppressed when it
   drops out of spec mode.
 
