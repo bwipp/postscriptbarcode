@@ -257,7 +257,10 @@ begin
     % The width and height options scale the symbol away from its physical specification
     strictspec {
         options /width known options /height known or {
-            loosespec { /loosespec false def /strictspec false def } {
+            loosespec {
+                /loosespec false def /strictspec false def
+                /fallback /bwipp.renderStrictspecDimOverride /report //render exec
+            } {
                 /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim to directly specify physical dimensions) //raiseerror exec
             } ifelse
         } if
@@ -662,6 +665,10 @@ begin
     %
     strictspec {
         xdim 72 mul 25.4 div modunit div dup scale
+        /xdim xdim /report //render exec
+        /ydim xdim /report //render exec
+        xmin -1 ne { /xmin xmin /report //render exec } if
+        xmax -1 ne { /xmax xmax /report //render exec } if
         % Adjust inkspread to fixed physical amount
         modunit 25.4 mul xdim 72 mul div  % scale factor on stack
         dup inkspread mul /inkspread exch def

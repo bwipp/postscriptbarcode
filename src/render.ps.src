@@ -760,6 +760,33 @@ begin
 } bind def
 
 %
+%  Report the dimensions that the symbol is drawn at, in mm, to a caller that
+%  asks by putting a dictionary named uk.co.terryburton.bwipp.report where the
+%  renderer finds it on the dictionary stack. In a physical specification mode
+%  a renderer records the dimensions of the specification as it scales to
+%  them, and grid-fitting rescales them to its whole device pixels. The
+%  dimensions assume that the caller has not scaled the coordinate system.
+%  When loosespec drops out of the physical specification, /fallback is the
+%  error that strictspec would have raised. When several symbols are drawn
+%  with one dictionary, each key holds the value of the last symbol to record
+%  it.
+%
+/render.report {  % key value => -
+    /uk.co.terryburton.bwipp.report where {
+        /uk.co.terryburton.bwipp.report get dup type /dicttype eq { dup wcheck } { false } ifelse
+        { 3 1 roll put } { pop pop pop } ifelse
+    } { pop pop } ifelse
+} bind def
+
+/render.reportscale {  % key factor => -
+    /uk.co.terryburton.bwipp.report where {
+        /uk.co.terryburton.bwipp.report get dup type /dicttype eq { dup wcheck } { false } ifelse {
+            dup 3 index known { 3 -1 roll 2 copy get 4 -1 roll mul put } { pop pop pop } ifelse
+        } { pop pop pop } ifelse
+    } { pop pop } ifelse
+} bind def
+
+%
 %  Resolve strictspec dimensions
 %
 /render.resolve_strictspec {
@@ -800,7 +827,10 @@ begin
             currentdict /height known { height -1.0 ne } { false } ifelse
             currentdict /width known { width 0 ne } { false } ifelse
             or {
-                loosespec { /loosespec false def /strictspec false def } {
+                loosespec {
+                    /loosespec false def /strictspec false def
+                    /fallback /bwipp.renderStrictspecDimOverride //render.report exec
+                } {
                     /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim and hdim to directly specify physical dimensions) //raiseerror exec
                 } ifelse
             } if
@@ -812,7 +842,10 @@ begin
         } if
         xdim -1 eq {
             xnom -1 eq {
-                loosespec { /strictspec false def } {
+                loosespec {
+                    /strictspec false def
+                    /fallback /bwipp.renderNeedXnom //render.report exec
+                } {
                     /bwipp.renderNeedXnom (strictspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
                 } ifelse
             } if
@@ -1004,6 +1037,7 @@ begin
                     } ifelse
                 } if
             } if
+            /xdim snapped effx //render.report exec
             snapped devpx div
         } {  % No strictspec
             dup mag div usefloor { floor } { round } ifelse dup 0 le { pop 1 } if mag mul exch div
@@ -1012,6 +1046,10 @@ begin
         snapy {
             devpy dup xsnapmode snapto exch div
         } { dup } ifelse
+
+        xdim 0 ne {  % The module height snaps independently; the bar height snaps with x
+            snapy { /ydim } { /hdim } ifelse 1 index //render.reportscale exec
+        } if
 
         scale
 
@@ -1355,6 +1393,7 @@ begin
     /rendertext                //render.rendertext
     /validatetextoptions       //render.validatetextoptions
     /gridfit                   //render.gridfit
+    /report                    //render.report
     /gridsetup                 //render.gridsetup
     /pixelinset                //render.pixelinset
     /isqrtlt                   //render.isqrtlt

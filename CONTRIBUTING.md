@@ -788,6 +788,14 @@ is not found, `default` silently passes; non-default profiles error.
   `height` is not permitted (use `hdim`).
 - `validate_xdim` — low-level `xdim xmin xmax` bounds check; returns `true`
   or `/errorname (info) false` with formatted error string
+- `report` — `key value`; puts the value into a caller-supplied
+  `uk.co.terryburton.bwipp.report` dictionary found with `where`, otherwise
+  does nothing. Renderers record `xdim`, `ydim` (matrix) or `hdim` (linear),
+  `xmin` and `xmax` in mm as they apply the strictspec scale; `gridfit`
+  replaces `xdim` with the snapped value and rescales the caller's vertical
+  key. `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
+  `fallback` as the name of the error that loosespec suppressed when it
+  drops out of spec mode.
 
 **Encoder integration pattern** (see `ean13.ps.src` for linear,
 `qrcode.ps.src` for matrix):

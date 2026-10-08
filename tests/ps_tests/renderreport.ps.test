@@ -1,0 +1,110 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/render dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% The dimensions recorded for a caller that asks (uk.co.terryburton.bwipp.report)
+%
+
+% Key value pairs recorded by drawing a symbol, sorted by key, mm to 4 decimal places
+/report {  % data options encoder => [ key value ... ]
+    10 dict begin /uk.co.terryburton.bwipp.report 10 dict def
+    gsave 0 0 moveto /uk.co.terryburton.bwipp findresource exec grestore
+    [
+        [/fallback /hdim /xdim /xmax /xmin /ydim] {
+            uk.co.terryburton.bwipp.report 1 index known {
+                uk.co.terryburton.bwipp.report 1 index get
+                dup type /nametype ne { 10000 mul round cvi } if
+            } { pop } ifelse
+        } forall
+    ]
+    end
+} def
+
+% No dictionary: nothing is recorded, and drawing succeeds
+{ gsave 0 0 moveto (9520123456788) (strictspec) /ean13 /uk.co.terryburton.bwipp findresource exec grestore true } true isEqual
+
+% No physical specification: nothing recorded
+{ (9520123456788) (includetext) /ean13 report } [] isEqual
+{ (Hello) () /qrcode report } [] isEqual
+
+% Linear: the specification's dimensions, with the bar height above the baseline
+{ (9520123456788) (strictspec ast=gs1.sst2) /ean13 report } [/hdim 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
+{ (9520123456788) (strictspec ast=gs1.sst2 includetext) /ean13 report } [/hdim 457000 /xdim 6600 /xmax 6600 /xmin 4950] isEqual
+
+% Linear grid-fitted at 300 DPI: 0.330mm -> 3.898 px, round=4, eff=0.3387; height follows
+{ (9520123456788) (strictspec gridfit griddpi=300) /ean13 report } [/hdim 234501 /xdim 3387 /xmax 6600 /xmin 2640] isEqual
+
+% Matrix: the module height equals the X-dimension; an absent maximum is omitted
+{ (Hello) (strictspec xdim=0.500) /qrcode report } [/xdim 5000 /xmin 2500 /ydim 5000] isEqual
+{ ((01)09521234543213) (strictspec ast=gs1.sst7.dpm.a) /gs1datamatrix report } [/xdim 2000 /xmax 3000 /xmin 1000 /ydim 2000] isEqual
+
+% Matrix grid-fitted at 600 DPI: 0.500mm -> 11.81 px, round=12, eff=0.5080
+{ (Hello) (strictspec xdim=0.500 gridfit griddpi=600) /qrcode report } [/xdim 5080 /xmin 2500 /ydim 5080] isEqual
+
+% MaxiCode: row pitch is X*sqrt(3)/2
+{ (This is MaxiCode) (strictspec) /maxicode report } [/xdim 8800 /xmax 9310 /xmin 8280 /ydim 7621] isEqual
+
+% MaxiCode grid-fitted at 300 DPI: 0.880mm -> 10.39 px, X=10, eff=0.8467; Y=round(10*sqrt(3)/2)=9 px, 0.7620
+{ (This is MaxiCode) (strictspec gridfit griddpi=300) /maxicode report } [/xdim 8467 /xmax 9310 /xmin 8280 /ydim 7620] isEqual
+
+% loosespec drops out of the physical specification: the error that strictspec would raise
+{ (Hello) (loosespec) /code128 report } [/fallback /bwipp.renderNeedXnom] isEqual
+{ (9520123456788) (loosespec width=2) /ean13 report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
+{ (Hello) (loosespec xdim=0.500 width=2) /qrcode report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
+
+% Composite: the 2D component, without specification, does not report a fallback
+{ (9520123456788|(21)ABC) (loosespec) /ean13composite report } [/xdim 3300 /xmax 6600 /xmin 2640 /ydim 3300] isEqual
+
+% gridfit with a non-square grid of user space: x and y snap separately
+% 300 DPI, 1 x 1.1 pt per unit: x 4.167 px -> 4, eff 0.3168; y 4.583 px -> 5, 0.330*5/4.583=0.3600
+{
+    gsave 0 0 moveto 1 1.1 scale
+    10 dict begin /loosespec false def /griddpi 300 def
+    /uk.co.terryburton.bwipp.report 2 dict def
+    uk.co.terryburton.bwipp.report /ydim 0.330 put
+    1 0.330 0.264 0.660 false true /gridfit render pop
+    uk.co.terryburton.bwipp.report dup /xdim get 10000 mul round cvi exch /ydim get 10000 mul round cvi 2 array astore
+    end grestore
+} [3168 3600] isEqual
+
+% gridfit without a specification records nothing
+{
+    gsave 0 0 moveto 10 dict begin /loosespec false def /griddpi 300 def
+    /uk.co.terryburton.bwipp.report 1 dict def
+    1 0 -1 -1 false false /gridfit render pop
+    uk.co.terryburton.bwipp.report length
+    end grestore
+} 0 isEqual
+
+% One dictionary for two symbols: each key holds the value of the last symbol to record it
+{
+    10 dict begin /uk.co.terryburton.bwipp.report 10 dict def
+    gsave 0 0 moveto (9520123456788) (strictspec gridfit griddpi=300) /ean13 /uk.co.terryburton.bwipp findresource exec grestore
+    gsave 0 0 moveto (Hello) (strictspec xdim=0.500 gridfit griddpi=600) /qrcode /uk.co.terryburton.bwipp findresource exec grestore
+    [ uk.co.terryburton.bwipp.report /hdim get uk.co.terryburton.bwipp.report /xdim get ] { 10000 mul round cvi } forall 2 array astore
+    end
+} [234501 5080] isEqual
+
+% A readonly report dictionary is left alone
+{
+    10 dict begin /uk.co.terryburton.bwipp.report 0 dict readonly def
+    gsave 0 0 moveto (9520123456788) (strictspec gridfit griddpi=300) /ean13 /uk.co.terryburton.bwipp findresource exec grestore
+    true
+    end
+} true isEqual
+
+% report and reportscale tolerate a report key that is not a dictionary
+{
+    10 dict begin /uk.co.terryburton.bwipp.report 1 def
+    /xdim 1 /report render
+    gsave 0 0 moveto /griddpi 300 def /loosespec false def 1 0.330 -1 -1 false true /gridfit render pop grestore
+    true
+    end
+} true isEqual

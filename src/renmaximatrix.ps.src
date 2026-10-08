@@ -202,6 +202,12 @@ begin
     %
     /modpt strictspec { xdim } { //renmaximatrix.wnom 100 div } ifelse 72 mul 25.4 div def
     modpt dup scale
+    strictspec {
+        /xdim xdim /report //render exec
+        /ydim xdim 3 sqrt mul 2 div /report //render exec  % Row pitch
+        xmin -1 ne { /xmin xmin /report //render exec } if
+        xmax -1 ne { /xmax xmax /report //render exec } if
+    } if
     /inkspread inkspread //renmaximatrix.wnom 100 div 72 mul 25.4 div mul modpt div  % Fraction of the module, at most one
     dup -1 lt { pop -1 } if dup 1 gt { pop 1 } if def
 
@@ -244,6 +250,10 @@ begin
             } if
             X 1 lt { /X 1 def } if
             /Y X 3 sqrt mul 2 div round cvi def
+            strictspec {
+                /xdim X xdim mul devpx div /report //render exec
+                /ydim Y xdim mul devpy div /report //render exec
+            } if
             /V X 2 mul 3 sqrt div round cvi def
             /ox X 2 idiv def
             1 devpx div 1 devpy div scale  % One unit per device pixel
