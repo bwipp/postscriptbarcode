@@ -854,6 +854,8 @@ that have their own AST entry must:
 4. `options (ast) undef` and `options (mag) undef` — consumed, do not
    leak to inner encoder
 5. Put all resolved spec values into `options` for the inner encoder
+   (`hnom` multiplied by `mag`, since `mag` is not passed on and the height
+   scales with it)
 6. For wrappers with a non-1.0 height default: fall back only when the
    sentinel survives and propspec won't derive:
    ```postscript
