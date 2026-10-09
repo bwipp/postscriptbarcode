@@ -799,6 +799,10 @@ is not found, `default` silently passes; non-default profiles error.
   `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
   `fallback` as the name of the error that loosespec suppressed when it
   drops out of spec mode.
+  Encoders record `checkdigit` when they add check characters on the
+  user's behalf (a short input or `includecheck`), not for check characters
+  that the symbology always carries; a `null` value removes a key, so that
+  a wrapper can replace what the encoder it wraps recorded.
 
 **Encoder integration pattern** (see `ean13.ps.src` for linear,
 `qrcode.ps.src` for matrix):
@@ -1259,6 +1263,7 @@ all resource tests:
 - `debugIsEqual` - Compare codeword arrays (used with `debugcws` option)
 - `isEqual`      - Compare output arrays (`pixs`, `sbs`)
 - `isError`      - Verify specific error is raised
+- `isErrorInfo`  - Verify specific error is raised with a specific message
 
 To access the intermediate dictionary without rendering, each of the encoders
 support the following option, which requires `enabledontdraw` to be set in
