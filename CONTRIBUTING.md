@@ -804,8 +804,12 @@ is not found, `default` silently passes; non-default profiles error.
   derives a linear encoder's default `hdim`, so that a user `hdim` below it
   shows truncation; wrappers leave this to the encoder that they wrap.
   `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
-  `fallback` as the name of the error that loosespec suppressed when it
-  drops out of spec mode.
+  `fallback` and `fallbackmsg`, the name and message of the error that
+  loosespec suppressed when it drops out of spec mode.
+- `specfail` — `errorname message`; a physical specification that cannot
+  apply: raises the error under strictspec, and under loosespec reports it as
+  `fallback`/`fallbackmsg` (a copy of the message) for the caller to drop out
+  of spec mode
   Encoders record `checkdigit` when they add check characters on the
   user's behalf (a short input or `includecheck`), not for check characters
   that the symbology always carries; a `null` value removes a key, so that
