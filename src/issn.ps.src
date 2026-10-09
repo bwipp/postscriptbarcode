@@ -185,7 +185,11 @@ begin
     /checksum checksum 48 add dup 58 eq {pop 88} if def
     barcode length 9 eq {
         barcode 8 get checksum ne {
-            /bwipp.issnBadCheckDigit (Incorrect ISSN check digit provided) //raiseerror exec
+            /bwipp.issnBadCheckDigit
+            [ (Incorrect ISSN check digit provided: expected ) 1 string dup 0 checksum put (, not ) barcode 8 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
 

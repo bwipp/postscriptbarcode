@@ -122,7 +122,11 @@ begin
     /checksum checksum 43 mod def
     validatecheck {
         barcode barlen get //hibcdatamatrixrectangular.barchars checksum get ne {
-            /bwipp.hibcdatamatrixrectangularBadCheckDigit (Incorrect HIBC Data Matrix Rectangular check digit provided) //raiseerror exec
+            /bwipp.hibcdatamatrixrectangularBadCheckDigit
+            [ (Incorrect HIBC Data Matrix Rectangular check digit provided: expected ") //hibcdatamatrixrectangular.barchars checksum 1 getinterval (", not ") barcode barlen 1 getinterval (") ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
     } if

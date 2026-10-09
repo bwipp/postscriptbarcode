@@ -187,7 +187,11 @@ begin
         /checksum sumodd 35 mod sumeven 35 mod 2 mul add 35 mod def  % F = Mod35( Mod35( Fodd ) + 2 * Mod35( Feven ) )
         validatecheck {
             checksum 0 ne {
-                /bwipp.bc412semiBadCheckDigit (Incorrect BC412 semi check digit provided) //raiseerror exec
+                /bwipp.bc412semiBadCheckDigit
+                [ (Incorrect BC412 semi check digit provided: expected ) //bc412.barchars checksum 70 add charvals barcode 1 1 getinterval get 2 mul sub 17 mul 35 mod 1 getinterval (, not ) barcode 1 1 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
         } {
             /checksum checksum 17 mul 35 mod def  % CD = Mod35( 17 * F )
@@ -204,7 +208,11 @@ begin
         /checksum checksum 35 mod def
         validatecheck {
             barcode barlen get //bc412.barchars checksum get ne {
-                /bwipp.bc412badCheckDigit (Incorrect BC412 check digit provided) //raiseerror exec
+                /bwipp.bc412badCheckDigit
+                [ (Incorrect BC412 check digit provided: expected ) //bc412.barchars checksum 1 getinterval (, not ) barcode barlen 1 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
             /barcode barcode 0 barlen getinterval def
             /includecheck true def

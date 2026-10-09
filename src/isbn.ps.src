@@ -219,7 +219,11 @@ begin
         /isbn isbn 0 9 getinterval def
         isbntxt length 13 eq {
             isbntxt 12 get checksum ne {
-                /bwipp.isbn10badCheckDigit (Incorrect ISBN-10 check digit provided) //raiseerror exec
+                /bwipp.isbn10badCheckDigit
+                [ (Incorrect ISBN-10 check digit provided: expected ) 1 string dup 0 checksum put (, not ) isbntxt 12 1 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
         } if
     } if
@@ -258,7 +262,11 @@ begin
         /isbn isbn 0 12 getinterval def
         isbntxt length 17 eq {
             isbntxt 16 get checksum ne {
-                /bwipp.isbn13badCheckDigit (Incorrect ISBN-13 check digit provided) //raiseerror exec
+                /bwipp.isbn13badCheckDigit
+                [ (Incorrect ISBN-13 check digit provided: expected ) 1 string dup 0 checksum put (, not ) isbntxt 16 1 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
         } if
 

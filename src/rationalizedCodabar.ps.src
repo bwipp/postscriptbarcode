@@ -148,7 +148,11 @@ begin
     /checksum 16 checksum 16 mod sub 16 mod def
     validatecheck {
         barcode barlen 1 sub get barchars checksum get ne {
-            /bwipp.rationalizedCodabarBadCheckDigit (Incorrect Codabar check digit provided) //raiseerror exec
+            /bwipp.rationalizedCodabarBadCheckDigit
+            [ (Incorrect Codabar check digit provided: expected ") barchars checksum 1 getinterval (", not ") barcode barlen 1 sub 1 getinterval (") ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         barlen string
         dup 0 barcode 0 barlen 1 sub getinterval putinterval

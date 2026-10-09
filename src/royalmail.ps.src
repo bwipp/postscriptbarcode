@@ -161,7 +161,11 @@ begin
     /checksum checksumrow 6 mod 6 mul checksumcol 6 mod add def
     validatecheck {
         barcode barlen get //royalmail.barchars checksum get ne {
-            /bwipp.royalmailBadCheckDigit (Incorrect RM4SCC check digit provided) //raiseerror exec
+            /bwipp.royalmailBadCheckDigit
+            [ (Incorrect RM4SCC check digit provided: expected ) //royalmail.barchars checksum 1 getinterval (, not ) barcode barlen 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
     } if

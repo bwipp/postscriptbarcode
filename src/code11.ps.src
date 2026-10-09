@@ -166,12 +166,20 @@ begin
     validatecheck {
         numchecks 1 eq {
             barcode barlen get //code11.barchars checksum1 get ne {
-                /bwipp.code11badCheckDigit (Incorrect Code 11 check digit provided) //raiseerror exec
+                /bwipp.code11badCheckDigit
+                [ (Incorrect Code 11 check digit provided: expected ) //code11.barchars checksum1 1 getinterval (, not ) barcode barlen 1 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
         } {
             barcode barlen get //code11.barchars checksum1 get ne
             barcode barlen 1 add get //code11.barchars checksum2 get ne or {
-                /bwipp.code11badCheckDigits (Incorrect Code 11 check digits provided) //raiseerror exec
+                /bwipp.code11badCheckDigits
+                [ (Incorrect Code 11 check digits provided: expected ) //code11.barchars checksum1 1 getinterval //code11.barchars checksum2 1 getinterval (, not ) barcode barlen 2 getinterval ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
             } if
         } ifelse
         /barcode barcode 0 barlen getinterval def

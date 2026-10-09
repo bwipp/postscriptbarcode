@@ -146,7 +146,11 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     validatecheck {
         barcode barlen get checksum 48 add ne {
-            /bwipp.code2of5badCheckDigit (Incorrect Code 25 check digit provided) //raiseerror exec
+            /bwipp.code2of5badCheckDigit
+            [ (Incorrect Code 25 check digit provided: expected ) checksum 20 string cvs (, not ) barcode barlen 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
         /includecheck true def

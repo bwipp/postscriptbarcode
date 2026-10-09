@@ -122,7 +122,11 @@ begin
     /checksum checksum 43 mod def
     validatecheck {
         barcode barlen get //hibcazteccode.barchars checksum get ne {
-            /bwipp.hibcazteccodeBadCheckDigit (Incorrect HIBC Aztec Code check digit provided) //raiseerror exec
+            /bwipp.hibcazteccodeBadCheckDigit
+            [ (Incorrect HIBC Aztec Code check digit provided: expected ") //hibcazteccode.barchars checksum 1 getinterval (", not ") barcode barlen 1 getinterval (") ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
     } if

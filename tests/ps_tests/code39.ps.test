@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 16388:2007
@@ -70,3 +70,9 @@
 { (TEST) (dontdraw) code39 /strictspec get 1 array astore } [false] isEqual
 { (TEST) (dontdraw) code39 /bhs get 0 get 1 array astore } [1.0] isEqual
 /uk.co.terryburton.bwipp.global_ctx tmp def
+
+
+%
+% Check digit: the digit expected in the error
+%
+{ (CODE39A) (dontdraw validatecheck) code39 } [/bwipp.code39badCheckDigit (Incorrect Code 39 check digit provided: expected "W", not "A")] isErrorInfo

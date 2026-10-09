@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /identcode dup /uk.co.terryburton.bwipp findresource cvx def
@@ -20,3 +20,9 @@
 { (1234567890123) (dontdraw) identcode } /bwipp.identcodeBadLength isError
 { (5631024303A3) (dontdraw) identcode } /bwipp.identcodeBadCharacter isError
 { (563102430310) (dontdraw) identcode } /bwipp.identcodeBadCheckDigit isError
+
+
+%
+% Check digit: the digit expected in the error
+%
+{ (563102430310) (dontdraw) identcode } [/bwipp.identcodeBadCheckDigit (Incorrect Deutsche Post Identcode check digit provided: expected 3, not 0)] isErrorInfo

@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /code32 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -20,3 +20,9 @@
 { (1234567890) (dontdraw) code32 } /bwipp.code32badLength isError
 { (0123456A) (dontdraw) code32 } /bwipp.code32badCharacter isError
 { (012345670) (dontdraw) code32 } /bwipp.code32badCheckDigit isError
+
+
+%
+% Check digit: the digit expected in the error
+%
+{ (012345674) (dontdraw) code32 } [/bwipp.code32badCheckDigit (Incorrect Italian Pharmacode check digit provided: expected 6, not 4)] isErrorInfo

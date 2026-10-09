@@ -203,7 +203,11 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     barcode length 12 eq {
         barcode 11 get checksum 48 add ne {
-            /bwipp.upcAbadCheckDigit (Incorrect UPC check digit provided) //raiseerror exec
+            /bwipp.upcAbadCheckDigit
+            [ (Incorrect UPC check digit provided: expected ) checksum 20 string cvs (, not ) barcode 11 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
     pad 0 barcode putinterval       % Add barcode to the start of the pad

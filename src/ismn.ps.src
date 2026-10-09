@@ -240,7 +240,11 @@ begin
     %
     barcode length 13 eq barcode length 17 eq or {
         barcode dup length 1 sub get checksum ne {
-            /bwipp.ismnBadCheckDigit (Incorrect ISMN check digit provided) //raiseerror exec
+            /bwipp.ismnBadCheckDigit
+            [ (Incorrect ISMN check digit provided: expected ) 1 string dup 0 checksum put (, not ) barcode dup length 1 sub 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
 

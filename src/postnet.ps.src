@@ -120,7 +120,11 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     validatecheck {
         barcode barlen get //postnet.barchars checksum get ne {
-            /bwipp.postnetBadCheckDigit (Incorrect USPS POSTNET check digit provided) //raiseerror exec
+            /bwipp.postnetBadCheckDigit
+            [ (Incorrect USPS POSTNET check digit provided: expected ) //postnet.barchars checksum 1 getinterval (, not ) barcode barlen 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
     } if

@@ -103,7 +103,11 @@ begin
     } if
     barcode length msglen 1 sub eq {
         barcode msglen 2 sub get checksum 48 add ne {
-            /bwipp.pznBadCheckDigit (Incorrect PZN check digit provided) //raiseerror exec
+            /bwipp.pznBadCheckDigit
+            [ (Incorrect PZN check digit provided: expected ) checksum 20 string cvs (, not ) barcode msglen 2 sub 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
     msglen string

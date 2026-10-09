@@ -153,7 +153,11 @@ begin
     /checksum 10 checksum 10 mod sub 10 mod def
     barcode length 18 eq {
         barcode 17 get checksum 48 add ne {
-            /bwipp.databaromniBadCheckDigit (Incorrect GS1 DataBar Omnidirectional check digit provided) //raiseerror exec
+            /bwipp.databaromniBadCheckDigit
+            [ (Incorrect GS1 DataBar Omnidirectional check digit provided: expected ) checksum 20 string cvs (, not ) barcode 17 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
     18 string

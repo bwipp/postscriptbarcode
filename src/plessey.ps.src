@@ -191,7 +191,11 @@ begin
     validatecheck {
         barcode barlen get //plessey.barchars checksum1 get ne
         barcode barlen 1 add get //plessey.barchars checksum2 get ne or {
-            /bwipp.plesseyBadCheckDigits (Incorrect Plessey check digits provided) //raiseerror exec
+            /bwipp.plesseyBadCheckDigits
+            [ (Incorrect Plessey check digits provided: expected ) //plessey.barchars checksum1 1 getinterval //plessey.barchars checksum2 1 getinterval (, not ) barcode barlen 2 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
         /barcode barcode 0 barlen getinterval def
     } if

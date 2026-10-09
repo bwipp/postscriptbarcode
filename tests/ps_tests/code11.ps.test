@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /code11 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -57,3 +57,10 @@
 
 % strictspec smoke test
 { 0 0 moveto (0123456789) (strictspec xdim=0.330) code11 true } true isEqual
+
+
+%
+% Check digit: the digit expected in the error
+%
+{ (012345678) (dontdraw validatecheck) code11 } [/bwipp.code11badCheckDigit (Incorrect Code 11 check digit provided: expected 7, not 8)] isErrorInfo
+{ (0123456789-0) (dontdraw validatecheck) code11 } [/bwipp.code11badCheckDigits (Incorrect Code 11 check digits provided: expected 03, not -0)] isErrorInfo

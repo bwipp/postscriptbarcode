@@ -2662,11 +2662,18 @@ begin
     } def
 
     /lintcsum {
-        mark exch
+        dup mark exch
         dup length 2 mod 0 eq {3} {1} ifelse
         exch { 48 sub 1 index mul exch 4 exch sub } forall pop
         0 counttomark 1 sub {add} repeat exch pop
-        10 mod 0 ne { pop /bwipp.GS1badChecksum (Bad checksum) false exit } if
+        10 mod dup 0 ne {
+            1 index dup length 1 sub get 48 sub 10 add exch sub 10 mod 20 string cvs  % The last digit that would balance
+            exch dup length 1 sub 1 getinterval
+            [ (Bad checksum: expected ) 4 -1 roll (, not ) 5 -1 roll ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            exch pop /bwipp.GS1badChecksum exch false exit
+        } { pop pop } ifelse
     } def
 
     /lintcsumalpha {
