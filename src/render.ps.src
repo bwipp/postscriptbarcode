@@ -769,7 +769,7 @@ begin
 %  them, and grid-fitting rescales them to its whole device pixels. The
 %  dimensions assume that the caller has not scaled the coordinate system.
 %  When loosespec drops out of the physical specification, /fallback is the
-%  error that strictspec would have raised. An encoder that adds a check
+%  error that strictspec would have raised and /fallbackmsg its message. An encoder that adds a check
 %  digit on the user's behalf, to complete a short input or for includecheck,
 %  records the characters that it added as /checkdigit; check characters that
 %  the symbology always adds are not recorded. When several symbols are drawn
@@ -790,6 +790,20 @@ begin
             dup 3 index known { 3 -1 roll 2 copy get 4 -1 roll mul put } { pop pop pop } ifelse
         } { pop pop pop } ifelse
     } { pop pop } ifelse
+} bind def
+
+%
+%  A physical specification that cannot apply: under loosespec, report the
+%  error that strictspec would raise and leave the caller to draw at its
+%  default size; under strictspec, raise it
+%
+/render.specfail {  % errorname message => -
+    loosespec {
+        /fallbackmsg exch dup length string copy //render.report exec  % Not the shared literal
+        /fallback exch //render.report exec
+    } {
+        //raiseerror exec
+    } ifelse
 } bind def
 
 %
@@ -833,12 +847,8 @@ begin
             currentdict /height known { height -1.0 ne } { false } ifelse
             currentdict /width known { width 0 ne } { false } ifelse
             or {
-                loosespec {
-                    /loosespec false def /strictspec false def
-                    /fallback /bwipp.renderStrictspecDimOverride //render.report exec
-                } {
-                    /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim and hdim to directly specify physical dimensions) //raiseerror exec
-                } ifelse
+                /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim and hdim to directly specify physical dimensions) //render.specfail exec
+                /loosespec false def /strictspec false def
             } if
         } if
     } if
@@ -848,12 +858,8 @@ begin
         } if
         xdim -1 eq {
             xnom -1 eq {
-                loosespec {
-                    /strictspec false def
-                    /fallback /bwipp.renderNeedXnom //render.report exec
-                } {
-                    /bwipp.renderNeedXnom (strictspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //raiseerror exec
-                } ifelse
+                /bwipp.renderNeedXnom (strictspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) //render.specfail exec
+                /strictspec false def
             } if
             strictspec { /xdim xnom mag mul def } if
         } if
@@ -1418,6 +1424,7 @@ begin
     /validatetextoptions       //render.validatetextoptions
     /gridfit                   //render.gridfit
     /report                    //render.report
+    /specfail                  //render.specfail
     /gridsetup                 //render.gridsetup
     /pixelinset                //render.pixelinset
     /isqrtlt                   //render.isqrtlt

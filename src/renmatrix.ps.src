@@ -257,12 +257,8 @@ begin
     % The width and height options scale the symbol away from its physical specification
     strictspec {
         options /width known options /height known or {
-            loosespec {
-                /loosespec false def /strictspec false def
-                /fallback /bwipp.renderStrictspecDimOverride /report //render exec
-            } {
-                /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim to directly specify physical dimensions) //raiseerror exec
-            } ifelse
+            /bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim to directly specify physical dimensions) /specfail //render exec
+            /loosespec false def /strictspec false def
         } if
     } if
 

@@ -139,3 +139,23 @@
     uk.co.terryburton.bwipp.report dup /checkdigit known exch /xdim known 2 array astore
     end
 } [false true] isEqual
+
+% The fallback's message, which is the one that strictspec raises
+/fallbackmsg {  % data options encoder => message
+    10 dict begin /uk.co.terryburton.bwipp.report 4 dict def
+    gsave 0 0 moveto /uk.co.terryburton.bwipp findresource exec grestore
+    uk.co.terryburton.bwipp.report /fallbackmsg get
+    end
+} def
+/needxnom (strictspec requires a nominal X-dimension to be defined for the application or for xdim to be supplied) def
+{ (Hello) (loosespec) /code128 fallbackmsg } needxnom isEqual
+{ (Hello) (dontdraw strictspec) /code128 /uk.co.terryburton.bwipp findresource exec } [/bwipp.renderNeedXnom needxnom] isErrorInfo
+{ (9520123456788) (loosespec width=2) /ean13 fallbackmsg }
+  (width and height options are not compatible with strictspec; use xdim and hdim to directly specify physical dimensions) isEqual
+{ (Hello) (loosespec xdim=0.500 width=2) /qrcode fallbackmsg }
+  (width and height options are not compatible with strictspec; use xdim to directly specify physical dimensions) isEqual
+{ 0 0 moveto (Hello) (strictspec xdim=0.500 width=2) /qrcode /uk.co.terryburton.bwipp findresource exec }
+  [/bwipp.renderStrictspecDimOverride (width and height options are not compatible with strictspec; use xdim to directly specify physical dimensions)] isErrorInfo
+
+% A reported message is the caller's to change
+{ (Hello) (loosespec) /code128 fallbackmsg 0 88 put (Hello) (loosespec) /code128 fallbackmsg } needxnom isEqual
