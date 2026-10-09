@@ -691,6 +691,13 @@ one `rectfill` of the disc's font; at or above, an arc of the same diameter.
 From that size rasterisers agree on the width of arcs on the pixel grid,
 though not on their outline, and arcs give the smaller document.
 
+**Background:** Without a border or bearer bars the background is the quiet
+zone and is drawn at its nominal size, not reduced by the inkspread. Under
+gridfit its edges lie on pixel boundaries, so `render.renderborder` insets them
+by `render.pixelinset`, measured with `render.gridsetup`, for the same reason
+as the pixel fonts: a vector intermediate's rounding would otherwise paint the
+neighbouring row or column.
+
 **EPS safety:** When `gridfit` is not enabled (and `griddpi` is not set), no
 device-dependent operators (`defaultmatrix`, `dtransform`) are executed.
 `strictspec` without gridfit is fully EPS-safe.
