@@ -9,11 +9,25 @@ usually carries a GTIN-13. It was designed by the International Article
 Numbering Association in 1976 for identification of retail goods at
 point of sale outside of the US.
 
+An EAN-13 whose first digit is 0 has the same bars as the
+<<_upc_a,UPC-A>> carrying the remaining twelve digits: EAN-13 encodes
+its leading digit by mirroring some of the symbol characters in the left
+half, and for a leading 0 none are mirrored. Scanners transmit either as
+thirteen digits after the symbology identifier `++]++E0`, so a reader
+that reports such a symbol as a UPC-A has decoded the same data. Where a
+GTIN must fill a fixed fourteen-digit field, GS1 zero-fills it on the
+left; a GTIN-12's own leading zeros are part of its company prefix, so
+they must be kept.
+
 Also known as: EAN, European Article Number, International Article
 Number, JAN, JAN-13, IAN, WPC, SAAN, UCCET, ABAC, BCCI, ICA, MANA, KANC,
 ANA, ANC.
 
 Misnomers: UCC-13, GTIN-13
+
+Uses:
+
+* Retail products scanned at point of sale.
 
 Variants:
 
@@ -37,7 +51,7 @@ Standards: ISO/IEC 15420, BS EN 797, GS1 General Specifications.
 
 ===== Data and Options
 
-* The data field for a EAN-13 may contain twelve or thirteen digits,
+* The data field for an EAN-13 may contain twelve or thirteen digits,
 optionally followed by a space then two or five digits if an
 <<_ean_2,EAN-2>> or <<_ean_5,EAN-5>> add-on is required.
 * If twelve digits of primary data are supplied then the check digit is
@@ -85,9 +99,18 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 *EAN-8* is derived from the <<_ean_13,EAN-13>> barcode symbology and is
 designed for small packaging. It usually carries a GTIN-8.
 
+A GTIN-8 is assigned individually, on request, by a GS1 Member
+Organisation for an item whose packaging is too small for an EAN-13. It
+is not formed by shortening a GTIN-13 or GTIN-12, and scanners transmit
+it as eight digits after the symbology identifier `++]++E4`.
+
 Also known as: JAN-8.
 
 Misnomers: UCC-8.
+
+Uses:
+
+* Retail products whose packaging is too small for an EAN-13.
 
 Variants:
 
@@ -160,9 +183,23 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 The *UPC-A* barcode symbology is used for identification of retail goods
 at point of sale inside of the US. It usually carries a GTIN-12.
 
+A UPC-A has the same bars as an <<_ean_13,EAN-13>> whose first digit is
+0. EAN-13 encodes its additional leading digit by mirroring some of the
+symbol characters in the left half, and for a leading 0 none are
+mirrored. Scanners therefore transmit a UPC-A as an EAN-13: thirteen
+digits after the symbology identifier `++]++E0`, being the GTIN-12
+preceded by 0. Where a GTIN must fill a fixed fourteen-digit field, GS1
+zero-fills it on the left; a GTIN-12's own leading zeros are part of its
+company prefix, so they must be kept.
+
 Also known as: UPC, Universal Product Code.
 
 Misnomers: UCC-12.
+
+Uses:
+
+* Retail products scanned at point of sale, chiefly in the US and
+Canada.
 
 Variants:
 
@@ -231,6 +268,10 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 that usually carries a GTIN-12 that has been zero compressed.
 
 Also known as: UPC-E0.
+
+Uses:
+
+* Retail products whose packaging is too small for a UPC-A.
 
 Variants:
 
@@ -303,6 +344,10 @@ identify books.
 Also known as: ISBN-13, International Standard Book Number, Bookland
 EAN, Bookland EAN-13.
 
+Uses:
+
+* Books.
+
 Variants:
 
 * ISBN-10 is a legacy format that was deprecated for public use after
@@ -320,12 +365,9 @@ digits separated appropriately by dash characters _-_. This will be
 automatically upgraded to the ISBN-13 format.
 * If the last digit of the primary data is not given then the ISBN check
 digit is calculated automatically, otherwise it will be verified.
-* The primary data can optionally be followed by a space then two or
-five digits if an <<_ean_2,EAN-2>> or <<_ean_5,EAN-5>> add-on is
-required.
-** A five-digit add-on is typically used to represent the price
-supplicant.
-** A two-digit add-on is not typically used with ISBN.
+* The primary data can optionally be followed by a space then five
+digits if an <<_ean_5,EAN-5>> add-on is required, typically to encode
+the book's price (see Price Add-On below).
 * The *includetext* option should normally be supplied.
 * The *guardwhitespace* option enables the display of whitespace guard
 marks.
@@ -348,6 +390,57 @@ points
 * _Deprecated._ The *legacy* option prevents ISBN-10 input from being
 upgraded to ISBN-13 and will result in a symbol that is obsolete and
 should not be used at point of sale.
+
+===== Price Add-On
+
+A five-digit add-on encodes the book's price as a currency digit
+followed by four digits of price, under conventions set by each market's
+book industry. The International ISBN Agency's users' manual says the
+add-on carries a price only in the United States and Canada, and that
+elsewhere it may be used for a publisher's in-house purposes. Check the
+local convention with the ISBN agency or trading partners.
+
+[cols=",",options="header",]
+|===
+|Add-on |Conventional Meaning
+|`00001` to `09999` |Price in pounds sterling, £0.01 to £99.99
+
+|`10000` to `49999` |Price in US dollars, US$100.00 to US$499.99
+
+|`50001` to `59998` |Price in US dollars, US$0.01 to US$99.98
+
+|`59999` |Formerly, a price in US dollars above US$99.98 (US$99.99
+cannot be encoded)
+
+|`60001` to `69999` |Price in Canadian dollars, CA$0.01 to CA$99.99
+
+|`90000` to `98999` |For the publisher's own in-house use, such as
+handling returns
+
+|`99990` |A used book (US college stores)
+
+|`99991` |A desk copy (US college stores)
+|===
+
+* In the UK, booksellers look up a book's price from its ISBN, so the
+symbol without an add-on is generally recommended. UK publishers selling
+into the US add the US price.
+* In Korea, the add-on carries the Korean book number's additional code
+rather than a price: a readership digit, a publication form digit and a
+three-digit subject classification from the Korean Decimal
+Classification. The price is printed above the symbol, at its right.
+* Sources:
+https://www.isbn-international.org/sites/default/files/ISBN%20Manual%202012%20-corr.pdf[International
+ISBN Agency&#44; ISBN Users' Manual];
+https://www.bisg.org/barcoding-guidelines-for-the-us-book-industry[Book
+Industry Study Group&#44; Barcoding Guidelines for the US Book
+Industry];
+https://bic.org.uk/wp-content/uploads/2022/11/2019.05.31-Bar-Coding-for-Books-rev-09.pdf[Book
+Industry Communication&#44; Bar Coding for Books];
+https://booknetcanada.atlassian.net/wiki/spaces/UserDocs/pages/1378342/Product+Bar+Codes[BookNet
+Canada&#44; Product Bar Codes];
+https://www.isbn-international.org/sites/default/files/Korean_ISBN_and_ISSN_manual.pdf[National
+Library of Korea&#44; Korean ISBN and ISSN Manual].
 
 ===== Examples
 
@@ -437,6 +530,10 @@ that is used to identify printed music.
 Also known as: International Standard Music Number, ISMN-13, Musicland
 EAN-13.
 
+Uses:
+
+* Printed music.
+
 Variants:
 
 * ISMN-10 is a legacy format that was deprecated for public use.
@@ -453,9 +550,6 @@ eight or nine digits separated appropriately by dash characters _-_.
 This will be automatically upgraded to the ISMN-13 format.
 * If the last digit of the primary data is not given then the ISMN check
 digit is calculated automatically, otherwise it will be verified.
-* The primary data can optionally be followed by a space then two or
-five digits if an <<_ean_2,EAN-2>> or <<_ean_5,EAN-5>> add-on is
-required.
 * The *includetext* option should normally be supplied.
 * The *guardwhitespace* option enables the display of whitespace guard
 marks.
@@ -556,17 +650,30 @@ identify periodicals.
 
 Also known as: International Standard Serial Number.
 
+Uses:
+
+* Magazines, newspapers and other periodicals, with the issue number in
+an add-on.
+
 Standards: ISO 3297, ISO/IEC 15420, BS EN 797, GS1 General
 Specifications.
 
 ===== Data and Options
 
 * The data should contain the seven or eight digits ISSN separated by a
-dash characters _-_, followed by a two-digit sequence variant,
-optionally followed by two or five digits if a
-<<_ean_2,two-digit add-on>> or <<_ean_5,five-digit add-on>> is required.
-** A two-digit add on is typically used to represent the issue number.
-** A five-digit add on is not typically used with ISSN.
+dash character _-_, followed by a two-digit sequence variant, optionally
+followed by two or five digits if a <<_ean_2,two-digit add-on>> or
+<<_ean_5,five-digit add-on>> is required.
+** The add-on usually indicates the issue number, according to the
+https://www.issn.org/understanding-the-issn/issn-uses/identification-with-the-ean-13-barcode/[ISSN
+International Centre].
+** In the UK, the
+https://ppa.co.uk/wp-content/uploads/2022/08/PPA_Best_Practice_for_Bar_Code_Guidelines.pdf[PPA's
+barcoding guidelines] specify a two-digit add-on identifying each issue.
+** A five-digit add-on can be used instead of a two-digit one where the
+publisher's numbering needs it, such as the actual date of issue,
+according to the https://ref.gs1.org/standards/genspecs/[GS1 General
+Specifications]. The two cannot be used together.
 * If the last digit of the ISSN data is not given then the ISSN check
 digit is calculated automatically, otherwise it will be verified.
 * The *includetext* option should normally be supplied.
@@ -646,6 +753,10 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 *Aztec Code* is a 2D matrix-style barcode symbology. It can encode full
 256-character extended-ASCII.
+
+Uses:
+
+* Mobile airline boarding passes (IATA Bar Coded Boarding Pass).
 
 Variants:
 
@@ -831,6 +942,15 @@ The *Data Matrix* symbology is 2D matrix-style barcode that can encode
 full 256 character extended-ASCII.
 
 Also known as: Data Matrix ECC 200, DataMatrix.
+
+Uses:
+
+* Marking small parts and electronic components, and direct part
+marking.
+* Documents and forms.
+* Mobile airline boarding passes (IATA Bar Coded Boarding Pass).
+* Unit packets and aggregated packaging of tobacco products under EU
+traceability Regulation (EU) 2018/574.
 
 Variants:
 
@@ -1206,6 +1326,12 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 The *PDF417* barcode symbology is 2D stacked-linear barcode that can
 encode full 256 character extended-ASCII.
 
+Uses:
+
+* North American driver's licences and identity cards (AAMVA DL/ID Card
+Design Standard).
+* Printed airline boarding passes (IATA Bar Coded Boarding Pass).
+
 Variants:
 
 * <<_compact_pdf417,Compact PDF417>> is a shortened form of the PDF417
@@ -1364,6 +1490,15 @@ encode full 256 character extended-ASCII.
 
 Also known as: Quick Response Code.
 
+Uses:
+
+* Content for phones: web links, Wi-Fi network details, contact cards,
+email, phone numbers, text messages, locations and calendar events.
+* SEPA credit transfers (EPC QR Code, also known as GiroCode).
+* Mobile airline boarding passes (IATA Bar Coded Boarding Pass).
+* Unit packets and aggregated packaging of tobacco products under EU
+traceability Regulation (EU) 2018/574, with error correction level H.
+
 Variants:
 
 * <<_micro_qr_code,Micro QR Code>> is a small QR Code that is used in
@@ -1423,6 +1558,49 @@ either:
 ** `micro`: Use <<_micro_qr_code,Micro QR Code>> for Micro QR Code
 symbols.
 ** `rmqr`: The standard is still in draft.
+
+===== Common Content
+
+Phones recognise the following formats, which are conventions documented
+by https://github.com/zxing/zxing/wiki/Barcode-Contents[ZXing] rather
+than part of the QR Code standard:
+
+[cols=",",options="header",]
+|===
+|Content |Data
+|Web link |`https://example.com/`
+
+|Wi-Fi network |`WIFI:T:WPA;S:network;P:password;;` with `T` one of
+`WEP`, `WPA` (which also serves WPA2 personal networks), `WPA2-EAP` or
+`nopass`, and `H:true` added for a hidden network. In the network name
+and password, `++\++`, `;`, `,`, `"` and `:` are each preceded by
+`++\++`.
+
+|Email |`mailto:someone@example.com`
+
+|Phone number |`tel:{plus}12125551212`
+
+|Text message |`sms:{plus}18005551212:Message` (`SMSTO:` is also seen)
+
+|Location |`geo:40.71872,-73.98905,100` (latitude, longitude and
+optionally altitude)
+
+|Contact
+|`MECARD:N:Owen,Sean;TEL:12125551212;EMAIL:srowen@example.com;;`, or a
+vCard from `BEGIN:VCARD` to `END:VCARD`
+
+|Calendar event |An iCalendar event from `BEGIN:VEVENT` to `END:VEVENT`
+|===
+
+The European Payments Council's
+https://www.europeanpaymentscouncil.eu/sites/default/files/kb/file/2024-03/EPC069-12%20v3.1%20Quick%20Response%20Code%20-%20Guidelines%20to%20Enable%20the%20Data%20Capture%20for%20the%20Initiation%20of%20an%20SCT.pdf[EPC
+QR Code], also known as GiroCode, initiates a SEPA credit transfer. Its
+data is a series of lines separated by line feeds: `BCD`, the version
+`002`, the character set (`1` for UTF-8), `SCT`, the beneficiary's BIC
+(optional within the EEA), name and IBAN, then optionally the amount
+(such as `EUR12.30`), a purpose code, and a structured reference or
+unstructured remittance text. It uses error correction level M
+(`eclevel=M`), within QR Code version 13 (331 bytes).
 
 ===== Examples
 
@@ -1609,6 +1787,10 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 symbology for use with the QR-bill application supporting Swiss
 payments.
 
+Uses:
+
+* Swiss and Liechtenstein payment slips (QR-bill).
+
 Standards: Swiss Implementation Guidelines QR-bill, ISO/IEC 18004, ITS -
 QR Code.
 
@@ -1689,6 +1871,14 @@ can be used to encode full 256 character extended-ASCII.
 
 Also known as: USD-6, USS-128, Code 128A, Code 128B, Code 128C.
 
+Uses:
+
+* Identifiers outside the GS1 system, such as carrier tracking numbers
+and warehouse, bin, inventory and asset labels.
+* Amazon FNSKU product labels.
+* Aggregated packaging of tobacco products under EU traceability
+Regulation (EU) 2018/574.
+
 Variants:
 
 * <<_gs1_128,GS1-128>> is a variant of Code 128 that should be used when
@@ -1744,6 +1934,11 @@ The *Code 39* barcode symbology is discrete, variable length and
 self-checking.
 
 Also known as: Code 3 of 9, LOGMARS, Alpha39, USD-3, USS-39.
+
+Uses:
+
+* Asset and inventory labels.
+* US defence logistics labels (LOGMARS, MIL-STD-1189).
 
 Variants:
 
@@ -2019,6 +2214,9 @@ readable text without interfering with the encoded data.
 * If thirteen digits of primary data are supplied then the check digit
 is calculated automatically. Otherwise the provided check digit will be
 verified.
+* With *strictspec*, the *ast* option takes the <<_gs1_128,GS1-128>>
+application standards, such as `ast=gs1.sst2` for trade items scanned in
+general distribution.
 
 ===== Examples
 
@@ -2046,6 +2244,11 @@ typically used to encode a GTIN-14, GTIN-13 or GTIN-12.
 
 Also known as: UPC Shipping Container Symbol, SCS, UPC Case Code.
 
+Uses:
+
+* The GTIN of outer cases and cartons of trade items in distribution,
+often printed directly onto corrugated board.
+
 Standards: ISO/IEC 16390, ANSI/AIM BC2-1995 USS, BS EN 801, GS1 General
 Specifications.
 
@@ -2056,6 +2259,11 @@ Specifications.
 readable text without interfering with the encoded data.
 * If thirteen digits are supplied then the check digit is calculated
 automatically. Otherwise the provided check digit will be verified.
+* A bearer frame surrounding the symbol and its quiet zones is drawn by
+default (*showborder*). The GS1 General Specifications require one, with
+a nominal thickness of 4.83 mm, when the symbol is printed using
+printing plates, typically directly onto corrugated board. The
+*borderwidth* option sets its thickness.
 
 ===== Examples
 
@@ -2086,6 +2294,11 @@ symbol containing only a SSCC.
 
 Misnomers: EAN-18, NVE.
 
+Uses:
+
+* The SSCC alone on the logistic label of a pallet or other logistic
+unit.
+
 Standards: ISO/IEC 15417, ANSI/AIM BC4-1999 ISS, BS EN 799, GS1 General
 Specifications.
 
@@ -2098,6 +2311,8 @@ readable text without interfering with the encoded data.
 * If seventeen digits of primary data are supplied then the check digit
 is calculated automatically. Otherwise the provided check digit will be
 verified.
+* With *strictspec*, the *ast* option takes the <<_gs1_128,GS1-128>>
+application standards, such as `ast=gs1.sst5` for a logistic label.
 
 ===== Examples
 
@@ -2122,6 +2337,19 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 *GS1 DataMatrix* is an implementation of the
 <<_data_matrix,Data Matrix>> (ECC 200) barcode symbology with
 <<_gs1_application_identifier_standard_format,GS1 formatted>> data.
+
+Uses:
+
+* Healthcare: pharmaceutical packs (including the EU Falsified Medicines
+Directive) and medical devices.
+* Direct part marking: type A with a connected finder pattern, such as
+by laser or chemical etching (`ast=gs1.sst7.dpm.a`), and type B with
+separate modules, such as by dot peen (`ast=gs1.sst7.dpm.b`).
+* Retail point of sale in 2D, one of the symbols that GS1 US's
+https://www.gs1us.org/industries-and-insights/by-topic/sunrise-2027[Sunrise
+2027] initiative aims for scanners to read.
+* Unit packets and aggregated packaging of tobacco products under EU
+traceability Regulation (EU) 2018/574 (GS1 SST 12).
 
 Variants:
 
@@ -2319,6 +2547,15 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 <<_qr_code,QR Code>> barcode symbology containing a GS1 Digital Link
 URI.
 
+Uses:
+
+* Retail product packaging that a phone opens as a web page and a 2D
+point-of-sale scanner reads for the GTIN, one of the symbols that GS1
+US's
+https://www.gs1us.org/industries-and-insights/by-topic/sunrise-2027[Sunrise
+2027] initiative aims for scanners to read. Until they do, products
+usually also carry their EAN/UPC barcode.
+
 Variants:
 
 * <<_gs1_qr_code,GS1 QR Code>> encodes GS1 data in Application
@@ -2405,6 +2642,14 @@ including a GTIN-14.
 
 Also known as: UCC/EAN-128, EAN-128, UCC-128.
 
+Uses:
+
+* GS1 logistic labels on pallets, cases and other logistic units,
+carrying the SSCC and data such as batch or lot numbers, dates and
+weights.
+* Aggregated packaging of tobacco products under EU traceability
+Regulation (EU) 2018/574 (GS1 SST 12).
+
 Variants:
 
 * <<_gs1_composite_symbols,GS1-128 Composite>> is a variant of GS1-128
@@ -2460,6 +2705,11 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 *GS1 DotCode* is an implementation of the <<_dotcode,DotCode>> barcode
 symbology with
 <<_gs1_application_identifier_standard_format,GS1 formatted>> data.
+
+Uses:
+
+* Unit packets of tobacco products under EU traceability Regulation (EU)
+2018/574 (GS1 SST 12).
 
 Variants:
 
@@ -4109,6 +4359,12 @@ The *DotCode* symbology is 2D matrix-style barcode that can encode full
 
 Also known as: Ribbon Code.
 
+Uses:
+
+* High-speed marking on production lines, such as by inkjet.
+* Unit packets of tobacco products under EU traceability Regulation (EU)
+2018/574.
+
 Variants:
 
 * <<_gs1_dotcode,GS1 DotCode>> is a variant of DotCode that should be
@@ -5116,8 +5372,8 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== EAN-2
 
-*EAN-2* is the two-digit add-on code that accompanies a EAN-13 or UPC
-type barcode symbol such as an <<_isbn,ISBN>> or <<_issn,ISSN>>.
+*EAN-2* is the two-digit add-on code that accompanies an EAN-13 or UPC
+type barcode symbol such as an <<_issn,ISSN>>.
 
 Also known as: Two-Digit Add-On, Two-Digit Supplement, UPC-2.
 
@@ -5127,7 +5383,7 @@ Note: The use of a two-digit add-on with EAN-8 is not defined by any
 symbology standard.
 
 _Deprecated._ Standalone use of the EAN-2 encoder is discouraged. It is
-better to include an addon by specifying the supplicant's value as an
+better to include an addon by specifying the supplement's value as an
 extension to the data for the primary symbol. For example,
 `0317-8471 03 17` for a symbol representing the ISSN 0317-8471 (having
 sequence number 03) and with issue number 17 denoted using a two-digit
@@ -5163,7 +5419,7 @@ Note: The use of a five-digit add-on with EAN-8 is not defined by any
 symbology standard.
 
 _Deprecated._ Standalone use of the EAN-5 encoder is discouraged. It is
-better to include an addon by specifying the supplicant's value as an
+better to include an addon by specifying the supplement's value as an
 extension to the data for the primary symbol. For example,
 `978-1-873671-00-9 54499` for a symbol representing the ISBN
 978-1-873671-00-9 with recommended retail price $44.99 USD denoted using
