@@ -37,6 +37,12 @@
     pop pop
 } bind def
 
+/_isErrorInfo {  % errorname errorinfo [errorname errorinfo]
+    aload pop 3 -1 roll
+    ne {/testError pstack quit} if
+    ne {/testError pstack quit} if
+} bind def
+
 /_debugIsEqual {
     2 copy
     length exch length ne {/testError pstack quit} if
@@ -122,6 +128,7 @@
 
 /isEqual { //_isEqual //_doTest exec } def
 /isError { //_isError //_doTest exec } def
+/isErrorInfo { //_isErrorInfo //_doTest exec } def
 /debugIsEqual { //_debugIsEqual //_doTest exec } def
 /fuzzTest { null //_fuzzTest //_doTest exec } def
 
