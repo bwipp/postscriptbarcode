@@ -1234,12 +1234,15 @@ begin
 %
 %  Draw border, bearer bars, and background
 %
+%  Without a border or bearer bars the background is the quiet zone, drawn at
+%  its nominal size. Under gridfit its edges lie on pixel boundaries, so they
+%  are inset by render.pixelinset to stay clear of the neighbouring pixels once
+%  a vector intermediate has rounded them.
+%
 /render.renderborder {
 
     16 dict begin
 
-    /yspread exch def
-    /xspread exch def
     /pixy exch def
     /pixx exch def
 
@@ -1254,10 +1257,16 @@ begin
         /bl [ borderleft borderwidth 2 div add neg        borderbottom borderwidth 2 div add neg   ] def
         /br [ pixx borderright add borderwidth 2 div add  borderbottom borderwidth 2 div add neg   ] def
     } {
-        /tl [ borderleft neg xspread add                  pixy bordertop add yspread sub           ] def
-        /tr [ pixx borderright add xspread sub            pixy bordertop add yspread sub           ] def
-        /bl [ borderleft neg xspread add                  borderbottom neg yspread add             ] def
-        /br [ pixx borderright add xspread sub            borderbottom neg yspread add             ] def
+        /xi 0 def /yi 0 def
+        gridfit {
+            gsave //render.gridsetup exec {  % devpx devpy griddpi
+                pop //render.pixelinset exch div /yi exch def //render.pixelinset exch div /xi exch def
+            } if grestore
+        } if
+        /tl [ borderleft neg xi add                       pixy bordertop add yi sub                ] def
+        /tr [ pixx borderright add xi sub                 pixy bordertop add yi sub                ] def
+        /bl [ borderleft neg xi add                       borderbottom neg yi add                  ] def
+        /br [ pixx borderright add xi sub                 borderbottom neg yi add                  ] def
     } ifelse
 
     1 {  % Common exit
