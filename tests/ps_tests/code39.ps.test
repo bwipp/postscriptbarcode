@@ -73,6 +73,9 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added on request
 %
 { (CODE39A) (dontdraw validatecheck) code39 } [/bwipp.code39badCheckDigit (Incorrect Code 39 check digit provided: expected "W", not "A")] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (THIS IS CODE 39) (dontdraw includecheck) code39 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (Q) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (THIS IS CODE 39) (dontdraw ) code39 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (CODE39W) (dontdraw validatecheck) code39 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual

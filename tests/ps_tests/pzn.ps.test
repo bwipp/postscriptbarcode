@@ -24,6 +24,8 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added to a short input
 %
 { (1234560) (dontdraw) pzn } [/bwipp.pznBadCheckDigit (Incorrect PZN check digit provided: expected 2, not 0)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (123456) (dontdraw) pzn pop uk.co.terryburton.bwipp.report /checkdigit get end } (2) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (1234562) (dontdraw) pzn pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual

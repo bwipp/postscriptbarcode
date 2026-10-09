@@ -184,7 +184,14 @@ begin
         } ifelse
         /barcode barcode 0 barlen getinterval def
         /includecheck true def
-    } if
+    } {
+        includecheck {
+            /checkdigit numchecks string
+            dup 0 //code11.barchars checksum1 get put
+            numchecks 2 eq { dup 1 //code11.barchars checksum2 get put } if
+            /report //render exec
+        } if
+    } ifelse
 
     /sbs barlen numchecks add 6 mul 12 add string def
 

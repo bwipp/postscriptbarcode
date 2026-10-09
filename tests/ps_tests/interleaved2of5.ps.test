@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2025 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 /interleaved2of5 dup /uk.co.terryburton.bwipp findresource cvx def
@@ -31,3 +31,10 @@
 
 % AST bounds: xdim below xmin fails
 { (2401234567) (dontdraw strictspec xdim=0.100) interleaved2of5 } /bwipp.renderXdimTooSmall isError
+
+
+%
+% Check digit: the digit expected in the error, and the digit added on request
+%
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck) interleaved2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (5) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw ) interleaved2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual

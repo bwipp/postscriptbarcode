@@ -159,7 +159,9 @@ begin
             exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
             //raiseerror exec
         } if
-    } if
+    } {
+        /checkdigit 1 string dup 0 checksum 48 add put /report //render exec  % Added to a short input
+    } ifelse
     18 string
     dup 0 barcode putinterval
     dup 17 checksum 48 add put

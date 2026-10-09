@@ -57,6 +57,8 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added to a short input
 %
 { (\(01\)09520123456789) (dontdraw) ean14 } [/bwipp.ean14badCheckDigit (Incorrect EAN-14 check digit provided: expected 8, not 9)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (\(01\)0952012345678) (dontdraw) ean14 pop uk.co.terryburton.bwipp.report /checkdigit get end } (8) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (\(01\)09520123456788) (dontdraw) ean14 pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual

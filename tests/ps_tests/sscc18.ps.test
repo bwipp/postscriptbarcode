@@ -57,6 +57,8 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added to a short input
 %
 { (\(00\)095287654321012345) (dontdraw) sscc18 } [/bwipp.sscc18badCheckDigit (Incorrect SSCC-18 check digit provided: expected 6, not 5)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (\(00\)09528765432101234) (dontdraw) sscc18 pop uk.co.terryburton.bwipp.report /checkdigit get end } (6) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (\(00\)095287654321012346) (dontdraw) sscc18 pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual

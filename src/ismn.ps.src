@@ -238,7 +238,8 @@ begin
     %
     % Validate the checksum
     %
-    barcode length 13 eq barcode length 17 eq or {
+    /short barcode length 13 ne barcode length 17 ne and def  % No check digit given
+    short not {
         barcode dup length 1 sub get checksum ne {
             /bwipp.ismnBadCheckDigit
             [ (Incorrect ISMN check digit provided: expected ) 1 string dup 0 checksum put (, not ) barcode dup length 1 sub 1 getinterval ]
@@ -316,6 +317,7 @@ begin
     /uk.co.terryburton.bwipp._dontdraw true def
     /uk.co.terryburton.bwipp._nested true def
     barcode options //ean13 exec /args exch def
+    /checkdigit short { 1 string dup 0 checksum put } { null } ifelse /report //render exec  % In place of the EAN-13 digit
 
     args (opt) options put
     args

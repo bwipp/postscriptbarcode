@@ -133,7 +133,9 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added on request
 %
 { (BC412SEMIX) (dontdraw validatecheck) bc412 } [/bwipp.bc412badCheckDigit (Incorrect BC412 check digit provided: expected P, not X)] isErrorInfo
 { (B0C412SEMI) (dontdraw semi validatecheck) bc412 } [/bwipp.bc412semiBadCheckDigit (Incorrect BC412 semi check digit provided: expected D, not 0)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (BC412SEMI) (dontdraw includecheck) bc412 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (P) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (BC412SEMI) (dontdraw semi) bc412 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual

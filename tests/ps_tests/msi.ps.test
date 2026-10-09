@@ -58,3 +58,10 @@
 
 % propspec smoke test
 { 0 0 moveto (0123456789) (propspec) msi true } true isEqual
+
+
+%
+% Check digit: the digit expected in the error, and the digit added on request
+%
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (7) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck checktype=mod1010) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (78) isEqual

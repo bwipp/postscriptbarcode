@@ -159,7 +159,9 @@ begin
         dup barlen 1 sub barcode barlen 1 getinterval putinterval
         /barcode exch def
         /includecheck true def
-    } if
+    } {
+        includecheck { /checkdigit barchars checksum 1 getinterval /report //render exec } if
+    } ifelse
 
     /sbs barlen includecheck {1 add} if 8 mul string def
 

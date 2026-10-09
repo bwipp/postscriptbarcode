@@ -170,7 +170,9 @@ begin
         } if
         /barcode barcode 0 barlen getinterval def
         /includecheck true def
-    } if
+    } {
+        includecheck { /checkdigit //code39.barchars checksum 1 getinterval /report //render exec } if
+    } ifelse
 
     /sbs barlen includecheck {3} {2} ifelse add 10 mul string def
 

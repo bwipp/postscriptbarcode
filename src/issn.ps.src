@@ -192,6 +192,7 @@ begin
             //raiseerror exec
         } if
     } if
+    /short barcode length 8 eq def  % No check digit given
 
     %
     % Build the ISSN display text
@@ -263,6 +264,7 @@ begin
     /uk.co.terryburton.bwipp._dontdraw true def
     /uk.co.terryburton.bwipp._nested true def
     barcode options //ean13 exec /args exch def
+    /checkdigit short { 1 string dup 0 checksum put } { null } ifelse /report //render exec  % In place of the EAN-13 digit
 
     args (opt) options put
     args

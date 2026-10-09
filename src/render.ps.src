@@ -769,14 +769,18 @@ begin
 %  them, and grid-fitting rescales them to its whole device pixels. The
 %  dimensions assume that the caller has not scaled the coordinate system.
 %  When loosespec drops out of the physical specification, /fallback is the
-%  error that strictspec would have raised. When several symbols are drawn
+%  error that strictspec would have raised. An encoder that adds a check
+%  digit on the user's behalf, to complete a short input or for includecheck,
+%  records the characters that it added as /checkdigit; check characters that
+%  the symbology always adds are not recorded. When several symbols are drawn
 %  with one dictionary, each key holds the value of the last symbol to record
 %  it.
 %
-/render.report {  % key value => -
+/render.report {  % key value => -, a null value removing the key
     /uk.co.terryburton.bwipp.report where {
-        /uk.co.terryburton.bwipp.report get dup type /dicttype eq { dup wcheck } { false } ifelse
-        { 3 1 roll put } { pop pop pop } ifelse
+        /uk.co.terryburton.bwipp.report get dup type /dicttype eq { dup wcheck } { false } ifelse {
+            3 1 roll dup null eq { pop undef } { put } ifelse
+        } { pop pop pop } ifelse
     } { pop pop } ifelse
 } bind def
 

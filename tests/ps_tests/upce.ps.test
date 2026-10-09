@@ -94,6 +94,8 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added to a short input
 %
 { (01234567) (dontdraw) upce } [/bwipp.upcEbadCheckDigit (Incorrect UPC check digit provided: expected 5, not 7)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456) (dontdraw) upce pop uk.co.terryburton.bwipp.report /checkdigit get end } (5) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234565) (dontdraw) upce pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual

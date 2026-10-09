@@ -209,7 +209,9 @@ begin
             exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
             //raiseerror exec
         } if
-    } if
+    } {
+        /checkdigit 1 string dup 0 checksum 48 add put /report //render exec  % Added to a short input
+    } ifelse
     pad 0 barcode putinterval       % Add barcode to the start of the pad
     pad 11 checksum 48 add put      % Put ascii for checksum at end of pad
     /barcode pad def

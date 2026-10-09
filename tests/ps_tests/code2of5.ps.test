@@ -57,6 +57,8 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added on request
 %
 { (012345671) (dontdraw validatecheck) code2of5 } [/bwipp.code2of5badCheckDigit (Incorrect Code 25 check digit provided: expected 0, not 1)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567) (dontdraw includecheck) code2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (0) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (012345670) (dontdraw validatecheck) code2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual

@@ -195,6 +195,7 @@ begin
     } ifelse
 
     /isbntxt barcode def
+    /short isbntxt length dup 11 eq exch 15 eq or def  % No check digit given
 
     %
     % Read the digits from isbntxt and validate checksum for ISBN-10
@@ -341,6 +342,7 @@ begin
     /uk.co.terryburton.bwipp._dontdraw true def
     /uk.co.terryburton.bwipp._nested true def
     barcode options //ean13 exec /args exch def
+    /checkdigit short { 1 string dup 0 checksum put } { null } ifelse /report //render exec  % In place of the EAN-13 digit
 
     args (opt) options put
     args

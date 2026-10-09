@@ -91,7 +91,9 @@
 
 
 %
-% Check digit: the digit expected in the error
+% Check digit: the digit expected in the error, and the digit added to a short input
 %
 { (978-1-56581-231-5) (dontdraw) isbn } [/bwipp.isbn13badCheckDigit (Incorrect ISBN-13 check digit provided: expected 4, not 5)] isErrorInfo
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (978-1-56581-231) (dontdraw) isbn pop uk.co.terryburton.bwipp.report /checkdigit get end } (4) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (978-1-56581-231-4) (dontdraw) isbn pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
 { (1-56581-231-5) (dontdraw) isbn } [/bwipp.isbn10badCheckDigit (Incorrect ISBN-10 check digit provided: expected X, not 5)] isErrorInfo
