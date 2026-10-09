@@ -910,12 +910,13 @@ begin
     8 dict begin
 
     %
-    %  Determine device resolution
+    %  Determine device resolution, to 1/1000 dpi so that real arithmetic on
+    %  the default matrix leaves a griddpi equal to it an exact multiple
     %
     /usergriddpi griddpi 0 ne def
     gsave matrix defaultmatrix setmatrix
-    72 0 dtransform abs exch abs 2 copy lt {exch} if pop /hwxres exch def
-    0 72 dtransform abs exch abs 2 copy lt {exch} if pop /hwyres exch def
+    72 0 dtransform abs exch abs 2 copy lt {exch} if pop 1000 mul round 1000 div /hwxres exch def
+    0 72 dtransform abs exch abs 2 copy lt {exch} if pop 1000 mul round 1000 div /hwyres exch def
     grestore
     griddpi 0 eq { /griddpi hwxres def } if
 
