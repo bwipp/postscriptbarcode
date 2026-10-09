@@ -104,3 +104,17 @@
   { 1 0 dtransform abs exch abs add 0 1 dtransform abs exch abs add sub abs 0.0001 lt }
   { pop false } ifelse
   end grestore } true isEqual
+
+%
+% Basepoint snaps to the target grid when griddpi differs from the device resolution
+%
+{
+    gsave 9.74173 9.74 translate
+    10 dict begin /griddpi 300 def
+    /gridsetup render pop pop pop pop
+    0 0 transform  % Device coordinates at 72 dpi
+    300 72 div mul dup round sub abs 0.0001 lt
+    exch 300 72 div mul dup round sub abs 0.0001 lt and
+    end grestore
+} true isEqual
+
