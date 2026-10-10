@@ -715,6 +715,9 @@ begin
     /parsefnc false def
     /mask -1 def
     /suppresskanjimode false def
+    /sampos -1 def
+    /samtotal -1 def
+    /samparity -1 def
 
     null /apply //processoptions exec /options exch def
     /global_encoder_defaults //render exec
@@ -797,6 +800,25 @@ begin
         } if
     } if
 
+    /structapp sampos -1 ne samtotal -1 ne or samparity -1 ne or def
+    structapp {
+        format (full) ne {
+            /bwipp.qrcodeSAMnotFull (Structured Append is only available for full format QR Code) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or samparity -1 eq or {
+            /bwipp.qrcodeSAMincomplete (Structured Append requires sampos, samtotal and samparity) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 16 gt or {
+            /bwipp.qrcodeBadSAMtotal (The samtotal must be from 2 to 16) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.qrcodeBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        samparity 0 lt samparity 255 gt or {
+            /bwipp.qrcodeBadSAMparity (The samparity must be from 0 to 255) //raiseerror exec
+        } if
+    } if
+
     (input.validate) //qrcode.after exec
 
 
@@ -813,6 +835,19 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % Report the Structured Append parity of the message: its bytes as
+    % transmitted, with FNC1 as GS, excluding ECIs and FNC1 in first position
+    %
+    /uk.co.terryburton.bwipp.report where {
+        pop
+        0 msg {
+            dup 0 ge { xor } { -1000000 gt { 29 xor } if } ifelse
+        } forall
+        msglen 0 gt { msg 0 get //qrcode.fn1 eq { 29 xor } if } if
+        /samparity exch /report //render exec
+    } if
 
     %
     % If FNC1 in first position then escape % as %%
@@ -1177,6 +1212,12 @@ begin
             seq -1 eq {exit} if  % Sequence not available
             /bits 23648 string def
             /j 0 def
+            structapp {  % Header precedes any ECI and FNC1 mode indicators
+                (0011) addtobits
+                sampos 1 sub 4 tobin addtobits
+                samtotal 1 sub 4 tobin addtobits
+                samparity 8 tobin addtobits
+            } if
             fnc1first {
                 ver //qrcode.vR7x43 lt { (0101) } { (101) } ifelse addtobits
             } if

@@ -745,3 +745,85 @@
     (Hello) (dontdraw loosespec mag=5 xnom=0.250 gridfit griddpi=72) qrcode
     dup /strictspec get exch /loosespec get 2 array astore
 } [true true] isEqual
+
+%
+% Structured Append (ISO/IEC 18004 section 8)
+%
+
+% Header 0011, (m-1), (n-1) and parity: the first of three symbols with the parity 0x85 of the worked example
+{
+    (0123) (sampos=1 samtotal=3 samparity=133 fixedeclevel debugcws) qrcode
+} [48 40 81 1 0 195 0 236 17 236 17 236 17 236 17 236] debugIsEqual
+
+% Symbol sequence indicator for the 3rd symbol of 7 is 00100110
+{
+    (0123) (sampos=3 samtotal=7 samparity=0 fixedeclevel debugcws) qrcode
+} [50 96 1 1 0 195 0 236 17 236 17 236 17 236 17 236] debugIsEqual
+
+(0123) (sampos=1 samtotal=3 samparity=133 eclevel=M fixedeclevel mask=1 dontdraw)
+[
+    1 1 1 1 1 1 1 0 0 1 0 1 1 0 1 1 1 1 1 1 1
+    1 0 0 0 0 0 1 0 1 0 0 0 0 0 1 0 0 0 0 0 1
+    1 0 1 1 1 0 1 0 0 0 1 0 0 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 0 0 1 0 0 0 1 0 1 1 1 0 1
+    1 0 1 1 1 0 1 0 1 1 1 0 1 0 1 0 1 1 1 0 1
+    1 0 0 0 0 0 1 0 0 1 1 0 1 0 1 0 0 0 0 0 1
+    1 1 1 1 1 1 1 0 1 0 1 0 1 0 1 1 1 1 1 1 1
+    0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0
+    1 0 1 0 1 0 1 0 0 0 0 1 0 0 0 0 1 0 0 1 0
+    1 1 0 1 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0
+    1 0 0 1 0 1 1 1 1 0 1 0 1 0 0 0 1 0 1 0 1
+    1 1 0 0 1 0 0 0 0 0 1 0 0 0 1 0 0 1 0 0 0
+    0 1 1 0 1 0 1 1 1 0 1 0 1 0 1 0 1 1 1 1 1
+    0 0 0 0 0 0 0 0 1 0 0 1 0 1 0 1 0 1 0 1 0
+    1 1 1 1 1 1 1 0 0 0 1 1 0 1 1 1 0 0 1 0 0
+    1 0 0 0 0 0 1 0 0 0 0 1 1 1 0 1 1 1 0 1 1
+    1 0 1 1 1 0 1 0 1 0 0 1 0 1 1 1 0 0 1 0 1
+    1 0 1 1 1 0 1 0 0 1 1 0 0 0 1 1 0 0 1 1 0
+    1 0 1 1 1 0 1 0 1 1 0 0 1 0 0 0 1 0 1 0 1
+    1 0 0 0 0 0 1 0 0 0 1 0 0 0 1 1 0 1 0 0 1
+    1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 0 1 1 0 0 1
+] eq_tmpl
+
+% The parity of the message is reported: its bytes, with Kanji as Shift JIS
+/samparity_tmpl {
+    3 1 roll {
+        0 0 10 dict begin /uk.co.terryburton.bwipp.report 4 dict def
+        qrcode pop uk.co.terryburton.bwipp.report /samparity get end
+    }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    isEqual
+} def
+
+(0123456789^147^250^150^123) (parse dontdraw) 133 samparity_tmpl  % Worked example: 0x85
+
+% Segments' parities combine by XOR to the parity of the whole message
+{
+    0
+    [ (0123) (4567) (89^147^250^150^123) ] {
+        10 dict begin /uk.co.terryburton.bwipp.report 4 dict def
+        (parse dontdraw) qrcode pop uk.co.terryburton.bwipp.report /samparity get end
+        xor
+    } forall
+} 133 isEqual
+
+(^ECI000026AB) (parsefnc dontdraw) 3 samparity_tmpl                              % ECIs are excluded
+(^FNC10109521234543213) (parsefnc dontdraw) 9 samparity_tmpl                     % FNC1 in first position is excluded
+(^FNC1010952123454321310AB^FNC1) (parsefnc dontdraw) 22 samparity_tmpl            % FNC1 otherwise is GS
+(^FNC1010952123454321310%) (parsefnc dontdraw) 45 samparity_tmpl                   % Literal % counts once in FNC1 mode
+
+(0123) (sampos=1 samtotal=3 samparity=133 format=micro dontdraw) /bwipp.qrcodeSAMnotFull er_tmpl
+(0123) (sampos=1 samtotal=3 samparity=133 version=M4 dontdraw) /bwipp.qrcodeSAMnotFull er_tmpl
+(0123) (sampos=1 samtotal=3 samparity=133 version=R7x43 dontdraw) /bwipp.qrcodeSAMnotFull er_tmpl
+{ (0123) (sampos=1 samtotal=3 samparity=133 dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeSAMnotFull isError
+{ (0123) (sampos=1 samtotal=3 samparity=133 version=R7x43 dontdraw) /rectangularmicroqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeSAMnotFull isError
+(0123) (samtotal=3 samparity=133 dontdraw) /bwipp.qrcodeSAMincomplete er_tmpl
+(0123) (sampos=1 samparity=133 dontdraw) /bwipp.qrcodeSAMincomplete er_tmpl
+(0123) (sampos=1 samtotal=3 dontdraw) /bwipp.qrcodeSAMincomplete er_tmpl
+(0123) (sampos=1 samtotal=1 samparity=0 dontdraw) /bwipp.qrcodeBadSAMtotal er_tmpl
+(0123) (sampos=1 samtotal=17 samparity=0 dontdraw) /bwipp.qrcodeBadSAMtotal er_tmpl
+(0123) (sampos=0 samtotal=3 samparity=0 dontdraw) /bwipp.qrcodeBadSAMpos er_tmpl
+(0123) (sampos=4 samtotal=3 samparity=0 dontdraw) /bwipp.qrcodeBadSAMpos er_tmpl
+(0123) (sampos=1 samtotal=3 samparity=-2 dontdraw) /bwipp.qrcodeBadSAMparity er_tmpl
+(0123) (sampos=1 samtotal=3 samparity=256 dontdraw) /bwipp.qrcodeBadSAMparity er_tmpl

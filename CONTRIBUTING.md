@@ -814,6 +814,9 @@ is not found, `default` silently passes; non-default profiles error.
   user's behalf (a short input or `includecheck`), not for check characters
   that the symbology always carries; a `null` value removes a key, so that
   a wrapper can replace what the encoder it wraps recorded.
+  `qrcode` records `samparity`, the Structured Append parity of the message
+  that it encodes, so that a caller can derive the parity of a message that
+  it splits across symbols.
 
 **Encoder integration pattern** (see `ean13.ps.src` for linear,
 `qrcode.ps.src` for matrix):
