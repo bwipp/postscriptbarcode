@@ -78,3 +78,9 @@
 {
     (\(01\)09521234543213) (dontdraw strictspec ast=gs1.sst1.ai8200) gs1qrcode dup /strictspec get exch /xdim get 2 array astore
 } [true 0.495] isEqual
+
+% Structured Append is not used in the GS1 system
+{ (\(01\)09521234543213) (dontdraw sampos=1 samtotal=2 samparity=0) gs1qrcode } /bwipp.gs1qrcodeStructuredAppend isError
+{ (\(01\)09521234543213) (dontdraw sampos=1) gs1qrcode } /bwipp.gs1qrcodeStructuredAppend isError
+{ (\(01\)09521234543213) (dontdraw samtotal=2) gs1qrcode } /bwipp.gs1qrcodeStructuredAppend isError
+{ (\(01\)09521234543213) (dontdraw samparity=0) gs1qrcode } /bwipp.gs1qrcodeStructuredAppend isError
