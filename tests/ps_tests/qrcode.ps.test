@@ -827,3 +827,27 @@
 (0123) (sampos=4 samtotal=3 samparity=0 dontdraw) /bwipp.qrcodeBadSAMpos er_tmpl
 (0123) (sampos=1 samtotal=3 samparity=-2 dontdraw) /bwipp.qrcodeBadSAMparity er_tmpl
 (0123) (sampos=1 samtotal=3 samparity=256 dontdraw) /bwipp.qrcodeBadSAMparity er_tmpl
+
+% FNC1 and ECI are encoded in the order written: an FNC1 after leading ECIs
+% gives FNC1 mode with its indicator after the ECI headers, as ISO/IEC 18004 orders them
+{
+    (^ECI000026^FNC1AB) (parsefnc fixedeclevel debugcws) qrcode
+} [113 165 32 17 205 0 236 17 236 17 236 17 236 17 236 17] debugIsEqual
+{
+    (^FNC1^ECI000026AB) (parsefnc fixedeclevel debugcws) qrcode
+} [87 26 32 17 205 0 236 17 236 17 236 17 236 17 236 17] debugIsEqual
+
+% The Structured Append header precedes both
+{
+    (^ECI000026^FNC1AB) (parsefnc sampos=1 samtotal=2 samparity=3 fixedeclevel debugcws) qrcode
+} [48 16 55 26 82 1 28 208 236 17 236 17 236 17 236 17] debugIsEqual
+
+(^ECI000026^FNC1AB) (parsefnc dontdraw) 3 samparity_tmpl  % FNC1 in first position after an ECI is excluded
+
+% An FNC1 that follows data has no encodation
+(AB^FNC1CD) (parsefnc dontdraw) /bwipp.qrcodeFNC1NotFirstPosition er_tmpl
+(^ECI000026AB^FNC1CD) (parsefnc dontdraw) /bwipp.qrcodeFNC1NotFirstPosition er_tmpl
+{ (AB^FNC1CD) (parsefnc dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeFNC1NotFirstPosition isError
+
+% Micro QR Code has no FNC1 mode
+{ (^ECI000026^FNC1AB) (parsefnc dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeNoValidSymbol isError

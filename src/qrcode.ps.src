@@ -837,6 +837,17 @@ begin
     /msglen msg length def
 
     %
+    % FNC1 in first position precedes the data, following any leading ECIs
+    %
+    /fnc1eci 0 def  % Number of leading ECIs
+    {  % loop
+        fnc1eci msglen ge {exit} if
+        msg fnc1eci get -1000000 gt {exit} if
+        /fnc1eci fnc1eci 1 add def
+    } loop
+    /fnc1first fnc1eci msglen lt { msg fnc1eci get //qrcode.fn1 eq } { false } ifelse def
+
+    %
     % Report the Structured Append parity of the message: its bytes as
     % transmitted, with FNC1 as GS, excluding ECIs and FNC1 in first position
     %
@@ -845,21 +856,28 @@ begin
         0 msg {
             dup 0 ge { xor } { -1000000 gt { 29 xor } if } ifelse
         } forall
-        msglen 0 gt { msg 0 get //qrcode.fn1 eq { 29 xor } if } if
+        fnc1first { 29 xor } if
         /samparity exch /report //render exec
     } if
 
     %
-    % If FNC1 in first position then escape % as %%
+    % In FNC1 mode remove FNC1 in first position and escape % as %%,
+    % otherwise an FNC1 has no encodation
     %
-    /fnc1first false def
-    msglen 0 gt {
-        msg 0 get //qrcode.fn1 eq {
-            /fnc1first true def
-            /msg [ msg 1 msglen 1 sub getinterval { dup 37 eq {dup} if } forall ] def
-            /msglen msg length def
-        } if
-    } if
+    fnc1first {
+        /msg [
+            0 1 msglen 1 sub {
+                dup fnc1eci eq { pop } { msg exch get dup 37 eq {dup} if } ifelse
+            } for
+        ] def
+        /msglen msg length def
+    } {
+        msg {
+            //qrcode.fn1 eq {
+                /bwipp.qrcodeFNC1NotFirstPosition (QR Code requires that FNC1 appears only before the data, after any ECI) //raiseerror exec
+            } if
+        } forall
+    } ifelse
 
     % Absolute capacity is V40-L numeric.
     msglen 7089 gt {
@@ -1218,13 +1236,16 @@ begin
                 samtotal 1 sub 4 tobin addtobits
                 samparity 8 tobin addtobits
             } if
-            fnc1first {
+            /fnc1pend fnc1first def
+            /addfnc1 {
                 ver //qrcode.vR7x43 lt { (0101) } { (101) } ifelse addtobits
-            } if
+                /fnc1pend false def
+            } def
             /abort false def
             0 2 seq length 1 sub {
                 /i exch def
                 /mode seq i get def
+                fnc1pend i fnc1eci 2 mul eq and { addfnc1 } if  % After the leading ECIs
                 //qrcode.mids ver get mode get addtobits
                 /chars seq i 1 add get def
                 /charslen chars length mode //qrcode.K eq {2 idiv} if def
@@ -1238,6 +1259,7 @@ begin
                 chars //qrcode.encfuncs mode get load exec addtobits
             } for
             abort {exit} if
+            fnc1pend { addfnc1 } if
             /bits bits 0 j getinterval def
             msgbits ver bits put
             exit
