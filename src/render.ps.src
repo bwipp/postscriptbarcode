@@ -1389,21 +1389,44 @@ begin
         } if
 
         guardwhitespace {
+            /debugguards options /debugguards known
+            /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+            and def
+            gsave
             0.75 setlinewidth
+            0 setlinejoin
+            [
+            % Inset the apex so that the ink, not the path, meets the edge of the quiet zone
+            guardheight 0 gt {
+                guardheight 2 div guardwidth dup mul 1 index dup mul add sqrt div  % Sine of the half angle
+                dup 0.1 ge {  % Miter within the default limit of 10
+                    1 exch div dup 1 add setmiterlimit
+                } {
+                    1 setmiterlimit
+                } ifelse
+                0.75 2 div mul
+            } {0} ifelse  % Reversal is bevelled, ending flush
             guardleftpos 0 ne {
                 newpath
-                guardleftpos neg guardwidth add guardleftypos guardheight 2 div add moveto
+                guardleftpos neg guardwidth add 1 index add guardleftypos guardheight 2 div add moveto
                 guardwidth neg guardheight -2 div rlineto
                 guardwidth guardheight -2 div rlineto
+                debugguards { gsave strokepath pathbbox grestore 5 -1 roll } if
                 stroke
             } if
             guardrightpos 0 ne {
                 newpath
-                guardrightpos pixx add guardwidth sub guardrightypos guardheight 2 div add moveto
+                guardrightpos pixx add guardwidth sub 1 index sub guardrightypos guardheight 2 div add moveto
                 guardwidth guardheight -2 div rlineto
                 guardwidth neg guardheight -2 div rlineto
+                debugguards { gsave strokepath pathbbox grestore 5 -1 roll } if
                 stroke
             } if
+            pop
+            ]
+            grestore
+            debugguards { /bwipp.debugguards exch false exit } if
+            pop
         } if
 
         true exit

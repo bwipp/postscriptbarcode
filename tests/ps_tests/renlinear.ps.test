@@ -580,6 +580,23 @@
 { 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /width 0.005 >> >> renlinear } /bwipp.renlinearBadWidth isError
 { 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /width 21 >> >> renlinear } /bwipp.renlinearBadWidth isError
 
+%
+% Light margin indicators: ink tips meet the outer edges of the quiet zones (at -7 and 1+7), miter and bevel
+%
+/guardink_tmpl {
+    /guardink_opts exch def
+    {
+        gsave 100 100 scale 0 0 moveto  % Scaled for a precise strokepath
+        { << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt guardink_opts >> renlinear } stopped pop
+        grestore
+        $error /errorinfo get
+        dup 0 get 7 add abs 0.01 lt exch 6 get 8 sub abs 0.01 lt and
+    } true isEqual
+} def
+
+<< /guardwhitespace true /guardleftpos 7 /guardrightpos 7 /debugguards true >> guardink_tmpl
+<< /guardwhitespace true /guardleftpos 7 /guardrightpos 7 /guardwidth 20 /guardheight 1 /debugguards true >> guardink_tmpl
+
 { 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /guardwidth -1 >> >> renlinear } /bwipp.renderBadGuardwidth isError
 { 0 0 moveto << /ren /renlinear /sbs [1] /bhs [1] /bbs [0] /opt << /guardwidth 21 >> >> renlinear } /bwipp.renderBadGuardwidth isError
 
