@@ -388,6 +388,9 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /sampos -1 def
+    /samtotal -1 def
+    /samid () def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -489,6 +492,25 @@ begin
         } if
     } if
 
+    /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
+    structapp {
+        format (rune) eq readerinit or raw or {
+            /bwipp.aztecSAMunavailable (Structured Append is not available for runes, reader initialisation or raw bits) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.aztecSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 26 gt or {
+            /bwipp.aztecBadSAMtotal (The samtotal must be from 2 to 26) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.aztecBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        samid { 32 eq {
+            /bwipp.aztecBadSAMid (The samid must not contain spaces) //raiseerror exec
+        } if } forall
+    } if
+
     (input.validate) //azteccode.after exec
 
     %
@@ -521,6 +543,18 @@ begin
     /msgbits () def
     format (rune) ne raw and {/msgbits barcode def} if
     format (rune) ne raw not and {
+
+        %
+        % Structured Append header data, which follows the M/L U/L flag: the message ID between spaces, if any, then the position and total as letters
+        %
+        structapp {
+            /msg [
+                samid () ne { 32 samid {} forall 32 } if
+                sampos 64 add samtotal 64 add
+                msg aload pop
+            ] def
+            /msglen msg length def
+        } if
 
         /charsize {
             dup 0 ge {
@@ -934,6 +968,10 @@ begin
 
         } loop
         /msgbits msgbits 0 j getinterval def
+
+        structapp {  % Flag: M/L U/L from the initial Upper state
+            /msgbits msgbits length 10 add string dup 0 (1110111101) putinterval dup 10 msgbits putinterval def
+        } if
 
     } if
 

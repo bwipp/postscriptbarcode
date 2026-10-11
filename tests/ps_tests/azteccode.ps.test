@@ -1260,3 +1260,52 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
 {
     (^038^044^047^038^096^032^058^058^032^206^050^050) (parse debugcws) azteccode
 } [ 59 57 28 26 11 62 59 32 8 10 32 11 60 30 28 25 6 23 ] debugIsEqual
+
+%
+% Structured Append (ISO/IEC 24778 section 8): M/L U/L, then the optional message ID between spaces, then the position and total as letters
+%
+{
+    (ABC) (sampos=2 samtotal=4 debugbits) azteccode  % M/L U/L B D A B C
+} (11101111010001100101000100001100100) debugIsEqual
+{
+    (ABC) (sampos=2 samtotal=4 samid=ID1 debugbits) azteccode
+} (1110111101000010101000101111100011000111100001100101000100001100100) debugIsEqual
+{
+    (^FNC101) (parsefnc sampos=1 samtotal=2 debugbits) azteccode  % FNC1 follows the header
+} (111011110100010000111111000000000000000100011) debugIsEqual
+
+{
+    (ABC) (sampos=2 samtotal=4 layers=1 dontdraw) azteccode /pixs get  % Same as Zint
+} [
+    0 0 0 0 1 1 1 1 0 0 1 0 1 0 1 0 1 0 1
+    1 1 1 1 0 1 1 1 1 1 0 0 1 0 0 0 1 1 0
+    1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+    1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0
+    0 1 0 1 0 1 1 1 1 1 1 1 1 1 0 1 0 0 0
+    0 0 0 1 0 1 0 0 0 0 0 0 0 1 0 1 0 0 1
+    0 1 1 1 0 1 0 1 1 1 1 1 0 1 0 1 1 0 1
+    1 0 0 1 0 1 0 1 0 0 0 1 0 1 0 1 0 1 1
+    0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+    0 1 0 1 0 1 0 1 0 0 0 1 0 1 0 1 1 0 1
+    0 1 1 1 0 1 0 1 1 1 1 1 0 1 0 1 1 1 1
+    0 0 0 1 0 1 0 0 0 0 0 0 0 1 0 1 0 0 1
+    0 1 1 1 0 1 1 1 1 1 1 1 1 1 0 1 0 1 1
+    0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 1
+    0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0
+    1 1 0 0 0 1 1 1 1 0 1 1 1 0 1 0 0 1 1
+    0 0 1 1 0 0 1 1 1 1 1 0 0 0 1 0 1 0 0
+    0 1 0 1 1 0 0 0 0 0 1 1 0 1 1 0 1 0 0
+] debugIsEqual
+
+(ABC) (samtotal=2 dontdraw) /bwipp.aztecSAMincomplete er_tmpl
+(ABC) (sampos=1 dontdraw) /bwipp.aztecSAMincomplete er_tmpl
+(ABC) (samid=ID dontdraw) /bwipp.aztecSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 dontdraw) /bwipp.aztecBadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=27 dontdraw) /bwipp.aztecBadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 dontdraw) /bwipp.aztecBadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 dontdraw) /bwipp.aztecBadSAMpos er_tmpl
+{ (ABC) << /sampos 1 /samtotal 2 /samid (A B) /dontdraw true >> azteccode } /bwipp.aztecBadSAMid isError
+(1) (format=rune sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
+(ABC) (readerinit layers=1 sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
+(10101) (raw sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
