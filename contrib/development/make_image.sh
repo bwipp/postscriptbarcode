@@ -23,6 +23,9 @@
 
 set -e
 
+# Fixed PDF timestamps and document IDs, so that unchanged images regenerate identically
+export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-0}"
+
 CROP=false
 SCALEX=2
 SCALEY=2
@@ -108,12 +111,15 @@ if [ -z "$BBOX" ]; then
 	exit 1
 fi
 
-# Round X1,Y1 down (floor) and X2,Y2 up (ceiling) to enclose symbol
+# Round X1,Y1 down (floor) and X2,Y2 up (ceiling) to enclose symbol. The bbox
+# device overshoots by up to 0.018pt, which must not add a point to an edge that
+# lies on a whole point, such as that of the background.
 read -r X1 Y1 X2 Y2 < <(echo "$BBOX" | awk '{
-	x1 = int($2); if ($2 < x1) x1--;
-	y1 = int($3); if ($3 < y1) y1--;
-	x2 = int($4); if ($4 > x2) x2++;
-	y2 = int($5); if ($5 > y2) y2++;
+	e = 0.025;
+	x1 = int($2 + e); if ($2 + e < x1) x1--;
+	y1 = int($3 + e); if ($3 + e < y1) y1--;
+	x2 = int($4 - e); if ($4 - e > x2) x2++;
+	y2 = int($5 - e); if ($5 - e > y2) y2++;
 	print x1, y1, x2, y2
 }')
 
