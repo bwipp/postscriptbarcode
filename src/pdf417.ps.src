@@ -526,6 +526,7 @@ begin
     /sampos -1 def
     /samtotal -1 def
     /samid () def
+    /readerinit false def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -589,6 +590,10 @@ begin
 
     rowmult 0 le rowmult 50 gt or {
         /bwipp.pdf417badRowMult (The row multiplier must be greater than 0 and at most 50) //raiseerror exec
+    } if
+
+    readerinit raw ccc or and {
+        /bwipp.pdf417readerinitRawOrCcc (Reader initialisation is not available with raw codewords or ccc) //raiseerror exec
     } if
 
     /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
@@ -1103,6 +1108,8 @@ begin
         (input.encoding) //pdf417.after exec
 
     } if
+
+    readerinit { /datcws [ 921 datcws aload pop ] def } if  % Reader initialisation is the first codeword
 
     %
     % Macro PDF417 Control Block: segment index, file ID, segment count and, in the last segment, the terminator

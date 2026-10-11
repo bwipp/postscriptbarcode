@@ -553,3 +553,16 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 (ABC) (sampos=1 samtotal=2 samid=00A dontdraw) /bwipp.pdf417BadSAMid er_tmpl
 (^065) (raw sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMrawOrCcc er_tmpl
 (ABC) (ccc sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMrawOrCcc er_tmpl
+
+%
+% Reader initialisation (ISO/IEC 15438 4.4.1.4)
+%
+{
+    (ABC) (readerinit debugcws) pdf417  % First codeword after the Symbol Length Descriptor
+} [6 921 901 65 66 67] debugIsEqual
+{
+    (ABC) (readerinit sampos=1 samtotal=2 samid=017053 debugcws) pdf417  % In every symbol of a Macro PDF417 sequence
+} [16 921 901 65 66 67 900 928 111 100 17 53 923 1 111 102] debugIsEqual
+
+(^065) (raw readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
+(ABC) (ccc readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
