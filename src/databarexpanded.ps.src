@@ -215,12 +215,12 @@ begin
 
     /fnc1 //databarexpanded.fnc1 def
 
-    barxmult 34 lt {
-        /bwipp.databarStackedOmniBarXmult (GS1 DataBar Expanded Stacked must have a barxmult of at least 34) //raiseerror exec
-    } if
-
     format (expanded) ne format (expandedstacked) ne and {
         /bwipp.databarexpandedBadFormat (Valid formats are expanded and expandedstacked) //raiseerror exec
+    } if
+
+    format (expandedstacked) eq barxmult 34 lt and {
+        /bwipp.databarexpandedBadBarXmult (GS1 DataBar Expanded Stacked must have a barxmult of at least 34) //raiseerror exec
     } if
 
     segments -1 eq {
