@@ -68,6 +68,13 @@ begin
     /ncrmod1110 { ncrmod11 mod10 } bind
 >> readonly def
 
+%
+% Number of check digits that each checktype adds, without badmod11
+%
+/msi.checklen <<
+    /mod10 1  /mod1010 2  /mod11 1  /ncrmod11 1  /mod1110 2  /ncrmod1110 2
+>> readonly def
+
 /msi {
 
     16 dict begin
@@ -75,6 +82,7 @@ begin
 
     /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
+    /validatecheck false def
     /includetext false def   % Enable/disable text
     /includecheckintext false def
     /checktype (unset) def
@@ -110,8 +118,8 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
-    checktype (unset) ne includecheck not and {
-        /bwipp.msiCheckTypeWithoutCheck (checktype requires includecheck) //raiseerror exec
+    checktype (unset) ne includecheck validatecheck or not and {
+        /bwipp.msiCheckTypeWithoutCheck (checktype requires includecheck or validatecheck) //raiseerror exec
     } if
 
     badmod11 checktype (mod11) ne checktype (ncrmod11) ne and checktype (mod1110) ne and checktype (ncrmod1110) ne and and {
@@ -182,15 +190,49 @@ begin
     %
     % Calculate checksum
     %
-    includecheck {
-        //msi.checkfunc checktype 2 copy known not {
-            pop pop /bwipp.msiBadCharacter (MSI checktype must be mod10, mod1010, mod11, ncrmod11, mod1110 or ncrmod1110) //raiseerror exec
+    includecheck validatecheck or {
+        //msi.checkfunc checktype known not {
+            /bwipp.msiBadCharacter (MSI checktype must be mod10, mod1010, mod11, ncrmod11, mod1110 or ncrmod1110) //raiseerror exec
         } if
-        get barcode exch exec /barcode exch def
-        /checkdigit barcode barlen barcode length barlen sub getinterval dup length string copy /report //render exec
-        /barlen barcode length def
-        includecheckintext {/txtlen barlen def} if
+        /checkfunc //msi.checkfunc checktype get def
     } if
+
+    validatecheck {
+        %
+        % The check digits are the final digits, one more with badmod11 when a mod11 check digit is 10
+        %
+        /k0 //msi.checklen checktype get def
+        barlen k0 lt {
+            /bwipp.msiTooShort (The data must end with the check digits) //raiseerror exec
+        } if
+        /matched false def
+        [ k0 badmod11 { k0 1 add } if ] {
+            /k exch def
+            matched not barlen k ge and {
+                barcode 0 barlen k sub getinterval checkfunc barcode eq {
+                    /matched true def
+                    /txtlen barlen k sub def
+                } if
+            } if
+        } forall
+        matched not {
+            /bwipp.msiBadCheckDigit
+            [ (Incorrect MSI check digits provided: expected )
+              barcode 0 barlen k0 sub getinterval checkfunc dup barlen k0 sub dup 3 -1 roll length exch sub getinterval
+              (, not ) barcode barlen k0 sub k0 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
+        } if
+        includecheckintext {/txtlen barlen def} if
+    } {
+        includecheck {
+            barcode checkfunc /barcode exch def
+            /checkdigit barcode barlen barcode length barlen sub getinterval dup length string copy /report //render exec
+            /barlen barcode length def
+            includecheckintext {/txtlen barlen def} if
+        } if
+    } ifelse
 
     /sbs barlen 8 mul 5 add string def
 

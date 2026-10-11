@@ -65,3 +65,21 @@
 %
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (7) isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck checktype=mod1010) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (78) isEqual
+
+%
+% validatecheck: the final digits are the check digits of the checktype, which are verified, then encoded as with includecheck
+%
+{ (01234567897) (dontdraw validatecheck checktype=mod10) msi /sbs get } (0123456789) (dontdraw includecheck checktype=mod10) msi /sbs get isEqual
+{ (012345678978) (dontdraw validatecheck checktype=mod1010) msi /sbs get } (0123456789) (dontdraw includecheck checktype=mod1010) msi /sbs get isEqual
+{ (01234567892) (dontdraw validatecheck checktype=mod11) msi /sbs get } (0123456789) (dontdraw includecheck checktype=mod11) msi /sbs get isEqual
+{ (01234567897) (dontdraw validatecheck checktype=ncrmod11) msi /sbs get } (0123456789) (dontdraw includecheck checktype=ncrmod11) msi /sbs get isEqual
+{ (012345678929) (dontdraw validatecheck checktype=mod1110) msi /sbs get } (0123456789) (dontdraw includecheck checktype=mod1110) msi /sbs get isEqual
+{ (012345678978) (dontdraw validatecheck checktype=ncrmod1110) msi /sbs get } (0123456789) (dontdraw includecheck checktype=ncrmod1110) msi /sbs get isEqual
+{ (100910) (dontdraw validatecheck checktype=mod11 badmod11) msi /sbs get } (1009) (dontdraw includecheck checktype=mod11 badmod11) msi /sbs get isEqual  % Two-digit check of 10
+{ (1009109) (dontdraw validatecheck checktype=mod1110 badmod11) msi /sbs get } (1009) (dontdraw includecheck checktype=mod1110 badmod11) msi /sbs get isEqual
+{ (0) (dontdraw validatecheck) msi /sbs get } () (dontdraw includecheck) msi /sbs get isEqual  % Degenerate case with check digit only
+{ (01234567890) (dontdraw validatecheck checktype=mod1010) msi } [/bwipp.msiBadCheckDigit (Incorrect MSI check digits provided: expected 22, not 90)] isErrorInfo
+{ (10091) (dontdraw validatecheck checktype=mod11 badmod11) msi } [/bwipp.msiBadCheckDigit (Incorrect MSI check digits provided: expected 10, not 1)] isErrorInfo
+{ () (dontdraw validatecheck) msi } /bwipp.msiTooShort isError
+{ (1) (dontdraw validatecheck checktype=mod1010) msi } /bwipp.msiTooShort isError
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567897) (dontdraw validatecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
