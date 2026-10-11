@@ -77,6 +77,10 @@ begin
         /bwipp.gs1dotcodeinputTooLong (The input data is too long) //raiseerror exec
     } if
 
+    options /sampos known options /samtotal known or {
+        /bwipp.gs1dotcodeStructuredAppend (GS1 DotCode does not support Structured Append) //raiseerror exec
+    } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
