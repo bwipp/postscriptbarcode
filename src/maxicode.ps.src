@@ -761,7 +761,12 @@ begin
 
     } if
 
-    encoding (new) eq {
+    encoding (new) eq msglen 0 eq and {  % An empty secondary message is all padding, in code set A
+        /encmsg [] def
+        /padval //maxicode.pad_code 0 get def
+    } if
+
+    encoding (new) eq msglen 0 gt and {
 
         %
         % Check states needed (apart from A, which for typical data is always used)
