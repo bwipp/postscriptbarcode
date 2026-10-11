@@ -212,6 +212,8 @@ begin
 
     /dontdraw false def
     /sam -1 def
+    /sampos -1 def
+    /samtotal -1 def
     /rows 0 def
     /rowheight 8 def
     /sepheight 1 def
@@ -261,6 +263,22 @@ begin
 
     sepheight 1 lt sepheight 5 gt or {
         /bwipp.code16kBadSepHeight (Code 16K must have sepheight from 1 to 5) //raiseerror exec
+    } if
+
+    sampos -1 ne samtotal -1 ne or {
+        sam -1 ne {
+            /bwipp.code16kSAMconflict (sam cannot be given with sampos and samtotal) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.code16kSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 9 gt or {
+            /bwipp.code16kBadSAMtotal (The samtotal must be from 2 to 9) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.code16kBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        /sam sampos 10 mul samtotal add def
     } if
 
     sam -1 ne {

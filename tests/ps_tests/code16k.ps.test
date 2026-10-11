@@ -114,3 +114,13 @@
 
 % strictspec smoke test
 { 0 0 moveto (Abcd-1234567890-wxyZ) (strictspec xdim=0.330) code16k true } true isEqual
+
+% sampos and samtotal are an alternative to sam
+{ (TEST) (sampos=2 samtotal=3 dontdraw) code16k /pixs get } (TEST) (sam=23 dontdraw) code16k /pixs get isEqual
+(TEST) (sam=23 sampos=2 samtotal=3 dontdraw) /bwipp.code16kSAMconflict er_tmpl
+(TEST) (sampos=2 dontdraw) /bwipp.code16kSAMincomplete er_tmpl
+(TEST) (samtotal=3 dontdraw) /bwipp.code16kSAMincomplete er_tmpl
+(TEST) (sampos=1 samtotal=1 dontdraw) /bwipp.code16kBadSAMtotal er_tmpl
+(TEST) (sampos=1 samtotal=10 dontdraw) /bwipp.code16kBadSAMtotal er_tmpl
+(TEST) (sampos=0 samtotal=3 dontdraw) /bwipp.code16kBadSAMpos er_tmpl
+(TEST) (sampos=4 samtotal=3 dontdraw) /bwipp.code16kBadSAMpos er_tmpl

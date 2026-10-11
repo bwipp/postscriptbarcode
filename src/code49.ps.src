@@ -858,6 +858,8 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
 
     /dontdraw false def
     /sam -1 def
+    /sampos -1 def
+    /samtotal -1 def
     /append false def
     /rows 0 def
     /rowheight 8 def
@@ -911,6 +913,22 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
 
     sepheight 1 lt sepheight 5 gt or {
         /bwipp.code49badSepHeight (Code 49 must have sepheight from 1 to 5) //raiseerror exec
+    } if
+
+    sampos -1 ne samtotal -1 ne or {
+        sam -1 ne {
+            /bwipp.code49SAMconflict (sam cannot be given with sampos and samtotal) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.code49SAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 9 gt or {
+            /bwipp.code49BadSAMtotal (The samtotal must be from 2 to 9) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.code49BadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        /sam sampos 10 mul samtotal add def
     } if
 
     append sam -1 ne and {

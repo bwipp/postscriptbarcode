@@ -342,6 +342,8 @@ begin
     /modunit 2 def
     /mode -1 def
     /sam -1 def
+    /sampos -1 def
+    /samtotal -1 def
     /parse false def
     /parsefnc false def
     /legacyencoder false def
@@ -379,6 +381,22 @@ begin
 
     mode -1 ne mode 2 lt mode 6 gt or and {
        /bwipp.maxicodeBadMode (Mode must be 2 to 6) //raiseerror exec
+    } if
+
+    sampos -1 ne samtotal -1 ne or {
+        sam -1 ne {
+            /bwipp.maxicodeSAMconflict (sam cannot be given with sampos and samtotal) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.maxicodeSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 8 gt or {
+            /bwipp.maxicodeBadSAMtotal (The samtotal must be from 2 to 8) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.maxicodeBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        /sam sampos 10 mul samtotal add def
     } if
 
     sam -1 ne {

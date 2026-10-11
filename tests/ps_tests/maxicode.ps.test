@@ -322,3 +322,13 @@
 % strictspec with mag outside the permitted symbol size
 { (A) (mode=4 dontdraw strictspec mag=1.5) maxicode } /bwipp.renderXdimTooLarge isError
 { (A) (mode=4 dontdraw strictspec mag=0.9) maxicode } /bwipp.renderXdimTooSmall isError
+
+% sampos and samtotal are an alternative to sam
+{ (A) (mode=4 sampos=2 samtotal=3 dontdraw) maxicode /pixs get } (A) (mode=4 sam=23 dontdraw) maxicode /pixs get isEqual
+(A) (mode=4 sam=23 sampos=2 samtotal=3 dontdraw) /bwipp.maxicodeSAMconflict er_tmpl
+(A) (mode=4 sampos=2 dontdraw) /bwipp.maxicodeSAMincomplete er_tmpl
+(A) (mode=4 samtotal=3 dontdraw) /bwipp.maxicodeSAMincomplete er_tmpl
+(A) (mode=4 sampos=1 samtotal=1 dontdraw) /bwipp.maxicodeBadSAMtotal er_tmpl
+(A) (mode=4 sampos=1 samtotal=9 dontdraw) /bwipp.maxicodeBadSAMtotal er_tmpl
+(A) (mode=4 sampos=0 samtotal=3 dontdraw) /bwipp.maxicodeBadSAMpos er_tmpl
+(A) (mode=4 sampos=4 samtotal=3 dontdraw) /bwipp.maxicodeBadSAMpos er_tmpl
