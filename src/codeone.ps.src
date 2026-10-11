@@ -384,6 +384,8 @@ begin
     /version (unset) def
     /parse false def
     /parsefnc false def
+    /sampos -1 def
+    /samtotal -1 def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -433,6 +435,22 @@ begin
 
     /stype version 0 1 getinterval (S) eq def
     /ttype version 0 1 getinterval (T) eq def
+
+    /structapp sampos -1 ne samtotal -1 ne or def
+    structapp {
+        stype {
+            /bwipp.codeoneSAMstype (Structured Append is not available for S-Type symbols) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.codeoneSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 128 gt or {
+            /bwipp.codeoneBadSAMtotal (The samtotal must be from 2 to 128) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.codeoneBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+    } if
 
     (input.validate.common) //codeone.after exec
 
@@ -556,6 +574,17 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        structapp {
+            msglen 0 gt { msg 0 get //codeone.fnc1 eq } { false } ifelse {
+                /bwipp.codeoneSAMfnc1 (Structured Append is not available with FNC1 in first position) //raiseerror exec
+            } if
+            msg {
+                //codeone.fnc3 eq {
+                    /bwipp.codeoneSAMfnc3 (Structured Append is not available with reader programming) //raiseerror exec
+                } if
+            } forall
+        } if
 
         %
         % Code One stores ECIs in data
@@ -1033,7 +1062,18 @@ begin
         % Derive the codewords
         %
         /cws 1480 array def
-        /mode //codeone.a def /i 0 def /j 0 def {
+        /mode //codeone.a def /i 0 def /j 0 def
+        structapp {  % Group mode up to 15 symbols, otherwise Extended Group mode
+            /i numecis 0 gt { 2 } { 0 } ifelse def  % The Pad and escape that begin ECI data are placed by the header
+            numecis 0 gt sampos 1 eq and  % First symbol with ECIs: Pad, with the escape at the position that the ECI addendum gives
+            samtotal 15 le {
+                { [ 129 233 sampos 1 sub 15 mul samtotal 1 sub add eciesc 1 add ] } { [ sampos 1 sub 15 mul samtotal 1 sub add 233 ] } ifelse
+            } {
+                { [ 129 eciesc 1 add 233 sampos samtotal ] } { [ sampos samtotal 233 ] } ifelse
+            } ifelse
+            addtocws
+        } if
+        {
             i msglen ge {exit} if
             //codeone.encfuncs mode get load exec
         } loop

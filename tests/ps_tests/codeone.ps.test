@@ -580,3 +580,32 @@ systemdict /STRING_CONTINUE_BUG known not {
 
 % strictspec smoke test
 { 0 0 moveto (Code One) (strictspec xdim=0.330) codeone true } true isEqual
+
+%
+% Structured Append (USS Code One section 2.2.3.2 and Appendix G.1)
+%
+{
+    (ABC) (sampos=3 samtotal=5 debugcws) codeone  % Group mode: 34 for the third of five, as in the example
+} [34 233 66 67 68 129 129 129 129 129] debugIsEqual
+{
+    (ABC) (sampos=3 samtotal=100 debugcws) codeone  % Extended Group mode
+} [3 100 233 66 67 68 129 129 129 129] debugIsEqual
+{
+    (^ECI000026AB) (parsefnc sampos=1 samtotal=5 debugcws) codeone  % Pad, FNC2, group, escape, as Zint
+} [129 233 4 93 93 130 130 156 66 67] debugIsEqual
+{
+    (^ECI000026AB) (parsefnc sampos=2 samtotal=50 debugcws) codeone  % No Pad after the first symbol, as Zint
+} [2 50 233 93 130 130 156 66 67 129] debugIsEqual
+{
+    (^ECI000026AB) (parsefnc sampos=1 samtotal=50 debugcws) codeone  % Pad, escape, FNC2, position, total
+} [129 93 233 1 50 93 130 130 156 66 67 129 129 129 129 129 129 129 129] debugIsEqual
+
+(ABC) (samtotal=2 dontdraw) /bwipp.codeoneSAMincomplete er_tmpl
+(ABC) (sampos=1 dontdraw) /bwipp.codeoneSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 dontdraw) /bwipp.codeoneBadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=129 dontdraw) /bwipp.codeoneBadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 dontdraw) /bwipp.codeoneBadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 dontdraw) /bwipp.codeoneBadSAMpos er_tmpl
+(123) (version=S-10 sampos=1 samtotal=2 dontdraw) /bwipp.codeoneSAMstype er_tmpl
+(^FNC101) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.codeoneSAMfnc1 er_tmpl
+(A^FNC3) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.codeoneSAMfnc3 er_tmpl
