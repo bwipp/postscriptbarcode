@@ -219,3 +219,49 @@
 
 % strictspec smoke test
 { 0 0 moveto (This is DotCode) (strictspec xdim=0.330) dotcode true } true isEqual
+
+%
+% Structured Append (DotCode Rev 4.0 5.2.1.2): the position and total as 1 to 9 then A to Z, then a final FNC2
+%
+{
+    (ABC) (sampos=4 samtotal=11 debugcws) dotcode  % ABC 4 B FNC2, as in the example "4 B <FNC2>"
+} [106 33 34 35 20 34 108] debugIsEqual
+{
+    (ABC) (sampos=10 samtotal=35 debugcws) dotcode  % ABC A Z FNC2
+} [106 33 34 35 33 58 108] debugIsEqual
+{
+    (Hello World) (sampos=10 samtotal=35 columns=20 mask=1 dontdraw) dotcode /pixs get  % Same as Zint
+} [
+    1 0 1 0 0 0 0 0 0 0 1 0 1 0 1 0 1 0 0 0
+    0 1 0 1 0 0 0 1 0 1 0 1 0 1 0 0 0 0 0 1
+    1 0 1 0 0 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0
+    0 0 0 1 0 0 0 1 0 0 0 0 0 1 0 1 0 1 0 0
+    1 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0 1 0 0 0
+    0 0 0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 1
+    0 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0 1 0
+    0 1 0 0 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 1
+    1 0 1 0 1 0 0 0 0 0 1 0 1 0 0 0 0 0 0 0
+    0 1 0 0 0 1 0 0 0 1 0 1 0 0 0 0 0 1 0 1
+    1 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 1 0 1 0
+    0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 0 0 1 0 1
+    1 0 1 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0
+    0 1 0 1 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0 1
+    1 0 0 0 0 0 0 0 1 0 1 0 1 0 1 0 0 0 0 0
+    0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1
+    0 0 1 0 0 0 0 0 1 0 0 0 1 0 1 0 1 0 0 0
+    0 0 0 0 0 0 0 1 0 1 0 0 0 1 0 1 0 1 0 1
+    1 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 1 0 1 0
+    0 1 0 1 0 1 0 1 0 0 0 0 0 0 0 1 0 1 0 0
+    1 0 0 0 1 0 1 0 0 0 0 0 0 0 1 0 0 0 1 0
+    0 1 0 0 0 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1
+    1 0 0 0 1 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0
+] debugIsEqual
+
+(ABC) (samtotal=2 dontdraw) /bwipp.dotcodeSAMincomplete er_tmpl
+(ABC) (sampos=1 dontdraw) /bwipp.dotcodeSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 dontdraw) /bwipp.dotcodeBadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=36 dontdraw) /bwipp.dotcodeBadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 dontdraw) /bwipp.dotcodeBadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 dontdraw) /bwipp.dotcodeBadSAMpos er_tmpl
+(^FNC3ABC) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.dotcodeSAMfnc3 er_tmpl
+(AB^FNC3C) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.dotcodeSAMfnc3 er_tmpl

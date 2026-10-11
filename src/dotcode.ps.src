@@ -318,6 +318,8 @@ begin
     /ratio -1.0 def
     /parse false def
     /parsefnc false def
+    /sampos -1 def
+    /samtotal -1 def
     /fast false def
     /mask -1 def
     /strictspec false def
@@ -398,6 +400,19 @@ begin
         } if
     } if
 
+    /structapp sampos -1 ne samtotal -1 ne or def
+    structapp {
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.dotcodeSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 35 gt or {
+            /bwipp.dotcodeBadSAMtotal (The samtotal must be from 2 to 35) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.dotcodeBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+    } if
+
     (input.validate) //dotcode.after exec
 
     %
@@ -410,11 +425,19 @@ begin
         /parsefnc parsefnc
         /eci true
         (FNC1) //dotcode.fn1
-        % (FNC2) fn2  %  Use ^ECInnnnnn for ECI; Structured append not supported
+        % (FNC2) fn2  %  Use ^ECInnnnnn for ECI and sampos/samtotal for Structured Append
         (FNC3) //dotcode.fn3
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    structapp {
+        msg {
+            //dotcode.fn3 eq {
+                /bwipp.dotcodeSAMfnc3 (Structured Append is not available with reader initialisation or symbol separation) //raiseerror exec
+            } if
+        } forall
+    } if
 
     %
     % Special FNC2 semantics: Expand ECI characters into ^FNC2nnnnnn
@@ -435,6 +458,14 @@ begin
     } for
     /msg msgtmp def
     /msglen msg length def
+
+    %
+    % Structured Append trailer: the position and total as 1 to 9 then A to Z, then a final FNC2
+    %
+    structapp {
+        /msg [ msg aload pop sampos samtotal 2 { dup 9 gt {55} {48} ifelse add exch } repeat //dotcode.fn2 ] def
+        /msglen msg length def
+    } if
 
     (input.preprocess) //dotcode.after exec
 
