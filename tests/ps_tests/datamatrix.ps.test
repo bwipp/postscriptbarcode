@@ -1046,3 +1046,63 @@
 
 % AST bounds: xdim below xmin fails
 { (This is Data Matrix!) (dontdraw strictspec xdim=0.200) datamatrix } /bwipp.renderXdimTooSmall isError
+
+%
+% Structured Append (ISO/IEC 16022 section 6.6)
+%
+{
+    (ABC) (sampos=3 samtotal=7 samid=1 debugcws) datamatrix  % Symbol sequence indicator 42 for 3 of 7, as in the worked example
+} [233 42 1 1 66 67 68 129] debugIsEqual
+{
+    (ABC) (sampos=16 samtotal=16 samid=64516 debugcws) datamatrix
+} [233 241 254 254 66 67 68 129] debugIsEqual
+{
+    (ABC) (sampos=1 samtotal=2 samid=255 debugcws) datamatrix  % File identification codewords 2 and 1
+} [233 15 2 1 66 67 68 129] debugIsEqual
+{
+    (A) (sampos=1 samtotal=2 samid=00001 debugcws) datamatrix
+} [233 15 1 1 66] debugIsEqual
+
+% FNC1 follows in the fifth position
+{
+    (^FNC10109521234543213) (parsefnc sampos=1 samtotal=2 samid=5 debugcws) datamatrix
+} [233 15 1 5 232 131 139 182 142 164 184 162 143 129 87 237 133 28] debugIsEqual
+
+% Macro 05/06 is not used with Structured Append, so the header and trailer are encoded as data
+{
+    ([\)>^03005^029214^030^004) (parse sampos=1 samtotal=2 samid=1 debugcws) datamatrix
+} [233 15 1 1 92 42 63 31 135 30 151 53 31 5 129 237 133 28] debugIsEqual
+
+{
+    (ABC) (sampos=3 samtotal=7 samid=1 dontdraw) datamatrix /pixs get  % Same as Zint
+} [
+    1 0 1 0 1 0 1 0 1 0 1 0 1 0
+    1 0 0 0 0 1 0 0 0 0 0 0 0 1
+    1 1 0 1 0 1 0 0 1 0 1 1 0 0
+    1 0 1 0 0 0 0 0 1 0 0 1 0 1
+    1 1 0 1 0 1 0 1 1 0 0 1 1 0
+    1 1 0 0 0 0 1 0 0 0 0 0 1 1
+    1 1 0 1 1 0 0 0 0 0 1 1 1 0
+    1 0 0 0 0 0 0 0 0 0 1 1 1 1
+    1 0 0 0 1 0 1 1 1 1 0 1 0 0
+    1 1 1 0 0 0 1 1 1 0 1 0 0 1
+    1 0 0 0 0 1 0 0 1 0 1 1 0 0
+    1 0 0 1 0 0 1 0 0 1 1 0 0 1
+    1 1 0 0 0 0 1 0 0 0 0 0 1 0
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1
+] debugIsEqual
+
+(ABC) (samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMincomplete er_tmpl
+(ABC) (sampos=1 samid=1 dontdraw) /bwipp.datamatrixSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=2 dontdraw) /bwipp.datamatrixSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 samid=1 dontdraw) /bwipp.datamatrixBadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=17 samid=1 dontdraw) /bwipp.datamatrixBadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixBadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixBadSAMpos er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=0 dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=64517 dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=000001 dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=-1 dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=1A dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
+(^065) (raw sampos=1 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMraw er_tmpl
+(A^PROG) (parsefnc sampos=1 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMprog er_tmpl

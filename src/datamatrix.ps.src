@@ -376,6 +376,9 @@ begin
     /c40headerlength -1 def
     /raw false def
     /dmre false def
+    /sampos -1 def
+    /samtotal -1 def
+    /samid () def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -458,6 +461,28 @@ begin
 
     format (square) ne format (rectangle) ne and {
         /bwipp.datamatrixInvalidFormat (The format must be either square or rectangle) //raiseerror exec
+    } if
+
+    /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
+    structapp {
+        raw {
+            /bwipp.datamatrixSAMraw (Structured Append is not available with raw codewords) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or samid () eq or {
+            /bwipp.datamatrixSAMincomplete (Structured Append requires sampos, samtotal and samid) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 16 gt or {
+            /bwipp.datamatrixBadSAMtotal (The samtotal must be from 2 to 16) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.datamatrixBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        samid length 5 le dup { samid { dup 48 lt exch 57 gt or { pop false } if } forall } if
+        dup { pop samid cvi dup 1 ge exch 64516 le and } if
+        not {
+            /bwipp.datamatrixBadSAMid (The samid must be from 1 to 64516) //raiseerror exec
+        } if
+        /samfid samid cvi 1 sub def  % Two file identification codewords, each 1 to 254
     } if
 
     (input.validate) //datamatrix.after exec
@@ -547,10 +572,18 @@ begin
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
 
+        structapp {
+            msg {
+                //datamatrix.prog eq {
+                    /bwipp.datamatrixSAMprog (Structured Append is not available with reader programming) //raiseerror exec
+                } if
+            } forall
+        } if
+
         %
-        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
+        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data, which is not available with Structured Append
         %
-        msglen 9 ge {
+        msglen 9 ge structapp not and {
             msg 0 7 getinterval aload pop
             29 eq exch pop exch 48 eq and exch  % [)>{RS}0*{GS}...
             30 eq and exch 62 eq and exch 41 eq and exch 91 eq and {
@@ -964,6 +997,10 @@ begin
         %
         /cws 1558 array def
         /mode //datamatrix.A def /i 0 def /j 0 def
+        structapp {  % Precedes any FNC1 and ECI
+            Avals //datamatrix.sapp get addtocws
+            [ sampos 1 sub 16 mul 17 add samtotal sub samfid 254 idiv 1 add samfid 254 mod 1 add ] addtocws
+        } if
         % FNC1 in 1st position must be in ASCII to be GS1
         msg 0 get //datamatrix.fnc1 eq {
             Avals //datamatrix.fnc1 get addtocws
