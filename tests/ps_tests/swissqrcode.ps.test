@@ -89,3 +89,10 @@
 
 % Structured Append is not supported
 (TEST) (sampos=1 samtotal=2 samparity=0 dontdraw) /bwipp.swissqrcodeStructuredAppend er_tmpl
+
+% Error correction level M, which would otherwise be raised to Q for this data
+{
+    (SPC^0100200^0101^010CH5800791123000889012^010S^010Robert Schneider AG) (parse dontdraw) swissqrcode /pixs get
+} (SPC^0100200^0101^010CH5800791123000889012^010S^010Robert Schneider AG) (parse eclevel=M fixedeclevel dontdraw) /qrcode /uk.co.terryburton.bwipp findresource exec /pixs get isEqual
+{ (SPC) (eclevel=M dontdraw) swissqrcode pop true } true isEqual
+{ (SPC) (eclevel=Q dontdraw) swissqrcode } /bwipp.swissqrcodeBadEclevel isError

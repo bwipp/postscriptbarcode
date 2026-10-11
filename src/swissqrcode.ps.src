@@ -81,6 +81,17 @@ begin
     } if
 
     %
+    % The Swiss Implementation Guidelines require error correction level M
+    %
+    options (eclevel) known {
+        options (eclevel) get (M) ne {
+            /bwipp.swissqrcodeBadEclevel (Swiss QR Code requires error correction level M) //raiseerror exec
+        } if
+    } if
+    options (eclevel) (M) put
+    options (fixedeclevel) true put
+
+    %
     % Validate the input length
     %
     barcode length 997 gt {
