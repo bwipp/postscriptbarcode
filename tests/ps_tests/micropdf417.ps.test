@@ -576,3 +576,22 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 {
     ([\)>^03005^029214^030^004) (parse sampos=1 samtotal=2 samid=001 debugcws) micropdf417
 } [924 152 693 366 547 265 48 834 771 621 544 900 928 111 100 1 923 1 111 102] debugIsEqual
+
+%
+% Reader initialisation (ISO/IEC 24728 5.4.1.4)
+%
+{
+    (ABC) (readerinit debugcws) micropdf417  % First codeword
+} [921 901 65 66 67 900 900] debugIsEqual
+{
+    (ABC) (readerinit sampos=1 samtotal=2 samid=017053 debugcws) micropdf417  % In every symbol of a Structured Append sequence
+} [921 901 65 66 67 900 900 928 111 100 17 53 923 1 111 102] debugIsEqual
+
+% Macro 05/06 is not used with reader initialisation, which takes the first codeword
+{
+    ([\)>^03005^029214^030^004) (parse readerinit debugcws) micropdf417
+} [921 924 152 693 366 547 265 48 834 771 621 544] debugIsEqual
+
+(^065) (raw readerinit dontdraw) /bwipp.micropdf417readerinitRawOrCc er_tmpl
+(ABC) (cca readerinit dontdraw) /bwipp.micropdf417readerinitRawOrCc er_tmpl
+(ABC) (ccb readerinit dontdraw) /bwipp.micropdf417readerinitRawOrCc er_tmpl

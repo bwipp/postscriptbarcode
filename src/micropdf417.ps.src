@@ -604,6 +604,7 @@ begin
     /sampos -1 def
     /samtotal -1 def
     /samid () def
+    /readerinit false def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -651,6 +652,10 @@ begin
 
     cca ccb and cca raw and ccb raw and or or {
         /bwipp.micropdf417ccaAndCcb (Cannot combine cca, ccb and raw) //raiseerror exec
+    } if
+
+    readerinit raw cca or ccb or and {
+        /bwipp.micropdf417readerinitRawOrCc (Reader initialisation is not available with raw codewords, cca or ccb) //raiseerror exec
     } if
 
     /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
@@ -789,9 +794,9 @@ begin
         /msglen msg length def
 
         %
-        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data, which is not available with Structured Append
+        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data, which is not available with Structured Append or reader initialisation
         %
-        msglen 9 ge structapp not and {
+        msglen 9 ge structapp not and readerinit not and {
             msg 0 7 getinterval aload pop
             29 eq exch pop exch 48 eq and exch  % [)>{RS}0*{GS}...
             30 eq and exch 62 eq and exch 41 eq and exch 91 eq and {
@@ -1235,6 +1240,8 @@ begin
         (input.encoding) //micropdf417.after exec
 
     } if
+
+    readerinit { /datcws [ 921 datcws aload pop ] def } if  % Reader initialisation is the first codeword
 
     %
     % Structured Append Control Block: segment index, file ID, segment count and, in the last segment, the terminator
