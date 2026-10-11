@@ -1,82 +1,65 @@
-XXXX-XX-XX
+2026-10-15
 
-* MSI accepts the validatecheck option, which verifies the check digits of the checktype provided as the final digits.
-* Code 93 accepts the validatecheck option, which verifies the two check characters C and K provided as the final characters. Code 93 Extended refuses it.
-* Code 93 records the check characters that includecheck adds in the uk.co.terryburton.bwipp.report dictionary, as checkdigit.
-* ITF-14 no longer adds a further check digit when given the includecheck option.
-* Interleaved 2 of 5 accepts the validatecheck option, which verifies a check digit provided as the final digit.
-* Two-track Pharmacode now takes the height option in inches, as every other encoder does, rather than in millimetres: a height of 4 that gave 4mm tracks must now be given as 0.1575. The default 4mm tracks are unchanged.
-* Two-track Pharmacode under strictspec with hdim now has tracks of that height, rather than reading the derived height as millimetres.
-* Swiss QR Code now always uses error correction level M, as the Swiss Implementation Guidelines require, rather than raising it when the data fits a higher level, so some symbols change; any other eclevel is refused.
-* MaxiCode modes 2 and 3 now encode a structured carrier message whose secondary message is empty, rather than failing with an internal undefined error.
-* FIM B now has its third wide space at the 1/16 inch pitch of the other bars, 6.75 rather than 6.25 points.
-* Ultracode supports Structured Append with the sampos and samtotal options, for a message carried by a sequence of 2 to 8 symbols.
-* Code One supports Structured Append with the sampos and samtotal options, for a message carried by a sequence of 2 to 128 symbols.
-* DotCode supports Structured Append with the sampos and samtotal options, for a message carried by a sequence of 2 to 35 symbols.
-* Aztec Code supports Structured Append with the sampos, samtotal and samid options, for a message carried by a sequence of 2 to 26 symbols.
-* Code 16K, Code 49 and MaxiCode accept the sampos and samtotal options as an alternative to sam.
-* PDF417 supports Macro PDF417 with the sampos, samtotal and samid options, for a message carried by a sequence of 2 to 99999 symbols.
-* MicroPDF417 supports Structured Append with the sampos, samtotal and samid options, for a message carried by a sequence of 2 to 99999 symbols.
-* Data Matrix supports Structured Append with the sampos, samtotal and samid options, for a message carried by a sequence of 2 to 16 symbols.
-* GS1 DataBar Expanded Stacked now raises bwipp.databarexpandedBadBarXmult for a barxmult below 34, rather than bwipp.databarStackedOmniBarXmult.
-* GS1 DataBar Expanded no longer rejects a barxmult below 34, since it uses barxmult only in the expandedstacked format.
-* QR Code supports Structured Append with the sampos, samtotal and samparity options, for a message carried by a sequence of 2 to 16 symbols.
-* QR Code records samparity, the Structured Append parity of the message that it encodes, in the uk.co.terryburton.bwipp.report dictionary.
-* QR Code now accepts an FNC1 that follows ECIs before any data, as FNC1 mode with its indicator after the ECI headers, rather than failing with an internal undefined error.
-* QR Code and Micro QR Code now raise bwipp.qrcodeFNC1NotFirstPosition for an FNC1 that follows data, rather than failing with an internal undefined error.
-* The guardwhitespace light margin indicators of EAN/UPC symbols now place the tip of their ink, rather than the centre of their stroke, at the outer edge of the quiet zone; the tip previously extended 0.65 modules past it.
-* The shape of the guardwhitespace light margin indicators no longer depends on the line join and miter limit of the caller's graphics state.
+* Support for Structured Append was added to the QR Code, Data Matrix, PDF417, MicroPDF417, Aztec Code, DotCode, Code One and Ultracode encoders via new sampos, samtotal, samid and samparity options.
+* The Code 16K, Code 49 and MaxiCode encoders were amended to accept sampos and samtotal as alternatives to sam.
+* The validatecheck option was added to the Interleaved 2 of 5, Code 93 and MSI encoders.
+* The QR Code encoder was amended to report the Structured Append parity of its message, and the Code 93 encoder to report the check characters that it adds.
+* The ITF-14 encoder was fixed so that includecheck no longer adds a further check digit.
+* The Two-track Pharmacode encoder was changed to take the height option in inches, like the other encoders, rather than millimetres.
+* The Two-track Pharmacode encoder was fixed to honour hdim under strictspec.
+* The Swiss QR Code encoder was amended to always use error correction level M, as required by the Swiss Implementation Guidelines, and to refuse any other eclevel.
+* The MaxiCode encoder was fixed to accept an empty secondary message in modes 2 and 3.
+* The spacing of the FIM B symbol was fixed.
+* The GS1 DataBar Expanded encoder was fixed to validate barxmult only for the expandedstacked format.
+* The QR Code encoder was fixed to accept FNC1 in first position following ECIs, and to raise a proper error for FNC1 following data.
+* The EAN/UPC light margin indicators were fixed so that their ink, rather than the centre of their stroke, meets the edge of the quiet zone, regardless of the caller's line join and miter limit.
 
 
 2026-10-14
 
-* The uk.co.terryburton.bwipp.report dictionary now receives fallbackmsg, the message of the error that strictspec would have raised, alongside fallback when loosespec drops out of the physical specification.
+* The report dictionary was amended to also receive the message of the error that loosespec suppressed.
 
 
 2026-10-13
 
-* Under gridfit, a griddpi equal to the resolution of the output device now produces the same output as leaving griddpi unset, on interpreters whose real arithmetic puts the resolution derived from the device a fraction away from it; composite symbols had gained a row of pixels at the boundaries of the 2D component's rows.
+* The gridfit option was fixed so that a griddpi equal to the device resolution gives the same output as leaving it unset.
 
 
 2026-10-12
 
-* Under gridfit, the symbol is now aligned to the pixel grid of griddpi when it differs from the resolution of the output device, such as when writing PDF, rather than to the device's own grid.
-* Without a border or bearer bars, the background now covers the whole quiet zone rather than being reduced by the ink spread on every side.
-* Under gridfit, the edges of such a background are inset by 1/16 pixel, so that a vector intermediate such as PDF does not paint an extra row or column of pixels around it.
+* The gridfit option was fixed to align to the griddpi pixel grid when it differs from the device resolution.
+* The renderers were amended so that a background without a border or bearer bars covers the whole quiet zone.
 
 
 2026-10-11
 
-* A check digit error now gives the digit that was expected and the one found, e.g. "Incorrect EAN-13 check digit provided: expected 8, not 7", as does the checksum error for a GS1 Application Identifier.
-* The uk.co.terryburton.bwipp.report dictionary now receives checkdigit, the check characters that an encoder adds on the user's behalf: to complete a short input for EAN-13, EAN-8, UPC-A, UPC-E, ITF-14, GS1 DataBar, SSCC-18, EAN-14, ISBN, ISSN, ISMN, PZN, Italian Pharmacode, Identcode and Leitcode, or for includecheck with Code 39, Code 11, Code 25, Interleaved 2 of 5, MSI, Codabar and BC412.
+* Check digit errors were amended to give the expected and the provided check digit.
+* The report dictionary was amended to receive the check characters that an encoder adds on the user's behalf.
 
 
 2026-10-10
 
-* The uk.co.terryburton.bwipp.report dictionary now receives hnom, the bar height that the specification calls for, so that a caller can tell when a linear symbol's bars are shorter than specified.
-* Under strictspec, mag now scales the bar height as well as the X-dimension for ISBN, ISMN, ISSN, GS1-128, ITF-14, GS1 DataBar Truncated, Stacked, Stacked Omnidirectional and Expanded Stacked, and the composite symbols, as it does for the symbols that they are built on.
-* SSCC-18 and EAN-14 now accept the GS1-128 Application Specification Tables with the ast option, e.g. ast=gs1.sst5 for an SSCC-18 on a logistic label, rather than raising bwipp.renderUnknownAST.
-* Under strictspec, the X-dimension of SSCC-18 and EAN-14 is now held to the GS1-128 range of 0.170 to 1.016 mm when no ast is given.
+* The report dictionary was amended to receive the bar height that the specification calls for.
+* The mag option was fixed to also scale the bar height of wrapper and composite symbols under strictspec.
+* The SSCC-18 and EAN-14 encoders were amended to use the GS1-128 Application Specification Tables.
 
 
 2026-10-09
 
-* The width and height options of matrix symbols now raise bwipp.renderStrictspecDimOverride under strictspec, as for linear symbols, rather than drawing the symbol away from the specified X-dimension.
-* Under loosespec, the width and height options of matrix symbols now draw the symbol without physical specification, as for linear symbols.
-* A caller can read back the dimensions that a symbol is drawn at under a physical specification mode (X-dimension, module height or MaxiCode row pitch, bar height and the permitted X-dimension range, after any grid-fitting), and whether loosespec fell back from the specification, by providing a uk.co.terryburton.bwipp.report dictionary.
+* The width and height options of matrix symbols were amended to behave as for linear symbols under strictspec and loosespec.
+* Support for reporting the rendered physical dimensions via a caller-provided uk.co.terryburton.bwipp.report dictionary was added.
 
 
 2026-10-08
 
-* The GS1 Application Specification Table profiles were reconciled with Release 26.0 of the GS1 General Specifications: GS1 DataMatrix and GS1 QR Code under gs1.sst4 and gs1.sst9, GS1 DataBar Stacked under gs1.sst4 and gs1.sst10, and GS1 DataMatrix under gs1.sst1 now have the specified X-dimensions and heights, and gs1.sst1.dl for GS1 DataMatrix and the GS1 Digital Link symbols now allows the specified maximum X-dimension of 0.990 mm.
-* Added gs1.sst3 for GS1 DataMatrix and the GS1 Digital Link symbols, and gs1.sst2 for GS1 DataBar Truncated.
-* Removed the gs1.sst2 profile for EAN-8 and the gs1.sst1, gs1.sst1.dl and gs1.sst8 profiles for GS1 QR Code, which the GS1 General Specifications do not define; selecting them now raises bwipp.renderUnknownAST.
-* Each AST profile is now described by an "AST {profile}" metadata property, which libpostscriptbarcode and the bindings read as any other property.
+* The GS1 Application Specification Table profiles were reconciled with Release 26.0 of the GS1 General Specifications.
+* The gs1.sst2 profile for EAN-8 and the gs1.sst1, gs1.sst1.dl and gs1.sst8 profiles for GS1 QR Code were removed, since the GS1 General Specifications do not define them.
+* Each AST profile was added to the encoder metadata.
 
 
 2026-10-03
 
-* Wrapper encoders such as Micro QR Code and the HIBC symbologies, and encoders called with the internal _dontdraw marker, now validate spec options and apply the global spec defaults.
+* Wrapper encoders were fixed to validate spec options and apply the global spec defaults.
 
 
 2026-09-28
@@ -86,25 +69,21 @@ XXXX-XX-XX
 
 2026-09-17
 
-* The performance of the Aztec Code, PDF417, MicroPDF417, QR Code, Data Matrix, Han Xin Code, MaxiCode, Code One and Ultracode encoders was improved by multiplying the Reed-Solomon generator polynomial coefficients as sums of logarithms, which most benefits large Aztec Code symbols and PDF417 symbols with high error correction levels.
-* Fixed the Aztec Code encoder failing with a rangecheck error for data whose bit stuffing adds more codewords than the selected symbol holds.
-* Fixed the Aztec Code encoder producing symbols with fewer error correction codewords than the eclevel requires for data whose bit stuffing adds codewords.
-* Fixed the Aztec Code encoder producing compact symbols with more than 64 data codewords, whose mode message misstates the symbol size.
+* The performance of Reed-Solomon error correction was improved for the Aztec Code, PDF417, MicroPDF417, QR Code, Data Matrix, Han Xin Code, MaxiCode, Code One and Ultracode encoders.
+* The Aztec Code encoder was fixed to account for bit stuffing when selecting the symbol size, and to limit compact symbols to 64 data codewords.
 
 
 2026-09-16
 
-* The MaxiCode renderer now draws hexagons at their specified size, applies inkspread as for other symbologies, and renders pixel-exact symbols under gridfit; strictspec now rejects symbols outside the permitted size.
-* Dotty symbols, including DotCode, now render uniform round dots under gridfit that keep diagonal neighbours apart and apply inkspread.
+* The MaxiCode renderer was reworked to draw hexagons at their specified size, to apply inkspread as for other symbologies, and to render pixel-exact symbols under gridfit.
+* The matrix renderer was amended to draw dotty symbols with uniform round dots under gridfit.
 
 
 2026-09-06
 
-* The Data Matrix encoder was fixed to always emit the Macro 05/06 codeword in the first position.
-* The performance of the QR Code encoder was improved for data that mixes character classes, such as mixed-case text and URLs, by materialising each mode segment once when the mode changes rather than extending it character by character.
-* The Data Matrix encoder's encodation mode selection now accumulates its look-ahead scores in exact integer arithmetic so that the chosen encodation no longer depends on the precision of the interpreter's real number arithmetic.
-* Fixed the Data Matrix encoder emitting an empty Base 256 segment when the encodation look-ahead reverses immediately after latching, which produced symbols whose remaining codewords a reader would misinterpret as Base 256 data.
-* The DotCode encoder now determines the symbol size for a requested aspect ratio using exact integer arithmetic so that the symbol shape no longer depends on the precision of the interpreter's real number arithmetic.
+* The Data Matrix encoder was fixed to always emit the Macro 05/06 codeword in the first position, and to never emit an empty Base 256 segment.
+* The Data Matrix and DotCode encoders were amended so that their output does not depend on the precision of real number arithmetic.
+* The performance of the QR Code encoder was improved for data that mixes character classes.
 
 
 2026-07-06
