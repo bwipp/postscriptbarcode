@@ -551,3 +551,28 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 
 % strictspec smoke test
 { 0 0 moveto (MicroPDF417) (strictspec xdim=0.330) micropdf417 true } true isEqual
+
+%
+% Structured Append, as Macro PDF417 (ISO/IEC 24728 Annex H)
+%
+{
+    (ABCDEFGHIJ) (sampos=2 samtotal=3 samid=001 debugcws) micropdf417  % Control Block follows the padding
+} [900 1 63 125 187 249 900 900 928 111 101 1 923 1 111 103] debugIsEqual
+
+(ABC) (samtotal=2 samid=001 dontdraw) /bwipp.micropdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samid=001 dontdraw) /bwipp.micropdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=2 dontdraw) /bwipp.micropdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 samid=001 dontdraw) /bwipp.micropdf417BadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=100000 samid=001 dontdraw) /bwipp.micropdf417BadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 samid=001 dontdraw) /bwipp.micropdf417BadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 samid=001 dontdraw) /bwipp.micropdf417BadSAMpos er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=900 dontdraw) /bwipp.micropdf417BadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=0010 dontdraw) /bwipp.micropdf417BadSAMid er_tmpl
+(^065) (raw sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.micropdf417SAMrawOrCc er_tmpl
+(ABC) (cca sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.micropdf417SAMrawOrCc er_tmpl
+(ABC) (ccb sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.micropdf417SAMrawOrCc er_tmpl
+
+% Macro 05/06 is not used with Structured Append, so the header and trailer are encoded as data
+{
+    ([\)>^03005^029214^030^004) (parse sampos=1 samtotal=2 samid=001 debugcws) micropdf417
+} [924 152 693 366 547 265 48 834 771 621 544 900 928 111 100 1 923 1 111 102] debugIsEqual

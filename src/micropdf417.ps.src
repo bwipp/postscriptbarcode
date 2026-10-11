@@ -601,6 +601,9 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /sampos -1 def
+    /samtotal -1 def
+    /samid () def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -648,6 +651,28 @@ begin
 
     cca ccb and cca raw and ccb raw and or or {
         /bwipp.micropdf417ccaAndCcb (Cannot combine cca, ccb and raw) //raiseerror exec
+    } if
+
+    /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
+    structapp {
+        raw cca or ccb or {
+            /bwipp.micropdf417SAMrawOrCc (Structured Append is not available with raw codewords, cca or ccb) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or samid () eq or {
+            /bwipp.micropdf417SAMincomplete (Structured Append requires sampos, samtotal and samid) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 99999 gt or {
+            /bwipp.micropdf417BadSAMtotal (The samtotal must be from 2 to 99999) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.micropdf417BadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+        samid length dup 0 gt exch 3 mod 0 eq and
+        dup { samid { dup 48 lt exch 57 gt or { pop false } if } forall } if
+        dup { 0 3 samid length 1 sub { samid exch 3 getinterval cvi 899 gt { pop false } if } for } if
+        not {
+            /bwipp.micropdf417BadSAMid (The samid must be groups of three digits, each from 000 to 899) //raiseerror exec
+        } if
     } if
 
     %
@@ -764,9 +789,9 @@ begin
         /msglen msg length def
 
         %
-        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data
+        % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data, which is not available with Structured Append
         %
-        msglen 9 ge {
+        msglen 9 ge structapp not and {
             msg 0 7 getinterval aload pop
             29 eq exch pop exch 48 eq and exch  % [)>{RS}0*{GS}...
             30 eq and exch 62 eq and exch 41 eq and exch 91 eq and {
@@ -1211,6 +1236,20 @@ begin
 
     } if
 
+    %
+    % Structured Append Control Block: segment index, file ID, segment count and, in the last segment, the terminator
+    %
+    /sacws [
+        structapp {
+            928
+            sampos 1 sub 100000 add dup 900 idiv exch 900 mod  % Numeric Compaction of five digits
+            0 3 samid length 1 sub { samid exch 3 getinterval cvi } for
+            923 1
+            samtotal 100000 add dup 900 idiv exch 900 mod
+            sampos samtotal eq { 922 } if
+        } if
+    ] def
+
 
     %
     % Select metrics of an appropriate symbol
@@ -1230,7 +1269,7 @@ begin
         /rapr m 5 get def        % Right row address pattern
         /ncws r c mul k sub def  % Data codewords
         /okay true def
-        datcws length ncws gt     {/okay false def} if
+        datcws length sacws length add ncws gt {/okay false def} if
         urows 0 ne urows r ne and {/okay false def} if
         ucols 0 ne ucols c ne and {/okay false def} if
         okay {exit} if
@@ -1254,11 +1293,12 @@ begin
     %
     % Create codewords array sized for data + ECC, and add padding
     %
-    /m datcws length def
+    /m datcws length sacws length add def
     /n c r mul k sub def
     /cws c r mul array def
     cws 0 datcws putinterval
-    cws m [ n m sub {900} repeat ] putinterval
+    cws datcws length [ n m sub {900} repeat ] putinterval
+    cws n sacws length sub sacws putinterval  % The Control Block follows any padding
 
     options /debugcws known
     /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
