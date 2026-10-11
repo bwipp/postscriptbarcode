@@ -38,3 +38,14 @@
 %
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck) interleaved2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (5) isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw ) interleaved2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual
+
+%
+% validatecheck: the final digit is a check digit that is verified, then encoded as with includecheck
+%
+{ (24012345676) (validatecheck dontdraw) interleaved2of5 /sbs get
+} [ 1 1 1 1 1 1 1 2 2 1 2 1 1 2 1 1 1 1 2 2 1 2 2 1 2 1 1 2 1 1 1 1 2 2 2 1 2 1 1 2 1 1 1 2 2 1 1 2 2 2 1 1 1 1 1 1 1 2 1 2 2 1 2 1 2 1 1 1 ] isEqual
+{ (0) (validatecheck dontdraw) interleaved2of5 /sbs get  % Degenerate case with check digit only
+} (0) (includecheck dontdraw) interleaved2of5 /sbs get isEqual
+{ (24012345678) (validatecheck dontdraw) interleaved2of5 } [/bwipp.interleaved2of5badCheckDigit (Incorrect Interleaved 2 of 5 check digit provided: expected 6, not 8)] isErrorInfo
+{ () (validatecheck dontdraw) interleaved2of5 } /bwipp.interleaved2of5emptyData isError
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567895) (dontdraw validatecheck) interleaved2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual

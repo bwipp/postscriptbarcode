@@ -63,6 +63,7 @@ begin
 
     /dontdraw false def
     /includecheck false def         % Enable/disable checkdigit
+    /validatecheck false def
     /includetext false def          % Enable/disable text
     /includecheckintext false def
     /text1font /Courier def
@@ -111,6 +112,15 @@ begin
     /interleaved2of5 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
 
+    validatecheck {
+        barcode () eq {
+            /bwipp.interleaved2of5emptyData (The data must not be empty) //raiseerror exec
+        } if
+        /givencheck barcode barcode length 1 sub 1 getinterval def
+        /barcode barcode 0 barcode length 1 sub getinterval def
+        /includecheck true def
+    } if
+
     /barlen barcode length def      % Length of the code
 
     %
@@ -140,7 +150,17 @@ begin
             } ifelse
         } for
         /checksum 10 checksum 10 mod sub 10 mod def
-        /checkdigit 1 string dup 0 checksum 48 add put /report //render exec
+        validatecheck {
+            givencheck 0 get checksum 48 add ne {
+                /bwipp.interleaved2of5badCheckDigit
+                [ (Incorrect Interleaved 2 of 5 check digit provided: expected ) checksum 20 string cvs (, not ) givencheck ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
+            } if
+        } {
+            /checkdigit 1 string dup 0 checksum 48 add put /report //render exec
+        } ifelse
         /pad barlen 1 add string def    % Create pad one bigger than barcode
         pad 0 barcode putinterval       % Add barcode to the start of pad
         pad barlen checksum 48 add put  % Add checksum to end of pad
