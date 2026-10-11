@@ -73,6 +73,10 @@ begin
     null /apply //processoptions exec /options exch def
     /barcode exch def
 
+    options /sampos known options /samtotal known or options /samid known or {
+        /bwipp.mailmarkStructuredAppend (Royal Mail Mailmark does not support Structured Append) //raiseerror exec
+    } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
