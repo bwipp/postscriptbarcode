@@ -82,7 +82,7 @@ try {
         $secs = "{0:0.00}" -f $sw.Elapsed.TotalSeconds
 
         if (-not $ok) {
-            try { $p.Kill() } catch {}
+            try { $p.Kill() } catch { Write-Verbose "Distiller had already exited" }
             Write-Output "FAIL $name (${secs}s)"
             Write-Output "  timeout after ${Timeout}s"
             $failed++

@@ -116,6 +116,6 @@ done
 }
 
 echo "Assembled portable Distiller at: $D"
-echo "  dlls=$(ls "$D"/*.dll 2>/dev/null | wc -l) fonts=$(ls "$D/Font" 2>/dev/null | wc -l) psdisk=$([ -d "$D/Data/psdisk/Resource" ] && echo yes || echo no)"
+echo "  dlls=$(find "$D" -maxdepth 1 -name '*.dll' | wc -l) fonts=$(find "$D/Font" -mindepth 1 -maxdepth 1 2>/dev/null | wc -l) psdisk=$([ -d "$D/Data/psdisk/Resource" ] && echo yes || echo no)"
 echo
 echo "Next: copy $D onto a Windows host, or let remote.sh provision it."

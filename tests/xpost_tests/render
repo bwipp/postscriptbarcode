@@ -50,7 +50,7 @@ FAIL=0
 # name encoder data options extra-ps -> $WORK/$name.pgm
 render() {
 	local name=$1 enc=$2 data=$3 opts=$4 extra=$5
-	cat > "$WORK/$name.ps" <<-EOF
+	cat >"$WORK/$name.ps" <<-EOF
 		($TEST/shim.ps) run
 		($MONOLITHIC) run
 		$extra
@@ -64,7 +64,7 @@ render() {
 # name encoder data options -> $WORK/$name.info (PIXX/PIXY/PIXS or SBS)
 info() {
 	local name=$1 enc=$2 data=$3 opts=$4
-	cat > "$WORK/$name.info.ps" <<-EOF
+	cat >"$WORK/$name.info.ps" <<-EOF
 		($TEST/shim.ps) run
 		currentglobal true setglobal
 		/uk.co.terryburton.bwipp.global_ctx << /enabledontdraw true >> def
@@ -82,16 +82,18 @@ info() {
 		quit
 	EOF
 	timeout "$TIMEOUT" "$XPOST" -q -d null "$WORK/$name.info.ps" \
-		</dev/null 2>/dev/null > "$WORK/$name.info" &&
+		</dev/null 2>/dev/null >"$WORK/$name.info" &&
 		grep -q INFO-DONE "$WORK/$name.info"
 }
 
 result() {
 	local name=$1 ok=$2
 	if [ "$ok" -eq 0 ]; then
-		echo "PASS $name"; PASS=$((PASS+1))
+		echo "PASS $name"
+		PASS=$((PASS + 1))
 	else
-		echo "FAIL $name"; FAIL=$((FAIL+1))
+		echo "FAIL $name"
+		FAIL=$((FAIL + 1))
 	fi
 }
 
@@ -120,9 +122,9 @@ linear_case() {
 #
 # Matrix structure, including the dotty renderer at its default scale
 #
-matrix_case qrcode     qrcode     "Hello World"       ""
+matrix_case qrcode qrcode "Hello World" ""
 matrix_case datamatrix datamatrix "This is Data Matrix" ""
-matrix_case azteccode  azteccode  "This is Aztec Code" "format=full"
+matrix_case azteccode azteccode "This is Aztec Code" "format=full"
 
 #
 # An option whose name matches an operator name must not derail the
@@ -134,7 +136,7 @@ matrix_case mailmark mailmark "JGB 012100123412345678AB19XY1A 0             www.
 #
 # Linear structure with text and guards
 #
-linear_case ean13   ean13   "9520123456788"  "includetext guardwhitespace"
+linear_case ean13 ean13 "9520123456788" "includetext guardwhitespace"
 linear_case code128 code128 "Count01234567!" ""
 
 #
@@ -172,7 +174,7 @@ fi
 # (Ghostscript shows the same overshoot on this rendering)
 #
 if render rotbase qrcode "Hello World" "" "2 2 scale" &&
-   render rot45   qrcode "Hello World" "" "306 0 translate 45 rotate 2 2 scale"; then
+	render rot45 qrcode "Hello World" "" "306 0 translate 45 rotate 2 2 scale"; then
 	"$TEST/render_check.pl" area "$WORK/rot45.pgm" "$WORK/rotbase.pgm" 25
 	result rot45 $?
 else

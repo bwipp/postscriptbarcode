@@ -58,7 +58,7 @@ run_one() {
 	done
 
 	local driver="$WORK/$name.ps"
-	cat > "$driver" <<-EOF
+	cat >"$driver" <<-EOF
 		($ROOT/tests/ps_tests/test_utils.ps) run
 		($MONOLITHIC) run
 		($file) run
@@ -69,8 +69,8 @@ run_one() {
 	local out t0 secs
 	t0=$EPOCHREALTIME
 	if out=$(timeout "$TIMEOUT" "$XPOST" -q -d null "$driver" </dev/null 2>/dev/null) &&
-			echo "$out" | grep -qF 'FILE-PASSED' &&
-			! echo "$out" | grep -qE 'testError|stackImbalance|dict leak|global VM leak'; then
+		echo "$out" | grep -qF 'FILE-PASSED' &&
+		! echo "$out" | grep -qE 'testError|stackImbalance|dict leak|global VM leak'; then
 		secs=$(awk -v a="$t0" -v b="$EPOCHREALTIME" 'BEGIN{printf "%.2f", b-a}')
 		printf 'PASS %s (%ss)\n' "$name" "$secs"
 		return 0
@@ -88,7 +88,7 @@ echo "Running tests/xpost_tests with $("$XPOST" --version </dev/null 2>/dev/null
 echo "$(find "$ROOT/tests/ps_tests" -name '*.ps.test' | wc -l) test files, $JOBS jobs"
 
 if find "$ROOT/tests/ps_tests" -name '*.ps.test' -print0 | sort -z |
-		xargs -0 -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {} | tee "$WORK/results"; then
+	xargs -0 -P "$JOBS" -I{} bash -c 'run_one "$@"' _ {} | tee "$WORK/results"; then
 	:
 fi
 
