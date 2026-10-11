@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % AIM USS Code 93 AIM-BC5-2000
@@ -42,3 +42,16 @@
 
 % strictspec smoke test
 { 0 0 moveto (THIS IS CODE 93) (strictspec xdim=0.330) code93 true } true isEqual
+
+%
+% validatecheck: the final two characters are the check characters C and K, which are verified, then encoded as with includecheck
+%
+{ (TEST93+6) (dontdraw validatecheck) code93 /sbs get } (TEST93) (dontdraw includecheck) code93 /sbs get isEqual
+{ (A0D^SFT$F) (dontdraw parsefnc validatecheck) code93 /sbs get } (A0D) (dontdraw includecheck) code93 /sbs get isEqual  % C is a shift character
+{ (00) (dontdraw validatecheck) code93 /sbs get } () (dontdraw includecheck) code93 /sbs get isEqual  % Degenerate case with check characters only
+{ (TEST93AB) (dontdraw validatecheck) code93 } [/bwipp.code93badCheckCharacters (Incorrect Code 93 check characters provided: expected +6, not AB)] isErrorInfo
+{ (A0DAF) (dontdraw validatecheck) code93 } [/bwipp.code93badCheckCharacters (Incorrect Code 93 check characters provided: expected ^SFT$F, not AF)] isErrorInfo
+{ (6) (dontdraw validatecheck) code93 } /bwipp.code93tooShort isError
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (TEST93+6) (dontdraw validatecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (TEST93) (dontdraw includecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit get end } (+6) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (A0D) (dontdraw includecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit get end } (^SFT$F) isEqual  % As it would be given

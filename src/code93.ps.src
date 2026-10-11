@@ -66,6 +66,12 @@ begin
 
 /code93.sft1 -1 def  /code93.sft2 -2 def  /code93.sft3 -3 def  /code93.sft4 -4 def
 
+% Character value to the input that denotes it
+/code93.shiftnames [ (^SFT$) (^SFT%) (^SFT/) (^SFT+) ] readonly def
+/code93.checkname {
+    dup 43 lt { //code93.barchars exch 1 getinterval } { 43 sub //code93.shiftnames exch get } ifelse
+} bind def
+
 /code93.latevars dup 2 dict def load /init {
 
     currentglobal
@@ -104,6 +110,7 @@ begin
 
     /dontdraw false def
     /includecheck false def  % Enable/disable checkdigit
+    /validatecheck false def
     /includetext false def   % Enable/disable text
     /text1font /Courier def
     /text1size 10.0 def
@@ -169,6 +176,16 @@ begin
     /code93 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
 
+    validatecheck {
+        msglen 2 lt {
+            /bwipp.code93tooShort (The data must end with the two check characters) //raiseerror exec
+        } if
+        /givencheck msg msglen 2 sub 2 getinterval def
+        /msg msg 0 msglen 2 sub getinterval def
+        /msglen msglen 2 sub def
+        /includecheck true def
+    } if
+
     includecheck {
         /sbs msglen 6 mul 25 add string def
     } {
@@ -194,6 +211,22 @@ begin
         % Put the first checksum character
         /checksum1 checksum1 47 mod def
         /checksum2 checksum2 checksum1 add 47 mod def
+        validatecheck {
+            charvals givencheck 0 get get checksum1 ne charvals givencheck 1 get get checksum2 ne or {
+                /bwipp.code93badCheckCharacters
+                [ (Incorrect Code 93 check characters provided: expected )
+                  checksum1 //code93.checkname exec checksum2 //code93.checkname exec (, not )
+                  charvals givencheck 0 get get //code93.checkname exec charvals givencheck 1 get get //code93.checkname exec
+                ]
+                dup 0 exch {length add} forall string
+                exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+                //raiseerror exec
+            } if
+        } {
+            /checkdigit checksum1 //code93.checkname exec checksum2 //code93.checkname exec
+            2 copy length exch length add string dup dup 4 index length 5 -1 roll putinterval 0 4 -1 roll putinterval
+            /report //render exec
+        } ifelse
         sbs msglen 6 mul 6 add //code93.encs checksum1 get putinterval
         sbs msglen 6 mul 12 add //code93.encs checksum2 get putinterval
         %

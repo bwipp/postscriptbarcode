@@ -84,6 +84,10 @@ begin
         /bwipp.code93extinputTooLong (The input data is too long) //raiseerror exec
     } if
 
+    options /validatecheck 2 copy known { get } { pop pop false } ifelse {
+        /bwipp.code93extValidateCheck (Code 93 Extended cannot validate check characters, which need not be ASCII characters) //raiseerror exec
+    } if
+
     /_render
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
