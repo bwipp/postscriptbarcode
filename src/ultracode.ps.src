@@ -231,6 +231,8 @@ begin
     /link1 0 def
     /raw false def
     /rev 2 def             % Ultracode specification revision
+    /sampos -1 def
+    /samtotal -1 def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -286,6 +288,22 @@ begin
         /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
     } if
 
+    /structapp sampos -1 ne samtotal -1 ne or def
+    structapp {
+        rev 1 eq raw or start 281 eq or {
+            /bwipp.ultracodeSAMunavailable (Structured Append is not available for revision 1, raw codewords or the URL Start Character) //raiseerror exec
+        } if
+        sampos -1 eq samtotal -1 eq or {
+            /bwipp.ultracodeSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
+        } if
+        samtotal 2 lt samtotal 8 gt or {
+            /bwipp.ultracodeBadSAMtotal (The samtotal must be from 2 to 8) //raiseerror exec
+        } if
+        sampos 1 lt sampos samtotal gt or {
+            /bwipp.ultracodeBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+    } if
+
     (input.validate) //ultracode.after exec
 
     raw {
@@ -330,6 +348,17 @@ begin
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
 
+        structapp {
+            msglen 0 gt { msg 0 get fn1 eq } { false } ifelse {
+                /bwipp.ultracodeSAMfnc1 (Structured Append is not available with FNC1 in first position) //raiseerror exec
+            } if
+            msg {
+                fn3 eq {
+                    /bwipp.ultracodeSAMfnc3 (Structured Append is not available with FNC3) //raiseerror exec
+                } if
+            } forall
+        } if
+
         % Absolute capacity at rev=1 eclevel=EC0.
         msglen 276 gt {
             /bwipp.ultracodeInputTooLong (The input data is too long) //raiseerror exec
@@ -339,7 +368,10 @@ begin
 
         (input.encoding.normal) //ultracode.before exec
 
-        /scr [] def     % Empty symbol control region
+        %
+        % Symbol control region: a Structured Append Group without a File Number is SCR type 70*2 + 8*(n-1) + (x-1), signalled by Link1
+        %
+        /scr structapp { [ 140 samtotal 1 sub 8 mul add sampos 1 sub add ] /link1 1 def } { [] } ifelse def
         /scp [] def     % Empty start sequence parameters
         /dcws [
             scr aload pop

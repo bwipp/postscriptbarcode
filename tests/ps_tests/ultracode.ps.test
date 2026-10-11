@@ -174,3 +174,23 @@
 
 % strictspec smoke test
 { 0 0 moveto (Awesome colours!) (eclevel=EC2 strictspec xdim=0.330) ultracode true } true isEqual
+
+%
+% Structured Append Group (Ultracode 2023 section 7.4): SCR type 70*2 + 8*(n-1) + (x-1), signalled by Link1 in the ACC
+%
+{
+    (ABC) (sampos=3 samtotal=7 debugcws) ultracode  % SCR parameter 50 for the third of seven, as in the example
+} [190 65 66 67] debugIsEqual
+{ (ABC) (sampos=3 samtotal=7 dontdraw) ultracode /pixs get } (^190^065^066^067) (raw link1=1 dontdraw) ultracode /pixs get isEqual
+
+(ABC) (samtotal=2 dontdraw) /bwipp.ultracodeSAMincomplete er_tmpl
+(ABC) (sampos=1 dontdraw) /bwipp.ultracodeSAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 dontdraw) /bwipp.ultracodeBadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=9 dontdraw) /bwipp.ultracodeBadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 dontdraw) /bwipp.ultracodeBadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 dontdraw) /bwipp.ultracodeBadSAMpos er_tmpl
+(ABC) (rev=1 eclevel=EC0 sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
+(^065) (raw sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
+(ABC) (start=281 sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
+(^FNC101) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMfnc1 er_tmpl
+(A^FNC3) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMfnc3 er_tmpl
