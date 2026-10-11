@@ -83,3 +83,16 @@
 { () (dontdraw validatecheck) msi } /bwipp.msiTooShort isError
 { (1) (dontdraw validatecheck checktype=mod1010) msi } /bwipp.msiTooShort isError
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567897) (dontdraw validatecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ (1) (dontdraw validatecheck checktype=mod1110) msi } /bwipp.msiTooShort isError
+{ (1) (dontdraw validatecheck checktype=ncrmod1110) msi } /bwipp.msiTooShort isError
+{ (1) (dontdraw validatecheck badmod11 checktype=mod1110) msi } /bwipp.msiTooShort isError
+{ (1) (dontdraw validatecheck badmod11 checktype=ncrmod1110) msi } /bwipp.msiTooShort isError
+{ (00) (dontdraw validatecheck checktype=mod1010) msi /sbs get } () (dontdraw includecheck checktype=mod1010) msi /sbs get isEqual
+{ (00) (dontdraw validatecheck checktype=mod1110) msi /sbs get } () (dontdraw includecheck checktype=mod1110) msi /sbs get isEqual
+{ (0) (dontdraw validatecheck checktype=mod11) msi /sbs get } () (dontdraw includecheck checktype=mod11) msi /sbs get isEqual
+{ (0) (dontdraw validatecheck checktype=ncrmod11) msi /sbs get } () (dontdraw includecheck checktype=ncrmod11) msi /sbs get isEqual

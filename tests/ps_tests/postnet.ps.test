@@ -37,3 +37,11 @@
 % Check digit: the digit expected in the error
 %
 { (012345) (dontdraw validatecheck) postnet } [/bwipp.postnetBadCheckDigit (Incorrect USPS POSTNET check digit provided: expected 0, not 5)] isErrorInfo
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ () (dontdraw validatecheck) postnet } /bwipp.postnetBadLength isError
+{ (0) (dontdraw validatecheck) postnet } /bwipp.postnetBadLength isError
+{ (1) (dontdraw validatecheck) postnet } /bwipp.postnetBadLength isError

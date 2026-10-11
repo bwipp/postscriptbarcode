@@ -89,3 +89,10 @@
 % Check digit: the digit expected in the error
 %
 { (LE28HS9ZZ) (dontdraw validatecheck) royalmail } [/bwipp.royalmailBadCheckDigit (Incorrect RM4SCC check digit provided: expected 9, not Z)] isErrorInfo
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ () (dontdraw validatecheck) royalmail } /bwipp.royalmailEmptyData isError
+{ (00) (dontdraw validatecheck) royalmail pop true } true isEqual

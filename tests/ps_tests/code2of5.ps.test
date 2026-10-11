@@ -62,3 +62,23 @@
 { (012345671) (dontdraw validatecheck) code2of5 } [/bwipp.code2of5badCheckDigit (Incorrect Code 25 check digit provided: expected 0, not 1)] isErrorInfo
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567) (dontdraw includecheck) code2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (0) isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (012345670) (dontdraw validatecheck) code2of5 pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ () (dontdraw validatecheck version=industrial) code2of5 } /bwipp.code2of5emptyData isError
+{ (0) (dontdraw validatecheck version=industrial) code2of5 pop true } true isEqual
+{ (1) (dontdraw validatecheck version=industrial) code2of5 } /bwipp.code2of5badCheckDigit isError
+{ () (dontdraw validatecheck version=iata) code2of5 } /bwipp.code2of5emptyData isError
+{ (0) (dontdraw validatecheck version=iata) code2of5 pop true } true isEqual
+{ (1) (dontdraw validatecheck version=iata) code2of5 } /bwipp.code2of5badCheckDigit isError
+{ () (dontdraw validatecheck version=matrix) code2of5 } /bwipp.code2of5emptyData isError
+{ (0) (dontdraw validatecheck version=matrix) code2of5 pop true } true isEqual
+{ (1) (dontdraw validatecheck version=matrix) code2of5 } /bwipp.code2of5badCheckDigit isError
+{ () (dontdraw validatecheck version=coop) code2of5 } /bwipp.code2of5emptyData isError
+{ (0) (dontdraw validatecheck version=coop) code2of5 pop true } true isEqual
+{ (1) (dontdraw validatecheck version=coop) code2of5 } /bwipp.code2of5badCheckDigit isError
+{ () (dontdraw validatecheck version=datalogic) code2of5 } /bwipp.code2of5emptyData isError
+{ (0) (dontdraw validatecheck version=datalogic) code2of5 pop true } true isEqual
+{ (1) (dontdraw validatecheck version=datalogic) code2of5 } /bwipp.code2of5badCheckDigit isError

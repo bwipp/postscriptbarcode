@@ -37,3 +37,11 @@
 % Check digit: the digit expected in the error
 %
 { (012345678900) (dontdraw validatecheck) planet } [/bwipp.planetBadCheckDigit (Incorrect USPS PLANET check digit provided: expected 5, not 0)] isErrorInfo
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ () (dontdraw validatecheck) planet } /bwipp.planetBadLength isError
+{ (0) (dontdraw validatecheck) planet } /bwipp.planetBadLength isError
+{ (1) (dontdraw validatecheck) planet } /bwipp.planetBadLength isError

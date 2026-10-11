@@ -55,3 +55,10 @@
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (TEST93+6) (dontdraw validatecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (TEST93) (dontdraw includecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit get end } (+6) isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (A0D) (dontdraw includecheck) code93 pop uk.co.terryburton.bwipp.report /checkdigit get end } (^SFT$F) isEqual  % As it would be given
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ () (dontdraw validatecheck) code93 } /bwipp.code93tooShort isError
+{ (1) (dontdraw validatecheck) code93 } /bwipp.code93tooShort isError

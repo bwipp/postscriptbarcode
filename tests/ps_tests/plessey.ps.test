@@ -66,3 +66,11 @@
 %
 { (01234ABCD00) (dontdraw validatecheck) plessey } [/bwipp.plesseyBadCheckDigits (Incorrect Plessey check digits provided: expected DC, not 00)] isErrorInfo
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234ABCD) (dontdraw ) plessey pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } null isEqual
+
+%
+% validatecheck with short inputs raises a BWIPP error or encodes
+%
+
+{ (1) (dontdraw validatecheck) plessey } /bwipp.plesseyBadLength isError
+{ (1) (dontdraw validatecheck unidirectional) plessey } /bwipp.plesseyBadLength isError
+{ (00) (dontdraw validatecheck unidirectional) plessey pop true } true isEqual
