@@ -521,3 +521,35 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 
 % strictspec smoke test
 { 0 0 moveto (This is PDF417) (columns=2 strictspec xdim=0.330) pdf417 true } true isEqual
+
+%
+% Macro PDF417 (ISO/IEC 15438 Annex H)
+%
+{
+    (ABC) (sampos=1 samtotal=4 samid=017053 debugcws) pdf417  % Control Block as in the H.4 example, following the padding
+} [16 901 65 66 67 900 900 928 111 100 17 53 923 1 111 104] debugIsEqual
+{
+    (ABC) (sampos=4 samtotal=4 samid=017053 debugcws) pdf417  % Last segment has the terminator
+} [16 901 65 66 67 900 928 111 103 17 53 923 1 111 104 922] debugIsEqual
+{
+    (ABC) (sampos=99999 samtotal=99999 samid=017053 debugcws) pdf417
+} [16 901 65 66 67 900 928 222 198 17 53 923 1 222 199 922] debugIsEqual
+{
+    (1234567890123) (sampos=1 samtotal=2 samid=000899123 debugcws) pdf417
+} [19 902 17 110 836 811 223 900 900 928 111 100 0 899 123 923 1 111 102] debugIsEqual
+{
+    (^ECI000026AB) (parse parsefnc sampos=2 samtotal=2 samid=017053 debugcws) pdf417
+} [16 927 26 901 65 66 928 111 101 17 53 923 1 111 102 922] debugIsEqual
+
+(ABC) (samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samid=001 dontdraw) /bwipp.pdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=2 dontdraw) /bwipp.pdf417SAMincomplete er_tmpl
+(ABC) (sampos=1 samtotal=1 samid=001 dontdraw) /bwipp.pdf417BadSAMtotal er_tmpl
+(ABC) (sampos=1 samtotal=100000 samid=001 dontdraw) /bwipp.pdf417BadSAMtotal er_tmpl
+(ABC) (sampos=0 samtotal=2 samid=001 dontdraw) /bwipp.pdf417BadSAMpos er_tmpl
+(ABC) (sampos=3 samtotal=2 samid=001 dontdraw) /bwipp.pdf417BadSAMpos er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=900 dontdraw) /bwipp.pdf417BadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=0010 dontdraw) /bwipp.pdf417BadSAMid er_tmpl
+(ABC) (sampos=1 samtotal=2 samid=00A dontdraw) /bwipp.pdf417BadSAMid er_tmpl
+(^065) (raw sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMrawOrCcc er_tmpl
+(ABC) (ccc sampos=1 samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMrawOrCcc er_tmpl
