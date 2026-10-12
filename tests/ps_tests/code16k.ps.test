@@ -124,3 +124,12 @@
 (TEST) (sampos=1 samtotal=10 dontdraw) /bwipp.code16kBadSAMtotal er_tmpl
 (TEST) (sampos=0 samtotal=3 dontdraw) /bwipp.code16kBadSAMpos er_tmpl
 (TEST) (sampos=4 samtotal=3 dontdraw) /bwipp.code16kBadSAMpos er_tmpl
+
+% FNC1 in second position: D1 is the AIM application indicator in code set B or C, and D2 is FNC1
+{ (^FNC@TABC) (parsefnc debugcws) code16k } [1 52 102 33 34 35 103 103 42 64] debugIsEqual
+{ (^FNC@tabc) (parsefnc debugcws) code16k } [1 84 102 65 66 67 103 103 72 22] debugIsEqual
+{ (^FNC@12abcdefgh) (parsefnc debugcws) code16k } [9 12 102 100 65 66 67 68 69 70 71 72 103 55 58] debugIsEqual
+{ (^FNC@T1234) (parsefnc debugcws) code16k } [1 52 102 99 12 34 103 103 19 5] debugIsEqual
+{ (^FNC@12^FNC134) (parsefnc debugcws) code16k } [2 12 102 102 34 103 103 103 103 41] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 dontdraw) code16k } /bwipp.code16kSAMfnc1second isError
+{ (A^FNC@TABC) (parsefnc dontdraw) code16k } /bwipp.code16kFNC1secondNotFirst isError

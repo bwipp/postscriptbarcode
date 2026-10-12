@@ -54,6 +54,7 @@ begin
 /code16k.sa2  -7 def  /code16k.sb2  -8 def  /code16k.sc2  -9 def
 /code16k.pad -10 def  /code16k.sb3 -11 def  /code16k.sc3 -12 def
 /code16k.fn1 -13 def  /code16k.fn2 -14 def  /code16k.fn3 -15 def  /code16k.fn4 -16 def
+/code16k.fna -17 def  % FNC1 in second position, after an AIM application indicator
 
 /swa //code16k.swa def  /swb //code16k.swb def  /swc //code16k.swc def
 /sa1 //code16k.sa1 def  /sb1 //code16k.sb1 def  /sc1 //code16k.sc1 def
@@ -330,10 +331,34 @@ begin
             (FNC1) //code16k.fn1
             (FNC2) //code16k.fn2
             (FNC3) //code16k.fn3
+            (FNC@) //code16k.fna
 %            (FNC4) fn4        Not user accessible as encoded automatically
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % FNC1 in second position follows an AIM application indicator of one letter or two digits
+        %
+        /fnc1second msglen 0 gt { msg 0 get //code16k.fna eq } { false } ifelse def
+        fnc1second {
+            /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+            /msg [
+                msg 1 appindlen getinterval aload pop
+                //code16k.fn1
+                msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+            ] def
+        } if
+        parsefnc {  % Function characters only come from parsefnc
+            msg {
+                //code16k.fna eq {
+                    /bwipp.code16kFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+                } if
+            } forall
+        } if
+        fnc1second sam -1 ne and {
+            /bwipp.code16kSAMfnc1second (Structured Append is not available with FNC1 in second position) //raiseerror exec
+        } if
 
         %
         % Standard and extended ASCII runlength at position
@@ -471,6 +496,22 @@ begin
                 /j 2 def
                 /cset (setb) def
                 /mode 7 def
+                exit
+            } if
+            % FNC1 in second position: letter . fnc1 => b, two digits . fnc1 => c
+            fnc1second {
+                appindlen 1 eq {
+                    /cset (setb) def
+                    /mode 1 def
+                    msg 0 get encb
+                    //code16k.fn1 encb
+                } {
+                    /cset (setc) def
+                    /mode 2 def
+                    msg 0 2 getinterval encc
+                    //code16k.fn1 encc
+                } ifelse
+                /i appindlen 1 add def
                 exit
             } if
             % empty => b
