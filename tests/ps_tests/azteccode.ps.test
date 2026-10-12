@@ -1316,3 +1316,13 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
 % An FNC1 written after an AIM application indicator is encoded as written
 { (T^FNC1ABC) (parsefnc debugcws) azteccode } [42 1 1 1 33 36] debugIsEqual
 { (99^FNC1ABC) (parsefnc debugcws) azteccode } [61 29 32 1 14 4 12 39] debugIsEqual
+
+% FNC1 in second position: FLG(0) follows the AIM application indicator
+{ (^FNC@TABC) (parsefnc debugcws) azteccode } [42 1 1 1 33 36] debugIsEqual
+{ (^FNC@99ABC) (parsefnc debugcws) azteccode } [61 29 32 1 14 4 12 39] debugIsEqual
+{ (^FNC@tabc) (parsefnc debugcws) azteccode } [57 20 1 1 2 6 19] debugIsEqual
+{ (^FNC@T^FNC1A) (parsefnc debugcws) azteccode } [42 1 1 1 1 1 5] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 debugcws) azteccode } [59 52 16 58 32 1 1 16 50 31] debugIsEqual
+(^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.azteccodeECIwithFNC1 er_tmpl
+(A^FNC@TB) (parsefnc dontdraw) /bwipp.azteccodeFNC1secondNotFirst er_tmpl
+(^FNC@1) (parsefnc dontdraw) /bwipp.invalidAIMapplicationIndicator er_tmpl

@@ -519,31 +519,55 @@ begin
     (input.preprocess) //azteccode.before exec
 
     /fn1 -1 def
+    /fna -2 def  % FNC1 in second position, after an AIM application indicator
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
         /eci true
         (FNC1) fn1
+        (FNC@) fna
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
 
     %
-    % ECIs are not available with FNC1 in first position, including after leading ECIs
+    % FNC1 in second position follows an AIM application indicator of one letter or two digits
     %
-    msg {
-        dup -1000000 gt {
-            fn1 eq {
-                msg {
-                    -1000000 le {
-                        /bwipp.azteccodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
-                    } if
-                } forall
+    /fnc1second msglen 0 gt { msg 0 get fna eq } { false } ifelse def
+    fnc1second {
+        /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+        /msg [
+            msg 1 appindlen getinterval aload pop
+            fn1
+            msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+        ] def
+    } if
+    parsefnc {  % Function characters only come from parsefnc
+        msg {
+            fna eq {
+                /bwipp.azteccodeFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
             } if
+        } forall
+    } if
+
+    %
+    % ECIs are not available with FNC1 in second position, or in first position including after leading ECIs
+    %
+    fnc1second
+    msg {  % Skip leading ECIs
+        dup -1000000 gt {
+            fn1 eq or
             exit
         } if
         pop
     } forall
+    {
+        msg {
+            -1000000 le {
+                /bwipp.azteccodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+            } if
+        } forall
+    } if
 
     % Absolute capacity is 32-layer full at eclevel=5 ecaddchars=3, numeric.
     msglen 4729 gt {
