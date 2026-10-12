@@ -615,3 +615,14 @@ systemdict /STRING_CONTINUE_BUG known not {
 (^FNC1^ECI0000260109501234567890) (parsefnc dontdraw) /bwipp.codeoneECIwithFNC1 er_tmpl
 (^FNC1010950123456789010AB^ECI000026CD) (parsefnc dontdraw) /bwipp.codeoneECIwithFNC1 er_tmpl
 { (AB^ECI000026C^FNC1D) (parsefnc dontdraw) codeone pop true } true isEqual
+
+% FNC1 in second position: the AIM application indicator in ASCII, then FNC1, alone or with a latch to Decimal
+{ (^FNC@TABC) (parsefnc debugcws) codeone } [85 232 66 67 68 129 129 129 129 129] debugIsEqual
+{ (^FNC@tabcdefghijklmnopqrstu) (parsefnc debugcws) codeone } [117 232 239 89 233 109 36 128 95 147 154 166 213 186 16 205 75 255 129] debugIsEqual
+{ (^FNC@9912345678901234567890) (parsefnc debugcws) codeone } [229 236 31 28 156 88 13 86 170 127 233 49 129 129 129 129 129 129 129] debugIsEqual
+{ (^FNC@T12345678) (parsefnc debugcws) codeone } [85 236 31 28 159 225 57 129 129 129] debugIsEqual
+{ (^FNC@T^FNC1A) (parsefnc debugcws) codeone } [85 232 232 66 129 129 129 129 129 129] debugIsEqual
+(^FNC@TABC) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.codeoneSAMfnc1second er_tmpl
+(^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.codeoneECIwithFNC1 er_tmpl
+(A^FNC@T) (parsefnc dontdraw) /bwipp.codeoneFNC1secondNotFirst er_tmpl
+(^FNC@TABC) (parsefnc version=S-10 dontdraw) /bwipp.codeoneStypeNonDigit er_tmpl

@@ -113,7 +113,7 @@ begin
 %
 % Special characters
 %
-/codeone.fnc1   -1 def  /codeone.fnc3  -2 def
+/codeone.fnc1   -1 def  /codeone.fnc3  -2 def  /codeone.fna   -3 def  % FNC1 in second position, after an AIM application indicator
 /codeone.lc     -5 def  /codeone.lb    -6 def  /codeone.lx    -7 def  /codeone.lt    -8 def  /codeone.ld    -9 def  /codeone.unl -10 def
 /codeone.fnc2  -11 def  /codeone.fnc4 -12 def  /codeone.sft1 -13 def  /codeone.sft2 -14 def  /codeone.sft3 -15 def  /codeone.eci -16 def  /codeone.pad -17 def  /codeone.fnc1ld -18 def
 /codeone.unlcw 255 def
@@ -571,30 +571,56 @@ begin
             /eci true
             (FNC1) //codeone.fnc1
             (FNC3) //codeone.fnc3
+            (FNC@) //codeone.fna
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
 
         %
-        % ECIs are not available with FNC1 in first position, including after leading ECIs
+        % FNC1 in second position follows an AIM application indicator of one letter or two digits
         %
-        msg {
-            dup -1000000 gt {
-                //codeone.fnc1 eq {
-                    msg {
-                        -1000000 le {
-                            /bwipp.codeoneECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
-                        } if
-                    } forall
+        /fnc1second msglen 0 gt { msg 0 get //codeone.fna eq } { false } ifelse def
+        fnc1second {
+            /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+            /msg [
+                msg 1 appindlen getinterval aload pop
+                //codeone.fnc1
+                msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+            ] def
+        } if
+        parsefnc {  % Function characters only come from parsefnc
+            msg {
+                //codeone.fna eq {
+                    /bwipp.codeoneFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
                 } if
+            } forall
+        } if
+
+        %
+        % ECIs are not available with FNC1 in second position, or in first position including after leading ECIs
+        %
+        fnc1second
+        msg {  % Skip leading ECIs
+            dup -1000000 gt {
+                //codeone.fnc1 eq or
                 exit
             } if
             pop
         } forall
+        {
+            msg {
+                -1000000 le {
+                    /bwipp.codeoneECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+                } if
+            } forall
+        } if
 
         structapp {
             msglen 0 gt { msg 0 get //codeone.fnc1 eq } { false } ifelse {
                 /bwipp.codeoneSAMfnc1 (Structured Append is not available with FNC1 in first position) //raiseerror exec
+            } if
+            fnc1second {
+                /bwipp.codeoneSAMfnc1second (Structured Append is not available with FNC1 in second position) //raiseerror exec
             } if
             msg {
                 //codeone.fnc3 eq {
@@ -1089,6 +1115,23 @@ begin
                 { [ 129 eciesc 1 add 233 sampos samtotal ] } { [ sampos samtotal 233 ] } ifelse
             } ifelse
             addtocws
+        } if
+        % FNC1 in 2nd position must follow an AIM application indicator in ASCII, alone or with a latch to Decimal
+        fnc1second {
+            appindlen 1 eq {
+                avals msg 0 get get addtocws
+            } {
+                2 string dup 0 msg 0 get put dup 1 msg 1 get put avals exch get addtocws
+            } ifelse
+            /i appindlen def
+            numD i 1 add get dup 15 ge exch dup 7 ge exch i add 1 add msglen eq and or {
+                avals //codeone.fnc1ld get addtocws
+                /Dbitslen 0 def  % Initialize Dbits buffer as empty
+                /mode //codeone.d def
+            } {
+                avals //codeone.fnc1 get addtocws
+            } ifelse
+            /i i 1 add def
         } if
         {
             i msglen ge {exit} if
