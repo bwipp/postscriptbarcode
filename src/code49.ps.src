@@ -50,6 +50,7 @@ dup /render dup /uk.co.terryburton.bwipp findresource put
 begin
 
 /code49.s1 -1 def /code49.s2 -2 def /code49.fn1 -3 def /code49.fn2 -4 def /code49.fn3 -5 def /code49.ns -6 def
+/code49.fna -7 def  % FNC1 in second position, after an AIM application indicator
 
 %
 % Character encodings
@@ -956,9 +957,33 @@ dup [ exch 16 exch 1 32 getinterval aload pop ] /code49.weighty exch readonly de
         (FNC1) //code49.fn1
         (FNC2) //code49.fn2
         (FNC3) //code49.fn3
+        (FNC@) //code49.fna
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % FNC1 in second position follows an AIM application indicator in the first code character:
+    % an upper case letter, or a lower case letter under the implied Shift 2 of mode 5
+    %
+    /fnc1second msglen 0 gt { msg 0 get //code49.fna eq } { false } ifelse def
+    fnc1second {
+        msg 1 get dup 65 ge exch 90 le and
+        msg 1 get dup 97 ge exch 122 le and append not and or not {
+            /bwipp.code49badAIMapplicationIndicator (Code 49 can only encode an AIM application indicator of one upper case letter, or one lower case letter without append) //raiseerror exec
+        } if
+        /msg [ msg 1 get //code49.fn1 msg 2 msglen 2 sub getinterval aload pop ] def
+    } if
+    parsefnc {  % Function characters only come from parsefnc
+        msg {
+            //code49.fna eq {
+                /bwipp.code49FNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+            } if
+        } forall
+    } if
+    fnc1second sam -1 ne and {
+        /bwipp.code49SAMfnc1second (Structured Append is not available with FNC1 in second position) //raiseerror exec
+    } if
 
     msg {
         127 gt {

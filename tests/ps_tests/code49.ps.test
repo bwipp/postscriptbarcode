@@ -168,3 +168,13 @@
 (TEST) (sampos=1 samtotal=10 dontdraw) /bwipp.code49BadSAMtotal er_tmpl
 (TEST) (sampos=0 samtotal=3 dontdraw) /bwipp.code49BadSAMpos er_tmpl
 (TEST) (sampos=4 samtotal=3 dontdraw) /bwipp.code49BadSAMpos er_tmpl
+
+% FNC1 in second position: the AIM application indicator is the first code character, FNC1 the second
+{ (^FNC@TABC) (parsefnc debugcws) code49 } [29 45 10 11 12 48 48 7 48 48 39 36 47 39 0 12] debugIsEqual
+{ (^FNC@tabc) (parsefnc debugcws) code49 } [29 45 44 10 44 11 44 31 12 48 47 4 24 7 5 0] debugIsEqual
+{ (^FNC@T12345678) (parsefnc debugcws) code49 } [29 45 48 5 17 9 14 20 6 48 16 38 17 20 0 47] debugIsEqual
+{ (^FNC@TABC) (parsefnc append debugcws) code49 } [29 45 10 11 12 48 48 7 48 48 40 3 3 6 1 2] debugIsEqual
+{ (^FNC@99ABC) (parsefnc dontdraw) code49 } /bwipp.code49badAIMapplicationIndicator isError
+{ (^FNC@tabc) (parsefnc append dontdraw) code49 } /bwipp.code49badAIMapplicationIndicator isError
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 dontdraw) code49 } /bwipp.code49SAMfnc1second isError
+{ (A^FNC@TB) (parsefnc dontdraw) code49 } /bwipp.code49FNC1secondNotFirst isError
