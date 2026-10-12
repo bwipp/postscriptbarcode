@@ -431,6 +431,23 @@ begin
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
 
+    %
+    % ECIs are not available with FNC1 in first position, including after leading ECIs
+    %
+    msg {
+        dup -1000000 gt {
+            //dotcode.fn1 eq {
+                msg {
+                    -1000000 le {
+                        /bwipp.dotcodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+                    } if
+                } forall
+            } if
+            exit
+        } if
+        pop
+    } forall
+
     structapp {
         msg {
             //dotcode.fn3 eq {
