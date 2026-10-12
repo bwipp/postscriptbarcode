@@ -83,6 +83,11 @@ if [ "$FORMAT" != "png" ] && [ "$FORMAT" != "pnm" ] && [ "$FORMAT" != "eps" ] &&
 	exit 1
 fi
 
+# The data goes in a file, since a long -c argument is refused as "Command too long"
+DRAW=$(mktemp --suffix=.ps)
+trap 'rm -f "$DRAW"' EXIT
+printf '<%s> <%s> /%s /uk.co.terryburton.bwipp findresource exec showpage\n' "$DATA_HEX" "$OPTIONS_HEX" "$ENCODER" >"$DRAW"
+
 BWIPP="build/monolithic/barcode.ps"
 OFFSET=3000
 
@@ -103,7 +108,7 @@ BBOX=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=bbox \
 	-c "<< /PageOffset [$OFFSET $OFFSET] /WhiteIsOpaque $WHITE_IS_OPAQUE >> setpagedevice" \
 	-c "$INIT" \
 	-c "($BWIPP) run $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-	-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage" \
+	-c "($DRAW) run" \
 	2>&1 | grep "%%HiResBoundingBox:")
 
 if [ -z "$BBOX" ]; then
@@ -136,7 +141,7 @@ if [ "$FORMAT" = "png" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+		-c "($DRAW) run"
 fi
 
 if [ "$FORMAT" = "pnm" ]; then
@@ -146,7 +151,7 @@ if [ "$FORMAT" = "pnm" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+		-c "($DRAW) run"
 fi
 
 if [ "$FORMAT" = "eps" ]; then
@@ -154,7 +159,7 @@ if [ "$FORMAT" = "eps" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+		-c "($DRAW) run"
 fi
 
 if [ "$FORMAT" = "pdf" ]; then
@@ -164,18 +169,18 @@ if [ "$FORMAT" = "pdf" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+		-c "($DRAW) run"
 fi
 
 if [ "$FORMAT" = "svg" ]; then
 	TMPPDF=$(mktemp --suffix=.pdf)
-	trap 'rm -f "$TMPPDF"' EXIT
+	trap 'rm -f "$DRAW" "$TMPPDF"' EXIT
 	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=pdfwrite \
 		-dAutoRotatePages=/None \
 		-dDEVICEWIDTHPOINTS=$WIDTH -dDEVICEHEIGHTPOINTS=$HEIGHT \
 		-sOutputFile="$TMPPDF" \
 		-c "$INIT" \
 		-c "($BWIPP) run gsave 1 setgray clippath fill grestore $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "<$DATA_HEX> <$OPTIONS_HEX> /$ENCODER /uk.co.terryburton.bwipp findresource exec showpage"
+		-c "($DRAW) run"
 	pdftocairo -svg "$TMPPDF" -
 fi
