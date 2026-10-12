@@ -398,11 +398,15 @@ jobs:
           mv barcodewriter.pdf postscriptbarcode-manual.pdf
           mv barcodewriter.html postscriptbarcode-manual.html
 
+      - name: Release notes, as in the tag
+        run: make -s --no-print-directory releasenotes > release-notes.md
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
+          body_path: release-notes.md
           draft: false
           prerelease: false
           files: |

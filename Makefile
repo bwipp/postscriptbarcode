@@ -302,9 +302,14 @@ tag:
 	@echo Remember to refresh the wikidocs/ submodule
 	@echo
 	@echo "git tag -s -F /dev/stdin `head -n1 CHANGES` <<'EOF'"
-	@echo "`awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES`"
+	@$(MAKE) -s --no-print-directory releasenotes
 	@echo EOF
 	@echo git push upstream `head -n1 CHANGES`
+
+# The notes for a release: the latest block of CHANGES, used for the tag and the GitHub release
+.PHONY: releasenotes
+releasenotes:
+	@awk -v 'RS=\n\n\n' -v 'FS=\n\n' '{print $$2;exit}' CHANGES
 
 YEAR:=$(shell date +%Y)
 
