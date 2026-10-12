@@ -79,6 +79,12 @@ begin
 %
 /micropdf417.m05 -12 def  /micropdf417.m06 -13 def
 
+%
+% Special function characters for Code 128 emulation: FNC1 in second position, after an
+% AIM application indicator, and FNC1 as a field separator
+%
+/micropdf417.fna -14 def  /micropdf417.fn1 -15 def
+
 /micropdf417.textsubmodes [ micropdf417.a micropdf417.l micropdf417.m micropdf417.p ] readonly def
 
 %
@@ -787,11 +793,49 @@ begin
             /parsefnc parsefnc
 %            (MAC5) m05    Encoded automatically
 %            (MAC6) m06    Encoded automatically
-            % Predates FNC non-data codewords, but supports ECI
+            (FNC@) //micropdf417.fna
+            (FNC1) //micropdf417.fn1
             /eci true
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % FNC1 in second position, in Code 128 emulation, is declared at the start of the data,
+        % which begins with the AIM application indicator. Any further FNC1 is a field separator.
+        %
+        /fnc1second msglen 0 gt { msg 0 get //micropdf417.fna eq } { false } ifelse def
+        parsefnc {  % Function characters only come from parsefnc
+            msglen 1 gt { msg 1 msglen 1 sub getinterval } { [] } ifelse {
+                //micropdf417.fna eq {
+                    /bwipp.micropdf417FNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+                } if
+            } forall
+            fnc1second not {
+                msg {
+                    //micropdf417.fn1 eq {
+                        /bwipp.micropdf417FNC1withoutFNC1second (FNC1 is only available as a field separator after FNC1 in second position) //raiseerror exec
+                    } if
+                } forall
+            } if
+        } if
+        fnc1second readerinit and {
+            /bwipp.micropdf417readerinitFNC1second (Reader initialisation is not available with FNC1 in second position) //raiseerror exec
+        } if
+        fnc1second structapp and sampos 1 ne and {
+            /bwipp.micropdf417SAMfnc1second (FNC1 in second position is only available in the first symbol of a Structured Append sequence) //raiseerror exec
+        } if
+
+        %
+        % ECIs are not available with FNC1 in second position
+        %
+        fnc1second {
+            msg {
+                -1000000 le {
+                    /bwipp.micropdf417ECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+                } if
+            } forall
+        } if
 
         %
         % Macro 05/06 compression of [)>{RS}05/06{GS}...{RS}{EOT} structured data, which is not available with Structured Append or reader initialisation
@@ -850,16 +894,23 @@ begin
         mark
         /seqlen 0 def /state //micropdf417.b def /p 0 def {  % loop
             p msglen eq {exit} if
-            p 0 eq msg p get dup //micropdf417.m05 eq exch //micropdf417.m06 eq or and {
-                msg p get //micropdf417.m05 eq { //micropdf417.m05 } { //micropdf417.m06 } ifelse
+            p 0 eq msg p get dup //micropdf417.m05 eq exch dup //micropdf417.m06 eq exch //micropdf417.fna eq or or and {
+                msg p get  % Macro 05, Macro 06 or FNC1 in second position
                 /p p 1 add def
                 /seqlen seqlen 1 add def
             } {
-            iseci p get {
-                /eci msg p get def
-                [ eci ]
-                /p p 1 add def
-                /seqlen seqlen eci -1810900 le {2} {eci -1000900 le {3} {2} ifelse} ifelse add def
+            iseci p get msg p get //micropdf417.fn1 eq or {
+                msg p get //micropdf417.fn1 eq {  % Field separator, with an implied latch to Text Alpha
+                    //micropdf417.fn1
+                    /state //micropdf417.t def
+                    /p p 1 add def
+                    /seqlen seqlen 1 add def
+                } {
+                    /eci msg p get def
+                    [ eci ]
+                    /p p 1 add def
+                    /seqlen seqlen eci -1810900 le {2} {eci -1000900 le {3} {2} ifelse} ifelse add def
+                } ifelse
             } {
             /n numdigits p get def
             n 13 ge n msglen eq n 8 ge and or {  % 13+ digits or all-numeric and 8+ digits
@@ -896,7 +947,7 @@ begin
         counttomark array astore exch pop /seq exch def
 
         /latchcws <<
-            //micropdf417.tl 900  //micropdf417.bl 901  //micropdf417.bl6 924  //micropdf417.nl 902  //micropdf417.bs 913  //micropdf417.m05 916  //micropdf417.m06 917
+            //micropdf417.tl 900  //micropdf417.bl 901  //micropdf417.bl6 924  //micropdf417.nl 902  //micropdf417.bs 913  //micropdf417.m05 916  //micropdf417.m06 917  //micropdf417.fna 908  //micropdf417.fn1 903
         >> def
 
         %
@@ -1232,6 +1283,19 @@ begin
                     } if
                     /state //micropdf417.t def /submode //micropdf417.m def
                 } if
+                chars //micropdf417.fna eq {  % 908 implies a latch to mixed text submode, 909 to numeric
+                    i 1 add seq length lt { seq i 1 add get //micropdf417.nl eq } { false } ifelse {
+                        datcws j 1 sub 909 put
+                        /i i 1 add def
+                        /state //micropdf417.n def
+                    } {
+                        i 1 add seq length lt {
+                            seq i 1 add get //micropdf417.tl eq { /i i 1 add def } if
+                        } if
+                        /state //micropdf417.t def /submode //micropdf417.m def
+                    } ifelse
+                } if
+                chars //micropdf417.fn1 eq {/state //micropdf417.t def /submode //micropdf417.a def} if
             } ifelse
             /i i 1 add def
         } loop

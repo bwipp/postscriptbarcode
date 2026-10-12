@@ -538,7 +538,7 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 { (^12) (parse dontdraw) micropdf417 pop true } true isEqual
 
 % parsefnc edge cases
-(^FNC1) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
+(^FNC1) (parsefnc dontdraw) /bwipp.micropdf417FNC1withoutFNC1second er_tmpl
 (^FNC2) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
 (^FNC3) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
 (^FNC4) (parsefnc dontdraw) /bwipp.unknownFNC er_tmpl
@@ -596,5 +596,20 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 (ABC) (cca readerinit dontdraw) /bwipp.micropdf417readerinitRawOrCc er_tmpl
 (ABC) (ccb readerinit dontdraw) /bwipp.micropdf417readerinitRawOrCc er_tmpl
 
-% FNC1 in second position is not available
-{ (^FNC@TABC) (parsefnc dontdraw) micropdf417 } /bwipp.unknownFNC isError
+% FNC1 in second position: Code 128 emulation codeword 908 implies a latch to Text Mixed, 909 to Numeric
+{ (^FNC@TABCDEF) (parsefnc debugcws) micropdf417 } [908 859 1 63 125 900 900] debugIsEqual
+{ (^FNC@99ABCDEF) (parsefnc debugcws) micropdf417 } [908 279 840 32 94 179 900] debugIsEqual
+{ (^FNC@991234567890123456) (parsefnc debugcws) micropdf417 } [909 3 672 155 812 545 748 256 900 900] debugIsEqual
+{ (^FNC@TAB) (parsefnc debugcws) micropdf417 } [908 901 84 65 66 900 900] debugIsEqual
+
+% A further FNC1 is a field separator, 903, which implies a latch to Text Alpha
+{ (^FNC@TABCDE^FNC1FGHIJ) (parsefnc debugcws) micropdf417 } [908 859 1 63 149 903 156 218 299 900] debugIsEqual
+{ (^FNC@TABCDE^FNC11234567890123456) (parsefnc debugcws) micropdf417 } [908 859 1 63 149 903 902 19 23 229 801 348 256 900 900 900] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 samid=017053 debugcws) micropdf417 } [908 901 84 65 66 67 900 928 111 100 17 53 923 1 111 102] debugIsEqual
+
+{ (A^FNC@T) (parsefnc dontdraw) micropdf417 } /bwipp.micropdf417FNC1secondNotFirst isError
+{ (AB^FNC1C) (parsefnc dontdraw) micropdf417 } /bwipp.micropdf417FNC1withoutFNC1second isError
+{ (^FNC@T^ECI000026A) (parsefnc dontdraw) micropdf417 } /bwipp.micropdf417ECIwithFNC1 isError
+{ (^FNC@TABC) (parsefnc readerinit dontdraw) micropdf417 } /bwipp.micropdf417readerinitFNC1second isError
+{ (^FNC@TABC) (parsefnc sampos=2 samtotal=2 samid=017053 dontdraw) micropdf417 } /bwipp.micropdf417SAMfnc1second isError
+{ (^FNC@1A) (parsefnc dontdraw) micropdf417 } /bwipp.invalidAIMapplicationIndicator isError
