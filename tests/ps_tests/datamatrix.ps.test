@@ -1106,3 +1106,9 @@
 (ABC) (sampos=1 samtotal=2 samid=1A dontdraw) /bwipp.datamatrixBadSAMid er_tmpl
 (^065) (raw sampos=1 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMraw er_tmpl
 (A^PROG) (parsefnc sampos=1 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMprog er_tmpl
+
+% ECIs are not available with FNC1 in first position
+(^ECI000026^FNC10109501234567890) (parsefnc dontdraw) /bwipp.datamatrixECIwithFNC1 er_tmpl
+(^FNC1^ECI0000260109501234567890) (parsefnc dontdraw) /bwipp.datamatrixECIwithFNC1 er_tmpl
+(^FNC1010950123456789010AB^ECI000026CD) (parsefnc dontdraw) /bwipp.datamatrixECIwithFNC1 er_tmpl
+{ (AB^ECI000026C^FNC1D) (parsefnc dontdraw) datamatrix pop true } true isEqual
