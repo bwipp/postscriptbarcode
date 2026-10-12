@@ -118,6 +118,7 @@ begin
 /datamatrix.fnc1   -1 def  /datamatrix.prog  -2 def  /datamatrix.m05   -3 def  /datamatrix.m06   -4 def
 /datamatrix.lC     -5 def  /datamatrix.lB    -6 def  /datamatrix.lX    -7 def  /datamatrix.lT    -8 def  /datamatrix.lE    -9 def  /datamatrix.unl -10 def
 /datamatrix.sapp  -11 def  /datamatrix.usft -12 def  /datamatrix.sft1 -13 def  /datamatrix.sft2 -14 def  /datamatrix.sft3 -15 def  /datamatrix.eci -16 def  /datamatrix.pad -17 def
+/datamatrix.fna   -18 def  % FNC1 in second position, after an AIM application indicator
 /datamatrix.unlcw 254 def
 
 /datamatrix.A 0 def  /datamatrix.C 1 def  /datamatrix.T 2 def  /datamatrix.X 3 def  /datamatrix.E 4 def  /datamatrix.B 5 def
@@ -566,6 +567,7 @@ begin
             /eci true
             (FNC1) //datamatrix.fnc1
             (PROG) //datamatrix.prog
+            (FNC@) //datamatrix.fna
 %            (MAC5) //datamatrix.m05    Encoded automatically
 %            (MAC6) //datamatrix.m06    Encoded automatically
         >> def
@@ -573,23 +575,48 @@ begin
         /msglen msg length def
 
         %
-        % ECIs are not available with FNC1 in first position, including after leading ECIs
+        % FNC1 in second position follows an AIM application indicator of one letter or two digits
         %
-        msg {
-            dup -1000000 gt {
-                //datamatrix.fnc1 eq {
-                    msg {
-                        -1000000 le {
-                            /bwipp.datamatrixECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
-                        } if
-                    } forall
+        /fnc1second msglen 0 gt { msg 0 get //datamatrix.fna eq } { false } ifelse def
+        fnc1second {
+            /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+            /msg [
+                msg 1 appindlen getinterval aload pop
+                //datamatrix.fnc1
+                msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+            ] def
+        } if
+        parsefnc {  % Function characters only come from parsefnc
+            msg {
+                //datamatrix.fna eq {
+                    /bwipp.datamatrixFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
                 } if
+            } forall
+        } if
+
+        %
+        % ECIs are not available with FNC1 in second position, or in first position including after leading ECIs
+        %
+        fnc1second
+        msg {  % Skip leading ECIs
+            dup -1000000 gt {
+                //datamatrix.fnc1 eq or
                 exit
             } if
             pop
         } forall
+        {
+            msg {
+                -1000000 le {
+                    /bwipp.datamatrixECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+                } if
+            } forall
+        } if
 
         structapp {
+            fnc1second sampos 1 ne and {
+                /bwipp.datamatrixSAMfnc1second (FNC1 in second position is only available in the first symbol of a Structured Append sequence) //raiseerror exec
+            } if
             msg {
                 //datamatrix.prog eq {
                     /bwipp.datamatrixSAMprog (Structured Append is not available with reader programming) //raiseerror exec
@@ -1017,6 +1044,18 @@ begin
         structapp {  % Precedes any FNC1 and ECI
             Avals //datamatrix.sapp get addtocws
             [ sampos 1 sub 16 mul 17 add samtotal sub samfid 254 idiv 1 add samfid 254 mod 1 add ] addtocws
+        } if
+        % FNC1 in 2nd position must follow an AIM application indicator in ASCII
+        fnc1second {
+            appindlen 1 eq {
+                Avals msg 0 get get addtocws
+            } {
+                2 string dup 0 msg 0 get put dup 1 msg 1 get put Avals exch get addtocws
+            } ifelse
+            Avals //datamatrix.fnc1 get addtocws
+            /i appindlen 1 add def
+            % Compensate c40headerlength if any
+            c40headerlength 0 gt { /c40headerlength c40headerlength appindlen add 1 add def } if
         } if
         % FNC1 in 1st position must be in ASCII to be GS1
         msg 0 get //datamatrix.fnc1 eq {

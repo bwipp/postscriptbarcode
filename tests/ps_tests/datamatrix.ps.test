@@ -1116,3 +1116,16 @@
 % An FNC1 written after an AIM application indicator is encoded as written
 { (T^FNC1ABC) (parsefnc debugcws) datamatrix } [85 232 66 67 68] debugIsEqual
 { (99^FNC1ABC) (parsefnc debugcws) datamatrix } [229 232 66 67 68] debugIsEqual
+
+% FNC1 in second position: the AIM application indicator is in ASCII and FNC1 is the second codeword
+{ (^FNC@TABC) (parsefnc debugcws) datamatrix } [85 232 66 67 68] debugIsEqual
+{ (^FNC@99ABC) (parsefnc debugcws) datamatrix } [229 232 66 67 68] debugIsEqual
+{ (^FNC@tabc) (parsefnc debugcws) datamatrix } [117 232 98 99 100] debugIsEqual
+{ (^FNC@TABCDEFGHIJKLMNOP) (parsefnc debugcws) datamatrix } [85 232 230 89 233 109 36 128 95 147 154 166 213 254 81 129 133 28] debugIsEqual
+{ (^FNC@tabcdefghijklmnop) (parsefnc debugcws) datamatrix } [117 232 239 89 233 109 36 128 95 147 154 166 213 254 113 129 133 28] debugIsEqual
+{ (^FNC@T^FNC1A) (parsefnc debugcws) datamatrix } [85 232 232 66 129] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 samid=1 debugcws) datamatrix } [233 15 1 1 85 232 66 67 68 129 251 147] debugIsEqual
+(^FNC@TABC) (parsefnc sampos=2 samtotal=2 samid=1 dontdraw) /bwipp.datamatrixSAMfnc1second er_tmpl
+(^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.datamatrixECIwithFNC1 er_tmpl
+(A^FNC@TB) (parsefnc dontdraw) /bwipp.datamatrixFNC1secondNotFirst er_tmpl
+(^FNC@1A) (parsefnc dontdraw) /bwipp.invalidAIMapplicationIndicator er_tmpl
