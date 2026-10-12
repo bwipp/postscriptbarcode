@@ -1511,7 +1511,8 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 1. `src/<symbology>.ps.src` - Create the resource file (use existing encoder as template)
 2. `src/uk.co.terryburton.bwipp.upr` - Add entry to the resource index
 3. `tests/ps_tests/<symbology>.ps.test` - Create test file
-4. Verify build: `make build/standalone/<symbology>.ps`
+4. `tests/ps_tests/test.ps` - Register the test file (tests are not discovered automatically)
+5. Verify build: `make build/standalone/<symbology>.ps`
 
 **Wiki content for symbologies** (in `wikidocs/` submodule):
 1. `symbologies/<Symbology-Name>.md` - Create the documentation page
@@ -1519,6 +1520,7 @@ Both scripts require `build/monolithic/barcode.ps` (run `make` first).
 3. `symbologies/Symbologies-Reference.md` - Add entry with thumbnail image(s)
 4. `images/<name>.svg` and `images/<name>.pdf` - Example images (use `scale=1`)
 5. Related symbology pages - Add cross-references if applicable
+6. Option pages that list the symbologies supporting a feature (e.g. `^FNC@` in `options/Input-Processing.md`) - Add the new symbology if applicable
 
 **Wiki content for options** (in `wikidocs/` submodule):
 1. `options/<Option-Name>.md` - Create the documentation page
