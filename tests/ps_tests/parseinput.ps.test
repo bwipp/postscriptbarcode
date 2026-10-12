@@ -224,3 +224,62 @@
     (XX^000XX^FNC1XX^ECI123456XX) << /parseonly true /parse true /parsefnc true (FNC1) -1 >> parseinput
 } (XX\000XX^FNC1XX^ECI123456XX) isEqual
 
+
+
+% FNC1 in second position is followed by an AIM application indicator of one letter or two digits
+
+{
+    (^FNC@T12) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} [ -20 84 49 50 ] isEqual
+
+{
+    (^FNC@t) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} [ -20 116 ] isEqual
+
+{
+    (^FNC@123) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} [ -20 49 50 51 ] isEqual
+
+{
+    (^FNC@^084A) << /parse true /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} [ -20 84 65 ] isEqual
+
+{
+    (^FNC@T^FNC1A) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} [ -20 84 -1 65 ] isEqual
+
+{
+    (^FNC@1A) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@1) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@!X) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@ X) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@^233X) << /parse true /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (^FNC@^FNC1X) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{
+    (AB^FNC@) << /parse false /parsefnc true (FNC1) -1 (FNC@) -20 >> parseinput
+} /bwipp.invalidAIMapplicationIndicator isError
+
+{  % Not substituted without the key
+    (^FNC@T) << /parse false /parsefnc true (FNC1) -1 >> parseinput
+} /bwipp.unknownFNC isError

@@ -93,6 +93,7 @@ begin
 
     /msg barcode length array def
     /j 0 def
+    /fnc1secondseen false def
     barcode {  % loop
         (^) search exch
         % Copy characters up to a "^"
@@ -205,6 +206,7 @@ begin
                     exch pop
                     /bwipp.unknownFNC exch //raiseerror exec
                 } if
+                dup (FNC@) eq { /fnc1secondseen true def } if
                 fncvals exch get
                 msg exch j exch put
                 /j j 1 add def
@@ -216,6 +218,30 @@ begin
             exit
         }  ifelse
     } loop
+
+    %
+    % FNC1 in second position is declared before an AIM application indicator of one letter or two digits
+    %
+    fnc1secondseen {
+        /fna fncvals (FNC@) get def
+        0 1 j 1 sub {
+            dup msg exch get fna eq {
+                /k exch 1 add def
+                k j lt {
+                    msg k get
+                    dup 65 ge 1 index 90 le and 1 index 97 ge 2 index 122 le and or {
+                        pop true
+                    } {
+                        dup 48 ge exch 57 le and
+                        k 1 add j lt { msg k 1 add get dup 48 ge exch 57 le and } { false } ifelse and
+                    } ifelse
+                } { false } ifelse
+                not {
+                    /bwipp.invalidAIMapplicationIndicator (FNC1 in second position requires an AIM application indicator of one letter or two digits) //raiseerror exec
+                } if
+            } { pop } ifelse
+        } for
+    } if
 
     parseonly not {
         msg 0 j getinterval
