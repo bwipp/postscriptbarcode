@@ -55,6 +55,7 @@ begin
 /posicode.la0  -1 def  /posicode.la1  -2 def  /posicode.la2  -3 def
 /posicode.sf0  -4 def  /posicode.sf1  -5 def  /posicode.sf2  -6 def
 /posicode.fn1  -7 def  /posicode.fn2  -8 def  /posicode.fn3  -9 def  /posicode.fn4 -10 def
+/posicode.fna -11 def  % FNC1 in second position, after an AIM application indicator
 
 /la0 //posicode.la0 def  /la1 //posicode.la1 def  /la2 //posicode.la2 def
 /sf0 //posicode.sf0 def  /sf1 //posicode.sf1 def  /sf2 //posicode.sf2 def
@@ -328,16 +329,43 @@ begin
             (FNC1) //posicode.fn1
             (FNC2) //posicode.fn2
             (FNC3) //posicode.fn3
+            (FNC@) //posicode.fna
 %            (FNC4) fn4        Not user accessible as encoded automatically
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % FNC1 in second position follows an AIM application indicator of one letter or two digits
+        %
+        /fnc1second msglen 0 gt { msg 0 get //posicode.fna eq } { false } ifelse def
+        fnc1second {
+            /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+            /msg [
+                msg 1 appindlen getinterval aload pop
+                //posicode.fn1
+                msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+            ] def
+        } if
+        parsefnc {  % Function characters only come from parsefnc
+            msg {
+                //posicode.fna eq {
+                    /bwipp.posicodeFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+                } if
+            } forall
+        } if
 
         /text msglen string def
         0 1 msglen 1 sub {
             /i exch def
             text i msg i get dup 0 lt { pop 32 } if put
         } for
+        fnc1second {  % FNC1 in second position is not shown
+            msglen 1 sub string
+            dup 0 text 0 appindlen getinterval putinterval
+            dup appindlen text appindlen 1 add msglen appindlen sub 1 sub getinterval putinterval
+            /text exch def
+        } if
 
         %
         % Standard and extended ASCII runlength at position
