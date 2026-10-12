@@ -840,11 +840,34 @@
 (^ECI000026^FNC1AB) (parsefnc dontdraw) /bwipp.qrcodeECIwithFNC1 er_tmpl
 (^FNC1^ECI000026AB) (parsefnc dontdraw) /bwipp.qrcodeECIwithFNC1 er_tmpl
 (^FNC1AB^ECI000026CD) (parsefnc dontdraw) /bwipp.qrcodeECIwithFNC1 er_tmpl
-(^ECI000026AB^FNC1CD) (parsefnc dontdraw) /bwipp.qrcodeECIwithFNC1 er_tmpl
 
 % An FNC1 that follows data has no encodation
 (AB^FNC1CD) (parsefnc dontdraw) /bwipp.qrcodeFNC1NotFirstPosition er_tmpl
+(^ECI000026AB^FNC1CD) (parsefnc dontdraw) /bwipp.qrcodeFNC1NotFirstPosition er_tmpl
 { (AB^FNC1CD) (parsefnc dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeFNC1NotFirstPosition isError
 
 % Micro QR Code has no FNC1 mode
 { (^FNC1AB) (parsefnc dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeNoValidSymbol isError
+
+% FNC1 in second position: mode 1001 then the AIM application indicator, a letter plus 100 or two digits
+{
+    (^FNC@37AA1234BBB112text text text text^013) (parse parsefnc debugcws) qrcode  % ISO/IEC 18004 7.4.9.3 example
+} [146 82 6 28 192 94 34 207 209 240 5 232 40 232 202 240 232 64 232 202 240 232 64 232 202 240 232 64 232 202 240 232 26 0] debugIsEqual
+{ (^FNC@TABC) (parsefnc fixedeclevel debugcws) qrcode } [155 130 1 156 211 0 236 17 236 17 236 17 236 17 236 17] debugIsEqual
+{ (^FNC@tABC) (parsefnc fixedeclevel debugcws) qrcode } [157 130 1 156 211 0 236 17 236 17 236 17 236 17 236 17] debugIsEqual
+{ (^FNC@99ABC) (parsefnc fixedeclevel debugcws) qrcode } [150 50 1 156 211 0 236 17 236 17 236 17 236 17 236 17] debugIsEqual
+{ (^FNC@TA%B) (parsefnc fixedeclevel debugcws) qrcode } [155 130 2 30 141 114 0 236 17 236 17 236 17 236 17 236] debugIsEqual
+{ (^FNC@TAB^FNC1C) (parsefnc fixedeclevel debugcws) qrcode } [155 130 2 28 221 116 0 236 17 236 17 236 17 236 17 236] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 samparity=0 fixedeclevel debugcws) qrcode } [48 16 9 184 32 25 205 48 0 236 17 236 17 236 17 236] debugIsEqual
+{ (^FNC@TABC) (parsefnc version=R7x43 debugcws) /rectangularmicroqrcode /uk.co.terryburton.bwipp findresource exec } [215 9 156 211 0 236] debugIsEqual
+(^FNC@TABC) (parsefnc dontdraw) 20 samparity_tmpl  % The AIM application indicator is transmitted, so counts
+(^FNC@37A) (parsefnc dontdraw) 69 samparity_tmpl
+{ (^FNC@TABC) (parsefnc dontdraw) /microqrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.qrcodeNoValidSymbol isError
+(^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.qrcodeECIwithFNC1 er_tmpl
+(A^FNC@TB) (parsefnc dontdraw) /bwipp.qrcodeFNC1secondNotFirst er_tmpl
+(^FNC@TA^FNC@B) (parsefnc dontdraw) /bwipp.qrcodeFNC1secondNotFirst er_tmpl
+(^FNC@1A) (parsefnc dontdraw) /bwipp.invalidAIMapplicationIndicator er_tmpl
+
+% The FNC1 mode header and AIM application indicator count towards capacity
+{ (^FNC@T1111111111111111111111111111111111111) (parsefnc version=1 eclevel=L dontdraw) qrcode pop true } true isEqual
+(^FNC@T11111111111111111111111111111111111111) (parsefnc version=1 eclevel=L dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl

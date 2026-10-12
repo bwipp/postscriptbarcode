@@ -80,6 +80,7 @@ begin
 /qrcode.encfuncs [ /encN /encA /encB /encK /encE ] readonly def
 
 /qrcode.fn1 -1 def
+/qrcode.fna -2 def  % FNC1 in second position, after an AIM application indicator
 
 %
 % Characters exclusive to each encoding mode
@@ -832,28 +833,56 @@ begin
         /parsefnc parsefnc
         /eci true
         (FNC1) //qrcode.fn1
+        (FNC@) //qrcode.fna
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
 
     %
-    % FNC1 in first position precedes the data, and is not available with ECIs
+    % FNC1 in first position precedes the data. FNC1 in second position is declared at the
+    % start of the data, and its AIM application indicator is coded in the FNC1 mode header and
+    % transmitted as data.
     %
     /fnc1first msglen 0 gt { msg 0 get //qrcode.fn1 eq } { false } ifelse def
-    msg {
-        -1000000 le {
-            msg {
-                //qrcode.fn1 eq {
-                    /bwipp.qrcodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
-                } if
-            } forall
+    /fnc1second msglen 0 gt { msg 0 get //qrcode.fna eq } { false } ifelse def
+    fnc1second {
+        /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+        /appindval appindlen 1 eq { msg 1 get 100 add } { msg 1 get 48 sub 10 mul msg 2 get 48 sub add } ifelse def
+        /msg msg 1 msglen 1 sub getinterval def
+        /msglen msg length def
+    } if
+    parsefnc {  % Function characters only come from parsefnc
+        msg {
+            //qrcode.fna eq {
+                /bwipp.qrcodeFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+            } if
+        } forall
+    } if
+
+    %
+    % ECIs are not available with FNC1 in second position, or in first position including after leading ECIs
+    %
+    fnc1second
+    msg {  % Skip leading ECIs
+        dup -1000000 gt {
+            //qrcode.fn1 eq or
             exit
         } if
+        pop
     } forall
+    {
+        msg {
+            -1000000 le {
+                /bwipp.qrcodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+            } if
+        } forall
+    } if
+    /fnc1mode fnc1first fnc1second or def
 
     %
     % Report the Structured Append parity of the message: its bytes as
-    % transmitted, with FNC1 as GS, excluding ECIs and FNC1 in first position
+    % transmitted, including any AIM application indicator, with FNC1 as GS,
+    % excluding ECIs and FNC1 in first position
     %
     /uk.co.terryburton.bwipp.report where {
         pop
@@ -865,12 +894,12 @@ begin
     } if
 
     %
-    % In FNC1 mode remove FNC1 in first position and escape % as %%,
-    % otherwise an FNC1 has no encodation
+    % In FNC1 mode remove FNC1 in first position or the AIM application indicator
+    % and escape % as %%, otherwise an FNC1 has no encodation
     %
-    fnc1first {
+    fnc1mode {
         /msg [
-            1 1 msglen 1 sub {
+            fnc1first {1} {appindlen} ifelse 1 msglen 1 sub {
                 msg exch get dup 37 eq {dup} if
             } for
         ] def
@@ -905,7 +934,7 @@ begin
 
     /encA {
         /in exch def
-        fnc1first {  % FNC1 as %
+        fnc1mode {  % FNC1 as %
             /in [ in { dup //qrcode.fn1 eq {pop 37} if } forall ] def
         } if
         in length 11 mul 2 idiv 1 add
@@ -955,7 +984,7 @@ begin
 
     /encB {
         /in exch def
-        fnc1first {  % FNC1 as GS
+        fnc1mode {  % FNC1 as GS
             /in [ in { dup //qrcode.fn1 eq {pop 29} if } forall ] def
         } if
         in length 8 mul
@@ -1206,7 +1235,7 @@ begin
                     //qrcode.B exit
                 } if
             } loop
-            dup //qrcode.K eq fnc1first and {pop //qrcode.B} if  % No kanji with fnc1first
+            dup //qrcode.K eq fnc1mode and {pop //qrcode.B} if  % No kanji in FNC1 mode
             dup mode eq {  % Same mode - grow the pending segment, deferring extraction
                 pop
                 /i i mode //qrcode.K eq {2} {1} ifelse add def
@@ -1234,7 +1263,7 @@ begin
             seq -1 eq {exit} if  % Sequence not available
             /bits 23648 string def
             /j 0 def
-            structapp {  % Header precedes any FNC1 mode and ECI indicators
+            structapp {  % Header precedes any FNC1 mode and ECI mode indicators
                 (0011) addtobits
                 sampos 1 sub 4 tobin addtobits
                 samtotal 1 sub 4 tobin addtobits
@@ -1242,6 +1271,10 @@ begin
             } if
             fnc1first {
                 ver //qrcode.vR7x43 lt { (0101) } { (101) } ifelse addtobits
+            } if
+            fnc1second {
+                ver //qrcode.vR7x43 lt { (1001) } { (110) } ifelse addtobits
+                appindval 8 tobin addtobits
             } if
             /abort false def
             0 2 seq length 1 sub {
@@ -1301,7 +1334,7 @@ begin
         /ecb2 m 9 get eclval 2 mul 1 add get def      % Second error correction blocks
         /okay true def
         format frmt ne {/okay false def} if           % The format must match that supplied
-        frmt (micro) eq fnc1first and {/okay false def} if  % FNC1 mode is only available in full and rmqr
+        frmt (micro) eq fnc1mode and {/okay false def} if  % FNC1 mode is only available in full and rmqr
         version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         /verbits msgbits vergrp get def
