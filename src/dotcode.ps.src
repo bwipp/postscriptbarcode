@@ -64,7 +64,7 @@ begin
 /dotcode.tma -21 def  /dotcode.tmb -22 def  /dotcode.tmc -23 def  /dotcode.tms -24 def
 /dotcode.fn1 -25 def  /dotcode.fn2 -26 def  /dotcode.fn3 -27 def  /dotcode.crl -28 def
 /dotcode.aim -29 def  /dotcode.m05 -30 def  /dotcode.m06 -31 def  /dotcode.m12 -32 def
-/dotcode.mac -33 def
+/dotcode.mac -33 def  /dotcode.fna -34 def  % FNC1 in second position, after an AIM application indicator
 
 /laa //dotcode.laa def  /lab //dotcode.lab def  /lac //dotcode.lac def  /bin //dotcode.bin def
 /sfa //dotcode.sfa def  /sfb //dotcode.sfb def  /sb2 //dotcode.sb2 def  /sb3 //dotcode.sb3 def
@@ -427,26 +427,55 @@ begin
         (FNC1) //dotcode.fn1
         % (FNC2) fn2  %  Use ^ECInnnnnn for ECI and sampos/samtotal for Structured Append
         (FNC3) //dotcode.fn3
+        (FNC@) //dotcode.fna
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
 
     %
-    % ECIs are not available with FNC1 in first position, including after leading ECIs
+    % Message segments begin at the start of the data and after each FNC3 within the data. A
+    % segment may begin with FNC1 in first position, after any ECIs, or declare FNC1 in second
+    % position, which follows an AIM application indicator of one letter or two digits. ECIs
+    % are not available with either.
     %
-    msg {
-        dup -1000000 gt {
-            //dotcode.fn1 eq {
-                msg {
-                    -1000000 le {
-                        /bwipp.dotcodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+    /fnc1secondat 4 dict def
+    /fnc1firstorsecond false def
+    parsefnc {  % Function characters only come from parsefnc
+        0 1 msglen 1 sub {
+            /i exch def
+            /atsegstart i 0 eq { true } { msg i 1 sub get //dotcode.fn3 eq i 1 gt and } ifelse def
+            atsegstart {
+                i 1 msglen 1 sub {  % Skip leading ECIs
+                    msg exch get dup -1000000 gt {
+                        //dotcode.fn1 eq { /fnc1firstorsecond true def } if
+                        exit
                     } if
-                } forall
+                    pop
+                } for
             } if
-            exit
-        } if
-        pop
-    } forall
+            msg i get //dotcode.fna eq {
+                atsegstart not {
+                    /bwipp.dotcodeFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data or of a message segment) //raiseerror exec
+                } if
+                msg i msg i 1 add get put
+                msg i 1 add get dup 48 ge exch 57 le and {
+                    msg i 1 add msg i 2 add get put
+                    msg i 2 add //dotcode.fn1 put
+                } {
+                    msg i 1 add //dotcode.fn1 put
+                } ifelse
+                fnc1secondat i true put
+                /fnc1firstorsecond true def
+            } if
+        } for
+    } if
+    fnc1firstorsecond {
+        msg {
+            -1000000 le {
+                /bwipp.dotcodeECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+            } if
+        } forall
+    } if
 
     structapp {
         msg {
@@ -675,8 +704,8 @@ begin
             } if
             % Special treatment of FNC1 in First for Dotcode
             i segstart eq {
-                % Encode an FNC1 if two digits start a segment
-                nDigits i get 2 ge {
+                % Encode an FNC1 if two digits start a segment, except an AIM application indicator
+                nDigits i get 2 ge fnc1secondat i known not and {
                     [ Cvals //dotcode.fn1 get ] addtocws
                 } if
                 % Skip an FNC1 if followed by two digits at start of segment
