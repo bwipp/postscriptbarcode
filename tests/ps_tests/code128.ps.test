@@ -105,3 +105,26 @@
 % An FNC1 written after an AIM application indicator is encoded as written
 { (T^FNC1ABC) (parsefnc debugcws) code128 } [104 52 102 33 34 35 49 106] debugIsEqual
 { (12^FNC1ABC) (parsefnc debugcws) code128 } [105 12 102 100 33 34 35 0 106] debugIsEqual
+
+% FNC1 in second position: the AIM application indicator and FNC1 are the first two symbol characters
+{ (^FNC@TABC) (parsefnc debugcws) code128 } [104 52 102 33 34 35 49 106] debugIsEqual
+{ (^FNC@tabc) (parsefnc debugcws) code128 } [104 84 102 65 66 67 53 106] debugIsEqual
+{ (^FNC@12abcdefgh) (parsefnc debugcws) code128 } [105 12 102 100 65 66 67 68 69 70 71 72 35 106] debugIsEqual
+{ (^FNC@99) (parsefnc debugcws) code128 } [105 99 102 99 106] debugIsEqual
+{ (^FNC@12^FNC134) (parsefnc debugcws) code128 } [105 12 102 102 34 42 106] debugIsEqual
+{ (^FNC@t^009^010^011) (parse parsefnc debugcws) code128 } [104 84 102 101 73 74 75 56 106] debugIsEqual
+{ (^FNC@TABC) (parsefnc newencoder debugcws) code128 } [104 52 102 33 34 35 49 106] debugIsEqual
+{ (^FNC@12abcdefgh) (parsefnc newencoder debugcws) code128 } [105 12 102 100 65 66 67 68 69 70 71 72 35 106] debugIsEqual
+{ (^FNC@T^009^010^011) (parse parsefnc newencoder debugcws) code128 } [104 52 102 101 73 74 75 24 106] debugIsEqual
+{ (^FNC@T^200^201) (parse parsefnc newencoder debugcws) code128 } [104 52 102 100 40 100 41 21 106] debugIsEqual
+
+% Code set C carries an AIM application indicator of two digits, then is suppressed
+{ (^FNC@123456) (parsefnc newencoder suppressc debugcws) code128 } [105 12 102 100 19 20 21 22 47 106] debugIsEqual
+{ (^FNC@12^FNC134) (parsefnc newencoder suppressc debugcws) code128 } [105 12 102 100 102 19 20 8 106] debugIsEqual
+
+% The FNC1 in second position is not shown
+{ (^FNC@TAB^FNC1C) (parsefnc includetext dontdraw) code128 /txt get 0 get 0 get } (TAB C) isEqual
+
+{ (A^FNC@T) (parsefnc dontdraw) code128 } /bwipp.code128FNC1secondNotFirst isError
+{ (^FNC@T^FNC@U) (parsefnc dontdraw) code128 } /bwipp.code128FNC1secondNotFirst isError
+{ (^FNC@1A) (parsefnc dontdraw) code128 } /bwipp.invalidAIMapplicationIndicator isError

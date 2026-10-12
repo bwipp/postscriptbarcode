@@ -57,6 +57,7 @@ begin
 /code128.fn1  -7 def  /code128.fn2  -8 def  /code128.fn3  -9 def
 /code128.fn4 -10 def  /code128.sft -11 def  /code128.stp -12 def
 /code128.lka -13 def  /code128.lkc -14 def  % CC-A/B and CC-C linkage
+/code128.fna -15 def  % FNC1 in second position, after an AIM application indicator
 
 /sta //code128.sta def  /stb //code128.stb def  /stc //code128.stc def
 /swa //code128.swa def  /swb //code128.swb def  /swc //code128.swc def
@@ -298,9 +299,32 @@ begin
 %        (FNC4) fn4    Not user accessible as encoded automatically
         (LNKA) //code128.lka
         (LNKC) //code128.lkc
+        (FNC@) //code128.fna
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % FNC1 in second position follows an AIM application indicator of one letter or two digits
+    %
+    /fnc1second msglen 0 gt { msg 0 get //code128.fna eq } { false } ifelse def
+    fnc1second {
+        /appindlen msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+        /msg [
+            msg 1 appindlen getinterval aload pop
+            //code128.fn1
+            msg appindlen 1 add msglen appindlen sub 1 sub getinterval aload pop
+        ] def
+    } {
+        /appindlen -1 def
+    } ifelse
+    parsefnc {  % Function characters only come from parsefnc
+        msg {
+            //code128.fna eq {
+                /bwipp.code128FNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+            } if
+        } forall
+    } if
 
     /encoding (legacy) def
     newencoder {/encoding (new) def} if
@@ -334,6 +358,12 @@ begin
             /i exch def
             text i msg i get dup 0 lt { pop 32 } if put
         } for
+        fnc1second {  % FNC1 in second position is not shown
+            msglen 1 sub string
+            dup 0 text 0 appindlen getinterval putinterval
+            dup appindlen text appindlen 1 add msglen appindlen sub 1 sub getinterval putinterval
+            /text exch def
+        } if
     } ifelse
 
     encoding (legacy) eq {
@@ -609,9 +639,9 @@ begin
         /can_c1 {num_digits 2 ge {true} {setc c known} ifelse} def
 
         %
-        % Predicates overruled by options
+        % Predicates overruled by options, except for an AIM application indicator of two digits
         %
-        suppressc                      {/can_c0 {false} def} if
+        suppressc                      {/can_c0 {n appindlen le {num_digits 2 ge {true} {setc c known} ifelse} {false} ifelse} def} if
         suppressc unlatchextbeforec or {/can_c1 {false} def} if
 
         %
@@ -691,6 +721,15 @@ begin
                 bln_0 4 can_b  {/p bps_1 4 get def path n get 4 p put bln_1 p get //code128.latch_length_b1 p get add out_b1 add} {//code128.max_int} ifelse put
                 bln_0 2 can_c0 {/p bps_c 2 get def path n get 2 p put bln_c p get //code128.latch_length_c0 p get add      1 add} {//code128.max_int} ifelse put
                 bln_0 5 can_c1 {/p bps_c 5 get def path n get 5 p put bln_c p get //code128.latch_length_c1 p get add      1 add} {//code128.max_int} ifelse put
+
+                %
+                % An AIM application indicator and the FNC1 that follows it are the first two symbol
+                % characters: a letter in code set B, or two digits in code set C
+                %
+                n appindlen le {
+                    /s appindlen 1 eq {1} {n 0 eq {-1} {2} ifelse} ifelse def
+                    0 1 5 { dup s ne { bln_0 exch //code128.max_int put } { pop } ifelse } for
+                } if
 
                 %
                 % Use the new best lengths to determine new best prior states
