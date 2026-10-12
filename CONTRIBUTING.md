@@ -196,7 +196,8 @@ Each resource source file has a similar structure:
    - Runs once during resource definition, with values immediately referenced by main procedure; allocate once during initialisation, then reuse at runtime
    - Names MUST be prefixed with the resource name (e.g., `encoder.charmap`) - the Makefile extracts all `//name` references to populate the packager's atload template, requiring globally unique names
    - `//name` immediate references are resolved at parse time, embedding the value directly into procedures
-   - Embedded procedures should have explicit `bind`
+   - Embedded procedures should have explicit `bind`, which runs once at resource definition
+   - Only procedures needed outside the main procedure belong here: builders of static data, helpers of the lazy initialisation procedure, and FIFO cache generators
    - Must be marked `readonly`
 
 7. **Initialisation of any FIFO caches**
@@ -214,6 +215,8 @@ Each resource source file has a similar structure:
    - Uses immediate references to static data
    - Calls lazy initialisation procedure
    - Makes use of any named FIFO caches by executing their `fetch` method
+   - Defines its helper procedures with `/name { ... } def`, each placed just before the code that uses it so that the code reads in order
+   - Helper procedures have no `bind` of their own: binding the main procedure binds them, whereas a `bind` within it would execute on every call
    - Bind the main procedure whilst inhibiting binding of non-standard operators defined on some RIPs, i.e. `barcode`
 
 10. **Resource definition**
@@ -378,6 +381,16 @@ Example for an encoder:
     %   - Mask evaluation and selection
     %   - Function module placement
     %
+
+    % Helper procedures are defined just before their use, without bind
+    /addtobits {  % bitstring ->
+        dup bits j 3 -1 roll putinterval
+        length j add /j exch def
+    } def
+
+    /bits 1000 string def
+    /j 0 def
+    (0011) addtobits
 
     %
     % 7. Resolve bar height from spec (linear only, before bhs/bbs construction)
