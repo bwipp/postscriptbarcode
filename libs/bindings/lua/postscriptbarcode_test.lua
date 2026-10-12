@@ -307,7 +307,8 @@ test("real_qrcode_properties", function()
 end)
 
 test("real_version", function()
-	assert(real():get_version():match("^%d%d%d%d%-%d%d%-%d%d$"))
+	local v = real():get_version()
+	assert(v == "XXXX-XX-XX" or v:match("^%d%d%d%d%-%d%d%-%d%d$"))  -- Placeholder between releases
 end)
 
 test("real_emit_qrcode", function()
