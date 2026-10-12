@@ -271,3 +271,7 @@
 (^FNC1^ECI0000260109501234567890) (parsefnc dontdraw) /bwipp.dotcodeECIwithFNC1 er_tmpl
 (^FNC1010950123456789010AB^ECI000026CD) (parsefnc dontdraw) /bwipp.dotcodeECIwithFNC1 er_tmpl
 { (AB^ECI000026C^FNC1D) (parsefnc dontdraw) dotcode pop true } true isEqual
+
+% An FNC1 written after an AIM application indicator is encoded as written; two leading digits are preceded by an FNC1 that cancels GS1 mode
+{ (T^FNC1ABC) (parsefnc debugcws) dotcode } [106 52 107 33 34 35] debugIsEqual
+{ (99^FNC1ABC) (parsefnc debugcws) dotcode } [107 99 107 104 33 34 35] debugIsEqual
