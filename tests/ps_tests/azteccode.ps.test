@@ -1135,9 +1135,6 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
     (AB^ECI000026CD) (parsefnc debugcws) azteccode
 } [ 4 12 1 2 18 2 5 ] debugIsEqual
 {
-    (^FNC1^ECI000010A) (parsefnc debugcws) azteccode
-} [ 1 1 1 1 2 12 33 31 ] debugIsEqual
-{
     (ABC123) (format=compact debugcws) azteccode
 } [ 4 12 39 35 17 31 ] debugIsEqual
 {
@@ -1309,3 +1306,9 @@ uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to rest
 (1) (format=rune sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
 (ABC) (readerinit layers=1 sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
 (10101) (raw sampos=1 samtotal=2 dontdraw) /bwipp.aztecSAMunavailable er_tmpl
+
+% ECIs are not available with FNC1 in first position
+(^ECI000026^FNC10109501234567890) (parsefnc dontdraw) /bwipp.azteccodeECIwithFNC1 er_tmpl
+(^FNC1^ECI0000260109501234567890) (parsefnc dontdraw) /bwipp.azteccodeECIwithFNC1 er_tmpl
+(^FNC1010950123456789010AB^ECI000026CD) (parsefnc dontdraw) /bwipp.azteccodeECIwithFNC1 er_tmpl
+{ (AB^ECI000026C^FNC1D) (parsefnc dontdraw) azteccode pop true } true isEqual
