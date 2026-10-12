@@ -894,16 +894,24 @@ begin
     } if
 
     %
-    % In FNC1 mode remove FNC1 in first position or the AIM application indicator
-    % and escape % as %%, otherwise an FNC1 has no encodation
+    % In FNC1 mode remove FNC1 in first position or the AIM application indicator,
+    % otherwise an FNC1 has no encodation. An FNC1 followed by % or FNC1 is GS, as
+    % in Byte mode, since in Alphanumeric mode it would read as part of a %%.
     %
     fnc1mode {
         /msg [
             fnc1first {1} {appindlen} ifelse 1 msglen 1 sub {
-                msg exch get dup 37 eq {dup} if
+                msg exch get
             } for
         ] def
         /msglen msg length def
+        0 1 msglen 2 sub {
+            dup msg exch get //qrcode.fn1 eq {
+                msg 1 index 1 add get dup 37 eq exch //qrcode.fn1 eq or {
+                    msg exch 29 put
+                } { pop } ifelse
+            } { pop } ifelse
+        } for
     } {
         msg {
             //qrcode.fn1 eq {
@@ -934,9 +942,6 @@ begin
 
     /encA {
         /in exch def
-        fnc1mode {  % FNC1 as %
-            /in [ in { dup //qrcode.fn1 eq {pop 37} if } forall ] def
-        } if
         in length 11 mul 2 idiv 1 add
         { string } stopped {
             pop /bwipp.qrcodeInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
@@ -1282,6 +1287,9 @@ begin
                 /mode seq i get def
                 //qrcode.mids ver get mode get addtobits
                 /chars seq i 1 add get def
+                fnc1mode mode //qrcode.A eq and {  % In FNC1 mode % is %% and FNC1 is %
+                    /chars [ chars { dup 37 eq { dup } { dup //qrcode.fn1 eq { pop 37 } if } ifelse } forall ] def
+                } if
                 /charslen chars length mode //qrcode.K eq {2 idiv} if def
                 mode //qrcode.E ne {
                     /cclen //qrcode.cclens ver get mode get def

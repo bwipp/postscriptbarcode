@@ -871,3 +871,9 @@
 % The FNC1 mode header and AIM application indicator count towards capacity
 { (^FNC@T1111111111111111111111111111111111111) (parsefnc version=1 eclevel=L dontdraw) qrcode pop true } true isEqual
 (^FNC@T11111111111111111111111111111111111111) (parsefnc version=1 eclevel=L dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+
+% In FNC1 mode % is doubled only in Alphanumeric mode, and an FNC1 followed by % or FNC1 is GS in Byte mode
+{ (^FNC1ab%cd) (parsefnc fixedeclevel debugcws) qrcode } [84 5 97 98 37 99 100 0 236 17 236 17 236 17 236 17] debugIsEqual
+{ (^FNC1AB^FNC1%CD) (parsefnc fixedeclevel debugcws) qrcode } [84 6 65 66 29 37 67 68 0 236 17 236 17 236 17 236] debugIsEqual
+{ (^FNC1AB^FNC1^FNC1CD) (parsefnc fixedeclevel debugcws) qrcode } [84 6 65 66 29 29 67 68 0 236 17 236 17 236 17 236] debugIsEqual
+{ (^FNC1AB%^FNC1CD) (parsefnc fixedeclevel debugcws) qrcode } [82 3 156 221 169 174 141 0 236 17 236 17 236 17 236 17] debugIsEqual
