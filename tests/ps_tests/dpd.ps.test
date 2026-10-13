@@ -1,0 +1,72 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/dpd dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    3 1 roll { 0 0 dpd /sbs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+/txt_tmpl {
+    3 1 roll { 0 0 dpd /txt get 0 get 0 get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 dpd }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+% The identification tag is added
+(000393206219912345678101040) (dontdraw) [
+    2 1 1 2 1 4 1 3 1 2 2 2 1 2 3 1 2 2 1 1 3 1 4 1
+    2 1 2 2 2 2 2 1 1 3 1 3 2 3 2 1 2 1 1 2 2 2 1 3
+    2 1 3 2 1 2 1 1 3 1 4 1 1 1 2 2 3 2 1 3 1 1 2 3
+    3 3 1 1 2 1 2 4 1 1 1 2 2 2 1 3 1 2 2 2 1 3 1 2
+    2 3 1 1 1 3 1 1 1 1 4 3 2 3 3 1 1 1 2
+] eq_tmpl
+(%000393206219912345678101040) (dontdraw) [
+    2 1 1 2 1 4 1 3 1 2 2 2 1 2 3 1 2 2 1 1 3 1 4 1
+    2 1 2 2 2 2 2 1 1 3 1 3 2 3 2 1 2 1 1 2 2 2 1 3
+    2 1 3 2 1 2 1 1 3 1 4 1 1 1 2 2 3 2 1 3 1 1 2 3
+    3 3 1 1 2 1 2 4 1 1 1 2 2 2 1 3 1 2 2 2 1 3 1 2
+    2 3 1 1 1 3 1 1 1 1 4 3 2 3 3 1 1 1 2
+] eq_tmpl
+(000393206219912345678101040) (dontdraw) (0003 932 0621 9912 3456 78 101 040 9) txt_tmpl
+(007110601782532948375101276) (dontdraw) (0071 106 0178 2532 9483 75 101 276 X) txt_tmpl
+(008182709980000020028101276) (dontdraw) (0081 827 0998 0000 0200 28 101 276 B) txt_tmpl
+(000280009980000020037155056) (dontdraw) (0002 800 0998 0000 0200 37 155 056 6) txt_tmpl
+
+% Another identification tag, and an alphanumeric postal code
+{ (0123456789012345678901234567) (dontdraw) dpd /sbs get 0 exch {add} forall } 189 isEqual
+(00B61AA09980000020028101826) (dontdraw) (00B6 1AA 0998 0000 0200 28 101 826 N) txt_tmpl
+
+% A relabel has no identification tag and half the height
+{ (006376209980000020044118276) (dontdraw relabel) dpd /sbs get 0 exch {add} forall } 200 isEqual
+(006376209980000020044118276) (dontdraw relabel) (0063 762 0998 0000 0200 44 118 276 I) txt_tmpl
+{ (006376209980000020044118276) (dontdraw relabel propspec) dpd /bhs get 0 get 72 mul round cvi } 33 isEqual
+{ (006376209980000020044118276) (dontdraw propspec) dpd /bhs get 0 get 72 mul round cvi } 67 isEqual
+{ (006376209980000020044118276) (dontdraw relabel) dpd /bhs get 0 get } 0.5 isEqual
+
+% A caret identification tag is not parsed by Code 128
+{ (^000393206219912345678101040) (dontdraw parse parsefnc) dpd /sbs get } (^000393206219912345678101040) (dontdraw) dpd /sbs get debugIsEqual
+
+(00039320621991234567810104) (dontdraw) /bwipp.dpdBadLength er_tmpl
+(%0003932062199123456781010401) (dontdraw) /bwipp.dpdBadLength er_tmpl
+(%000393206219912345678101040) (dontdraw relabel) /bwipp.dpdBadLength er_tmpl
+(\011000393206219912345678101040) (dontdraw) /bwipp.dpdBadTag er_tmpl
+(00039-206219912345678101040) (dontdraw) /bwipp.dpdBadCharacter er_tmpl
+(00039320621991234567810104A) (dontdraw) /bwipp.dpdBadCharacter er_tmpl
+(00b393206219912345678101040) (dontdraw) /bwipp.dpdBadCharacter er_tmpl

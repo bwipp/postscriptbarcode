@@ -1,0 +1,200 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER dpd--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor render renlinear code128--
+% --DESC: DPD Parcel Label Barcode
+% --EXAM: 005432155550001234567101826
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code128 dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/dpd.chars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/dpd.alnumlen 9 def                                   % Postal code and the tracking number prefix, then digits
+/dpd.groups [ 4 3 4 4 4 2 3 3 ] readonly def          % Human readable groups of the data
+/dpd.datalen 0 //dpd.groups { add } forall def
+
+/dpd {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /includetext false def
+    /text1font /Courier def
+    /text1size 10.0 def
+    /text1xoffset 0.0 def
+    /text1yoffset -7.0 def
+    /height -1.0 def
+    /width 0 def
+    /relabel false def
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % The data follows an identification tag, which is % unless given, and
+    % which a relabel omits
+    %
+    relabel {
+        barcode length //dpd.datalen ne {
+            /bwipp.dpdBadLength (DPD relabel data must be 27 characters long) //raiseerror exec
+        } if
+        /data barcode def
+    } {
+        barcode length //dpd.datalen ne barcode length //dpd.datalen 1 add ne and {
+            /bwipp.dpdBadLength (DPD data must be 27 characters long, or 28 including the identification tag) //raiseerror exec
+        } if
+        barcode length //dpd.datalen eq {
+            /barcode //dpd.datalen 1 add string dup 0 (%) 0 get put dup 1 barcode putinterval def
+        } if
+        barcode 0 get dup 32 lt exch 126 gt or {
+            /bwipp.dpdBadTag (The DPD identification tag must be a printable ASCII character) //raiseerror exec
+        } if
+        /data barcode 1 //dpd.datalen getinterval def
+    } ifelse
+
+    %
+    % Postal code and tracking number prefix are alphanumeric, the rest numeric
+    %
+    /ok true def
+    0 1 //dpd.datalen 1 sub {
+        /i exch def
+        /c data i get def
+        c 48 ge c 57 le and
+        i //dpd.alnumlen lt { c 65 ge c 90 le and or } if
+        not { /ok false def } if
+    } for
+    ok not {
+        /bwipp.dpdBadCharacter (DPD data must be nine upper case letters or digits, for the postal code and tracking number prefix, then eighteen digits) //raiseerror exec
+    } if
+
+    %
+    % ISO/IEC 7064 MOD 37,36 check character for the human readable text
+    %
+    /p 36 def
+    data {
+        dup 65 ge { 55 sub } { 48 sub } ifelse
+        p add 36 mod dup 0 eq { pop 36 } if
+        2 mul 37 mod /p exch def
+    } forall
+    /check 37 p sub 36 mod def
+
+    /text //dpd.datalen //dpd.groups length add 1 add string def
+    /j 0 def /k 0 def
+    //dpd.groups {
+        text j data k 4 index getinterval putinterval
+        dup j add /j exch def k add /k exch def
+        text j 32 put /j j 1 add def
+    } forall
+    text j //dpd.chars check get put
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    relabel ast (default) eq and strictspec loosespec or propspec or and { /ast (relabel) def } if
+    /dpd ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+    relabel height -1.0 eq and { propspec hnom -1 ne and not { /height 0.5 def } if } if
+
+    %
+    % Get the result of encoding with code128
+    %
+    options (relabel) undef
+    options (parse) undef
+    options (parsefnc) undef
+    options (height) height put
+    options (propspec) propspec put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
+    options (xdim) xdim put
+    options (ast) undef
+    options (mag) undef
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom dup -1 ne { mag mul } if put  % Magnified, since mag is not passed on
+    options (modunit) modunit put
+
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    barcode options //code128 exec /args exch def
+
+    args (txt) [ [text text1xoffset text1yoffset text1font text1size] ] put
+    args (text1xalign) (center) put
+    args (opt) options put
+    args
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/dpd dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER dpd--
