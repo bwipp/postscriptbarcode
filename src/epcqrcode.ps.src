@@ -1,0 +1,283 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+% --BEGIN ENCODER epcqrcode--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix qrcode--
+% --DESC: EPC QR Code
+% --EXAM: BCD^010002^0101^010SCT^010^010Harbour Choir^010DE89370400440532013000^010EUR12.50^010^010^010^010Donation
+% --EXOP: parse
+% --RNDR: renmatrix
+% --FMLY: Payments
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /qrcode dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/epcqrcode.maxbytes 331 def                           % The payload of a version 13 symbol at error correction level M
+/epcqrcode.maxlines 12 def
+/epcqrcode.minlines 7 def                             % Up to the IBAN
+/epcqrcode.alpha (ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/epcqrcode.digits (0123456789) readonly def
+/epcqrcode.alnum (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789) readonly def
+
+/epcqrcode {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /parse false def
+
+    null /apply //processoptions exec /options exch def
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % Parse ordinals of the form ^NNN to ASCII
+    %
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    barcode fncvals //parseinput exec /barcode exch def
+    options (parse) undef
+    options (parsefnc) undef
+
+    options /sampos known options /samtotal known or options /samparity known or {
+        /bwipp.epcqrcodeStructuredAppend (EPC QR Code does not support Structured Append) //raiseerror exec
+    } if
+
+    %
+    % The EPC guidelines require error correction level M
+    %
+    options (eclevel) known {
+        options (eclevel) get (M) ne {
+            /bwipp.epcqrcodeBadEclevel (EPC QR Code requires error correction level M) //raiseerror exec
+        } if
+    } if
+    options (eclevel) (M) put
+    options (fixedeclevel) true put
+
+    barcode length //epcqrcode.maxbytes gt {
+        /bwipp.epcqrcodeBadLength (EPC QR Code data must not exceed 331 bytes) //raiseerror exec
+    } if
+
+    %
+    % Elements are separated by LF or CRLF, with nothing after the last
+    %
+    /lines [
+        /st 0 def
+        0 1 barcode length 1 sub {
+            /i exch def
+            barcode i get 10 eq {
+                barcode st i st sub getinterval
+                dup length 0 gt { dup dup length 1 sub get 13 eq { 0 1 index length 1 sub getinterval } if } if
+                /st i 1 add def
+            } if
+        } for
+        barcode st barcode length st sub getinterval
+    ] def
+    lines length //epcqrcode.minlines lt lines length //epcqrcode.maxlines gt or {
+        /bwipp.epcqrcodeBadStructure (EPC QR Code data must have from 7 to 12 elements, separated by line feeds) //raiseerror exec
+    } if
+    lines dup length 1 sub get () eq {
+        /bwipp.epcqrcodeBadStructure (The last EPC QR Code element must not be followed by a separator) //raiseerror exec
+    } if
+    /elem {  % k -> string  An element, or empty when omitted
+        dup lines length lt { lines exch get } { pop () } ifelse
+    } def
+
+    /allin {  % string chars -> bool  Every character among those allowed
+        /ac exch def
+        true exch { /c exch def false ac { c eq or } forall and } forall
+    } def
+    /chars {  % string -> count  Characters, as UTF-8 under character set 1
+        charset 1 eq { 0 exch { 192 and 128 ne { 1 add } if } forall } { length } ifelse
+    } def
+    /mod97 {  % string -> remainder  Letters as 10 to 35
+        0 exch {
+            dup 65 ge { 55 sub 100 } { 48 sub 10 } ifelse
+            3 -1 roll mul add 97 mod
+        } forall
+    } def
+
+    0 elem (BCD) ne {
+        /bwipp.epcqrcodeBadServiceTag (The EPC QR Code Service Tag must be BCD) //raiseerror exec
+    } if
+    1 elem dup (001) ne exch (002) ne and {
+        /bwipp.epcqrcodeBadVersion (The EPC QR Code Version must be 001 or 002) //raiseerror exec
+    } if
+    /v1 1 elem (001) eq def
+    2 elem length 1 eq { 2 elem 0 get dup 49 ge exch 56 le and } { false } ifelse not {
+        /bwipp.epcqrcodeBadCharacterSet (The EPC QR Code Character set must be from 1 to 8) //raiseerror exec
+    } if
+    /charset 2 elem 0 get 48 sub def
+    3 elem (SCT) ne {
+        /bwipp.epcqrcodeBadIdentification (The EPC QR Code Identification must be SCT) //raiseerror exec
+    } if
+
+    %
+    % BIC: bank, country, location and optional branch codes; optional in
+    % version 2
+    %
+    /bic 4 elem def
+    bic () eq v1 not and not {
+        bic length dup 8 ne exch 11 ne and
+        { true } {
+            bic 0 6 getinterval //epcqrcode.alpha allin not
+            bic 6 bic length 6 sub getinterval //epcqrcode.alnum allin not or
+        } ifelse {
+            /bwipp.epcqrcodeBadBIC (The BIC must be 8 or 11 characters: four letters for the bank, two for the country, then two letters or digits for the location and optionally three for the branch) //raiseerror exec
+        } if
+    } if
+
+    5 elem chars dup 1 lt exch 70 gt or {
+        /bwipp.epcqrcodeBadName (The name of the beneficiary must be from 1 to 70 characters) //raiseerror exec
+    } if
+
+    %
+    % IBAN: country code, check digits and account number, checked modulo 97
+    % with the first four characters moved to the end
+    %
+    /iban 6 elem def
+    iban length 5 lt iban length 34 gt or
+    { true } {
+        iban 0 2 getinterval //epcqrcode.alpha allin not
+        iban 2 2 getinterval //epcqrcode.digits allin not or
+        iban 4 iban length 4 sub getinterval //epcqrcode.alnum allin not or
+    } ifelse
+    { true } {
+        iban 4 iban length 4 sub getinterval mod97 iban 0 4 getinterval mod97
+        exch 1000000 mul add 97 mod 1 ne
+    } ifelse {
+        /bwipp.epcqrcodeBadIBAN (The IBAN must be a valid IBAN in electronic format: up to 34 upper case letters and digits with correct check digits) //raiseerror exec
+    } if
+
+    %
+    % Amount: EUR, then a whole number of euros up to 999999999 and at most two
+    % decimals, at least 0.01
+    %
+    /amount 7 elem def
+    amount () ne {
+        /ok amount length 4 ge { amount 0 3 getinterval (EUR) eq } { false } ifelse def
+        ok {
+            /num amount 3 amount length 3 sub getinterval def
+            num (.) search {
+                exch pop                                % decimals whole
+                dup length 1 lt 1 index length 9 gt or { /ok false def } if
+                //epcqrcode.digits allin not { /ok false def } if
+                dup length 1 lt 1 index length 2 gt or { /ok false def } if
+                //epcqrcode.digits allin not { /ok false def } if
+            } {
+                dup length 9 gt { /ok false def } if
+                //epcqrcode.digits allin not { /ok false def } if
+            } ifelse
+            /nonzero false def
+            num { dup 48 ne exch 46 ne and { /nonzero true def } if } forall
+            nonzero not { /ok false def } if
+        } if
+        ok not {
+            /bwipp.epcqrcodeBadAmount (The amount must be EUR followed by an amount from 0.01 to 999999999.99 with at most two decimals) //raiseerror exec
+        } if
+    } if
+
+    8 elem dup length 4 gt exch //epcqrcode.alnum allin not or {
+        /bwipp.epcqrcodeBadPurpose (The purpose must be up to four upper case letters or digits) //raiseerror exec
+    } if
+
+    %
+    % Remittance information: a structured creditor reference, checked as an
+    % ISO 11649 reference when it begins RF, or unstructured text, not both
+    %
+    /ref 9 elem def
+    /text 10 elem def
+    ref () ne text () ne and {
+        /bwipp.epcqrcodeBadRemittance (The remittance information may be either a structured reference or text, not both) //raiseerror exec
+    } if
+    ref length 35 gt {
+        /bwipp.epcqrcodeBadReference (The structured remittance reference must not exceed 35 characters) //raiseerror exec
+    } if
+    ref length 2 ge { ref 0 2 getinterval (RF) eq } { false } ifelse {
+        ref length 5 lt ref length 25 gt or
+        { true } {
+            ref 2 2 getinterval //epcqrcode.digits allin not
+            ref 4 ref length 4 sub getinterval //epcqrcode.alnum allin not or
+        } ifelse
+        { true } {
+            ref 4 ref length 4 sub getinterval mod97 ref 0 4 getinterval mod97
+            exch 1000000 mul add 97 mod 1 ne
+        } ifelse {
+            /bwipp.epcqrcodeBadReference (An RF creditor reference must be RF, two check digits and up to 21 letters or digits, with correct check digits) //raiseerror exec
+        } if
+    } if
+    text chars 140 gt {
+        /bwipp.epcqrcodeBadText (The unstructured remittance information must not exceed 140 characters) //raiseerror exec
+    } if
+    11 elem chars 70 gt {
+        /bwipp.epcqrcodeBadInformation (The beneficiary to originator information must not exceed 70 characters) //raiseerror exec
+    } if
+
+    %
+    % Get the result of encoding with qrcode
+    %
+    /uk.co.terryburton.bwipp._dontdraw true def
+    barcode options //qrcode exec /args exch def
+
+    args (opt) options put
+    args
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/epcqrcode dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER epcqrcode--
