@@ -1,0 +1,129 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/datastrip dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    3 1 roll { 0 0 datastrip /pixs get }
+    dup 3 -1 roll 1 exch put      % insert options
+    dup 3 -1 roll 0 exch put      % insert data
+    isEqual
+} def
+
+/ok_tmpl {
+    { 0 0 datastrip pop true }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    true isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 datastrip }
+    dup 3 -1 roll 1 exch put      % insert options
+    dup 3 -1 roll 0 exch put      % insert data
+    exch isError
+} def
+
+% Pseudo-random bytes, which do not compress
+/noise {  % n -> string
+    dup string 1 0 1 4 index 1 sub {            % n str v i
+        exch 75 mul 74 add 65537 mod            % n str i v
+        dup 255 and 3 index 3 index 3 -1 roll put
+        exch pop
+    } for pop exch pop
+} def
+
+%
+% The narrowest strip of the minimum height: four rows of end framing,
+% 31 data rows with the left and right framing, and four more rows of end
+% framing. Decoded with the Figure 1 reference decoder.
+%
+(Datastrip) (columns=4 dontdraw)
+[
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0
+    0 0 1 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0
+    0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 1 1 0 0
+    0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 0 0 1 1 0 0 1 0 0 1 0 0
+    0 0 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1 0 0 0 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 1 1 0 0
+    0 0 1 0 0 1 0 0 0 1 1 0 1 0 0 0 0 0 0 0 1 0 0 0 1 0 0 1 1 0 0 0 1 0 1 0 1 0 0 1 1 0 1 0 0 1 0 0
+    0 0 1 1 0 0 0 0 0 1 0 0 1 0 0 1 0 0 1 0 1 1 0 0 0 0 1 0 1 1 1 0 0 0 1 0 1 0 0 1 1 1 0 0 1 1 0 0
+    0 0 1 0 0 0 0 0 1 1 0 0 1 0 1 0 0 0 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0
+    0 0 1 1 0 1 0 0 0 0 0 0 1 0 0 0 0 1 1 0 1 1 1 0 0 1 1 1 0 0 0 1 0 0 0 0 0 1 1 0 0 1 1 0 1 1 0 0
+    0 0 1 0 0 0 0 0 1 0 1 1 0 1 1 0 1 0 0 0 1 1 0 1 0 1 0 1 0 0 0 0 1 1 1 1 1 0 1 1 0 0 0 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 0 0 0 0 1 0 0 1 1 0 1 0 1 1 0 1 1 1 0 0 0 0 0 1 0 0 0 0 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 0 0 1 0 0 0 1 0 0 0 1 1 0 1 1 0 0 1 0 1 0 1 1 0 0 0 0 1 0 0 0 1 0 1 0 0 0 0 1 0 0 0 1 0 0
+    0 0 1 1 0 0 0 0 1 0 1 0 0 0 1 1 0 0 0 1 0 1 1 1 1 1 0 0 1 1 1 1 1 1 1 1 0 0 1 1 1 0 1 0 1 1 0 0
+    0 0 1 0 0 0 0 0 0 1 1 0 0 1 0 1 0 1 0 0 1 0 0 1 0 0 1 1 1 1 0 0 0 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 1 1 1 1 1 1 0 0 0 1 1 1 0 0 1 0 1 1 1 0 1 1 1 0 0 0 0 0 0 1 0 1 0 1 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 0 0 0 1 0 0 0 0 1 1 1 0 0 1 0 1 0 1 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 1 0 1 0 0 0 1 0 0 1 1 1 0 0 1 0 1 1 0 0 1 0 0 0 1 1 0 0 1 0 1 0 0 1 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 1 0 1 0 1 0 1 1 1 1 0 0 1 1 0 0 0 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 0 0 0 1 0 1 0 0 1 0 0 1 1 1 1 1 1 0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0
+    0 0 1 0 0 0 0 0 0 0 1 1 0 1 0 0 0 1 0 1 1 1 0 0 1 1 0 0 1 0 1 0 0 1 1 0 1 0 1 1 0 0 1 0 0 1 0 0
+    0 0 1 1 0 0 0 0 1 1 1 1 1 1 0 1 1 1 1 1 0 0 0 0 0 1 0 1 0 0 0 0 1 0 0 0 0 1 0 1 0 1 1 0 1 1 0 0
+    0 0 1 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 1 0 1 1 0 1 1 1 1 1 1 1 0 1 0 0 0 1 1 1 0 0 0 1 0 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 0 0 1 0 1 1 0 1 0 1 1 1 0 1 1 0 1 0 1 1 0 0 0 0 0 0 0 1 0 0 1 1 0 1 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 1 0 1 0 0 1 0 0 0 1 0 0 0 1 1 1 1 1 1 1 1 0 1 0 1 0 1 0 1 1 0 0 0 0 0 0 1 0 0
+    0 0 1 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 1 1 0 1 1 1 0 1 0 0 1 0 0 0 0 1 0 1 1 1 0 1 0 0 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 1 1 0 1 1 0 0 1 1 1 0 0 1 0 1 0 1 0 0 0 0 1 0 0 0 1 1 1 1 0 0 0 1 1 0 0 1 0 0
+    0 0 1 1 0 1 0 0 1 1 1 0 1 1 0 1 1 0 0 1 1 0 1 1 1 0 0 0 1 1 0 1 0 0 1 1 1 0 0 1 1 0 0 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 1 1 0 1 1 1 0 1 0 1 0 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 1 1 1 0 0 0 1 0 0
+    0 0 1 1 0 0 0 0 0 0 1 1 1 1 1 1 0 1 1 1 0 0 0 0 1 0 0 1 1 0 0 1 0 1 1 0 1 1 1 1 0 1 0 0 1 1 0 0
+    0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 1 0 1 0 0 1 1 0 1 0 0 0 1 1 0 0 1 1 1 1 0 1 1 1 0 0 1 0 0 0 1 0 0
+    0 0 1 1 0 0 0 0 1 1 0 0 1 1 1 0 1 0 0 0 0 0 1 1 0 1 1 1 1 1 1 1 0 0 0 1 0 1 1 1 0 1 1 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+    0 0 1 1 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 0
+] eq_tmpl
+
+% Each width of header block, the fewest rows that hold the data
+(The quick brown fox jumps over the lazy dog) (columns=4 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=5 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=9 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=11 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=14 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=19 dontdraw) ok_tmpl
+(The quick brown fox jumps over the lazy dog) (columns=10 rows=40 dontdraw) ok_tmpl
+() (dontdraw) ok_tmpl
+500 noise (dontdraw) ok_tmpl
+500 noise (parse dontdraw) ok_tmpl
+
+% Field envelope options
+(Image bytes) (fieldtype=jpeg fieldsubtype=1 dontdraw) ok_tmpl
+(Image bytes) (fieldtype=jpeg2000 dontdraw) ok_tmpl
+(Bytes) (fieldtype=binary disposition=3 dontdraw) ok_tmpl
+(Bytes) (fieldtype=16#21 dontdraw) ok_tmpl
+(Bytes) (fieldtype=255 dontdraw) ok_tmpl
+(Bytes) (stripid=0123456789ab dontdraw) ok_tmpl
+(Bytes) (stripid=0123456789AB dontdraw) ok_tmpl
+
+% Errors
+(Bytes) (fieldtype=photo dontdraw)         /bwipp.datastripBadFieldType     er_tmpl
+(Bytes) (fieldtype=256 dontdraw)           /bwipp.datastripBadFieldType     er_tmpl
+(Bytes) (fieldtype=-1 dontdraw)            /bwipp.datastripBadFieldType     er_tmpl
+(Bytes) (fieldtype=\( dontdraw)            /bwipp.datastripBadFieldType     er_tmpl
+(Bytes) (fieldsubtype=256 dontdraw)        /bwipp.datastripBadFieldSubtype  er_tmpl
+(Bytes) (fieldsubtype=-1 dontdraw)         /bwipp.datastripBadFieldSubtype  er_tmpl
+(Bytes) (disposition=256 dontdraw)         /bwipp.datastripBadDisposition   er_tmpl
+(Bytes) (disposition=-1 dontdraw)          /bwipp.datastripBadDisposition   er_tmpl
+(Bytes) (stripid=0123 dontdraw)            /bwipp.datastripBadStripId       er_tmpl
+(Bytes) (stripid=0123456789AZ dontdraw)    /bwipp.datastripBadStripId       er_tmpl
+(Bytes) (columns=3 dontdraw)               /bwipp.datastripBadColumns       er_tmpl
+(Bytes) (columns=20 dontdraw)              /bwipp.datastripBadColumns       er_tmpl
+(Bytes) (rows=30 dontdraw)                 /bwipp.datastripBadRows          er_tmpl
+(Bytes) (rows=3969 dontdraw)               /bwipp.datastripBadRows          er_tmpl
+(Bytes) (columns=19 rows=3968 dontdraw)    /bwipp.datastripBadRows          er_tmpl
+300 noise (columns=4 rows=31 dontdraw)     /bwipp.datastripTooMuchData      er_tmpl
+60000 noise (columns=4 dontdraw)           /bwipp.datastripTooMuchData      er_tmpl
+12000 noise (columns=4 dontdraw)           /bwipp.datastripTooMuchData      er_tmpl
+(Bytes) (columns=4 rows=1357 dontdraw) ok_tmpl    % The tallest symbol within 65535 modules

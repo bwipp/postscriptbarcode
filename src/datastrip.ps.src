@@ -1,0 +1,548 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+% --BEGIN ENCODER datastrip--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor rsecbinary deflate render renmatrix--
+% --DESC: Datastrip 2D
+% --EXAM: This is Datastrip 2D
+% --EXOP:
+% --RNDR: renmatrix
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+64 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
+dup /deflate dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/datastrip [/before /after] //setuphooks exec
+
+(setup.define) //datastrip.before exec
+
+%
+% Predefined field types (Table 6)
+%
+/datastrip.fieldtypes <<
+    (text)     0
+    (jpeg)     9
+    (binary)   10
+    (jpeg2000) 13
+>> readonly def
+
+/datastrip.framerows 31 def                           % Data rows per frame
+/datastrip.minrows //datastrip.framerows def
+/datastrip.maxrows 128 //datastrip.framerows mul def  % The sync word numbers pairs of frames in six bits
+/datastrip.mincols 4 def
+/datastrip.maxcols 19 def
+/datastrip.hdrbits 8 8 mul def                        % Embedded header of eight bytes
+
+%
+% Header block width and height by column count (Table 2)
+%
+/datastrip.hblocks [
+    [4 3] [4 4] [4 5] [4 6] [4 7] [6 5] [5 7] [8 5]
+    [6 7] [8 6] [7 7] [8 6] [8 7] [8 7] [8 7] [8 7]
+] readonly def
+
+%
+% Sync pattern down each side, and the BCH(31,11) code of the sync words
+%
+/datastrip.sync (1000010010110011111000110111010) readonly def
+/datastrip.bchbits 31 def
+/datastrip.bchdata 11 def
+/datastrip.bchcheck //datastrip.bchbits //datastrip.bchdata sub def
+/datastrip.bchgen 16#156C8D def
+
+%
+% Padding bytes (Annex G): the low byte of each group of three digits of pi
+%
+/datastrip.pad <
+8D508D4D19EECE837F17F674C5A98F776934CEB0503330961ED0E6742239567543D69456011A32875D4C612646E7D5679880E175C21C66BDAA09692F846EB4BA
+A27DC4AC2ACF99A5BE80DB88E9120FA50FC98D9188369BCC5C62C64688D5895F04F98D11D44B065E3B4CAE710898C23DFE5BCB6C6F7C4E680B4A122434D2098
+092B7ADFF61B1390E6DF74FB95CBA757DA463196976244ACE7BC2ED375F75F0D47BE3AAB70BB58141A16AB8908356158AB28BE0E1BEBEB35CAFBE021BD9B025
+B0F080A232D39D958400387F9107303B110356F51561AD7DB2D1D4B885E0B9AE92254973321817B1029B1E13BC708115C06022A29F2D75060335C006C3D35DE
+7E674D231B73BDBDC30603E5318CBC75A8C2E820A34FD58AD2305A3BCAB0A038946F0764B15D07DA469B19D932F56FDEAACF3D4DB9F325F72611351EFBD0D59
+0C14ABE22665019F6C63C38DD8A4C6AA5F01C941E55F1661A8997D3BC8E62DB8232D54C8E3056E579D7BF9D1071BDF83033E59F2C696B7B63D15745DD757794
+B627DF27DD0AB3FFF3C909FBD9F8B0950380C5A695B33C39468C6B5AEBB54C6B2FF45C1C0FF7B06D64F682F1686D02EAC0345EB2539A51CDD9868F0A238C618
+3A2696C1FFFD7EAE234B80F7F0D90792C7105C0D9A1C0E620D7C0955D181DB9C4A3B1E1EB6CE2BC2ED46F9EE4C4A9EE3B29FD21DFD2EBB41A558DBCAF3C0ECE0
+99F37771421DF1367127AA1E0F5E2732A13EA07AD104192051873C1091F9C0ADD9D6045E8DB9CD3824A1699D602885DBE551D4B60B438B8A8F4E23FAA05E06D
+739E53263DBDEB81026FE00779F16EE598DD224DC73E8171255107F3BC7D0A9C664B9731268B6A840E17DCD7588D8805480E872B15CF1C51D16D295BA32E816
+6E27C2B12F7BC912C0BC6C73951FD3FC913DC29D7A614085E32D86DE1B4E63D1FC4EB70DD48E6053C539366C0AE997D6CFDE0CE259DCDE8680888AB5C73144C
+BF0FCC3ED8F8BAFAD29BE93FAA9DDB8CD03C55A839A5575BF04CFF2A2A1F1A0D48A0CAB64AE069BDF579DF5B9BFAF31CC0CA84DDB1184B7508D44E0DE72637C
+6033F37486C3F48825FA0C1DCBB3B3E5BC816859B9B6642B509661A648E13CE8889EC81CFA104AE3C40BD3A67FFC8A0A25BA9AD737DAC854746276E641C8F22
+3517A38AE4470034C45DFC360545E19E46FC67D919D8863E4ECAC3065F73469A0A8986AF89538AA4D09CA8DA3D9056D250D7D811035AAE6B4D2922459340E0E
+DD2B847B81C30BEAEA6C76
+> readonly def
+
+/datastrip.latevars dup 4 dict def load /init {
+
+    (setup.latevars) //datastrip.before exec
+
+    currentglobal
+    true setglobal
+
+    //datastrip.latevars begin
+
+    %
+    % Reed-Solomon log and anti-log tables for GF(256) with prime polynomial
+    % 285, the anti-log table spanning two periods so that log-sums resolve
+    % without a modulo reduction
+    %
+    /rsalog [ 1 510 { dup 2 mul dup 256 ge {285 xor} if } repeat ] readonly def
+    /rslog 256 array def
+    1 1 255 {dup rsalog exch get exch rslog 3 1 roll put} for
+    /rslog rslog readonly def
+
+    /init { //datastrip.latevars {def} forall } def
+
+    end
+
+    //datastrip.latevars /init get exec
+
+    setglobal
+
+    (setup.latevars) //datastrip.after exec
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//datastrip.latevars /init get exec} if
+} {pop} ifelse
+
+/datastrip {
+
+    128 dict begin
+    {
+
+    (input.processoptions) //datastrip.before exec
+
+    /dontdraw false def
+    /fieldtype (text) def       % text, jpeg, binary, jpeg2000 or a number 0-255
+    /fieldsubtype 0 def         % 0-255
+    /disposition 0 def          % 0-255
+    /stripid () def             % 12 hexadecimal digits; empty for zeros
+    /columns 10 def             % 4-19
+    /rows 0 def                 % Data rows, 31 to 3968; 0 for the fewest that fit
+    /parse false def
+    /strictspec false def
+    /propspec false def
+    /loosespec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    /modunit 1 def
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get /default_modunit 2 copy known {get /modunit exch def} {pop pop} ifelse
+    } {pop} ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /datastrip ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    (input.processoptions) //datastrip.after exec
+
+    //datastrip.latevars /init get exec
+
+    (input.validate) //datastrip.before exec
+
+    %
+    % Validate the field envelope and symbol size options
+    %
+    //datastrip.fieldtypes fieldtype 2 copy known {
+        get
+    } {
+        pop pop
+        true fieldtype {                                % Digits, letters and the radix sign only, so that token cannot fail
+            dup 48 ge 1 index 57 le and 1 index 35 eq or
+            1 index 65 ge 2 index 90 le and or 1 index 97 ge 2 index 122 le and or
+            exch pop and
+        } forall
+        { fieldtype token { exch () eq } { 0 false } ifelse } { 0 false } ifelse   % value ok
+        { dup type /integertype eq { dup 0 ge 1 index 255 le and } { false } ifelse } { false } ifelse
+        not {
+            pop /bwipp.datastripBadFieldType (fieldtype must be text, jpeg, binary, jpeg2000 or a number from 0 to 255) //raiseerror exec
+        } if
+    } ifelse
+    /ftype exch def
+    fieldsubtype 0 lt fieldsubtype 255 gt or {
+        /bwipp.datastripBadFieldSubtype (fieldsubtype must be from 0 to 255) //raiseerror exec
+    } if
+    disposition 0 lt disposition 255 gt or {
+        /bwipp.datastripBadDisposition (disposition must be from 0 to 255) //raiseerror exec
+    } if
+    /stripbytes 6 string def
+    stripid () ne {
+        stripid length 12 ne {
+            /bwipp.datastripBadStripId (stripid must be 12 hexadecimal digits) //raiseerror exec
+        } if
+        0 1 11 {
+            /i exch def
+            stripid i get
+            dup 48 ge 1 index 57 le and { 48 sub } {
+            dup 65 ge 1 index 70 le and { 55 sub } {
+            dup 97 ge 1 index 102 le and { 87 sub } {
+                pop /bwipp.datastripBadStripId (stripid must be 12 hexadecimal digits) //raiseerror exec
+            } ifelse } ifelse } ifelse
+            i 1 and 0 eq { 4 bitshift } if              % High nibble first
+            stripbytes i 2 idiv 2 copy get 4 -1 roll or put
+        } for
+    } if
+    columns //datastrip.mincols lt columns //datastrip.maxcols gt or {
+        /bwipp.datastripBadColumns (columns must be from 4 to 19) //raiseerror exec
+    } if
+    rows 0 ne rows //datastrip.minrows lt rows //datastrip.maxrows gt or and {
+        /bwipp.datastripBadRows (rows must be from 31 to 3968) //raiseerror exec
+    } if
+
+    (input.validate) //datastrip.after exec
+
+    %
+    % Parse the input
+    %
+    (input.preprocess) //datastrip.before exec
+
+    /fncvals <<
+        /parse parse
+        /parsefnc false
+        /eci false
+    >> def
+    barcode fncvals //parseinput exec /msg exch def
+    /msglen msg length def
+
+    (input.preprocess) //datastrip.after exec
+
+    %
+    % The field with its header, compressed, behind the strip header
+    %
+    (input.compress) //datastrip.before exec
+
+    msglen 5 add { string } stopped {
+        pop /bwipp.datastripTooMuchData (The data exceeds the implementation limits) //raiseerror exec
+    } if /body exch def
+    body 0 disposition put
+    body 1 ftype put
+    body 2 fieldsubtype put
+    body 3 msglen 255 and put
+    body 4 msglen -8 bitshift put
+    0 1 msglen 1 sub { dup 5 add exch msg exch get body 3 1 roll put } for
+    body //deflate exec /comp exch def
+    /clen comp length def
+    /ulen clen 12 add def
+    /user ulen string def
+    user 0 1 put                                        % Version
+    user 1 1 put                                        % Fields
+    user 2 clen 255 and put
+    user 3 clen -8 bitshift put
+    user 4 body length 255 and put
+    user 5 body length -8 bitshift put
+    user 6 stripbytes putinterval
+    user 12 comp putinterval
+
+    (input.compress) //datastrip.after exec
+
+    %
+    % Symbol size: the data area holds the embedded header bits at the corner
+    % of each header block of each frame; the rest is divided into blocks of
+    % the largest size below the square root of the capacity that is a
+    % multiple of the column count, plus one, each with at least a quarter
+    % of its bytes as check bytes
+    %
+    (symbol.size) //datastrip.before exec
+
+    /n columns def
+    /W n 8 mul def                                      % Data area width in modules
+    //datastrip.hblocks n //datastrip.mincols sub get aload pop /bh exch def /bw exch def
+    /per W bw idiv def
+    /hrow [ 0 1 //datastrip.hdrbits 1 sub { per idiv bh mul bh add 1 sub } for ] def
+    /hcol [ 0 1 //datastrip.hdrbits 1 sub { per mod bw mul bw add 1 sub } for ] def
+    /hcount {  % rowsinframe -> count  Header bits whose corner row exists
+        0 hrow { 2 index lt { 1 add } if } forall exch pop
+    } def
+    /sizing {  % rows -> fits
+        /nrows exch def
+        /hbits nrows //datastrip.framerows idiv //datastrip.hdrbits mul nrows //datastrip.framerows mod hcount add def
+        /avail nrows W mul hbits sub 8 idiv def
+        /bsz avail sqrt cvi
+            { dup dup mul avail gt { 1 sub } { exit } ifelse } loop
+            { dup 1 add dup mul avail le { 1 add } { exit } ifelse } loop
+            n idiv n mul 1 add def
+        /nb avail bsz idiv def
+        /nd nb 0 gt { ulen nb 1 sub add nb idiv } { ulen } ifelse def
+        bsz 255 le nb 1 ge and nb 255 le and nd bsz 3 mul 4 idiv le and
+    } def
+    rows 0 ne {
+        rows sizing not {
+            bsz 255 gt nb 255 gt or {
+                /bwipp.datastripBadRows (The number of rows is too many for the block structure at this width) //raiseerror exec
+            } if
+            /bwipp.datastripTooMuchData (The data does not fit in the given number of rows) //raiseerror exec
+        } if
+    } {
+        ulen 32 mul 3 W mul 1 sub add 3 W mul idiv      % Fewest rows whose capacity, three quarters of it data, holds the user bytes
+        dup //datastrip.minrows lt { pop //datastrip.minrows } if
+        {  % loop
+            dup //datastrip.maxrows gt 1 index W mul 8 idiv 65535 gt or {
+                pop /bwipp.datastripTooMuchData (The data does not fit in a symbol) //raiseerror exec
+            } if
+            dup sizing { exit } if
+            1 add
+        } loop pop
+    } ifelse
+    /nc bsz nd sub def
+
+    (symbol.size) //datastrip.after exec
+
+    %
+    % Reed-Solomon generators for the blocks and for the embedded header
+    %
+    (ecc.coeffs) //datastrip.before exec
+
+    %
+    % Generator with roots alpha^1 to alpha^degree, delivered reversed and in
+    % the log domain with -1 for a zero coefficient, as rsecbinary requires
+    %
+    /gencoeffs {  % degree -> coeffs
+        /degree exch def
+        /g [ 1 degree {0} repeat ] def
+        1 1 degree {  % i
+            g 1 index 2 copy 1 sub get put           % g[i] = g[i-1]
+            dup 1 sub -1 1 {  % j
+                g exch 2 copy get                    % ... g j g[j]
+                rslog exch get 3 index add           % ... log(g[j]) + i
+                rsalog exch get                      % g[j] * alpha^i
+                g 2 index 1 sub get xor put          % g[j] = g[j] * alpha^i ^ g[j-1]
+            } for
+            g 0 2 copy get rslog exch get 3 index add rsalog exch get put   % g[0] = g[0] * alpha^i
+            pop
+        } for
+        [ degree 1 sub -1 0 { g exch get dup 0 ne { rslog exch get } { pop -1 } ifelse } for ]
+    } def
+    /coeffs nc gencoeffs def
+    /hdrcoeffs 4 gencoeffs def
+
+    (ecc.coeffs) //datastrip.after exec
+
+    %
+    % Data blocks, taking user bytes in turn, padded, then check bytes stored
+    % lowest degree first
+    %
+    (ecc.cws) //datastrip.before exec
+
+    /padbyte {  % -> byte  The next padding byte
+        //datastrip.pad p //datastrip.pad length mod get /p p 1 add def
+    } def
+    /p 0 def
+    /blk nb bsz mul string def
+    /lfsr nc array def
+    0 1 nb 1 sub {
+        /b exch def
+        0 1 nd 1 sub {
+            /j exch def
+            j nb mul b add dup ulen lt { user exch get } { pop padbyte } ifelse
+            blk b bsz mul j add 3 -1 roll put
+        } for
+        { nd 1 sub exch sub b bsz mul add blk exch get } nd coeffs lfsr rslog rsalog //rsecbinary exec
+        0 1 nc 1 sub {
+            /j exch def
+            blk b bsz mul nd add nc 1 sub add j sub lfsr j get put
+        } for
+    } for
+
+    %
+    % Byte interleaved, then padded to fill the data area
+    %
+    /stream avail 1 add string def
+    0 1 nb bsz mul 1 sub {
+        /j exch def
+        stream j blk j nb mod bsz mul j nb idiv add get put
+    } for
+    nb bsz mul 1 avail { stream exch padbyte put } for
+
+    %
+    % Embedded header: data bytes, block size, number of blocks, reserved,
+    % and four check bytes
+    %
+    /hdr 8 string def
+    hdr 0 nd put  hdr 1 bsz put  hdr 2 nb put  hdr 3 0 put
+    /lfsr 4 array def
+    { 3 exch sub hdr exch get } 4 hdrcoeffs lfsr rslog rsalog //rsecbinary exec
+    0 1 3 { /j exch def hdr 7 j sub lfsr j get put } for
+
+    (ecc.cws) //datastrip.after exec
+
+    %
+    % Layout: four rows of end framing, the data rows between left and right
+    % framing, and four more rows of end framing
+    %
+    (matrix.layout) //datastrip.before exec
+
+    /pw W 16 add def
+    /ph nrows 8 add def
+    pw ph mul { array } stopped {
+        pop /bwipp.datastripTooMuchData (The symbol exceeds the implementation limits) //raiseerror exec
+    } if /pixs exch def
+
+    /bch {  % data -> word  The check bits above the data bits
+        dup //datastrip.bchcheck bitshift
+        //datastrip.bchbits 1 sub -1 //datastrip.bchcheck {  % data r b
+            2 copy neg bitshift 1 and 0 ne { //datastrip.bchgen exch //datastrip.bchcheck sub bitshift xor } { pop } ifelse
+        } for
+        //datastrip.bchdata bitshift or
+    } def
+    /syncword {  % frame side -> word  Side 0 is left, 1 is right
+        10 bitshift n 4 sub 6 bitshift or exch 2 idiv or bch
+    } def
+    /syncbit {  % word k -> bit  Bit k of the word, which repeats down the frame
+        //datastrip.bchbits mod //datastrip.bchbits 1 sub exch sub neg bitshift 1 and
+    } def
+    /hdrbit {  % k -> bit  Bit k of the embedded header
+        dup -3 bitshift hdr exch get exch 7 and 7 exch sub neg bitshift 1 and
+    } def
+    /streambit {  % -> bit  The next bit of the stream
+        stream t -3 bitshift get t 7 and 7 exch sub neg bitshift 1 and
+        /t t 1 add def
+    } def
+    /fillbits {  % from to ->  Stream bits into the data columns from to to
+        1 exch { streambit row 3 1 roll exch 8 add exch put } for
+    } def
+
+    /endrow [                                           % End framing, the same at both ends
+        0 0 1 1 0 0  1 1 1 1 1 1  n 4 sub { 0 0 1 1 } repeat
+        24 { 0 } repeat
+        n 4 sub { 1 1 0 0 } repeat  1 1 1 1 1 1  0 0 1 1 0 0
+    ] def
+    0 1 3 { pixs exch pw mul endrow putinterval } for
+    ph 4 sub 1 ph 1 sub { pixs exch pw mul endrow putinterval } for
+
+    /hks [ 0 1 //datastrip.framerows 1 sub {              % Header bits by row within a frame
+        [ exch 0 1 //datastrip.hdrbits 1 sub { dup hrow exch get 2 index eq { exch } { pop } ifelse } for pop ]
+    } for ] def
+    /t 0 def                                            % Next stream bit
+    0 1 nrows 1 sub {
+        /r exch def
+        /rf r //datastrip.framerows mod def
+        /row pixs r 4 add pw mul pw getinterval def
+        %
+        % Left framing: guard, ruling, clock, gap, sync, and two bits of the
+        % frame's sync word, which repeats to fill the frame
+        %
+        /word r //datastrip.framerows idiv 0 syncword def
+        row 0 0 put  row 1 0 put  row 2 1 put
+        row 3 r 1 and 1 xor put
+        row 4 0 put
+        row 5 //datastrip.sync rf get 49 eq { 1 } { 0 } ifelse put
+        row 6 word rf 2 mul syncbit put
+        row 7 word rf 2 mul 1 add syncbit put
+        %
+        % Right framing is the left framing of the row the same distance from
+        % the other end, reversed
+        %
+        /mr nrows 1 sub r sub def
+        /mrf mr //datastrip.framerows mod def
+        /rword mr //datastrip.framerows idiv 1 syncword def
+        row W 8 add rword mrf 2 mul 1 add syncbit put
+        row W 9 add rword mrf 2 mul syncbit put
+        row W 10 add //datastrip.sync mrf get 49 eq { 1 } { 0 } ifelse put
+        row W 11 add 0 put
+        row W 12 add mr 1 and 1 xor put
+        row W 13 add 1 put  row W 14 add 0 put  row W 15 add 0 put
+        %
+        % Data area: stream bits, except for the header bits at the corners of
+        % the header blocks
+        %
+        /c 0 def
+        hks rf get {                                    % k
+            dup hcol exch get                           % k col
+            c 1 index 1 sub fillbits
+            dup 1 add /c exch def
+            exch hdrbit row 3 1 roll exch 8 add exch put
+        } forall
+        c W 1 sub fillbits
+    } for
+
+    (matrix.layout) //datastrip.after exec
+
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx pw
+    /pixy ph
+    /height ph modunit mul 72 div
+    /width pw modunit mul 72 div
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/datastrip dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //datastrip.after exec
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER datastrip--
