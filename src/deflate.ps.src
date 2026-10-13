@@ -1,0 +1,548 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+% --BEGIN RESOURCE deflate--
+% --REQUIRES preamble raiseerror--
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+16 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+
+%
+% Compressor producing the zlib format (RFC 1950) wrapping one DEFLATE
+% (RFC 1951) block: stored, or with fixed or dynamic Huffman codes,
+% whichever is shortest. Repeated strings are found over hash chains, and a
+% match is deferred by one position when the next position has a longer one.
+%
+%   (data) //deflate exec => (zlib data)
+%
+
+%
+% Bases and extra bits of the length codes 257-285 and the distance codes
+%
+/deflate.lbase [ 3 4 5 6 7 8 9 10 11 13 15 17 19 23 27 31 35 43 51 59 67 83 99 115 131 163 195 227 258 ] readonly def
+/deflate.lext  [ 0 0 0 0 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 4 4 4 4 5 5 5 5 0 ] readonly def
+/deflate.dbase [ 1 2 3 4 5 7 9 13 17 25 33 49 65 97 129 193 257 385 513 769 1025 1537 2049 3073 4097 6145 8193 12289 16385 24577 ] readonly def
+/deflate.dext  [ 0 0 0 0 1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8 9 9 10 10 11 11 12 12 13 13 ] readonly def
+
+%
+% Order in which the code length code lengths are sent
+%
+/deflate.clorder [ 16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1 15 ] readonly def
+
+/deflate.minmatch 3 def
+/deflate.maxmatch 258 def
+/deflate.window 1 15 bitshift def
+%
+% Match search parameters, as zlib's default compression level: candidates
+% tried at each position, a quarter of them once the pending match is good,
+% the length that ends a search, and the length beyond which a match is
+% taken without looking for a longer one at the next position
+%
+/deflate.maxchain 128 def
+/deflate.goodlen 8 def
+/deflate.nicelen 128 def
+/deflate.maxlazy 16 def
+/deflate.toofar 4096 def                              % A match of the minimum length at a greater distance costs more than literals
+/deflate.minhashbits 8 def
+/deflate.maxhashbits 15 def
+/deflate.maxbits 15 def                               % Longest literal/length and distance code
+/deflate.maxclbits 7 def                              % Longest code length code
+/deflate.adlermod 65521 def                           % Largest prime below 2^16
+%
+% Bytes that can be summed before the Adler-32 sums are reduced, keeping them
+% within 32-bit integers
+%
+/deflate.adlerblock 0 {
+    dup 1 add dup 1 add mul 2 idiv 255 mul
+    2147483647 2 index 2 add deflate.adlermod 1 sub mul sub gt { exit } if
+    1 add
+} loop def
+
+%
+% Bit reversal, for codes that are sent least significant bit first
+%
+/deflate.rev {  % code len -> reversed
+    0 exch { 1 bitshift 1 index 1 and or exch -1 bitshift exch } repeat exch pop
+} bind def
+
+%
+% Huffman code lengths limited to maxbits, from frequencies by the two queue
+% method, halving the frequencies until no code is too long
+%
+/deflate.huflens {  % freqs used maxbits -> lens  Used symbols in order
+    20 dict begin
+    /mb exch def
+    /used exch def
+    /fq exch dup length array copy def
+    /ns fq length def
+    {  % loop
+        /lens fq ns array copy def                      % Unused symbols keep length 0
+        /lv [ used { fq 1 index get ns mul add } forall ] def   % Leaves, as frequency*ns+symbol
+        lv length 0 eq { exit } if
+        lv length 1 eq { lens lv 0 get ns mod 1 put exit } if
+        % Leaves in ascending order of frequency, inserted into order on the
+        % stack above a sentinel
+        0 lv {                                          % 0 sorted... x
+            1 {  % loop
+                dup 1 add index 2 index le { exit } if
+                1 add
+            } loop 1 roll
+        } forall
+        lv astore pop pop
+        % Merge the two lightest of the leaves and the internal nodes in order
+        /m lv length def
+        /nf [ lv { ns idiv } forall m 1 sub { 0 } repeat ] def
+        /np 2 m mul 1 sub array def
+        /li 0 def /qi m def /qe m def
+        /pick {  % -> node
+            li m lt { qi qe lt { nf li get nf qi get le } { true } ifelse } { false } ifelse
+            { li /li li 1 add def } { qi /qi qi 1 add def } ifelse
+        } def
+        m 1 sub {
+            pick pick
+            nf qe nf 3 index get nf 5 index get add put
+            np exch qe put np exch qe put
+            /qe qe 1 add def
+        } repeat
+        /dep 2 m mul 1 sub array def dep qe 1 sub 0 put
+        qe 2 sub -1 0 { dup np exch get dep exch get 1 add dep 3 1 roll put } for
+        0 0 1 m 1 sub {                             % mx i  Leaf i is node i
+            dup dep exch get exch lv exch get ns mod    % mx d sym
+            lens exch 2 index put
+            2 copy lt { exch } if pop
+        } for
+        mb le { exit } if
+        used { fq exch 2 copy get 1 add 2 idiv put } forall
+    } loop
+    lens
+    end
+} bind def
+
+%
+% Canonical codes from code lengths, bit reversed for sending
+%
+/deflate.canon {  % lens used rev8 -> codes  Used symbols in order
+    10 dict begin
+    /r8 exch def
+    /used exch def
+    /cl exch def
+    /blc [ 16 { 0 } repeat ] def
+    used { cl exch get blc exch 2 copy get 1 add put } forall
+    /nxt 16 array def
+    0 1 1 15 {                                  % code b
+        dup 1 sub blc exch get 3 -1 roll add 1 bitshift     % b code'
+        nxt 2 index 2 index put exch pop
+    } for pop
+    cl length array
+    used {                                      % codes sym
+        dup cl exch get
+        nxt 1 index get exch                    % codes sym code len
+        nxt 1 index 2 copy get 1 add put
+        exch dup 255 and r8 exch get 8 bitshift exch -8 bitshift r8 exch get or
+        exch 16 sub bitshift                    % Reversed as 16 bits, then aligned
+        2 index 3 1 roll put
+    } forall
+    end
+} bind def
+
+/deflate.latevars dup 8 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //deflate.latevars begin
+
+    %
+    % Length symbol and extra bits [ symbol extrabits extravalue ] by length
+    %
+    /lsym //deflate.maxmatch 1 add array def
+    0 1 28 { /k exch def
+        //deflate.lbase k get
+        1
+        k 28 lt { //deflate.lbase k 1 add get 1 sub } { //deflate.maxmatch } ifelse {
+            lsym exch [ 257 k add //deflate.lext k get 3 index //deflate.lbase k get sub ] readonly put
+        } for
+    } for
+    /lsym lsym readonly def
+    [/k] {currentdict exch undef} forall
+
+    /rev8 [ 0 1 255 { 8 //deflate.rev exec } for ] readonly def    % Bit reversed bytes
+
+    %
+    % Fixed literal/length code lengths, and the codes
+    %
+    /fixlens [ 0 1 287 {
+        dup 143 le { pop 8 } { dup 255 le { pop 9 } { 279 le { 7 } { 8 } ifelse } ifelse } ifelse
+    } for ] readonly def
+    /fixcodes fixlens [ 0 1 287 { } for ] rev8 //deflate.canon exec readonly def
+    /fixdcodes [ 0 1 29 { 5 //deflate.rev exec } for ] readonly def
+    /fixdlens [ 30 { 5 } repeat ] readonly def
+
+    %
+    % Distance codes: by distance-1 up to 256, then by (distance-1)/128
+    %
+    /dtab 512 array def
+    0 1 15 { /k exch def
+        //deflate.dbase k get 1 sub 1 //deflate.dbase k 1 add get 2 sub { dtab exch k put } for
+    } for
+    16 1 29 { /k exch def
+        //deflate.dbase k get 1 sub -7 bitshift 256 add 1
+        k 29 lt { //deflate.dbase k 1 add get 2 sub } { //deflate.window 1 sub } ifelse -7 bitshift 256 add
+        { dtab exch k put } for
+    } for
+    /dtab dtab readonly def
+    [/k] {currentdict exch undef} forall
+
+    /init { //deflate.latevars {def} forall } def
+
+    end
+
+    //deflate.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//deflate.latevars /init get exec} if
+} {pop} ifelse
+
+/deflate {
+
+    64 dict begin
+    {
+
+    /src exch def
+    /n src length def
+
+    //deflate.latevars /init get exec
+
+    %
+    % Tokens at the positions where they start: a literal byte, or the longest
+    % match found over hash chains of earlier positions with the same three
+    % bytes, taken unless the next position has a longer one. Positions inside
+    % a match taken are indexed but not searched. A candidate is compared in
+    % full only if it agrees on the byte that would extend the best match.
+    %
+
+    %
+    % A hash table of about the input size, in which each byte leaves the hash
+    % of a position after three positions
+    %
+    /hbits //deflate.minhashbits def
+    { hbits //deflate.maxhashbits ge 1 hbits bitshift n ge or { exit } if /hbits hbits 1 add def } loop
+    /hshift hbits 2 add 3 idiv def
+    /hmask 1 hbits bitshift 1 sub def
+    /head hmask 1 add array def
+    head 0 //deflate.window neg 1 sub put               % Empty, before any window; filled by copies of the filled half
+    1 {  % loop
+        dup hmask gt { exit } if
+        head 1 index head 0 4 index getinterval putinterval 2 mul
+    } loop pop
+    /mt n array def                                     % Longest match at each position searched, length*65536+distance
+    /prev n array def
+    /toks n array def
+
+    /dcode {  % dist -> code
+        1 sub dup 256 lt { dtab exch get } { -7 bitshift 256 add dtab exch get } ifelse
+    } def
+    /lf [ 286 { 0 } repeat ] def                        % Symbol frequencies
+    /df [ 30 { 0 } repeat ] def
+
+    /decide {  % p i h -> p' i h  The token at p, if p is behind i, now that p+1 has been searched
+        2 index 2 index lt {
+            3 -1 roll mt 1 index get dup -16 bitshift   % i h p t len
+            dup //deflate.minmatch ge {
+                mt 3 index 1 add get -16 bitshift 1 index le
+            } { false } ifelse {
+                lf lsym 2 index get 0 get 2 copy get 1 add put
+                df 2 index 65535 and dcode 2 copy get 1 add put
+                toks 3 index 3 index put exch pop add
+            } {
+                pop pop src 1 index get toks 2 index 2 index put
+                lf exch 2 copy get 1 add put 1 add
+            } ifelse                                    % i h p'
+            3 1 roll
+        } if
+    } def
+
+    /findmatch {  % i h chain -> i h  Longest match at i, into mt
+        2 index //deflate.window sub 1 sub                                % i h chain L
+        n 4 index sub //deflate.maxmatch 2 copy gt { exch } if pop        % i h chain L lim
+        0 0 src 7 index get                     % i h chain L lim blen bdist c
+        head 7 index get                        % i h chain L lim blen bdist c cand
+        7 -1 roll {                             % i h L lim blen bdist c cand
+            dup 6 index le { exit } if          % Past the window or the end of the chain
+            src 1 index 5 index add get 2 index eq {
+                0
+                {  % loop  Four bytes at a time, then the bytes of the first that differs or the last
+                    dup 4 add 6 index gt {
+                        {  % loop
+                            dup 6 index ge { exit } if
+                            src 2 index 2 index add get src 10 index 3 index add get ne { exit } if
+                            1 add
+                        } loop exit
+                    } if
+                    src 2 index 2 index add 4 getinterval src 10 index 3 index add 4 getinterval ne {
+                        {  % loop
+                            src 2 index 2 index add get src 10 index 3 index add get ne { exit } if
+                            1 add
+                        } loop exit
+                    } if
+                    4 add
+                } loop
+                dup 5 index gt {
+                    8 index 2 index sub         % ... blen bdist c cand m dist
+                    src 10 index 3 index add dup n lt { get } { pop pop 0 } ifelse
+                    7 -3 roll pop pop pop 4 -1 roll     % i h L lim m dist c cand
+                    3 index 5 index ge 4 index //deflate.nicelen ge or { exit } if
+                } { pop } ifelse
+            } if
+            prev exch get
+        } repeat
+        pop pop                                 % i h L lim blen bdist
+        1 index //deflate.minmatch eq 1 index //deflate.toofar gt and { pop pop 0 0 } if
+        exch 16 bitshift or mt 5 index 3 -1 roll put
+        pop pop                                 % i h
+    } def
+
+    0 0                                                 % p i
+    n 1 gt { src 0 get hshift bitshift src 1 get xor } { 0 } ifelse     % p i h
+    {  % loop  i is p, or p+1 while the token at p waits on the search at p+1
+        1 index n 2 sub ge { exit } if
+        hshift bitshift src 2 index 2 add get xor hmask and                     % p i h
+        2 index 2 index lt { mt 3 index get -16 bitshift } { 0 } ifelse          % p i h plen  Pending match at p
+        dup //deflate.maxlazy lt head 3 index get 0 ge and {
+            //deflate.goodlen ge { //deflate.maxchain 4 idiv } { //deflate.maxchain } ifelse
+            findmatch
+        } {
+            pop mt 2 index 0 put                        % Take the pending match, or no earlier position has the hash
+        } ifelse
+        prev 2 index head 3 index get put
+        head 1 index 3 index put
+        decide
+        2 index 2 index 1 add gt {                      % Index the positions inside a match taken, without searching them
+            1 index 1 add 1 4 index 1 sub n 3 sub 2 copy gt { exch } if pop {   % p i h j
+                exch hshift bitshift src 2 index 2 add get xor hmask and        % p i j h
+                prev 2 index head 3 index get put
+                head 1 index 3 index put
+                exch pop
+            } for
+            exch pop 1 index 1 sub exch                 % p p-1 h
+        } if
+        exch 1 add exch
+    } loop
+    {  % loop  The last two positions, which start no match
+        1 index n ge { exit } if
+        mt 2 index 0 put
+        decide
+        exch 1 add exch
+    } loop
+    decide pop pop pop
+
+    %
+    % Extra bits common to both Huffman codings
+    %
+    /ebits 0
+        0 1 28 { dup lf exch 257 add get exch //deflate.lext exch get mul add } for
+        0 1 29 { dup df exch get exch //deflate.dext exch get mul add } for
+    def
+    lf 256 1 put                                        % End of block
+
+    %
+    % Dynamic codes, with the code lengths run length coded as
+    % [ symbol extrabits extravalue ]
+    %
+    /lu [ 0 lf { 0 ne { dup } if 1 add } forall pop ] def               % Used symbols
+    /dfu df dup length array copy def
+    /du [ 0 dfu { 0 ne { dup } if 1 add } forall pop ] def
+    du length 0 eq { dfu 0 1 put /du [ 0 ] def } if     % At least one distance code
+    /ll lf lu //deflate.maxbits //deflate.huflens exec def
+    /dl dfu du //deflate.maxbits //deflate.huflens exec def
+    /hlit lu dup length 1 sub get 1 add def             % At least 257, as end of block is used
+    /hdist du dup length 1 sub get 1 add def
+    /emit {  % ri v r e -> ri' v r
+        rle 4 index 3 -1 roll put 3 -1 roll 1 add 3 1 roll
+    } def
+    /putrun {  % ri v r -> ri'  A run of r lengths of v
+        1 index 0 eq {
+            {  % loop
+                dup 3 lt { exit } if
+                dup 138 gt { 138 } { dup } ifelse                       % ri v r n
+                dup 11 ge { [ 18 7 3 index 11 sub ] } { [ 17 3 3 index 3 sub ] } ifelse
+                3 1 roll sub exch emit
+            } loop
+        } {
+            dup 0 gt {
+                [ 2 index 0 0 ] emit 1 sub
+                {  % loop
+                    dup 3 lt { exit } if
+                    dup 6 gt { 6 } { dup } ifelse
+                    [ 16 2 3 index 3 sub ] 3 1 roll sub exch emit
+                } loop
+            } if
+        } ifelse
+        { dup 0 eq { exit } if [ 2 index 0 0 ] emit 1 sub } loop pop pop
+    } def
+    /feed {  % ri v r x c -> ri v r  A further c lengths of x
+        3 index 2 index eq { exch pop add } { 5 2 roll putrun 3 1 roll } ifelse
+    } def
+    /at {  % ri v r s l -> ri v r  Length l at position s, after zeros since the last
+        exch dup q sub exch 1 add /q exch def           % ri v r l gap
+        exch 5 1 roll
+        dup 0 gt { 0 exch feed } { pop } ifelse
+        4 -1 roll 1 feed
+    } def
+    /rle hlit hdist add array def
+    /q 0 def
+    0 -1 0                                              % ri v r
+    lu { ll 1 index get at } forall
+    du { dup dl exch get exch hlit add exch at } forall
+    putrun
+    rle exch 0 exch getinterval /rle exch def
+    /cf [ 19 { 0 } repeat ] def
+    rle { 0 get cf exch 2 copy get 1 add put } forall
+    /cu [ 0 cf { 0 ne { dup } if 1 add } forall pop ] def
+    /cll cf cu //deflate.maxclbits //deflate.huflens exec def
+    /hclen 19 { dup 4 le { exit } if dup 1 sub //deflate.clorder exch get cll exch get 0 ne { exit } if 1 sub } loop def
+
+    %
+    % Lengths in bits of each kind of block, after its three bit header
+    %
+    14 hclen 3 mul add ebits add
+    rle { aload pop pop exch cll exch get add add } forall
+    ebits                                               % dyn fix
+    lu {
+        lf 1 index get                                  % dyn fix s f
+        ll 2 index get 1 index mul 5 -1 roll add 4 1 roll
+        exch fixlens exch get mul add
+    } forall
+    du {
+        df 1 index get
+        dl 2 index get 1 index mul 5 -1 roll add 4 1 roll
+        exch pop 5 mul add
+    } forall
+    /fixbits exch def /dynbits exch def
+    /stbits 5 32 add n 8 mul add def                    % Pad to a byte, LEN and NLEN, the data
+
+    /btype
+        stbits fixbits le stbits dynbits le and { 0 } { fixbits dynbits le { 1 } { 2 } ifelse } ifelse
+    def
+    /blkbits btype 0 eq { stbits } { btype 1 eq { fixbits } { dynbits } ifelse } ifelse def
+
+    %
+    % Output: zlib header, the block, then the Adler-32 checksum
+    %
+    2 3 blkbits add 7 add 8 idiv add 4 add { string } stopped {
+        pop /bwipp.deflateInputTooLarge (The input data exceeds the implementation limits) //raiseerror exec
+    } if /out exch def
+    out 0 16#78 put  out 1 16#01 put
+
+    /putbits {  % pos buf cnt val n -> pos buf cnt  Bits sent least significant first
+        exch 2 index bitshift 4 -1 roll or              % pos cnt n buf'
+        3 1 roll add                                    % pos buf' cnt'
+        {  % loop
+            dup 8 lt { exit } if
+            8 sub out 3 index 3 index 255 and put
+            exch -8 bitshift exch 3 -1 roll 1 add 3 1 roll
+        } loop
+    } def
+
+    2 0 0                                               % pos buf cnt
+    1 1 putbits  btype 2 putbits                        % Final block
+    btype 0 eq {
+        dup 0 gt { 0 8 2 index sub putbits } if
+        n 16 putbits  n not 65535 and 16 putbits
+        pop pop out 1 index src putinterval n add 0 0
+    } {
+        btype 1 eq {
+            /lc fixcodes def /lw fixlens def /dc fixdcodes def /dw fixdlens def
+        } {
+            /lc ll lu rev8 //deflate.canon exec def /lw ll def
+            /dc dl du rev8 //deflate.canon exec def /dw dl def
+            hlit 257 sub 5 putbits  hdist 1 sub 5 putbits  hclen 4 sub 4 putbits
+            0 1 hclen 1 sub { //deflate.clorder exch get cll exch get 3 putbits } for
+            /clc cll cu rev8 //deflate.canon exec def
+            rle {                                       % pos buf cnt [sym eb ev]
+                4 1 roll
+                3 index 0 get dup clc exch get exch cll exch get putbits
+                3 index 1 get dup 0 gt { 4 index 2 get exch putbits } { pop } ifelse
+                4 -1 roll pop
+            } forall
+        } ifelse
+        toks {                                          % pos buf cnt t
+            dup null eq { pop } { dup 256 lt {
+                dup lc exch get exch lw exch get putbits
+            } {
+                dup 65535 and dup dcode 6 3 roll        % t dist d pos buf cnt
+                5 index -16 bitshift lsym exch get aload pop        % ... sym eb ev
+                3 -1 roll dup lc exch get exch lw exch get          % ... eb ev code len
+                exch 3 -1 roll 2 index bitshift or 3 1 roll add putbits   % Length code and extra bits
+                3 index dc exch get 4 index dw exch get putbits
+                3 index //deflate.dext exch get dup 0 gt {
+                    5 index 5 index //deflate.dbase exch get sub exch putbits
+                } { pop } ifelse
+                6 -3 roll pop pop pop
+            } ifelse } ifelse
+        } forall
+        lc 256 get lw 256 get putbits
+        dup 0 gt { 0 8 2 index sub putbits } if
+    } ifelse
+    pop pop /pos exch def
+
+    1 0                                                 % s1 s2
+    0 //deflate.adlerblock n 1 sub {
+        src exch //deflate.adlerblock n 2 index sub 2 copy gt { exch } if pop getinterval {
+            3 -1 roll add dup 3 -1 roll add
+        } forall
+        //deflate.adlermod mod exch //deflate.adlermod mod exch
+    } for
+    /s2 exch def /s1 exch def                           % Adler-32, sent most significant byte first
+    [ s2 -8 bitshift s2 255 and s1 -8 bitshift s1 255 and ] {
+        out pos 3 -1 roll put /pos pos 1 add def
+    } forall
+    out
+
+    } stopped {end stop} if
+    end
+
+} bind def
+/deflate dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END RESOURCE deflate--
