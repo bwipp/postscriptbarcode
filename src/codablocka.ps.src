@@ -1,0 +1,246 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER codablocka--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renlinear renmatrix code39--
+% --DESC: Codablock A
+% --EXAM: THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG
+% --EXOP: columns=10
+% --RNDR: renmatrix
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/codablocka.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+/codablocka.filler //codablocka.barchars ( ) search pop length exch pop exch pop def  % SPACE
+/codablocka.maxrows 22 def
+/codablocka.maxcols 61 def
+/codablocka.mod //codablocka.barchars length def
+/codablocka.ratio 3 def                               % Wide to narrow ratio of the Code 39 rows
+/codablocka.minrowheight 8 def
+
+/codablocka {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /rows -1 def
+    /columns 8 def
+    /rowheight -1 def
+    /sepheight 1 def
+    /strictspec false def
+    /propspec false def
+    /loosespec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    columns 1 lt columns //codablocka.maxcols gt or {
+        /bwipp.codablockaBadColumns (Codablock A must have from 1 to 61 columns) //raiseerror exec
+    } if
+    rows -1 ne { rows 1 lt rows //codablocka.maxrows gt or } { false } ifelse {
+        /bwipp.codablockaBadRows (Codablock A must have from 1 to 22 rows) //raiseerror exec
+    } if
+    rowheight -1 ne { rowheight //codablocka.minrowheight lt } { false } ifelse {
+        /bwipp.codablockaBadRowHeight (Codablock A must have a rowheight of at least 8) //raiseerror exec
+    } if
+    sepheight 1 lt sepheight 5 gt or {
+        /bwipp.codablockaBadSepHeight (Codablock A must have sepheight from 1 to 5) //raiseerror exec
+    } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /codablocka ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Symbol character values of the data
+    %
+    /c columns def
+    /dlen barcode length def
+    dlen c //codablocka.maxrows mul 2 sub gt {
+        /bwipp.codablockaTooLong (The data is too long for 22 rows of the given columns) //raiseerror exec
+    } if
+    /vals dlen array def
+    0 1 dlen 1 sub {
+        /i exch def
+        //codablocka.barchars barcode i 1 getinterval search {
+            length vals i 3 -1 roll put pop pop
+        } {
+            pop /bwipp.codablockaBadCharacter (Codablock A must contain only upper case letters, digits and the characters - . space $ / + %) //raiseerror exec
+        } ifelse
+    } for
+
+    %
+    % The data and filler then two check characters fill the rows
+    %
+    /r dlen 2 add c add 1 sub c idiv def
+    rows -1 ne {
+        rows r lt {
+            /bwipp.codablockaTooLong (The data does not fit the given rows and columns) //raiseerror exec
+        } if
+        /r rows def
+    } if
+    /cells r c mul array def
+    cells 0 vals putinterval
+    dlen 1 r c mul 3 sub { cells exch //codablocka.filler put } for
+
+    %
+    % K1 and K2 weight the characters by position from 1 and from 0
+    %
+    /k1 0 def /k2 0 def
+    0 1 r c mul 3 sub {
+        /i exch def
+        /k1 k1 cells i get i 1 add mul add //codablocka.mod mod def
+        /k2 k2 cells i get i mul add //codablocka.mod mod def
+    } for
+    cells r c mul 2 sub k1 put
+    cells r c mul 1 sub k2 put
+
+    %
+    % Each row is a Code 39 symbol of the row indicators about the row's
+    % characters; the first row indicates the number of rows and others their
+    % position, and a single row has only a left indicator
+    %
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    /rowsbs r array def
+    0 1 r 1 sub {
+        /i exch def
+        /rind i 0 eq { r 20 add } { i 1 add 2 sub } ifelse def
+        /rlen r 1 eq { c 1 add } { c 2 add } ifelse def
+        /txt rlen string def
+        txt 0 //codablocka.barchars rind get put
+        0 1 c 1 sub {
+            /j exch def
+            txt j 1 add //codablocka.barchars cells i c mul j add get get put
+        } for
+        r 1 ne { txt c 1 add //codablocka.barchars rind get put } if
+        txt << >> //code39 exec /sbs get rowsbs exch i exch put
+    } for
+
+    /rowheight rowheight -1 eq {
+        //codablocka.ratio 15 mul 35 add c mul 320 add 99 add 100 idiv
+        dup //codablocka.minrowheight lt { pop //codablocka.minrowheight } if
+    } { rowheight } ifelse def
+
+    %
+    % Row bits; separators span the row indicators and data but not the
+    % start and stop characters or their gaps
+    %
+    /sbs0 rowsbs 0 get def
+    /symwid 0 sbs0 0 sbs0 length 1 sub getinterval { add } forall def
+    /sepl 0 sbs0 0 10 getinterval { add } forall def                    % Start character and its gap
+    /sepr 0 sbs0 0 sbs0 length 11 sub getinterval { add } forall def     % To the gap before the stop character and its trailing gap
+    /rowbits r array def
+    0 1 r 1 sub {
+        /i exch def
+        mark
+        0 rowsbs i get { 1 index 1 eq { {0} } { {1} } ifelse repeat } forall  % Each run the opposite colour of the last, from a bar
+        counttomark 1 sub array astore exch pop exch pop
+        0 symwid getinterval
+        rowbits i 3 -1 roll put
+    } for
+    /seprow [ sepl {0} repeat sepr sepl sub {1} repeat symwid sepr sub {0} repeat ] def
+
+    /symhgt sepheight r 1 add mul r rowheight mul add def
+    /numcomprows r 2 mul 1 add def
+    /pixs symwid numcomprows mul array def
+    /rowheights numcomprows array def
+    /pos 0 def /ri 0 def
+    0 1 r 1 sub {
+        /i exch def
+        pixs pos seprow putinterval  /pos pos symwid add def
+        rowheights ri sepheight put  /ri ri 1 add def
+        pixs pos rowbits i get putinterval  /pos pos symwid add def
+        rowheights ri rowheight put  /ri ri 1 add def
+    } for
+    pixs pos seprow putinterval
+    rowheights ri sepheight put
+
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx symwid
+    /pixy symhgt
+    /rowheights rowheights
+    /height symhgt 72 div
+    /width symwid 72 div
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/codablocka dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER codablocka--

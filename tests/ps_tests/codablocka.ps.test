@@ -1,0 +1,89 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/codablocka dup /uk.co.terryburton.bwipp findresource cvx def
+/code39 dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Each row is the Code 39 symbol of its row indicators and characters
+%
+/bits {  % sbs -> modules
+    mark 0 3 -1 roll { 1 index 1 eq { {0} } { {1} } ifelse repeat } forall
+    counttomark 1 sub array astore exch pop exch pop
+} def
+
+/row_tmpl {  % data options rownum rowtext
+    (dontdraw) code39 /sbs get bits
+    dup length 1 sub 0 exch getinterval
+    4 1 roll
+    { 0 0 codablocka dup /pixx get exch /pixs get exch dup 0 2 mul 1 add mul exch getinterval }
+    dup 3 -1 roll 11 exch put
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+
+% The single row example of the specification, whose check characters are 11 (B) and 4
+(ABCD4) (columns=7 dontdraw) 0 (LABCD4B4) row_tmpl
+
+% Four rows: the first row indicator is 20 more than the rows, the others are the row less 2
+(CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) 0 (OCODABLOCK O) row_tmpl
+(CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) 1 (0A IS CODE 0) row_tmpl
+(CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) 2 (139 STACKED1) row_tmpl
+(CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) 3 (2 IN ROWSTO2) row_tmpl
+
+% Filler spaces precede the check characters, which are calculated over them
+(ABCD4) (columns=5 dontdraw) 0 (MABCD4M) row_tmpl
+(ABCD4) (columns=5 dontdraw) 1 (0   Z00) row_tmpl
+(ABCD4) (columns=5 rows=3 dontdraw) 0 (NABCD4N) row_tmpl
+(ABCD4) (columns=5 rows=3 dontdraw) 2 (1   I81) row_tmpl
+
+% Separators span the row indicators and data, but not the start and stop characters
+{ (ABCD4) (columns=5 dontdraw) codablocka dup /pixx get exch /pixs get exch 0 exch getinterval }
+[ 16 {0} repeat 111 {1} repeat 16 {0} repeat ] debugIsEqual
+
+% Row height from the number of columns, at least 8
+{ (CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) codablocka /pixy get } 53 isEqual
+{ (ABCD4) (columns=5 dontdraw) codablocka /rowheights get } [1 8 1 8 1] debugIsEqual
+{ (ABCD4) (columns=5 rowheight=20 sepheight=2 dontdraw) codablocka /rowheights get } [2 20 2 20 2] debugIsEqual
+
+% The largest symbol
+{ 1340 string dup 0 1 1339 { 2 index exch 65 put } for pop (columns=61 dontdraw) codablocka /pixy get } 22 52 mul 23 add isEqual
+
+
+%
+% Error tests
+%
+
+/er_tmpl {
+    3 1 roll { 0 0 codablocka }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+(ABC) (columns=0 dontdraw) /bwipp.codablockaBadColumns er_tmpl
+(ABC) (columns=62 dontdraw) /bwipp.codablockaBadColumns er_tmpl
+(ABC) (rows=0 dontdraw) /bwipp.codablockaBadRows er_tmpl
+(ABC) (rows=23 dontdraw) /bwipp.codablockaBadRows er_tmpl
+(ABC) (rowheight=7 dontdraw) /bwipp.codablockaBadRowHeight er_tmpl
+(ABC) (sepheight=0 dontdraw) /bwipp.codablockaBadSepHeight er_tmpl
+(ABC) (sepheight=6 dontdraw) /bwipp.codablockaBadSepHeight er_tmpl
+(ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-. $/+%ABCDE) (columns=2 dontdraw) /bwipp.codablockaTooLong er_tmpl
+(ABCDEFGHIJ) (columns=5 rows=2 dontdraw) /bwipp.codablockaTooLong er_tmpl
+(abc) (dontdraw) /bwipp.codablockaBadCharacter er_tmpl
+(AB*) (dontdraw) /bwipp.codablockaBadCharacter er_tmpl
+
+
+%
+% strictspec via global_ctx applies to the symbol, not to each row
+%
+/tmp uk.co.terryburton.bwipp.global_ctx def
+/uk.co.terryburton.bwipp.global_ctx << /enabledebug true /enabledontdraw true /strictspec true >> def
+{ (ABC) (xdim=0.3 dontdraw) codablocka /pixx get 0 gt } true isEqual
+/uk.co.terryburton.bwipp.global_ctx tmp def
