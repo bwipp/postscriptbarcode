@@ -1,0 +1,40 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/logmars dup /uk.co.terryburton.bwipp findresource cvx def
+/code39 dup /uk.co.terryburton.bwipp findresource cvx def
+
+% The bars of Code 39, optionally with its check character
+{ (BOX 42 OF 100) (dontdraw) logmars /sbs get } (BOX 42 OF 100) (dontdraw) code39 /sbs get debugIsEqual
+{ (BOX 42 OF 100) (dontdraw includecheck) logmars /sbs get } (BOX 42 OF 100) (dontdraw includecheck) code39 /sbs get debugIsEqual
+
+% The text omits the start and stop characters
+{ (BOX 42 OF 100) (dontdraw includetext) logmars /txt get 0 get 0 get } (BOX 42 OF 100) isEqual
+
+% At most 30 characters including any check character
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123) (dontdraw) logmars /sbs get length } 320 isEqual
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZ012) (dontdraw includecheck) logmars /sbs get length } 320 isEqual
+
+% Physical specification: the minimum height for the density of the X-dimension
+{ (BOX 42 OF 100) (dontdraw propspec) logmars /bhs get 0 get 72 mul round cvi } 33 isEqual
+{ (BOX 42 OF 100) (dontdraw strictspec) logmars /bhs get 0 get 72 mul 0.190 mul 100 mul round cvi } 635 isEqual
+{ (BOX 42 OF 100) (dontdraw strictspec xdim=0.300) logmars /bhs get 0 get 72 mul 0.300 mul 100 mul round cvi } 953 isEqual
+{ (BOX 42 OF 100) (dontdraw strictspec xdim=0.550 xmax=0.600) logmars /bhs get 0 get 72 mul 0.550 mul 100 mul round cvi } 1905 isEqual
+{ (BOX 42 OF 100) (dontdraw strictspec mag=2) logmars /bhs get 0 get 72 mul 0.380 mul 100 mul round cvi } 953 isEqual
+
+/ok_tmpl {
+    { 0 0 moveto 0 0 logmars true }
+    dup 3 -1 roll 4 exch put
+    dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(BOX 42 OF 100) (includetext strictspec) ok_tmpl
+
+{ (logmars) (dontdraw) logmars } /bwipp.code39badCharacter isError
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZ01234) (dontdraw) logmars } /bwipp.logmarsTooLong isError
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123) (dontdraw includecheck) logmars } /bwipp.logmarsTooLong isError

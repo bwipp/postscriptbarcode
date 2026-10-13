@@ -1,0 +1,155 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER logmars--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renlinear code39--
+% --DESC: LOGMARS
+% --EXAM: BOX 42 OF 100
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/logmars.maxchars 30 def                              % Data and check characters (MIL-STD-1189B 5.2.7)
+
+%
+% Minimum bar code heights (mm) by density (MIL-STD-1189B Table III), the
+% densities in characters per inch converted to X-dimensions for a character
+% of 16 modules, at the preferred wide to narrow ratio of 3 with its gap
+%
+/logmars.charmods 16 def
+/logmars.heights [
+    25.4 3.0 div //logmars.charmods div  19.05        % Below 3.0 CPI
+    25.4 6.5 div //logmars.charmods div   9.53        % 3.0 to 6.5 CPI
+    0                                     6.35        % 6.5 CPI and above
+] readonly def
+
+/logmars {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /includecheck false def
+    /height -1.0 def
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    barcode length includecheck { 1 add } if //logmars.maxchars gt {
+        /bwipp.logmarsTooLong (LOGMARS must not exceed 30 characters including any check character) //raiseerror exec
+    } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification, the
+    % minimum height being that of the X-dimension's density
+    %
+    /userhnom hnom def
+    /logmars ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+    userhnom -1 eq strictspec and {
+        0 2 //logmars.heights length 1 sub {
+            //logmars.heights exch 2 getinterval aload pop
+            exch xdim lt { exit } { pop } ifelse
+        } for
+        mag div /hnom exch def  % Of the magnified X-dimension, so not magnified again
+    } if
+
+    %
+    % Get the result of encoding with code39, whose human readable text must
+    % not show the start and stop characters
+    %
+    options (height) height put
+    options (hidestars) true put
+    options (includecheck) includecheck put
+    options (propspec) propspec put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
+    options (xdim) xdim put
+    options (ast) undef
+    options (mag) undef
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom dup -1 ne { mag mul } if put  % Magnified, since mag is not passed on
+    options (modunit) modunit put
+
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    barcode options //code39 exec /args exch def
+
+    args (opt) options put
+    args
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/logmars dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER logmars--
