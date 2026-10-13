@@ -1,0 +1,187 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER upus10--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor render renlinear code128--
+% --DESC: UPU S10
+% --EXAM: EE471108151FR
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code128 dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/upus10.weights [ 8 6 4 2 3 5 9 7 ] readonly def
+/upus10.reserved (JKSTW) readonly def                 % Service indicators reserved for ISO/IEC 15418 data identifiers
+
+/upus10 {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /includetext false def
+    /text1font /Courier def
+    /text1size 10.0 def
+    /text1xoffset 0.0 def
+    /text1yoffset -7.0 def
+    /height -1.0 def
+    /width 0 def
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % Service indicator, serial number, optional check digit and country code
+    %
+    barcode length 12 ne barcode length 13 ne and {
+        /bwipp.upus10BadLength (UPU S10 identifiers must be 12 or 13 characters long) //raiseerror exec
+    } if
+    /short barcode length 12 eq def
+    /alpha { dup 65 ge exch 90 le and } def
+    /digit { dup 48 ge exch 57 le and } def
+    /ok true def
+    barcode 0 2 getinterval { alpha not { /ok false def } if } forall
+    barcode 2 short { 8 } { 9 } ifelse getinterval { digit not { /ok false def } if } forall
+    barcode barcode length 2 sub 2 getinterval { alpha not { /ok false def } if } forall
+    ok not {
+        /bwipp.upus10BadCharacter (UPU S10 identifiers must be two letters, eight digits, an optional check digit and two letters) //raiseerror exec
+    } if
+    //upus10.reserved barcode 0 1 getinterval search { pop pop pop true } { pop false } ifelse {
+        /bwipp.upus10BadServiceIndicator (Service indicators beginning J, K, S, T or W are reserved) //raiseerror exec
+    } if
+
+    %
+    % Weighted modulus 11, with the results 10 and 11 as 0 and 5
+    %
+    /checksum 0 0 1 7 { dup barcode exch 2 add get 48 sub exch //upus10.weights exch get mul add } for def
+    /checksum 11 checksum 11 mod sub def
+    checksum 10 eq { /checksum 0 def } if
+    checksum 11 eq { /checksum 5 def } if
+    short {
+        /barcode 13 string dup 0 barcode 0 10 getinterval putinterval
+            dup 10 checksum 48 add put
+            dup 11 barcode 10 2 getinterval putinterval
+        def
+    } {
+        barcode 10 get checksum 48 add ne {
+            /bwipp.upus10BadCheckDigit (Incorrect UPU S10 check digit provided) //raiseerror exec
+        } if
+    } ifelse
+
+    %
+    % The human readable text is spaced for readability
+    %
+    /text 17 string def
+    0 1 16 { text exch 32 put } for
+    text 0 barcode 0 2 getinterval putinterval
+    text 3 barcode 2 3 getinterval putinterval
+    text 7 barcode 5 3 getinterval putinterval
+    text 11 barcode 8 3 getinterval putinterval
+    text 15 barcode 11 2 getinterval putinterval
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /upus10 ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+    height -1.0 eq { propspec hnom -1 ne and not { /height 0.5 def } if } if
+
+    %
+    % Get the result of encoding with code128
+    %
+    options (height) height put
+    options (propspec) propspec put
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
+    options (xdim) xdim put
+    options (ast) undef
+    options (mag) undef
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    options (hnom) hnom dup -1 ne { mag mul } if put  % Magnified, since mag is not passed on
+    options (modunit) modunit put
+
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    barcode options //code128 exec /args exch def
+
+    short { /checkdigit 1 string dup 0 checksum 48 add put /report //render exec } if  % Added to a short input
+
+    args (txt) [ [text text1xoffset text1yoffset text1font text1size] ] put
+    args (text1xalign) (center) put
+    args (opt) options put
+    args
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/upus10 dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER upus10--

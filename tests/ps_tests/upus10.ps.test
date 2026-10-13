@@ -1,0 +1,69 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/upus10 dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    3 1 roll { 0 0 upus10 /sbs get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+/txt_tmpl {
+    3 1 roll { 0 0 upus10 /txt get 0 get 0 get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 upus10 }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+% The example of Annex A
+(EE876543216CA) (dontdraw) [
+    2 1 1 2 1 4 1 3 2 1 1 3 1 3 2 1 1 3 3 1 1 2 2 2
+    1 1 3 1 4 1 2 2 1 1 1 4 3 1 1 1 2 3 2 3 2 1 2 1
+    1 2 3 1 2 2 1 1 4 1 3 1 1 3 1 3 2 1 1 1 1 3 2 3
+    3 3 1 1 2 1 2 3 3 1 1 1 2
+] eq_tmpl
+(EE876543216CA) (dontdraw) (EE 876 543 216 CA) txt_tmpl
+
+% The check digit is added to a short input
+(EE87654321CA) (dontdraw) [
+    2 1 1 2 1 4 1 3 2 1 1 3 1 3 2 1 1 3 3 1 1 2 2 2
+    1 1 3 1 4 1 2 2 1 1 1 4 3 1 1 1 2 3 2 3 2 1 2 1
+    1 2 3 1 2 2 1 1 4 1 3 1 1 3 1 3 2 1 1 1 1 3 2 3
+    3 3 1 1 2 1 2 3 3 1 1 1 2
+] eq_tmpl
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (EE87654321CA) (dontdraw) upus10 pop uk.co.terryburton.bwipp.report /checkdigit get end } (6) isEqual
+
+% No check digit is reported when it is given
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (EE876543216CA) (dontdraw) upus10 pop uk.co.terryburton.bwipp.report /checkdigit known end } false isEqual
+
+% Remainders 0 and 1 give check digits 5 and 0
+(RR00000000CN) (dontdraw) (RR 000 000 005 CN) txt_tmpl
+(RR00000008CN) (dontdraw) (RR 000 000 080 CN) txt_tmpl
+(RR473124829GB) (dontdraw) (RR 473 124 829 GB) txt_tmpl
+
+% Physical specification
+{ (EE876543216CA) (dontdraw strictspec) upus10 /sbs get length } 85 isEqual
+{ (EE876543216CA) (dontdraw propspec) upus10 /bhs get 0 get 72 mul round cvi } 38 isEqual
+
+(EE876543216CAX) (dontdraw) /bwipp.upus10BadLength er_tmpl
+(EE87654321C) (dontdraw) /bwipp.upus10BadLength er_tmpl
+(Ee876543216CA) (dontdraw) /bwipp.upus10BadCharacter er_tmpl
+(EE8765432A6CA) (dontdraw) /bwipp.upus10BadCharacter er_tmpl
+(EE876543216C1) (dontdraw) /bwipp.upus10BadCharacter er_tmpl
+(JE876543216CA) (dontdraw) /bwipp.upus10BadServiceIndicator er_tmpl
+(WA876543216CA) (dontdraw) /bwipp.upus10BadServiceIndicator er_tmpl
+(EE876543217CA) (dontdraw) /bwipp.upus10BadCheckDigit er_tmpl
