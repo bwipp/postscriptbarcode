@@ -1,0 +1,204 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER upsmaxicode--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmaximatrix maxicode--
+% --DESC: UPS MaxiCode
+% --EXAM: [)>^03001^02996123450001^029840^029001^0291Z12345678^029UPSN^029A1B2C3^029042^0298901234^0291/2^0295^029Y^02912 EXAMPLE ST^029SPRINGTON^029CA^030^004
+% --EXOP: parse
+% --RNDR: renmaximatrix
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /renmaximatrix dup /uk.co.terryburton.bwipp findresource put
+dup /maxicode dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/upsmaxicode.header <5b293e1e30311d> readonly def    % [)>{RS}01{GS}, then the two digit format version
+/upsmaxicode.trailer <1e04> readonly def             % {RS}{EOT}
+/upsmaxicode.nfields 14 def
+/upsmaxicode.alnum (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/upsmaxicode.digits (0123456789) readonly def
+/upsmaxicode.alpha (ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/upsmaxicode.postal ( 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/upsmaxicode.maxlen 500 def                            % MaxiCode capacity, with parse escapes
+
+/upsmaxicode {
+
+    40 dict begin
+    {
+
+    /dontdraw false def
+    /parse false def
+
+    null /apply //processoptions exec /options exch def
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % Parse ordinals of the form ^NNN to bytes
+    %
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    barcode length //upsmaxicode.maxlen gt {
+        /bwipp.upsmaxicodeInputTooLong (The input data is too long) //raiseerror exec
+    } if
+    barcode fncvals //parseinput exec /barcode exch def
+    options (parse) undef
+    options (parsefnc) undef
+
+    /allin {  % string chars -> bool
+        /ac exch def
+        true exch { /c exch def false ac { c eq or } forall and } forall
+    } def
+    /digits {  % string -> bool  Non-empty, all digits
+        dup length 0 gt exch //upsmaxicode.digits allin and
+    } def
+    /text {  % string max -> bool  Printable ASCII within the length
+        1 index length ge exch true exch { dup 32 lt exch 126 gt or { pop false } if } forall and
+    } def
+
+    %
+    % The message envelope, when given, and the fields separated by GS
+    %
+    /body barcode def
+    barcode length 9 ge { barcode 0 7 getinterval //upsmaxicode.header eq } { false } ifelse {
+        barcode 7 2 getinterval digits
+        barcode length 11 ge { barcode barcode length 2 sub 2 getinterval //upsmaxicode.trailer eq } { false } ifelse
+        and not {
+            /bwipp.upsmaxicodeBadEnvelope (A message with the header [\)>{RS}01{GS}yy must end with {RS}{EOT}) //raiseerror exec
+        } if
+        /body barcode 9 barcode length 11 sub getinterval def
+    } if
+    /fields [
+        body {  % loop
+            (\035) search { exch pop exch } { exit } ifelse
+        } loop
+    ] def
+    fields length //upsmaxicode.nfields ne {
+        /bwipp.upsmaxicodeBadStructure (A UPS message must have 14 fields separated by GS) //raiseerror exec
+    } if
+    /f { fields exch get } def
+
+    %
+    % The postal code, then the tracking number, carrier, shipper number,
+    % pickup day, shipment ID, package of packages, weight, address
+    % validation, and ship to address, city and state. Mode 2 for a postal
+    % code of five or nine digits, otherwise mode 3 for up to six characters.
+    %
+    /pc 0 f def
+    /mode pc digits pc length dup 5 eq exch 9 eq or and { 2 } { 3 } ifelse def
+    mode 3 eq { pc length 1 ge pc length 6 le and pc //upsmaxicode.postal allin and } { true } ifelse not {
+        /bwipp.upsmaxicodeBadPostalCode (The postal code must be five or nine digits, or up to six upper case letters, digits or spaces) //raiseerror exec
+    } if
+    1 f dup length 3 eq exch digits and not {
+        /bwipp.upsmaxicodeBadCountry (The country code must be three digits) //raiseerror exec
+    } if
+    2 f dup length 3 eq exch digits and not {
+        /bwipp.upsmaxicodeBadService (The class of service must be three digits) //raiseerror exec
+    } if
+    3 f dup length 10 eq exch //upsmaxicode.alnum allin and not {
+        /bwipp.upsmaxicodeBadTracking (The tracking number must be ten upper case letters or digits) //raiseerror exec
+    } if
+    4 f (UPSN) ne {
+        /bwipp.upsmaxicodeBadCarrier (The carrier code must be UPSN) //raiseerror exec
+    } if
+    5 f dup length 6 eq exch //upsmaxicode.alnum allin and not {
+        /bwipp.upsmaxicodeBadShipper (The shipper number must be six upper case letters or digits) //raiseerror exec
+    } if
+    6 f dup length 3 eq exch digits and { 6 f cvi dup 1 ge exch 366 le and } { false } ifelse not {
+        /bwipp.upsmaxicodeBadPickupDay (The day of pickup must be the three digit day of the year) //raiseerror exec
+    } if
+    7 f 30 text not {
+        /bwipp.upsmaxicodeBadShipmentID (The shipment ID must be up to 30 characters) //raiseerror exec
+    } if
+    8 f (/) search {
+        exch pop /pn exch def /px exch def
+        pn length 3 le pn digits and px length 3 le and px digits and
+        { pn cvi 1 ge pn cvi px cvi le and } { false } ifelse
+    } { pop false } ifelse not {
+        /bwipp.upsmaxicodeBadPackage (The package number must be n/x, the package n of x packages) //raiseerror exec
+    } if
+    9 f dup length 0 eq { pop true } { dup length 3 le exch digits and } ifelse not {
+        /bwipp.upsmaxicodeBadWeight (The weight must be up to three digits) //raiseerror exec
+    } if
+    10 f dup (Y) ne exch (N) ne and {
+        /bwipp.upsmaxicodeBadAddressValidation (The address validation flag must be Y or N) //raiseerror exec
+    } if
+    11 f 35 text not {
+        /bwipp.upsmaxicodeBadAddress (The ship to address must be up to 35 characters) //raiseerror exec
+    } if
+    12 f dup length 1 ge exch 20 text and not {
+        /bwipp.upsmaxicodeBadCity (The ship to city must be up to 20 characters) //raiseerror exec
+    } if
+    13 f dup length 2 eq exch //upsmaxicode.alpha allin and not {
+        /bwipp.upsmaxicodeBadState (The ship to state must be two upper case letters) //raiseerror exec
+    } if
+
+    %
+    % Get the result of encoding with maxicode
+    %
+    options (mode) mode put
+    /uk.co.terryburton.bwipp._dontdraw true def
+    barcode options //maxicode exec /args exch def
+
+    args (opt) options put
+    args
+
+    _render //renmaximatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/upsmaxicode dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER upsmaxicode--
