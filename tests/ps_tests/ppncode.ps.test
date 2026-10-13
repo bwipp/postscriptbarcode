@@ -1,0 +1,83 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/ppncode dup /uk.co.terryburton.bwipp findresource cvx def
+
+/ok_tmpl {
+    { 0 0 ppncode /pixx get 0 gt }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    true isEqual
+} def
+
+% A product code, batch, expiry date and serial number
+(9N110375286414^0291TBATCH42^029D281200^029SA1B2C3D4E5) (parse dontdraw) ok_tmpl
+
+% The elements may be in any order, with the expiry exact to the day
+(SA1B2C3D4E5^029D280229^0291T12345ABCD^0299N110375286414) (parse dontdraw) ok_tmpl
+
+% The product code alone
+(9N111234567842) (dontdraw) ok_tmpl
+
+% Another PRA Code, with an alphanumeric product number
+(9N14ABC123XYZ52^029S1) (parse dontdraw) ok_tmpl
+
+% GTINs as additional product identifiers, and another Data Identifier
+(9N110375286414^0298P08701234567896^0298P03400912345676^02933Lhttp://Example.com) (parse dontdraw) ok_tmpl
+
+% A batch number with separators
+(9N110375286414^0291T1234-AB.C_D) (parse dontdraw) ok_tmpl
+
+% Carets in the data are not parsed by Data Matrix
+{ (9N110375286414^02933Lhttp://Example.com/^FNC1) (parse parsefnc dontdraw) ppncode /pixs get } (9N110375286414^02933Lhttp://Example.com/^094FNC1) (parse dontdraw) ppncode /pixs get debugIsEqual
+
+% Physical specification
+(9N110375286414) (strictspec dontdraw) ok_tmpl
+{ (9N110375286414) (strictspec dontdraw) ppncode dup /xdim get exch dup /xmin get exch /xmax get 3 array astore } [0.35 0.25 0.99] isEqual
+{ (9N110375286414) (strictspec mag=2 dontdraw) ppncode /xdim get } 0.7 isEqual
+{ (9N110375286414) (strictspec xdim=0.2 dontdraw) ppncode } /bwipp.renderXdimTooSmall isError
+
+% The Format 06 envelope is compressed as Macro 06
+{
+    (9N110375286414^0291TBATCH42^029D281200^029SA1B2C3D4E5) (parse debugcws) ppncode
+} [237 58 79 141 133 205 158 194 144 230 4 142 208 167 208 214 50 241 183 239 75 207 25 161 186 79 33 159 101 42 52 218 254 129 31 181] debugIsEqual
+
+/er_tmpl {
+    3 1 roll { 0 0 ppncode }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+(9N110375286414) (sampos=1 samtotal=2 dontdraw) /bwipp.ppncodeStructuredAppend er_tmpl
+(9N110375286414) (samid=1 dontdraw) /bwipp.ppncodeStructuredAppend er_tmpl
+15001 string (dontdraw) /bwipp.ppncodeInputTooLong er_tmpl
+() (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(9N110375286414^029) (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(9110375286414) (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(1234N110375286414) (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(9N110375286414^0291T) (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(9N110375286414^0299n1) (parse dontdraw) /bwipp.ppncodeBadElement er_tmpl
+(9N110375286414^0291TAB^009C) (parse dontdraw) /bwipp.ppncodeBadCharacter er_tmpl
+(9N110375286414^0299N110375286414) (parse dontdraw) /bwipp.ppncodeRepeatedElement er_tmpl
+(9N110375286414^029SA^029SB) (parse dontdraw) /bwipp.ppncodeRepeatedElement er_tmpl
+(9N110375286414^0298P08701234567895) (parse dontdraw) /bwipp.ppncodeBadGTIN er_tmpl
+(9N110375286414^0298P0870123456789) (parse dontdraw) /bwipp.ppncodeBadGTIN er_tmpl
+(SA1B2C3D4E5) (parse dontdraw) /bwipp.ppncodeNoProductCode er_tmpl
+(9N110375286415) (parse dontdraw) /bwipp.ppncodeBadPPN er_tmpl
+(9N1103752864) (parse dontdraw) /bwipp.ppncodeBadPPN er_tmpl
+(9N11037528641a) (parse dontdraw) /bwipp.ppncodeBadPPN er_tmpl
+(9N1A) (parse dontdraw) /bwipp.ppncodeBadPPN er_tmpl
+(9N111234567953) (parse dontdraw) /bwipp.ppncodeBadPZN er_tmpl
+(9N1112345678947) (parse dontdraw) /bwipp.ppncodeBadPZN er_tmpl
+(9N110375286414^029SAAAAAAAAAAAAAAAAAAAAA) (parse dontdraw) /bwipp.ppncodeBadSerialOrBatch er_tmpl
+(9N110375286414^0291TAB#C) (parse dontdraw) /bwipp.ppncodeBadSerialOrBatch er_tmpl
+(9N110375286414^029D281300) (parse dontdraw) /bwipp.ppncodeBadExpiry er_tmpl
+(9N110375286414^029D270229) (parse dontdraw) /bwipp.ppncodeBadExpiry er_tmpl
+(9N110375286414^029D280431) (parse dontdraw) /bwipp.ppncodeBadExpiry er_tmpl
+(9N110375286414^029D2812) (parse dontdraw) /bwipp.ppncodeBadExpiry er_tmpl

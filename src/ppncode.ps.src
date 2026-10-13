@@ -1,0 +1,273 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER ppncode--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix datamatrix--
+% --DESC: IFA PPN-Code
+% --EXAM: 9N112048163909^0291TBATCH42^029D281200^029SA1B2C3D4E5
+% --EXOP: parse
+% --RNDR: renmatrix
+% --FMLY: Pharmaceutical Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /datamatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/ppncode.alnum (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/ppncode.cset82 (!"%&'()*+,-./0123456789:;<=>?ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz) readonly def
+/ppncode.mdays [ 31 29 31 30 31 30 31 31 30 31 30 31 ] readonly def
+/ppncode.single [ (9N) (S) (1T) (D) ] readonly def      % Data Identifiers that may appear only once
+/ppncode.sernos [ (S) (1T) ] readonly def
+/ppncode.maxlen 15000 def                             % Data Matrix capacity, with parse escapes
+/ppncode.header <5B293E1E30361D> readonly def        % ISO/IEC 15434 Format 06 envelope, [)>{RS}06{GS} ... {RS}{EOT}, which datamatrix compresses as Macro 06
+/ppncode.trailer <1E04> readonly def
+
+/ppncode {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /parse false def
+    /strictspec false def
+    /propspec false def
+    /loosespec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % Parse ordinals of the form ^NNN to ASCII
+    %
+    /fncvals <<
+        /parse parse
+        /parseonly true
+        /parsefnc false
+    >> def
+    barcode length //ppncode.maxlen gt {
+        /bwipp.ppncodeInputTooLong (The input data is too long) //raiseerror exec
+    } if
+    barcode fncvals //parseinput exec /barcode exch def
+
+    options /sampos known options /samtotal known or options /samid known or {
+        /bwipp.ppncodeStructuredAppend (PPN-Code does not support Structured Append) //raiseerror exec
+    } if
+
+    /allin {  % string chars -> bool  Every character among those allowed
+        /ac exch def
+        true exch { /c exch def false ac { c eq or } forall and } forall
+    } def
+    /digits {  % string -> bool
+        true exch { dup 48 lt exch 57 gt or { pop false } if } forall
+    } def
+
+    %
+    % Data elements, each a Data Identifier of up to three digits and a
+    % letter followed by its data, separated by GS
+    %
+    /elems [
+        /st 0 def
+        0 1 barcode length {
+            /i exch def
+            i barcode length eq { true } { barcode i get 29 eq } ifelse {
+                barcode st i st sub getinterval
+                /st i 1 add def
+            } if
+        } for
+    ] def
+    /seen 4 dict def
+    elems {
+        /e exch def
+        /k 0 def
+        {  % loop
+            k e length lt { e k get dup 48 ge exch 57 le and } { false } ifelse { /k k 1 add def } { exit } ifelse
+        } loop
+        k 3 gt k e length 2 sub gt or { true } { e k get dup 65 lt exch 90 gt or } ifelse {
+            /bwipp.ppncodeBadElement (PPN-Code data must be Data Identifiers, each followed by its data, separated by GS) //raiseerror exec
+        } if
+        /di e 0 k 1 add getinterval def
+        /val e k 1 add e length k sub 1 sub getinterval def
+        val { dup 32 lt exch 126 gt or {
+            /bwipp.ppncodeBadCharacter (PPN-Code data must be printable ASCII characters) //raiseerror exec
+        } if } forall
+        //ppncode.single { di eq {
+            seen di known {
+                /bwipp.ppncodeRepeatedElement (The product code, serial number, batch and expiry date may each appear only once) //raiseerror exec
+            } if
+            seen di val put
+        } if } forall
+
+        %
+        % GTIN or NTIN, as an additional product identifier
+        %
+        di (8P) eq {
+            /ok val length 14 eq { val digits } { false } ifelse def
+            ok {
+                /checksum 0 def
+                0 1 12 { /i exch def /checksum val i get 48 sub i 2 mod 0 eq { 3 mul } if checksum add def } for
+                /ok 10 checksum 10 mod sub 10 mod val 13 get 48 sub eq def
+            } if
+            ok not {
+                /bwipp.ppncodeBadGTIN (A GTIN or NTIN must be 14 digits with a correct check digit) //raiseerror exec
+            } if
+        } if
+    } forall
+
+    %
+    % Product code: the PRA Code, the product number and two check digits,
+    % checked modulo 97 over the ASCII values weighted from 2
+    %
+    seen (9N) known not {
+        /bwipp.ppncodeNoProductCode (PPN-Code data must contain a product code with Data Identifier 9N) //raiseerror exec
+    } if
+    /ppn seen (9N) get def
+    /plen ppn length def
+    plen 11 lt plen 28 gt or { false } {
+        ppn //ppncode.alnum allin
+        ppn plen 2 sub 2 getinterval digits and
+    } ifelse
+    {
+        /checksum 0 def
+        0 1 plen 3 sub { /i exch def /checksum ppn i get i 2 add mul checksum add def } for
+        checksum 97 mod ppn plen 2 sub 2 getinterval cvi eq
+    } { false } ifelse not {
+        /bwipp.ppncodeBadPPN (The PPN must be upper case letters and digits ending with two correct check digits) //raiseerror exec
+    } if
+
+    %
+    % Germany's PRA Code 11 is followed by a PZN, with its modulus 11 check digit
+    %
+    ppn 0 2 getinterval (11) eq {
+        plen 12 eq { ppn 2 8 getinterval digits } { false } ifelse
+        {
+            /checksum 0 def
+            1 1 7 { /i exch def /checksum ppn i 1 add get 48 sub i mul checksum add def } for  % PZN digits weighted 1 to 7
+            checksum 11 mod ppn 9 get 48 sub eq
+        } { false } ifelse not {
+            /bwipp.ppncodeBadPZN (A PPN with PRA Code 11 must contain an eight-digit PZN with a correct check digit) //raiseerror exec
+        } if
+    } if
+
+    //ppncode.sernos {
+        seen exch 2 copy known {
+            get dup length 20 le { //ppncode.cset82 allin } { pop false } ifelse not {
+                /bwipp.ppncodeBadSerialOrBatch (The serial and batch numbers must be up to 20 characters of the GS1 character set 82) //raiseerror exec
+            } if
+        } { pop pop } ifelse
+    } forall
+
+    %
+    % Expiry date YYMMDD of the 21st century, whose day may be 00
+    %
+    seen (D) known {
+        /expiry seen (D) get def
+        expiry length 6 eq { expiry digits } { false } ifelse {
+            /y expiry 0 2 getinterval cvi def
+            /m expiry 2 2 getinterval cvi def
+            /d expiry 4 2 getinterval cvi def
+            m 1 ge m 12 le and {
+                d //ppncode.mdays m 1 sub get le
+                m 2 eq d 29 eq and { y 4 mod 0 eq and } if
+            } { false } ifelse
+        } { false } ifelse not {
+            /bwipp.ppncodeBadExpiry (The expiry date must be a valid date YYMMDD, with day 00 for the month alone) //raiseerror exec
+        } if
+    } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /ppncode ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Get the result of encoding with datamatrix
+    %
+    /j //ppncode.header length def
+    /msg barcode length j add //ppncode.trailer length add string def
+    msg 0 //ppncode.header putinterval
+    msg j barcode putinterval
+    msg j barcode length add //ppncode.trailer putinterval
+
+    options (parse) undef
+    options (parsefnc) undef
+    options (ast) undef
+    options (mag) undef
+    options (strictspec) strictspec put
+    options (loosespec) loosespec put
+    options (xdim) xdim put
+    options (xnom) xnom put
+    options (xmin) xmin put
+    options (xmax) xmax put
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    msg options //datamatrix exec /args exch def
+
+    args (opt) options put
+    args
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/ppncode dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER ppncode--
