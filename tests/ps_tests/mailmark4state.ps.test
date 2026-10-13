@@ -1,0 +1,87 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/mailmark4state dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% The bars as Ascender, Descender, Full and Tracker, as the Royal Mail
+% encoding and decoding instructions write them
+%
+/bars {  % data -> string
+    (dontdraw) mailmark4state
+    dup /bbs get /tb exch def
+    /bhs get /th exch def
+    /top 0 th { 2 copy lt { exch } if pop } forall def
+    /s th length string def
+    0 1 th length 1 sub {
+        /k exch def
+        /d tb k get 0 eq def
+        /a tb k get th k get add top 0.999 mul gt def
+        s k a { d { 70 } { 65 } ifelse } { d { 68 } { 84 } ifelse } ifelse put
+    } for
+    s
+} def
+/eq_tmpl {  % data bars
+    exch { 0 bars } dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+
+% Barcode C examples
+(1100000000000XY11     )      (TTDTTATTDTAATTDTAATTDTAATTDTTDDAATAADDATAATDDFAFTDDTAADDDTAAFDFAFF) eq_tmpl
+(21B2254800659JW5O9QA6Y)      (DAATATTTADTAATTFADDDDTTFTFDDDDFFDFDAFTADDTFFTDDATADTTFATTDAFDTFDDA) eq_tmpl
+
+% Barcode L examples
+(11000000000000000XY11     )  (TTDTTATDDTTATTDTAATTDTAATDDTTATTDTTDATFTAATDDTAATDDTATATFAADDAATAATDDTAADFTFTA) eq_tmpl
+(41038422416563762EF61AH8T )  (DTTFATTDDTATTTATFTDFFFTFDFDAFTTTADTTFDTFDDDTDFDDFTFAADTFDTDTDTFAATAFDDTAATTDTT) eq_tmpl
+
+% Postcodes of A and 9, and three of the postcode patterns, cross-checked with zint
+(0100000000000AA000AA0A)      (TFATTADAAATAFAFADFTAFATDTTDTTAAFTTFFTTDFTTFFTTAFADFDFAAFTDDFDADDAA) eq_tmpl
+(0100000000009JA500AA0A)      (TAFTTDADATTFDTFDFDFDTAATADADTTTATTFTDDDDTATDATDFTFFATAFFAFADAFFTDT) eq_tmpl
+(01000000000000000AA000AA0A)  (FDTTATTDDFFDATFAFDDTFFDDAATTTATTDTTADADDFDFTFAFAADTADDFDFTDTFTAFDDATDAFDFFATDT) eq_tmpl
+(01000000000000009JA500AA0A)  (FDTDAADTDAAADDDAFADDDFDDAFAADDAADTTAAFFDDTFTTDDTDFDTTDDTTFFDTDTFAADTAFAAFFDFDF) eq_tmpl
+(01000000000000000C1I2JQ3N )  (TDTTDFTDDFDFFDTTAAATFFAADAFTTATTDTTAATFATDTTFAAFDFDAFTDADFTDFDFTFFFDADAFDDAATT) eq_tmpl
+(01777777777777777KM12JQ3N )  (AFFADATDDTATDFFAFAAADDTATFFDADDDADDAFFAFDDTADTTFDFATAFDDAAFFTTAFADTAAFTTDTFFTA) eq_tmpl
+(31833333333333333C12JQ3U  )  (DTTAFFDATATFAADAFDFATFFTFFTTTADTTTDTAAATDDTFFDDFTAADTTDTFFFDAFTFAADFDDAFDFTAFF) eq_tmpl
+
+/ok_tmpl {
+    { 0 0 moveto 0 0 mailmark4state true }
+    dup 3 -1 roll 4 exch put
+    dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+
+% Each postcode pattern
+(0100000000000A1B1AB1A )      ()         ok_tmpl    % FNFNLLNLS
+(0100000000000AB12AB1A )      ()         ok_tmpl    % FFNNLLNLS
+(0100000000000AB123AB1A)      ()         ok_tmpl    % FFNNNLLNL
+(0100000000000AB1C2AB1A)      ()         ok_tmpl    % FFNFNLLNL
+(0100000000000A12AB1A  )      ()         ok_tmpl    % FNNLLNLSS
+(0100000000000A123AB1A )      ()         ok_tmpl    % FNNNLLNLS
+(21B2254800659JW5O9QA6Y)      (strictspec) ok_tmpl
+(21B2254800659JW5O9QA6Y)      (propspec) ok_tmpl
+
+% Full bars of hnom/xnom = 5.100/0.540 modules, pixel-locked under propspec
+{ (21B2254800659JW5O9QA6Y) (dontdraw strictspec) mailmark4state /bhs get dup 0 get exch {2 copy lt {exch} if pop} forall 72 mul 100 mul round cvi } 944 isEqual
+{ (21B2254800659JW5O9QA6Y) (dontdraw propspec) mailmark4state /bhs get dup 0 get exch {2 copy lt {exch} if pop} forall 72 mul round cvi } 9 isEqual
+
+/er_tmpl {
+    3 1 roll { 0 0 mailmark4state }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+(21B2254800659JW5O9QA6)       (dontdraw)  /bwipp.mailmark4stateBadLength          er_tmpl
+(51B2254800659JW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadFormat          er_tmpl
+(22B2254800659JW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadVersion         er_tmpl
+(25B2254800659JW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadVersion         er_tmpl
+(21F2254800659JW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadClass           er_tmpl
+(21B2A54800659JW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadSupplyChainID   er_tmpl
+(21B225480065AJW5O9QA6Y)      (dontdraw)  /bwipp.mailmark4stateBadItemID          er_tmpl
+(21B2254800659JW5O9QC6Y)      (dontdraw)  /bwipp.mailmark4stateBadPostcode        er_tmpl
+(21B2254800659XY12     )      (dontdraw)  /bwipp.mailmark4stateBadPostcode        er_tmpl

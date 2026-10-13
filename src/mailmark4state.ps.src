@@ -1,0 +1,414 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+% --BEGIN ENCODER mailmark4state--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor rsecbinary render renlinear--
+% --DESC: Royal Mail Mailmark 4-state
+% --EXAM: 1101234567890ZZ999ZZ1A
+% --EXOP:
+% --RNDR: renlinear
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+16 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/mailmark4state [/before /after] //setuphooks exec
+
+(setup.define) //mailmark4state.before exec
+
+%
+% Characters allowed in each field
+%
+/mailmark4state.format  (01234) readonly def
+/mailmark4state.version (1234) readonly def
+/mailmark4state.class   (0123456789ABCDE) readonly def
+/mailmark4state.digits  (0123456789) readonly def
+/mailmark4state.full    (ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/mailmark4state.limited (ABDEFGHJLNPQRSTUWXYZ) readonly def
+
+%
+% Patterns of the Destination Post Code plus DPS field in order of precedence,
+% each character Full alphabetic, Limited alphabetic, Numeric or Space
+%
+/mailmark4state.patterns [
+    (FNFNLLNLS) (FFNNLLNLS) (FFNNNLLNL) (FFNFNLLNL) (FNNLLNLSS) (FNNNLLNLS)
+] readonly def
+/mailmark4state.international (XY11     ) readonly def
+
+%
+% Barcodes C and L: application string length, Supply Chain ID length, the
+% number of data numbers of 30 and of 32 values, and the number of check
+% numbers, then the extender group of each data and check symbol (Table 6)
+%
+/mailmark4state.barcodes <<
+    22 << /scid 2 /n30 9  /n32 7 /nc 6
+          /groups [ 3 5 7 11 13 14 16 17 19  0 1 2 4 6 8 9  10 12 15 18 20 21 ] readonly >> readonly
+    26 << /scid 6 /n30 11 /n32 8 /nc 7
+          /groups [ 2 5 7 8 13 14 15 16 21 22 23  0 1 3 4 6 9 10 11  12 17 18 19 20 24 25 ] readonly >> readonly
+>> readonly def
+
+%
+% Bar dimensions (Table 11): the bar width and pitch of 21.2 bars per inch,
+% the tracker and the extent of an ascender or descender beyond it
+%
+/mailmark4state.barwidth 0.54 def
+/mailmark4state.space 25.4 21.2 div //mailmark4state.barwidth div 1 sub def
+/mailmark4state.tracker 1.30 def
+/mailmark4state.extender 1.90 def
+/mailmark4state.fullbar //mailmark4state.tracker //mailmark4state.extender 2 mul add def
+
+/mailmark4state.latevars dup 8 dict def load /init {
+
+    (setup.latevars) //mailmark4state.before exec
+
+    currentglobal
+    true setglobal
+
+    //mailmark4state.latevars begin
+
+    %
+    % GF(32) log and anti-log tables, prime polynomial x^5+x^2+1, the anti-log
+    % table spanning two periods so that log-sums resolve without a modulo
+    %
+    /rsalog [ 1 60 { dup 2 mul dup 32 ge {37 xor} if } repeat ] readonly def
+    /rslog 32 array def
+    1 1 31 {dup rsalog exch get exch rslog 3 1 roll put} for
+    /rslog rslog readonly def
+
+    %
+    % Six bit symbols for data and check numbers of 32 values (an odd number
+    % of ones) and for data numbers of 30 values (a non-zero even number)
+    %
+    /oddsyms  [ 0 1 63 { dup 0 exch { dup 0 eq { pop exit } if dup 1 and 3 -1 roll add exch -1 bitshift } loop 2 mod 1 ne { pop } if } for ] readonly def
+    /evensyms [ 1 1 63 { dup 0 exch { dup 0 eq { pop exit } if dup 1 and 3 -1 roll add exch -1 bitshift } loop 2 mod 0 ne { pop } if } for ] readonly def
+
+    /init { //mailmark4state.latevars {def} forall } def
+
+    end
+
+    //mailmark4state.latevars /init get exec
+
+    setglobal
+
+    (setup.latevars) //mailmark4state.after exec
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//mailmark4state.latevars /init get exec} if
+} {pop} ifelse
+
+/mailmark4state {
+
+    64 dict begin
+    {
+
+    (input.processoptions) //mailmark4state.before exec
+
+    /dontdraw false def
+    /height -1.0 def
+    /width 0 def
+
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /mailmark4state ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    (input.processoptions) //mailmark4state.after exec
+
+    //mailmark4state.latevars /init get exec
+
+    (input.validate) //mailmark4state.before exec
+
+    //mailmark4state.barcodes barcode length known not {
+        /bwipp.mailmark4stateBadLength (Royal Mail Mailmark 4-state data must be 22 characters for barcode C or 26 for barcode L, including any space padding) //raiseerror exec
+    } if
+    //mailmark4state.barcodes barcode length get { def } forall
+
+    /charval {  % string pos chars -> value  The position of the character among those allowed, or -1
+        3 1 roll 1 getinterval search { length exch pop exch pop } { pop -1 } ifelse
+    } def
+    /field {  % pos len chars errorname message -> value  A field of characters among those allowed, as a number
+        /fmsg exch def /ferr exch def /fchars exch def
+        0 3 1 roll 1 index add 1 sub 1 exch {          % value i
+            barcode exch fchars charval
+            dup 0 lt { pop pop ferr fmsg //raiseerror exec } if
+            exch fchars length mul add
+        } for
+    } def
+
+    0 1 //mailmark4state.format /bwipp.mailmark4stateBadFormat (The Format must be from 0 to 4) field /fmt exch def
+    1 1 //mailmark4state.version /bwipp.mailmark4stateBadVersion (The Version ID must be 1) field /ver exch def
+    ver 0 ne {
+        /bwipp.mailmark4stateBadVersion (The Version ID must be 1) //raiseerror exec
+    } if
+    2 1 //mailmark4state.class /bwipp.mailmark4stateBadClass (The Class must be from 0 to 9 or A to E) field /cls exch def
+    /scpos 3 def
+    /itempos scpos scid add def
+    /destpos itempos 8 add def
+    scpos scid //mailmark4state.digits /bwipp.mailmark4stateBadSupplyChainID (The Supply Chain ID must be numeric) field pop
+    itempos 8 //mailmark4state.digits /bwipp.mailmark4stateBadItemID (The Item ID must be numeric) field pop
+    /dest barcode destpos 9 getinterval def
+
+    (input.validate) //mailmark4state.after exec
+
+    %
+    % Numbers too large for an integer are held as arrays of base 10000
+    % limbs, least significant first
+    %
+    (input.consolidate) //mailmark4state.before exec
+
+    /bnmuladd {  % bn k c -> bn'  bn*k+c
+        /bc exch def /bk exch def /bb exch def
+        [ bc bb { bk mul add dup 10000 mod exch 10000 idiv } forall
+          { dup 0 eq { pop exit } if dup 10000 mod exch 10000 idiv } loop ]
+    } def
+    /bnadd {  % bn1 bn2 -> bn1+bn2
+        /b2 exch def /b1 exch def
+        [ 0 0 1 b1 length b2 length 2 copy lt { exch } if pop 1 sub {   % carry k
+            /k exch def
+            k b1 length lt { b1 k get add } if
+            k b2 length lt { b2 k get add } if
+            dup 10000 mod exch 10000 idiv
+          } for
+          dup 0 eq { pop } if ]
+    } def
+    /bndivmod {  % bn d -> bn/d bn%d
+        /bd exch def
+        /bq exch dup length array copy def
+        0 bq length 1 sub -1 0 {                        % r i
+            exch 10000 mul bq 2 index get add
+            dup bd idiv bq 4 -1 roll 3 -1 roll put bd mod
+        } for
+        { bq length 1 gt { bq dup length 1 sub get 0 eq } { false } ifelse { /bq bq 0 bq length 1 sub getinterval def } { exit } ifelse } loop
+        bq exch
+    } def
+    /digitsof {  % pos len -> bn
+        [ 0 ] 3 1 roll 1 index add 1 sub 1 exch { barcode exch get 48 sub 10 exch bnmuladd } for
+    } def
+
+    %
+    % The Destination Post Code plus DPS: zero for international, otherwise
+    % one more than the number of codes of the patterns that precede its own,
+    % plus its position among the codes of its pattern
+    %
+    /typechars {  % type -> chars
+        dup 70 eq { pop //mailmark4state.full } {
+        dup 76 eq { pop //mailmark4state.limited } {
+            pop //mailmark4state.digits
+        } ifelse } ifelse
+    } def
+    dest //mailmark4state.international eq {
+        /destval [ 0 ] def
+    } {
+        /destval [ 1 ] def
+        /matched false def
+        //mailmark4state.patterns {
+            /pat exch def
+            /fits true def
+            0 1 8 {
+                /k exch def
+                pat k get 83 eq {
+                    dest k get 32 ne { /fits false def } if
+                } {
+                    dest k pat k get typechars charval 0 lt { /fits false def } if
+                } ifelse
+            } for
+            fits {
+                /b [ 0 ] def
+                0 1 8 {
+                    /k exch def
+                    pat k get 83 ne {
+                        pat k get typechars dup length exch dest k 3 -1 roll charval
+                        b 3 1 roll bnmuladd /b exch def
+                    } if
+                } for
+                /destval destval b bnadd def
+                /matched true def
+                exit
+            } if
+            /size [ 1 ] def
+            pat { dup 83 ne { typechars length size exch 0 bnmuladd /size exch def } { pop } ifelse } forall
+            /destval destval size bnadd def
+        } forall
+        matched not {
+            /bwipp.mailmark4stateBadPostcode (The Destination Post Code plus DPS must be a valid postcode with Delivery Point Suffix, or XY11 for international) //raiseerror exec
+        } if
+    } ifelse
+
+    %
+    % The consolidated data value
+    %
+    destval 10000 0 bnmuladd 10000 0 bnmuladd itempos 8 digitsof bnadd
+    scid { 10 0 bnmuladd } repeat scpos scid digitsof bnadd
+    //mailmark4state.class length cls bnmuladd
+    //mailmark4state.format length fmt bnmuladd
+    //mailmark4state.version length ver bnmuladd
+    /cdv exch def
+
+    (input.consolidate) //mailmark4state.after exec
+
+    %
+    % Data numbers, the most significant of 30 values and the rest of 32,
+    % then Reed-Solomon check numbers over GF(32)
+    %
+    (ecc.cws) //mailmark4state.before exec
+
+    /nd n30 n32 add def
+    /dnums nd array def
+    cdv
+    nd 1 sub -1 n30 { exch 32 bndivmod dnums 4 -1 roll 3 -1 roll put } for
+    n30 1 sub -1 1 { exch 30 bndivmod dnums 4 -1 roll 3 -1 roll put } for
+    0 get dnums exch 0 exch put                         % Within 30 values for every valid input
+
+    /gencoeffs {  % degree -> coeffs  Generator with roots alpha^1 to alpha^degree, reversed and in the log domain with -1 for zero, as rsecbinary requires
+        /degree exch def
+        /g [ 1 degree {0} repeat ] def
+        1 1 degree {  % i
+            g 1 index 2 copy 1 sub get put
+            dup 1 sub -1 1 {  % j
+                g exch 2 copy get
+                dup 0 ne { rslog exch get 3 index add rsalog exch get } if
+                g 2 index 1 sub get xor put
+            } for
+            g 0 2 copy get rslog exch get 3 index add rsalog exch get put
+            pop
+        } for
+        [ degree 1 sub -1 0 { g exch get dup 0 ne { rslog exch get } { pop -1 } ifelse } for ]
+    } def
+    /lfsr nc array def
+    {dnums exch get} nd nc gencoeffs lfsr rslog rsalog //rsecbinary exec
+
+    (ecc.cws) //mailmark4state.after exec
+
+    %
+    % Six bit symbols placed in their extender groups, each group three bars
+    % whose ascenders take the high bits in an even group and the low bits in
+    % an odd one, the descenders the others, the most significant bit leftmost
+    %
+    (matrix.layout) //mailmark4state.before exec
+
+    /ng nd nc add def
+    /egs ng array def
+    0 1 nd 1 sub {
+        /k exch def
+        egs groups k get dnums k get k n30 lt { evensyms } { oddsyms } ifelse exch get put
+    } for
+    0 1 nc 1 sub {
+        /k exch def
+        egs groups nd k add get oddsyms lfsr k get get put
+    } for
+
+    /resolve_height //render exec dup -1 eq {
+        pop //mailmark4state.fullbar //mailmark4state.barwidth div 72 div
+    } if /height exch def
+    /bbs ng 3 mul array def
+    /bhs ng 3 mul array def
+    /lower //mailmark4state.extender //mailmark4state.fullbar div height mul def
+    /trackh //mailmark4state.tracker //mailmark4state.fullbar div height mul def
+    0 1 ng 1 sub {
+        /n exch def
+        /e egs n get def
+        n 2 mod 0 eq { e -3 bitshift e 7 and } { e 7 and e -3 bitshift } ifelse
+        /desc exch def /asc exch def
+        0 1 2 {
+            /k exch def
+            /b n 3 mul k add def
+            /a asc 2 k sub neg bitshift 1 and 1 eq def
+            /d desc 2 k sub neg bitshift 1 and 1 eq def
+            bbs b d { 0 } { lower } ifelse put
+            bhs b trackh a { lower add } if d { lower add } if put
+        } for
+    } for
+
+    (matrix.layout) //mailmark4state.after exec
+
+    <<
+    /ren /renlinear
+    /bbs bbs
+    /bhs bhs
+    /sbs [ bhs length 1 sub { 1 //mailmark4state.space } repeat 1 ]
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/mailmark4state dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //mailmark4state.after exec
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER mailmark4state--
