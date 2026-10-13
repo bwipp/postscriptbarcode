@@ -1,0 +1,80 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/postbar dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% The bars as Full (H), Ascender, Descender and Tracker, as US Patent
+% 5,602,382 writes them
+%
+/bars {  % data -> string
+    (dontdraw) postbar
+    dup /bbs get /tb exch def
+    /bhs get /th exch def
+    /top 0 th { 2 copy lt { exch } if pop } forall def
+    /s th length string def
+    0 1 th length 1 sub {
+        /k exch def
+        /d tb k get 0 eq def
+        /a tb k get th k get add top 0.999 mul gt def
+        s k a { d { 72 } { 65 } ifelse } { d { 68 } { 84 } ifelse } ifelse put
+    } for
+    s
+} def
+/eq_tmpl {  % data bars
+    exch { 0 bars } dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+
+% The worked examples of the patent: C10 with machine ID DHAH, and D22
+(ZK1S5B62010) (ATDDAAAHHADHDADHAHDHHADHAHTADTAHADTHTDHAAHTHATAAHDDHAHAT) eq_tmpl
+(CM4J3W81420ABCDEFGHIJK) (ATHHDHHHAAAHDAHDDHDDTHHTAHTHADDDHHHHHAHHDHAHHAAHADHDHHDAHDDAHHAHAHAHAATATDDDHAT) eq_tmpl
+
+% The data of the patent's figures for G12 and S21
+(118091266   ) (ATTHHHADDHHTDDTHHTHATADTADHHTHHTHHTTTHTHATHTAAAAT) eq_tmpl
+(S0ABCDEFGHIJ123456789) (ATDHHDDDHHHHHAHHDHAHHAAHADHDHHDAHDDAHHTHHTHATHDTAHTAATADTDHTDATDDDADADDADHDTDAT) eq_tmpl
+
+% Other DCIs of each application
+(VK1A0B13333) (ATDAHAAHHAHHDHHHAHHATTDTTTHTTHADDDATHATDHDTADAAAATTTTTAT) eq_tmpl
+(LH0H0H0    ZZZZZZZZZZZ) (ATAHDHHAHHHHAHHHHAHHHHTHHTHHTHHTDDADDADDADDADDADDADDADDADDADDADDATADHHTAAAHTTAT) eq_tmpl
+(9826SW1A 1AA) (ATTDDDDHDDHDHHDAATHHHHHHHTTHHHHHHHHADHTATHHTATDAT) eq_tmpl
+(U2SECOND PART OF TWO ) (ATDHDTHADHHHAAHHDAADAAAHAHHHTADHHHHADDDHAHHTAADHADHHTDHADAAAADHHTDDATHAAHTDATAT) eq_tmpl
+
+/ok_tmpl {
+    { 0 0 moveto 0 0 postbar true }
+    dup 3 -1 roll 4 exch put
+    dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(CM4J3W81420ABCDEFGHIJK) (strictspec) ok_tmpl
+(CM4J3W81420ABCDEFGHIJK) (propspec) ok_tmpl
+
+% Full bars of hnom/xnom = 4.100/0.500 modules, pixel-locked under propspec
+{ (CM4J3W81420ABCDEFGHIJK) (dontdraw strictspec) postbar /bhs get dup 0 get exch {2 copy lt {exch} if pop} forall 72 mul 10 mul round cvi } 82 isEqual
+{ (CM4J3W81420ABCDEFGHIJK) (dontdraw propspec) postbar /bhs get dup 0 get exch {2 copy lt {exch} if pop} forall 72 mul round cvi } 8 isEqual
+
+/er_tmpl {
+    3 1 roll { 0 0 postbar }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+(ZK1S5B6201) (dontdraw) /bwipp.postbarBadLength er_tmpl
+(CM4J3W81420ABCDEFGHIJKL) (dontdraw) /bwipp.postbarBadLength er_tmpl
+(AK1S5B62010) (dontdraw) /bwipp.postbarBadDCI er_tmpl
+(ZM4J3W81420ABCDEFGHIJK) (dontdraw) /bwipp.postbarBadDCI er_tmpl
+(A18091266   ) (dontdraw) /bwipp.postbarBadDCI er_tmpl
+(V0ABCDEFGHIJ123456789) (dontdraw) /bwipp.postbarBadDCI er_tmpl
+(Z11S5B62010) (dontdraw) /bwipp.postbarBadPostalCode er_tmpl
+(ZKKS5B62010) (dontdraw) /bwipp.postbarBadPostalCode er_tmpl
+(1A8091266   ) (dontdraw) /bwipp.postbarBadCountryCode er_tmpl
+(ZK1S5B62040) (dontdraw) /bwipp.postbarBadMachineID er_tmpl
+(S3ABCDEFGHIJ123456789) (dontdraw) /bwipp.postbarBadBCS er_tmpl
+(CM4J3W81420abcdefghijk) (dontdraw) /bwipp.postbarBadCharacter er_tmpl
+(118091266-  ) (dontdraw) /bwipp.postbarBadCharacter er_tmpl

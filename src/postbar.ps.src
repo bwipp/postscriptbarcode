@@ -1,0 +1,316 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER postbar--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor rsecbinary render renlinear--
+% --DESC: Canada Post PostBar
+% --EXAM: CH0H0H01420NOTEPAPER01
+% --EXOP:
+% --RNDR: renlinear
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /rsecbinary dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+
+%
+% Bars Full (H), Ascender (A), Descender (D) and Tracker (T), each a pair of
+% bits in a Reed-Solomon symbol of three bars, as US Patent 5,602,382 Table 3
+%
+/postbar.hadt (HADT) readonly def
+
+%
+% Postal code letters and digits (Table 1) and alphanumerics (Table 2)
+%
+/postbar.achars (ABCDEFGHIJKLMNOPQRSTUVWXYZ) readonly def
+/postbar.abars [
+    (HHD) (HAH) (HAA) (HAD) (HDH) (HDA) (HDD) (HHA) (AHA) (AHD) (AAH) (AAA) (HHH)
+    (ADH) (ADA) (ADD) (DHH) (DHA) (DHD) (DAH) (DAA) (DAD) (DDH) (DDA) (DDD) (AHH)
+] readonly def
+/postbar.nchars (0123456789) readonly def
+/postbar.nbars [ (HH) (HA) (HD) (AH) (AA) (AD) (DH) (DA) (DD) (TH) ] readonly def
+/postbar.zchars ( ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789) readonly def
+/postbar.zbars [
+    (HHT)
+    (HHH) (HHA) (HHD) (HAH) (HAA) (HAD) (HDH) (HDA) (HDD) (AHH) (AHA) (AHD) (AAH)
+    (AAA) (AAD) (ADH) (ADA) (ADD) (DHH) (DHA) (DHD) (DAH) (DAA) (DAD) (DDH) (DDA)
+    (DDD) (THH) (THA) (THD) (TAH) (TAA) (TAD) (TDH) (TDA) (TDD)
+] readonly def
+
+%
+% Fields of each format by length: A and N postal code characters, Z
+% alphanumerics, B machine ID bars and S the bar code sequencer; the DCI
+% range of the format's application; and the number of check symbols
+%
+/postbar.formats <<
+    11 << /fields (ANANANBBBB) /dcis (VWXYZ) /nc 10 >> readonly
+    12 << /fields (NNNZZZZZZZZ) /dcis (123456789) /nc 4 >> readonly
+    21 << /fields (SZZZZZZZZZZZZZZZZZZZ) /dcis (MNOPQRSTU) /nc 4 >> readonly
+    22 << /fields (ANANANZZZZZZZZZZZZZZZ) /dcis (ABCDEFGHIJKL) /nc 4 >> readonly
+>> readonly def
+
+%
+% Bar dimensions in mm (Canada Post 4-State Bar Code Handbook, Table A): the
+% minimum tracker and extent of an ascender or descender beyond it, and the
+% middle of the bar widths and of the densities of 22 to 25 bars per inch
+%
+/postbar.barwidth 0.5 def
+/postbar.space 25.4 23.5 div //postbar.barwidth div 1 sub def
+/postbar.tracker 1.0 def
+/postbar.extender 2.55 //postbar.tracker sub def
+/postbar.fullbar //postbar.tracker //postbar.extender 2 mul add def
+
+/postbar.latevars dup 4 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //postbar.latevars begin
+
+    %
+    % GF(64) log and anti-log tables, prime polynomial x^6+x+1, the anti-log
+    % table spanning two periods so that log-sums resolve without a modulo
+    %
+    /rsalog [ 1 124 { dup 2 mul dup 64 ge {67 xor} if } repeat ] readonly def
+    /rslog 64 array def
+    1 1 63 {dup rsalog exch get exch rslog 3 1 roll put} for
+    /rslog rslog readonly def
+
+    /init { //postbar.latevars {def} forall } def
+
+    end
+
+    //postbar.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//postbar.latevars /init get exec} if
+} {pop} ifelse
+
+/postbar {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /height -1.0 def
+    /width 0 def
+
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    //postbar.latevars /init get exec
+
+    //postbar.formats barcode length known not {
+        /bwipp.postbarBadLength (PostBar data must be 11 characters for C10, 12 for G12, 21 for S21 or 22 for D22, including its DCI) //raiseerror exec
+    } if
+    //postbar.formats barcode length get {def} forall
+
+    /idx {  % string char -> index or -1
+        1 string dup 0 4 -1 roll put search { length exch pop exch pop } { pop -1 } ifelse
+    } def
+
+    barcode 0 1 getinterval dcis exch search { pop pop pop } {
+        pop /bwipp.postbarBadDCI (The DCI must be V to Z for C10, 1 to 9 for G12, M to U for S21 or A to L for D22) //raiseerror exec
+    } ifelse
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /postbar ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % The DCI and fields as bars, with the machine ID of C10 after the
+    % parity
+    %
+    /bars barcode length 3 mul 30 add string def  % At most three bars a character, then the parity of up to ten symbols
+    bars 0 (AT) putinterval
+    bars 2 //postbar.zbars //postbar.zchars barcode 0 get idx get putinterval
+    /j 5 def
+    /mid 4 string def /mi 0 def
+    0 1 fields length 1 sub {
+        /i exch def
+        /c barcode i 1 add get def
+        fields i get
+        dup 65 eq {  % A
+            pop //postbar.achars c idx dup 0 lt {
+                pop /bwipp.postbarBadPostalCode (The postal code must be letters and digits alternately, starting with a letter) //raiseerror exec
+            } if //postbar.abars exch get
+        } {
+        dup 78 eq {  % N
+            pop //postbar.nchars c idx dup 0 lt {
+                pop
+                fields 0 get 65 eq {
+                    /bwipp.postbarBadPostalCode (The postal code must be letters and digits alternately, starting with a letter) //raiseerror exec
+                } {
+                    /bwipp.postbarBadCountryCode (The country code must be three digits) //raiseerror exec
+                } ifelse
+            } if //postbar.nbars exch get
+        } {
+        dup 66 eq {  % B
+            pop c 48 lt c 51 gt or {
+                /bwipp.postbarBadMachineID (The machine ID must be four digits from 0 to 3) //raiseerror exec
+            } if
+            mid mi //postbar.hadt c 48 sub get put /mi mi 1 add def
+            ()
+        } {
+        83 eq {  % S
+            c 48 lt c 50 gt or {
+                /bwipp.postbarBadBCS (The bar code sequencer must be 0 for a single symbol, or 1 or 2 for the first or second of two) //raiseerror exec
+            } if
+            //postbar.zbars //postbar.zchars c idx get
+        } {  % Z
+            //postbar.zchars c idx dup 0 lt {
+                pop /bwipp.postbarBadCharacter (PostBar alphanumeric fields must contain only spaces, upper case letters and digits) //raiseerror exec
+            } if //postbar.zbars exch get
+        } ifelse
+        } ifelse
+        } ifelse
+        } ifelse
+        dup bars exch j exch putinterval
+        length j add /j exch def
+    } for
+
+    %
+    % Reed-Solomon parity over GF(64) of the symbols of three bars from the
+    % DCI, roots alpha^1 to alpha^nc
+    %
+    /nd j 2 sub 3 idiv def
+    /syms nd array def
+    0 1 nd 1 sub {
+        /i exch def
+        0 0 1 2 { bars exch i 3 mul 2 add add get //postbar.hadt exch idx exch 4 mul add } for
+        syms i 3 -1 roll put
+    } for
+
+    /gencoeffs {  % degree -> coeffs  Generator with roots alpha^1 to alpha^degree, reversed and in the log domain with -1 for zero, as rsecbinary requires
+        /degree exch def
+        /g [ 1 degree {0} repeat ] def
+        1 1 degree {  % i
+            g 1 index 2 copy 1 sub get put
+            dup 1 sub -1 1 {  % j
+                g exch 2 copy get
+                dup 0 ne { rslog exch get 3 index add rsalog exch get } if
+                g 2 index 1 sub get xor put
+            } for
+            g 0 2 copy get rslog exch get 3 index add rsalog exch get put
+            pop
+        } for
+        [ degree 1 sub -1 0 { g exch get dup 0 ne { rslog exch get } { pop -1 } ifelse } for ]
+    } def
+    /lfsr nc array def
+    {syms exch get} nd nc gencoeffs lfsr rslog rsalog //rsecbinary exec
+
+    0 1 nc 1 sub {
+        lfsr exch get
+        dup -4 bitshift //postbar.hadt exch get bars j 3 -1 roll put
+        dup -2 bitshift 3 and //postbar.hadt exch get bars j 1 add 3 -1 roll put
+        3 and //postbar.hadt exch get bars j 2 add 3 -1 roll put
+        /j j 3 add def
+    } for
+    bars j mid 0 mi getinterval putinterval /j j mi add def
+    bars j (AT) putinterval /j j 2 add def
+    /bars bars 0 j getinterval def
+
+    /resolve_height //render exec dup -1 eq {
+        pop //postbar.fullbar //postbar.barwidth div 72 div
+    } if /height exch def
+    /lower //postbar.extender //postbar.fullbar div height mul def
+    /trackh //postbar.tracker //postbar.fullbar div height mul def
+    /bbs bars length array def
+    /bhs bars length array def
+    0 1 bars length 1 sub {
+        /i exch def
+        bars i get
+        dup 72 eq { pop bbs i 0 put bhs i height put } {
+        dup 65 eq { pop bbs i lower put bhs i trackh lower add put } {
+        68 eq { bbs i 0 put bhs i trackh lower add put } {
+            bbs i lower put bhs i trackh put
+        } ifelse } ifelse } ifelse
+    } for
+
+    <<
+    /ren /renlinear
+    /bbs bbs
+    /bhs bhs
+    /sbs [ bhs length 1 sub { 1 //postbar.space } repeat 1 ]
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/postbar dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER postbar--
