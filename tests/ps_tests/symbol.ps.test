@@ -16,6 +16,22 @@
 } [ 2.25 6.75 2.25 2.25 2.25 6.75 2.25 2.25 2.25 6.75 2.25 ] debugIsEqual
 
 
+% Kodak patch codes are on a 0.04 inch grid of narrow (2) and wide (5) elements
+/patch_tmpl {  % name widths
+    { 72 mul 25 div } forall 7 array astore
+    exch { 0 (dontdraw) symbol /sbs get } dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+(patch1) [ 5 2 5 2 2 2 2 ] patch_tmpl
+(patch2) [ 5 2 2 2 2 2 5 ] patch_tmpl
+(patch3) [ 5 2 2 2 5 2 2 ] patch_tmpl
+(patch4) [ 2 2 5 2 5 2 2 ] patch_tmpl
+(patch6) [ 2 2 2 2 5 2 5 ] patch_tmpl
+(patcht) [ 2 2 5 2 2 2 5 ] patch_tmpl
+
+{ (patch2) (dontdraw) symbol /bhs get
+} [ 2.5 2.5 2.5 2.5 ] debugIsEqual
+
 %
 % Error tests
 %
@@ -32,3 +48,4 @@
     true isEqual
 } def
 (fima)  (strictspec xdim=0.330)  ok_tmpl
+(patcht) ()                       ok_tmpl

@@ -69,6 +69,20 @@ begin
 /symbol.fimebhs [ //symbol.fimesbs length 2 idiv 1 add {.625} repeat ] readonly def
 /symbol.fimebbs [ //symbol.fimesbs length 2 idiv 1 add {0   } repeat ] readonly def
 
+%
+% Kodak patch codes: bars and spaces of 0.08 or 0.20 inches, which are two or
+% five steps of the 0.04 inch (72/25 point) grid of the patch zones, with bars
+% 2.5 inches long
+%
+/symbol.patch1sbs [ 5 2 5 2 2 2 2 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patch2sbs [ 5 2 2 2 2 2 5 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patch3sbs [ 5 2 2 2 5 2 2 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patch4sbs [ 2 2 5 2 5 2 2 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patch6sbs [ 2 2 2 2 5 2 5 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patchtsbs [ 2 2 5 2 2 2 5 ] { 72 mul 25 div } forall 7 array astore readonly def
+/symbol.patchbhs [ 4 { 2.5 } repeat ] readonly def
+/symbol.patchbbs [ 4 { 0 } repeat ] readonly def
+
 /symbol.zebrasbs [ 100 { 1 1 } repeat 1 ] readonly def
 /symbol.zebrabhs [ //symbol.zebrasbs length 2 idiv 1 add {1} repeat ] readonly def
 /symbol.zebrabbs [ //symbol.zebrasbs length 2 idiv 1 add {0} repeat ] readonly def
@@ -82,6 +96,12 @@ begin
     /fimc  { << /ren /renlinear  /sbs //symbol.fimcsbs   /bhs //symbol.fimcbhs   /bbs //symbol.fimcbbs >>  } bind
     /fimd  { << /ren /renlinear  /sbs //symbol.fimdsbs   /bhs //symbol.fimdbhs   /bbs //symbol.fimdbbs >>  } bind
     /fime  { << /ren /renlinear  /sbs //symbol.fimesbs   /bhs //symbol.fimebhs   /bbs //symbol.fimebbs >>  } bind
+    /patch1 { << /ren /renlinear  /sbs //symbol.patch1sbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
+    /patch2 { << /ren /renlinear  /sbs //symbol.patch2sbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
+    /patch3 { << /ren /renlinear  /sbs //symbol.patch3sbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
+    /patch4 { << /ren /renlinear  /sbs //symbol.patch4sbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
+    /patch6 { << /ren /renlinear  /sbs //symbol.patch6sbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
+    /patcht { << /ren /renlinear  /sbs //symbol.patchtsbs  /bhs //symbol.patchbhs  /bbs //symbol.patchbbs >> } bind
     /zebra { << /ren /renlinear  /sbs //symbol.zebrasbs  /bhs //symbol.zebrabhs  /bbs //symbol.zebrabbs >> } bind
     /check { << /ren /renmatrix  /pixs //symbol.checkpixs  /pixx //symbol.checksize  /pixy //symbol.checksize  /height //symbol.checksize 72 div  /width //symbol.checksize 72 div >> } bind
 >> readonly def
