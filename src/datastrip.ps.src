@@ -426,11 +426,12 @@ DD2B847B81C30BEAEA6C76
 
     %
     % Layout: four rows of end framing, the data rows between left and right
-    % framing, and four more rows of end framing
+    % framing, and four more rows of end framing. The two light modules of
+    % quiet zone at each side are left to the border.
     %
     (matrix.layout) //datastrip.before exec
 
-    /pw W 16 add def
+    /pw W 12 add def
     /ph nrows 8 add def
     pw ph mul { array } stopped {
         pop /bwipp.datastripTooMuchData (The symbol exceeds the implementation limits) //raiseerror exec
@@ -457,13 +458,13 @@ DD2B847B81C30BEAEA6C76
         /t t 1 add def
     } def
     /fillbits {  % from to ->  Stream bits into the data columns from to to
-        1 exch { streambit row 3 1 roll exch 8 add exch put } for
+        1 exch { streambit row 3 1 roll exch 6 add exch put } for
     } def
 
     /endrow [                                           % End framing, the same at both ends
-        0 0 1 1 0 0  1 1 1 1 1 1  n 4 sub { 0 0 1 1 } repeat
+        1 1 0 0  1 1 1 1 1 1  n 4 sub { 0 0 1 1 } repeat
         24 { 0 } repeat
-        n 4 sub { 1 1 0 0 } repeat  1 1 1 1 1 1  0 0 1 1 0 0
+        n 4 sub { 1 1 0 0 } repeat  1 1 1 1 1 1  0 0 1 1
     ] def
     0 1 3 { pixs exch pw mul endrow putinterval } for
     ph 4 sub 1 ph 1 sub { pixs exch pw mul endrow putinterval } for
@@ -477,16 +478,16 @@ DD2B847B81C30BEAEA6C76
         /rf r //datastrip.framerows mod def
         /row pixs r 4 add pw mul pw getinterval def
         %
-        % Left framing: guard, ruling, clock, gap, sync, and two bits of the
-        % frame's sync word, which repeats to fill the frame
+        % Left framing: ruling, clock, gap, sync, and two bits of the frame's
+        % sync word, which repeats to fill the frame
         %
         /word r //datastrip.framerows idiv 0 syncword def
-        row 0 0 put  row 1 0 put  row 2 1 put
-        row 3 r 1 and 1 xor put
-        row 4 0 put
-        row 5 //datastrip.sync rf get 49 eq { 1 } { 0 } ifelse put
-        row 6 word rf 2 mul syncbit put
-        row 7 word rf 2 mul 1 add syncbit put
+        row 0 1 put
+        row 1 r 1 and 1 xor put
+        row 2 0 put
+        row 3 //datastrip.sync rf get 49 eq { 1 } { 0 } ifelse put
+        row 4 word rf 2 mul syncbit put
+        row 5 word rf 2 mul 1 add syncbit put
         %
         % Right framing is the left framing of the row the same distance from
         % the other end, reversed
@@ -494,12 +495,12 @@ DD2B847B81C30BEAEA6C76
         /mr nrows 1 sub r sub def
         /mrf mr //datastrip.framerows mod def
         /rword mr //datastrip.framerows idiv 1 syncword def
-        row W 8 add rword mrf 2 mul 1 add syncbit put
-        row W 9 add rword mrf 2 mul syncbit put
-        row W 10 add //datastrip.sync mrf get 49 eq { 1 } { 0 } ifelse put
-        row W 11 add 0 put
-        row W 12 add mr 1 and 1 xor put
-        row W 13 add 1 put  row W 14 add 0 put  row W 15 add 0 put
+        row W 6 add rword mrf 2 mul 1 add syncbit put
+        row W 7 add rword mrf 2 mul syncbit put
+        row W 8 add //datastrip.sync mrf get 49 eq { 1 } { 0 } ifelse put
+        row W 9 add 0 put
+        row W 10 add mr 1 and 1 xor put
+        row W 11 add 1 put
         %
         % Data area: stream bits, except for the header bits at the corners of
         % the header blocks
@@ -509,7 +510,7 @@ DD2B847B81C30BEAEA6C76
             dup hcol exch get                           % k col
             c 1 index 1 sub fillbits
             dup 1 add /c exch def
-            exch hdrbit row 3 1 roll exch 8 add exch put
+            exch hdrbit row 3 1 roll exch 6 add exch put
         } forall
         c W 1 sub fillbits
     } for
@@ -523,6 +524,8 @@ DD2B847B81C30BEAEA6C76
     /pixy ph
     /height ph modunit mul 72 div
     /width pw modunit mul 72 div
+    /borderleft 2.0
+    /borderright 2.0
     /strictspec strictspec
     /loosespec loosespec
     /xdim xdim
