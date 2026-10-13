@@ -1,0 +1,131 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER vin--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renlinear code39--
+% --DESC: Vehicle Identification Number
+% --EXAM: 1ZZAB12C8DE345678
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/vin.length 17 def
+/vin.checkpos 8 def
+/vin.translit (12345678-12345-7-923456789) readonly def  % Values of A to Z, without I, O and Q
+/vin.weights [ 8 7 6 5 4 3 2 10 0 9 8 7 6 5 4 3 2 ] readonly def
+
+/vin {
+
+    16 dict begin
+    {
+
+    /dontdraw false def
+
+    null /apply //processoptions exec /options exch def
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    barcode length //vin.length ne {
+        /bwipp.vinBadLength (VIN must be 17 characters long) //raiseerror exec
+    } if
+
+    %
+    % Digits and the upper case letters other than I, O and Q, with their
+    % transliterated values
+    %
+    /checksum 0 def
+    0 1 //vin.length 1 sub {
+        /i exch def
+        barcode i get
+        dup 48 ge 1 index 57 le and {
+            48 sub
+        } {
+            dup 65 ge 1 index 90 le and { //vin.translit exch 65 sub get } { pop 45 } ifelse  % Hyphen marks I, O, Q and other characters
+            dup 45 eq {
+                pop /bwipp.vinBadCharacter (VIN must contain only digits and upper case letters other than I, O and Q) //raiseerror exec
+            } if
+            48 sub
+        } ifelse
+        //vin.weights i get mul checksum add /checksum exch def
+    } for
+
+    %
+    % The check digit is verified for the World Manufacturer Identifiers of
+    % North America, which begin 1 to 5; elsewhere it may be absent
+    %
+    barcode 0 get dup 49 ge exch 53 le and {
+        /checksum checksum 11 mod def
+        barcode //vin.checkpos get checksum 10 eq { 88 } { checksum 48 add } ifelse ne {
+            /bwipp.vinBadCheckDigit (Incorrect VIN check digit provided) //raiseerror exec
+        } if
+    } if
+
+    %
+    % Get the result of encoding with code39
+    %
+    options (includecheck) false put  % The VIN carries no Code 39 check character
+    options (validatecheck) false put
+    /uk.co.terryburton.bwipp._dontdraw true def
+    barcode options //code39 exec /args exch def
+
+    args (opt) options put
+    args
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/vin dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER vin--

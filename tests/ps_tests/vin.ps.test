@@ -1,0 +1,52 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/vin dup /uk.co.terryburton.bwipp findresource cvx def
+/code39 dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% The bars are those of Code 39 without a symbol check character
+%
+/eq_tmpl {
+    dup { 0 (dontdraw) vin /sbs get } dup 3 -1 roll 0 exch put
+    exch (dontdraw) code39 /sbs get
+    isEqual
+} def
+
+/er_tmpl {
+    exch { 0 (dontdraw) vin } dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+% North American, with check digits including X
+(1ZZAB12C8DE345678) eq_tmpl
+(2ZZ1234510A123456) eq_tmpl
+(3ZZ00002XAB123456) eq_tmpl
+(4ZZAB12CXDE345678) eq_tmpl
+(5ZZAB12C7DE345678) eq_tmpl
+
+% Elsewhere the check digit is not required
+(WZZAB12C0DE345678) eq_tmpl
+(SZZAB12CZDE345678) eq_tmpl
+
+% The Code 39 check character options do not apply
+{ (1ZZAB12C8DE345678) (dontdraw validatecheck) vin /sbs get } (1ZZAB12C8DE345678) (dontdraw) code39 /sbs get debugIsEqual
+{ (1ZZAB12C8DE345678) (dontdraw includecheck) vin /sbs get } (1ZZAB12C8DE345678) (dontdraw) code39 /sbs get debugIsEqual
+
+% The text is that of Code 39
+{ (1ZZAB12C8DE345678) (dontdraw includetext) vin /txt get 0 get 0 get } (*1ZZAB12C8DE345678*) isEqual
+
+(1ZZAB12C8DE34567) /bwipp.vinBadLength er_tmpl
+(1ZZAB12C8DE345678A) /bwipp.vinBadLength er_tmpl
+(WZZAB12C0DE34567I) /bwipp.vinBadCharacter er_tmpl
+(WZZAB12C0DE34567O) /bwipp.vinBadCharacter er_tmpl
+(WZZAB12C0DE34567Q) /bwipp.vinBadCharacter er_tmpl
+(WZZAB12C0DE34567a) /bwipp.vinBadCharacter er_tmpl
+(WZZAB12C0DE34567-) /bwipp.vinBadCharacter er_tmpl
+(1ZZAB12C0DE345678) /bwipp.vinBadCheckDigit er_tmpl
+(5ZZAB12C0DE345678) /bwipp.vinBadCheckDigit er_tmpl
