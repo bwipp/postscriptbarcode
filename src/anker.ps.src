@@ -1,0 +1,264 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER anker--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renlinear--
+% --DESC: Anker Code
+% --EXAM: 1234567890
+% --EXOP: includetext includecheckintext
+% --RNDR: renlinear
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+17 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/anker.barchars (0123456789ABCDEF) readonly def
+/anker.maxlen 28 def                                  % Data characters on an ADS label
+
+/anker.encs [
+    (14141414) (32141414) (14321414) (32321414)
+    (14143214) (32143214) (14323214) (32323214)
+    (14141432) (32141432) (14321432) (32321432)
+    (14143232) (32143232) (14323232) (32323232)
+    (32321432) (341412323)
+] readonly def
+
+/anker.checksalt [ 1 1 1 1 0 1 0 0 1 ] readonly def
+
+/anker.checkinit [ 0 0 0 0 0 0 0 0 ] readonly def
+
+/anker.latevars dup 2 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //anker.latevars begin
+
+    /charvals 16 dict def
+    0 1 15 {
+        charvals exch dup //anker.barchars exch 1 getinterval exch put
+    } for
+    /charvals charvals readonly def
+
+    /init { //anker.latevars {def} forall } def
+
+    end
+
+    //anker.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//anker.latevars /init get exec} if
+} {pop} ifelse
+
+/anker {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /includetext false def    % Enable/disable text
+    /validatecheck false def
+    /includecheckintext false def
+    /text1font /Courier def
+    /text1size 10.0 def
+    /text1yoffset -7.0 def
+    /height -1.0 def
+    /width 0 def
+
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    //anker.latevars /init get exec
+
+    barcode () eq {
+        /bwipp.ankerEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
+    %
+    % Validate the input
+    %
+    0 1 barcode length 1 sub {
+        barcode exch 1 getinterval charvals exch known not {
+            /bwipp.ankerBadCharacter (Anker must contain only digits and letters A B C D E F) //raiseerror exec
+        } if
+    } for
+
+    validatecheck barcode length 2 lt and {
+        /bwipp.ankerBadLength (Anker with check digits must be at least 2 characters) //raiseerror exec
+    } if
+
+    /barlen barcode length validatecheck {2 sub} if def
+    barlen //anker.maxlen gt {
+        /bwipp.ankerBadLength (Anker must not exceed 28 data characters) //raiseerror exec
+    } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /anker ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Calculate the checksums
+    %
+    /checkbits barlen 4 mul 8 add array def
+    checkbits barlen 4 mul //anker.checkinit putinterval
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        checkbits i 4 mul [
+                indx 1 and
+                indx -1 bitshift 1 and
+                indx -2 bitshift 1 and
+                indx -3 bitshift
+        ] putinterval
+    } for
+    0 1 barlen 4 mul 1 sub {
+        /i exch def
+        checkbits i get 1 eq {
+            0 1 8 {
+                /j exch def
+                checkbits i j add checkbits i j add get //anker.checksalt j get xor put
+            } for
+        } if
+    } for
+    /checkval 0 def
+    0 1 7 {
+        /i exch def
+        /checkval checkval 2 i exp cvi checkbits barlen 4 mul i add get mul add def
+    } for
+    /checkval checkval 255 xor def  % Anker transmits the complement of the CRC
+    /checksum1 checkval 15 and def
+    /checksum2 checkval -4 bitshift def
+    validatecheck {
+        barcode barlen get //anker.barchars checksum1 get ne
+        barcode barlen 1 add get //anker.barchars checksum2 get ne or {
+            /bwipp.ankerBadCheckDigits
+            [ (Incorrect Anker check digits provided: expected ) //anker.barchars checksum1 1 getinterval //anker.barchars checksum2 1 getinterval (, not ) barcode barlen 2 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+    } if
+
+    /sbs barlen 8 mul 33 add string def
+
+    %
+    % Put start character
+    %
+    sbs 0 //anker.encs 16 get putinterval
+
+    0 1 barlen 1 sub {
+        /i exch def
+        /indx charvals barcode i 1 getinterval get def
+        sbs i 8 mul 8 add //anker.encs indx get putinterval
+    } for
+
+    %
+    % Put the checksum characters
+    %
+    sbs barlen 8 mul 8 add //anker.encs checksum1 get putinterval
+    sbs barlen 8 mul 16 add //anker.encs checksum2 get putinterval
+    /text includecheckintext {
+        barlen 2 add string dup 0 barcode putinterval
+        dup barlen //anker.barchars checksum1 1 getinterval putinterval
+        dup barlen 1 add //anker.barchars checksum2 1 getinterval putinterval
+    } { barcode } ifelse def
+
+    %
+    % Put end character
+    %
+    sbs barlen 8 mul 24 add //anker.encs 17 get putinterval
+
+    /resolve_height //render exec dup -1 eq { pop 1.0 } if /height exch def
+
+    <<
+    /ren /renlinear
+    /sbs [sbs {48 sub} forall]
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt [ [text 0 0 text1font text1size] ]
+        /text1xalign (center)
+    } if
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/anker dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER anker--

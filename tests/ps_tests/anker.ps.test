@@ -1,0 +1,61 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/anker dup /uk.co.terryburton.bwipp findresource cvx def
+
+/txt_tmpl {
+    3 1 roll { 0 0 anker /txt get 0 get 0 get }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+
+%
+% The check characters are the complement of those of Plessey: 6E, DC, 00 and D5
+%
+(1234567890) (dontdraw includetext includecheckintext) (123456789091) txt_tmpl
+(01234ABCD) (dontdraw includetext includecheckintext) (01234ABCD23) txt_tmpl
+(0) (dontdraw includetext includecheckintext) (0FF) txt_tmpl
+(1234567890123456789012345678) (dontdraw includetext includecheckintext) (12345678901234567890123456782A) txt_tmpl
+(1234567890) (dontdraw includetext) (1234567890) txt_tmpl
+
+%
+% Plessey start, data, check characters, then a wide termination bar and the reverse code
+%
+{ (0) (dontdraw) anker /sbs get } [
+    3 2 3 2 1 4 3 2
+    1 4 1 4 1 4 1 4
+    3 2 3 2 3 2 3 2
+    3 2 3 2 3 2 3 2
+    3 4 1 4 1 2 3 2 3
+] debugIsEqual
+
+{ (123456789091) (dontdraw validatecheck includetext includecheckintext) anker /txt get 0 get 0 get } (123456789091) isEqual
+
+
+%
+% Error tests
+%
+
+{ () (dontdraw) anker } /bwipp.ankerEmptyData isError
+{ (G) (dontdraw) anker } /bwipp.ankerBadCharacter isError
+{ (12345678901234567890123456789) (dontdraw) anker } /bwipp.ankerBadLength isError
+{ (12345678901234567890123456789A2B) (dontdraw validatecheck) anker } /bwipp.ankerBadLength isError
+{ (1) (dontdraw validatecheck) anker } /bwipp.ankerBadLength isError
+{ (12345678906E) (dontdraw validatecheck) anker } [/bwipp.ankerBadCheckDigits (Incorrect Anker check digits provided: expected 91, not 6E)] isErrorInfo
+
+
+%
+% Smoke test: propspec and strictspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 anker true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(1234567890)  (includetext strictspec xdim=0.330)   ok_tmpl
