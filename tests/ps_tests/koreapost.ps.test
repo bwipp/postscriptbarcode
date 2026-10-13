@@ -1,0 +1,59 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+/koreapost dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {
+    exch { 0 (dontdraw) koreapost /sbs get } dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+
+%
+% The example of the ETRI customer barcode, printed from the least
+% significant digit as 065492 with check digit 4
+%
+(294560) [0 0 1 3 1 3 1 11 1 3 1 3 1 11 1 3 1 3 1 7 1 7 1 3 1 7 1 3 1 7 1 3 1 3 1 3 1 7 1 7 1 7 1 7 1 3 1 3 1 7 1 3 1 7 1 3 1] eq_tmpl
+
+% Empty leading slots, and every digit
+(111111) [0 8 1 3 1 3 1 3 1 11 1 3 1 3 1 3 1 11 1 3 1 3 1 3 1 11 1 3 1 3 1 3 1 11 1 3 1 3 1 3 1 11 1 3 1 3 1 3 1 7 1 3 1 7 1 3 1] eq_tmpl
+(789012) [0 4 1 7 1 3 1 3 1 11 1 3 1 3 1 3 1 3 1 3 1 3 1 11 1 3 1 3 1 7 1 7 1 3 1 7 1 3 1 7 1 7 1 3 1 3 1 7 1 3 1 11 1 3 1 3 1] eq_tmpl
+(543210) [0 0 1 3 1 3 1 11 1 11 1 3 1 3 1 3 1 7 1 7 1 3 1 3 1 3 1 11 1 3 1 3 1 7 1 3 1 7 1 3 1 3 1 7 1 7 1 3 1 3 1 7 1 7 1 3 1] eq_tmpl
+
+{ (2945604) (dontdraw validatecheck) koreapost /sbs get length } 57 isEqual
+{ (294560) (dontdraw includetext includecheckintext) koreapost /txt get 0 get 0 get } (2945604) isEqual
+{ (294560) (dontdraw includetext) koreapost /txt get 0 get 0 get } (294560) isEqual
+
+
+%
+% Error tests
+%
+
+{ (29456) (dontdraw) koreapost } /bwipp.koreapostBadLength isError
+{ (2945604) (dontdraw) koreapost } /bwipp.koreapostBadLength isError
+{ (29456A) (dontdraw) koreapost } /bwipp.koreapostBadCharacter isError
+{ (2945601) (validatecheck dontdraw) koreapost } [/bwipp.koreapostBadCheckDigit (Incorrect Korea Post check digit provided: expected 4, not 1)] isErrorInfo
+
+
+%
+% Smoke test: propspec and strictspec render without error
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 koreapost true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(294560)  (includetext)   ok_tmpl
+(294560)  (includetext propspec)   ok_tmpl
+(294560)  (includetext strictspec)   ok_tmpl
+
+%
+% Bars of 4 mm at the nominal module of 10/24 mm, or derived from the AST:
+% hnom=4.000 xnom=0.4167, round(9.6)=10 modules under propspec
+%
+{ (294560) (dontdraw) koreapost /bhs get 0 get 720 mul round cvi } 96 isEqual
+{ (294560) (dontdraw propspec) koreapost /bhs get 0 get 72 mul round cvi } 10 isEqual
+{ (294560) (dontdraw strictspec) koreapost /bhs get 0 get 72 mul 0.4167 mul 1000 mul round cvi } 4000 isEqual

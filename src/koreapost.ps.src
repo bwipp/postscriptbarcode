@@ -1,0 +1,197 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER koreapost--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renlinear--
+% --DESC: Korea Post
+% --EXAM: 123456
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: Postal Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+9 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/koreapost.barchars (0123456789) readonly def
+/koreapost.pitch 4 def                                % Slot pitch in modules; bars are one module wide
+/koreapost.height 4 10 24 div div 72 div def          % 4 mm at 10/24 mm per module, in inches
+
+%
+% Each character is five slots, three of them bars, then a bar that separates
+% it from the next; the two empty slots of the digits 1 to 9 then 0 are the
+% pairs of slots in colexicographic order
+%
+/koreapost.encs [
+    1 1 4 {                                           % b
+        0 1 2 index 1 sub {                           % b a
+            (11111) 5 string copy                     % b a s
+            dup 2 index 48 put                        % b a s
+            dup 3 index 48 put                        % b a s
+            exch pop exch                             % s b
+        } for
+        pop
+    } for
+    10 1 roll
+] readonly def
+
+/koreapost {
+
+    32 dict begin
+    {
+
+    /dontdraw false def
+    /includetext false def
+    /validatecheck false def
+    /includecheckintext false def
+    /text1font /Courier def
+    /text1size 10.0 def
+    /text1yoffset -7.0 def
+    /height -1.0 def
+    /width 0 def
+
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    /barlen barcode length validatecheck {1 sub} if def
+
+    %
+    % Validate the input
+    %
+    barlen 6 ne {
+        /bwipp.koreapostBadLength (Korea Post must be 6 digits excluding check digit) //raiseerror exec
+    } if
+    barcode {
+        dup 48 lt exch 57 gt or {
+            /bwipp.koreapostBadCharacter (Korea Post must contain only digits) //raiseerror exec
+        } if
+    } forall
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /koreapost ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    /checksum 0 barcode 0 barlen getinterval { 48 sub add } forall def
+    /checksum 10 checksum 10 mod sub 10 mod def
+    validatecheck {
+        barcode barlen get //koreapost.barchars checksum get ne {
+            /bwipp.koreapostBadCheckDigit
+            [ (Incorrect Korea Post check digit provided: expected ) //koreapost.barchars checksum 1 getinterval (, not ) barcode barlen 1 getinterval ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
+        } if
+        /barcode barcode 0 barlen getinterval def
+    } if
+
+    /resolve_height //render exec dup -1 eq { pop //koreapost.height } if /height exch def
+
+    %
+    % The digits from the least significant, then the check digit; a
+    % zero-width bar starts the symbol at the first slot, which may be empty
+    %
+    /bar {  % gap -> next gap
+        1 //koreapost.pitch 1 sub
+    } def
+    /slot {  % gap char -> next gap
+        48 eq { //koreapost.pitch add } { bar } ifelse
+    } def
+    /putchar {  % gap digit -> next gap
+        //koreapost.encs exch get { slot } forall bar
+    } def
+    mark 0 0
+    barlen 1 sub -1 0 { barcode exch get 48 sub putchar } for
+    checksum putchar
+    pop
+    counttomark array astore /sbs exch def pop
+
+    /text includecheckintext {
+        barlen 1 add string dup 0 barcode putinterval dup barlen //koreapost.barchars checksum 1 getinterval putinterval
+    } { barcode } ifelse def
+
+    <<
+    /ren /renlinear
+    /sbs sbs
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt [ [text 0 0 text1font text1size] ]
+        /text1xalign (center)
+    } if
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/koreapost dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER koreapost--
