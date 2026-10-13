@@ -1,0 +1,221 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+
+
+% --BEGIN ENCODER dxfilmedge--
+% --REQUIRES preamble raiseerror setuphooks processoptions setanycolor render renmatrix--
+% --DESC: DX Film Edge
+% --EXAM: 79-7/22A
+% --EXOP:
+% --RNDR: renmatrix
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+8 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+begin
+
+%
+% The data track's start and stop patterns, and the clock track: a long
+% bar against the start then one bar for every two data modules
+%
+/dxfilmedge.start [1 0 1 0 1 0] readonly def
+/dxfilmedge.stop [0 1 0 1] readonly def
+/dxfilmedge.clockstart [1 1 1 1 1] readonly def
+
+%
+% Frame numbers written as letters, as on the film
+%
+/dxfilmedge.frames <<
+    (S) (62)  (X) (62)  (SA) (62A)  (XA) (62A)
+    (K) (63)  (00) (63)  (KA) (63A)  (00A) (63A)
+    (F) (0)  (FA) (0A)
+>> readonly def
+
+/dxfilmedge {
+
+    16 dict begin
+    {
+
+    /dontdraw false def
+    /rowheight 3 def
+
+    /strictspec false def
+    /propspec false def
+    /loosespec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    rowheight 1 lt {
+        /bwipp.dxfilmedgeBadRowHeight (The rowheight must be at least 1) //raiseerror exec
+    } if
+
+    /digits {  % string -> bool  Non-empty, all digits
+        dup length 0 gt exch { dup 48 lt exch 57 gt or { pop false } if } forall
+    } def
+
+    %
+    % The DX number, then optionally a frame number following a slash
+    %
+    /hasframe false def
+    barcode (/) search {
+        exch pop /dx exch def /frame exch def /hasframe true def
+    } {
+        /dx exch def
+    } ifelse
+
+    %
+    % The DX number as its two parts separated by a hyphen, or as the up to
+    % four digits of a DX extract or six of a full DX number, whose first and last
+    % digits are not encoded
+    %
+    dx (-) search {
+        exch pop
+        2 copy digits exch digits and not {
+            pop pop /bwipp.dxfilmedgeBadDX (The DX number must be its two parts separated by a hyphen, or up to four or six digits) //raiseerror exec
+        } if
+        dx length 6 gt {
+            pop pop /bwipp.dxfilmedgeBadDX (The DX number must be its two parts separated by a hyphen, or up to four or six digits) //raiseerror exec
+        } if
+        cvi /part1 exch def cvi /part2 exch def
+    } {
+        dup digits not 1 index length 4 gt 2 index length 6 ne and or {
+            pop /bwipp.dxfilmedgeBadDX (The DX number must be its two parts separated by a hyphen, or up to four or six digits) //raiseerror exec
+        } if
+        dup length 6 eq { 1 4 getinterval } if
+        cvi dup -4 bitshift /part1 exch def 15 and /part2 exch def
+    } ifelse
+    part1 1 lt part1 127 gt or part2 15 gt or {
+        /bwipp.dxfilmedgeBadDX (The DX number must have a first part from 1 to 127 and a second from 0 to 15) //raiseerror exec
+    } if
+
+    %
+    % The frame number from 0 to 63, then A for a half frame
+    %
+    hasframe {
+        frame length 3 le { //dxfilmedge.frames frame known } { false } ifelse { /frame //dxfilmedge.frames frame get def } if
+        /half false def
+        frame length 0 gt { frame dup length 1 sub get 65 eq } { false } ifelse {
+            /half true def /frame frame 0 frame length 1 sub getinterval def
+        } if
+        frame digits { frame length 3 le } { false } ifelse { frame cvi 63 gt } { true } ifelse {
+            /bwipp.dxfilmedgeBadFrame (The frame number must be from 0 to 63, optionally followed by A for a half frame) //raiseerror exec
+        } if
+        /frame frame cvi def
+    } if
+
+    %
+    % Apply AST spec overrides and resolve physical specification
+    %
+    /dxfilmedge ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Data track: start, DX parts with an unassigned bit between them, the
+    % frame number, half frame flag and an unassigned bit, then even parity
+    % and stop
+    %
+    /data [
+        6 -1 0 { part1 exch neg bitshift 1 and } for
+        0
+        3 -1 0 { part2 exch neg bitshift 1 and } for
+        hasframe {
+            5 -1 0 { frame exch neg bitshift 1 and } for
+            half { 1 } { 0 } ifelse
+            0
+        } if
+    ] def
+    /bits [
+        //dxfilmedge.start aload pop
+        data aload pop
+        0 data { add } forall 1 and
+        //dxfilmedge.stop aload pop
+    ] def
+    /w bits length def
+
+    /clock [
+        //dxfilmedge.clockstart aload pop
+        w //dxfilmedge.clockstart length sub 2 sub 2 idiv { 0 1 } repeat
+        1 1
+    ] def
+
+    <<
+    /ren /renmatrix
+    /pixs [ clock aload pop bits aload pop ]
+    /pixx w
+    /pixy rowheight 2 mul
+    /rowheights [ rowheight rowheight ]
+    /height rowheight 2 mul 72 div
+    /width w 72 div
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/dxfilmedge dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER dxfilmedge--
