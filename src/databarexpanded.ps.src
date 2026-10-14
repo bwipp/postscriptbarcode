@@ -507,6 +507,16 @@ begin
     } def
 
     %
+    % The characters that the general purpose field can encode, which linting
+    % otherwise ensures
+    %
+    gpf {
+        iso646 exch known not {
+            /bwipp.gs1databarexpandedBadCharacter (GS1 DataBar Expanded can encode only the characters of the ISO/IEC 646 encodation) //raiseerror exec
+        } if
+    } forall
+
+    %
     % Pre-compute alphanumeric and numeric runlengths and position of next ISO646-only characters
     %
     /numericruns [ gpf length {0} repeat 0 -1 ] def
