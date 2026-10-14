@@ -193,6 +193,14 @@ begin
         { [bhs length 1 sub {1 1.3} repeat 1] }
         { [bhs length 1 sub {1.44 1.872} repeat 1.44] }
     ifelse
+    %
+    % Quiet zones of 10X at the sides and 1.016 mm above and below, at the
+    % minimum bar width under a spec mode
+    %
+    /borderleft strictspec propspec or { 10.0 } { 14.4 } ifelse
+    /borderright strictspec propspec or { 10.0 } { 14.4 } ifelse
+    /bordertop strictspec propspec or { 3.0 } { 2.88 } ifelse
+    /borderbottom strictspec propspec or { 3.0 } { 2.88 } ifelse
     includetext {
         /txt [ [text 0 0 text1font text1size] ]
         /text1xalign (center)
