@@ -681,6 +681,9 @@ begin
     and { /bwipp.debugbits binval //raiseerror exec } if
 
     /datalen binval length 12 idiv def
+    datalen 21 gt {  % With the check character, at most 22 symbol characters
+        /bwipp.gs1databarexpandedTooLong (Maximum length exceeded) //raiseerror exec
+    } if
 
     /ncr {  % n r
         2 copy sub 2 copy lt {exch} if  % n r maxd mind
