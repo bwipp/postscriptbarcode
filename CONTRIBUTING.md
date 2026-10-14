@@ -437,6 +437,30 @@ To avoid orphaning stack entries when a resource does not run to completion — 
 as when another resource invokes `raiseerror` — resources must execute other
 resources only with a clean stack.
 
+More generally, a resource must never leave its own entries on the stack across
+a call that can raise an error, whether to another resource or to a helper such
+as `render`. Compute the value first and name it afterwards:
+
+```postscript
+% Bad: /height is orphaned if resolve_height raises an error
+/height /resolve_height //render exec def
+
+% Good
+/resolve_height //render exec /height exch def
+```
+
+The same holds for a `mark` or `[` whose elements come from calls that can
+raise an error (see "Array Extension in Loops" below), and for the graphics
+state: a resource that calls a renderer within its own `gsave` restores the
+graphics state before re-propagating an error (see `swissqrcode`):
+
+```postscript
+gsave
+...
+{ //renmatrix exec } stopped { grestore stop } if
+grestore
+```
+
 To avoid leaving entries on the dict stack when an error is raised, each
 resource's `stopped` context catches the `stop` from `raiseerror`, and then
 runs `{end stop}` to close the dictionary and re-propagate.
@@ -552,6 +576,9 @@ For a GS1 Digital Link URI:
 `parseinput` is applied to each extracted AI value (from `vals`) of bracketed AI syntax inputs, and to the overall URI for GS1 Digital Link inputs.
 
 GS1-enabled encoders can disable validation checks using the `dontlint` option.
+With `dontlint` an encoder places no restriction on the data beyond what it
+needs to run: it still refuses data that it cannot encode, with an error of
+its own rather than a PostScript error.
 
 
 ### Error Handling (`raiseerror.ps.src`)
@@ -1118,6 +1145,10 @@ counttomark array astore
 If use of stack is difficult, e.g. due to complex backtracking, then
 pre-allocate and, if size is bounded, over-size then trim with `getinterval`.
 
+Also pre-allocate when computing an element can raise an error, since the
+`mark` and the elements so far would otherwise be orphaned on the stack (see
+`gs1process`, which parses each AI value into a pre-allocated array).
+
 Extension of small arrays with `/arr [ arr aload pop ... ] def` is
 acceptable for one-time operations outside loops.
 
@@ -1409,6 +1440,21 @@ For repetitive tests, use template procedures, for example:
 } def
 
 (INVALID)  /bwipp.encoderBadData  er_tmpl
+```
+
+The test harness checks the operand and dictionary stacks and the VM
+allocation mode after each test, but cannot see a leaked graphics state. To
+test that an error restores it, set distinct graphics state at two levels and
+check which one survives:
+
+```postscript
+{
+    gsave 1.5 setlinewidth
+    gsave 2 setlinewidth
+    { 0 0 moveto (DATA) (width=0.001) encoder } stopped pop
+    grestore currentlinewidth
+    grestore
+} 1.5 isEqual
 ```
 
 
