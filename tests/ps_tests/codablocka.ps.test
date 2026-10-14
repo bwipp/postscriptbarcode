@@ -43,9 +43,27 @@
 (ABCD4) (columns=5 rows=3 dontdraw) 0 (NABCD4N) row_tmpl
 (ABCD4) (columns=5 rows=3 dontdraw) 2 (1   I81) row_tmpl
 
-% Separators span the row indicators and data, but not the start and stop characters
-{ (ABCD4) (columns=5 dontdraw) codablocka dup /pixx get exch /pixs get exch 0 exch getinterval }
-[ 16 {0} repeat 111 {1} repeat 16 {0} repeat ] debugIsEqual
+% The top and bottom separators span the symbol; the start and stop characters,
+% the Code 39 character * with its gap, run through the interior separators
+/cba_start [ 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 0 ] def
+/cba_stop  [ 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 ] def
+{ (ABCD4) (columns=5 dontdraw) codablocka /pixs get }
+[
+    143 {1} repeat
+    (MABCD4M) (dontdraw) code39 /sbs get bits aload pop pop
+    cba_start aload pop 111 {1} repeat cba_stop aload pop
+    (0   Z00) (dontdraw) code39 /sbs get bits aload pop pop
+    143 {1} repeat
+] debugIsEqual
+/sep_tmpl {  % rownum expected
+    exch { (ABCD4) (columns=5 rows=3 dontdraw) codablocka /pixs get 0 143 mul 143 getinterval }
+    dup 3 -1 roll 5 exch put
+    exch debugIsEqual
+} def
+0 [ 143 {1} repeat ] sep_tmpl
+2 [ cba_start aload pop 111 {1} repeat cba_stop aload pop ] sep_tmpl
+4 [ cba_start aload pop 111 {1} repeat cba_stop aload pop ] sep_tmpl
+6 [ 143 {1} repeat ] sep_tmpl
 
 % Row height from the number of columns, at least 8
 { (CODABLOCK A IS CODE 39 STACKED IN ROWS) (columns=10 dontdraw) codablocka /pixy get } 53 isEqual

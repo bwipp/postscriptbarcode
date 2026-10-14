@@ -181,8 +181,9 @@ begin
     } { rowheight } ifelse def
 
     %
-    % Row bits; separators span the row indicators and data but not the
-    % start and stop characters or their gaps
+    % Row bits; the start and stop characters run through the interior
+    % separators, which span the row indicators and data, and the top and
+    % bottom separators span the whole symbol
     %
     /sbs0 rowsbs 0 get def
     /symwid 0 sbs0 0 sbs0 length 1 sub getinterval { add } forall def
@@ -197,7 +198,12 @@ begin
         0 symwid getinterval
         rowbits i 3 -1 roll put
     } for
-    /seprow [ sepl {0} repeat sepr sepl sub {1} repeat symwid sepr sub {0} repeat ] def
+    /allone [ symwid {1} repeat ] def
+    /seprow [
+        rowbits 0 get 0 sepl getinterval aload pop
+        sepr sepl sub {1} repeat
+        rowbits 0 get sepr symwid sepr sub getinterval aload pop
+    ] def
 
     /symhgt sepheight r 1 add mul r rowheight mul add def
     /numcomprows r 2 mul 1 add def
@@ -206,12 +212,12 @@ begin
     /pos 0 def /ri 0 def
     0 1 r 1 sub {
         /i exch def
-        pixs pos seprow putinterval  /pos pos symwid add def
+        pixs pos i 0 eq { allone } { seprow } ifelse putinterval  /pos pos symwid add def
         rowheights ri sepheight put  /ri ri 1 add def
         pixs pos rowbits i get putinterval  /pos pos symwid add def
         rowheights ri rowheight put  /ri ri 1 add def
     } for
-    pixs pos seprow putinterval
+    pixs pos allone putinterval
     rowheights ri sepheight put
 
     <<
