@@ -44,16 +44,17 @@
 (ABCD4) (columns=5 rows=3 dontdraw) 2 (1   I81) row_tmpl
 
 % The top and bottom separators span the symbol; the start and stop characters,
-% the Code 39 character * with its gap, run through the interior separators
+% the Code 39 character * with its gap, run through the interior separators.
+% The rows are those of zint's Code 39, with wide elements of three modules.
 /cba_start [ 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 0 ] def
 /cba_stop  [ 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 ] def
 { (ABCD4) (columns=5 dontdraw) codablocka /pixs get }
 [
-    143 {1} repeat
-    (MABCD4M) (dontdraw) code39 /sbs get bits aload pop pop
-    cba_start aload pop 111 {1} repeat cba_stop aload pop
-    (0   Z00) (dontdraw) code39 /sbs get bits aload pop pop
-    143 {1} repeat
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+    1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 0 1 1 1 0 1 1 1 0 1 0 1 0 0 0 1 0 1 1 1 0 1 0 1 0 0 0 1 0 1 1 1 0 1 0 1 1 1 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 1 1 0 1 0 0 0 1 0 1 0 1 0 1 0 1 1 1 0 0 0 1 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 0 1 1 1 0 1 1 1 0 1 1 1 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1
+    1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1
+    1 0 0 0 1 0 1 1 1 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 1 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 0 1 1 1 0 1 0 1 0 0 0 1 1 1 0 1 1 1 0 1 0 1 0 1 0 1 0 0 0 1 1 1 0 1 1 1 0 1 0 1 0 1 0 0 0 1 1 1 0 1 1 1 0 1 0 1 0 0 0 1 0 1 1 1 0 1 1 1 0 1
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 ] debugIsEqual
 /sep_tmpl {  % rownum expected
     exch { (ABCD4) (columns=5 rows=3 dontdraw) codablocka /pixs get 0 143 mul 143 getinterval }
