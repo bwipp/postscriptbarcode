@@ -582,7 +582,14 @@ begin
     (input.encoding) //azteccode.before exec
 
     /msgbits () def
-    format (rune) ne raw and {/msgbits barcode def} if
+    format (rune) ne raw and {
+        barcode {
+            dup 48 ne exch 49 ne and {
+                /bwipp.aztecBadRawBits (Raw data must contain only the bits 0 and 1) //raiseerror exec
+            } if
+        } forall
+        /msgbits barcode def
+    } if
     format (rune) ne raw not and {
 
         %
