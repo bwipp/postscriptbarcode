@@ -846,9 +846,10 @@ is not found, `default` silently passes; non-default profiles error.
    /ENCODER ast /apply_ast //render exec not { //raiseerror exec } if
    /resolve_strictspec //render exec
    ```
-4. For linear encoders, resolve height with fallback to encoder default:
+4. For linear encoders, resolve height with fallback to encoder default,
+   naming it only afterwards so that an error leaves the stack clean:
    ```postscript
-   /height /resolve_height //render exec dup -1 eq { pop <default> } if def
+   /resolve_height //render exec dup -1 eq { pop <default> } if /height exch def
    ```
 5. Pass `strictspec`, `loosespec`, `xdim`, `xmin`, `xmax`, `modunit` in the
    intermediate dict
