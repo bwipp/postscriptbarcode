@@ -799,3 +799,13 @@
         /opt << /width 2 >>
     >> renmatrix true
 } true isEqual
+
+%
+% A colormap that is not a dictionary
+%
+{
+    0 0 moveto << /ren /renmatrix /pixs [1 0 0 1] /pixx 2 /pixy 2
+        /opt << /colormap (foo) >>
+    >> renmatrix
+} /bwipp.renmatrixBadColormap isError
+{ (Hello) (colormap=foo) /qrcode /uk.co.terryburton.bwipp findresource exec } /bwipp.renmatrixBadColormap isError

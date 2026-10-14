@@ -726,6 +726,9 @@ begin
     colormap (unset) eq {
         /colormap << 1 barcolor >> def
     } if
+    colormap type /dicttype ne {
+        grestore /bwipp.renmatrixBadColormap (The colormap must be a dictionary of colors) //raiseerror exec
+    } if
 
     colormap {
         dup (unset) ne { //setanycolor exec not { 3 -1 roll pop grestore //raiseerror exec } if } { pop } ifelse
