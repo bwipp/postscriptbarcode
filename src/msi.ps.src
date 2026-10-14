@@ -148,9 +148,17 @@ begin
 
     /mod10 {
         /code exch def
-        0 0 code {48 sub exch 10 mul add exch} forall pop 2 mul
-        0 {1 index 10 mod add exch 10 idiv dup 0 eq {pop exit} if exch} loop
-        0 0 code {48 sub add exch} forall exch pop add
+        %
+        % The digit sum of double the alternate digits ending with the last,
+        % taken digit by digit, and the other digits
+        %
+        0 true
+        code length 1 sub -1 0 {
+            code exch get 48 sub
+            1 index { 2 mul dup 9 gt { 9 sub } if } if
+            3 -1 roll add exch not
+        } for
+        pop
         10 mod 10 exch sub 10 mod
         code length 1 add string dup 0 code putinterval dup code length 4 -1 roll 48 add put
     } def

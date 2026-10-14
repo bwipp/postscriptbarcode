@@ -65,6 +65,9 @@
 %
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (7) isEqual
 { 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (0123456789) (dontdraw includecheck checktype=mod1010) msi pop uk.co.terryburton.bwipp.report /checkdigit known { uk.co.terryburton.bwipp.report /checkdigit get } { null } ifelse end } (78) isEqual
+% The mod10 check digit of data longer than an integer can hold as a number
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567890123456789012345678901234567890123456789) (dontdraw includecheck) msi pop uk.co.terryburton.bwipp.report /checkdigit get end } (5) isEqual
+{ 10 dict begin /uk.co.terryburton.bwipp.report 1 dict def (01234567890123456789012345678901234567890123456789) (dontdraw includecheck checktype=mod1010) msi pop uk.co.terryburton.bwipp.report /checkdigit get end } (54) isEqual
 
 %
 % validatecheck: the final digits are the check digits of the checktype, which are verified, then encoded as with includecheck
