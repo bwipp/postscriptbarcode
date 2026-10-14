@@ -2377,6 +2377,9 @@ begin
             (\() search { exch pop exch } { () } ifelse
         } loop
         counttomark array astore exch pop /aivals exch def
+        aivals length 0 eq {
+            /bwipp.GS1noAIs (The data must contain at least one AI) //raiseerror exec
+        } if
         /ais [ 0 2 aivals length 1 sub { aivals exch get } for ] def
         /vals ais length array def  % Expand ordinals of the form ^NNN to ASCII, leaving nothing on the stack on error
         0 1 vals length 1 sub {
