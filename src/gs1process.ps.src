@@ -2378,9 +2378,12 @@ begin
         } loop
         counttomark array astore exch pop /aivals exch def
         /ais [ 0 2 aivals length 1 sub { aivals exch get } for ] def
-        /vals [ 1 2 aivals length 1 sub {  % Expand ordinals of the form ^NNN to ASCII
-            aivals exch get << /parse parse /parseonly true /parsefnc false >> //parseinput exec
-        } for ] def
+        /vals ais length array def  % Expand ordinals of the form ^NNN to ASCII, leaving nothing on the stack on error
+        0 1 vals length 1 sub {
+            /i exch def
+            aivals i 2 mul 1 add get << /parse parse /parseonly true /parsefnc false >> //parseinput exec
+            vals exch i exch put
+        } for
 
     } {  % Digital Link URI
 

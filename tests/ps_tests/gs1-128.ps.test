@@ -99,3 +99,6 @@
 % ast consumed: does not leak to code128
 %
 { 0 0 moveto (\(01\)09521234543213\(3103\)000123) (includetext loosespec ast=gs1.sst2) gs1-128 true } true isEqual
+
+% An invalid ordinal in a later AI leaves the stack clean
+{ (\(01\)09521234543213\(99\)AB^567) (parse dontdraw) gs1-128 } /bwipp.invalidOrdinal isError
