@@ -288,6 +288,13 @@ begin
         /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
     } if
 
+    start 0 lt start 282 gt or {
+        /bwipp.ultracodeBadStart (The start character must be a codeword from 0 to 282) //raiseerror exec
+    } if
+    link1 0 ne link1 1 ne and {
+        /bwipp.ultracodeBadLink1 (The link1 flag must be 0 or 1) //raiseerror exec
+    } if
+
     /structapp sampos -1 ne samtotal -1 ne or def
     structapp {
         rev 1 eq raw or start 281 eq or {
