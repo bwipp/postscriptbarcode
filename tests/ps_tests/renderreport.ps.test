@@ -79,6 +79,7 @@
 { (Hello) (loosespec) /code128 report } [/fallback /bwipp.renderNeedXnom] isEqual
 { (9520123456788) (loosespec width=2) /ean13 report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
 { (Hello) (loosespec xdim=0.500 width=2) /qrcode report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
+{ (9520123456788) (loosespec xmin=0 xdim=0) /ean13 report } [/fallback /bwipp.renderXdimTooSmall] isEqual
 
 % Composite: the 2D component, without specification, does not report a fallback
 { (9520123456788|(21)ABC) (loosespec) /ean13composite report } [/hnom 228500 /xdim 3300 /xmax 6600 /xmin 2640 /ydim 3300] isEqual
@@ -159,3 +160,8 @@
 
 % A reported message is the caller's to change
 { (Hello) (loosespec) /code128 fallbackmsg 0 88 put (Hello) (loosespec) /code128 fallbackmsg } needxnom isEqual
+
+% An X-dimension that is not positive
+{ (9520123456788) (dontdraw strictspec xmin=0 xdim=0) /ean13 /uk.co.terryburton.bwipp findresource exec } [/bwipp.renderXdimTooSmall (The X-dimension must be positive)] isErrorInfo
+{ (Hello) (dontdraw strictspec xdim=-0.5) /azteccode /uk.co.terryburton.bwipp findresource exec } /bwipp.renderXdimTooSmall isError
+{ (9520123456788) (dontdraw strictspec xmin=0 mag=0) /ean13 /uk.co.terryburton.bwipp findresource exec } /bwipp.renderXdimTooSmall isError

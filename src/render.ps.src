@@ -898,6 +898,10 @@ begin
             } if
             strictspec { /xdim xnom mag mul def } if
         } if
+        strictspec xdim 0 le and {
+            /bwipp.renderXdimTooSmall (The X-dimension must be positive) //render.specfail exec
+            /strictspec false def
+        } if
         strictspec {
             currentdict /hdim known currentdict /hnom known and {
                 hdim -1 eq hnom -1 ne and {
