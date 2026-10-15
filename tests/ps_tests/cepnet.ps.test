@@ -9,7 +9,8 @@
 /cepnet dup /uk.co.terryburton.bwipp findresource cvx def
 
 %
-% The example of the Correios guide, whose check digit is 7
+% The example of the Correios guide, whose check digit is 7: Figura 9, not same,
+% the figure has no delimiting bars and draws the check digit 7 as 0
 %
 { (28107023) (dontdraw) cepnet /bhs get
 } [ 0.125 0.05 0.05 0.125 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.05 0.05 0.05 0.125 0.125 0.125 0.125 0.05 0.05 0.05 0.125 0.05 0.05 0.05 0.125 0.125 0.125 0.05 0.05 0.05 0.05 0.05 0.125 0.05 0.125 0.05 0.05 0.125 0.125 0.05 0.125 0.05 0.05 0.05 0.125 0.125 ] debugIsEqual
@@ -17,6 +18,17 @@
 { (281070237) (dontdraw validatecheck) cepnet /bhs get length } 47 isEqual
 { (28107023) (dontdraw includetext includecheckintext) cepnet /txt get 0 get 0 get } (281070237) isEqual
 { (28107023) (dontdraw includetext) cepnet /txt get 0 get 0 get } (28107023) isEqual
+
+
+% Figures
+
+% Correios Guia tecnico CEPNet e Codigo 2D (2021) Figura 8, same
+{ (12345678) (dontdraw) cepnet /bhs get
+} [ 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.125 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.05 0.125 0.05 0.125 0.05 0.125 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.05 0.05 0.125 0.05 0.05 0.125 0.125 ] debugIsEqual
+
+% Correios Guia tecnico CEPNet e Codigo 2D (2021) Figuras 10, 11 and 12, same
+{ (36400000) (dontdraw) cepnet /bhs get
+} [ 0.125 0.05 0.05 0.125 0.125 0.05 0.05 0.125 0.125 0.05 0.05 0.05 0.125 0.05 0.05 0.125 0.125 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.05 0.125 0.125 0.05 0.05 0.05 0.125 0.05 0.05 0.05 0.125 0.125 ] debugIsEqual
 
 
 % The quiet zones
