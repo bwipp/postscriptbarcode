@@ -3,7 +3,7 @@
 %
 % vim: set sw=4 sts=4 et:
 %
-% Copyright (c) 2004-2024 Terry Burton
+% Copyright (c) 2004-2026 Terry Burton
 %
 
 % ISO/IEC 15417:2007
@@ -88,6 +88,95 @@
 % Raw codeword out of range (valid: 0-106)
 { (^107) (raw dontdraw) code128 } /bwipp.code128BadRawCodeword isError
 { (^999) (raw dontdraw) code128 } /bwipp.code128BadRawCodeword isError
+
+
+% Figures
+
+{ (AIM) (dontdraw) code128 /sbs get  % Figure 1, same
+} [ 2 1 1 2 1 4 1 1 1 3 2 3 2 3 1 3 1 1 1 1 3 1 2 3 1 1 3 1 2 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (25) (dontdraw) code128 /sbs get  % AIM USS-128 Figure 1, same
+} [ 2 1 1 2 3 2 3 2 1 1 2 2 3 1 2 2 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (1213477657) (dontdraw) code128 /sbs get  % AIM USS-128 Figure 7, same
+} [ 2 1 1 2 3 2 1 1 2 2 3 2 1 2 2 1 3 2 1 3 3 1 2 1 2 2 1 1 1 4 3 1 2 1 1 3 2 1 1 3 3 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (980080207723271453) (dontdraw) code128 /sbs get  % UPU S10-12 Annex A.3 non-S10 identifier, same
+} [ 2 1 1 2 3 2 4 1 1 3 1 1 2 1 2 2 2 2 1 1 1 2 4 2 2 2 1 2 3 1 4 1 3 1 1 1 3 1 2 1 3 1 3 1 2 2 1 2 1 2 2 2 3 1 2 1 3 1 3 1 1 4 2 1 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (123456789) (dontdraw) code128 /sbs get  % Geopost Geolabel Specification 6.0 (2024) 5.1.4.3 minilabel, same (figure text reads 123456789123)
+} [ 2 1 1 2 3 2 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 4 1 1 1 2 1 1 4 1 3 1 3 2 1 1 2 2 1 3 4 1 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (C040804804000012) (dontdraw) code128 /sbs get  % Geopost Geolabel Specification 6.0 (2024) 3.2.2 cool box label, same
+} [ 2 1 1 2 1 4 1 3 1 3 2 1 1 2 3 1 2 2 1 1 3 1 4 1 2 3 1 1 1 3 1 1 1 2 4 2 3 1 3 1 2 1 1 2 1 3 2 2 2 1 2 2 2 2 2 1 2 2 2 2 1 1 2 2 3 2 2 2 3 1 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+% { (1PMH80312) (dontdraw) code128 /sbs get
+% } [ 2 1 1 2 1 4 1 2 3 2 2 1 3 1 3 1 2 1 1 1 3 1 2 3 2 3 1 1 1 3 3 1 1 2 2 2 1 2 3 1 2 2 2 2 1 1 3 2 1 2 3 2 2 1 2 2 3 2 1 1 3 2 1 2 2 1 2 3 3 1 1 1 2 ] debugIsEqual
+{ (1PMH80312) (dontdraw) code128 /sbs get  % ISO 28219:2009 Figure 7, not same, figure uses set B throughout, BWIPP switches to set C for 0312
+} [ 2 1 1 2 1 4 1 2 3 2 2 1 3 1 3 1 2 1 1 1 3 1 2 3 2 3 1 1 1 3 3 1 1 2 2 2 1 1 3 1 4 1 1 2 1 2 2 3 1 1 2 2 3 2 1 2 1 3 2 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (12V043325711) (dontdraw) code128 /sbs get  % ISO 28219:2009 Figure G.1, same
+} [ 2 1 1 2 1 4 1 2 3 2 2 1 2 2 3 2 1 1 3 1 1 1 2 3 1 2 3 1 2 2 1 1 3 1 4 1 1 1 2 3 3 1 2 3 2 1 2 1 3 1 2 1 1 3 2 3 1 2 1 2 2 2 1 4 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (9P043325711MH80312) (dontdraw) code128 /sbs get  % ISO 28219:2009 Figure G.2, same (figure text reads 043325711MH801312)
+} [ 2 1 1 2 1 4 3 2 1 1 2 2 3 1 3 1 2 1 1 2 3 1 2 2 1 1 3 1 4 1 1 1 2 3 3 1 2 3 2 1 2 1 3 1 2 1 1 3 2 3 1 2 1 2 1 1 4 1 3 1 1 1 3 1 2 3 2 3 1 1 1 3 3 1 1 2 2 2 1 1 3 1 4 1 1 2 1 2 2 3 1 1 2 2 3 2 2 1 2 2 2 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=^0411BA3333333) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p92), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 2 2 1 2 1 3 1 2 3 2 2 1 1 3 1 1 2 3 1 1 1 3 2 3 2 2 1 1 3 2 1 1 3 1 4 1 1 1 1 3 2 3 1 1 1 3 2 3 1 1 1 3 2 3 1 3 2 3 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (^FNC1=W12340612345600) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p97), same
+} [ 2 1 1 2 1 4 4 1 1 1 3 1 3 2 2 2 1 1 3 1 1 3 2 1 1 1 3 1 4 1 1 1 2 2 3 2 1 3 1 1 2 3 1 2 2 2 1 3 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 1 2 2 2 2 1 1 1 3 2 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=%5100) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p97), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 1 3 1 2 2 2 1 1 3 1 4 1 2 1 3 1 1 3 2 1 2 2 2 2 3 2 1 2 2 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&*0060221359) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p97), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 2 2 1 3 1 2 1 1 3 1 4 1 2 1 2 2 2 2 3 1 4 1 1 1 2 2 3 1 1 2 1 2 2 1 3 2 3 3 2 1 1 1 1 1 4 2 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&>0060312359) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p97), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 2 1 2 1 2 3 1 1 3 1 4 1 2 1 2 2 2 2 3 1 4 1 1 1 2 1 2 3 2 1 3 1 2 1 3 1 3 3 2 1 1 1 2 3 1 3 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=^040N0008) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p97), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 1 3 2 2 1 2 1 1 3 3 2 1 1 1 3 1 4 1 2 1 2 2 2 2 1 3 2 2 1 2 2 2 1 3 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=>0062322359 ) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 figure (p108), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 2 1 2 1 2 3 1 1 3 1 4 1 2 1 2 2 2 2 4 3 1 1 1 1 2 3 2 1 2 1 3 1 2 1 3 1 3 3 2 1 1 1 1 1 4 1 3 1 2 1 2 2 2 2 2 1 3 1 3 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=S12560712345600) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p137), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 2 1 3 1 1 3 1 1 3 1 4 1 1 1 2 2 3 2 3 3 1 1 2 1 1 2 2 3 1 2 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 1 2 2 2 2 2 3 1 2 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=<E0336V00) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p137), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 3 2 2 1 1 2 1 3 2 1 1 3 1 1 3 1 4 1 1 2 1 2 2 3 1 1 2 3 1 3 1 1 4 1 3 1 3 1 1 1 2 3 1 2 3 1 2 2 1 2 3 1 2 2 4 1 1 1 1 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (^FNC1=W00000912345600) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p143), same
+} [ 2 1 1 2 1 4 4 1 1 1 3 1 3 2 2 2 1 1 3 1 1 3 2 1 1 1 3 1 4 1 2 1 2 2 2 2 2 1 2 2 2 2 2 2 1 2 1 3 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 1 2 2 2 2 1 1 3 1 4 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=W00000712345601) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p144), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 3 1 1 3 2 1 1 1 3 1 4 1 2 1 2 2 2 2 2 1 2 2 2 2 1 2 2 3 1 2 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 2 2 1 2 2 2 2 1 3 1 2 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=%T300) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p144), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 1 3 1 2 2 2 2 1 3 3 1 1 2 2 1 1 3 2 1 2 3 1 2 2 1 2 3 1 2 2 1 1 2 3 1 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&>0072062359) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p144), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 2 1 2 1 2 3 1 1 3 1 4 1 2 1 2 2 2 2 1 2 2 4 1 1 1 2 2 2 1 3 3 1 2 1 3 1 3 3 2 1 1 1 3 1 1 1 2 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=*007005) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p145), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 2 2 1 3 1 2 1 1 3 1 4 1 2 1 2 2 2 2 1 1 2 4 1 2 1 3 1 2 2 2 1 2 2 2 1 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=<E0472V00) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p145), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 3 2 2 1 1 2 1 3 2 1 1 3 1 1 3 1 4 1 1 2 1 3 2 2 1 2 2 4 1 1 1 1 4 1 3 1 3 1 1 1 2 3 1 2 3 1 2 2 1 2 3 1 2 2 2 2 1 2 1 3 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&>0070421520) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p145), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 2 1 2 1 2 3 1 1 3 1 4 1 2 1 2 2 2 2 1 1 2 4 1 2 1 1 2 1 3 3 1 1 3 2 2 2 2 2 1 2 3 1 4 1 1 3 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&^040N0008) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p145), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 1 3 2 2 1 2 1 1 3 3 2 1 1 1 3 1 4 1 2 1 2 2 2 2 1 3 2 2 1 2 2 1 4 1 2 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (&^0414R12345678) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p146), same
+} [ 2 1 1 2 1 4 1 2 2 2 1 3 2 2 1 2 1 3 2 2 1 2 3 1 2 3 1 1 3 1 1 1 3 1 4 1 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 4 1 1 1 2 4 1 3 1 1 1 2 3 3 1 1 1 2 ] debugIsEqual
+
+{ (=^0412FE1234567) (dontdraw parse parsefnc) code128 /sbs get  % ISBT 128 v3.6.0 label (p146), same
+} [ 2 1 1 2 1 4 3 2 2 2 1 1 2 2 1 2 1 3 2 2 3 2 1 1 1 3 2 3 1 1 1 3 2 1 1 3 1 2 3 2 2 1 1 1 3 1 4 1 3 1 2 1 3 1 1 1 3 1 2 3 1 4 1 1 2 2 2 1 3 2 1 2 2 3 3 1 1 1 2 ] debugIsEqual
 
 %
 % Smoke test: propspec renders without error
