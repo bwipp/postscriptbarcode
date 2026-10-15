@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER posicode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor render renlinear--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor render renlinear renmatrix--
 % --DESC: PosiCode
 % --EXAM: ABC123
 % --EXOP: version=b inkspread=-0.5 parsefnc includetext
@@ -41,12 +41,13 @@
 currentglobal
 true setglobal
 /setpacking where {pop currentpacking true setpacking} if
-17 dict
+18 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /parseinput dup /uk.co.terryburton.bwipp findresource put
 dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
 %
@@ -230,6 +231,9 @@ begin
     /encoding (auto) def
     /version (a) def
     /checkoffset 0 def
+    /rows 1 def
+    /rowheight -1 def
+    /sepheight 2 def
     /raw false def
     /parse false def
     /parsefnc false def
@@ -269,6 +273,16 @@ begin
 
     version (a) ne version (b) ne and version (limiteda) ne and version (limitedb) ne and {
         /bwipp.posicodeInvalidVersion (The version must be either a, b, limiteda or limitedb) //raiseerror exec
+    } if
+
+    rows 1 lt rows 5 gt or {
+        /bwipp.posicodeBadRows (The number of rows must be from 1 to 5) //raiseerror exec
+    } if
+    rowheight -1 ne rowheight 1 lt and {
+        /bwipp.posicodeBadRowHeight (The rowheight must be at least 1) //raiseerror exec
+    } if
+    sepheight 1 lt {
+        /bwipp.posicodeBadSepHeight (The sepheight must be at least 1) //raiseerror exec
     } if
 
     /charmaps version (a) eq version (b) eq or {//posicode.charmapsnormal} {//posicode.charmapslimited} ifelse def
@@ -485,100 +499,180 @@ begin
     %
     //posicode.encmaps version get /encs exch def
 
-    /v 0 def
-    cws {
-        /cw exch def
-        6 {
-            cw v xor 1 and 0 ne {
-                /v v 7682 xor def
+    %
+    % The space bar successions of a row, whose check value is raised by
+    % the sequence indicator m + 10n of a stacked row, otherwise zero
+    %
+    /rowsbs {  % rcws seq -> sbs
+        /seq exch def /rcws exch def
+
+        /v 0 def
+        rcws {
+            /cw exch def
+            6 {
+                cw v xor 1 and 0 ne {
+                    /v v 7682 xor def
+                } if
+                /v v -1 bitshift def
+                /cw cw -1 bitshift def
+            } repeat
+        } forall
+        /v v checkoffset add seq add def
+
+        version (limiteda) eq version (limitedb) eq or {
+            /v v 1023 and def
+            v 824 gt v 853 lt and {
+                /v v 292 add def
             } if
-            /v v -1 bitshift def
-            /cw cw -1 bitshift def
-        } repeat
-    } forall
-    /v v checkoffset add def
+        } {
+            /v v 1023 and 45 add def
+        } ifelse
 
-    version (limiteda) eq version (limitedb) eq or {
-        /v v 1023 and def
-        v 824 gt v 853 lt and {
-            /v v 292 add def
+        /d [ 2 2 2 2 2 2 ] def
+        /r 0 def /c 0 def /w 0 def /sum 0 def
+        {
+            sum v eq {exit} if
+            /t sum //posicode.c2w r get c get add def
+            t v eq {
+                /w w 1 add def
+                d r w 2 add put
+                /sum t def
+            } if
+            t v gt {
+                d r w 2 add put
+                /r r 1 add def
+                /w 0 def
+            } if
+            t v lt {
+                /c c 1 add def
+                /w w 1 add def
+                /sum t def
+            } if
+        } loop
+        20 0 1 4 {d exch get sub} for
+        d exch 5 exch put
+        version (b) eq version (limitedb) eq or {
+            /d [ d {1 add} forall ] def
         } if
+        /cbs (111111111111) 12 string copy def
+        5 -1 0 {
+            /i exch def
+            cbs 5 i sub 2 mul 1 add d i get 47 add put
+        } for
+
+        %
+        % Concatenate the space bar successions
+        %
+        /sbs rcws length 6 mul 31 add string def
+        encs encs length 2 sub get dup
+        sbs exch 0 exch putinterval
+        length /j exch def
+        0 1 rcws length 1 sub {
+            /i exch def
+            sbs j encs rcws i get get putinterval
+            /j j 6 add def
+        } for
+        sbs j cbs putinterval
+        /j j 12 add def
+        encs encs length 1 sub get dup
+        sbs exch j exch putinterval
+        length j add /j exch def
+        sbs 0 j getinterval
+    } def
+
+    rows 1 eq {
+
+        cws 0 rowsbs /sbs exch def
+
+        /resolve_height //render exec dup -1 eq { pop 1.0 } if /height exch def
+
+        <<
+        /ren /renlinear
+        /sbs [sbs {48 sub} forall]
+        /bhs [sbs length 1 add 2 idiv {height} repeat]
+        /bbs [sbs length 1 add 2 idiv {0} repeat]
+        /txt [ [text text1xoffset text1yoffset text1font text1size] ]
+        /text1xalign (center)
+        /borderleft  << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
+        /borderright << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
+        /strictspec strictspec
+        /loosespec loosespec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
+        /opt options
+        >>
+
+        _render //renlinear if
+
     } {
-        /v v 1023 and 45 add def
+
+        %
+        % Stacked PosiCode: rows of equal length, the last taking any
+        % remainder, each a complete symbol whose check character
+        % identifies the row m of n
+        %
+        cws length rows lt {
+            /bwipp.posicodeTooFewCharacters (Each row must contain at least one symbol character) //raiseerror exec
+        } if
+        /rowlen cws length rows idiv def
+        /rowbits rows array def
+        /symwid 0 def
+        0 1 rows 1 sub {
+            /m exch def
+            cws m rowlen mul m rows 1 sub eq { cws length m rowlen mul sub } { rowlen } ifelse getinterval
+            m 1 add rows 10 mul add rowsbs
+            mark 0 3 -1 roll { 48 sub 1 index 1 eq { {0} } { {1} } ifelse repeat } forall  % Each run the opposite colour of the last, from a bar
+            counttomark 1 sub array astore exch pop exch pop
+            dup length symwid gt { /symwid 1 index length def } if
+            rowbits m 3 -1 roll put
+        } for
+
+        %
+        % Bars approximately 15% of the length of the row
+        %
+        /rowheight rowheight -1 eq { symwid 0.15 mul round cvi dup 1 lt { pop 1 } if } { rowheight } ifelse def
+
+        /seprow [ symwid {0} repeat ] def
+        /pixy rowheight rows mul sepheight rows 1 sub mul add def
+        /numcomprows rows 2 mul 1 sub def
+        /pixs symwid numcomprows mul array def
+        /rowheights numcomprows array def
+        /pos 0 def /ri 0 def
+        0 1 rows 1 sub {
+            /m exch def
+            m 0 gt {
+                pixs pos seprow putinterval  /pos pos symwid add def
+                rowheights ri sepheight put  /ri ri 1 add def
+            } if
+            pixs pos seprow putinterval                                     % Rows aligned left, shorter rows ending in space
+            pixs pos rowbits m get putinterval  /pos pos symwid add def
+            rowheights ri rowheight put  /ri ri 1 add def
+        } for
+
+        <<
+        /ren /renmatrix
+        /pixs pixs
+        /pixx symwid
+        /pixy pixy
+        /rowheights rowheights
+        /height pixy 72 div
+        /width symwid 72 div
+        /borderleft  << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
+        /borderright << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
+        /strictspec strictspec
+        /loosespec loosespec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
+        /opt options
+        >>
+
+        _render //renmatrix if
+
     } ifelse
-
-    /d [ 2 2 2 2 2 2 ] def
-    /r 0 def /c 0 def /w 0 def /sum 0 def
-    {
-        sum v eq {exit} if
-        /t sum //posicode.c2w r get c get add def
-        t v eq {
-            /w w 1 add def
-            d r w 2 add put
-            /sum t def
-        } if
-        t v gt {
-            d r w 2 add put
-            /r r 1 add def
-            /w 0 def
-        } if
-        t v lt {
-            /c c 1 add def
-            /w w 1 add def
-            /sum t def
-        } if
-    } loop
-    20 0 1 4 {d exch get sub} for
-    d exch 5 exch put
-    version (b) eq version (limitedb) eq or {
-        /d [ d {1 add} forall ] def
-    } if
-    /cbs (111111111111) 12 string copy def
-    5 -1 0 {
-        /i exch def
-        cbs 5 i sub 2 mul 1 add d i get 47 add put
-    } for
-
-    %
-    % Concatenate the space bar successions
-    %
-    /sbs cws length 6 mul 31 add string def
-    encs encs length 2 sub get dup
-    sbs exch 0 exch putinterval
-    length /j exch def
-    0 1 cws length 1 sub {
-        /i exch def
-        sbs j encs cws i get get putinterval
-        /j j 6 add def
-    } for
-    sbs j cbs putinterval
-    /j j 12 add def
-    encs encs length 1 sub get dup
-    sbs exch j exch putinterval
-    length j add /j exch def
-    /sbs sbs 0 j getinterval def
-
-    /resolve_height //render exec dup -1 eq { pop 1.0 } if /height exch def
-
-    <<
-    /ren /renlinear
-    /sbs [sbs {48 sub} forall]
-    /bhs [sbs length 1 add 2 idiv {height} repeat]
-    /bbs [sbs length 1 add 2 idiv {0} repeat]
-    /txt [ [text text1xoffset text1yoffset text1font text1size] ]
-    /text1xalign (center)
-    /borderleft  << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
-    /borderright << /a 0.0  /b 0.0  /limiteda 12.0  /limitedb 13.0 >> version get
-    /strictspec strictspec
-    /loosespec loosespec
-    /xdim xdim
-    /xmin xmin
-    /xmax xmax
-    /modunit modunit
-    /opt options
-    >>
-
-    _render //renlinear if
 
     } stopped {end stop} if
     end

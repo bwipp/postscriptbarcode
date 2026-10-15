@@ -81,3 +81,54 @@
 { (^FNC@99ABC) (parsefnc includetext dontdraw) posicode /txt get 0 get 0 get } (99ABC) isEqual
 { (A^FNC@T) (parsefnc dontdraw) posicode } /bwipp.posicodeFNC1secondNotFirst isError
 { (^FNC@T) (parsefnc version=limiteda dontdraw) posicode } /bwipp.posicodeBadCharacter isError
+
+%
+% Stacked PosiCode
+%
+
+% The rows of Figure A1 of the specification, whose start and stop
+% characters have the outer distances of Table 1
+/stacked_tmpl {  % rownum expected
+    exch { (PosiCode B Stacked) (version=b rows=3 dontdraw) posicode /pixs get 0 203 mul 203 getinterval }
+    dup 3 -1 roll 5 exch put
+    exch debugIsEqual
+} def
+0 [
+    1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 1
+    0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 0
+    0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 1
+    0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 0 0 0 1 0
+    0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0
+] stacked_tmpl
+2 [
+    1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1
+    0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0
+    0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 1
+    0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 0 0 0 0 1 0 0 0
+    0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0
+] stacked_tmpl
+4 [
+    1 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 1 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 1
+    0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0
+    0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 1
+    0 0 0 0 0 1 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 0 1 0 0 0 0
+    1 0 0 0 1 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 0
+    0 0 1
+] stacked_tmpl
+{ (PosiCode B Stacked) (version=b rows=3 dontdraw) posicode /pixs get 203 203 getinterval } [ 203 {0} repeat ] debugIsEqual
+
+% Bars approximately 15% of the length of the row, and rows 2G apart
+{ (PosiCode B Stacked) (version=b rows=3 dontdraw) posicode /rowheights get } [30 2 30 2 30] debugIsEqual
+{ (PosiCode B Stacked) (version=b rows=3 rowheight=20 sepheight=4 dontdraw) posicode /rowheights get } [20 4 20 4 20] debugIsEqual
+{ (PosiCode B Stacked) (version=b rows=3 dontdraw) posicode /pixy get } 94 isEqual
+
+% Limited PosiCode, and the most rows
+{ (STACKED-LIMITED.123) (version=limiteda rows=5 dontdraw) posicode /rowheights get length } 9 isEqual
+
+{ (ABC123) (rows=0 dontdraw) posicode } /bwipp.posicodeBadRows isError
+{ (ABC123) (rows=6 dontdraw) posicode } /bwipp.posicodeBadRows isError
+{ (ABC123) (rows=2 rowheight=0 dontdraw) posicode } /bwipp.posicodeBadRowHeight isError
+{ (ABC123) (rows=2 sepheight=0 dontdraw) posicode } /bwipp.posicodeBadSepHeight isError
+{ (A) (rows=2 dontdraw) posicode } /bwipp.posicodeTooFewCharacters isError
