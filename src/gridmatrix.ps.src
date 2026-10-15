@@ -73,6 +73,7 @@ begin
 /gridmatrix.fna -2 def  % FNC1 in second position, before an AIM application indicator
 
 /gridmatrix.inf 999999 def
+/gridmatrix.infrow [ 7 {//gridmatrix.inf} repeat ] readonly def  % Costs of a position not yet reached
 
 /gridmatrix.maxvers 13 def
 
@@ -603,15 +604,13 @@ def
 
     %
     % Optimiser helpers, operating on seg, n, cost and tok. Reaching position j
-    % in mode m from mode f at position i stores i*7+f as the way back.
+    % in mode m from mode f, d positions back, stores d*16+f as the way back.
     %
-    /upd {  % c j m src ->
-        4 1 roll                % src c j m
-        exch 7 mul add          % src c idx
-        cost 1 index get 2 index gt {
-            cost 1 index 3 index put
-            tok exch 3 index put pop pop
-        } { pop pop pop } ifelse
+    /upd {  % c j m b ->
+        cost 3 index 6 mod get 2 index get 4 index gt {
+            tok 2 index get 3 index 3 -1 roll put
+            cost 3 -1 roll 6 mod get exch 3 -1 roll put
+        } { pop pop pop pop } ifelse
     } def
 
     /isd {  % j -> bool
@@ -638,7 +637,7 @@ def
         4 index add                             % i c m bits j
         exch 3 index add                        % i c m j v
         exch 3 -1 roll                          % i c v j m
-        4 index 7 mul //gridmatrix.N add        % i c v j m src
+        1 index 5 index sub 16 mul //gridmatrix.N add  % i c v j m b
         upd
     } def
 
@@ -700,77 +699,79 @@ def
     %
     % Choose how to encode a segment of data, by dynamic programming over the
     % positions in each mode, then trace back the tokens of the cheapest path.
-    % Each position and mode records the position and mode it was reached from,
-    % and a conversion between modes at a position records the mode converted
-    % from.
+    % Each position and mode records the mode it was reached from and how far
+    % back, and a conversion between modes at a position records the mode
+    % converted from, a byte each in a string for each mode. A token reaches
+    % at most five positions ahead, so the costs and the counts of bytes in
+    % the current group of 8-bit binary data are kept for six positions.
     %
     /optimise {  % seg -> tokens startmode bits
         /seg exch def
         /n seg length def
-        /cost [ n 1 add 7 mul {//gridmatrix.inf} repeat ] def
-        /tok n 1 add 7 mul array def
-        /rel n 1 add 7 mul array def
-        /gc n 1 add array def
+        /cost [ 6 { [ 7 {//gridmatrix.inf} repeat ] } repeat ] def
+        /tok [ 7 { n 1 add string } repeat ] def
+        /rel [ 6 { n 1 add string } repeat ] def
+        /gc 6 array def
         /pre 7 array def
-        cost 0 //gridmatrix.startcost putinterval
+        cost 0 get 0 //gridmatrix.startcost putinterval
         gc 0 0 put
 
         0 1 n 1 sub {  % i
 
+            /cr cost 2 index 6 mod get def
             dup 0 gt {
-                dup 7 mul                                                           % i base
-                pre 0 cost 3 index 7 getinterval putinterval
+                pre 0 cr putinterval
                 0 1 5 {  % t
-                    pre 1 index get -1                                              % i base t best from
+                    pre 1 index get -1                                              % i t best from
                     0 1 6 {  % s
                         pre 1 index get //gridmatrix.convcost 2 index get 5 index get add  % ... t best from s v
                         dup 4 index lt { exch 4 -2 roll pop pop } { pop pop } ifelse
                     } for
-                    rel 3 index 5 index add 3 -1 roll put
-                    exch 2 index add cost 3 1 roll exch put
+                    rel 3 index get 4 index 3 -1 roll 1 add put                     % i t best
+                    cr 3 1 roll put
                 } for
-                rel 1 index //gridmatrix.B add get -1 ne { gc 2 index 0 put } if
-                pop
+                rel //gridmatrix.B get 1 index get 0 ne { gc 1 index 6 mod 0 put } if
             } if
 
             % Chinese characters
-            cost 1 index 7 mul get dup //gridmatrix.inf lt {
+            cr //gridmatrix.H get dup //gridmatrix.inf lt {
                 13 add                                                              % i v
-                dup 2 index 1 add //gridmatrix.H 4 index 7 mul //gridmatrix.H add upd
+                dup 2 index 1 add //gridmatrix.H 16 //gridmatrix.H add upd
                 1 index 1 add n lt {
                     seg 2 index get seg 3 index 1 add get ispair {
-                        1 index 2 add //gridmatrix.H 3 index 7 mul //gridmatrix.H add upd
+                        1 index 2 add //gridmatrix.H 32 //gridmatrix.H add upd
                     } {pop} ifelse
                 } {pop} ifelse
             } {pop} ifelse
 
             % Numerals
-            cost 1 index 7 mul //gridmatrix.N add get dup //gridmatrix.inf lt {
+            cr //gridmatrix.N get dup //gridmatrix.inf lt {
                 numtokens
             } if
             pop
 
             % Lowercase, uppercase and mixed
             //gridmatrix.L 1 //gridmatrix.M {  % i m
-                cost 2 index 7 mul 2 index add get                                  % i m cm
+                cr 1 index get                                                      % i m cm
                 //gridmatrix.modecost 2 index //gridmatrix.L sub get seg 4 index get get  % i m cm v
                 dup 0 ge 2 index //gridmatrix.inf lt and {
-                    add 2 index 1 add 2 index 4 index 7 mul 4 index add upd
+                    add 2 index 1 add 2 index dup 16 add upd
                 } { pop pop } ifelse
                 pop
             } for
 
             % 8-bit binary data
-            cost 1 index 7 mul //gridmatrix.B add get dup //gridmatrix.inf lt {   % i cb
-                gc 2 index get dup //gridmatrix.maxgroup eq {
+            cr //gridmatrix.B get dup //gridmatrix.inf lt {                        % i cb
+                gc 2 index 6 mod get dup //gridmatrix.maxgroup eq {
                     pop 8 //gridmatrix.convcost //gridmatrix.B get //gridmatrix.B get add 1
                 } {
                     8 exch 1 add
                 } ifelse                                                            % i cb bits g
-                gc 4 index 1 add 3 -1 roll put
-                add 1 index 1 add //gridmatrix.B 3 index 7 mul //gridmatrix.B add upd
+                gc 4 index 1 add 6 mod 3 -1 roll put
+                add 1 index 1 add //gridmatrix.B 16 //gridmatrix.B add upd
             } {pop} ifelse
 
+            cost 1 index 6 mod get 0 //gridmatrix.infrow putinterval        % Free the row for position i+6
             pop
         } for
 
@@ -779,29 +780,29 @@ def
         %
         /best //gridmatrix.inf def
         0 1 6 {  % m
-            cost n 7 mul 2 index add get //gridmatrix.convcost 2 index get //gridmatrix.EOD get add
+            cost n 6 mod get 1 index get //gridmatrix.convcost 2 index get //gridmatrix.EOD get add
             dup best lt { /best exch def /bm exch def } { pop pop } ifelse
         } for
 
         %
-        % Trace back the tokens [mode start end]
+        % Trace back the tokens, as mode, start and end in turn
         %
         /i n def  /m bm def
         /toks [
             {  % loop
                 i 0 eq { exit } if
                 m //gridmatrix.NX lt i n lt and {  % Converted to here
-                    rel i 7 mul m add get dup -1 ne { /m exch def } { pop } ifelse
+                    rel m get i get dup 0 ne { 1 sub /m exch def } { pop } ifelse
                 } if
-                tok i 7 mul m add get
-                dup 7 idiv /p exch def  7 mod /pm exch def
-                [ m p i ]
+                tok m get i get
+                dup -4 bitshift i exch sub /p exch def  15 and /pm exch def
+                m p i
                 /i p def  /m pm def
             } loop
         ] def
         /startm m def
 
-        [ toks length 1 sub -1 0 { toks exch get } for ]
+        [ toks length 3 idiv 1 sub -1 0 { 3 mul toks exch 3 getinterval aload pop } for ]
         startm best
 
     } def
@@ -838,8 +839,9 @@ def
     % Append the bits of a field at position j of bits, which is prefilled with
     % zeros
     %
+    /scratch 32 string def
     /addtobits {  % val width ->
-        exch 2 2 index string cvrs          % width bin
+        exch 2 scratch cvrs                 % width bin
         exch j add dup /j exch def          % bin end
         1 index length sub                  % bin start
         bits exch 3 -1 roll putinterval
@@ -847,12 +849,13 @@ def
 
     %
     % Append the bits of a segment encoded as tokens, using seg, toks and
-    % startm. The current mode is cur, the bytes remaining in the current group
-    % of 8-bit binary data is grem, and the current token is k.
+    % startm, toks holding the mode, start and end of each token in turn. The
+    % current mode is cur, the bytes remaining in the current group of 8-bit
+    % binary data is grem, and the current token is k.
     %
     /group {  % -> count  Bytes in the group starting at token k
-        0 k 1 toks length 1 sub {
-            toks exch get 0 get //gridmatrix.B ne { exit } if
+        0 k 1 toks length 3 idiv 1 sub {
+            toks exch 3 mul get //gridmatrix.B ne { exit } if
             1 add dup //gridmatrix.maxgroup eq { exit } if
         } for
     } def
@@ -861,12 +864,12 @@ def
         cur //gridmatrix.N eq {
             % Padding digits of the final group of the numerals
             k {  % loop
-                toks 1 index get 0 get //gridmatrix.NX eq { exit } if
-                dup 1 add toks length ge { exit } if
-                toks 1 index 1 add get 0 get dup //gridmatrix.N ne exch //gridmatrix.NX ne and { exit } if
+                toks 1 index 3 mul get //gridmatrix.NX eq { exit } if
+                dup 1 add toks length 3 idiv ge { exit } if
+                toks 1 index 1 add 3 mul get dup //gridmatrix.N ne exch //gridmatrix.NX ne and { exit } if
                 1 add
             } loop
-            toks exch get /tk exch def
+            toks exch 3 mul 3 getinterval /tk exch def
             tk 0 get //gridmatrix.NX eq {
                 3 seg tk 1 get tk 2 get 1 index sub getinterval {
                     isdigit { 1 sub } if
@@ -885,16 +888,16 @@ def
         //gridmatrix.typecodes cur get 4 addtobits
         /k 0 def
         enter
-        0 1 toks length 1 sub {
+        0 1 toks length 3 idiv 1 sub {
             /k exch def
-            toks k get aload pop                                            % m ts te
+            toks k 3 mul 3 getinterval aload pop                            % m ts te
             3 -1 roll dup //gridmatrix.NX eq { pop //gridmatrix.N } if      % ts te m
             dup cur ne {
                 //gridmatrix.conv cur get 1 index get aload pop addtobits
                 /cur exch def
                 enter
             } {
-                cur //gridmatrix.N eq k 0 gt and { toks k 1 sub get 0 get //gridmatrix.NX eq } { false } ifelse {
+                cur //gridmatrix.N eq k 0 gt and { toks k 1 sub 3 mul get //gridmatrix.NX eq } { false } ifelse {
                     % Numerals restart after a padded final group
                     //gridmatrix.conv //gridmatrix.N get //gridmatrix.nxvia get aload pop addtobits
                     //gridmatrix.conv //gridmatrix.nxvia get //gridmatrix.N get aload pop addtobits
