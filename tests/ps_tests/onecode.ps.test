@@ -10,7 +10,7 @@
 
 %
 %
-% 20-digit barcode (exercises different startvals code path)
+% 20-digit barcode (exercises different startvals code path), USPS-B-3200E Appendix B Example 1
 %
 { (01234567094987654321) (debugcws) onecode } [ 0 0 0 0 559 202 508 451 124 34 ] debugIsEqual
 
@@ -28,6 +28,37 @@
 % 31-digit edge case: all 9s maximizes carry propagation
 %
 { (9999999999999999999999999999999) (debugcws) onecode } [ 658 1133 256 291 361 249 330 1102 394 270 ] debugIsEqual
+
+%
+% The bars as Ascender, Descender, Full and Tracker, as USPS-B-3200 writes them
+%
+/bars {  % data -> string
+    (dontdraw) onecode
+    dup /bbs get /tb exch def
+    /bhs get /th exch def
+    /top 0 th { 2 copy lt { exch } if pop } forall def
+    /s th length string def
+    0 1 th length 1 sub {
+        /k exch def
+        /d tb k get 0 eq def
+        /a tb k get th k get add top 0.999 mul gt def
+        s k a { d { 70 } { 65 } ifelse } { d { 68 } { 84 } ifelse } ifelse put
+    } for
+    s
+} def
+/eq_tmpl {  % data bars
+    exch { 0 bars } dup 3 -1 roll 0 exch put
+    exch debugIsEqual
+} def
+
+
+% Figures
+
+(01234567094987654321)             (ATTFATTDTTADTAATTDTDTATTDAFDDFADFDFTFFFFFTATFAAAATDFFTDAADFTFDTDT) eq_tmpl  % USPS-B-3200E Appendix B Table I, Example 1, same
+(0123456709498765432101234)        (DTTAFADDTTFTDTFTFDTDDADADAFADFATDDFTAAAFDTTADFAAATDFDTDFADDDTDFFT) eq_tmpl  % USPS-B-3200E Appendix B Table II, Example 2, same
+(01234567094987654321012345678)    (ADFTTAFDTTTTFATTADTAAATFTFTATDAAAFDDADATATDTDTTDFDTDATADADTDFFTFA) eq_tmpl  % USPS-B-3200E Appendix B Table III, Example 3, same
+% (0123456709498765432101234567891)  (TDFTDFAFDFFFAFFDTADDDAAAFDTTFTDDFFFAAFAAADDAFDFDAFTFAAATAFDATAFAF) eq_tmpl
+(0123456709498765432101234567891)  (AADTFFDFTDADTAADAATFDTDDAAADDTDTTDAFADADDDTFFFDDTTTADFAAADFTDAADA) eq_tmpl  % USPS-B-3200E Appendix B Table IV, Example 4, and Figure 17, same; Figure 9, not same, its drawn barcode does not match the bars printed above it
 
 
 %
