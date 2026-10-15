@@ -1094,6 +1094,32 @@ per character reaches the fixed point rather than iterating to convergence. See
 `azteccode`, whose latch tables are transitively closed.
 
 
+**Shortest encodation over mode states**
+
+To choose between encodation modes, find the shortest encodation by dynamic
+programming over the positions of the data with a cost for each mode, then
+trace back the tokens of the cheapest path. See `gridmatrix` and `hanxin`,
+which share this structure:
+
+- Tokens: from each position and mode, the characters encodable next and the
+  mode that they leave the optimiser in. A group that must end its mode, such
+  as a shorter final group of numerals, leads to a mode that can only be
+  converted out of.
+- Conversions: once per position, before the tokens, relax each mode from the
+  others, using a static table of conversion costs closed so that one pass
+  suffices (`gridmatrix`). Where conversions mostly cost a terminator plus a
+  mode indicator, relax from the cheapest mode to close and the few direct
+  switches instead (`hanxin`), trying the candidates in the order of the
+  modes converted from so that ties resolve as the full table would.
+- Storage: keep the costs for a window of positions one longer than the
+  longest token, and record the way back as a byte for each mode and
+  position, the distance back times 16 plus the mode, in a string for each
+  mode, with the mode converted from plus one in another. Strings for each
+  mode stay within the 65535 limit at any symbol capacity.
+- Output: trace back into a flat array of mode, start and end triples, and
+  write the bits into a preallocated buffer through a scratch string.
+
+
 **Derive per-candidate ECC via code linearity**
 
 Reed-Solomon codes are linear over their field, so when each candidate message
