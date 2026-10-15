@@ -1671,17 +1671,23 @@ begin
     } ifelse
 
     %
-    % Reserve the version information modules
+    % Add the version information, which mask evaluation must see
     %
-    versionmap {
-        { aload pop qmv pixs exch 0 put } forall
-    } forall
+    format (full) eq cols 45 ge and {
+        /verval vervals cols 17 sub 4 idiv 7 sub get def
+        0 1 versionmap length 1 sub {
+            /i exch def
+            versionmap i get {
+                pixs exch aload pop qmv verval 17 i sub neg bitshift 1 and put
+            } forall
+        } for
+    } if
 
     %
-    % Reserve the solitary dark module in full symbols
+    % Set the solitary dark module in full symbols
     %
     format (full) eq {
-        pixs 8 rows 8 sub qmv 0 put
+        pixs 8 rows 8 sub qmv 1 put
     } if
 
     (matrix.layout.reserve) //qrcode.after exec
@@ -1879,8 +1885,26 @@ begin
     } def
 
     %
+    % Add the format information of a full symbol for the given mask
+    %
+    format (full) eq {
+        /ecid //qrcode.ecidfull eclval get def
+    } if
+    /addfmtfull {  % sym maskval ->
+        ecid 3 bitshift add fmtvalsfull exch get /fmtval exch def
+        /fsym exch def
+        0 1 formatmap length 1 sub {
+            /i exch def
+            formatmap i get {
+                fsym exch aload pop qmv fmtval 14 i sub neg bitshift 1 and put
+            } forall
+        } for
+    } def
+
+    %
     % Extract each masked symbol from the required set and evaluate them to
-    % find the most suitable
+    % find the most suitable, with the format information in place since
+    % the evaluation is of the complete symbol
     %
     /bestscore 999999999 def
     0 1 nmasks 1 sub {
@@ -1894,6 +1918,7 @@ begin
         (matrix.masking.apply) //qrcode.after exec
         nmasks 1 ne {  % Not rMQR nor user-specified mask
             (matrix.masking.eval) //qrcode.before exec
+            format (full) eq {masksym m addfmtfull} if
             /score masksym format (full) eq {evalfull} {evalmicro} ifelse def
             (matrix.masking.eval) //qrcode.after exec
             score bestscore lt {
@@ -1916,24 +1941,10 @@ begin
     (matrix.finalise) //qrcode.before exec
 
     %
-    % Set the solitary dark module in full symbols
-    %
-    format (full) eq {
-        pixs 8 cols 8 sub qmv 1 put
-    } if
-
-    %
     % Add the format information
     %
     format (full) eq {
-        /ecid //qrcode.ecidfull eclval get def
-        /fmtval fmtvalsfull ecid 3 bitshift bestmaskval add get def
-        0 1 formatmap length 1 sub {
-            /i exch def
-            formatmap i get {
-                pixs exch aload pop qmv fmtval 14 i sub neg bitshift 1 and put
-            } forall
-        } for
+        pixs bestmaskval addfmtfull
     } if
     format (micro) eq {
         /symid //qrcode.ecidmicrosym cols 11 sub 2 idiv get eclval get def
@@ -1951,19 +1962,6 @@ begin
             /i exch def
             pixs formatmap i get 0 get aload pop qmv fmtval1 17 i sub neg bitshift 1 and put
             pixs formatmap i get 1 get aload pop qmv fmtval2 17 i sub neg bitshift 1 and put
-        } for
-    } if
-
-    %
-    % Add the version information
-    %
-    format (full) eq cols 45 ge and {
-        /verval vervals cols 17 sub 4 idiv 7 sub get def
-        0 1 versionmap length 1 sub {
-            /i exch def
-            versionmap i get {
-                pixs exch aload pop qmv verval 17 i sub neg bitshift 1 and put
-            } forall
         } for
     } if
 
