@@ -59,17 +59,113 @@ begin
 /hanxin.noblk [ 0 -1 -1 ] readonly def
 
 %
-% Encoding modes
+% Optimiser modes: numerals in complete groups (N) or after a shorter final
+% group (NX), the Text1 and Text2 submodes, binary bytes, common Chinese
+% characters in regions one and two, the GB18030 2-byte region, and the
+% GB18030 4-byte region entered (F) and after its one character (FX)
 %
-/hanxin.NUM    1 def  % 0001  Numeric
-/hanxin.TXT    2 def  % 0010  Text
-/hanxin.BYT    3 def  % 0011  Byte
-/hanxin.CN1    4 def  % 0100  Common Chinese Region 1
-/hanxin.CN2    5 def  % 0101  Common Chinese Region 2
-/hanxin.GB2    6 def  % 0110  GB18030 2-byte
-/hanxin.GB4    7 def  % 0111  GB18030 4-byte
+/hanxin.N   0 def
+/hanxin.NX  1 def
+/hanxin.T1  2 def
+/hanxin.T2  3 def
+/hanxin.B   4 def
+/hanxin.R1  5 def
+/hanxin.R2  6 def
+/hanxin.D   7 def
+/hanxin.F   8 def
+/hanxin.FX  9 def
+/hanxin.nmodes 10 def
 
-/hanxin.FN1SEP 9 def  % pseudo mode for FNC1 separator
+/hanxin.inf 999999 def
+
+%
+% Mode indicator of each mode
+%
+/hanxin.ind [ (0001) (0001) (0010) (0010) (0011) (0100) (0101) (0110) (0111) (0111) ] readonly def
+
+%
+% Bits of the mode terminator: all ones, with the numeral terminator coding
+% the size of the final group. A 2-byte region terminator of 15 bits cannot
+% be confused with a character, whose values reach 23939.
+%
+/hanxin.termlen [ 10 10 6 6 0 12 12 15 0 0 ] readonly def
+
+%
+% Bits following the mode indicator on entering each mode: the switch to
+% Text2, and the byte count of binary bytes
+%
+/hanxin.entry [ 0 0 0 6 13 0 0 0 0 0 ] readonly def
+
+%
+% Bits to start in each mode, or inf for those reached only by a character
+%
+/hanxin.startcost [
+    0 1 //hanxin.nmodes 1 sub {
+        dup //hanxin.NX eq 1 index //hanxin.FX eq or {
+            pop //hanxin.inf
+        } {
+            //hanxin.entry exch get 4 add
+        } ifelse
+    } for
+] readonly def
+
+%
+% Costs of a position not yet reached
+%
+/hanxin.infrow [ //hanxin.nmodes {//hanxin.inf} repeat ] readonly def
+
+%
+% Bits to convert between modes are a terminator then a mode indicator and the
+% bits after it, except for the switch between the Text submodes (6) and the
+% terminator that passes directly between the common Chinese regions (12).
+% Numerals restart after a shorter final group, and the 4-byte region is
+% entered for each character. No chain of conversions is cheaper than a
+% direct one, so a single pass converts between modes.
+%
+% Bits to close each mode before opening another, or inf for the 4-byte region,
+% which is entered only to encode a character
+%
+/hanxin.closelen [
+    0 1 //hanxin.nmodes 1 sub {
+        dup //hanxin.F eq { pop //hanxin.inf } { //hanxin.termlen exch get } ifelse
+    } for
+] readonly def
+
+%
+% The modes converted to without a direct switch, and those with one, with the
+% mode that switches directly to each and its bits
+%
+/hanxin.plainto [ //hanxin.N //hanxin.B //hanxin.D //hanxin.F ] readonly def
+/hanxin.switchto [
+    [ //hanxin.T1 //hanxin.T2 6 ] readonly
+    [ //hanxin.T2 //hanxin.T1 6 ] readonly
+    [ //hanxin.R1 //hanxin.R2 12 ] readonly
+    [ //hanxin.R2 //hanxin.R1 12 ] readonly
+] readonly def
+
+%
+% The two-byte modes: mode, the procedure giving a character's value, and bits
+%
+/hanxin.pairmodes [
+    [ //hanxin.R1 /r1val 12 ] readonly
+    [ //hanxin.R2 /r2val 12 ] readonly
+    [ //hanxin.D  /dval  15 ] readonly
+] readonly def
+
+/hanxin.zeros (000000000000000000000) readonly def  % Padding for values of up to 21 bits
+
+%
+% Values of the characters of the Text submodes, or -1
+%
+/hanxin.valtable {  % chars -> vals
+    [ 256 {-1} repeat ] exch
+    0 exch {  % vals i c
+        2 index exch 2 index put 1 add
+    } forall pop readonly
+} bind def
+
+/hanxin.t1val (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz) //hanxin.valtable exec def
+/hanxin.t2val [ 0 1 27 {} for ( !"#$%&'\(\)*+,-./:;<=>?@[\\]^_`{|}~) {} forall 127 ] //hanxin.valtable exec def
 
 /hanxin.fn1 -1 def
 
@@ -729,104 +825,217 @@ begin
         dup length 2 index length exch sub exch putinterval
     } def
 
-    /numD [ msglen {0} repeat 0 ] def
-    msglen 1 sub -1 0 {
-        /i exch def
-        msg i get dup 48 ge exch 57 le and {
-            numD i numD i 1 add get 1 add put
-        } if
-    } for
+    /isdigit {  % c -> bool
+        dup 48 ge exch 57 le and
+    } def
 
     %
-    % Byte-mode encoder with numeric run switching, including FNC1 support
+    % Values of a character in the common Chinese regions and the GB18030
+    % regions, or -1, from its byte values; a byte of -1 is past the end
     %
-    mark
-    /i 0 def
-    /bytestart -1 def
-    {  % loop
-        i msglen ge {
-            bytestart -1 ne {
-                //hanxin.BYT msg bytestart i bytestart sub getinterval
-            } if
-            exit
+    /r1val {  % b1 b2 -> v
+        dup 16#A1 lt 1 index 16#FE gt or { pop pop -1 } {
+            16#A1 sub exch                                      % c2 b1
+            dup 16#B0 ge 1 index 16#D7 le and {
+                16#B0 sub 16#5E mul add
+            } {
+            dup 16#A1 ge 1 index 16#A3 le and {
+                16#A1 sub 16#5E mul add 16#EB0 add
+            } {
+            dup 16#A8 eq 2 index 16#1F le and {
+                pop 16#FCA add
+            } {
+                pop pop -1
+            } ifelse } ifelse } ifelse
+        } ifelse
+    } def
+
+    /r2val {  % b1 b2 -> v
+        dup 16#A1 ge 1 index 16#FE le and 2 index 16#D8 ge and 2 index 16#F7 le and {
+            16#A1 sub exch 16#D8 sub 16#5E mul add
+        } { pop pop -1 } ifelse
+    } def
+
+    /dval {  % b1 b2 -> v
+        1 index 16#81 ge 2 index 16#FE le and
+        1 index 16#40 ge 2 index 16#7E le and 2 index 16#80 ge 3 index 16#FE le and or and {
+            dup 16#7F gt { 16#41 } { 16#40 } ifelse sub exch 16#81 sub 16#BE mul add
+        } { pop pop -1 } ifelse
+    } def
+
+    /fval {  % i -> v
+        dup 3 add msglen lt {
+            msg exch 4 getinterval aload pop                    % b1 b2 b3 b4
+            3 index 16#81 ge 4 index 16#FE le and
+            3 index 16#30 ge and 3 index 16#39 le and
+            2 index 16#81 ge and 2 index 16#FE le and
+            1 index 16#30 ge and 1 index 16#39 le and {
+                16#30 sub exch 16#81 sub 10 mul add
+                exch 16#30 sub 1260 mul add
+                exch 16#81 sub 12600 mul add
+            } { pop pop pop pop -1 } ifelse
+        } { pop -1 } ifelse
+    } def
+
+    %
+    % Optimiser helper, operating on cost and tok. Reaching position j in mode
+    % m from mode f, d positions back, stores d*16+f as the way back.
+    %
+    /upd {  % c j m b ->
+        cost 3 index 5 mod get 2 index get 4 index gt {
+            tok 2 index get 3 index 3 -1 roll put
+            cost 3 -1 roll 5 mod get exch 3 -1 roll put
+        } { pop pop pop pop } ifelse
+    } def
+
+    /try {  % best from v src -> best from  Keep the earlier of equal costs
+        1 index 4 index lt { 4 2 roll } if pop pop
+    } def
+
+    %
+    % Choose how to encode the message, by dynamic programming over the
+    % positions in each mode, then trace back the tokens of the cheapest path.
+    % Each position and mode records the mode it was reached from and how far
+    % back, and a conversion between modes at a position records the mode
+    % converted from, a byte each in a string for each mode. A token reaches
+    % at most four positions ahead, so the costs are kept for five positions.
+    %
+    (input.encoding.optimise) //hanxin.before exec
+    /nm //hanxin.nmodes def
+    /cost [ 5 { [ nm {//hanxin.inf} repeat ] } repeat ] def
+    /tok [ nm { msglen 1 add string } repeat ] def
+    /rel [ nm { msglen 1 add string } repeat ] def
+    /pre nm array def
+    cost 0 get 0 //hanxin.startcost putinterval
+
+    0 1 msglen 1 sub {  % i
+
+        /cr cost 2 index 5 mod get def
+        dup 0 gt {
+            %
+            % Convert between modes: stay, reopen from the mode that is cheapest
+            % to close, or take the switch between the Text submodes or between
+            % the common Chinese regions, the earliest mode winning a tie
+            %
+            /ci 1 index def
+            pre 0 cr putinterval
+            //hanxin.inf -1
+            0 1 nm 1 sub {  % ... closed bs s
+                pre 1 index get //hanxin.closelen 2 index get add               % ... closed bs s v
+                dup 4 index lt { 4 2 roll pop pop exch } { pop pop } ifelse
+            } for
+            /bs exch def 4 add /cb exch def                                    % Cheapest closed mode and a mode indicator
+            //hanxin.plainto {  % t
+                pre 1 index get cb //hanxin.entry 3 index get add               % t stay reopen
+                2 copy gt { exch pop bs 1 add } { pop 0 } ifelse                % t best rb
+                rel 3 index get ci 3 -1 roll put
+                cr 3 1 roll put
+            } forall
+            //hanxin.switchto {
+                aload pop /sw exch def /ss exch def /t exch def
+                pre t get -1                                                    % best from
+                ss bs lt {
+                    pre ss get sw add ss try
+                    cb //hanxin.entry t get add bs try
+                } {
+                    cb //hanxin.entry t get add bs try
+                    pre ss get sw add ss try
+                } ifelse
+                rel t get ci 3 -1 roll 1 add put
+                cr t 3 -1 roll put
+            } forall
         } if
-        /d numD i get def
-        d  i d add msglen ge {5} {8} ifelse  ge {
-            bytestart -1 ne {
-                //hanxin.BYT msg bytestart i bytestart sub getinterval
-                /bytestart -1 def
-            } if
-            //hanxin.NUM msg i d getinterval
-            /i i d add def
-        } {
-            msg i get //hanxin.fn1 eq {
-                bytestart -1 ne {
-                    //hanxin.BYT msg bytestart i bytestart sub getinterval
-                    /bytestart -1 def
+
+        /c msg 2 index get def
+        /c2 1 index 1 add msglen lt { msg 2 index 1 add get } { -1 } ifelse def
+
+        % Numerals in groups of three digits, or a shorter final group, and FNC1
+        cr //hanxin.N get dup //hanxin.inf lt {                                 % i cn
+            c isdigit {
+                10 add                                                          % i c
+                dup 2 index 1 add //hanxin.NX 16 //hanxin.N add upd
+                1 index 1 add msglen lt { msg 2 index 1 add get isdigit } { false } ifelse {
+                    dup 2 index 2 add //hanxin.NX 32 //hanxin.N add upd
+                    1 index 2 add msglen lt { msg 2 index 2 add get isdigit } { false } ifelse {
+                        dup 2 index 3 add //hanxin.N 48 //hanxin.N add upd
+                    } if
                 } if
-                //hanxin.FN1SEP null
-                /i i 1 add def
             } {
-                bytestart -1 eq { /bytestart i def } if
-                /i i 1 add def
+                c //hanxin.fn1 eq {
+                    10 add dup 2 index 1 add //hanxin.N 16 //hanxin.N add upd
+                } if
             } ifelse
-        } ifelse
-    } loop
-    counttomark array astore exch pop /seq exch def
-
-    %
-    % Reject byte chunks larger than the 13-bit count field can express
-    %
-    0 2 seq length 1 sub {
-        /si exch def
-        seq si get //hanxin.BYT eq {
-            seq si 1 add get length 1 13 bitshift ge {
-                /bwipp.hanxinInputTooLarge (The input data exceeds the maximum symbol capacity) //raiseerror exec
-            } if
         } if
+        pop
+
+        c 0 ge {
+
+            % Text1 and Text2 submodes
+            cr //hanxin.T1 get dup //hanxin.inf lt //hanxin.t1val c get 0 ge and {
+                6 add 1 index 1 add //hanxin.T1 16 //hanxin.T1 add upd
+            } { pop } ifelse
+            cr //hanxin.T2 get dup //hanxin.inf lt //hanxin.t2val c get 0 ge and {
+                6 add 1 index 1 add //hanxin.T2 16 //hanxin.T2 add upd
+            } { pop } ifelse
+
+            % Binary bytes
+            cr //hanxin.B get dup //hanxin.inf lt {
+                8 add 1 index 1 add //hanxin.B 16 //hanxin.B add upd
+            } { pop } ifelse
+
+            % Common Chinese characters and the GB18030 2-byte region
+            //hanxin.pairmodes {
+                aload pop                                                       % i m valp w
+                cr 3 index get dup //hanxin.inf lt {                            % i m valp w cm
+                    c c2 4 index load exec 0 ge {
+                        add 3 index 2 add 3 index 32 1 index add upd            % i m valp
+                    } { pop pop } ifelse
+                } { pop pop } ifelse
+                pop pop
+            } forall
+
+            % GB18030 4-byte region, one character after its mode indicator
+            cr //hanxin.F get dup //hanxin.inf lt {
+                1 index fval 0 ge {
+                    21 add 1 index 4 add //hanxin.FX 64 //hanxin.F add upd
+                } { pop } ifelse
+            } { pop } ifelse
+
+        } if
+
+        cost 1 index 5 mod get 0 //hanxin.infrow putinterval            % Free the row for position i+5
+        pop
     } for
 
     %
-    % Optimise when NUM and FN1SEP run together
+    % Cheapest mode in which to end
     %
-    /numRhs {  % "{FNC1}N..." => N drops indicator
-        dup 0 gt {
-            seq 1 index 2 sub get //hanxin.FN1SEP eq
-        } {
-            false
-        } ifelse
-        exch pop
-    } def
-    /numLhs {  % "N%3{FNC1}" => N drops terminator
-        dup 2 add seq length lt {
-            seq 1 index 2 add get //hanxin.FN1SEP eq
-            seq 2 index 1 add get length 3 mod 0 eq
-            and
-        } {
-            false
-        } ifelse
-        exch pop
-    } def
-    /fncRhs {  % "{FNC1}N..." => FNC1 drops terminator
-        dup 2 add seq length lt {
-            seq 1 index 2 add get //hanxin.NUM eq
-        } {
-            false
-        } ifelse
-        exch pop
-    } def
-    /fncLhs {  % "N%3{FNC1}" => FNC1 drops indicator
-        dup 0 gt {
-            seq 1 index 2 sub get //hanxin.NUM eq {
-                seq 1 index 1 sub get length 3 mod 0 eq
-            } {
-                false
-            } ifelse
-        } {
-            false
-        } ifelse
-        exch pop
-    } def
+    /best //hanxin.inf def
+    0 1 nm 1 sub {  % m
+        cost msglen 5 mod get 1 index get //hanxin.termlen 2 index get add
+        dup best lt { /best exch def /bm exch def } { pop pop } ifelse
+    } for
+
+    %
+    % Trace back the tokens, as mode, start and end in turn
+    %
+    /i msglen def  /m bm def
+    /toks [
+        {  % loop
+            i 0 eq { exit } if
+            i msglen lt {  % Converted to here
+                rel m get i get dup 0 ne { 1 sub /m exch def } { pop } ifelse
+            } if
+            tok m get i get
+            dup -4 bitshift i exch sub /p exch def  15 and /pm exch def
+            m p i
+            /i p def  /m pm def
+        } loop
+    ] def
+    /startm m def
+    /toks [ toks length 3 idiv 1 sub -1 0 { 3 mul toks exch 3 getinterval aload pop } for ] def
+    /ntoks toks length 3 idiv def
+    (input.encoding.optimise) //hanxin.after exec
 
     /addtobits {
         dup length pos add bits length gt {
@@ -836,50 +1045,103 @@ begin
         length pos add /pos exch def
     } def
 
+    /scratch 21 string def
+    /addval {  % val width ->  The value in width bits
+        dup pos add bits length gt {
+            pop pop /bwipp.hanxinNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
+        } if
+        exch 2 scratch cvrs                                         % width digits
+        dup length 2 index exch sub                                 % width digits pad
+        bits pos //hanxin.zeros 0 4 index getinterval putinterval
+        bits exch pos add 3 -1 roll putinterval
+        pos add /pos exch def
+    } def
+
     %
-    % Encode the sequence, merging FNC1 at numeric boundaries
+    % Encode the tokens. The current mode is cur, the previous token ended in
+    % mode pst, and the final group of numerals had lastg digits.
     %
     /bits 26120 string def
     /pos 0 def
 
+    /modeof {  % st -> mode  Numerals and the 4-byte region after a character
+        dup //hanxin.NX eq { pop //hanxin.N } { dup //hanxin.FX eq { pop //hanxin.F } if } ifelse
+    } def
+
+    /terminate {  % Terminator of cur
+        cur //hanxin.N eq {
+            lastg 1 eq { (1111111101) } { lastg 2 eq { (1111111110) } { (1111111111) } ifelse } ifelse
+            addtobits
+        } {
+            //hanxin.termlen cur get dup 0 gt { (111111111111111) exch 0 exch getinterval addtobits } { pop } ifelse
+        } ifelse
+    } def
+
+    /enter {  % Mode indicator of cur and the bits after it, for the token k
+        //hanxin.ind cur get addtobits
+        cur //hanxin.T2 eq { (111110) addtobits } if
+        cur //hanxin.B eq {
+            0 k 1 ntoks 1 sub {
+                toks exch 3 mul get //hanxin.B ne { exit } if
+                1 add
+            } for
+            13 addval                                                   % Fits, as the message is at most 7827 bytes
+        } if
+    } def
+
     fnc1first { //hanxin.gs1pre addtobits } if
 
-    0 2 seq length 1 sub {
-        /si exch def
-        /st seq si get def
-        st //hanxin.BYT eq {
-            /sd seq si 1 add get def
-            (0011) addtobits
-            sd length 13 tobin addtobits
-            sd { 8 tobin addtobits } forall
+    /lastg 3 def
+    /cur startm def
+    /pst -1 def
+    /k 0 def
+    ntoks 0 gt { enter } if
+    0 1 ntoks 1 sub {
+        /k exch def
+        toks k 3 mul 3 getinterval aload pop /te exch def /ts exch def /st exch def
+        /md st modeof def
+        md cur ne {
+            cur //hanxin.T1 eq md //hanxin.T2 eq and cur //hanxin.T2 eq md //hanxin.T1 eq and or {
+                (111110) addtobits
+                /cur md def
+            } {
+            cur //hanxin.R1 eq md //hanxin.R2 eq and cur //hanxin.R2 eq md //hanxin.R1 eq and or {
+                (111111111110) addtobits
+                /cur md def
+            } {
+                terminate
+                /cur md def
+                enter
+            } ifelse } ifelse
         } {
-        st //hanxin.FN1SEP eq {
-            si fncLhs not { (0001) addtobits } if
-            //hanxin.fnc1ext addtobits
-            si fncRhs not { (1111111111) addtobits } if
-        } {  % //hanxin.NUM
-            /sd seq si 1 add get def
-            /D sd length def
-            si numRhs not { (0001) addtobits } if
-            /numgroups D 3 div ceiling cvi def
-            0 1 numgroups 1 sub {
-                /gstart exch 3 mul def
-                /gsize D gstart sub 3 lt {D gstart sub} {3} ifelse def
-                0
-                0 1 gsize 1 sub {
-                    sd exch gstart add get 48 sub
-                    exch 10 mul add
-                } for
-                10 tobin addtobits
-            } for
-            si numLhs not {
-                  D 1 sub 3 mod 0 eq { (1111111101) }
-                { D 1 sub 3 mod 1 eq { (1111111110) }
-                                     { (1111111111) } ifelse } ifelse
-                addtobits
+            % Numerals restart after a shorter final group, and the 4-byte
+            % region is entered for each character
+            pst //hanxin.NX eq pst //hanxin.FX eq or k 0 gt and {
+                terminate
+                enter
             } if
-        } ifelse } ifelse
+        } ifelse
+        md //hanxin.N eq {
+            msg ts get //hanxin.fn1 eq {
+                //hanxin.fnc1ext addtobits
+                /lastg 3 def
+            } {
+                0 ts 1 te 1 sub { msg exch get 48 sub exch 10 mul add } for
+                10 addval
+                /lastg te ts sub def
+            } ifelse
+        } {
+        md //hanxin.T1 eq { //hanxin.t1val msg ts get get 6 addval } {
+        md //hanxin.T2 eq { //hanxin.t2val msg ts get get 6 addval } {
+        md //hanxin.B eq { msg ts get 8 addval } {
+        md //hanxin.R1 eq { msg ts get msg ts 1 add get r1val 12 addval } {
+        md //hanxin.R2 eq { msg ts get msg ts 1 add get r2val 12 addval } {
+        md //hanxin.D eq { msg ts get msg ts 1 add get dval 15 addval } {
+            ts fval 21 addval
+        } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse
+        /pst st def
     } for
+    ntoks 0 gt { terminate } if
 
     fnc1first { //hanxin.gs1post addtobits } if
 
