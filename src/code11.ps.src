@@ -91,6 +91,7 @@ begin
     /dontdraw false def
     /includecheck false def
     /validatecheck false def
+    /numcheckdigits 2 def
     /includetext false def
     /includecheckintext false def
     /text1font /Courier def
@@ -145,15 +146,24 @@ begin
     /code11 ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
 
-    /barlen barcode length def
-    validatecheck {
-        barlen 11 eq {
-            /bwipp.code11badLength (Code 11 cannot be 11 characters using check digits) //raiseerror exec
-        } if
-        /barlen barlen barlen 10 le {1} {2} ifelse sub def
+    numcheckdigits 1 ne numcheckdigits 2 ne and {
+        /bwipp.code11badNumCheckDigits (The number of check digits must be 1 or 2) //raiseerror exec
     } if
 
-    /numchecks includecheck validatecheck or {barlen 10 ge {2} {1} ifelse} {0} ifelse def
+    /barlen barcode length def
+    validatecheck {
+        barlen numcheckdigits lt {
+            /bwipp.code11badLength (The data is shorter than its check digits) //raiseerror exec
+        } if
+        /barlen barlen numcheckdigits sub def
+    } if
+
+    % Code 11 is designed to use two check digits; some scanners accept one for up to 10 characters
+    includecheck validatecheck or numcheckdigits 1 eq and barlen 10 gt and {
+        /bwipp.code11oneCheckDigitTooLong (One check digit is only for data of up to 10 characters) //raiseerror exec
+    } if
+
+    /numchecks includecheck validatecheck or {numcheckdigits} {0} ifelse def
     /checksum1 0 def /checksum2 0 def
     0 1 barlen 1 sub {
         /i exch def
@@ -211,7 +221,7 @@ begin
     % Put the checksum and end characters
     %
     includecheck {
-        barlen 10 ge {
+        numchecks 2 eq {
             sbs barlen 6 mul 6 add //code11.encs checksum1 get putinterval
             sbs barlen 6 mul 12 add //code11.encs checksum2 get putinterval
             sbs barlen 6 mul 18 add //code11.encs 11 get putinterval
@@ -224,7 +234,7 @@ begin
     } ifelse
 
     /text includecheck includecheckintext and {
-        barlen 10 ge {
+        numchecks 2 eq {
             barlen 2 add string dup 0 barcode putinterval
             dup barlen //code11.barchars checksum1 1 getinterval putinterval
             dup barlen 1 add //code11.barchars checksum2 1 getinterval putinterval
