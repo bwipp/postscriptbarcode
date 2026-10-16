@@ -229,6 +229,19 @@ begin
     % Height is already applied to the linear bars via bhs; don't let renmatrix rescale
     options /height undef
 
+
+    %
+    % Centre the text of the linear component, since the renderer centres aligned text across
+    % the whole symbol
+    %
+    options (textxoffset) known {
+        options (text1xoffset) known not { options (text1xoffset) options (textxoffset) get put } if
+        options (textxoffset) undef
+    } if
+    options (text1xoffset) 2 copy known { get } { pop pop 0.0 } ifelse
+    dup type /stringtype eq { dup {cvr} stopped { pop false } { exch pop true } ifelse } { true } ifelse
+    { pixx linpixs length sub 2 div add options (text1xoffset) 3 -1 roll put } { pop } ifelse
+
     <<
     /ren /renmatrix
     /pixs pixs
