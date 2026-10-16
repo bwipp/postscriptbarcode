@@ -921,7 +921,10 @@ begin
                 /seqlen seqlen 1 add n add def
             } {  % next
             /t numtext p get def
-            t 5 ge {
+            % Five or more text characters repay latches into Text and back. A shorter run is encoded in Text where
+            % Text needs no latch that Byte would not, and no Byte data follows to need a latch back
+            /tnobyte p t add msglen eq { true } { numdigits p t add get 13 ge } ifelse def
+            t 5 ge state //micropdf417.b ne seqlen 0 eq or t 0 gt and tnobyte and or {
                 state //micropdf417.t ne {
                     //micropdf417.tl
                 } if
