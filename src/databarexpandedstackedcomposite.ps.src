@@ -177,14 +177,14 @@ begin
     /ccpixx compsym /pixx get def
 
     /pixx sep length def
-    ccpixx pixx gt {
+    ccpixx 2 add pixx gt {
         /bwipp.databarexpandedstackedcompositeTooWide (The composite component is wider than the rows of the linear component) //raiseerror exec
     } if
-    /cclpad [ pixx ccpixx sub 1 add 2 idiv {0} repeat ] def  % Add 1 to allow for odd difference
-    /ccrpad [ pixx ccpixx sub 2 idiv {0} repeat ] def
+    /cclpad [ 0 0 ] def  % First bar of the composite over the first space of the first symbol character
+    /ccrpad [ pixx ccpixx sub 2 sub {0} repeat ] def
     /ccrows ccrowheights length def
     /pixs [
-        0 ccpixx ccpixs length 1 sub {  % Centre align composite
+        0 ccpixx ccpixs length 1 sub {
             /i exch def
             cclpad aload pop ccpixs i ccpixx getinterval aload pop ccrpad aload pop
         } for
