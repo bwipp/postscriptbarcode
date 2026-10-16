@@ -21,9 +21,9 @@
     [2 1 1 2 3 2 4 1 1 1 3 1 2 2 2 1 2 2 2 2 1 2 1 3 2 3 1 1 3 1 2 3 1 2 1 2 2 2 2 1 2 2 2 1 3 1 3 1 2 1 2 2 2 2 1 2 1 2 2 3 1 2 2 1 1 4 2 3 3 1 1 1 2]
     eq_tmpl
 
-{  % Avoid extraneous CodeC switch (with immediate switch back to CodeA/B) by re-checking digit runlength >= 4 after enca/encb push
+{  % Avoid an extraneous switch to code set C with an immediate switch back
     ((90)111(91)2(92)3) (debugcws) gs1-128
-} [105 102 90 11 100 17 102 25 17 18 102 25 18 19 40 106] debugIsEqual
+} [105 102 90 11 100 17 102 25 99 12 102 92 100 19 97 106] debugIsEqual
 
 
 % Figures
@@ -42,8 +42,11 @@
 % ((12)010425(8020)ABC123)
 %    [2 1 1 2 1 4 4 1 1 1 3 1 1 1 3 1 4 1 1 1 2 2 3 2 2 2 2 1 2 2 1 2 1 3 2 2 3 2 1 1 2 2 1 1 1 2 4 2 2 2 1 2 3 1 1 1 4 1 3 1 1 1 1 3 2 3 1 3 1 1 2 3 1 3 1 3 2 1 1 2 3 2 2 1 2 2 3 2 1 1 2 2 1 1 3 2 1 1 3 1 4 1 2 3 3 1 1 1 2]
 %    eq_tmpl
-((12)010425(8020)ABC123)  % GS1 General Specifications 9.0 Figure 2.6.10-1 (lower), not same, figure uses Start B + Code C, BWIPP Start C (one codeword shorter); GS1 General Specifications 26.0 Figure 2-9 (lower), same
-    [2 1 1 2 3 2 4 1 1 1 3 1 1 1 2 2 3 2 2 2 2 1 2 2 1 2 1 3 2 2 3 2 1 1 2 2 1 1 1 2 4 2 2 2 1 2 3 1 1 1 4 1 3 1 1 1 1 3 2 3 1 3 1 1 2 3 1 3 1 3 2 1 1 2 3 2 2 1 2 2 3 2 1 1 2 2 1 1 3 2 2 2 1 1 3 2 2 3 3 1 1 1 2]
+% ((12)010425(8020)ABC123)
+%    [2 1 1 2 3 2 4 1 1 1 3 1 1 1 2 2 3 2 2 2 2 1 2 2 1 2 1 3 2 2 3 2 1 1 2 2 1 1 1 2 4 2 2 2 1 2 3 1 1 1 4 1 3 1 1 1 1 3 2 3 1 3 1 1 2 3 1 3 1 3 2 1 1 2 3 2 2 1 2 2 3 2 1 1 2 2 1 1 3 2 2 2 1 1 3 2 2 3 3 1 1 1 2]
+%    eq_tmpl
+((12)010425(8020)ABC123)  % GS1 General Specifications 9.0 Figure 2.6.10-1 (lower), not same, figure uses Start B + Code C, BWIPP Start C (one codeword shorter); GS1 General Specifications 26.0 Figure 2-9 (lower), not same, figure encodes ABC123 in set B, BWIPP ABC1 in set B then 23 in set C, same no. of codewords
+    [2 1 1 2 3 2 4 1 1 1 3 1 1 1 2 2 3 2 2 2 2 1 2 2 1 2 1 3 2 2 3 2 1 1 2 2 1 1 1 2 4 2 2 2 1 2 3 1 1 1 4 1 3 1 1 1 1 3 2 3 1 3 1 1 2 3 1 3 1 3 2 1 1 2 3 2 2 1 1 1 3 1 4 1 3 1 2 1 3 1 4 1 1 3 1 1 2 3 3 1 1 1 2]
     eq_tmpl
 
 ((253)770721248998412345678901)  % GS1 General Specifications 9.0 Figure 2.6.13-1, same
@@ -139,11 +142,8 @@
     [2 1 1 2 3 2 4 1 1 1 3 1 2 1 2 2 2 2 2 1 2 2 2 2 2 2 1 4 1 1 2 3 1 3 1 1 2 3 1 3 1 1 1 1 2 2 3 2 1 3 1 1 2 3 3 3 1 1 2 1 2 4 1 1 1 2 2 1 4 1 2 1 2 1 2 1 2 3 2 3 3 1 1 1 2]
     eq_tmpl
 
-% ((403)402621(401)950110153B01001)
-%    [2 1 1 2 1 4 4 1 1 1 3 1 2 2 1 2 3 1 1 1 3 1 4 1 1 2 1 2 2 3 2 3 1 1 1 3 3 2 1 2 2 1 2 1 3 2 1 2 4 1 1 1 3 1 2 3 1 1 1 3 2 2 1 1 3 2 2 3 1 1 3 1 2 3 1 2 1 2 2 2 2 1 2 2 2 1 3 1 3 1 1 1 4 1 3 1 1 3 1 1 2 3 1 2 3 1 2 2 1 1 3 1 4 1 2 2 1 3 1 2 2 2 2 1 2 2 2 3 2 1 2 1 2 3 3 1 1 1 2]
-%    eq_tmpl
-((403)402621(401)950110153B01001)  % GS1 General Specifications 26.0 Figure 6-75 (upper), not same, figure uses Start B, the odd leading digit in Code B, then Code C; BWIPP uses Start C and Code B for the odd digit before the FNC1 (one codeword longer)
-    [2 1 1 2 3 2 4 1 1 1 3 1 2 3 1 1 1 3 1 3 1 1 2 3 2 2 2 2 2 1 4 3 1 1 1 1 1 1 4 1 3 1 1 2 3 2 2 1 4 1 1 1 3 1 1 1 3 1 4 1 2 3 1 1 1 3 2 2 1 1 3 2 2 3 1 1 3 1 2 3 1 2 1 2 2 2 2 1 2 2 2 1 3 1 3 1 1 1 4 1 3 1 1 3 1 1 2 3 1 2 3 1 2 2 1 1 3 1 4 1 2 2 1 3 1 2 2 2 2 1 2 2 4 1 3 1 1 1 2 3 3 1 1 1 2]
+((403)402621(401)950110153B01001)  % GS1 General Specifications 26.0 Figure 6-75 (upper), same
+    [2 1 1 2 1 4 4 1 1 1 3 1 2 2 1 2 3 1 1 1 3 1 4 1 1 2 1 2 2 3 2 3 1 1 1 3 3 2 1 2 2 1 2 1 3 2 1 2 4 1 1 1 3 1 2 3 1 1 1 3 2 2 1 1 3 2 2 3 1 1 3 1 2 3 1 2 1 2 2 2 2 1 2 2 2 1 3 1 3 1 1 1 4 1 3 1 1 3 1 1 2 3 1 2 3 1 2 2 1 1 3 1 4 1 2 2 1 3 1 2 2 2 2 1 2 2 2 3 2 1 2 1 2 3 3 1 1 1 2]
     eq_tmpl
 
 ((00)395011015300000011)  % GS1 General Specifications 26.0 Figure 6-75 (lower), same
