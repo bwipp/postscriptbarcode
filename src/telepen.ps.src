@@ -84,12 +84,20 @@ begin
     (31111111111111)  (111311111113)   (131111111113)   (1111111111111111)
 ] readonly def
 
+%
+% AIM USS Telepen 2.3 start and stop characters marking compressed numeric data: Start 2/Stop 2 for symbols that
+% begin with it, Start 3/Stop 3 for full ASCII followed by it
+%
+/telepen.aimstart2 (111111113113) readonly def  /telepen.aimstop2 (311311111111) readonly def
+/telepen.aimstart3 (111111311113) readonly def  /telepen.aimstop3 (311113111111) readonly def
+
 /telepen {
 
     32 dict begin
     {
 
     /numeric false def
+    /aimstartstop false def
     /dontdraw false def
     /includetext false def    % Enable/disable text
     /text1font /Courier def
@@ -140,6 +148,7 @@ begin
     % Check numeric for DLE (ASCII 16) indicating switch to trailing ASCII
     %
     /trailasclen 0 def
+    /trailasc () def
     numeric {
         barcode <10> search {
             /barcode exch def
@@ -155,21 +164,53 @@ begin
     } if
 
     %
+    % With AIM start and stop characters, DLE in full ASCII data switches to compressed numeric for the remainder
+    %
+    /leadasc () def
+    numeric not aimstartstop and {
+        barcode <10> search {
+            /leadasc exch def
+            pop /barcode exch def
+            leadasc length 0 eq {
+                /bwipp.telepenDLEFirstCharacter (DLE cannot be first character in Telepen) //raiseerror exec
+            } if
+            /leadasc leadasc length 1 add string dup 0 leadasc putinterval dup dup length 1 sub 16 put def  % With DLE
+            /barlen barcode length def
+            /numeric true def
+        } { pop } ifelse
+    } if
+
+    %
     % Apply AST spec overrides and resolve physical specification
     %
     /telepen ast /apply_ast //render exec not { //raiseerror exec } if
     /resolve_strictspec //render exec
 
-    /sbs barlen trailasclen add 16 mul 48 add string def
+    /sbs barlen trailasclen add leadasc length add 16 mul 48 add string def
 
     %
-    % Put the start character ASCII 95
+    % Put the start character, ASCII 95 unless AIM start and stop characters mark compressed numeric data
     %
-    /enc //telepen.encs 95 get def
+    /enc aimstartstop {
+        leadasc length 0 ne { //telepen.aimstart3 } { numeric { //telepen.aimstart2 } { //telepen.encs 95 get } ifelse } ifelse
+    } { //telepen.encs 95 get } ifelse def
     sbs 0 enc putinterval
     /l enc length def
 
     /checksum 0 def
+
+    /encasc {  % ordinal ->
+        /indx exch def
+        indx 127 gt {
+            /bwipp.telepenInvalidAlphaCharacter (Telepen Alpha characters must have ordinal values 0 to 127) //raiseerror exec
+        } if
+        /checksum checksum indx add def
+        /enc //telepen.encs indx get def
+        sbs l enc putinterval
+        /l l enc length add def
+    } def
+
+    leadasc { encasc } forall
     /i 0 def
     { % loop
         i barlen eq {exit} if
@@ -214,16 +255,7 @@ begin
         /l l enc length add def
     } loop
 
-    0 1 trailasclen 1 sub {
-        trailasc exch get /indx exch def
-        indx 127 gt {
-            /bwipp.telepenInvalidAlphaCharacter (Telepen Alpha characters must have ordinal values 0 to 127) //raiseerror exec
-        } if
-        /checksum checksum indx add def
-        /enc //telepen.encs indx get def
-        sbs l enc putinterval
-        /l l enc length add def
-    } for
+    trailasc { encasc } forall
 
     %
     % Put the checksum character
@@ -234,9 +266,11 @@ begin
     /l l enc length add def
 
     %
-    % Put the end character ASCII 122
+    % Put the end character corresponding to the start character
     %
-    /enc //telepen.encs 122 get def
+    /enc aimstartstop {
+        leadasc length 0 ne { //telepen.aimstop3 } { numeric { //telepen.aimstop2 } { //telepen.encs 122 get } ifelse } ifelse
+    } { //telepen.encs 122 get } ifelse def
     sbs l enc putinterval
     /l l enc length add def
 
@@ -246,11 +280,17 @@ begin
     /sbs sbs 0 l getinterval def
 
     % Build display text: replace non-printable chars with spaces
-    /text barcode length trailasclen add string def
+    /leadlen leadasc length dup 0 gt { 1 sub } if def  % Without the final DLE
+    /text leadlen barcode length add trailasclen add string def
+    0 1 leadlen 1 sub {
+        /i exch def
+        /c leadasc i get def
+        text i c 32 ge c 126 le and { c } { 32 } ifelse put
+    } for
     0 1 barcode length 1 sub {
         /i exch def
         /c barcode i get def
-        text i c 32 ge c 126 le and { c } { 32 } ifelse put
+        text i leadlen add c 32 ge c 126 le and { c } { 32 } ifelse put
     } for
     1 1 trailasclen 1 sub {  % Skip initial DLE
         /i exch def

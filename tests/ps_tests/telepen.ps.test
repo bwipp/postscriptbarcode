@@ -36,6 +36,13 @@
 
 { 501 string (dontdraw) telepen } /bwipp.telepeninputTooLong isError
 
+% AIM start and stop characters
+{ (ABC^016123456) (aimstartstop parse dontdraw) telepen /sbs get  % Start 3/Stop 3: full ASCII, then DLE switching to compressed numeric, as encoded by zint
+} [ 1 1 1 1 1 1 3 1 1 1 1 3 1 1 3 1 3 1 3 3 3 3 3 1 3 3 1 1 1 1 3 1 3 1 1 1 1 1 3 1 3 1 1 1 3 1 1 1 1 1 1 1 1 1 3 1 1 1 3 1 1 1 1 3 1 1 1 1 1 3 1 1 1 1 1 1 3 1 1 1 3 3 1 1 1 1 1 1 1 1 1 3 1 3 3 1 1 1 1 3 1 1 1 1 1 1  ] debugIsEqual
+
+{ (ABCDEF) (aimstartstop dontdraw) telepen /sbs get } { (ABCDEF) (dontdraw) telepen /sbs get } exec isEqual  % Start 1/Stop 1 without compressed numeric data
+{ (^016123) (aimstartstop parse dontdraw) telepen } /bwipp.telepenDLEFirstCharacter isError
+
 %
 % Smoke test: propspec renders without error
 %
