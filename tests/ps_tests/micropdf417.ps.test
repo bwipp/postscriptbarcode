@@ -259,7 +259,7 @@ mdata 0 65 put mdata 1 66 put mdata 2 67 put mdata 3 68 put mdata 4 69 put
 % Single byte
 %
 
-{  % Single 'A', as encoded by zint
+{  % Single 'A'
     (A) (debugcws) micropdf417
 } [900         % text latch, which costs no more than the byte latch that the symbol would begin with
   29           % 'A' and pad
@@ -581,11 +581,11 @@ s (dontdraw) /bwipp.micropdf417noValidSymbol er_tmpl
 % Reader initialisation (ISO/IEC 24728 5.4.1.4)
 %
 {
-    (ABC) (readerinit debugcws) micropdf417  % First codeword, as encoded by zint
+    (ABC) (readerinit debugcws) micropdf417  % First codeword
 } [921 900 1 89] debugIsEqual
 {
     (ABC) (readerinit sampos=1 samtotal=2 samid=017053 debugcws) micropdf417  % In every symbol of a Structured Append sequence
-} [921 900 1 89 900 900 900 928 111 100 17 53 923 1 111 102] debugIsEqual  % Data as encoded by zint, which selects a size without padding
+} [921 900 1 89 900 900 900 928 111 100 17 53 923 1 111 102] debugIsEqual
 
 % Macro 05/06 is not used with reader initialisation, which takes the first codeword
 {

@@ -93,7 +93,7 @@
 %
 
 % Alpha submode: single char
-{ (A) (debugcws) pdf417 } [  % As encoded by zint
+{ (A) (debugcws) pdf417 } [
     2       % symbol length
     29      % 'A' and pad in the default Text Compaction, which needs no latch
 ] debugIsEqual
@@ -118,7 +118,7 @@
 ] debugIsEqual
 
 % Punctuation submode: semicolons
-{ (;;) (debugcws) pdf417 } [  % As encoded by zint
+{ (;;) (debugcws) pdf417 } [
     4            % symbol length
     870 870 900  % ;; each by punctuation shift, and pad
 ] debugIsEqual
@@ -666,19 +666,19 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 %
 {
     (ABC) (sampos=1 samtotal=4 samid=017053 debugcws) pdf417  % Control Block as in the H.4 example, following the padding
-} [13 1 89 900 928 111 100 17 53 923 1 111 104] debugIsEqual  % As encoded by zint
+} [13 1 89 900 928 111 100 17 53 923 1 111 104] debugIsEqual
 {
     (ABC) (sampos=4 samtotal=4 samid=017053 debugcws) pdf417  % Last segment has the terminator
-} [13 1 89 928 111 103 17 53 923 1 111 104 922] debugIsEqual  % As encoded by zint
+} [13 1 89 928 111 103 17 53 923 1 111 104 922] debugIsEqual
 {
     (ABC) (sampos=99999 samtotal=99999 samid=017053 debugcws) pdf417
-} [13 1 89 928 222 198 17 53 923 1 222 199 922] debugIsEqual  % As encoded by zint
+} [13 1 89 928 222 198 17 53 923 1 222 199 922] debugIsEqual
 {
     (1234567890123) (sampos=1 samtotal=2 samid=000899123 debugcws) pdf417
 } [19 902 17 110 836 811 223 900 900 928 111 100 0 899 123 923 1 111 102] debugIsEqual
 {
     (^ECI000026AB) (parse parsefnc sampos=2 samtotal=2 samid=017053 debugcws) pdf417
-} [16 927 26 1 900 900 928 111 101 17 53 923 1 111 102 922] debugIsEqual  % As encoded by zint
+} [16 927 26 1 900 900 928 111 101 17 53 923 1 111 102 922] debugIsEqual
 
 (ABC) (samtotal=2 samid=001 dontdraw) /bwipp.pdf417SAMincomplete er_tmpl
 (ABC) (sampos=1 samid=001 dontdraw) /bwipp.pdf417SAMincomplete er_tmpl
@@ -698,10 +698,10 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
 %
 {
     (ABC) (readerinit debugcws) pdf417  % First codeword after the Symbol Length Descriptor
-} [4 921 1 89] debugIsEqual  % As encoded by zint
+} [4 921 1 89] debugIsEqual
 {
     (ABC) (readerinit sampos=1 samtotal=2 samid=017053 debugcws) pdf417  % In every symbol of a Macro PDF417 sequence
-} [13 921 1 89 928 111 100 17 53 923 1 111 102] debugIsEqual  % As encoded by zint
+} [13 921 1 89 928 111 100 17 53 923 1 111 102] debugIsEqual
 
 (^065) (raw readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
 (ABC) (ccc readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
