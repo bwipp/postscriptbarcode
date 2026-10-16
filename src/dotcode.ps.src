@@ -1184,6 +1184,12 @@ begin
     /litpr0 litpenrows 0 get def
     /litpr1 litpenrows dup length 1 sub get def
     /pcols columns 4 add def
+
+    % The symbol padded twice on all sides for the scans, its padding light; each evaluation copies in the rows
+    rows 4 add pcols mul { array } stopped {
+        pop /bwipp.dotcodeSymbolTooLarge (The resulting symbol exceeds the implementation maximum array size) //raiseerror exec
+    } if /symp exch def
+    0 1 symp length 1 sub { symp exch 0 put } for
     /litsetposs [ sixedges { aload pop 2 add pcols mul exch 2 add add } forall ] def
     /voidoffs [ 0  2  -2  pcols dup add  pcols dup add neg
                 pcols 1 add  pcols 1 sub  pcols 1 add neg  pcols 1 sub neg ] def
@@ -1358,17 +1364,12 @@ begin
         } if
 
         %
-        % Pad twice on all sides
+        % Copy the rows into the padded symbol
         %
-        /symp [
-            columns 4 add 2 mul {0} repeat
-            0 columns sym length 1 sub {
-                0 exch 0 exch
-                sym exch columns getinterval aload pop
-                0 0
-            } for
-            columns 4 add 2 mul {0} repeat
-        ] def
+        0 1 rows 1 sub {
+            dup 2 add pcols mul 2 add exch columns mul  % dst src
+            symp 3 1 roll sym exch columns getinterval putinterval
+        } for
 
         %
         % Count voids and isolated dots
