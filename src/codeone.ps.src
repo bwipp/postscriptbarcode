@@ -1026,9 +1026,9 @@ begin
                     } if
 
                     %
-                    % Final digit or double-digit into final codeword as ASCII
+                    % Final ASCII character or double-digit into final codeword as ASCII
                     %
-                    i msglen 1 sub eq numD i get 1 eq and
+                    i msglen 1 sub eq { msg i get dup 0 ge exch 127 le and } { false } ifelse
                     i msglen 2 sub eq numD i get 2 eq and or
                     remcws 1 eq and Drem 0 eq and {exit} if
 
