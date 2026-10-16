@@ -51,7 +51,7 @@ dup /gs1process dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 begin
 
-/databarlimitedcomposite.sepleft  [ 0 0 0 ] readonly def
+/databarlimitedcomposite.sepleft  [ 0 0 0 0 ] readonly def
 /databarlimitedcomposite.sepright [ 0 0 0 0 0 0 0 0 0 ] readonly def
 
 /databarlimitedcomposite {
@@ -197,7 +197,7 @@ begin
 
     /borderleft
         linsym /borderleft 2 copy known { get } { pop pop 10 } ifelse pixx linpixs length sub 1 add sub
-        1 pixx ccpixx sub 1 sub sub  % CC QZ; left inset pixx-ccpixx-1
+        1 ccpixx 72 eq {1} {0} ifelse sub  % CC QZ; left inset 1 for CC-A, 0 for CC-B
         2 copy lt { exch } if pop dup 0 lt { pop 0 } if
     def
     /borderright
