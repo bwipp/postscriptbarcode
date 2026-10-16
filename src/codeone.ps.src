@@ -57,7 +57,7 @@ begin
 (setup.define) //codeone.before exec
 
 /codeone.versionopts <<
-   [ (T-16) (T-32) (T-48) (S-10) (S-20) (S-30) (A) (B) (C) (D) (E) (F) (G) (H) ]
+   [ (T) (T-16) (T-32) (T-48) (S) (S-10) (S-20) (S-30) (A) (B) (C) (D) (E) (F) (G) (H) ]
    {dup} forall
 >> readonly def
 
@@ -429,12 +429,25 @@ begin
 
     version (unset) ne {
         //codeone.versionopts version known not {
-            /bwipp.codeoneBadVersion (version must be A to H, T-16, T-32, T-48, S-10, S-20 or S-30) //raiseerror exec
+            /bwipp.codeoneBadVersion (version must be A to H, T, T-16, T-32, T-48, S, S-10, S-20 or S-30) //raiseerror exec
         } if
     } if
 
     /stype version 0 1 getinterval (S) eq def
     /ttype version 0 1 getinterval (T) eq def
+
+    % Versions S and T without a size select the smallest of their fixed height that fits
+    /vermatch {  % vers -> bool
+        version (unset) eq {
+            length 1 eq
+        } {
+            version (S) eq version (T) eq or {
+                0 1 getinterval version eq
+            } {
+                version eq
+            } ifelse
+        } ifelse
+    } def
 
     /structapp sampos -1 ne samtotal -1 ne or def
     structapp {
@@ -681,13 +694,7 @@ begin
             /m exch def
             /vers m 0 get def           % Version of symbol
             /dcws m 4 get def           % Data codewords in symbol
-            /okay true def
-            version (unset) eq {
-                vers length 1 ne {/okay false def} if
-            } {
-                version vers ne {/okay false def} if
-            } ifelse
-            okay { dcws } if            % Push dcws
+            vers vermatch { dcws } if   % Push dcws
         } forall
         counttomark array astore /fullcws exch def pop
         /numremcws [ 1480 {10000} repeat ] def
@@ -1161,8 +1168,11 @@ begin
         /dcpb dcws rsbl idiv def    % Data codewords per block
         /ecpb rscw rsbl idiv def    % Error codewords per block
         /okay true def
-        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
+        vers vermatch not {/okay false def} if  % The version must match that supplied
         cws length dcws gt {/okay false def} if
+        version (S) eq {  % A reader transmits the digit capacity of the version
+            barlen dcws 3 mul 2 idiv gt {/okay false def} if
+        } if
         okay {exit} if
     } forall
 

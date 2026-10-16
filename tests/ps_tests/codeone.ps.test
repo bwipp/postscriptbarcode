@@ -307,6 +307,31 @@
 38 <01> (T-48) dcap_tmpl true isEqual
 39 <01> (T-48) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
 
+% Versions S and T without a size select the smallest of that height that fits
+
+/vsel_tmpl {
+    dcap_tmpl dup length array copy cvx  % Copy, as dcap_tmpl reuses its procedure
+    dup dup length 2 sub [/pixx /get load] putinterval  % Width of the symbol in place of whether it was made
+} def
+
+6 (1) (S) vsel_tmpl 11 isEqual
+7 (1) (S) vsel_tmpl 21 isEqual
+7 (0) (S) vsel_tmpl 21 isEqual  % Selected by number of digits, which a reader transmits, not their value
+12 (1) (S) vsel_tmpl 21 isEqual
+13 (1) (S) vsel_tmpl 31 isEqual
+18 (1) (S) vsel_tmpl 31 isEqual
+19 (1) (S) vsel_tmpl /bwipp.codeoneStypeTooLong isError
+
+13 (A) (T) vsel_tmpl 17 isEqual
+14 (A) (T) vsel_tmpl 33 isEqual
+34 (A) (T) vsel_tmpl 33 isEqual
+35 (A) (T) vsel_tmpl 49 isEqual
+55 (A) (T) vsel_tmpl 49 isEqual
+56 (A) (T) vsel_tmpl /bwipp.codeoneNoValidSymbol isError
+
+{ (1234) (dontdraw version=S) codeone /pixs get } { (1234) (dontdraw version=S-10) codeone /pixs get } exec isEqual
+{ (ABC) (dontdraw version=T) codeone /pixs get } { (ABC) (dontdraw version=T-16) codeone /pixs get } exec isEqual
+
 13 (A) (A) dcap_tmpl true isEqual
 14 (A) (A) dcap_tmpl /bwipp.codeoneNoValidSymbol isError
 22 (1) (A) dcap_tmpl true isEqual
@@ -386,8 +411,7 @@ systemdict /STRING_CONTINUE_BUG known not {
 { (^ECI000000TEST) (parsefnc dontdraw) codeone pop true } true isEqual
 { (^ECI999999TEST) (parsefnc dontdraw) codeone pop true } true isEqual
 
-(TEST) (version=S dontdraw) /bwipp.codeoneBadVersion er_tmpl
-(TEST) (version=T dontdraw) /bwipp.codeoneBadVersion er_tmpl
+(TEST) (version=S dontdraw) /bwipp.codeoneStypeNonDigit er_tmpl
 (TEST) (version=Z dontdraw) /bwipp.codeoneBadVersion er_tmpl
 
 
