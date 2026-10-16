@@ -65,6 +65,7 @@ begin
 
 /auspost.fcclen <<
     (11) 37  (45) 37  (59) 52  (62) 67  (87) 37  (92) 37
+    (00) [ 37 52 67 ]  % Null Customer Barcode: any length that holds the customer information
 >> readonly def
 
 /auspost.rsprod {
@@ -184,9 +185,13 @@ begin
 
     //auspost.fcclen barlen 2 ge { barcode 0 2 getinterval } { () } ifelse
     2 copy known not {
-        pop pop /bwipp.auspostBadFCC (Must begin with an FCC, either 11, 45, 59, 62, 87 or 92) //raiseerror exec
+        pop pop /bwipp.auspostBadFCC (Must begin with an FCC, either 00, 11, 45, 59, 62, 87 or 92) //raiseerror exec
     } if
-    get /encstr exch string def
+    get dup type /arraytype eq {  % The shortest length that holds the customer information, else the longest
+        /needed barlen 10 sub custinfoenc (numeric) eq {2} {3} ifelse mul 22 add 14 add def
+        dup dup length 1 sub get exch { dup needed ge { exch pop exit } if pop } forall
+    } if
+    /encstr exch string def
 
     %
     % Validate that the message has a complete, numeric DPID
