@@ -1,6 +1,20 @@
 XXXX-XX-XX
 
 * The QR Code encoder was fixed to choose the mask by evaluating the complete symbol, including its format and version information, as the specification requires, which changes the mask of some symbols.
+* The Code 128 encoder was fixed to encode the extended ASCII digits (byte values 176 to 185), which it could encode in code set C, losing their extended value.
+* The Code 128 encoder was enhanced to always choose a shortest encodation, resolving ties in a fixed order of preference, which changes some symbols, including GS1-128 and other symbols based on Code 128.
+* The suppressc and unlatchextbeforec options of the Code 128 encoder were made to apply without the newencoder option, which was removed.
+* The GS1 Composite encoders were fixed to encode an X that follows the leading digits of AI (90), which readers decoded as a W.
+* The GS1 Composite encoders were enhanced to encode a W that follows the leading digits of AI (90) in the shorter form, which can make symbols smaller.
+* The GS1 DataBar Limited Composite encoder was fixed to make the four leftmost modules of the separator pattern light, rather than three.
+* The GS1 DataBar Expanded Stacked Composite encoder was fixed to align the 2D component with the first symbol character of the linear component when it has other than four segments.
+* The GS1-128 Composite encoder was fixed to give CC-C components with just over 40, 160 or 320 data codewords the recommended minimum error correction level.
+* The GS1-128 Composite encoder was fixed to make CC-C components of automatic width narrower than four times their height, counting the start, stop and row indicator columns.
+* The GS1 DataBar Limited Composite encoder was fixed to leave a quiet zone to the left of a CC-B component.
+* The composite encoders other than GS1-128 Composite were fixed to refuse ccversion=c, which built a CC-C component that the specification does not permit.
+* The GS1 DataBar Expanded Composite encoder was fixed to raise an error for ccversion=c, which caused a PostScript error.
+* The GS1 DataBar Omnidirectional, Truncated and Limited Composite and GS1-128 Composite encoders were fixed to centre the human readable text on the linear component, from which it could be offset.
+* The GS1 DataBar and GS1-128 Composite encoders were fixed to make the linear component no shorter than the linear symbol, which a specification height could lose up to a module from.
 
 
 2026-10-20
