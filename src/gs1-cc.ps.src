@@ -213,9 +213,14 @@ begin
         } if
     } if
 
+    lintype () ne lintype (gs1-128) ne and ccversion (c) eq and {  % ISO/IEC 24723 Table 1
+        /bwipp.gs1ccCCCnotGS1128 (CC-C may only be used with a GS1-128 linear component) //raiseerror exec
+    } if
+
     %
     % Select columns based on linear type
     %
+    /autocolumns cccolumns -1 eq def
     cccolumns -1 eq {
         lintype (gs1-128) eq ccversion (c) eq and {
             linwidth 0 lt {
@@ -230,6 +235,7 @@ begin
         } ifelse
         /cccolumns exch def
     } if
+    /basecolumns cccolumns def
 
     ccversion (c) ne {
         cccolumns 2 lt cccolumns 4 gt or {
@@ -373,7 +379,7 @@ begin
             /cdf [ cdf aload pop 0 ] def
         } ifelse
         /nval npre 0 ne {ai90 0 npre getinterval cvi} {0} ifelse def
-        (BDHIJKLNPQRSTVXZ) ai90 npre 1 getinterval search {
+        (BDHIJKLNPQRSTVWZ) ai90 npre 1 getinterval search {
             length exch pop exch pop
             /aval exch def
         } {
@@ -471,14 +477,15 @@ begin
             dup -1 ne {used sub} if
         } {
             << /c -1 >> ccversion get pop  % Assert cc-c
-            /m used 8 div ceiling cvi dup 6 idiv 5 mul exch 6 mod add def
+            /m used 8 div ceiling cvi dup 6 idiv 5 mul exch 6 mod add 2 add def  % Byte codewords, 920 and the Byte latch
             m   40 le               {8 } if
             m   41 ge m  160 le and {16} if
             m  161 ge m  320 le and {32} if
-            m  321 ge m  833 le and {64} if  % 833 = 900 - 3 - 64, where 900 = 30 rows x 30 cols limit
-            m  834 ge               {32} if  % Reduce to meet advertised "up to 2361 digits" (allows max 2372) within 900 limit
+            m  321 ge m  835 le and {64} if  % 835 = 900 - 1 - 64, where 900 = 30 rows x 30 cols limit
+            m  836 ge               {32} if  % Reduce to meet advertised "up to 2361 digits" (allows max 2372) within 900 limit
             /eccws exch def
-            /m m eccws add 3 add def
+            /m m eccws add 1 add def
+            /cccolumns basecolumns def
             cccolumns 30 gt { /cccolumns 30 def } if
             {  % Loop until rows <= 30 or columns >= 30 (GS1 General Specifications 5.11.2.3)
                 m cccolumns div ceiling cvi 30 le cccolumns 30 ge or {exit} if
@@ -486,6 +493,14 @@ begin
             } loop
             /r m cccolumns div ceiling cvi def
             r 3 lt { /r 3 def } if  % GS1 General Specifications 5.11.2.3 "3 to 30 rows"
+            autocolumns {  % ISO/IEC 24723 10: fewer columns, counting the start, stop and row indicators, than four times the rows
+                {  % loop
+                    cccolumns 4 add r 4 mul lt cccolumns 1 le or {exit} if
+                    /cccolumns cccolumns 1 sub def
+                    /r m cccolumns div ceiling cvi def
+                    r 3 lt { /r 3 def } if
+                } loop
+            } if
             /tgt cccolumns r mul eccws sub 3 sub dup 5 idiv 6 mul exch 5 mod add 8 mul def
             used 8304 le {tgt used sub} {-1} ifelse
         } ifelse
@@ -497,7 +512,7 @@ begin
             } {
                 ccversion (b) eq lintype (gs1-128) eq and {
                     /ccversion (c) def
-                    /cccolumns linwidth 52 sub 17 idiv def
+                    /basecolumns linwidth 52 sub 17 idiv def
                     used rembits
                 } {
                     -1  % Can't upgrade; data exceeds composite capacity

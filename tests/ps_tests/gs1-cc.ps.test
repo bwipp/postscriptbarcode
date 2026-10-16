@@ -16,25 +16,30 @@
 % CC-C columns 1-30, rows 3-30 (GS1 General Specifications 5.11.2.3)
 
 {
-    % Min composite width, small/medium linear width, rows 2 -> 3, cols 8
+    % Min composite width, small/medium linear width, rows 2 -> 3, cols 8 -> 7 (fewer than four times the rows, counting 4 more)
     ((20)12) (ccversion=c lintype=gs1-128 linwidth=189 debugcws dontlint) gs1-cc
-} [16 920 901 50 494 840 370 378 27 610 352 885 316 132 33 8] debugIsEqual
+} [13 920 924 50 494 840 370 378 27 610 352 885 316] debugIsEqual
 
 {
-    % Min composite width, large linear width, rows 1 -> 3, cols 37 -> 30
+    % Min composite width, large linear width, rows 1 -> 3, cols 37 -> 30 -> 7 (fewer than four times the rows, counting 4 more)
     ((20)12) (ccversion=c lintype=gs1-128 linwidth=695 debugcws dontlint) gs1-cc
-} [82 920 901 50 494 840 370 378 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 66 16 132 33] debugIsEqual
+} [13 920 924 50 494 840 370 378 27 610 352 885 316] debugIsEqual
 
 {
-    % Medium/large composite width, large linear width, rows 2 -> 3, cols 37 -> 30
+    % Medium/large composite width, large linear width, rows 2 -> 4, cols 37 -> 30 -> 10 (fewer than four times the rows, counting 4 more)
     ((20)12(90)123456789012345678901234567890(91)1234567890123) (ccversion=c lintype=gs1-128 linwidth=695 debugcws dontlint) gs1-cc
-} [82 920 901 50 504 633 638 559 197 44 694 740 450 287 192 554 360 354 38 798 640 545 128 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 8 66 16 132] debugIsEqual
+} [32 920 901 50 504 633 638 559 197 44 694 740 450 287 192 554 360 354 38 798 640 545 128 55 320 705 870 633 8 66 16 132] debugIsEqual
 
 {
-    % Medium composite width, largeish linear width, rows 1 -> 3, cols 31 -> 30
+    % Medium composite width, largeish linear width, rows 1 -> 3, cols 31 -> 30 -> 7 (fewer than four times the rows, counting 4 more)
     ((20)12(90)12345678901234567890) (ccversion=c lintype=gs1-128 linwidth=585 debugcws dontlint) gs1-cc
-} [82 920 901 50 504 633 638 559 197 44 694 740 448 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 27 610 352 885 316 221 383 123 782 732 55 320 705 870 633 13 755 176 442 608 110 641 511 841 366 16 132 33 8] debugIsEqual
+} [13 920 924 50 504 633 638 559 197 44 694 740 448] debugIsEqual
 
+
+% With enough rows, the columns that fit within the linear component, 17X each beside 69X
+% of start, stop and row indicators
+{ (\(91\)A1B2C3D4E5A1B2C3D4E5A1B2C3D4E5A1B2C3D4E5) (ccversion=c lintype=gs1-128 linwidth=189 dontdraw dontlint) gs1-cc /pixx get } 205 isEqual  % (189 - 52) / 17 = 8
+{ (\(91\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(92\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(93\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(94\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(95\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(96\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(97\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(98\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\(99\)123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890) (ccversion=c lintype=gs1-128 linwidth=695 dontdraw dontlint) gs1-cc /pixx get } 579 isEqual  % (695 - 52) / 17 = 37 -> 30
 
 { ()      ()             gs1-cc }                            /bwipp.GS1aiMissingOpenParen isError
 { ()      (lintype=upca) gs1-cc }                            /bwipp.GS1aiMissingOpenParen isError
@@ -65,3 +70,20 @@
 
 % Characters that cannot be encoded, without linting
 { (\(01\)0952123454321#) (ccversion=b cccolumns=4 dontlint dontdraw) gs1-cc } /bwipp.gs1ccBadCharacter isError
+
+%
+% ISO/IEC 24723 10 g): CC-C meets the recommended minimum error correction level of ISO/IEC 15438
+% Table E.1, counting the 920 and the Byte latch among the data codewords
+%
+{
+    { (\(92\)h7ai6.CQ7/1-Cj634229pU57274500F9P2qE6qlHP\(93\)9844L2l9X2RD5) (ccversion=c lintype=gs1-128 linwidth=145 debugecc dontlint) gs1-cc } stopped pop
+    $error /errorinfo get length
+} 16 isEqual
+
+{
+    { (\(10\)9.h6Rq\(91\)3802u8ZJK073347R/252R87TOuhKGikeJ236H6OZ1k88B34176D9K3lPhF9/E4430QU94Z827I4q0Py36W828\(91\)3j59M7z6iA19aU1YM4n43KY65t46Um4IY17Kbx9C5u645f7x4Nf60x594M53iVX4T24u20s1j987551o2513on4Ld\(10\)C3U30c1\(92\)WB7gp.Azo50aT-63a626S2MUtjQ67k8aN7150x8e/08C728g2mu) (ccversion=c lintype=gs1-128 linwidth=145 debugecc dontlint) gs1-cc } stopped pop
+    $error /errorinfo get length
+} 32 isEqual
+
+% ISO/IEC 24723 Table 1: CC-C only with a GS1-128 linear component
+{ (\(21\)ABC) (ccversion=c lintype=ean13 dontdraw) gs1-cc } /bwipp.gs1ccCCCnotGS1128 isError
