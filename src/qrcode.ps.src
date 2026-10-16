@@ -306,6 +306,39 @@ begin
 ] readonly def
 
 %
+% rMQR symbols in the order tried when no width is given: by area, then by width (key area*256+width, as widths are
+% less than 256)
+%
+/qrcode.rmqrbyarea
+    [ //qrcode.metrics { dup 0 get (rmqr) ne { pop } if } forall ]
+    dup length array exch                                           % res src
+    dup {                                                           % res src m
+        dup dup 3 get exch 4 get dup 3 1 roll mul 256 mul add       % res src m key
+        0 3 index {                                                 % res src m key rank m'
+            dup 3 get exch 4 get dup 3 1 roll mul 256 mul add       % res src m key rank key'
+            2 index lt { 1 add } if
+        } forall                                                    % res src m key rank
+        exch pop exch                                               % res src rank m
+        3 index 3 1 roll put                                        % res src
+    } forall
+    pop readonly
+def
+
+%
+% Height of rMQR symbols for each version that gives only the height, e.g. R7
+%
+/qrcode.rmqrheights
+    8 dict
+    //qrcode.metrics {
+        dup 0 get (rmqr) eq {
+            dup 1 get (x) search pop exch pop exch pop              % dict m (R7)
+            exch 3 get 2 index 3 1 roll put
+        } { pop } ifelse
+    } forall
+    readonly
+def
+
+%
 % Finder patterns
 %
 /qrcode.fpat [
@@ -778,10 +811,6 @@ begin
         /bwipp.qrcodeInvalidFormat (The format must be either full, micro or rmqr) //raiseerror exec
     } if
 
-    format (rmqr) eq version (unset) eq and {
-        /bwipp.qrcodeRMQRwithoutVersion (A version must be provided for RMQR) //raiseerror exec
-    } if
-
     %
     % Default error correction level
     %
@@ -1129,25 +1158,52 @@ begin
     % content we encode the message according to each available vergrp, based
     % on the format of symbol.
     %
-    version (unset) ne {
-        % A specific version of symbol is given so encode in just the corresponding vergrp
-        //qrcode.versetmap format get version 2 copy known not {
-            pop pop
-            format (full) eq {
-                /bwipp.qrcodeInvalidFullVersion (Valid versions for QR Code symbols are 1 to 40) //raiseerror exec
-            } {
-            format (micro) eq {
-                /bwipp.qrcodeInvalidMicroVersion (Valid versions for Micro QR Code symbols are M1 to M4) //raiseerror exec
-            } {  % rmqr
-                /bwipp.qrcodeInvalidRMQRversion (Invalid version for an RMQR symbol) //raiseerror exec
-            } ifelse } ifelse
-        } if
-        get [ exch ] /verset exch def
+    /eclval (LMQH) eclevel search pop length exch pop exch pop def
+
+    %
+    % An rMQR symbol without a version, or with only a height, is the smallest that fits. Each size has its own
+    % vergrp, so the candidates are encoded in order of area until one fits.
+    %
+    /rmqrcands null def
+    format (rmqr) eq {
+        version (unset) eq {
+            /rmqrcands //qrcode.rmqrbyarea def
+        } {
+            //qrcode.rmqrheights version known {
+                /rmqrcands [
+                    //qrcode.rmqrbyarea { dup 3 get //qrcode.rmqrheights version get ne { pop } if } forall
+                ] def
+            } if
+        } ifelse
+    } if
+
+    rmqrcands null ne {
+        /verset [ rmqrcands { 2 get } forall ] def
+        /rmqrdmods //qrcode.cclens length array def  % Data modules of each candidate at the error correction level
+        rmqrcands {
+            dup 2 get exch dup 7 get 8 idiv exch 8 get eclval get sub 8 mul
+            rmqrdmods 3 1 roll put
+        } forall
     } {
-        % Just the format is specified so encode in each vergrp for the type of symbol
-        format (full)  eq { /verset //qrcode.versetfull  def } if
-        format (micro) eq { /verset //qrcode.versetmicro def } if
-        % rMQR symbols are accessed with an explicit version
+        version (unset) ne {
+            % A specific version of symbol is given so encode in just the corresponding vergrp
+            //qrcode.versetmap format get version 2 copy known not {
+                pop pop
+                format (full) eq {
+                    /bwipp.qrcodeInvalidFullVersion (Valid versions for QR Code symbols are 1 to 40) //raiseerror exec
+                } {
+                format (micro) eq {
+                    /bwipp.qrcodeInvalidMicroVersion (Valid versions for Micro QR Code symbols are M1 to M4) //raiseerror exec
+                } {  % rmqr
+                    /bwipp.qrcodeInvalidRMQRversion (Invalid version for an RMQR symbol) //raiseerror exec
+                } ifelse } ifelse
+            } if
+            get [ exch ] /verset exch def
+        } {
+            % Just the format is specified so encode in each vergrp for the type of symbol
+            format (full)  eq { /verset //qrcode.versetfull  def } if
+            format (micro) eq { /verset //qrcode.versetmicro def } if
+        } ifelse
     } ifelse
 
     %
@@ -1305,6 +1361,11 @@ begin
             msgbits ver bits put
             exit
         } loop
+        rmqrcands null ne {  % Stop at the first rMQR candidate that fits
+            msgbits ver get dup -1 ne {
+                length rmqrdmods ver get le {exit} if
+            } { pop } ifelse
+        } if
     } forall
 
     options /debugbitseqs known
@@ -1314,7 +1375,6 @@ begin
     %
     % Lookup the most appropriate symbol specification
     %
-    /eclval (LMQH) eclevel search pop length exch pop exch pop def
     0 1 //qrcode.metrics length 1 sub {
         /i exch def
         /m //qrcode.metrics i get def
@@ -1343,7 +1403,7 @@ begin
         /okay true def
         format frmt ne {/okay false def} if           % The format must match that supplied
         frmt (micro) eq fnc1mode and {/okay false def} if  % FNC1 mode is only available in full and rmqr
-        version (unset) ne version vers ne and {/okay false def} if  % The version must match that supplied
+        rmqrcands null eq version (unset) ne and version vers ne and {/okay false def} if  % The version must match that supplied
         ecb1 -1 eq ecb2 -1 eq or {/okay false def} if % Error correction level must be valid
         /verbits msgbits vergrp get def
         verbits -1 eq {                               % Bitstream must be available

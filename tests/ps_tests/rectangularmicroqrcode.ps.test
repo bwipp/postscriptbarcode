@@ -383,6 +383,33 @@ false {
 
 
 %
+% Without a version, or with only a height, the symbol is the smallest that fits: by area, then by width. Sizes as
+% selected by zint.
+%
+
+/size_tmpl {
+    3 1 roll { 0 1 rectangularmicroqrcode dup /pixy get exch /pixx get 2 array astore }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+(12345) (dontdraw) [11 27] size_tmpl
+(HELLOWORLD12345) (dontdraw) [13 27] size_tmpl
+(Some longer text 1234567890 for rMQR sizing) (dontdraw) [11 77] size_tmpl
+(1234567890) (dontdraw version=R7) [7 43] size_tmpl
+(1234567890123456789012345678901234567890) (dontdraw version=R7) [7 77] size_tmpl
+(1234567890) (dontdraw version=R17) [17 43] size_tmpl
+(12345) (dontdraw eclevel=H) [11 27] size_tmpl
+(1234567890) (dontdraw format=rmqr) [11 27] size_tmpl
+(1234567890) (dontdraw) [11 27] size_tmpl
+
+% Same symbol as with its size given
+{ (Some longer text 1234567890 for rMQR sizing) (dontdraw) rectangularmicroqrcode /pixs get }
+{ (Some longer text 1234567890 for rMQR sizing) (dontdraw version=R11x77) rectangularmicroqrcode /pixs get } exec isEqual
+
+
+%
 % Error tests
 %
 
@@ -398,8 +425,12 @@ false {
 % Mask not allowed for RMQR
 (TEST) (version=R7x43 mask=0 dontdraw) /bwipp.qrcodeRMQRmask er_tmpl
 
-% Version required for RMQR (via qrcode with format=rmqr)
-(TEST) (format=rmqr dontdraw) /bwipp.qrcodeRMQRwithoutVersion er_tmpl
+% Height of a version that gives only the height must be that of an rMQR symbol
+(TEST) (version=R8 dontdraw) /bwipp.qrcodeInvalidRMQRversion er_tmpl
+
+% Too long for any size, or any size of the given height
+(1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111) (dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
+(1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456) (version=R7 dontdraw) /bwipp.qrcodeNoValidSymbol er_tmpl
 
 (TEST) (version=R7x42 dontdraw) /bwipp.qrcodeInvalidRMQRversion er_tmpl
 (TEST) (version=R99x99 dontdraw) /bwipp.qrcodeInvalidRMQRversion er_tmpl
