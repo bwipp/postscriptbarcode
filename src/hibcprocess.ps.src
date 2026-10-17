@@ -1,0 +1,371 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN RESOURCE hibcprocess--
+% --REQUIRES preamble raiseerror--
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+4 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/hibcprocess.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/hibcprocess.daysinmonth [ 31 28 31 30 31 30 31 31 30 31 30 31 ] readonly def  % February is dealt with exceptionally
+
+/hibcprocess.datelens [ 6 6 8 5 7 ] readonly def  % Secondary date formats 2 to 6
+
+/hibcprocess.latevars dup 1 dict def load /init {
+
+    currentglobal
+    true setglobal
+
+    //hibcprocess.latevars begin
+
+    % Mod 43 value of each byte, or 255 outside of the character set
+    /charvals 256 string def
+    0 1 255 { charvals exch 255 put } for
+    0 1 42 { charvals exch dup //hibcprocess.barchars exch get exch put } for
+    /charvals charvals readonly def
+
+    /init { //hibcprocess.latevars {def} forall } def
+
+    end
+
+    //hibcprocess.latevars /init get exec
+
+    setglobal
+
+} bind put
+
+/uk.co.terryburton.bwipp.global_ctx dup where {
+    exch get /preload known {//hibcprocess.latevars /init get exec} if
+} {pop} ifelse
+
+%
+% data validatecheck dontlint -> (+ data check)
+%
+% The data excludes the leading "+" and, unless validatecheck, the check character.
+%
+/hibcprocess {
+
+    64 dict begin
+    {
+
+    /dontlint exch def
+    /validatecheck exch def
+    /data exch def
+
+    //hibcprocess.latevars /init get exec
+
+    data {
+        charvals exch get 255 eq {
+            /bwipp.HIBCbadCharacter (HIBC data must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
+        } if
+    } forall
+
+    /barlen data length validatecheck {1 sub} if def
+
+    41 data 0 barlen getinterval { charvals exch get add } forall 43 mod
+    /checksum exch def
+    validatecheck {
+        data barlen get //hibcprocess.barchars checksum get ne {
+            /bwipp.HIBCbadCheckDigit
+            [ (Incorrect HIBC check character provided: expected ") //hibcprocess.barchars checksum 1 getinterval (", not ") data barlen 1 getinterval (") ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
+        } if
+    } if
+    /data data 0 barlen getinterval def
+
+    /isdigit { dup 48 ge exch 57 le and } def
+    /isupper { dup 65 ge exch 90 le and } def
+    /isalnum { dup isdigit exch isupper or } def
+    /islot { dup isalnum exch dup 45 eq exch 46 eq or or } def
+    /alldigits { true exch { isdigit and } forall } def
+    /allalnum { true exch { isalnum and } forall } def
+    /alllot { true exch { islot and } forall } def
+
+    /isleap { dup 4 mod 0 eq exch dup 100 mod 0 ne exch 400 mod 0 eq or and } def
+
+    /okymd {  % y m d -> bool
+        3 1 roll
+        dup 1 ge 1 index 12 le and {
+            dup 2 eq {
+                pop isleap {29} {28} ifelse
+            } {
+                exch pop 1 sub //hibcprocess.daysinmonth exch get
+            } ifelse
+            1 index ge exch 1 ge and
+        } {
+            pop pop pop false
+        } ifelse
+    } def
+
+    /okjjj {  % y jjj -> bool
+        exch isleap {366} {365} ifelse 1 index ge exch 1 ge and
+    } def
+
+    % Two-digit years agree with the full year about leap years from 1901 to 2099
+    /yy { cvi 2000 add } def
+
+    /baddate {
+        /bwipp.HIBCbadDate (Invalid date in HIBC secondary data) //raiseerror exec
+    } def
+
+    /badlotserial {
+        /bwipp.HIBCbadLotSerial (The lot or serial number must be up to 18 digits, capital letters and the symbols -.) //raiseerror exec
+    } def
+
+    /badsecquantity {
+        /bwipp.HIBCbadQuantity (The quantity must be two digits after 8 or five digits after 9) //raiseerror exec
+    } def
+
+    /badsecondary {
+        /bwipp.HIBCbadSecondary (HIBC secondary data must begin with a five-digit Julian date, $ followed by a lot number, $+ followed by a serial number, or $$ or $$+ followed by a quantity format digit 8 or 9 or a date format digit 0 to 7) //raiseerror exec
+    } def
+
+    /primary {  % LIC, PCN, U/M
+        /p exch def
+        p length 4 lt { /bwipp.HIBCbadLIC (The LIC must be four digits or capital letters, beginning with a letter) //raiseerror exec } if
+        p 0 4 getinterval allalnum not { /bwipp.HIBCbadLIC (The LIC must be four digits or capital letters, beginning with a letter) //raiseerror exec } if
+        p length 6 lt p length 23 gt or { /bwipp.HIBCbadPCN (The product or catalogue number must be 1 to 18 digits or capital letters) //raiseerror exec } if
+        p 4 p length 5 sub getinterval allalnum not { /bwipp.HIBCbadPCN (The product or catalogue number must be 1 to 18 digits or capital letters) //raiseerror exec } if
+        p p length 1 sub get isdigit not { /bwipp.HIBCbadUnitOfMeasure (The unit of measure must be a digit) //raiseerror exec } if
+    } def
+
+    /date8 {  % YYYYMMDD
+        /v exch def
+        v length 8 ne { baddate } if
+        v alldigits not { baddate } if
+        v 0 4 getinterval cvi v 4 2 getinterval cvi v 6 2 getinterval cvi okymd not { baddate } if
+    } def
+
+    /secondary {  % Reference, date, lot or serial, then supplemental data
+        /sec exch def
+        sec (/) search {
+            /sec exch def pop /supp exch def /hassupp true def
+        } {
+            pop /hassupp false def
+        } ifelse
+        sec length 0 eq { badsecondary } if
+        sec 0 get isdigit {
+            sec length 5 lt { baddate } if
+            sec 0 5 getinterval alldigits not { baddate } if
+            sec 0 2 getinterval yy sec 2 3 getinterval cvi okjjj not { baddate } if
+            /lot sec 5 sec length 5 sub getinterval def
+            /minlot 0 def /maxlot 13 def  % Legacy lot after a Julian date
+        } {
+        sec ($$) anchorsearch {
+            pop (+) anchorsearch { pop } if /r exch def
+            r length 0 eq { badsecondary } if
+            r 0 get isdigit not { badsecondary } if
+            r 0 get 56 ge {  % Quantity of two or five digits from ANSI/HIBC 2.5, optionally followed by a date format
+                /n r 0 get 56 eq {2} {5} ifelse def
+                r length n 1 add lt { badsecquantity } if
+                r 1 n getinterval alldigits not { badsecquantity } if
+                /r r n 1 add r length n sub 1 sub getinterval def
+                r length 0 ne {
+                    r 0 get dup isdigit exch 56 lt and not { badsecondary } if
+                } if
+            } if
+            r length 0 eq {
+                /lot () def
+            } {
+                /f r 0 get 48 sub def
+                f 1 le {  % First digit of MMYY
+                    r length 4 lt { baddate } if
+                    r 0 4 getinterval alldigits not { baddate } if
+                    r 0 2 getinterval cvi dup 1 lt exch 12 gt or { baddate } if
+                    /lot r 4 r length 4 sub getinterval def
+                } {
+                f 6 le {
+                    /n //hibcprocess.datelens f 2 sub get def
+                    r length n 1 add lt { baddate } if
+                    /d r 1 n getinterval def
+                    d alldigits not { baddate } if
+                    f 2 eq {  % MMDDYY
+                        d 4 2 getinterval yy d 0 2 getinterval cvi d 2 2 getinterval cvi okymd
+                    } {
+                    f 4 le {  % YYMMDD, YYMMDDHH
+                        d 0 2 getinterval yy d 2 2 getinterval cvi d 4 2 getinterval cvi okymd
+                        f 4 eq { d 6 2 getinterval cvi 23 le and } if
+                    } {  % YYJJJ, YYJJJHH
+                        d 0 2 getinterval yy d 2 3 getinterval cvi okjjj
+                        f 6 eq { d 5 2 getinterval cvi 23 le and } if
+                    } ifelse
+                    } ifelse
+                    not { baddate } if
+                    /lot r n 1 add r length n sub 1 sub getinterval def
+                } {
+                /lot r 1 r length 1 sub getinterval def  % Format 7 has no date
+                } ifelse
+                } ifelse
+            } ifelse
+            /minlot 0 def /maxlot 18 def
+        } {
+            pop
+            sec ($) anchorsearch {
+                pop (+) anchorsearch { pop } if /lot exch def
+                lot length 0 eq { badsecondary } if
+                lot 0 get isalnum not { badsecondary } if
+                /minlot 1 def /maxlot 18 def
+            } {
+                pop badsecondary
+            } ifelse
+        } ifelse
+        } ifelse
+        lot length minlot lt lot length maxlot gt or { badlotserial } if
+        lot alllot not { badlotserial } if
+        hassupp {
+            {  % loop
+                supp (/) search {
+                    /fld exch def pop /supp exch def /final false def
+                } {
+                    /fld exch def /final true def
+                } ifelse
+                fld (16D) anchorsearch { pop date8 } {
+                (14D) anchorsearch { pop date8 } {
+                (S) anchorsearch {
+                    pop /v exch def
+                    v length 1 lt v length 18 gt or { badlotserial } if
+                    v alllot not { badlotserial } if
+                } {
+                (Q) anchorsearch {
+                    pop /v exch def
+                    v length 1 lt v length 5 gt or { /bwipp.HIBCbadQuantity (The quantity must be 1 to 5 digits) //raiseerror exec } if
+                    v alldigits not { /bwipp.HIBCbadQuantity (The quantity must be 1 to 5 digits) //raiseerror exec } if
+                    final not { /bwipp.HIBCquantityNotLast (The quantity must be the last supplemental data field) //raiseerror exec } if
+                } {
+                    pop /bwipp.HIBCunknownDI (HIBC supplemental data must be one of 16D, 14D, S or Q) //raiseerror exec
+                } ifelse
+                } ifelse
+                } ifelse
+                } ifelse
+                final { exit } if
+            } loop
+        } if
+    } def
+
+    /badpasfield {
+        /bwipp.HIBCbadPASfield (Invalid HIBC PAS data field) //raiseerror exec
+    } def
+
+    /pasdatetime {  % YYYJJJ[HHMM[G]]
+        d length dup 6 ne exch dup 10 ne exch 11 ne and and { badpasdatetime } if
+        d 0 d length 6 eq {6} {10} ifelse getinterval alldigits not { badpasdatetime } if
+        d length 11 eq { d 10 get 71 ne { badpasdatetime } if } if
+        d 0 3 getinterval cvi dup 500 lt {2000} {1000} ifelse add  % Years 1500 to 2499 for leap years
+        d 3 3 getinterval cvi okjjj not { badpasdatetime } if
+        d length 6 gt {
+            d 6 2 getinterval cvi 23 gt d 8 2 getinterval cvi 59 gt or { badpasdatetime } if
+        } if
+    } def
+
+    /badpasdatetime {
+        /bwipp.HIBCbadPASdateTime (The HIBC PAS date and time must be YYYJJJ, optionally followed by HHMM and then G) //raiseerror exec
+    } def
+
+    /pas {  % Where flag, then fields of a what flag and data
+        /s exch def
+        s length 0 eq { /bwipp.HIBCbadPASlocation (The HIBC PAS location flag must be one of A to L or Z) //raiseerror exec } if
+        s 0 get dup 65 ge exch 76 le and s 0 get 90 eq or not {
+            /bwipp.HIBCbadPASlocation (The HIBC PAS location flag must be one of A to L or Z) //raiseerror exec
+        } if
+        s 0 get 90 ne {  % Z is a non-conforming structure
+            /s s 1 s length 1 sub getinterval def
+            {  % loop
+                s (/) search {
+                    /fld exch def pop /s exch def /final false def
+                } {
+                    /fld exch def /final true def
+                } ifelse
+                fld length 0 eq { /bwipp.HIBCbadPASdataFlag (The HIBC PAS data flag must be one of A to V, X or Z) //raiseerror exec } if
+                /g fld 0 get def
+                g isupper g 87 ne and g 89 ne and not {
+                    /bwipp.HIBCbadPASdataFlag (The HIBC PAS data flag must be one of A to V, X or Z) //raiseerror exec
+                } if
+                /d fld 1 fld length 1 sub getinterval def
+                d length 1 lt d length 15 gt or { badpasfield } if
+                g 90 ne {  % Z is non-conforming data
+                    d allalnum not { badpasfield } if
+                    g 65 eq { d length 4 ne d 0 get isupper not or { badpasfield } if } if  % LIC
+                    g 85 eq { d length 9 ne { badpasfield } if } if  % HIN
+                    g 77 eq { pasdatetime } if
+                } if
+                final { exit } if
+            } loop
+        } if
+    } def
+
+    dontlint not {
+        data length 0 eq { /bwipp.HIBCbadFlag (HIBC data must begin with a capital letter, a digit, $ or /) //raiseerror exec } if
+        /c data 0 get def
+        c isupper {
+            data (/) search {  % Concatenated primary and secondary
+                /pri exch def pop /sec exch def
+                pri primary sec secondary
+            } {
+                primary
+            } ifelse
+        } {
+        c isdigit c 36 eq or {  % Secondary, ending with the link character
+            data length 2 lt { badsecondary } if
+            data 0 data length 1 sub getinterval secondary
+        } {
+        c 47 eq {
+            data 1 data length 1 sub getinterval pas
+        } {
+            /bwipp.HIBCbadFlag (HIBC data must begin with a capital letter, a digit, $ or /) //raiseerror exec
+        } ifelse
+        } ifelse
+        } ifelse
+    } if
+
+    barlen 2 add string
+    dup 0 43 put
+    dup 1 data putinterval
+    dup barlen 1 add //hibcprocess.barchars checksum get put
+
+    } stopped {end stop} if
+    end
+
+}
+bind def
+/hibcprocess dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END RESOURCE hibcprocess--

@@ -1,0 +1,239 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+% ANSI/HIBC 2.6-2016 (R2026) Supplier Labeling Standard
+% ANSI/HIBC 1.3-2010 Provider Applications Standard
+
+
+/hibcprocess dup /uk.co.terryburton.bwipp findresource cvx def
+
+/vc_tmpl {  % Data with its check character
+    dup length 1 add string dup 0 43 put dup 1 3 index putinterval
+    exch { 0 true false hibcprocess } dup 0 4 -1 roll put
+    exch isEqual
+} def
+
+/ok_tmpl {
+    { 0 false false hibcprocess pop true } dup 0 4 -1 roll put
+    true isEqual
+} def
+
+/er_tmpl {
+    exch { 0 false false hibcprocess } dup 0 4 -1 roll put
+    exch isError
+} def
+
+
+% Examples from the standards, with their check characters
+
+(A123BJC5D6E71G)                                   vc_tmpl  % SLS 4.3.1
+($$52001510X3GD)                                   vc_tmpl  % SLS 4.3.2
+(A99912345/$$52001510X33)                          vc_tmpl  % SLS 2.2.1.1
+(A99912345/$$52001510X3/16D20111212/S77DEFG457)    vc_tmpl  % SLS 2.3.2
+(A99912345/$10X3/16D20111231/14D202001313)         vc_tmpl  % SLS 2.3.2.3
+(A99912349/$10X3/16D20111231/14D20200131/Q500Z)    vc_tmpl  % SLS 2.3.2.4
+(A123BJC5D6E71/$$52001510X3C)                      vc_tmpl  % SLS 4.3.3
+(H123ABC01234567890D)                              vc_tmpl  % SLS C.3
+($A1234GU)                                         vc_tmpl  % SLS E1.1
+(/ACMRN123456/V2009121908334)                      vc_tmpl  % PAS 1.3
+(/EO5232013)                                       vc_tmpl  % PAS 1.3
+(/EU720060FF0/O523201W)                            vc_tmpl  % PAS 1.3
+(/EU720060FF0/O523201/Z34H159/M9842431340V)        vc_tmpl  % PAS 1.3
+(/KN12345A)                                        vc_tmpl  % PAS 1.3
+(/LAH123/NC9037)                                   vc_tmpl  % PAS 1.3
+(/EAH783B)                                         vc_tmpl  % PAS Appendix B
+(/EAH783/Z34H159$)                                 vc_tmpl  % PAS 2.2
+(04366GX)                                          vc_tmpl  % SLS 2.5 E1.1
+($$0905A1234G/)                                    vc_tmpl  % SLS 2.5 E1.1
+($$872404121523G2)                                 vc_tmpl  % SLS 2.5 E1.1
+($$9014407A1234G8)                                 vc_tmpl  % SLS 2.5 E1.1
+($$848GQ)                                          vc_tmpl  % SLS 2.5 E1.1
+
+% Secondary data formats, Table F1 of the SLS (link character L)
+
+(05271L) ok_tmpl
+($3C001L) ok_tmpl
+($$09053C001L) ok_tmpl
+($$20928053C001L) ok_tmpl
+($$30509283C001L) ok_tmpl
+($$4050928223C001L) ok_tmpl
+($$5052713C001L) ok_tmpl
+($$605271223C001L) ok_tmpl
+($$73C001L) ok_tmpl
+($+0001L) ok_tmpl
+($$+09050001L) ok_tmpl
+($$+20928050001L) ok_tmpl
+($$+30509280001L) ok_tmpl
+($$+4050928200001L) ok_tmpl
+($$+5052710001L) ok_tmpl
+($$+605271200001L) ok_tmpl
+($$+70001L) ok_tmpl
+
+% Secondary data formats with quantity, Table F1 of ANSI/HIBC 2.5-2015 (link character L)
+
+($$82409053C001L) ok_tmpl
+($$82420928053C001L) ok_tmpl
+($$82430509283C001L) ok_tmpl
+($$8244050928223C001L) ok_tmpl
+($$8245052713C001L) ok_tmpl
+($$824605271223C001L) ok_tmpl
+($$82473C001L) ok_tmpl
+($$824L) ok_tmpl
+($$90010009053C001L) ok_tmpl
+($$90010020928053C001L) ok_tmpl
+($$90010030509283C001L) ok_tmpl
+($$9001004050928223C001L) ok_tmpl
+($$9001005052713C001L) ok_tmpl
+($$900100605271223C001L) ok_tmpl
+($$90010073C001L) ok_tmpl
+($$900100L) ok_tmpl
+
+% Primary
+
+(A1231)                        /bwipp.HIBCbadPCN er_tmpl
+(A12)                          /bwipp.HIBCbadLIC er_tmpl
+(A1.3BJC1)                     /bwipp.HIBCbadLIC er_tmpl
+(A1231234567890123456780) ok_tmpl
+(A12312345678901234567890)     /bwipp.HIBCbadPCN er_tmpl
+(A123B-C1)                     /bwipp.HIBCbadPCN er_tmpl
+(A123BJCX)                     /bwipp.HIBCbadUnitOfMeasure er_tmpl
+
+% Flag
+
+(-A)                           /bwipp.HIBCbadFlag er_tmpl
+(%ABC)                         /bwipp.HIBCbadFlag er_tmpl
+( )                            /bwipp.HIBCbadFlag er_tmpl
+
+% Secondary
+
+($)                            /bwipp.HIBCbadSecondary er_tmpl
+($$8ABCL)                      /bwipp.HIBCbadQuantity er_tmpl
+($$9L)                         /bwipp.HIBCbadQuantity er_tmpl
+($$L)                          /bwipp.HIBCbadSecondary er_tmpl
+($$+L)                         /bwipp.HIBCbadSecondary er_tmpl
+($-AL)                         /bwipp.HIBCbadSecondary er_tmpl
+($+L)                          /bwipp.HIBCbadSecondary er_tmpl
+(A12341/)                      /bwipp.HIBCbadSecondary er_tmpl
+(A12341/X1)                    /bwipp.HIBCbadSecondary er_tmpl
+
+% Link character may be any character
+
+($$7AB/) ok_tmpl
+($$7AB ) ok_tmpl
+
+% Julian date
+
+(20366L) ok_tmpl
+(20367L)                       /bwipp.HIBCbadDate er_tmpl
+(21366L)                       /bwipp.HIBCbadDate er_tmpl
+(20000L)                       /bwipp.HIBCbadDate er_tmpl
+(2036L)                        /bwipp.HIBCbadDate er_tmpl
+(2036AL)                       /bwipp.HIBCbadDate er_tmpl
+(21001ABCDEFGHIJKLML) ok_tmpl
+(21001ABCDEFGHIJKLMNL)         /bwipp.HIBCbadLotSerial er_tmpl
+
+% Date formats
+
+($$1205L) ok_tmpl
+($$1305L)                      /bwipp.HIBCbadDate er_tmpl
+($$0005L)                      /bwipp.HIBCbadDate er_tmpl
+($$105L)                       /bwipp.HIBCbadDate er_tmpl
+($$2022924L) ok_tmpl
+($$2022923L)                   /bwipp.HIBCbadDate er_tmpl
+($$2043124L)                   /bwipp.HIBCbadDate er_tmpl
+($$3240229L) ok_tmpl
+($$3230229L)                   /bwipp.HIBCbadDate er_tmpl
+($$3231301L)                   /bwipp.HIBCbadDate er_tmpl
+($$424022923L) ok_tmpl
+($$424022924L)                 /bwipp.HIBCbadDate er_tmpl
+($$42402292L)                  /bwipp.HIBCbadDate er_tmpl
+($$524366L) ok_tmpl
+($$523366L)                    /bwipp.HIBCbadDate er_tmpl
+($$62436623L) ok_tmpl
+($$62436624L)                  /bwipp.HIBCbadDate er_tmpl
+
+% Quantity in earlier versions of the SLS
+
+($$+82470001L) ok_tmpl
+($$84L)                        /bwipp.HIBCbadQuantity er_tmpl
+($$8A4L)                       /bwipp.HIBCbadQuantity er_tmpl
+($$90010L)                     /bwipp.HIBCbadQuantity er_tmpl
+($$8248L)                      /bwipp.HIBCbadSecondary er_tmpl
+($$824AL)                      /bwipp.HIBCbadSecondary er_tmpl
+($$82413C001L)                 /bwipp.HIBCbadDate er_tmpl
+
+% Lot and serial
+
+($$7L) ok_tmpl
+($$7ABCDEFGHIJKLMNOPQRL) ok_tmpl
+($$7ABCDEFGHIJKLMNOPQRSL)      /bwipp.HIBCbadLotSerial er_tmpl
+($$7A-B.CL) ok_tmpl
+($$7A$BL)                      /bwipp.HIBCbadLotSerial er_tmpl
+($$+7A%BL)                     /bwipp.HIBCbadLotSerial er_tmpl
+($ABCDEFGHIJKLMNOPQRSL)        /bwipp.HIBCbadLotSerial er_tmpl
+($+1-2L) ok_tmpl
+
+% Supplemental data
+
+(A12341/$$7/16D20240229) ok_tmpl
+(A12341/$$7/16D20230229)       /bwipp.HIBCbadDate er_tmpl
+(A12341/$$7/14D2024010)        /bwipp.HIBCbadDate er_tmpl
+(A12341/$$7/14D20241301)       /bwipp.HIBCbadDate er_tmpl
+(A12341/$$7/S)                 /bwipp.HIBCbadLotSerial er_tmpl
+(A12341/$$7/SABCDEFGHIJKLMNOPQR) ok_tmpl
+(A12341/$$7/SABCDEFGHIJKLMNOPQRS) /bwipp.HIBCbadLotSerial er_tmpl
+(A12341/$$7/Q)                 /bwipp.HIBCbadQuantity er_tmpl
+(A12341/$$7/Q123456)           /bwipp.HIBCbadQuantity er_tmpl
+(A12341/$$7/Q12A)              /bwipp.HIBCbadQuantity er_tmpl
+(A12341/$$7/Q12345) ok_tmpl
+(A12341/$$7/Q5/SAB)            /bwipp.HIBCquantityNotLast er_tmpl
+(A12341/$$7/X1)                /bwipp.HIBCunknownDI er_tmpl
+(A12341/$$7/15D20200101)       /bwipp.HIBCunknownDI er_tmpl
+(A12341/$$7/)                  /bwipp.HIBCunknownDI er_tmpl
+($$7AB/S12L) ok_tmpl
+
+% PAS
+
+(/)                            /bwipp.HIBCbadPASlocation er_tmpl
+(/MO1)                         /bwipp.HIBCbadPASlocation er_tmpl
+(/YAAO1)                       /bwipp.HIBCbadPASlocation er_tmpl
+(/1EO1)                        /bwipp.HIBCbadPASlocation er_tmpl
+(/Z-.$ %/+) ok_tmpl
+(/E)                           /bwipp.HIBCbadPASdataFlag er_tmpl
+(/EW123)                       /bwipp.HIBCbadPASdataFlag er_tmpl
+(/EY12)                        /bwipp.HIBCbadPASdataFlag er_tmpl
+(/EO1/)                        /bwipp.HIBCbadPASdataFlag er_tmpl
+(/EO)                          /bwipp.HIBCbadPASfield er_tmpl
+(/EO123456789012345) ok_tmpl
+(/EO1234567890123456)          /bwipp.HIBCbadPASfield er_tmpl
+(/EO12-3)                      /bwipp.HIBCbadPASfield er_tmpl
+(/EZ-.$ %) ok_tmpl
+(/EAH12)                       /bwipp.HIBCbadPASfield er_tmpl
+(/EA1234)                      /bwipp.HIBCbadPASfield er_tmpl
+(/EU12345678)                  /bwipp.HIBCbadPASfield er_tmpl
+(/EM98436)                     /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM984367)                    /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM000366) ok_tmpl
+(/EM001366)                    /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM9842432400)                /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM9842431360)                /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM9842431340H)               /bwipp.HIBCbadPASdateTime er_tmpl
+(/EM9842431340G) ok_tmpl
+(/EM98424313)                  /bwipp.HIBCbadPASdateTime er_tmpl
+
+% Character set and check character
+
+(a) /bwipp.HIBCbadCharacter er_tmpl
+{ (A123BJC5D6E71F) true false hibcprocess } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected "G", not "F")] isErrorInfo
+{ (A123BJC5D6E71G) true true hibcprocess } (+A123BJC5D6E71G) isEqual
+
+% dontlint
+
+{ (/EW123) false true hibcprocess } (+/EW1234) isEqual
+{ () false true hibcprocess } (++) isEqual
+{ (a) false true hibcprocess } /bwipp.HIBCbadCharacter isError
