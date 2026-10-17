@@ -21,7 +21,7 @@
 #          make_image.sh pnm qrcode 'test' > qrcode.pnm
 #
 
-set -e
+set -euo pipefail
 
 # Fixed PDF timestamps and document IDs, so that unchanged images regenerate identically
 export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-0}"
@@ -31,7 +31,7 @@ SCALEX=2
 SCALEY=2
 ROTATE=0
 
-while [[ "$1" == --* ]]; do
+while [[ "${1:-}" == --* ]]; do
 	case "$1" in
 	--crop)
 		CROP=true
@@ -61,10 +61,10 @@ while [[ "$1" == --* ]]; do
 	esac
 done
 
-FORMAT="$1"
-ENCODER="$2"
-DATA="$3"
-OPTIONS="$4"
+FORMAT="${1:-}"
+ENCODER="${2:-}"
+DATA="${3:-}"
+OPTIONS="${4:-}"
 
 # Convert data and options to hex strings to avoid PostScript escaping issues
 DATA_HEX=$(printf '%s' "$DATA" | xxd -p | tr -d '\n')
@@ -85,7 +85,9 @@ fi
 
 # The data goes in a file, since a long -c argument is refused as "Command too long"
 DRAW=$(mktemp --suffix=.ps)
-trap 'rm -f "$DRAW"' EXIT
+OUT=$(mktemp)
+TMPPDF=$(mktemp --suffix=.pdf)
+trap 'rm -f "$DRAW" "$OUT" "$TMPPDF"' EXIT
 printf '<%s> <%s> /%s /uk.co.terryburton.bwipp findresource exec showpage\n' "$DATA_HEX" "$OPTIONS_HEX" "$ENCODER" >"$DRAW"
 
 BWIPP="build/monolithic/barcode.ps"
@@ -104,15 +106,25 @@ else
 	WHITE_IS_OPAQUE=true
 fi
 
-BBOX=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=bbox \
+# A grid fit snaps to the output device's resolution in every pass, unless the options name their
+# own, so that the measuring pass draws the same geometry as the output
+if [[ " $OPTIONS " =~ [[:space:]]gridfit(=true)?[[:space:]] ]] && [[ ! " $OPTIONS " =~ [[:space:]]griddpi= ]]; then
+	if [ "$FORMAT" = "png" ] || [ "$FORMAT" = "pnm" ]; then GRIDDPI=72; else GRIDDPI=720; fi
+	INIT="$INIT uk.co.terryburton.bwipp.global_ctx /default_griddpi $GRIDDPI put"
+fi
+
+rc=0
+MEASURE=$(gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=bbox \
 	-c "<< /PageOffset [$OFFSET $OFFSET] /WhiteIsOpaque $WHITE_IS_OPAQUE >> setpagedevice" \
 	-c "$INIT" \
 	-c "($BWIPP) run $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
 	-c "($DRAW) run" \
-	2>&1 | grep "%%HiResBoundingBox:")
+	2>&1) || rc=$?
+BBOX=$(printf '%s\n' "$MEASURE" | grep "%%HiResBoundingBox:" || :) # tolerated: an absent box is reported below
 
-if [ -z "$BBOX" ]; then
-	echo "Error: Failed to get bounding box" >&2
+if [ "$rc" -ne 0 ] || [ -z "$BBOX" ]; then
+	echo "Error: Failed to draw the symbol" >&2
+	printf '%s\n' "$MEASURE" | grep -v "BoundingBox:" >&2 || : # tolerated: the message may be empty
 	exit 1
 fi
 
@@ -128,6 +140,13 @@ read -r X1 Y1 X2 Y2 < <(echo "$BBOX" | awk '{
 	print x1, y1, x2, y2
 }')
 
+# An output pass writes its image to stdout, so a failure leaves its messages among the image data
+render_failed() {
+	echo "Error: Failed to render the $FORMAT output" >&2
+	grep -a -E '^(Error|Additional information)' "$OUT" >&2 || : # tolerated: the message may be absent
+	exit 1
+}
+
 TRANSLATE_X=$((OFFSET - X1))
 TRANSLATE_Y=$((OFFSET - Y1))
 
@@ -141,7 +160,7 @@ if [ "$FORMAT" = "png" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "($DRAW) run"
+		-c "($DRAW) run" >"$OUT" || render_failed
 fi
 
 if [ "$FORMAT" = "pnm" ]; then
@@ -151,7 +170,7 @@ if [ "$FORMAT" = "pnm" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "($DRAW) run"
+		-c "($DRAW) run" >"$OUT" || render_failed
 fi
 
 if [ "$FORMAT" = "eps" ]; then
@@ -159,7 +178,7 @@ if [ "$FORMAT" = "eps" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "($DRAW) run"
+		-c "($DRAW) run" >"$OUT" || render_failed
 fi
 
 if [ "$FORMAT" = "pdf" ]; then
@@ -169,18 +188,18 @@ if [ "$FORMAT" = "pdf" ]; then
 		-sOutputFile=- \
 		-c "$INIT" \
 		-c "($BWIPP) run $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "($DRAW) run"
+		-c "($DRAW) run" >"$OUT" || render_failed
 fi
 
 if [ "$FORMAT" = "svg" ]; then
-	TMPPDF=$(mktemp --suffix=.pdf)
-	trap 'rm -f "$DRAW" "$TMPPDF"' EXIT
 	gs -q -dNOSAFER -dNOPAUSE -dBATCH -sDEVICE=pdfwrite \
 		-dAutoRotatePages=/None \
 		-dDEVICEWIDTHPOINTS=$WIDTH -dDEVICEHEIGHTPOINTS=$HEIGHT \
 		-sOutputFile="$TMPPDF" \
 		-c "$INIT" \
 		-c "($BWIPP) run gsave 1 setgray clippath fill grestore $TRANSLATE_X $TRANSLATE_Y translate $SCALEX $SCALEY scale $ROTATE rotate 0 0 moveto" \
-		-c "($DRAW) run"
-	pdftocairo -svg "$TMPPDF" -
+		-c "($DRAW) run" >&2 || render_failed
+	pdftocairo -svg "$TMPPDF" "$OUT" || render_failed
 fi
+
+cat "$OUT"
