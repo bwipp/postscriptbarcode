@@ -24,13 +24,13 @@
 } /bwipp.hibcqrcodeinputTooLong isError
 
 { (,) (dontdraw) hibcqrcode
-} /bwipp.hibcqrcodeBadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (H123ABC01234567890E) (dontdraw validatecheck) hibcqrcode  % Check digit should be 'D'
-} /bwipp.hibcqrcodeBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcqrcode  % Check digit should be '+'
-} /bwipp.hibcqrcodeBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Example
@@ -64,10 +64,12 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcqrcode } [/bwipp.hibcqrcodeBadCheckDigit (Incorrect HIBC QR Code check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcqrcode } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 %
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibcqrcode pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibcqrcode pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibcqrcode } /bwipp.HIBCbadFlag isError

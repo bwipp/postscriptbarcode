@@ -24,13 +24,13 @@
 } /bwipp.hibcdatamatrixinputTooLong isError
 
 { (,) (dontdraw) hibcdatamatrix
-} /bwipp.hibcdatamatrixBadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (A123BJC5D6E71H) (dontdraw validatecheck) hibcdatamatrix  % Check digit should be 'G'
-} /bwipp.hibcdatamatrixBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcdatamatrix  % Check digit should be '+'
-} /bwipp.hibcdatamatrixBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Examples
@@ -127,7 +127,7 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcdatamatrix } [/bwipp.hibcdatamatrixBadCheckDigit (Incorrect HIBC Data Matrix check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcdatamatrix } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 % Structured Append passes through
 {
@@ -138,4 +138,6 @@
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibcdatamatrix pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibcdatamatrix pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibcdatamatrix } /bwipp.HIBCbadFlag isError

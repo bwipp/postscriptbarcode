@@ -24,13 +24,13 @@
 } /bwipp.hibcazteccodeinputTooLong isError
 
 { (,) (dontdraw) hibcazteccode
-} /bwipp.hibcazteccodeBadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (H123ABC01234567890E) (dontdraw validatecheck) hibcazteccode  % Check digit should be 'D'
-} /bwipp.hibcazteccodeBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcazteccode  % Check digit should be '+'
-} /bwipp.hibcazteccodeBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Examples
@@ -58,7 +58,7 @@
     1 0 0 1 0 0 1 0 0 1 1 0 0 0 0 1 1 0 0
 ] debugIsEqual
 
-(+) (dontdraw validatecheck format=compact) hibcazteccode /pixs get  % Degenerate case with check digit only still allowed (data is '++' due to added prefix)
+(+) (dontdraw validatecheck dontlint format=compact) hibcazteccode /pixs get  % Degenerate case with check digit only allowed without linting (data is '++' due to added prefix)
 [
     0 0 1 1 1 1 1 1 1 1 1 1 1 0 1
     0 0 1 0 0 1 1 1 1 0 0 1 1 0 0
@@ -81,9 +81,11 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcazteccode } [/bwipp.hibcazteccodeBadCheckDigit (Incorrect HIBC Aztec Code check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcazteccode } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 % Structured Append passes through
 {
-    (A123) (sampos=1 samtotal=2 debugbits) hibcazteccode
+    (A123) (dontlint sampos=1 samtotal=2 debugbits) hibcazteccode
 } (1110111101000100001100000100000001011110001101000101111000110) debugIsEqual
+
+{ (+) (dontdraw validatecheck) hibcazteccode } /bwipp.HIBCbadFlag isError

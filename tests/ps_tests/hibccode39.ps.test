@@ -21,13 +21,13 @@
 } /bwipp.hibccode39emptyData isError
 
 { (,) (dontdraw) hibccode39
-} /bwipp.hibccode39badCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (A123BJC5D6E71F) (dontdraw validatecheck) hibccode39  % Check digit should be 'G'
-} /bwipp.hibccode39badCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibccode39  % Check digit should be '+'
-} /bwipp.hibccode39badCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { 501 string (dontdraw) hibccode39 } /bwipp.hibccode39inputTooLong isError
 
@@ -48,10 +48,12 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibccode39 } [/bwipp.hibccode39badCheckDigit (Incorrect HIBC Code 39 check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibccode39 } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 %
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibccode39 pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibccode39 pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibccode39 } /bwipp.HIBCbadFlag isError

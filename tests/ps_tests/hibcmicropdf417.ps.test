@@ -21,13 +21,13 @@
 } /bwipp.hibcmicropdf417inputTooLong isError
 
 { (,) (dontdraw) hibcmicropdf417
-} /bwipp.hibcmicropdf417BadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (A123BJC5D6E71H) (dontdraw validatecheck) hibcmicropdf417  % Check digit should be 'G'
-} /bwipp.hibcmicropdf417BadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcmicropdf417  % Check digit should be '+'
-} /bwipp.hibcmicropdf417BadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Example
@@ -68,15 +68,17 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcmicropdf417 } [/bwipp.hibcmicropdf417BadCheckDigit (Incorrect HIBC MicroPDF417 check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcmicropdf417 } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 % Structured Append passes through
 {
-    (ABC) (sampos=1 samtotal=2 samid=017053 debugcws) hibcmicropdf417
+    (ABC) (dontlint sampos=1 samtotal=2 samid=017053 debugcws) hibcmicropdf417
 } [900 860 840 32 659 900 900 900 900 900 928 111 100 17 53 923 1 111 102] debugIsEqual
 
 %
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibcmicropdf417 pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibcmicropdf417 pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibcmicropdf417 } /bwipp.HIBCbadFlag isError

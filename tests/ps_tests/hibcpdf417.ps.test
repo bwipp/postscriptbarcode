@@ -21,13 +21,13 @@
 } /bwipp.hibcpdf417inputTooLong isError
 
 { (,) (dontdraw) hibcpdf417
-} /bwipp.hibcpdf417BadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (A123BJC5D6E71H) (dontdraw validatecheck) hibcpdf417  % Check digit should be 'G'
-} /bwipp.hibcpdf417BadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcpdf417  % Check digit should be '+'
-} /bwipp.hibcpdf417BadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Example
@@ -73,15 +73,17 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcpdf417 } [/bwipp.hibcpdf417BadCheckDigit (Incorrect HIBC PDF417 check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcpdf417 } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 % Macro PDF417 passes through
 {
-    (ABC) (sampos=1 samtotal=2 samid=017053 debugcws) hibcpdf417
+    (ABC) (dontlint sampos=1 samtotal=2 samid=017053 debugcws) hibcpdf417
 } [14 860 840 32 659 928 111 100 17 53 923 1 111 102] debugIsEqual
 
 %
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibcpdf417 pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibcpdf417 pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibcpdf417 } /bwipp.HIBCbadFlag isError

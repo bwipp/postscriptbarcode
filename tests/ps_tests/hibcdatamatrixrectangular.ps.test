@@ -24,13 +24,13 @@
 } /bwipp.hibcdatamatrixrectangularinputTooLong isError
 
 { (,) (dontdraw) hibcdatamatrixrectangular
-} /bwipp.hibcdatamatrixrectangularBadCharacter isError
+} /bwipp.HIBCbadCharacter isError
 
 { (A123BJC5D6E71H) (dontdraw validatecheck) hibcdatamatrixrectangular  % Check digit should be 'G'
-} /bwipp.hibcdatamatrixrectangularBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 { (/) (dontdraw validatecheck) hibcdatamatrixrectangular  % Check digit should be '+'
-} /bwipp.hibcdatamatrixrectangularBadCheckDigit isError
+} /bwipp.HIBCbadCheckDigit isError
 
 
 % Example
@@ -55,10 +55,12 @@
 %
 % Check digit: the digit expected in the error
 %
-{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcdatamatrixrectangular } [/bwipp.hibcdatamatrixrectangularBadCheckDigit (Incorrect HIBC Data Matrix Rectangular check digit provided: expected ".", not "Z")] isErrorInfo
+{ (A999BJC5D6E71Z) (dontdraw validatecheck) hibcdatamatrixrectangular } [/bwipp.HIBCbadCheckDigit (Incorrect HIBC check character provided: expected ".", not "Z")] isErrorInfo
 
 %
 % validatecheck with short inputs raises a BWIPP error or encodes
 %
 
-{ (+) (dontdraw validatecheck) hibcdatamatrixrectangular pop true } true isEqual
+{ (+) (dontdraw validatecheck dontlint) hibcdatamatrixrectangular pop true } true isEqual
+
+{ (+) (dontdraw validatecheck) hibcdatamatrixrectangular } /bwipp.HIBCbadFlag isError

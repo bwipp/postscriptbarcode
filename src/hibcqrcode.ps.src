@@ -32,7 +32,7 @@
 % IN THE SOFTWARE.
 
 % --BEGIN ENCODER hibcqrcode--
-% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary render renmatrix qrcode--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput hibcprocess setanycolor fifocache rsecbinary render renmatrix qrcode--
 % --DESC: HIBC QR Code
 % --EXAM: A999BJC5D6E71
 % --EXOP:
@@ -44,38 +44,10 @@ true setglobal
 8 dict
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /hibcprocess dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /qrcode dup /uk.co.terryburton.bwipp findresource put
 begin
-
-/hibcqrcode.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
-
-/hibcqrcode.latevars dup 2 dict def load /init {
-
-    currentglobal
-    true setglobal
-
-    //hibcqrcode.latevars begin
-
-    /charvals 43 dict def
-    0 1 42 {
-        charvals exch dup //hibcqrcode.barchars exch 1 getinterval exch put
-    } for
-    /charvals charvals readonly def
-
-    /init { //hibcqrcode.latevars {def} forall } def
-
-    end
-
-    //hibcqrcode.latevars /init get exec
-
-    setglobal
-
-} bind put
-
-/uk.co.terryburton.bwipp.global_ctx dup where {
-    exch get /preload known {//hibcqrcode.latevars /init get exec} if
-} {pop} ifelse
 
 /hibcqrcode {
 
@@ -84,6 +56,7 @@ begin
 
     /dontdraw false def
     /validatecheck false def
+    /dontlint false def
 
     null /apply //processoptions exec /options exch def
     /barcode exch def
@@ -92,8 +65,6 @@ begin
         dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
-
-    //hibcqrcode.latevars /init get exec
 
     % Validate the input
     barcode () eq {
@@ -104,34 +75,7 @@ begin
         /bwipp.hibcqrcodeinputTooLong (The input data is too long) //raiseerror exec
     } if
 
-    0 1 barcode length 1 sub {
-        barcode exch 1 getinterval charvals exch known not {
-            /bwipp.hibcqrcodeBadCharacter (HIBC QR Code must contain only digits, capital letters, spaces and the symbols -.$/+%) //raiseerror exec
-        } if
-    } for
-
-    /barlen barcode length validatecheck {1 sub} if def
-
-    /checksum 41 def
-    0 1 barlen 1 sub {
-        barcode exch 1 getinterval charvals exch get
-        checksum add /checksum exch def
-    } for
-    /checksum checksum 43 mod def
-    validatecheck {
-        barcode barlen get //hibcqrcode.barchars checksum get ne {
-            /bwipp.hibcqrcodeBadCheckDigit
-            [ (Incorrect HIBC QR Code check digit provided: expected ") //hibcqrcode.barchars checksum 1 getinterval (", not ") barcode barlen 1 getinterval (") ]
-            dup 0 exch {length add} forall string
-            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
-            //raiseerror exec
-        } if
-        /barcode barcode 0 barlen getinterval def
-    } if
-
-    /barcode barlen 2 add string dup 1 barcode putinterval def
-    barcode 0 43 put
-    barcode barlen 1 add //hibcqrcode.barchars checksum get put
+    barcode validatecheck dontlint //hibcprocess exec /barcode exch def
 
     % Get the result of encoding with qrcode
     options (validatecheck) false put
