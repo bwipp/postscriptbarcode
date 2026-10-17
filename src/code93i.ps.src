@@ -1,0 +1,552 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER code93i--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor rsecprime render renlinear--
+% --DESC: Code 93i
+% --EXAM: Pack my box with 1234567890 jugs
+% --EXOP: includetext
+% --RNDR: renlinear
+% --FMLY: One-dimensional symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+17 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /rsecprime dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renlinear dup /uk.co.terryburton.bwipp findresource put
+begin
+
+% Symbol values 0 to 46 are those of Code 93
+/code93i.encs [
+    (131112) (111213) (111312) (111411) (121113)  % 0-4
+    (121212) (121311) (111114) (131211) (141111)  % 5-9
+    (211113) (211212) (211311) (221112) (221211)  % A-E
+    (231111) (112113) (112212) (112311) (122112)  % F-J
+    (132111) (111123) (111222) (111321) (121122)  % K-O
+    (131121) (212112) (212211) (211122) (211221)  % P-T
+    (221121) (222111) (112122) (112221) (122121)  % U-Y
+    (123111) (121131) (311112) (311211) (321111)  % "Z" "-" "." " " "$"
+    (112131) (113121) (211131) (121221) (312111)  % "/" "+" "%" S1 S2
+    (311121) (122211) (111132) (111231) (113112)  % S3 S4 ECI NUM BYTE
+    (113211) (114111) (411111)                    % WORD FNC1 SFF
+    (213111) (111141) (2131112) (1111411)         % START93i STARTC93 STOP93i STOPC93
+] readonly def
+
+/code93i.barchars (0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%) readonly def
+
+/code93i.fn1 -1 def  /code93i.fna -2 def
+
+% Full ASCII as Code 93 symbol characters, with a to d denoting the shifts S1 to S4
+/code93i.ext [
+    (bU) (aA) (aB) (aC) (aD) (aE) (aF) (aG) (aH) (aI) (aJ) (aK) (aL) (aM) (aN) (aO)
+    (aP) (aQ) (aR) (aS) (aT) (aU) (aV) (aW) (aX) (aY) (aZ) (bA) (bB) (bC) (bD) (bE)
+    ( )  (cA) (cB) (cC) ($)  (%)  (cF) (cG) (cH) (cI) (cJ) (+)  (cL) (-)  (.)  (/)
+    (0)  (1)  (2)  (3)  (4)  (5)  (6)  (7)  (8)  (9)  (cZ) (bF) (bG) (bH) (bI) (bJ)
+    (bV) (A)  (B)  (C)  (D)  (E)  (F)  (G)  (H)  (I)  (J)  (K)  (L)  (M)  (N)  (O)
+    (P)  (Q)  (R)  (S)  (T)  (U)  (V)  (W)  (X)  (Y)  (Z)  (bK) (bL) (bM) (bN) (bO)
+    (bW) (dA) (dB) (dC) (dD) (dE) (dF) (dG) (dH) (dI) (dJ) (dK) (dL) (dM) (dN) (dO)
+    (dP) (dQ) (dR) (dS) (dT) (dU) (dV) (dW) (dX) (dY) (dZ) (bP) (bQ) (bR) (bS) (bT)
+] {
+    [ exch {
+        dup 97 ge {
+            54 sub  % a to d -> 43 to 46
+        } {
+            1 string dup 0 4 -1 roll put //code93i.barchars exch search pop exch pop exch pop length
+        } ifelse
+    } forall ] readonly
+} forall 128 array astore readonly def
+
+% Reed-Solomon generator over GF(53) with roots 2^1 to 2^6, reversed for rsecprime
+/code93i.rscoeffs [ 1 ] 1 1 6 {
+    1 exch bitshift 53 mod exch                    % r g
+    dup length 1 add array dup 0 0 put             % r g ng
+    dup 1 3 index putinterval                      % ng = x * g
+    0 1 3 index length 1 sub {                     % r g ng k
+        2 copy get 3 index 2 index get 5 index mul sub 53 mod dup 0 lt { 53 add } if
+        2 index 3 1 roll put                       % ng[k] = ng[k] - r * g[k]
+    } for
+    3 1 roll pop pop
+} for
+[ exch 5 -1 0 { 1 index exch get exch } for pop ] readonly def
+
+% Group shift cost of each class of character: 64 per symbol character, plus 1 for a digit
+/code93i.gcost [ 64 128 65 ] readonly def
+
+% Mode switches between base (0), numeric (1) and byte (2) modes: from, to, symbol value
+/code93i.switches [ [0 1 48] [0 2 49] [1 0 48] [1 2 49] [2 0 49] [2 1 48] ] readonly def
+
+/code93i {
+
+    64 dict begin
+    {
+
+    /dontdraw false def
+    /includetext false def   % Enable/disable text
+    /text1font /Courier def
+    /text1size 10.0 def
+    /text1yoffset -7.0 def
+    /height -1.0 def
+    /errorcorrection false def
+    /parse false def
+    /parsefnc false def
+
+    /propspec false def
+    /loosespec false def
+    /strictspec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /hdim -1.0 def
+    /ast (default) def
+    /xmin -1.0 def  /xnom -1.0 def  /xmax -1.0 def
+    /hnom -1.0 def
+    /modunit 1 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    barcode length 500 gt {
+        /bwipp.code93iinputTooLong (The input data is too long) //raiseerror exec
+    } if
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    /fncvals <<
+        /parse parse
+        /parsefnc parsefnc
+        /eci true
+        (FNC1) //code93i.fn1
+        (FNC@) //code93i.fna
+    >> def
+    barcode fncvals //parseinput exec /msg exch def
+    /msglen msg length def
+
+    msglen 0 eq {
+        /bwipp.code93iEmptyData (The data must not be empty) //raiseerror exec
+    } if
+
+    msg {
+        dup -1000000 le {
+            -1811799 lt {
+                /bwipp.code93iBadECI (Code 93i supports ECIs 000000 to 811799) //raiseerror exec
+            } if
+        } { pop } ifelse
+    } forall
+
+    %
+    % FNC1 in second position follows an AIM application indicator of one letter or two digits,
+    % which is encoded directly ahead of the FNC1
+    %
+    /st 0 def
+    /fnc1first false def
+    parsefnc {  % Function characters only come from parsefnc
+        msg 0 get //code93i.fna eq {
+            /st msg 1 get dup 48 ge exch 57 le and { 2 } { 1 } ifelse def
+            msg 0 msg 1 st getinterval putinterval
+            msg st //code93i.fn1 put
+            /st st 1 add def
+        } if
+        msg {
+            //code93i.fna eq {
+                /bwipp.code93iFNC1secondNotFirst (FNC1 in second position must be declared at the start of the data) //raiseerror exec
+            } if
+        } forall
+        msg {  % FNC1 in first position follows any leading ECIs
+            dup -1000000 gt { //code93i.fn1 eq /fnc1first exch def exit } if pop
+        } forall
+        st 0 gt fnc1first or {
+            msg {
+                -1000000 le {
+                    /bwipp.code93iECIwithFNC1 (ECIs are not available with FNC1 in first or second position) //raiseerror exec
+                } if
+            } forall
+        } if
+    } if
+
+    % A final shift, mode or function character would signal an associated data carrier
+    msg msglen 1 sub get 0 lt {
+        /bwipp.code93iTrailingNonData (The data must not end with FNC1 or an ECI) //raiseerror exec
+    } if
+
+    /code93i ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Shortest encodation over the base (0), numeric (1) and byte (2) modes. Costs are the number
+    % of symbol characters times 1024, plus 8 for each switch to Numeric Mode and 1 for each digit
+    % outside Numeric Mode, so that ties favour single digits over a run in Numeric Mode, which
+    % ties only for runs of up to four digits, and otherwise favour Numeric Mode for more of the
+    % digits. Kinds of step:
+    %
+    %   0  base mode character, FNC1 or ECI          1  mode switch; arg = symbol value
+    %   2  group shift; arg = shift                  3  numeric group of arg digits
+    %   4  numeric remainder; arg = digits * 64 + exit symbol value + 1, or digits * 64 with no exit
+    %   5  byte mode group; arg = digits or 0 for two bytes
+    %   6  odd extended byte ending byte mode        7  FNC1 within numeric or byte mode
+    %
+    /n msglen def
+    /inf 2147483647 def
+    /cost [ 3 { [ n 1 add { inf } repeat ] } repeat ] def
+    /back [ 3 { n 1 add array } repeat ] def
+    cost 0 get st 0 put
+
+    /relax {  % t j symbolchars penalty kind arg
+        6 2 roll exch 1024 mul add cur add             % kind arg t j c
+        cost 3 index get 2 index get 1 index ge {
+            cost 3 index get 2 index 2 index put pop   % kind arg t j
+            back 2 index get exch [ s i 7 index 7 index ] put
+            pop pop pop
+        } {
+            pop pop pop pop pop
+        } ifelse
+    } def
+
+    /digs {  % i k -> bool
+        2 copy add n gt {
+            pop pop false
+        } {
+            true 3 1 roll 1 index add 1 sub 1 exch {
+                msg exch get dup 48 lt exch 57 gt or { pop false exit } if
+            } for
+        } ifelse
+    } def
+
+    /num {  % i k -> value of the digits
+        0 3 1 roll 1 index add 1 sub 1 exch { msg exch get 48 sub exch 10 mul add } for
+    } def
+
+    /ecichars {  % eci -> symbol values that follow the ECI character
+        /x exch def
+        x 43 le { [x] } {
+        x 95 le { [44 x 44 sub] } {
+        x 2799 le { /x x 96 sub def [45 x 52 idiv x 52 mod] } {
+            /x x 2800 sub def [x 140608 idiv 46 add x 2704 idiv 52 mod x 52 idiv 52 mod x 52 mod]
+        } ifelse } ifelse } ifelse
+    } def
+
+    %
+    % Group shift classes: -1 not available, 0 base character other than a letter or digit,
+    % 1 letter, 2 digit, otherwise the shift of a shifted character
+    %
+    /gcls [
+        msg {
+            dup 0 lt 1 index 127 gt or {
+                pop -1
+            } {
+                //code93i.ext exch get dup length 1 eq {
+                    0 get dup 10 ge 1 index 35 le and { pop 1 } { 10 lt { 2 } { 0 } ifelse } ifelse
+                } {
+                    0 get
+                } ifelse
+            } ifelse
+        } forall
+    ] def
+
+    st 1 n {
+        /i exch def
+
+        2 {
+            //code93i.switches {
+                aload pop /tok exch def /t exch def /s exch def
+                /cur cost s get i get def
+                cur inf lt { t i 1 t 1 eq { 8 } { 0 } ifelse 1 tok relax } if
+            } forall
+        } repeat
+
+        i n eq { exit } if
+        /c msg i get def
+
+        /s 0 def /cur cost 0 get i get def
+        cur inf lt {
+            c //code93i.fn1 eq {
+                0 i 1 add 1 0 0 0 relax
+            } {
+            c -1000000 le {
+                0 i 1 add c neg 1000000 sub ecichars length 1 add 0 0 0 relax
+            } {
+            c 128 lt {
+                /e //code93i.ext c get def
+                % A leading space would request that the reader append the following symbol
+                i 0 eq errorcorrection not and e 0 get 38 eq and not {
+                    0 i 1 add e length c 48 ge c 57 le and { 1 } { 0 } ifelse 0 0 relax
+                } if
+                43 1 46 {                              % sh
+                    0 i 1 n 1 sub {                    % sh k j, with k = 64 * characters + digits
+                        gcls 1 index get
+                        dup 0 lt { pop pop exit } if
+                        dup 43 lt { //code93i.gcost exch get } { 3 index eq { 64 } { 128 } ifelse } ifelse
+                        3 -1 roll add                  % sh j k
+                        dup 64 idiv 23 gt { pop pop 0 exit } if
+                        dup 192 ge { 0 2 index 1 add 2 index 64 idiv 2 add 3 index 64 mod 2 7 index relax } if
+                        exch pop
+                    } for
+                    pop pop
+                } for
+            } if
+            } ifelse
+            } ifelse
+        } if
+
+        /s 1 def /cur cost 1 get i get def
+        cur inf lt {
+            c //code93i.fn1 eq { 1 i 1 add 1 0 7 0 relax } if
+            5 -1 4 {
+                /k exch def
+                i k digs { 1 i k add 3 0 3 k relax } if
+            } for
+            1 2 3 {
+                /k exch def
+                i k digs {
+                    /j i k add def
+                    /tl k 1 eq { 1 } { 2 } ifelse def
+                    j n eq {
+                        1 j tl 0 4 k 64 mul relax
+                    } {
+                        0 j tl 1 add 0 4 k 64 mul 49 add relax
+                        2 j tl 1 add 0 4 k 64 mul 50 add relax
+                        msg j get //code93i.fn1 eq { 1 j 1 add tl 1 add 0 4 k 64 mul 52 add relax } if
+                    } ifelse
+                } if
+            } for
+        } if
+
+        /s 2 def /cur cost 2 get i get def
+        cur inf lt {
+            c //code93i.fn1 eq { 2 i 1 add 1 0 7 0 relax } if
+            4 -1 3 {
+                /k exch def
+                i k digs { 2 i k add 3 0 5 k relax } if
+            } for
+            i 1 add n lt {
+                c 0 ge msg i 1 add get 0 ge and { 2 i 2 add 3 0 5 0 relax } if
+            } if
+            % A final Byte Mode character would signal an associated data carrier
+            c 127 gt {
+                0 i 1 add //code93i.ext c 128 sub get length 1 eq i 1 add n eq and { 1 } { 2 } ifelse 0 6 0 relax
+            } if
+        } if
+
+    } for
+
+    /s 0 def
+    1 1 2 { dup cost exch get n get cost s get n get lt { /s exch def } { pop } ifelse } for
+    cost s get n get inf eq {
+        /bwipp.code93iUnencodable (The data cannot be encoded in Code 93i) //raiseerror exec
+    } if
+
+    /prefix [
+        0 1 st 2 sub { msg exch get //code93i.ext exch get aload pop } for
+        st 0 gt { 51 } if
+    ] def
+    /vals cost s get n get 1024 idiv prefix length add array def
+    /pos vals length def
+    /j n def
+    { % loop
+        j st eq s 0 eq and { exit } if
+        back s get j get aload pop /arg exch def /kind exch def /i exch def /ps exch def
+        1 {  % common exit
+            kind 0 eq {
+                /c msg i get def
+                c //code93i.fn1 eq { [51] exit } if
+                c -1000000 le { [47 c neg 1000000 sub ecichars aload pop] exit } if
+                //code93i.ext c get exit
+            } if
+            kind 1 eq { [arg] exit } if
+            kind 2 eq {
+                mark
+                i 1 j 1 sub {
+                    msg exch get //code93i.ext exch get
+                    dup length 1 eq {
+                        0 get dup dup 10 ge exch 35 le and { arg exch } if
+                    } {
+                        aload pop exch dup arg eq { pop } { exch } ifelse
+                    } ifelse
+                } for
+                counttomark dup 12 le { 3 sub } { 23 add } ifelse
+                counttomark 1 roll arg counttomark 1 roll
+                counttomark array astore exch pop exit
+            } if
+            kind 3 eq {
+                i arg num arg 4 eq { 100000 add } if
+                [ exch dup 2304 idiv exch dup 48 idiv 48 mod exch 48 mod ] exit
+            } if
+            kind 4 eq {
+                /k arg 64 idiv def /x arg 64 mod 1 sub def
+                [
+                    i k num k 3 eq { dup 48 idiv exch 48 mod } if
+                    x -1 ne { x } if
+                ] exit
+            } if
+            kind 5 eq {
+                arg 0 eq {
+                    msg i get 256 mul msg i 1 add get add
+                } {
+                    i arg num arg 4 eq { 65536 } { 75536 } ifelse add
+                } ifelse
+                [ exch dup 1849 idiv exch dup 43 idiv 43 mod exch 43 mod ] exit
+            } if
+            kind 6 eq {
+                //code93i.ext msg i get 128 sub get
+                dup length 1 eq { 0 get j n eq { [ exch ] } { [ exch 49 ] } ifelse } if exit
+            } if
+            [51]  % kind 7
+        } repeat
+        /toks exch def
+        /pos pos toks length sub def
+        vals pos toks putinterval
+        /s ps def /j i def
+    } loop
+    vals 0 prefix putinterval
+
+    %
+    % Prefer a Code 93 symbol when one is no longer, as legacy Code 93 readers can read it
+    %
+    errorcorrection not st 0 eq and msg 0 get 32 ne and {
+        0 msg {
+            dup 0 lt 1 index 127 gt or { pop pop -1 exit } if
+            //code93i.ext exch get length add
+        } forall
+        dup 0 ge 1 index vals length le and {
+            array /vals exch def
+            0 msg { //code93i.ext exch get 2 copy vals 3 1 roll putinterval length add } forall pop
+        } { pop } ifelse
+    } if
+
+    errorcorrection {
+        %
+        % EC1 to EC3, first half of the data rounded up, Special Features Flag, data length, rest
+        % of the data, EC4 to EC6
+        %
+        /L vals length def
+        L 44 gt {
+            /bwipp.code93iTooLongForEC (Error correction is available for at most 44 symbol characters of data) //raiseerror exec
+        } if
+        /p L 1 add 2 idiv def
+        /body [ vals 0 p getinterval aload pop 52 L vals p L p sub getinterval aload pop ] def
+        /ecs 6 array def  % The last character is the highest order coefficient
+        {body length 1 sub exch sub body exch get} body length //code93i.rscoeffs ecs 53 //rsecprime exec
+        /syms [ ecs 5 get ecs 4 get ecs 3 get body aload pop ecs 2 get ecs 1 get ecs 0 get ] def
+        /startc 53 def /stopc 56 def
+    } {
+        %
+        % Symbols using only Code 93 characters and shifts are Code 93 symbols
+        %
+        /c93 true def
+        /q 0 def
+        {  % loop
+            q vals length ge { exit } if
+            vals q get dup 46 gt { pop /c93 false def exit } if
+            42 gt {
+                q 1 add vals length ge { /c93 false def exit } if
+                vals q 1 add get dup 10 lt exch 35 gt or { /c93 false def exit } if
+                /q q 2 add def
+            } {
+                /q q 1 add def
+            } ifelse
+        } loop
+        /md c93 { 47 } { 53 } ifelse def
+        /l vals length def
+        /cs 0 def
+        0 1 l 1 sub { /q exch def /cs vals q get l q sub 1 sub 20 mod 1 add mul cs add def } for
+        /cs cs md mod def
+        /ks cs def
+        0 1 l 1 sub { /q exch def /ks vals q get l q sub 15 mod 1 add mul ks add def } for
+        /ks ks md mod def
+        /syms [ vals aload pop cs ks ] def
+        /startc 54 def /stopc c93 { 56 } { 55 } ifelse def
+    } ifelse
+
+    options /debugcws known
+    /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+    and { /bwipp.debugcws syms //raiseerror exec } if
+
+    /sbs syms length 6 mul 13 add string def
+    sbs 0 //code93i.encs startc get putinterval
+    0 1 syms length 1 sub {
+        /q exch def
+        sbs q 6 mul 6 add //code93i.encs syms q get get putinterval
+    } for
+    sbs syms length 6 mul 6 add //code93i.encs stopc get putinterval
+    /sbs [sbs {48 sub} forall] def
+
+    /text msglen string def
+    /l 0 def
+    msg {
+        dup 0 ge {
+            dup 32 lt 1 index 127 eq or { pop 32 } if
+            text l 3 -1 roll put /l l 1 add def
+        } { pop } ifelse
+    } forall
+    /text text 0 l getinterval def
+
+    /resolve_height //render exec dup -1 eq { pop 1.0 } if /height exch def
+
+    <<
+    /ren /renlinear
+    /sbs sbs
+    /bhs [sbs length 1 add 2 idiv {height} repeat]
+    /bbs [sbs length 1 add 2 idiv {0} repeat]
+    includetext {
+        /txt [ [text 0 0 text1font text1size] ]
+        /text1xalign (center)
+    } if
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit modunit
+    /opt options
+    >>
+
+    _render //renlinear if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/code93i dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER code93i--

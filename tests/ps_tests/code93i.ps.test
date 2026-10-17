@@ -1,0 +1,125 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+% AIM ITS/99-004 ISS 93i
+
+
+/code93i dup /uk.co.terryburton.bwipp findresource cvx def
+
+%
+% Symbol values, ending with the check characters C and K
+%
+
+% Group shift, with a single shift to the base character set within the group
+{ (Modulo 53 Math) (debugcws) code93i } [22 46 37 24 13 30 21 24 38 5 3 38 46 22 10 29 17 27 17] debugIsEqual
+
+% Numeric Mode
+{ (12345) (debugcws) code93i } [48 5 17 9 38 49] debugIsEqual
+{ (123456) (debugcws) code93i } [48 5 17 9 6 17 13] debugIsEqual
+{ (1234567) (debugcws) code93i } [48 43 45 2 11 39 8 45] debugIsEqual
+{ (12345678) (debugcws) code93i } [48 5 17 9 14 6 18 29] debugIsEqual
+{ (123456789) (debugcws) code93i } [48 5 17 9 46 16 37 5 29] debugIsEqual
+{ (1234567890) (debugcws) code93i } [48 5 17 9 29 22 18 0 42] debugIsEqual
+
+% ECI
+{ (^ECI000020A) (parsefnc debugcws) code93i } [47 20 10 32 35] debugIsEqual
+{ (^ECI002000A) (parsefnc debugcws) code93i } [47 45 36 32 10 14 39] debugIsEqual
+{ (^ECI200000A) (parsefnc debugcws) code93i } [47 47 20 48 16 10 41 5] debugIsEqual
+
+% Byte Mode with a final odd extended ASCII character
+{ (^233) (parse debugcws) code93i } [49 46 18 45 44] debugIsEqual   % [49][S?]A
+{ (^201) (parse debugcws) code93i } [49 18 10 34] debugIsEqual   % [49]A at the end
+{ (^201A) (parse debugcws) code93i } [49 18 49 10 40 47] debugIsEqual   % [49]A[49] elsewhere
+{ (^225^ECI000003A) (parse parsefnc debugcws) code93i } [49 46 10 47 3 10 32 17] debugIsEqual   % [49][S?]A elsewhere
+{ (^233^233) (parse debugcws) code93i } [49 32 16 25 31 25] debugIsEqual
+
+% Byte Mode avoids a leading space, which requests that the reader append the next symbol
+{ ( AB) (debugcws) code93i } [49 4 20 1 49 11 29 33] debugIsEqual
+
+% Group shift
+{ (abc) (debugcws) code93i } [46 0 10 11 12 29 31] debugIsEqual
+
+% Group shift, then Numeric Mode for all of the digits
+{ (Ham Rye 7654321) (debugcws) code93i } [17 46 4 10 22 38 46 27 34 14 38 48 46 34 38 6 33 0 26] debugIsEqual
+
+% FNC1 in first position, and in second position after an AIM application indicator
+{ (^FNC1AB) (parsefnc debugcws) code93i } [51 10 11 25 16] debugIsEqual
+{ (^FNC@A12) (parsefnc debugcws) code93i } [10 51 1 2 38 34] debugIsEqual
+{ (^FNC@9912) (parsefnc debugcws) code93i } [9 9 51 1 2 26 18] debugIsEqual
+{ (^FNC@a12) (parsefnc debugcws) code93i } [46 10 51 1 2 3 10] debugIsEqual
+
+%
+% Error correction: EC1 to EC3, first half of the data rounded up, Special Features Flag, message
+% length, rest of the data, EC4 to EC6
+%
+{ (87654321) (errorcorrection debugcws) code93i } [36 5 37 48 38 2 52 6 6 6 33 41 52 44] debugIsEqual
+{ (93) (errorcorrection debugcws) code93i } [33 27 27 9 52 2 3 52 3 19] debugIsEqual
+{ (A) (errorcorrection debugcws) code93i } [28 0 41 10 52 1 7 5 32] debugIsEqual
+{ ( ) (errorcorrection debugcws) code93i } [47 2 26 38 52 1 18 26 2] debugIsEqual
+
+%
+% Start and stop characters
+%
+/sbs_tmpl {
+    exch { 0 (dontdraw) code93i /sbs get } dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+% Code 93 characters only: a Code 93 symbol
+{ (THIS IS CODE 93) (dontdraw) code93i /sbs get } (THIS IS CODE 93) (dontdraw includecheck) /code93 /uk.co.terryburton.bwipp findresource exec /sbs get isEqual
+{ (code 93) (dontdraw) code93i /sbs get 0 6 getinterval } [1 1 1 1 4 1] isEqual
+
+% Code 93 is preferred to 93i compaction of the same length
+{ (1234) (debugcws) code93i } [1 2 3 4 20 3] debugIsEqual
+{ (AB1234) (debugcws) code93i } [10 11 1 2 3 4 41 19] debugIsEqual
+
+% Code 93 start and 93i stop
+(abc) [1 1 1 1 4 1  1 2 2 2 1 1  1 3 1 1 1 2  2 1 1 1 1 3  2 1 1 2 1 2  2 1 1 3 1 1  2 1 1 2 2 1  2 2 2 1 1 1  2 1 3 1 1 1 2] sbs_tmpl
+
+% 93i start and Code 93 stop with error correction
+{ (87654321) (dontdraw errorcorrection) code93i /sbs get } [
+    2 1 3 1 1 1  1 2 1 1 3 1  1 2 1 2 1 2  3 1 1 1 1 2  1 1 1 2 3 1  3 1 1 2 1 1
+    1 1 1 3 1 2  4 1 1 1 1 1  1 2 1 3 1 1  1 2 1 3 1 1  1 2 1 3 1 1  1 1 2 2 2 1
+    1 1 3 1 2 1  4 1 1 1 1 1  3 1 2 1 1 1  1 1 1 1 4 1 1
+] isEqual
+
+% FNC1 has its own pattern, distinct from the 93i start character
+{ (^FNC1AB) (dontdraw parsefnc) code93i /sbs get 6 6 getinterval } [1 1 4 1 1 1] isEqual
+
+% Text excludes non-data characters
+{ (^FNC1A^001B) (dontdraw includetext parse parsefnc) code93i /txt get 0 get 0 get } (A B) isEqual
+
+%
+% Error tests
+%
+{ () (dontdraw) code93i } /bwipp.code93iEmptyData isError
+{ 501 string (dontdraw) code93i } /bwipp.code93iinputTooLong isError
+{ (^ECI811800A) (parsefnc dontdraw) code93i } /bwipp.code93iBadECI isError
+{ (A^FNC@B1) (parsefnc dontdraw) code93i } /bwipp.code93iFNC1secondNotFirst isError
+{ (^FNC1A^ECI000003B) (parsefnc dontdraw) code93i } /bwipp.code93iECIwithFNC1 isError
+{ (^FNC@AB^ECI000003C) (parsefnc dontdraw) code93i } /bwipp.code93iECIwithFNC1 isError
+{ (^ECI000003^FNC1AB) (parsefnc dontdraw) code93i } /bwipp.code93iECIwithFNC1 isError
+{ (^FNC@!B) (parsefnc dontdraw) code93i } /bwipp.invalidAIMapplicationIndicator isError
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRS) (dontdraw errorcorrection) code93i } /bwipp.code93iTooLongForEC isError
+{ (ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQR) (dontdraw errorcorrection) code93i pop true } true isEqual
+{ (A^FNC1) (dontdraw parsefnc) code93i } /bwipp.code93iTrailingNonData isError
+{ (A^ECI000003) (dontdraw parsefnc) code93i } /bwipp.code93iTrailingNonData isError
+{ (^FNC@A) (dontdraw parsefnc) code93i } /bwipp.code93iTrailingNonData isError
+{ ( ) (dontdraw) code93i } /bwipp.code93iUnencodable isError
+
+%
+% Smoke tests
+%
+/ok_tmpl {
+    { 0 0 moveto 0 0 code93i true } dup 3 -1 roll 4 exch put dup 3 -1 roll 3 exch put
+    true isEqual
+} def
+(Pack my box with 1234567890 jugs) (includetext) ok_tmpl
+(Pack my box with 1234567890 jugs) (includetext errorcorrection) ok_tmpl
+(Pack my box with 1234567890 jugs) (propspec) ok_tmpl
+{ 0 0 moveto (Code 93i) (strictspec xdim=0.330) code93i true } true isEqual
