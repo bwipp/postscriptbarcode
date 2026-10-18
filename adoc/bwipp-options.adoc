@@ -4,8 +4,7 @@
 
 ==== includecheck
 
-Generate check digit(s) for symbologies where the use of check digits is
-optional.
+Generate check digit(s) for symbologies where the use of check digits is optional.
 
 ===== Example
 
@@ -21,17 +20,12 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== validatecheck
 
-Verify the check digit(s) provided as the final characters of the data,
-for symbologies whose check digits are optional or are otherwise
-calculated automatically.
+Verify the check digit(s) provided as the final characters of the data, for symbologies whose check digits are optional or are otherwise calculated automatically.
 
 ===== Notes
 
-* The data is refused if the check digits are wrong. Otherwise the
-symbol is the same as the one generated from the data without them,
-using *includecheck* where the check digits are optional.
-* The reference page for each symbology gives how many check characters
-it takes.
+* The data is refused if the check digits are wrong. Otherwise the symbol is the same as the one generated from the data without them, using *includecheck* where the check digits are optional.
+* The reference page for each symbology gives how many check characters it takes.
 
 ===== Example
 
@@ -51,10 +45,8 @@ Show the calculated check digit in the human readable text.
 
 ===== Notes
 
-* For barcode symbologies where the check digit is not mandatory, this
-option must be used in combination with *includecheck*.
-* If any part of the checksum does not have a printable representation
-then that part is not displayed.
+* For barcode symbologies where the check digit is not mandatory, this option must be used in combination with *includecheck*.
+* If any part of the checksum does not have a printable representation then that part is not displayed.
 
 ===== Example
 
@@ -72,12 +64,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== parse
 
-In supporting barcode symbologies, when the _parse_ option is specified,
-any instances of `^NNN` in the data field are replaced with their
-equivalent ASCII value, useful for specifying unprintable characters.
+In supporting barcode symbologies, when the _parse_ option is specified, any instances of `^NNN` in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.
 
-Additionally, control character names can be used to specify equivalent
-ASCII values, as follows:
+Additionally, control character names can be used to specify equivalent ASCII values, as follows:
 
 [cols=",>",options="header",]
 |===
@@ -114,16 +103,9 @@ ASCII values, as follows:
 |`^US` |31
 |===
 
-ASCII control characters `SO` and `SI` cannot be encoded by name (since
-`SO` would prefix clash with `SOH`).
+ASCII control characters `SO` and `SI` cannot be encoded by name (since `SO` would prefix clash with `SOH`).
 
-Note: When this option is enabled, literal instances of "^" in the data
-should be escaped as `^094` to avoid replacement if the subsequent data
-characters represent a valid substitution. For example, literal "^123"
-in the input data can be escaped as `^094123`, literal "^RS" in the data
-can be escaped as `^094RS`, and literal "^ABC" in the data can be
-escaped as `^094ABC` (in case `^ABC` becomes a valid substitution in the
-future).
+Note: When this option is enabled, literal instances of "^" in the data should be escaped as `^094` to avoid replacement if the subsequent data characters represent a valid substitution. For example, literal "^123" in the input data can be escaped as `^094123`, literal "^RS" in the data can be escaped as `^094RS`, and literal "^ABC" in the data can be escaped as `^094ABC` (in case `^ABC` becomes a valid substitution in the future).
 
 ===== Example
 
@@ -145,18 +127,13 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== parsefnc
 
-In supporting barcode symbologies, when the *parsefnc* option is
-specified, non-data function characters can be specified by escaped
-combinations such as `^FNC1`, `^FNC@` (FNC1 in second position, see
-below), `^FNC4`, `^SFT/` and `^ECI000003`.
+In supporting barcode symbologies, when the *parsefnc* option is specified, non-data function characters can be specified by escaped combinations such as `^FNC1`, `^FNC@` (FNC1 in second position, see below), `^FNC4`, `^SFT/` and `^ECI000003`.
 
-Note: When this option is enabled, literal instances of `^` in the input
-data can be escaped as `^^`.
+Note: When this option is enabled, literal instances of `^` in the input data can be escaped as `^^`.
 
 ===== Example
 
-Manually-composed <<_code_93_extended,Code 93 Extended>> demonstrating
-use of the special shift combination `(/)A` to represent _!_:
+Manually-composed <<_code_93_extended,Code 93 Extended>> demonstrating use of the special shift combination `(/)A` to represent _!_:
 
 ....
 Data:    TERRY^SFT/A
@@ -168,28 +145,17 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ===== FNC1 in first position
 
-FNC1 in first position, written `^FNC1` at the start of the data,
-denotes data in
-<<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
-Elsewhere in the data `^FNC1` is a field separator.
+FNC1 in first position, written `^FNC1` at the start of the data, denotes data in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>. Elsewhere in the data `^FNC1` is a field separator.
 
-The names first and second position come from Code 128, where FNC1
-directly follows the Start character for GS1 data, or follows an AIM
-application indicator in a single symbol character for AIM data. Other
-symbologies use the names for these two declarations rather than for
-literal positions.
+The names first and second position come from Code 128, where FNC1 directly follows the Start character for GS1 data, or follows an AIM application indicator in a single symbol character for AIM data. Other symbologies use the names for these two declarations rather than for literal positions.
 
-* _Recommendation: Consider the GS1 encoders, such as
-<<_gs1_128,GS1-128>>, <<_gs1_datamatrix,GS1 DataMatrix>> and
-<<_gs1_qr_code,GS1 QR Code>>, which take data in GS1 Application
-Identifier standard format and place every FNC1 automatically._
+* _Recommendation: Consider the GS1 encoders, such as <<_gs1_128,GS1-128>>, <<_gs1_datamatrix,GS1 DataMatrix>> and <<_gs1_qr_code,GS1 QR Code>>, which take data in GS1 Application Identifier standard format and place every FNC1 automatically._
 * A further `^FNC1` in the data is a field separator.
 * ECIs are not available with FNC1 in first position.
 
 ===== Example
 
-<<_code_128,Code 128>> with FNC1 in first position, and a further FNC1
-separating a variable-length field:
+<<_code_128,Code 128>> with FNC1 in first position, and a further FNC1 separating a variable-length field:
 
 ....
 Data:    ^FNC1010952123454321310ABC123^FNC121XYZ
@@ -201,28 +167,10 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ===== FNC1 in second position
 
-FNC1 in second position marks data that conforms to an industry format
-identified by an AIM application indicator: one letter or two digits at
-the start of the data. With the *parsefnc* option, write `^FNC@` at the
-start of the data followed by the AIM application indicator, e.g.
-`^FNC@T...` or `^FNC@99...`, and the encoder places the FNC1 where the
-symbology requires it. A reader transmits the AIM application indicator
-followed by the data, and reports FNC1 in second position in the
-symbology identifier, e.g. `++]++C2T...` for <<_code_128,Code 128>>.
+FNC1 in second position marks data that conforms to an industry format identified by an AIM application indicator: one letter or two digits at the start of the data. With the *parsefnc* option, write `^FNC@` at the start of the data followed by the AIM application indicator, e.g. `^FNC@T...` or `^FNC@99...`, and the encoder places the FNC1 where the symbology requires it. A reader transmits the AIM application indicator followed by the data, and reports FNC1 in second position in the symbology identifier, e.g. `++]++C2T...` for <<_code_128,Code 128>>.
 
-* `^FNC@` is available for <<_code_128,Code 128>>,
-<<_code_16k,Code 16K>>, <<_code_49,Code 49>>, <<_code_93i,Code 93i>>,
-<<_posicode,PosiCode>>, <<_data_matrix,Data Matrix>>,
-<<_data_matrix_rectangular,Data Matrix Rectangular>>,
-<<_data_matrix_rectangular_extension,Data Matrix Rectangular Extension>>,
-<<_aztec_code,Aztec Code>>, <<_compact_aztec_code,Compact Aztec Code>>,
-<<_code_one,Code One>>, <<_dotcode,DotCode>>, <<_qr_code,QR Code>>,
-<<_rectangular_micro_qr_code,Rectangular Micro QR Code>>,
-<<_micropdf417,MicroPDF417>> and <<_grid_matrix,Grid Matrix>>. The
-symbology pages give any limits.
-* The AIM application indicator must be one letter `A` to `Z` or `a` to
-`z`, or two digits. With a digit it is always two characters, so
-`^FNC@123` is the AIM application indicator `12` followed by data `3`.
+* `^FNC@` is available for <<_code_128,Code 128>>, <<_code_16k,Code 16K>>, <<_code_49,Code 49>>, <<_code_93i,Code 93i>>, <<_posicode,PosiCode>>, <<_data_matrix,Data Matrix>>, <<_data_matrix_rectangular,Data Matrix Rectangular>>, <<_data_matrix_rectangular_extension,Data Matrix Rectangular Extension>>, <<_aztec_code,Aztec Code>>, <<_compact_aztec_code,Compact Aztec Code>>, <<_code_one,Code One>>, <<_dotcode,DotCode>>, <<_qr_code,QR Code>>, <<_rectangular_micro_qr_code,Rectangular Micro QR Code>>, <<_micropdf417,MicroPDF417>> and <<_grid_matrix,Grid Matrix>>. The symbology pages give any limits.
+* The AIM application indicator must be one letter `A` to `Z` or `a` to `z`, or two digits. With a digit it is always two characters, so `^FNC@123` is the AIM application indicator `12` followed by data `3`.
 * A further `^FNC1` in the data is a field separator.
 * ECIs are not available with FNC1 in second position.
 
@@ -240,32 +188,15 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === Symbol Dimensions
 
-By default, symbols are rendered in normalised units: 1 point per narrow
-bar for linear barcodes and 2 points per module for most 2D symbologies.
-Bar heights default to 1 inch for linear symbologies. These values
-produce pixel-locked output when rendered at 72 DPI, ensuring crisp
-bitmaps without anti-aliasing artefacts.
+By default, symbols are rendered in normalised units: 1 point per narrow bar for linear barcodes and 2 points per module for most 2D symbologies. Bar heights default to 1 inch for linear symbologies. These values produce pixel-locked output when rendered at 72 DPI, ensuring crisp bitmaps without anti-aliasing artefacts.
 
-Three specification-aware modes adjust symbol dimensions to match
-symbology or application standards:
+Three specification-aware modes adjust symbol dimensions to match symbology or application standards:
 
-* <<_loosespec,loosespec>> scales the symbol to its correct physical
-dimensions when specification data is available, silently falling back
-to default dimensions when it is not. Combine with <<_gridfit,gridfit>>
-for bitmap output. The recommended mode for most use cases.
-* <<_strictspec,strictspec>> is the strict variant of loosespec — it
-requires specification data to be available and validates that the
-effective X-dimension is within specification bounds, raising an error
-otherwise. For production validation.
-* <<_propspec,propspec>> keeps the 1-point-per-module coordinate system
-but adjusts bar heights to the specification's height-to-width ratio,
-pixel-locked to whole points. For EPS output where device-dependent
-operators are not available.
+* <<_loosespec,loosespec>> scales the symbol to its correct physical dimensions when specification data is available, silently falling back to default dimensions when it is not. Combine with <<_gridfit,gridfit>> for bitmap output. The recommended mode for most use cases.
+* <<_strictspec,strictspec>> is the strict variant of loosespec — it requires specification data to be available and validates that the effective X-dimension is within specification bounds, raising an error otherwise. For production validation.
+* <<_propspec,propspec>> keeps the 1-point-per-module coordinate system but adjusts bar heights to the specification's height-to-width ratio, pixel-locked to whole points. For EPS output where device-dependent operators are not available.
 
-All three modes derive their values from Application Specification
-Tables (<<_ast,ast>>) which encode the symbology's specification
-parameters (nominal X-dimension, height, and bounds). User-supplied
-values override the AST.
+All three modes derive their values from Application Specification Tables (<<_ast,ast>>) which encode the symbology's specification parameters (nominal X-dimension, height, and bounds). User-supplied values override the AST.
 
 ==== height
 
@@ -289,10 +220,8 @@ Stretch the symbol to precisely this width, in inches.
 
 ===== Notes
 
-* This parameter literally stretches the symbol and text to the desired
-width which may distort the human readable text.
-* For information about resizing symbols read the article on
-<<_resizing_symbols,resizing symbols>>.
+* This parameter literally stretches the symbol and text to the desired width which may distort the human readable text.
+* For information about resizing symbols read the article on <<_resizing_symbols,resizing symbols>>.
 
 ===== Example
 
@@ -308,24 +237,14 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== loosespec
 
-Enable best-fit specification mode. The symbol is rendered at its
-correct physical dimensions when specification data is available. When
-the specification data is incomplete (e.g. no nominal X-dimension) or
-the effective X-dimension falls outside specification bounds, the symbol
-is rendered without error using the best available dimensions.
+Enable best-fit specification mode. The symbol is rendered at its correct physical dimensions when specification data is available. When the specification data is incomplete (e.g. no nominal X-dimension) or the effective X-dimension falls outside specification bounds, the symbol is rendered without error using the best available dimensions.
 
 ===== Notes
 
-* When the AST does not provide *xnom* and the user has not set *xdim*,
-strictspec is silently disabled and the symbol renders at default
-(1-point-per-module) dimensions.
-* When the effective X-dimension falls outside *xmin*/*xmax* bounds, the
-bounds check is skipped and the symbol renders at the resolved
-dimensions.
-* Not compatible with *height* or *width* — if either is provided,
-loosespec and strictspec are silently disabled.
-* Combine with <<_gridfit,gridfit>> for bitmap output to align module
-boundaries to the device pixel grid.
+* When the AST does not provide *xnom* and the user has not set *xdim*, strictspec is silently disabled and the symbol renders at default (1-point-per-module) dimensions.
+* When the effective X-dimension falls outside *xmin*/*xmax* bounds, the bounds check is skipped and the symbol renders at the resolved dimensions.
+* Not compatible with *height* or *width* — if either is provided, loosespec and strictspec are silently disabled.
+* Combine with <<_gridfit,gridfit>> for bitmap output to align module boundaries to the device pixel grid.
 * Can be set globally via global context to apply to all symbols:
 +
 [source,postscript]
@@ -356,27 +275,16 @@ All symbols at specification dimensions, bitmap at 300 DPI:
 
 ==== strictspec
 
-Enable strict physical specification mode. The renderer scales the
-symbol to its correct physical dimensions in millimetres, based on the
-nominal X-dimension and height from the symbology's specification or
-selected Application Specification Table (<<_ast,ast>>).
+Enable strict physical specification mode. The renderer scales the symbol to its correct physical dimensions in millimetres, based on the nominal X-dimension and height from the symbology's specification or selected Application Specification Table (<<_ast,ast>>).
 
 ===== Notes
 
-* Unlike <<_loosespec,loosespec>>, strictspec is strict: it raises an
-error if *xnom* or *xdim* is not available, or if the effective
-X-dimension falls outside specification bounds. Use strictspec for
-production validation; use loosespec for general-purpose output.
-* Use *mag* to scale the symbol by a magnification factor relative to
-nominal.
-* Use *xdim* or *hdim* to directly specify physical dimensions in mm,
-overriding the nominal values.
-* Inkspread is adjusted to maintain a fixed physical reduction
-regardless of magnification.
+* Unlike <<_loosespec,loosespec>>, strictspec is strict: it raises an error if *xnom* or *xdim* is not available, or if the effective X-dimension falls outside specification bounds. Use strictspec for production validation; use loosespec for general-purpose output.
+* Use *mag* to scale the symbol by a magnification factor relative to nominal.
+* Use *xdim* or *hdim* to directly specify physical dimensions in mm, overriding the nominal values.
+* Inkspread is adjusted to maintain a fixed physical reduction regardless of magnification.
 * Not compatible with *height* or *width*.
-* EPS-safe without <<_gridfit,gridfit>>. When gridfit is also enabled
-without an explicit *griddpi*, device-dependent operators are used to
-probe the resolution (not EPS-safe).
+* EPS-safe without <<_gridfit,gridfit>>. When gridfit is also enabled without an explicit *griddpi*, device-dependent operators are used to probe the resolution (not EPS-safe).
 
 ===== Example
 
@@ -402,34 +310,17 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== propspec
 
-Enable proportional specification mode. The symbol stays at 1 point per
-module but bar heights are adjusted to match the specification's
-height-to-width ratio. The derived height is rounded to a whole number
-of points so that bars remain pixel-locked at 72 DPI.
+Enable proportional specification mode. The symbol stays at 1 point per module but bar heights are adjusted to match the specification's height-to-width ratio. The derived height is rounded to a whole number of points so that bars remain pixel-locked at 72 DPI.
 
-This bakes the specification's height-to-width ratio into the symbol so
-that any rasteriser at any DPI produces output with the correct
-proportions — without requiring the rasteriser to understand physical
-barcode dimensions. The symbol stays at 1 point per module, so the
-caller (or RIP, or print driver) simply renders the PostScript at the
-target resolution and the proportions are correct.
+This bakes the specification's height-to-width ratio into the symbol so that any rasteriser at any DPI produces output with the correct proportions — without requiring the rasteriser to understand physical barcode dimensions. The symbol stays at 1 point per module, so the caller (or RIP, or print driver) simply renders the PostScript at the target resolution and the proportions are correct.
 
-For workflows where the caller controls the PostScript interpreter
-directly, <<_loosespec,loosespec>> (optionally with
-<<_gridfit,gridfit>>) provides a more complete solution including
-physical X-dimension scaling.
+For workflows where the caller controls the PostScript interpreter directly, <<_loosespec,loosespec>> (optionally with <<_gridfit,gridfit>>) provides a more complete solution including physical X-dimension scaling.
 
 ===== Notes
 
-* The coordinate system remains at 1 point per module — only bar height
-changes.
-* When the user also supplies an explicit *height*, it acts as a
-multiplier on the specification-derived height (e.g. `height=1.5` for
-150% of spec height; `height=1.0` is identity). This allows fine-tuning
-of the proportional height without needing to know the absolute value.
-* If the AST does not provide *hnom* (or the encoder has no AST),
-`propspec` is a harmless no-op — bar height falls back to the encoder's
-default.
+* The coordinate system remains at 1 point per module — only bar height changes.
+* When the user also supplies an explicit *height*, it acts as a multiplier on the specification-derived height (e.g. `height=1.5` for 150% of spec height; `height=1.0` is identity). This allows fine-tuning of the proportional height without needing to know the absolute value.
+* If the AST does not provide *hnom* (or the encoder has no AST), `propspec` is a harmless no-op — bar height falls back to the encoder's default.
 * EPS-safe: no device-dependent operators are used.
 * Linear barcodes only.
 
@@ -447,16 +338,13 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== mag
 
-Magnification factor for physical specification mode. Scales the symbol
-relative to its nominal specification dimensions. Default: `1.0` (100%).
+Magnification factor for physical specification mode. Scales the symbol relative to its nominal specification dimensions. Default: `1.0` (100%).
 
 ===== Notes
 
 * Only meaningful with *strictspec*.
 * Mutually exclusive with *xdim* and *hdim*.
-* For a linear symbol the bar height is scaled with the X-dimension: the
-nominal height (*hnom*) is multiplied by *mag* too, so the symbol keeps
-its proportions.
+* For a linear symbol the bar height is scaled with the X-dimension: the nominal height (*hnom*) is multiplied by *mag* too, so the symbol keeps its proportions.
 
 ===== Example
 
@@ -472,18 +360,14 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== xdim
 
-Directly specify the X-dimension (narrow bar width or module size) in
-millimetres. Overrides the nominal value from the AST.
+Directly specify the X-dimension (narrow bar width or module size) in millimetres. Overrides the nominal value from the AST.
 
 ===== Notes
 
 * Only meaningful with *strictspec*.
 * Mutually exclusive with *mag*.
 * If neither *xdim* nor *xnom* is available, an error is raised.
-* The bar height is not scaled with it: *xdim* and *hdim* are explicit
-physical overrides, so a linear symbol keeps its nominal bar height
-whatever the X-dimension. To scale both together use *mag* instead; to
-set the height as well, add *hdim*.
+* The bar height is not scaled with it: *xdim* and *hdim* are explicit physical overrides, so a linear symbol keeps its nominal bar height whatever the X-dimension. To scale both together use *mag* instead; to set the height as well, add *hdim*.
 
 ===== Example
 
@@ -497,53 +381,38 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== hdim
 
-Directly specify the bar height in millimetres. Overrides the nominal
-height from the AST. Linear barcodes only.
+Directly specify the bar height in millimetres. Overrides the nominal height from the AST. Linear barcodes only.
 
 ===== Notes
 
 * Only meaningful with *strictspec*.
 * Mutually exclusive with *mag*.
-* A height below the specification's nominal height truncates the bars.
-The GS1 General Specifications allow a truncated symbol only where a
-full-height one cannot possibly be printed, because truncation removes
-omnidirectional scanning, and never truncate a symbol printed at its
-minimum size. To make a smaller symbol, use *mag*.
+* A height below the specification's nominal height truncates the bars. The GS1 General Specifications allow a truncated symbol only where a full-height one cannot possibly be printed, because truncation removes omnidirectional scanning, and never truncate a symbol printed at its minimum size. To make a smaller symbol, use *mag*.
 
 ==== xnom
 
-Override the nominal X-dimension in millimetres. Normally provided by
-the Application Specification Table (AST), but can be set by the user.
+Override the nominal X-dimension in millimetres. Normally provided by the Application Specification Table (AST), but can be set by the user.
 
 ==== hnom
 
-Override the nominal bar height in millimetres. Normally provided by the
-AST. Linear barcodes only.
+Override the nominal bar height in millimetres. Normally provided by the AST. Linear barcodes only.
 
 ==== xmin
 
-Override the minimum allowed X-dimension in millimetres. Normally
-provided by the AST.
+Override the minimum allowed X-dimension in millimetres. Normally provided by the AST.
 
 ==== xmax
 
-Override the maximum allowed X-dimension in millimetres. Normally
-provided by the AST.
+Override the maximum allowed X-dimension in millimetres. Normally provided by the AST.
 
 ==== ast
 
-Select an Application Specification Table profile. The default profile
-(`default`) provides the symbology's own specification values. Named
-profiles (e.g., `gs1.sst1` through `gs1.sst13`) provide
-GS1-application-specific values.
+Select an Application Specification Table profile. The default profile (`default`) provides the symbology's own specification values. Named profiles (e.g., `gs1.sst1` through `gs1.sst13`) provide GS1-application-specific values.
 
 ===== Notes
 
-* GS1 Symbol Specification Tables (SSTs) define X-dimension bounds and
-nominal heights for specific application contexts such as retail POS,
-general distribution, healthcare, and logistics.
-* See the GS1 General Specifications, Section 5.12.3 for the full list
-of SSTs.
+* GS1 Symbol Specification Tables (SSTs) define X-dimension bounds and nominal heights for specific application contexts such as retail POS, general distribution, healthcare, and logistics.
+* See the GS1 General Specifications, Section 5.12.3 for the full list of SSTs.
 
 ===== Example
 
@@ -559,43 +428,23 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== gridfit
 
-When enabled, the renderer adjusts the symbol scale so that module
-boundaries align to the device pixel grid, eliminating anti-aliasing
-artefacts.
+When enabled, the renderer adjusts the symbol scale so that module boundaries align to the device pixel grid, eliminating anti-aliasing artefacts.
 
-This is most useful for non-vector formats rendered at low resolutions
-where bar or module stability may adversely affect validity or scanning
-performance.
+This is most useful for non-vector formats rendered at low resolutions where bar or module stability may adversely affect validity or scanning performance.
 
 ===== Notes
 
 * Gridfit is automatically disabled for:
-** Symbologies with fractional bar widths (e.g. postal codes,
-Pharmacode).
+** Symbologies with fractional bar widths (e.g. postal codes, Pharmacode).
 ** Linear barcodes with a non-integer *barratio*.
-* The device resolution is probed automatically. If the user provides
-*griddpi* then this value is used directly without hardware probing,
-which also enables gridfit to operate on devices that would otherwise be
-skipped (e.g. nullpage).
+* The device resolution is probed automatically. If the user provides *griddpi* then this value is used directly without hardware probing, which also enables gridfit to operate on devices that would otherwise be skipped (e.g. nullpage).
 * When combined with <<_strictspec,strictspec>>:
-** The effective X-dimension after snapping is validated against
-<<_xmin,xmin>> and <<_xmax,xmax>> bounds.
-** If rounding to the nearest whole pixel produces an X-dimension
-outside the specification bounds, the alternate rounding direction
-(ceiling or floor) is tried automatically.
+** The effective X-dimension after snapping is validated against <<_xmin,xmin>> and <<_xmax,xmax>> bounds.
+** If rounding to the nearest whole pixel produces an X-dimension outside the specification bounds, the alternate rounding direction (ceiling or floor) is tried automatically.
 ** If neither direction produces an in-spec result, an error is raised.
-* When combined with <<_loosespec,loosespec>>: if neither rounding
-direction produces an in-spec result, the snap closest to the nominal
-X-dimension is chosen instead of raising an error.
-* MaxiCode follows the practical printing guidance of ISO/IEC 16023
-Annex J: the module pitch, row pitch and module height are each a whole
-number of device pixels, chosen so that the symbol size remains within
-specification, and below 30 pixels per module (about 850 DPI) the
-hexagons and the finder pattern rings are drawn as pixel fonts so that
-every module is rendered identically, whatever the interpreter.
-* With <<_dotty,dotty>>, each dot is a disc of whole device pixels, and
-below 30 pixels per module the dots are drawn as pixel fonts so that
-every dot is rendered identically, whatever the interpreter.
+* When combined with <<_loosespec,loosespec>>: if neither rounding direction produces an in-spec result, the snap closest to the nominal X-dimension is chosen instead of raising an error.
+* MaxiCode follows the practical printing guidance of ISO/IEC 16023 Annex J: the module pitch, row pitch and module height are each a whole number of device pixels, chosen so that the symbol size remains within specification, and below 30 pixels per module (about 850 DPI) the hexagons and the finder pattern rings are drawn as pixel fonts so that every module is rendered identically, whatever the interpreter.
+* With <<_dotty,dotty>>, each dot is a disc of whole device pixels, and below 30 pixels per module the dots are drawn as pixel fonts so that every dot is rendered identically, whatever the interpreter.
 
 ===== Example
 
@@ -605,13 +454,11 @@ Options: includetext gridfit
 Encoder: ean13
 ....
 
-image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTE1IiBoZWlnaHQ9Ijg0IiB2aWV3Qm94PSIwIDAgMTE1IDg0Ij4KPGRlZnM+CjxnPgo8ZyBpZD0iZ2x5cGgtMC0wIj4KPHBhdGggZD0iTSAwLjY0MDYyNSAtMS45ODQzNzUgQyAwLjg0Mzc1IC0wLjU2MjUgMS43NSAwLjI4MTI1IDMuMDQ2ODc1IDAuMjgxMjUgQyA0IDAuMjgxMjUgNC44NDM3NSAtMC4xODc1IDUuMzQzNzUgLTAuOTUzMTI1IEMgNS44NzUgLTEuODEyNSA2LjEwOTM3NSAtMi44NzUgNi4xMDkzNzUgLTQuNDM3NSBDIDYuMTA5Mzc1IC01LjkwNjI1IDUuODkwNjI1IC02LjgyODEyNSA1LjM5MDYyNSAtNy41OTM3NSBDIDQuOTIxODc1IC04LjI5Njg3NSA0LjE3MTg3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS42MjUgLTguNjcxODc1IDAuNDUzMTI1IC03LjQ2ODc1IDAuNDUzMTI1IC01Ljc4MTI1IEMgMC40NTMxMjUgLTQuMTg3NSAxLjUzMTI1IC0zLjA2MjUgMy4wNzgxMjUgLTMuMDYyNSBDIDMuODc1IC0zLjA2MjUgNC40Njg3NSAtMy4zNDM3NSA1LjAxNTYyNSAtNC4wMTU2MjUgQyA1IC0xLjg0Mzc1IDQuMzI4MTI1IC0wLjY1NjI1IDMuMTI1IC0wLjY1NjI1IEMgMi4zNzUgLTAuNjU2MjUgMS44NTkzNzUgLTEuMTQwNjI1IDEuNjg3NSAtMS45ODQzNzUgWiBNIDMuMjM0Mzc1IC03Ljc1IEMgNC4yMTg3NSAtNy43NSA0Ljk1MzEyNSAtNi45MjE4NzUgNC45NTMxMjUgLTUuODEyNSBDIDQuOTUzMTI1IC00LjczNDM3NSA0LjIzNDM3NSAtNCAzLjE4NzUgLTQgQyAyLjE3MTg3NSAtNCAxLjUzMTI1IC00LjcxODc1IDEuNTMxMjUgLTUuODc1IEMgMS41MzEyNSAtNi45NTMxMjUgMi4yNSAtNy43NSAzLjIzNDM3NSAtNy43NSBaIE0gMy4yMzQzNzUgLTcuNzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtMSI+CjxwYXRoIGQ9Ik0gNS43MTg3NSAtOC41MTU2MjUgTCAxLjMxMjUgLTguNTE1NjI1IEwgMC42ODc1IC0zLjg3NSBMIDEuNjU2MjUgLTMuODc1IEMgMi4xNDA2MjUgLTQuNDY4NzUgMi41NjI1IC00LjY3MTg3NSAzLjIzNDM3NSAtNC42NzE4NzUgQyA0LjM3NSAtNC42NzE4NzUgNS4wNzgxMjUgLTMuODkwNjI1IDUuMDc4MTI1IC0yLjYyNSBDIDUuMDc4MTI1IC0xLjQwNjI1IDQuMzc1IC0wLjY1NjI1IDMuMjE4NzUgLTAuNjU2MjUgQyAyLjI5Njg3NSAtMC42NTYyNSAxLjczNDM3NSAtMS4xMjUgMS40Njg3NSAtMi4wOTM3NSBMIDAuNDIxODc1IC0yLjA5Mzc1IEMgMC41NjI1IC0xLjM5MDYyNSAwLjY4NzUgLTEuMDYyNSAwLjkzNzUgLTAuNzUgQyAxLjQyMTg3NSAtMC4wOTM3NSAyLjI4MTI1IDAuMjgxMjUgMy4yMzQzNzUgMC4yODEyNSBDIDQuOTUzMTI1IDAuMjgxMjUgNi4xNTYyNSAtMC45Njg3NSA2LjE1NjI1IC0yLjc2NTYyNSBDIDYuMTU2MjUgLTQuNDUzMTI1IDUuMDQ2ODc1IC01LjYwOTM3NSAzLjQwNjI1IC01LjYwOTM3NSBDIDIuODEyNSAtNS42MDkzNzUgMi4zMjgxMjUgLTUuNDUzMTI1IDEuODQzNzUgLTUuMDkzNzUgTCAyLjE3MTg3NSAtNy40Njg3NSBMIDUuNzE4NzUgLTcuNDY4NzUgWiBNIDUuNzE4NzUgLTguNTE1NjI1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTIiPgo8cGF0aCBkPSJNIDYuMDc4MTI1IC0xLjA0Njg3NSBMIDEuNTkzNzUgLTEuMDQ2ODc1IEMgMS43MDMxMjUgLTEuNzY1NjI1IDIuMDkzNzUgLTIuMjE4NzUgMy4xMjUgLTIuODU5Mzc1IEwgNC4zMjgxMjUgLTMuNTMxMjUgQyA1LjUxNTYyNSAtNC4xODc1IDYuMTI1IC01LjA3ODEyNSA2LjEyNSAtNi4xNDA2MjUgQyA2LjEyNSAtNi44NTkzNzUgNS44NDM3NSAtNy41MzEyNSA1LjM0Mzc1IC04IEMgNC44NDM3NSAtOC40NTMxMjUgNC4yMTg3NSAtOC42NzE4NzUgMy40MDYyNSAtOC42NzE4NzUgQyAyLjMyODEyNSAtOC42NzE4NzUgMS41MzEyNSAtOC4yOTY4NzUgMS4wNjI1IC03LjU0Njg3NSBDIDAuNzUgLTcuMDkzNzUgMC42MjUgLTYuNTQ2ODc1IDAuNTkzNzUgLTUuNjcxODc1IEwgMS42NTYyNSAtNS42NzE4NzUgQyAxLjY4NzUgLTYuMjY1NjI1IDEuNzY1NjI1IC02LjYwOTM3NSAxLjkwNjI1IC02LjkwNjI1IEMgMi4xODc1IC03LjQyMTg3NSAyLjczNDM3NSAtNy43NSAzLjM3NSAtNy43NSBDIDQuMzI4MTI1IC03Ljc1IDUuMDQ2ODc1IC03LjA2MjUgNS4wNDY4NzUgLTYuMTI1IEMgNS4wNDY4NzUgLTUuNDIxODc1IDQuNjU2MjUgLTQuODI4MTI1IDMuOTA2MjUgLTQuMzkwNjI1IEwgMi43OTY4NzUgLTMuNzUgQyAxLjAxNTYyNSAtMi43MTg3NSAwLjUgLTEuOTA2MjUgMC40MDYyNSAtMC4wMTU2MjUgTCA2LjA3ODEyNSAtMC4wMTU2MjUgWiBNIDYuMDc4MTI1IC0xLjA0Njg3NSAiLz4KPC9nPgo8ZyBpZD0iZ2x5cGgtMC0zIj4KPHBhdGggZD0iTSAzLjI5Njg3NSAtOC42NzE4NzUgQyAyLjUxNTYyNSAtOC42NzE4NzUgMS43ODEyNSAtOC4zMTI1IDEuMzQzNzUgLTcuNzM0Mzc1IEMgMC43OTY4NzUgLTYuOTUzMTI1IDAuNTE1NjI1IC01LjgxMjUgMC41MTU2MjUgLTQuMjAzMTI1IEMgMC41MTU2MjUgLTEuMjY1NjI1IDEuNDY4NzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNS4wOTM3NSAwLjI4MTI1IDYuMDc4MTI1IC0xLjI2NTYyNSA2LjA3ODEyNSAtNC4xMjUgQyA2LjA3ODEyNSAtNS44MTI1IDUuODEyNSAtNi45Mzc1IDUuMjUgLTcuNzM0Mzc1IEMgNC44MTI1IC04LjMyODEyNSA0LjEwOTM3NSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IFogTSAzLjI5Njg3NSAtNy43MzQzNzUgQyA0LjQzNzUgLTcuNzM0Mzc1IDUgLTYuNTc4MTI1IDUgLTQuMjE4NzUgQyA1IC0xLjc1IDQuNDUzMTI1IC0wLjU5Mzc1IDMuMjgxMjUgLTAuNTkzNzUgQyAyLjE1NjI1IC0wLjU5Mzc1IDEuNTkzNzUgLTEuNzk2ODc1IDEuNTkzNzUgLTQuMTg3NSBDIDEuNTkzNzUgLTYuNTc4MTI1IDIuMTU2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTcuNzM0Mzc1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTQiPgo8cGF0aCBkPSJNIDMuMTA5Mzc1IC02LjE4NzUgTCAzLjEwOTM3NSAwIEwgNC4xNTYyNSAwIEwgNC4xNTYyNSAtOC42NzE4NzUgTCAzLjQ2ODc1IC04LjY3MTg3NSBDIDMuMDkzNzUgLTcuMzQzNzUgMi44NTkzNzUgLTcuMTU2MjUgMS4yMTg3NSAtNi45NTMxMjUgTCAxLjIxODc1IC02LjE4NzUgWiBNIDMuMTA5Mzc1IC02LjE4NzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNSI+CjxwYXRoIGQ9Ik0gMi42NTYyNSAtNCBMIDMuMjM0Mzc1IC00IEMgNC4zNzUgLTQgNC45ODQzNzUgLTMuNDUzMTI1IDQuOTg0Mzc1IC0yLjQwNjI1IEMgNC45ODQzNzUgLTEuMzEyNSA0LjMyODEyNSAtMC42NTYyNSAzLjIzNDM3NSAtMC42NTYyNSBDIDIuMDc4MTI1IC0wLjY1NjI1IDEuNTE1NjI1IC0xLjI1IDEuNDM3NSAtMi41MTU2MjUgTCAwLjM5MDYyNSAtMi41MTU2MjUgQyAwLjQzNzUgLTEuODI4MTI1IDAuNTQ2ODc1IC0xLjM3NSAwLjc1IC0wLjk4NDM3NSBDIDEuMjAzMTI1IC0wLjE0MDYyNSAyLjAzMTI1IDAuMjgxMjUgMy4xODc1IDAuMjgxMjUgQyA0LjkzNzUgMC4yODEyNSA2LjA3ODEyNSAtMC43ODEyNSA2LjA3ODEyNSAtMi40MjE4NzUgQyA2LjA3ODEyNSAtMy41MzEyNSA1LjY1NjI1IC00LjEyNSA0LjYyNSAtNC40ODQzNzUgQyA1LjQyMTg3NSAtNC44MTI1IDUuODEyNSAtNS40MDYyNSA1LjgxMjUgLTYuMjgxMjUgQyA1LjgxMjUgLTcuNzgxMjUgNC44NDM3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS41MTU2MjUgLTguNjcxODc1IDAuNTkzNzUgLTcuNzE4NzUgMC41NjI1IC01Ljg3NSBMIDEuNjI1IC01Ljg3NSBDIDEuNjI1IC02LjQwNjI1IDEuNjg3NSAtNi43MDMxMjUgMS44MTI1IC02Ljk2ODc1IEMgMi4wNDY4NzUgLTcuNDY4NzUgMi41NzgxMjUgLTcuNzUgMy4yMzQzNzUgLTcuNzUgQyA0LjE3MTg3NSAtNy43NSA0LjczNDM3NSAtNy4xODc1IDQuNzM0Mzc1IC02LjI1IEMgNC43MzQzNzUgLTUuNjQwNjI1IDQuNTMxMjUgLTUuMjY1NjI1IDQuMDYyNSAtNS4wNjI1IEMgMy43NjU2MjUgLTQuOTM3NSAzLjM5MDYyNSAtNC44OTA2MjUgMi42NTYyNSAtNC44OTA2MjUgWiBNIDIuNjU2MjUgLTQgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNiI+CjxwYXRoIGQ9Ik0gMy45MjE4NzUgLTIuMDkzNzUgTCAzLjkyMTg3NSAwIEwgNC45ODQzNzUgMCBMIDQuOTg0Mzc1IC0yLjA5Mzc1IEwgNi4yMzQzNzUgLTIuMDkzNzUgTCA2LjIzNDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtOC42NzE4NzUgTCA0LjIwMzEyNSAtOC42NzE4NzUgTCAwLjM0Mzc1IC0zLjIxODc1IEwgMC4zNDM3NSAtMi4wOTM3NSBaIE0gMy45MjE4NzUgLTMuMDQ2ODc1IEwgMS4yNjU2MjUgLTMuMDQ2ODc1IEwgMy45MjE4NzUgLTYuODc1IFogTSAzLjkyMTg3NSAtMy4wNDY4NzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNyI+CjxwYXRoIGQ9Ik0gNS45Njg3NSAtNi40MjE4NzUgQyA1Ljc2NTYyNSAtNy44NDM3NSA0Ljg1OTM3NSAtOC42NzE4NzUgMy41NjI1IC04LjY3MTg3NSBDIDIuNjI1IC04LjY3MTg3NSAxLjc4MTI1IC04LjIxODc1IDEuMjgxMjUgLTcuNDM3NSBDIDAuNzUgLTYuNTkzNzUgMC41MTU2MjUgLTUuNTMxMjUgMC41MTU2MjUgLTMuOTUzMTI1IEMgMC41MTU2MjUgLTIuNSAwLjcxODc1IC0xLjU3ODEyNSAxLjIzNDM3NSAtMC43OTY4NzUgQyAxLjY4NzUgLTAuMDkzNzUgMi40Mzc1IDAuMjgxMjUgMy4zNzUgMC4yODEyNSBDIDQuOTg0Mzc1IDAuMjgxMjUgNi4xNTYyNSAtMC45Mzc1IDYuMTU2MjUgLTIuNjI1IEMgNi4xNTYyNSAtNC4yMTg3NSA1LjA3ODEyNSAtNS4zNTkzNzUgMy41NDY4NzUgLTUuMzU5Mzc1IEMgMi43MTg3NSAtNS4zNTkzNzUgMi4wNDY4NzUgLTUuMDQ2ODc1IDEuNTkzNzUgLTQuNDA2MjUgQyAxLjYwOTM3NSAtNi41NDY4NzUgMi4yODEyNSAtNy43MzQzNzUgMy40ODQzNzUgLTcuNzM0Mzc1IEMgNC4yMzQzNzUgLTcuNzM0Mzc1IDQuNzUgLTcuMjY1NjI1IDQuOTIxODc1IC02LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1IEMgNC40Mzc1IC00LjQyMTg3NSA1LjA3ODEyNSAtMy43MDMxMjUgNS4wNzgxMjUgLTIuNTQ2ODc1IEMgNS4wNzgxMjUgLTEuNDUzMTI1IDQuMzU5Mzc1IC0wLjY1NjI1IDMuMzkwNjI1IC0wLjY1NjI1IEMgMi40MDYyNSAtMC42NTYyNSAxLjY1NjI1IC0xLjQ4NDM3NSAxLjY1NjI1IC0yLjU5Mzc1IEMgMS42NTYyNSAtMy42NzE4NzUgMi4zNzUgLTQuNDIxODc1IDMuNDIxODc1IC00LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTgiPgo8cGF0aCBkPSJNIDYuMjM0Mzc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC03LjQ2ODc1IEwgNS4xNDA2MjUgLTcuNDY4NzUgQyAzLjEyNSAtNC41NzgxMjUgMi4yOTY4NzUgLTIuNzk2ODc1IDEuNjU2MjUgMCBMIDIuNzgxMjUgMCBDIDMuMjUgLTIuNzE4NzUgNC4zMTI1IC01LjA2MjUgNi4yMzQzNzUgLTcuNjI1IFogTSA2LjIzNDM3NSAtOC41MTU2MjUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtOSI+CjxwYXRoIGQ9Ik0gNC42ODc1IC00LjU3ODEyNSBDIDUuNTc4MTI1IC01LjEwOTM3NSA1Ljg1OTM3NSAtNS41NDY4NzUgNS44NTkzNzUgLTYuMzU5Mzc1IEMgNS44NTkzNzUgLTcuNzM0Mzc1IDQuODEyNSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IEMgMS43OTY4NzUgLTguNjcxODc1IDAuNzUgLTcuNzM0Mzc1IDAuNzUgLTYuMzc1IEMgMC43NSAtNS41NDY4NzUgMS4wMTU2MjUgLTUuMTI1IDEuODkwNjI1IC00LjU3ODEyNSBDIDAuOTIxODc1IC00LjA3ODEyNSAwLjQzNzUgLTMuMzc1IDAuNDM3NSAtMi40MDYyNSBDIDAuNDM3NSAtMC44MjgxMjUgMS42MDkzNzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNC45ODQzNzUgMC4yODEyNSA2LjE1NjI1IC0wLjgyODEyNSA2LjE1NjI1IC0yLjQwNjI1IEMgNi4xNTYyNSAtMy4zNzUgNS42NzE4NzUgLTQuMDc4MTI1IDQuNjg3NSAtNC41NzgxMjUgWiBNIDMuMjk2ODc1IC03LjczNDM3NSBDIDQuMjAzMTI1IC03LjczNDM3NSA0Ljc4MTI1IC03LjIwMzEyNSA0Ljc4MTI1IC02LjM0Mzc1IEMgNC43ODEyNSAtNS41MTU2MjUgNC4xODc1IC00Ljk4NDM3NSAzLjI5Njg3NSAtNC45ODQzNzUgQyAyLjQwNjI1IC00Ljk4NDM3NSAxLjgyODEyNSAtNS41MTU2MjUgMS44MjgxMjUgLTYuMzU5Mzc1IEMgMS44MjgxMjUgLTcuMjAzMTI1IDIuNDA2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTQuMDkzNzUgQyA0LjM1OTM3NSAtNC4wOTM3NSA1LjA3ODEyNSAtMy4zOTA2MjUgNS4wNzgxMjUgLTIuMzkwNjI1IEMgNS4wNzgxMjUgLTEuMzQzNzUgNC4zNzUgLTAuNjU2MjUgMy4yODEyNSAtMC42NTYyNSBDIDIuMjUgLTAuNjU2MjUgMS41MzEyNSAtMS4zNzUgMS41MzEyNSAtMi4zNzUgQyAxLjUzMTI1IC0zLjQwNjI1IDIuMjM0Mzc1IC00LjA5Mzc1IDMuMjk2ODc1IC00LjA5Mzc1IFogTSAzLjI5Njg3NSAtNC4wOTM3NSAiLz4KPC9nPgo8L2c+CjwvZGVmcz4KPHJlY3QgeD0iLTExLjUiIHk9Ii04LjQiIHdpZHRoPSIxMzgiIGhlaWdodD0iMTAwLjgiIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIi8+CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMS4wMDc4MTIgODIuOTkyMTg4IEwgMTEzLjk5NjA5NCA4Mi45OTIxODggTCAxMTMuOTk2MDk0IDEuMDA3ODEyIEwgMS4wMDc4MTIgMS4wMDc4MTIgWiBNIDEuMDA3ODEyIDgyLjk5MjE4OCAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMi4wNzQyMTkgMSBMIDEyLjkyNTc4MSAxIEwgMTIuOTI1NzgxIDc4IEwgMTIuMDc0MjE5IDc4IFogTSAxNC4wNzQyMTkgMSBMIDE0LjkyNTc4MSAxIEwgMTQuOTI1NzgxIDc4IEwgMTQuMDc0MjE5IDc4IFogTSAxNi4wNzQyMTkgMSBMIDE3LjkyNTc4MSAxIEwgMTcuOTI1NzgxIDczIEwgMTYuMDc0MjE5IDczIFogTSAyMS4wNzQyMTkgMSBMIDIxLjkyNTc4MSAxIEwgMjEuOTI1NzgxIDczIEwgMjEuMDc0MjE5IDczIFogTSAyNC4wNzQyMTkgMSBMIDI1LjkyNTc4MSAxIEwgMjUuOTI1NzgxIDczIEwgMjQuMDc0MjE5IDczIFogTSAyNy4wNzQyMTkgMSBMIDI4LjkyNTc4MSAxIEwgMjguOTI1NzgxIDczIEwgMjcuMDc0MjE5IDczIFogTSAzMC4wNzQyMTkgMSBMIDMwLjkyNTc4MSAxIEwgMzAuOTI1NzgxIDczIEwgMzAuMDc0MjE5IDczIFogTSAzMy4wNzQyMTkgMSBMIDM1LjkyNTc4MSAxIEwgMzUuOTI1NzgxIDczIEwgMzMuMDc0MjE5IDczIFogTSAzOC4wNzQyMTkgMSBMIDM5LjkyNTc4MSAxIEwgMzkuOTI1NzgxIDczIEwgMzguMDc0MjE5IDczIFogTSA0Mi4wNzQyMTkgMSBMIDQyLjkyNTc4MSAxIEwgNDIuOTI1NzgxIDczIEwgNDIuMDc0MjE5IDczIFogTSA0NS4wNzQyMTkgMSBMIDQ2LjkyNTc4MSAxIEwgNDYuOTI1NzgxIDczIEwgNDUuMDc0MjE5IDczIFogTSA0OC4wNzQyMTkgMSBMIDQ5LjkyNTc4MSAxIEwgNDkuOTI1NzgxIDczIEwgNDguMDc0MjE5IDczIFogTSA1MS4wNzQyMTkgMSBMIDU0LjkyNTc4MSAxIEwgNTQuOTI1NzgxIDczIEwgNTEuMDc0MjE5IDczIFogTSA1Ni4wNzQyMTkgMSBMIDU2LjkyNTc4MSAxIEwgNTYuOTI1NzgxIDczIEwgNTYuMDc0MjE5IDczIFogTSA1OC4wNzQyMTkgMSBMIDU4LjkyNTc4MSAxIEwgNTguOTI1NzgxIDc4IEwgNTguMDc0MjE5IDc4IFogTSA2MC4wNzQyMTkgMSBMIDYwLjkyNTc4MSAxIEwgNjAuOTI1NzgxIDc4IEwgNjAuMDc0MjE5IDc4IFogTSA2Mi4wNzQyMTkgMSBMIDYyLjkyNTc4MSAxIEwgNjIuOTI1NzgxIDczIEwgNjIuMDc0MjE5IDczIFogTSA2NC4wNzQyMTkgMSBMIDY2LjkyNTc4MSAxIEwgNjYuOTI1NzgxIDczIEwgNjQuMDc0MjE5IDczIFogTSA2OS4wNzQyMTkgMSBMIDY5LjkyNTc4MSAxIEwgNjkuOTI1NzgxIDczIEwgNjkuMDc0MjE5IDczIFogTSA3Mi4wNzQyMTkgMSBMIDc0LjkyNTc4MSAxIEwgNzQuOTI1NzgxIDczIEwgNzIuMDc0MjE5IDczIFogTSA3Ni4wNzQyMTkgMSBMIDc2LjkyNTc4MSAxIEwgNzYuOTI1NzgxIDczIEwgNzYuMDc0MjE5IDczIFogTSA3OC4wNzQyMTkgMSBMIDc4LjkyNTc4MSAxIEwgNzguOTI1NzgxIDczIEwgNzguMDc0MjE5IDczIFogTSA4My4wNzQyMTkgMSBMIDgzLjkyNTc4MSAxIEwgODMuOTI1NzgxIDczIEwgODMuMDc0MjE5IDczIFogTSA4Ny4wNzQyMTkgMSBMIDg3LjkyNTc4MSAxIEwgODcuOTI1NzgxIDczIEwgODcuMDc0MjE5IDczIFogTSA5MC4wNzQyMTkgMSBMIDkwLjkyNTc4MSAxIEwgOTAuOTI1NzgxIDczIEwgOTAuMDc0MjE5IDczIFogTSA5My4wNzQyMTkgMSBMIDkzLjkyNTc4MSAxIEwgOTMuOTI1NzgxIDczIEwgOTMuMDc0MjE5IDczIFogTSA5Ny4wNzQyMTkgMSBMIDk3LjkyNTc4MSAxIEwgOTcuOTI1NzgxIDczIEwgOTcuMDc0MjE5IDczIFogTSAxMDAuMDc0MjE5IDEgTCAxMDAuOTI1NzgxIDEgTCAxMDAuOTI1NzgxIDczIEwgMTAwLjA3NDIxOSA3MyBaIE0gMTA0LjA3NDIxOSAxIEwgMTA0LjkyNTc4MSAxIEwgMTA0LjkyNTc4MSA3OCBMIDEwNC4wNzQyMTkgNzggWiBNIDEwNi4wNzQyMTkgMSBMIDEwNi45MjU3ODEgMSBMIDEwNi45MjU3ODEgNzggTCAxMDYuMDc0MjE5IDc4IFogTSAxMDYuMDc0MjE5IDEgIi8+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0wIiB4PSIwLjkxNDA2MyIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI+Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMSIgeD0iMTUuOTE0MDYzIiB5PSI4Mi40NDc2NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSIyMi45MTQwNjMiIHk9IjgyLjQ0NzY2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTMiIHg9IjI5LjkxNDA2MiIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI+Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtNCIgeD0iMzYuOTE0MDYyIiB5PSI4Mi40NDc2NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSI0My45MTQwNjEiIHk9IjgyLjQ0NzY2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTUiIHg9IjUwLjkxNDA2MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI+Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtNiIgeD0iNjEuOTE0MDY1IiB5PSI4Mi40NDc2NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0xIiB4PSI2OC45MTQwNjgiIHk9IjgyLjQ0NzY2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTciIHg9Ijc1LjkxNDA3MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI+Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtOCIgeD0iODIuOTE0MDc1IiB5PSI4Mi40NDc2NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC05IiB4PSI4OS45MTQwNzgiIHk9IjgyLjQ0NzY2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijk2LjkxNDA4MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8L3N2Zz4K[data:image/svg{plus}xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTE1IiBoZWlnaHQ9Ijg0IiB2aWV3Qm94PSIwIDAgMTE1IDg0Ij4KPGRlZnM{plus}CjxnPgo8ZyBpZD0iZ2x5cGgtMC0wIj4KPHBhdGggZD0iTSAwLjY0MDYyNSAtMS45ODQzNzUgQyAwLjg0Mzc1IC0wLjU2MjUgMS43NSAwLjI4MTI1IDMuMDQ2ODc1IDAuMjgxMjUgQyA0IDAuMjgxMjUgNC44NDM3NSAtMC4xODc1IDUuMzQzNzUgLTAuOTUzMTI1IEMgNS44NzUgLTEuODEyNSA2LjEwOTM3NSAtMi44NzUgNi4xMDkzNzUgLTQuNDM3NSBDIDYuMTA5Mzc1IC01LjkwNjI1IDUuODkwNjI1IC02LjgyODEyNSA1LjM5MDYyNSAtNy41OTM3NSBDIDQuOTIxODc1IC04LjI5Njg3NSA0LjE3MTg3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS42MjUgLTguNjcxODc1IDAuNDUzMTI1IC03LjQ2ODc1IDAuNDUzMTI1IC01Ljc4MTI1IEMgMC40NTMxMjUgLTQuMTg3NSAxLjUzMTI1IC0zLjA2MjUgMy4wNzgxMjUgLTMuMDYyNSBDIDMuODc1IC0zLjA2MjUgNC40Njg3NSAtMy4zNDM3NSA1LjAxNTYyNSAtNC4wMTU2MjUgQyA1IC0xLjg0Mzc1IDQuMzI4MTI1IC0wLjY1NjI1IDMuMTI1IC0wLjY1NjI1IEMgMi4zNzUgLTAuNjU2MjUgMS44NTkzNzUgLTEuMTQwNjI1IDEuNjg3NSAtMS45ODQzNzUgWiBNIDMuMjM0Mzc1IC03Ljc1IEMgNC4yMTg3NSAtNy43NSA0Ljk1MzEyNSAtNi45MjE4NzUgNC45NTMxMjUgLTUuODEyNSBDIDQuOTUzMTI1IC00LjczNDM3NSA0LjIzNDM3NSAtNCAzLjE4NzUgLTQgQyAyLjE3MTg3NSAtNCAxLjUzMTI1IC00LjcxODc1IDEuNTMxMjUgLTUuODc1IEMgMS41MzEyNSAtNi45NTMxMjUgMi4yNSAtNy43NSAzLjIzNDM3NSAtNy43NSBaIE0gMy4yMzQzNzUgLTcuNzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtMSI{plus}CjxwYXRoIGQ9Ik0gNS43MTg3NSAtOC41MTU2MjUgTCAxLjMxMjUgLTguNTE1NjI1IEwgMC42ODc1IC0zLjg3NSBMIDEuNjU2MjUgLTMuODc1IEMgMi4xNDA2MjUgLTQuNDY4NzUgMi41NjI1IC00LjY3MTg3NSAzLjIzNDM3NSAtNC42NzE4NzUgQyA0LjM3NSAtNC42NzE4NzUgNS4wNzgxMjUgLTMuODkwNjI1IDUuMDc4MTI1IC0yLjYyNSBDIDUuMDc4MTI1IC0xLjQwNjI1IDQuMzc1IC0wLjY1NjI1IDMuMjE4NzUgLTAuNjU2MjUgQyAyLjI5Njg3NSAtMC42NTYyNSAxLjczNDM3NSAtMS4xMjUgMS40Njg3NSAtMi4wOTM3NSBMIDAuNDIxODc1IC0yLjA5Mzc1IEMgMC41NjI1IC0xLjM5MDYyNSAwLjY4NzUgLTEuMDYyNSAwLjkzNzUgLTAuNzUgQyAxLjQyMTg3NSAtMC4wOTM3NSAyLjI4MTI1IDAuMjgxMjUgMy4yMzQzNzUgMC4yODEyNSBDIDQuOTUzMTI1IDAuMjgxMjUgNi4xNTYyNSAtMC45Njg3NSA2LjE1NjI1IC0yLjc2NTYyNSBDIDYuMTU2MjUgLTQuNDUzMTI1IDUuMDQ2ODc1IC01LjYwOTM3NSAzLjQwNjI1IC01LjYwOTM3NSBDIDIuODEyNSAtNS42MDkzNzUgMi4zMjgxMjUgLTUuNDUzMTI1IDEuODQzNzUgLTUuMDkzNzUgTCAyLjE3MTg3NSAtNy40Njg3NSBMIDUuNzE4NzUgLTcuNDY4NzUgWiBNIDUuNzE4NzUgLTguNTE1NjI1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTIiPgo8cGF0aCBkPSJNIDYuMDc4MTI1IC0xLjA0Njg3NSBMIDEuNTkzNzUgLTEuMDQ2ODc1IEMgMS43MDMxMjUgLTEuNzY1NjI1IDIuMDkzNzUgLTIuMjE4NzUgMy4xMjUgLTIuODU5Mzc1IEwgNC4zMjgxMjUgLTMuNTMxMjUgQyA1LjUxNTYyNSAtNC4xODc1IDYuMTI1IC01LjA3ODEyNSA2LjEyNSAtNi4xNDA2MjUgQyA2LjEyNSAtNi44NTkzNzUgNS44NDM3NSAtNy41MzEyNSA1LjM0Mzc1IC04IEMgNC44NDM3NSAtOC40NTMxMjUgNC4yMTg3NSAtOC42NzE4NzUgMy40MDYyNSAtOC42NzE4NzUgQyAyLjMyODEyNSAtOC42NzE4NzUgMS41MzEyNSAtOC4yOTY4NzUgMS4wNjI1IC03LjU0Njg3NSBDIDAuNzUgLTcuMDkzNzUgMC42MjUgLTYuNTQ2ODc1IDAuNTkzNzUgLTUuNjcxODc1IEwgMS42NTYyNSAtNS42NzE4NzUgQyAxLjY4NzUgLTYuMjY1NjI1IDEuNzY1NjI1IC02LjYwOTM3NSAxLjkwNjI1IC02LjkwNjI1IEMgMi4xODc1IC03LjQyMTg3NSAyLjczNDM3NSAtNy43NSAzLjM3NSAtNy43NSBDIDQuMzI4MTI1IC03Ljc1IDUuMDQ2ODc1IC03LjA2MjUgNS4wNDY4NzUgLTYuMTI1IEMgNS4wNDY4NzUgLTUuNDIxODc1IDQuNjU2MjUgLTQuODI4MTI1IDMuOTA2MjUgLTQuMzkwNjI1IEwgMi43OTY4NzUgLTMuNzUgQyAxLjAxNTYyNSAtMi43MTg3NSAwLjUgLTEuOTA2MjUgMC40MDYyNSAtMC4wMTU2MjUgTCA2LjA3ODEyNSAtMC4wMTU2MjUgWiBNIDYuMDc4MTI1IC0xLjA0Njg3NSAiLz4KPC9nPgo8ZyBpZD0iZ2x5cGgtMC0zIj4KPHBhdGggZD0iTSAzLjI5Njg3NSAtOC42NzE4NzUgQyAyLjUxNTYyNSAtOC42NzE4NzUgMS43ODEyNSAtOC4zMTI1IDEuMzQzNzUgLTcuNzM0Mzc1IEMgMC43OTY4NzUgLTYuOTUzMTI1IDAuNTE1NjI1IC01LjgxMjUgMC41MTU2MjUgLTQuMjAzMTI1IEMgMC41MTU2MjUgLTEuMjY1NjI1IDEuNDY4NzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNS4wOTM3NSAwLjI4MTI1IDYuMDc4MTI1IC0xLjI2NTYyNSA2LjA3ODEyNSAtNC4xMjUgQyA2LjA3ODEyNSAtNS44MTI1IDUuODEyNSAtNi45Mzc1IDUuMjUgLTcuNzM0Mzc1IEMgNC44MTI1IC04LjMyODEyNSA0LjEwOTM3NSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IFogTSAzLjI5Njg3NSAtNy43MzQzNzUgQyA0LjQzNzUgLTcuNzM0Mzc1IDUgLTYuNTc4MTI1IDUgLTQuMjE4NzUgQyA1IC0xLjc1IDQuNDUzMTI1IC0wLjU5Mzc1IDMuMjgxMjUgLTAuNTkzNzUgQyAyLjE1NjI1IC0wLjU5Mzc1IDEuNTkzNzUgLTEuNzk2ODc1IDEuNTkzNzUgLTQuMTg3NSBDIDEuNTkzNzUgLTYuNTc4MTI1IDIuMTU2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTcuNzM0Mzc1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTQiPgo8cGF0aCBkPSJNIDMuMTA5Mzc1IC02LjE4NzUgTCAzLjEwOTM3NSAwIEwgNC4xNTYyNSAwIEwgNC4xNTYyNSAtOC42NzE4NzUgTCAzLjQ2ODc1IC04LjY3MTg3NSBDIDMuMDkzNzUgLTcuMzQzNzUgMi44NTkzNzUgLTcuMTU2MjUgMS4yMTg3NSAtNi45NTMxMjUgTCAxLjIxODc1IC02LjE4NzUgWiBNIDMuMTA5Mzc1IC02LjE4NzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNSI{plus}CjxwYXRoIGQ9Ik0gMi42NTYyNSAtNCBMIDMuMjM0Mzc1IC00IEMgNC4zNzUgLTQgNC45ODQzNzUgLTMuNDUzMTI1IDQuOTg0Mzc1IC0yLjQwNjI1IEMgNC45ODQzNzUgLTEuMzEyNSA0LjMyODEyNSAtMC42NTYyNSAzLjIzNDM3NSAtMC42NTYyNSBDIDIuMDc4MTI1IC0wLjY1NjI1IDEuNTE1NjI1IC0xLjI1IDEuNDM3NSAtMi41MTU2MjUgTCAwLjM5MDYyNSAtMi41MTU2MjUgQyAwLjQzNzUgLTEuODI4MTI1IDAuNTQ2ODc1IC0xLjM3NSAwLjc1IC0wLjk4NDM3NSBDIDEuMjAzMTI1IC0wLjE0MDYyNSAyLjAzMTI1IDAuMjgxMjUgMy4xODc1IDAuMjgxMjUgQyA0LjkzNzUgMC4yODEyNSA2LjA3ODEyNSAtMC43ODEyNSA2LjA3ODEyNSAtMi40MjE4NzUgQyA2LjA3ODEyNSAtMy41MzEyNSA1LjY1NjI1IC00LjEyNSA0LjYyNSAtNC40ODQzNzUgQyA1LjQyMTg3NSAtNC44MTI1IDUuODEyNSAtNS40MDYyNSA1LjgxMjUgLTYuMjgxMjUgQyA1LjgxMjUgLTcuNzgxMjUgNC44NDM3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS41MTU2MjUgLTguNjcxODc1IDAuNTkzNzUgLTcuNzE4NzUgMC41NjI1IC01Ljg3NSBMIDEuNjI1IC01Ljg3NSBDIDEuNjI1IC02LjQwNjI1IDEuNjg3NSAtNi43MDMxMjUgMS44MTI1IC02Ljk2ODc1IEMgMi4wNDY4NzUgLTcuNDY4NzUgMi41NzgxMjUgLTcuNzUgMy4yMzQzNzUgLTcuNzUgQyA0LjE3MTg3NSAtNy43NSA0LjczNDM3NSAtNy4xODc1IDQuNzM0Mzc1IC02LjI1IEMgNC43MzQzNzUgLTUuNjQwNjI1IDQuNTMxMjUgLTUuMjY1NjI1IDQuMDYyNSAtNS4wNjI1IEMgMy43NjU2MjUgLTQuOTM3NSAzLjM5MDYyNSAtNC44OTA2MjUgMi42NTYyNSAtNC44OTA2MjUgWiBNIDIuNjU2MjUgLTQgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNiI{plus}CjxwYXRoIGQ9Ik0gMy45MjE4NzUgLTIuMDkzNzUgTCAzLjkyMTg3NSAwIEwgNC45ODQzNzUgMCBMIDQuOTg0Mzc1IC0yLjA5Mzc1IEwgNi4yMzQzNzUgLTIuMDkzNzUgTCA2LjIzNDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtOC42NzE4NzUgTCA0LjIwMzEyNSAtOC42NzE4NzUgTCAwLjM0Mzc1IC0zLjIxODc1IEwgMC4zNDM3NSAtMi4wOTM3NSBaIE0gMy45MjE4NzUgLTMuMDQ2ODc1IEwgMS4yNjU2MjUgLTMuMDQ2ODc1IEwgMy45MjE4NzUgLTYuODc1IFogTSAzLjkyMTg3NSAtMy4wNDY4NzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNyI{plus}CjxwYXRoIGQ9Ik0gNS45Njg3NSAtNi40MjE4NzUgQyA1Ljc2NTYyNSAtNy44NDM3NSA0Ljg1OTM3NSAtOC42NzE4NzUgMy41NjI1IC04LjY3MTg3NSBDIDIuNjI1IC04LjY3MTg3NSAxLjc4MTI1IC04LjIxODc1IDEuMjgxMjUgLTcuNDM3NSBDIDAuNzUgLTYuNTkzNzUgMC41MTU2MjUgLTUuNTMxMjUgMC41MTU2MjUgLTMuOTUzMTI1IEMgMC41MTU2MjUgLTIuNSAwLjcxODc1IC0xLjU3ODEyNSAxLjIzNDM3NSAtMC43OTY4NzUgQyAxLjY4NzUgLTAuMDkzNzUgMi40Mzc1IDAuMjgxMjUgMy4zNzUgMC4yODEyNSBDIDQuOTg0Mzc1IDAuMjgxMjUgNi4xNTYyNSAtMC45Mzc1IDYuMTU2MjUgLTIuNjI1IEMgNi4xNTYyNSAtNC4yMTg3NSA1LjA3ODEyNSAtNS4zNTkzNzUgMy41NDY4NzUgLTUuMzU5Mzc1IEMgMi43MTg3NSAtNS4zNTkzNzUgMi4wNDY4NzUgLTUuMDQ2ODc1IDEuNTkzNzUgLTQuNDA2MjUgQyAxLjYwOTM3NSAtNi41NDY4NzUgMi4yODEyNSAtNy43MzQzNzUgMy40ODQzNzUgLTcuNzM0Mzc1IEMgNC4yMzQzNzUgLTcuNzM0Mzc1IDQuNzUgLTcuMjY1NjI1IDQuOTIxODc1IC02LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1IEMgNC40Mzc1IC00LjQyMTg3NSA1LjA3ODEyNSAtMy43MDMxMjUgNS4wNzgxMjUgLTIuNTQ2ODc1IEMgNS4wNzgxMjUgLTEuNDUzMTI1IDQuMzU5Mzc1IC0wLjY1NjI1IDMuMzkwNjI1IC0wLjY1NjI1IEMgMi40MDYyNSAtMC42NTYyNSAxLjY1NjI1IC0xLjQ4NDM3NSAxLjY1NjI1IC0yLjU5Mzc1IEMgMS42NTYyNSAtMy42NzE4NzUgMi4zNzUgLTQuNDIxODc1IDMuNDIxODc1IC00LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTgiPgo8cGF0aCBkPSJNIDYuMjM0Mzc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC03LjQ2ODc1IEwgNS4xNDA2MjUgLTcuNDY4NzUgQyAzLjEyNSAtNC41NzgxMjUgMi4yOTY4NzUgLTIuNzk2ODc1IDEuNjU2MjUgMCBMIDIuNzgxMjUgMCBDIDMuMjUgLTIuNzE4NzUgNC4zMTI1IC01LjA2MjUgNi4yMzQzNzUgLTcuNjI1IFogTSA2LjIzNDM3NSAtOC41MTU2MjUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtOSI{plus}CjxwYXRoIGQ9Ik0gNC42ODc1IC00LjU3ODEyNSBDIDUuNTc4MTI1IC01LjEwOTM3NSA1Ljg1OTM3NSAtNS41NDY4NzUgNS44NTkzNzUgLTYuMzU5Mzc1IEMgNS44NTkzNzUgLTcuNzM0Mzc1IDQuODEyNSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IEMgMS43OTY4NzUgLTguNjcxODc1IDAuNzUgLTcuNzM0Mzc1IDAuNzUgLTYuMzc1IEMgMC43NSAtNS41NDY4NzUgMS4wMTU2MjUgLTUuMTI1IDEuODkwNjI1IC00LjU3ODEyNSBDIDAuOTIxODc1IC00LjA3ODEyNSAwLjQzNzUgLTMuMzc1IDAuNDM3NSAtMi40MDYyNSBDIDAuNDM3NSAtMC44MjgxMjUgMS42MDkzNzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNC45ODQzNzUgMC4yODEyNSA2LjE1NjI1IC0wLjgyODEyNSA2LjE1NjI1IC0yLjQwNjI1IEMgNi4xNTYyNSAtMy4zNzUgNS42NzE4NzUgLTQuMDc4MTI1IDQuNjg3NSAtNC41NzgxMjUgWiBNIDMuMjk2ODc1IC03LjczNDM3NSBDIDQuMjAzMTI1IC03LjczNDM3NSA0Ljc4MTI1IC03LjIwMzEyNSA0Ljc4MTI1IC02LjM0Mzc1IEMgNC43ODEyNSAtNS41MTU2MjUgNC4xODc1IC00Ljk4NDM3NSAzLjI5Njg3NSAtNC45ODQzNzUgQyAyLjQwNjI1IC00Ljk4NDM3NSAxLjgyODEyNSAtNS41MTU2MjUgMS44MjgxMjUgLTYuMzU5Mzc1IEMgMS44MjgxMjUgLTcuMjAzMTI1IDIuNDA2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTQuMDkzNzUgQyA0LjM1OTM3NSAtNC4wOTM3NSA1LjA3ODEyNSAtMy4zOTA2MjUgNS4wNzgxMjUgLTIuMzkwNjI1IEMgNS4wNzgxMjUgLTEuMzQzNzUgNC4zNzUgLTAuNjU2MjUgMy4yODEyNSAtMC42NTYyNSBDIDIuMjUgLTAuNjU2MjUgMS41MzEyNSAtMS4zNzUgMS41MzEyNSAtMi4zNzUgQyAxLjUzMTI1IC0zLjQwNjI1IDIuMjM0Mzc1IC00LjA5Mzc1IDMuMjk2ODc1IC00LjA5Mzc1IFogTSAzLjI5Njg3NSAtNC4wOTM3NSAiLz4KPC9nPgo8L2c{plus}CjwvZGVmcz4KPHJlY3QgeD0iLTExLjUiIHk9Ii04LjQiIHdpZHRoPSIxMzgiIGhlaWdodD0iMTAwLjgiIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIi8{plus}CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMS4wMDc4MTIgODIuOTkyMTg4IEwgMTEzLjk5NjA5NCA4Mi45OTIxODggTCAxMTMuOTk2MDk0IDEuMDA3ODEyIEwgMS4wMDc4MTIgMS4wMDc4MTIgWiBNIDEuMDA3ODEyIDgyLjk5MjE4OCAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMi4wNzQyMTkgMSBMIDEyLjkyNTc4MSAxIEwgMTIuOTI1NzgxIDc4IEwgMTIuMDc0MjE5IDc4IFogTSAxNC4wNzQyMTkgMSBMIDE0LjkyNTc4MSAxIEwgMTQuOTI1NzgxIDc4IEwgMTQuMDc0MjE5IDc4IFogTSAxNi4wNzQyMTkgMSBMIDE3LjkyNTc4MSAxIEwgMTcuOTI1NzgxIDczIEwgMTYuMDc0MjE5IDczIFogTSAyMS4wNzQyMTkgMSBMIDIxLjkyNTc4MSAxIEwgMjEuOTI1NzgxIDczIEwgMjEuMDc0MjE5IDczIFogTSAyNC4wNzQyMTkgMSBMIDI1LjkyNTc4MSAxIEwgMjUuOTI1NzgxIDczIEwgMjQuMDc0MjE5IDczIFogTSAyNy4wNzQyMTkgMSBMIDI4LjkyNTc4MSAxIEwgMjguOTI1NzgxIDczIEwgMjcuMDc0MjE5IDczIFogTSAzMC4wNzQyMTkgMSBMIDMwLjkyNTc4MSAxIEwgMzAuOTI1NzgxIDczIEwgMzAuMDc0MjE5IDczIFogTSAzMy4wNzQyMTkgMSBMIDM1LjkyNTc4MSAxIEwgMzUuOTI1NzgxIDczIEwgMzMuMDc0MjE5IDczIFogTSAzOC4wNzQyMTkgMSBMIDM5LjkyNTc4MSAxIEwgMzkuOTI1NzgxIDczIEwgMzguMDc0MjE5IDczIFogTSA0Mi4wNzQyMTkgMSBMIDQyLjkyNTc4MSAxIEwgNDIuOTI1NzgxIDczIEwgNDIuMDc0MjE5IDczIFogTSA0NS4wNzQyMTkgMSBMIDQ2LjkyNTc4MSAxIEwgNDYuOTI1NzgxIDczIEwgNDUuMDc0MjE5IDczIFogTSA0OC4wNzQyMTkgMSBMIDQ5LjkyNTc4MSAxIEwgNDkuOTI1NzgxIDczIEwgNDguMDc0MjE5IDczIFogTSA1MS4wNzQyMTkgMSBMIDU0LjkyNTc4MSAxIEwgNTQuOTI1NzgxIDczIEwgNTEuMDc0MjE5IDczIFogTSA1Ni4wNzQyMTkgMSBMIDU2LjkyNTc4MSAxIEwgNTYuOTI1NzgxIDczIEwgNTYuMDc0MjE5IDczIFogTSA1OC4wNzQyMTkgMSBMIDU4LjkyNTc4MSAxIEwgNTguOTI1NzgxIDc4IEwgNTguMDc0MjE5IDc4IFogTSA2MC4wNzQyMTkgMSBMIDYwLjkyNTc4MSAxIEwgNjAuOTI1NzgxIDc4IEwgNjAuMDc0MjE5IDc4IFogTSA2Mi4wNzQyMTkgMSBMIDYyLjkyNTc4MSAxIEwgNjIuOTI1NzgxIDczIEwgNjIuMDc0MjE5IDczIFogTSA2NC4wNzQyMTkgMSBMIDY2LjkyNTc4MSAxIEwgNjYuOTI1NzgxIDczIEwgNjQuMDc0MjE5IDczIFogTSA2OS4wNzQyMTkgMSBMIDY5LjkyNTc4MSAxIEwgNjkuOTI1NzgxIDczIEwgNjkuMDc0MjE5IDczIFogTSA3Mi4wNzQyMTkgMSBMIDc0LjkyNTc4MSAxIEwgNzQuOTI1NzgxIDczIEwgNzIuMDc0MjE5IDczIFogTSA3Ni4wNzQyMTkgMSBMIDc2LjkyNTc4MSAxIEwgNzYuOTI1NzgxIDczIEwgNzYuMDc0MjE5IDczIFogTSA3OC4wNzQyMTkgMSBMIDc4LjkyNTc4MSAxIEwgNzguOTI1NzgxIDczIEwgNzguMDc0MjE5IDczIFogTSA4My4wNzQyMTkgMSBMIDgzLjkyNTc4MSAxIEwgODMuOTI1NzgxIDczIEwgODMuMDc0MjE5IDczIFogTSA4Ny4wNzQyMTkgMSBMIDg3LjkyNTc4MSAxIEwgODcuOTI1NzgxIDczIEwgODcuMDc0MjE5IDczIFogTSA5MC4wNzQyMTkgMSBMIDkwLjkyNTc4MSAxIEwgOTAuOTI1NzgxIDczIEwgOTAuMDc0MjE5IDczIFogTSA5My4wNzQyMTkgMSBMIDkzLjkyNTc4MSAxIEwgOTMuOTI1NzgxIDczIEwgOTMuMDc0MjE5IDczIFogTSA5Ny4wNzQyMTkgMSBMIDk3LjkyNTc4MSAxIEwgOTcuOTI1NzgxIDczIEwgOTcuMDc0MjE5IDczIFogTSAxMDAuMDc0MjE5IDEgTCAxMDAuOTI1NzgxIDEgTCAxMDAuOTI1NzgxIDczIEwgMTAwLjA3NDIxOSA3MyBaIE0gMTA0LjA3NDIxOSAxIEwgMTA0LjkyNTc4MSAxIEwgMTA0LjkyNTc4MSA3OCBMIDEwNC4wNzQyMTkgNzggWiBNIDEwNi4wNzQyMTkgMSBMIDEwNi45MjU3ODEgMSBMIDEwNi45MjU3ODEgNzggTCAxMDYuMDc0MjE5IDc4IFogTSAxMDYuMDc0MjE5IDEgIi8{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0wIiB4PSIwLjkxNDA2MyIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI{plus}Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtMSIgeD0iMTUuOTE0MDYzIiB5PSI4Mi40NDc2NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSIyMi45MTQwNjMiIHk9IjgyLjQ0NzY2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTMiIHg9IjI5LjkxNDA2MiIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI{plus}Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtNCIgeD0iMzYuOTE0MDYyIiB5PSI4Mi40NDc2NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSI0My45MTQwNjEiIHk9IjgyLjQ0NzY2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTUiIHg9IjUwLjkxNDA2MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI{plus}Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtNiIgeD0iNjEuOTE0MDY1IiB5PSI4Mi40NDc2NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0xIiB4PSI2OC45MTQwNjgiIHk9IjgyLjQ0NzY2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTciIHg9Ijc1LjkxNDA3MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8ZyBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSI{plus}Cjx1c2UgeGxpbms6aHJlZj0iI2dseXBoLTAtOCIgeD0iODIuOTE0MDc1IiB5PSI4Mi40NDc2NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC05IiB4PSI4OS45MTQwNzgiIHk9IjgyLjQ0NzY2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijk2LjkxNDA4MSIgeT0iODIuNDQ3NjYiLz4KPC9nPgo8L3N2Zz4K]
+image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTEzIiBoZWlnaHQ9IjgyIiB2aWV3Qm94PSIwIDAgMTEzIDgyIj4KPGRlZnM+CjxnPgo8ZyBpZD0iZ2x5cGgtMC0wIj4KPHBhdGggZD0iTSAwLjY0MDYyNSAtMS45ODQzNzUgQyAwLjg0Mzc1IC0wLjU2MjUgMS43NSAwLjI4MTI1IDMuMDQ2ODc1IDAuMjgxMjUgQyA0IDAuMjgxMjUgNC44NDM3NSAtMC4xODc1IDUuMzQzNzUgLTAuOTUzMTI1IEMgNS44NzUgLTEuODEyNSA2LjEwOTM3NSAtMi44NzUgNi4xMDkzNzUgLTQuNDM3NSBDIDYuMTA5Mzc1IC01LjkwNjI1IDUuODkwNjI1IC02LjgyODEyNSA1LjM5MDYyNSAtNy41OTM3NSBDIDQuOTIxODc1IC04LjI5Njg3NSA0LjE3MTg3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS42MjUgLTguNjcxODc1IDAuNDUzMTI1IC03LjQ2ODc1IDAuNDUzMTI1IC01Ljc4MTI1IEMgMC40NTMxMjUgLTQuMTg3NSAxLjUzMTI1IC0zLjA2MjUgMy4wNzgxMjUgLTMuMDYyNSBDIDMuODc1IC0zLjA2MjUgNC40Njg3NSAtMy4zNDM3NSA1LjAxNTYyNSAtNC4wMTU2MjUgQyA1IC0xLjg0Mzc1IDQuMzI4MTI1IC0wLjY1NjI1IDMuMTI1IC0wLjY1NjI1IEMgMi4zNzUgLTAuNjU2MjUgMS44NTkzNzUgLTEuMTQwNjI1IDEuNjg3NSAtMS45ODQzNzUgWiBNIDMuMjM0Mzc1IC03Ljc1IEMgNC4yMTg3NSAtNy43NSA0Ljk1MzEyNSAtNi45MjE4NzUgNC45NTMxMjUgLTUuODEyNSBDIDQuOTUzMTI1IC00LjczNDM3NSA0LjIzNDM3NSAtNCAzLjE4NzUgLTQgQyAyLjE3MTg3NSAtNCAxLjUzMTI1IC00LjcxODc1IDEuNTMxMjUgLTUuODc1IEMgMS41MzEyNSAtNi45NTMxMjUgMi4yNSAtNy43NSAzLjIzNDM3NSAtNy43NSBaIE0gMy4yMzQzNzUgLTcuNzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtMSI+CjxwYXRoIGQ9Ik0gNS43MTg3NSAtOC41MTU2MjUgTCAxLjMxMjUgLTguNTE1NjI1IEwgMC42ODc1IC0zLjg3NSBMIDEuNjU2MjUgLTMuODc1IEMgMi4xNDA2MjUgLTQuNDY4NzUgMi41NjI1IC00LjY3MTg3NSAzLjIzNDM3NSAtNC42NzE4NzUgQyA0LjM3NSAtNC42NzE4NzUgNS4wNzgxMjUgLTMuODkwNjI1IDUuMDc4MTI1IC0yLjYyNSBDIDUuMDc4MTI1IC0xLjQwNjI1IDQuMzc1IC0wLjY1NjI1IDMuMjE4NzUgLTAuNjU2MjUgQyAyLjI5Njg3NSAtMC42NTYyNSAxLjczNDM3NSAtMS4xMjUgMS40Njg3NSAtMi4wOTM3NSBMIDAuNDIxODc1IC0yLjA5Mzc1IEMgMC41NjI1IC0xLjM5MDYyNSAwLjY4NzUgLTEuMDYyNSAwLjkzNzUgLTAuNzUgQyAxLjQyMTg3NSAtMC4wOTM3NSAyLjI4MTI1IDAuMjgxMjUgMy4yMzQzNzUgMC4yODEyNSBDIDQuOTUzMTI1IDAuMjgxMjUgNi4xNTYyNSAtMC45Njg3NSA2LjE1NjI1IC0yLjc2NTYyNSBDIDYuMTU2MjUgLTQuNDUzMTI1IDUuMDQ2ODc1IC01LjYwOTM3NSAzLjQwNjI1IC01LjYwOTM3NSBDIDIuODEyNSAtNS42MDkzNzUgMi4zMjgxMjUgLTUuNDUzMTI1IDEuODQzNzUgLTUuMDkzNzUgTCAyLjE3MTg3NSAtNy40Njg3NSBMIDUuNzE4NzUgLTcuNDY4NzUgWiBNIDUuNzE4NzUgLTguNTE1NjI1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTIiPgo8cGF0aCBkPSJNIDYuMDc4MTI1IC0xLjA0Njg3NSBMIDEuNTkzNzUgLTEuMDQ2ODc1IEMgMS43MDMxMjUgLTEuNzY1NjI1IDIuMDkzNzUgLTIuMjE4NzUgMy4xMjUgLTIuODU5Mzc1IEwgNC4zMjgxMjUgLTMuNTMxMjUgQyA1LjUxNTYyNSAtNC4xODc1IDYuMTI1IC01LjA3ODEyNSA2LjEyNSAtNi4xNDA2MjUgQyA2LjEyNSAtNi44NTkzNzUgNS44NDM3NSAtNy41MzEyNSA1LjM0Mzc1IC04IEMgNC44NDM3NSAtOC40NTMxMjUgNC4yMTg3NSAtOC42NzE4NzUgMy40MDYyNSAtOC42NzE4NzUgQyAyLjMyODEyNSAtOC42NzE4NzUgMS41MzEyNSAtOC4yOTY4NzUgMS4wNjI1IC03LjU0Njg3NSBDIDAuNzUgLTcuMDkzNzUgMC42MjUgLTYuNTQ2ODc1IDAuNTkzNzUgLTUuNjcxODc1IEwgMS42NTYyNSAtNS42NzE4NzUgQyAxLjY4NzUgLTYuMjY1NjI1IDEuNzY1NjI1IC02LjYwOTM3NSAxLjkwNjI1IC02LjkwNjI1IEMgMi4xODc1IC03LjQyMTg3NSAyLjczNDM3NSAtNy43NSAzLjM3NSAtNy43NSBDIDQuMzI4MTI1IC03Ljc1IDUuMDQ2ODc1IC03LjA2MjUgNS4wNDY4NzUgLTYuMTI1IEMgNS4wNDY4NzUgLTUuNDIxODc1IDQuNjU2MjUgLTQuODI4MTI1IDMuOTA2MjUgLTQuMzkwNjI1IEwgMi43OTY4NzUgLTMuNzUgQyAxLjAxNTYyNSAtMi43MTg3NSAwLjUgLTEuOTA2MjUgMC40MDYyNSAtMC4wMTU2MjUgTCA2LjA3ODEyNSAtMC4wMTU2MjUgWiBNIDYuMDc4MTI1IC0xLjA0Njg3NSAiLz4KPC9nPgo8ZyBpZD0iZ2x5cGgtMC0zIj4KPHBhdGggZD0iTSAzLjI5Njg3NSAtOC42NzE4NzUgQyAyLjUxNTYyNSAtOC42NzE4NzUgMS43ODEyNSAtOC4zMTI1IDEuMzQzNzUgLTcuNzM0Mzc1IEMgMC43OTY4NzUgLTYuOTUzMTI1IDAuNTE1NjI1IC01LjgxMjUgMC41MTU2MjUgLTQuMjAzMTI1IEMgMC41MTU2MjUgLTEuMjY1NjI1IDEuNDY4NzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNS4wOTM3NSAwLjI4MTI1IDYuMDc4MTI1IC0xLjI2NTYyNSA2LjA3ODEyNSAtNC4xMjUgQyA2LjA3ODEyNSAtNS44MTI1IDUuODEyNSAtNi45Mzc1IDUuMjUgLTcuNzM0Mzc1IEMgNC44MTI1IC04LjMyODEyNSA0LjEwOTM3NSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IFogTSAzLjI5Njg3NSAtNy43MzQzNzUgQyA0LjQzNzUgLTcuNzM0Mzc1IDUgLTYuNTc4MTI1IDUgLTQuMjE4NzUgQyA1IC0xLjc1IDQuNDUzMTI1IC0wLjU5Mzc1IDMuMjgxMjUgLTAuNTkzNzUgQyAyLjE1NjI1IC0wLjU5Mzc1IDEuNTkzNzUgLTEuNzk2ODc1IDEuNTkzNzUgLTQuMTg3NSBDIDEuNTkzNzUgLTYuNTc4MTI1IDIuMTU2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTcuNzM0Mzc1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTQiPgo8cGF0aCBkPSJNIDMuMTA5Mzc1IC02LjE4NzUgTCAzLjEwOTM3NSAwIEwgNC4xNTYyNSAwIEwgNC4xNTYyNSAtOC42NzE4NzUgTCAzLjQ2ODc1IC04LjY3MTg3NSBDIDMuMDkzNzUgLTcuMzQzNzUgMi44NTkzNzUgLTcuMTU2MjUgMS4yMTg3NSAtNi45NTMxMjUgTCAxLjIxODc1IC02LjE4NzUgWiBNIDMuMTA5Mzc1IC02LjE4NzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNSI+CjxwYXRoIGQ9Ik0gMi42NTYyNSAtNCBMIDMuMjM0Mzc1IC00IEMgNC4zNzUgLTQgNC45ODQzNzUgLTMuNDUzMTI1IDQuOTg0Mzc1IC0yLjQwNjI1IEMgNC45ODQzNzUgLTEuMzEyNSA0LjMyODEyNSAtMC42NTYyNSAzLjIzNDM3NSAtMC42NTYyNSBDIDIuMDc4MTI1IC0wLjY1NjI1IDEuNTE1NjI1IC0xLjI1IDEuNDM3NSAtMi41MTU2MjUgTCAwLjM5MDYyNSAtMi41MTU2MjUgQyAwLjQzNzUgLTEuODI4MTI1IDAuNTQ2ODc1IC0xLjM3NSAwLjc1IC0wLjk4NDM3NSBDIDEuMjAzMTI1IC0wLjE0MDYyNSAyLjAzMTI1IDAuMjgxMjUgMy4xODc1IDAuMjgxMjUgQyA0LjkzNzUgMC4yODEyNSA2LjA3ODEyNSAtMC43ODEyNSA2LjA3ODEyNSAtMi40MjE4NzUgQyA2LjA3ODEyNSAtMy41MzEyNSA1LjY1NjI1IC00LjEyNSA0LjYyNSAtNC40ODQzNzUgQyA1LjQyMTg3NSAtNC44MTI1IDUuODEyNSAtNS40MDYyNSA1LjgxMjUgLTYuMjgxMjUgQyA1LjgxMjUgLTcuNzgxMjUgNC44NDM3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS41MTU2MjUgLTguNjcxODc1IDAuNTkzNzUgLTcuNzE4NzUgMC41NjI1IC01Ljg3NSBMIDEuNjI1IC01Ljg3NSBDIDEuNjI1IC02LjQwNjI1IDEuNjg3NSAtNi43MDMxMjUgMS44MTI1IC02Ljk2ODc1IEMgMi4wNDY4NzUgLTcuNDY4NzUgMi41NzgxMjUgLTcuNzUgMy4yMzQzNzUgLTcuNzUgQyA0LjE3MTg3NSAtNy43NSA0LjczNDM3NSAtNy4xODc1IDQuNzM0Mzc1IC02LjI1IEMgNC43MzQzNzUgLTUuNjQwNjI1IDQuNTMxMjUgLTUuMjY1NjI1IDQuMDYyNSAtNS4wNjI1IEMgMy43NjU2MjUgLTQuOTM3NSAzLjM5MDYyNSAtNC44OTA2MjUgMi42NTYyNSAtNC44OTA2MjUgWiBNIDIuNjU2MjUgLTQgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNiI+CjxwYXRoIGQ9Ik0gMy45MjE4NzUgLTIuMDkzNzUgTCAzLjkyMTg3NSAwIEwgNC45ODQzNzUgMCBMIDQuOTg0Mzc1IC0yLjA5Mzc1IEwgNi4yMzQzNzUgLTIuMDkzNzUgTCA2LjIzNDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtOC42NzE4NzUgTCA0LjIwMzEyNSAtOC42NzE4NzUgTCAwLjM0Mzc1IC0zLjIxODc1IEwgMC4zNDM3NSAtMi4wOTM3NSBaIE0gMy45MjE4NzUgLTMuMDQ2ODc1IEwgMS4yNjU2MjUgLTMuMDQ2ODc1IEwgMy45MjE4NzUgLTYuODc1IFogTSAzLjkyMTg3NSAtMy4wNDY4NzUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtNyI+CjxwYXRoIGQ9Ik0gNS45Njg3NSAtNi40MjE4NzUgQyA1Ljc2NTYyNSAtNy44NDM3NSA0Ljg1OTM3NSAtOC42NzE4NzUgMy41NjI1IC04LjY3MTg3NSBDIDIuNjI1IC04LjY3MTg3NSAxLjc4MTI1IC04LjIxODc1IDEuMjgxMjUgLTcuNDM3NSBDIDAuNzUgLTYuNTkzNzUgMC41MTU2MjUgLTUuNTMxMjUgMC41MTU2MjUgLTMuOTUzMTI1IEMgMC41MTU2MjUgLTIuNSAwLjcxODc1IC0xLjU3ODEyNSAxLjIzNDM3NSAtMC43OTY4NzUgQyAxLjY4NzUgLTAuMDkzNzUgMi40Mzc1IDAuMjgxMjUgMy4zNzUgMC4yODEyNSBDIDQuOTg0Mzc1IDAuMjgxMjUgNi4xNTYyNSAtMC45Mzc1IDYuMTU2MjUgLTIuNjI1IEMgNi4xNTYyNSAtNC4yMTg3NSA1LjA3ODEyNSAtNS4zNTkzNzUgMy41NDY4NzUgLTUuMzU5Mzc1IEMgMi43MTg3NSAtNS4zNTkzNzUgMi4wNDY4NzUgLTUuMDQ2ODc1IDEuNTkzNzUgLTQuNDA2MjUgQyAxLjYwOTM3NSAtNi41NDY4NzUgMi4yODEyNSAtNy43MzQzNzUgMy40ODQzNzUgLTcuNzM0Mzc1IEMgNC4yMzQzNzUgLTcuNzM0Mzc1IDQuNzUgLTcuMjY1NjI1IDQuOTIxODc1IC02LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1IEMgNC40Mzc1IC00LjQyMTg3NSA1LjA3ODEyNSAtMy43MDMxMjUgNS4wNzgxMjUgLTIuNTQ2ODc1IEMgNS4wNzgxMjUgLTEuNDUzMTI1IDQuMzU5Mzc1IC0wLjY1NjI1IDMuMzkwNjI1IC0wLjY1NjI1IEMgMi40MDYyNSAtMC42NTYyNSAxLjY1NjI1IC0xLjQ4NDM3NSAxLjY1NjI1IC0yLjU5Mzc1IEMgMS42NTYyNSAtMy42NzE4NzUgMi4zNzUgLTQuNDIxODc1IDMuNDIxODc1IC00LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1ICIvPgo8L2c+CjxnIGlkPSJnbHlwaC0wLTgiPgo8cGF0aCBkPSJNIDYuMjM0Mzc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC03LjQ2ODc1IEwgNS4xNDA2MjUgLTcuNDY4NzUgQyAzLjEyNSAtNC41NzgxMjUgMi4yOTY4NzUgLTIuNzk2ODc1IDEuNjU2MjUgMCBMIDIuNzgxMjUgMCBDIDMuMjUgLTIuNzE4NzUgNC4zMTI1IC01LjA2MjUgNi4yMzQzNzUgLTcuNjI1IFogTSA2LjIzNDM3NSAtOC41MTU2MjUgIi8+CjwvZz4KPGcgaWQ9ImdseXBoLTAtOSI+CjxwYXRoIGQ9Ik0gNC42ODc1IC00LjU3ODEyNSBDIDUuNTc4MTI1IC01LjEwOTM3NSA1Ljg1OTM3NSAtNS41NDY4NzUgNS44NTkzNzUgLTYuMzU5Mzc1IEMgNS44NTkzNzUgLTcuNzM0Mzc1IDQuODEyNSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IEMgMS43OTY4NzUgLTguNjcxODc1IDAuNzUgLTcuNzM0Mzc1IDAuNzUgLTYuMzc1IEMgMC43NSAtNS41NDY4NzUgMS4wMTU2MjUgLTUuMTI1IDEuODkwNjI1IC00LjU3ODEyNSBDIDAuOTIxODc1IC00LjA3ODEyNSAwLjQzNzUgLTMuMzc1IDAuNDM3NSAtMi40MDYyNSBDIDAuNDM3NSAtMC44MjgxMjUgMS42MDkzNzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNC45ODQzNzUgMC4yODEyNSA2LjE1NjI1IC0wLjgyODEyNSA2LjE1NjI1IC0yLjQwNjI1IEMgNi4xNTYyNSAtMy4zNzUgNS42NzE4NzUgLTQuMDc4MTI1IDQuNjg3NSAtNC41NzgxMjUgWiBNIDMuMjk2ODc1IC03LjczNDM3NSBDIDQuMjAzMTI1IC03LjczNDM3NSA0Ljc4MTI1IC03LjIwMzEyNSA0Ljc4MTI1IC02LjM0Mzc1IEMgNC43ODEyNSAtNS41MTU2MjUgNC4xODc1IC00Ljk4NDM3NSAzLjI5Njg3NSAtNC45ODQzNzUgQyAyLjQwNjI1IC00Ljk4NDM3NSAxLjgyODEyNSAtNS41MTU2MjUgMS44MjgxMjUgLTYuMzU5Mzc1IEMgMS44MjgxMjUgLTcuMjAzMTI1IDIuNDA2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTQuMDkzNzUgQyA0LjM1OTM3NSAtNC4wOTM3NSA1LjA3ODEyNSAtMy4zOTA2MjUgNS4wNzgxMjUgLTIuMzkwNjI1IEMgNS4wNzgxMjUgLTEuMzQzNzUgNC4zNzUgLTAuNjU2MjUgMy4yODEyNSAtMC42NTYyNSBDIDIuMjUgLTAuNjU2MjUgMS41MzEyNSAtMS4zNzUgMS41MzEyNSAtMi4zNzUgQyAxLjUzMTI1IC0zLjQwNjI1IDIuMjM0Mzc1IC00LjA5Mzc1IDMuMjk2ODc1IC00LjA5Mzc1IFogTSAzLjI5Njg3NSAtNC4wOTM3NSAiLz4KPC9nPgo8L2c+CjwvZGVmcz4KPHJlY3QgeD0iLTExLjMiIHk9Ii04LjIiIHdpZHRoPSIxMzUuNiIgaGVpZ2h0PSI5OC40IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDAuMDA3ODEyNSA4MS45OTIxODggTCAxMTIuOTk2MDk0IDgxLjk5MjE4OCBMIDExMi45OTYwOTQgMC4wMDc4MTI1IEwgMC4wMDc4MTI1IDAuMDA3ODEyNSBaIE0gMC4wMDc4MTI1IDgxLjk5MjE4OCAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMS4wNzQyMTkgMCBMIDExLjkyNTc4MSAwIEwgMTEuOTI1NzgxIDc3IEwgMTEuMDc0MjE5IDc3IFogTSAxMy4wNzQyMTkgMCBMIDEzLjkyNTc4MSAwIEwgMTMuOTI1NzgxIDc3IEwgMTMuMDc0MjE5IDc3IFogTSAxNS4wNzQyMTkgMCBMIDE2LjkyNTc4MSAwIEwgMTYuOTI1NzgxIDcyIEwgMTUuMDc0MjE5IDcyIFogTSAyMC4wNzQyMTkgMCBMIDIwLjkyNTc4MSAwIEwgMjAuOTI1NzgxIDcyIEwgMjAuMDc0MjE5IDcyIFogTSAyMy4wNzQyMTkgMCBMIDI0LjkyNTc4MSAwIEwgMjQuOTI1NzgxIDcyIEwgMjMuMDc0MjE5IDcyIFogTSAyNi4wNzQyMTkgMCBMIDI3LjkyNTc4MSAwIEwgMjcuOTI1NzgxIDcyIEwgMjYuMDc0MjE5IDcyIFogTSAyOS4wNzQyMTkgMCBMIDI5LjkyNTc4MSAwIEwgMjkuOTI1NzgxIDcyIEwgMjkuMDc0MjE5IDcyIFogTSAzMi4wNzQyMTkgMCBMIDM0LjkyNTc4MSAwIEwgMzQuOTI1NzgxIDcyIEwgMzIuMDc0MjE5IDcyIFogTSAzNy4wNzQyMTkgMCBMIDM4LjkyNTc4MSAwIEwgMzguOTI1NzgxIDcyIEwgMzcuMDc0MjE5IDcyIFogTSA0MS4wNzQyMTkgMCBMIDQxLjkyNTc4MSAwIEwgNDEuOTI1NzgxIDcyIEwgNDEuMDc0MjE5IDcyIFogTSA0NC4wNzQyMTkgMCBMIDQ1LjkyNTc4MSAwIEwgNDUuOTI1NzgxIDcyIEwgNDQuMDc0MjE5IDcyIFogTSA0Ny4wNzQyMTkgMCBMIDQ4LjkyNTc4MSAwIEwgNDguOTI1NzgxIDcyIEwgNDcuMDc0MjE5IDcyIFogTSA1MC4wNzQyMTkgMCBMIDUzLjkyNTc4MSAwIEwgNTMuOTI1NzgxIDcyIEwgNTAuMDc0MjE5IDcyIFogTSA1NS4wNzQyMTkgMCBMIDU1LjkyNTc4MSAwIEwgNTUuOTI1NzgxIDcyIEwgNTUuMDc0MjE5IDcyIFogTSA1Ny4wNzQyMTkgMCBMIDU3LjkyNTc4MSAwIEwgNTcuOTI1NzgxIDc3IEwgNTcuMDc0MjE5IDc3IFogTSA1OS4wNzQyMTkgMCBMIDU5LjkyNTc4MSAwIEwgNTkuOTI1NzgxIDc3IEwgNTkuMDc0MjE5IDc3IFogTSA2MS4wNzQyMTkgMCBMIDYxLjkyNTc4MSAwIEwgNjEuOTI1NzgxIDcyIEwgNjEuMDc0MjE5IDcyIFogTSA2My4wNzQyMTkgMCBMIDY1LjkyNTc4MSAwIEwgNjUuOTI1NzgxIDcyIEwgNjMuMDc0MjE5IDcyIFogTSA2OC4wNzQyMTkgMCBMIDY4LjkyNTc4MSAwIEwgNjguOTI1NzgxIDcyIEwgNjguMDc0MjE5IDcyIFogTSA3MS4wNzQyMTkgMCBMIDczLjkyNTc4MSAwIEwgNzMuOTI1NzgxIDcyIEwgNzEuMDc0MjE5IDcyIFogTSA3NS4wNzQyMTkgMCBMIDc1LjkyNTc4MSAwIEwgNzUuOTI1NzgxIDcyIEwgNzUuMDc0MjE5IDcyIFogTSA3Ny4wNzQyMTkgMCBMIDc3LjkyNTc4MSAwIEwgNzcuOTI1NzgxIDcyIEwgNzcuMDc0MjE5IDcyIFogTSA4Mi4wNzQyMTkgMCBMIDgyLjkyNTc4MSAwIEwgODIuOTI1NzgxIDcyIEwgODIuMDc0MjE5IDcyIFogTSA4Ni4wNzQyMTkgMCBMIDg2LjkyNTc4MSAwIEwgODYuOTI1NzgxIDcyIEwgODYuMDc0MjE5IDcyIFogTSA4OS4wNzQyMTkgMCBMIDg5LjkyNTc4MSAwIEwgODkuOTI1NzgxIDcyIEwgODkuMDc0MjE5IDcyIFogTSA5Mi4wNzQyMTkgMCBMIDkyLjkyNTc4MSAwIEwgOTIuOTI1NzgxIDcyIEwgOTIuMDc0MjE5IDcyIFogTSA5Ni4wNzQyMTkgMCBMIDk2LjkyNTc4MSAwIEwgOTYuOTI1NzgxIDcyIEwgOTYuMDc0MjE5IDcyIFogTSA5OS4wNzQyMTkgMCBMIDk5LjkyNTc4MSAwIEwgOTkuOTI1NzgxIDcyIEwgOTkuMDc0MjE5IDcyIFogTSAxMDMuMDc0MjE5IDAgTCAxMDMuOTI1NzgxIDAgTCAxMDMuOTI1NzgxIDc3IEwgMTAzLjA3NDIxOSA3NyBaIE0gMTA1LjA3NDIxOSAwIEwgMTA1LjkyNTc4MSAwIEwgMTA1LjkyNTc4MSA3NyBMIDEwNS4wNzQyMTkgNzcgWiBNIDEwNS4wNzQyMTkgMCAiLz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTAiIHg9Ii0wLjA4NTkzNzUiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0xIiB4PSIxNC45MTQwNjMiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSIyMS45MTQwNjIiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0zIiB4PSIyOC45MTQwNjIiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC00IiB4PSIzNS45MTQwNjEiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSI0Mi45MTQwNjEiIHk9IjgxLjQ0NzY1NiIvPgo8L2c+CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC01IiB4PSI0OS45MTQwNiIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTYiIHg9IjYwLjkxNDA2NCIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTEiIHg9IjY3LjkxNDA2OCIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTciIHg9Ijc0LjkxNDA3MSIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTgiIHg9IjgxLjkxNDA3NCIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijg4LjkxNDA3NyIgeT0iODEuNDQ3NjU2Ii8+CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijk1LjkxNDA4IiB5PSI4MS40NDc2NTYiLz4KPC9nPgo8L3N2Zz4K[data:image/svg{plus}xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTEzIiBoZWlnaHQ9IjgyIiB2aWV3Qm94PSIwIDAgMTEzIDgyIj4KPGRlZnM{plus}CjxnPgo8ZyBpZD0iZ2x5cGgtMC0wIj4KPHBhdGggZD0iTSAwLjY0MDYyNSAtMS45ODQzNzUgQyAwLjg0Mzc1IC0wLjU2MjUgMS43NSAwLjI4MTI1IDMuMDQ2ODc1IDAuMjgxMjUgQyA0IDAuMjgxMjUgNC44NDM3NSAtMC4xODc1IDUuMzQzNzUgLTAuOTUzMTI1IEMgNS44NzUgLTEuODEyNSA2LjEwOTM3NSAtMi44NzUgNi4xMDkzNzUgLTQuNDM3NSBDIDYuMTA5Mzc1IC01LjkwNjI1IDUuODkwNjI1IC02LjgyODEyNSA1LjM5MDYyNSAtNy41OTM3NSBDIDQuOTIxODc1IC04LjI5Njg3NSA0LjE3MTg3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS42MjUgLTguNjcxODc1IDAuNDUzMTI1IC03LjQ2ODc1IDAuNDUzMTI1IC01Ljc4MTI1IEMgMC40NTMxMjUgLTQuMTg3NSAxLjUzMTI1IC0zLjA2MjUgMy4wNzgxMjUgLTMuMDYyNSBDIDMuODc1IC0zLjA2MjUgNC40Njg3NSAtMy4zNDM3NSA1LjAxNTYyNSAtNC4wMTU2MjUgQyA1IC0xLjg0Mzc1IDQuMzI4MTI1IC0wLjY1NjI1IDMuMTI1IC0wLjY1NjI1IEMgMi4zNzUgLTAuNjU2MjUgMS44NTkzNzUgLTEuMTQwNjI1IDEuNjg3NSAtMS45ODQzNzUgWiBNIDMuMjM0Mzc1IC03Ljc1IEMgNC4yMTg3NSAtNy43NSA0Ljk1MzEyNSAtNi45MjE4NzUgNC45NTMxMjUgLTUuODEyNSBDIDQuOTUzMTI1IC00LjczNDM3NSA0LjIzNDM3NSAtNCAzLjE4NzUgLTQgQyAyLjE3MTg3NSAtNCAxLjUzMTI1IC00LjcxODc1IDEuNTMxMjUgLTUuODc1IEMgMS41MzEyNSAtNi45NTMxMjUgMi4yNSAtNy43NSAzLjIzNDM3NSAtNy43NSBaIE0gMy4yMzQzNzUgLTcuNzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtMSI{plus}CjxwYXRoIGQ9Ik0gNS43MTg3NSAtOC41MTU2MjUgTCAxLjMxMjUgLTguNTE1NjI1IEwgMC42ODc1IC0zLjg3NSBMIDEuNjU2MjUgLTMuODc1IEMgMi4xNDA2MjUgLTQuNDY4NzUgMi41NjI1IC00LjY3MTg3NSAzLjIzNDM3NSAtNC42NzE4NzUgQyA0LjM3NSAtNC42NzE4NzUgNS4wNzgxMjUgLTMuODkwNjI1IDUuMDc4MTI1IC0yLjYyNSBDIDUuMDc4MTI1IC0xLjQwNjI1IDQuMzc1IC0wLjY1NjI1IDMuMjE4NzUgLTAuNjU2MjUgQyAyLjI5Njg3NSAtMC42NTYyNSAxLjczNDM3NSAtMS4xMjUgMS40Njg3NSAtMi4wOTM3NSBMIDAuNDIxODc1IC0yLjA5Mzc1IEMgMC41NjI1IC0xLjM5MDYyNSAwLjY4NzUgLTEuMDYyNSAwLjkzNzUgLTAuNzUgQyAxLjQyMTg3NSAtMC4wOTM3NSAyLjI4MTI1IDAuMjgxMjUgMy4yMzQzNzUgMC4yODEyNSBDIDQuOTUzMTI1IDAuMjgxMjUgNi4xNTYyNSAtMC45Njg3NSA2LjE1NjI1IC0yLjc2NTYyNSBDIDYuMTU2MjUgLTQuNDUzMTI1IDUuMDQ2ODc1IC01LjYwOTM3NSAzLjQwNjI1IC01LjYwOTM3NSBDIDIuODEyNSAtNS42MDkzNzUgMi4zMjgxMjUgLTUuNDUzMTI1IDEuODQzNzUgLTUuMDkzNzUgTCAyLjE3MTg3NSAtNy40Njg3NSBMIDUuNzE4NzUgLTcuNDY4NzUgWiBNIDUuNzE4NzUgLTguNTE1NjI1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTIiPgo8cGF0aCBkPSJNIDYuMDc4MTI1IC0xLjA0Njg3NSBMIDEuNTkzNzUgLTEuMDQ2ODc1IEMgMS43MDMxMjUgLTEuNzY1NjI1IDIuMDkzNzUgLTIuMjE4NzUgMy4xMjUgLTIuODU5Mzc1IEwgNC4zMjgxMjUgLTMuNTMxMjUgQyA1LjUxNTYyNSAtNC4xODc1IDYuMTI1IC01LjA3ODEyNSA2LjEyNSAtNi4xNDA2MjUgQyA2LjEyNSAtNi44NTkzNzUgNS44NDM3NSAtNy41MzEyNSA1LjM0Mzc1IC04IEMgNC44NDM3NSAtOC40NTMxMjUgNC4yMTg3NSAtOC42NzE4NzUgMy40MDYyNSAtOC42NzE4NzUgQyAyLjMyODEyNSAtOC42NzE4NzUgMS41MzEyNSAtOC4yOTY4NzUgMS4wNjI1IC03LjU0Njg3NSBDIDAuNzUgLTcuMDkzNzUgMC42MjUgLTYuNTQ2ODc1IDAuNTkzNzUgLTUuNjcxODc1IEwgMS42NTYyNSAtNS42NzE4NzUgQyAxLjY4NzUgLTYuMjY1NjI1IDEuNzY1NjI1IC02LjYwOTM3NSAxLjkwNjI1IC02LjkwNjI1IEMgMi4xODc1IC03LjQyMTg3NSAyLjczNDM3NSAtNy43NSAzLjM3NSAtNy43NSBDIDQuMzI4MTI1IC03Ljc1IDUuMDQ2ODc1IC03LjA2MjUgNS4wNDY4NzUgLTYuMTI1IEMgNS4wNDY4NzUgLTUuNDIxODc1IDQuNjU2MjUgLTQuODI4MTI1IDMuOTA2MjUgLTQuMzkwNjI1IEwgMi43OTY4NzUgLTMuNzUgQyAxLjAxNTYyNSAtMi43MTg3NSAwLjUgLTEuOTA2MjUgMC40MDYyNSAtMC4wMTU2MjUgTCA2LjA3ODEyNSAtMC4wMTU2MjUgWiBNIDYuMDc4MTI1IC0xLjA0Njg3NSAiLz4KPC9nPgo8ZyBpZD0iZ2x5cGgtMC0zIj4KPHBhdGggZD0iTSAzLjI5Njg3NSAtOC42NzE4NzUgQyAyLjUxNTYyNSAtOC42NzE4NzUgMS43ODEyNSAtOC4zMTI1IDEuMzQzNzUgLTcuNzM0Mzc1IEMgMC43OTY4NzUgLTYuOTUzMTI1IDAuNTE1NjI1IC01LjgxMjUgMC41MTU2MjUgLTQuMjAzMTI1IEMgMC41MTU2MjUgLTEuMjY1NjI1IDEuNDY4NzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNS4wOTM3NSAwLjI4MTI1IDYuMDc4MTI1IC0xLjI2NTYyNSA2LjA3ODEyNSAtNC4xMjUgQyA2LjA3ODEyNSAtNS44MTI1IDUuODEyNSAtNi45Mzc1IDUuMjUgLTcuNzM0Mzc1IEMgNC44MTI1IC04LjMyODEyNSA0LjEwOTM3NSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IFogTSAzLjI5Njg3NSAtNy43MzQzNzUgQyA0LjQzNzUgLTcuNzM0Mzc1IDUgLTYuNTc4MTI1IDUgLTQuMjE4NzUgQyA1IC0xLjc1IDQuNDUzMTI1IC0wLjU5Mzc1IDMuMjgxMjUgLTAuNTkzNzUgQyAyLjE1NjI1IC0wLjU5Mzc1IDEuNTkzNzUgLTEuNzk2ODc1IDEuNTkzNzUgLTQuMTg3NSBDIDEuNTkzNzUgLTYuNTc4MTI1IDIuMTU2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTcuNzM0Mzc1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTQiPgo8cGF0aCBkPSJNIDMuMTA5Mzc1IC02LjE4NzUgTCAzLjEwOTM3NSAwIEwgNC4xNTYyNSAwIEwgNC4xNTYyNSAtOC42NzE4NzUgTCAzLjQ2ODc1IC04LjY3MTg3NSBDIDMuMDkzNzUgLTcuMzQzNzUgMi44NTkzNzUgLTcuMTU2MjUgMS4yMTg3NSAtNi45NTMxMjUgTCAxLjIxODc1IC02LjE4NzUgWiBNIDMuMTA5Mzc1IC02LjE4NzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNSI{plus}CjxwYXRoIGQ9Ik0gMi42NTYyNSAtNCBMIDMuMjM0Mzc1IC00IEMgNC4zNzUgLTQgNC45ODQzNzUgLTMuNDUzMTI1IDQuOTg0Mzc1IC0yLjQwNjI1IEMgNC45ODQzNzUgLTEuMzEyNSA0LjMyODEyNSAtMC42NTYyNSAzLjIzNDM3NSAtMC42NTYyNSBDIDIuMDc4MTI1IC0wLjY1NjI1IDEuNTE1NjI1IC0xLjI1IDEuNDM3NSAtMi41MTU2MjUgTCAwLjM5MDYyNSAtMi41MTU2MjUgQyAwLjQzNzUgLTEuODI4MTI1IDAuNTQ2ODc1IC0xLjM3NSAwLjc1IC0wLjk4NDM3NSBDIDEuMjAzMTI1IC0wLjE0MDYyNSAyLjAzMTI1IDAuMjgxMjUgMy4xODc1IDAuMjgxMjUgQyA0LjkzNzUgMC4yODEyNSA2LjA3ODEyNSAtMC43ODEyNSA2LjA3ODEyNSAtMi40MjE4NzUgQyA2LjA3ODEyNSAtMy41MzEyNSA1LjY1NjI1IC00LjEyNSA0LjYyNSAtNC40ODQzNzUgQyA1LjQyMTg3NSAtNC44MTI1IDUuODEyNSAtNS40MDYyNSA1LjgxMjUgLTYuMjgxMjUgQyA1LjgxMjUgLTcuNzgxMjUgNC44NDM3NSAtOC42NzE4NzUgMy4yMzQzNzUgLTguNjcxODc1IEMgMS41MTU2MjUgLTguNjcxODc1IDAuNTkzNzUgLTcuNzE4NzUgMC41NjI1IC01Ljg3NSBMIDEuNjI1IC01Ljg3NSBDIDEuNjI1IC02LjQwNjI1IDEuNjg3NSAtNi43MDMxMjUgMS44MTI1IC02Ljk2ODc1IEMgMi4wNDY4NzUgLTcuNDY4NzUgMi41NzgxMjUgLTcuNzUgMy4yMzQzNzUgLTcuNzUgQyA0LjE3MTg3NSAtNy43NSA0LjczNDM3NSAtNy4xODc1IDQuNzM0Mzc1IC02LjI1IEMgNC43MzQzNzUgLTUuNjQwNjI1IDQuNTMxMjUgLTUuMjY1NjI1IDQuMDYyNSAtNS4wNjI1IEMgMy43NjU2MjUgLTQuOTM3NSAzLjM5MDYyNSAtNC44OTA2MjUgMi42NTYyNSAtNC44OTA2MjUgWiBNIDIuNjU2MjUgLTQgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNiI{plus}CjxwYXRoIGQ9Ik0gMy45MjE4NzUgLTIuMDkzNzUgTCAzLjkyMTg3NSAwIEwgNC45ODQzNzUgMCBMIDQuOTg0Mzc1IC0yLjA5Mzc1IEwgNi4yMzQzNzUgLTIuMDkzNzUgTCA2LjIzNDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtMy4wNDY4NzUgTCA0Ljk4NDM3NSAtOC42NzE4NzUgTCA0LjIwMzEyNSAtOC42NzE4NzUgTCAwLjM0Mzc1IC0zLjIxODc1IEwgMC4zNDM3NSAtMi4wOTM3NSBaIE0gMy45MjE4NzUgLTMuMDQ2ODc1IEwgMS4yNjU2MjUgLTMuMDQ2ODc1IEwgMy45MjE4NzUgLTYuODc1IFogTSAzLjkyMTg3NSAtMy4wNDY4NzUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtNyI{plus}CjxwYXRoIGQ9Ik0gNS45Njg3NSAtNi40MjE4NzUgQyA1Ljc2NTYyNSAtNy44NDM3NSA0Ljg1OTM3NSAtOC42NzE4NzUgMy41NjI1IC04LjY3MTg3NSBDIDIuNjI1IC04LjY3MTg3NSAxLjc4MTI1IC04LjIxODc1IDEuMjgxMjUgLTcuNDM3NSBDIDAuNzUgLTYuNTkzNzUgMC41MTU2MjUgLTUuNTMxMjUgMC41MTU2MjUgLTMuOTUzMTI1IEMgMC41MTU2MjUgLTIuNSAwLjcxODc1IC0xLjU3ODEyNSAxLjIzNDM3NSAtMC43OTY4NzUgQyAxLjY4NzUgLTAuMDkzNzUgMi40Mzc1IDAuMjgxMjUgMy4zNzUgMC4yODEyNSBDIDQuOTg0Mzc1IDAuMjgxMjUgNi4xNTYyNSAtMC45Mzc1IDYuMTU2MjUgLTIuNjI1IEMgNi4xNTYyNSAtNC4yMTg3NSA1LjA3ODEyNSAtNS4zNTkzNzUgMy41NDY4NzUgLTUuMzU5Mzc1IEMgMi43MTg3NSAtNS4zNTkzNzUgMi4wNDY4NzUgLTUuMDQ2ODc1IDEuNTkzNzUgLTQuNDA2MjUgQyAxLjYwOTM3NSAtNi41NDY4NzUgMi4yODEyNSAtNy43MzQzNzUgMy40ODQzNzUgLTcuNzM0Mzc1IEMgNC4yMzQzNzUgLTcuNzM0Mzc1IDQuNzUgLTcuMjY1NjI1IDQuOTIxODc1IC02LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1IEMgNC40Mzc1IC00LjQyMTg3NSA1LjA3ODEyNSAtMy43MDMxMjUgNS4wNzgxMjUgLTIuNTQ2ODc1IEMgNS4wNzgxMjUgLTEuNDUzMTI1IDQuMzU5Mzc1IC0wLjY1NjI1IDMuMzkwNjI1IC0wLjY1NjI1IEMgMi40MDYyNSAtMC42NTYyNSAxLjY1NjI1IC0xLjQ4NDM3NSAxLjY1NjI1IC0yLjU5Mzc1IEMgMS42NTYyNSAtMy42NzE4NzUgMi4zNzUgLTQuNDIxODc1IDMuNDIxODc1IC00LjQyMTg3NSBaIE0gMy40MjE4NzUgLTQuNDIxODc1ICIvPgo8L2c{plus}CjxnIGlkPSJnbHlwaC0wLTgiPgo8cGF0aCBkPSJNIDYuMjM0Mzc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC04LjUxNTYyNSBMIDAuNTQ2ODc1IC03LjQ2ODc1IEwgNS4xNDA2MjUgLTcuNDY4NzUgQyAzLjEyNSAtNC41NzgxMjUgMi4yOTY4NzUgLTIuNzk2ODc1IDEuNjU2MjUgMCBMIDIuNzgxMjUgMCBDIDMuMjUgLTIuNzE4NzUgNC4zMTI1IC01LjA2MjUgNi4yMzQzNzUgLTcuNjI1IFogTSA2LjIzNDM3NSAtOC41MTU2MjUgIi8{plus}CjwvZz4KPGcgaWQ9ImdseXBoLTAtOSI{plus}CjxwYXRoIGQ9Ik0gNC42ODc1IC00LjU3ODEyNSBDIDUuNTc4MTI1IC01LjEwOTM3NSA1Ljg1OTM3NSAtNS41NDY4NzUgNS44NTkzNzUgLTYuMzU5Mzc1IEMgNS44NTkzNzUgLTcuNzM0Mzc1IDQuODEyNSAtOC42NzE4NzUgMy4yOTY4NzUgLTguNjcxODc1IEMgMS43OTY4NzUgLTguNjcxODc1IDAuNzUgLTcuNzM0Mzc1IDAuNzUgLTYuMzc1IEMgMC43NSAtNS41NDY4NzUgMS4wMTU2MjUgLTUuMTI1IDEuODkwNjI1IC00LjU3ODEyNSBDIDAuOTIxODc1IC00LjA3ODEyNSAwLjQzNzUgLTMuMzc1IDAuNDM3NSAtMi40MDYyNSBDIDAuNDM3NSAtMC44MjgxMjUgMS42MDkzNzUgMC4yODEyNSAzLjI5Njg3NSAwLjI4MTI1IEMgNC45ODQzNzUgMC4yODEyNSA2LjE1NjI1IC0wLjgyODEyNSA2LjE1NjI1IC0yLjQwNjI1IEMgNi4xNTYyNSAtMy4zNzUgNS42NzE4NzUgLTQuMDc4MTI1IDQuNjg3NSAtNC41NzgxMjUgWiBNIDMuMjk2ODc1IC03LjczNDM3NSBDIDQuMjAzMTI1IC03LjczNDM3NSA0Ljc4MTI1IC03LjIwMzEyNSA0Ljc4MTI1IC02LjM0Mzc1IEMgNC43ODEyNSAtNS41MTU2MjUgNC4xODc1IC00Ljk4NDM3NSAzLjI5Njg3NSAtNC45ODQzNzUgQyAyLjQwNjI1IC00Ljk4NDM3NSAxLjgyODEyNSAtNS41MTU2MjUgMS44MjgxMjUgLTYuMzU5Mzc1IEMgMS44MjgxMjUgLTcuMjAzMTI1IDIuNDA2MjUgLTcuNzM0Mzc1IDMuMjk2ODc1IC03LjczNDM3NSBaIE0gMy4yOTY4NzUgLTQuMDkzNzUgQyA0LjM1OTM3NSAtNC4wOTM3NSA1LjA3ODEyNSAtMy4zOTA2MjUgNS4wNzgxMjUgLTIuMzkwNjI1IEMgNS4wNzgxMjUgLTEuMzQzNzUgNC4zNzUgLTAuNjU2MjUgMy4yODEyNSAtMC42NTYyNSBDIDIuMjUgLTAuNjU2MjUgMS41MzEyNSAtMS4zNzUgMS41MzEyNSAtMi4zNzUgQyAxLjUzMTI1IC0zLjQwNjI1IDIuMjM0Mzc1IC00LjA5Mzc1IDMuMjk2ODc1IC00LjA5Mzc1IFogTSAzLjI5Njg3NSAtNC4wOTM3NSAiLz4KPC9nPgo8L2c{plus}CjwvZGVmcz4KPHJlY3QgeD0iLTExLjMiIHk9Ii04LjIiIHdpZHRoPSIxMzUuNiIgaGVpZ2h0PSI5OC40IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDAuMDA3ODEyNSA4MS45OTIxODggTCAxMTIuOTk2MDk0IDgxLjk5MjE4OCBMIDExMi45OTYwOTQgMC4wMDc4MTI1IEwgMC4wMDc4MTI1IDAuMDA3ODEyNSBaIE0gMC4wMDc4MTI1IDgxLjk5MjE4OCAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMS4wNzQyMTkgMCBMIDExLjkyNTc4MSAwIEwgMTEuOTI1NzgxIDc3IEwgMTEuMDc0MjE5IDc3IFogTSAxMy4wNzQyMTkgMCBMIDEzLjkyNTc4MSAwIEwgMTMuOTI1NzgxIDc3IEwgMTMuMDc0MjE5IDc3IFogTSAxNS4wNzQyMTkgMCBMIDE2LjkyNTc4MSAwIEwgMTYuOTI1NzgxIDcyIEwgMTUuMDc0MjE5IDcyIFogTSAyMC4wNzQyMTkgMCBMIDIwLjkyNTc4MSAwIEwgMjAuOTI1NzgxIDcyIEwgMjAuMDc0MjE5IDcyIFogTSAyMy4wNzQyMTkgMCBMIDI0LjkyNTc4MSAwIEwgMjQuOTI1NzgxIDcyIEwgMjMuMDc0MjE5IDcyIFogTSAyNi4wNzQyMTkgMCBMIDI3LjkyNTc4MSAwIEwgMjcuOTI1NzgxIDcyIEwgMjYuMDc0MjE5IDcyIFogTSAyOS4wNzQyMTkgMCBMIDI5LjkyNTc4MSAwIEwgMjkuOTI1NzgxIDcyIEwgMjkuMDc0MjE5IDcyIFogTSAzMi4wNzQyMTkgMCBMIDM0LjkyNTc4MSAwIEwgMzQuOTI1NzgxIDcyIEwgMzIuMDc0MjE5IDcyIFogTSAzNy4wNzQyMTkgMCBMIDM4LjkyNTc4MSAwIEwgMzguOTI1NzgxIDcyIEwgMzcuMDc0MjE5IDcyIFogTSA0MS4wNzQyMTkgMCBMIDQxLjkyNTc4MSAwIEwgNDEuOTI1NzgxIDcyIEwgNDEuMDc0MjE5IDcyIFogTSA0NC4wNzQyMTkgMCBMIDQ1LjkyNTc4MSAwIEwgNDUuOTI1NzgxIDcyIEwgNDQuMDc0MjE5IDcyIFogTSA0Ny4wNzQyMTkgMCBMIDQ4LjkyNTc4MSAwIEwgNDguOTI1NzgxIDcyIEwgNDcuMDc0MjE5IDcyIFogTSA1MC4wNzQyMTkgMCBMIDUzLjkyNTc4MSAwIEwgNTMuOTI1NzgxIDcyIEwgNTAuMDc0MjE5IDcyIFogTSA1NS4wNzQyMTkgMCBMIDU1LjkyNTc4MSAwIEwgNTUuOTI1NzgxIDcyIEwgNTUuMDc0MjE5IDcyIFogTSA1Ny4wNzQyMTkgMCBMIDU3LjkyNTc4MSAwIEwgNTcuOTI1NzgxIDc3IEwgNTcuMDc0MjE5IDc3IFogTSA1OS4wNzQyMTkgMCBMIDU5LjkyNTc4MSAwIEwgNTkuOTI1NzgxIDc3IEwgNTkuMDc0MjE5IDc3IFogTSA2MS4wNzQyMTkgMCBMIDYxLjkyNTc4MSAwIEwgNjEuOTI1NzgxIDcyIEwgNjEuMDc0MjE5IDcyIFogTSA2My4wNzQyMTkgMCBMIDY1LjkyNTc4MSAwIEwgNjUuOTI1NzgxIDcyIEwgNjMuMDc0MjE5IDcyIFogTSA2OC4wNzQyMTkgMCBMIDY4LjkyNTc4MSAwIEwgNjguOTI1NzgxIDcyIEwgNjguMDc0MjE5IDcyIFogTSA3MS4wNzQyMTkgMCBMIDczLjkyNTc4MSAwIEwgNzMuOTI1NzgxIDcyIEwgNzEuMDc0MjE5IDcyIFogTSA3NS4wNzQyMTkgMCBMIDc1LjkyNTc4MSAwIEwgNzUuOTI1NzgxIDcyIEwgNzUuMDc0MjE5IDcyIFogTSA3Ny4wNzQyMTkgMCBMIDc3LjkyNTc4MSAwIEwgNzcuOTI1NzgxIDcyIEwgNzcuMDc0MjE5IDcyIFogTSA4Mi4wNzQyMTkgMCBMIDgyLjkyNTc4MSAwIEwgODIuOTI1NzgxIDcyIEwgODIuMDc0MjE5IDcyIFogTSA4Ni4wNzQyMTkgMCBMIDg2LjkyNTc4MSAwIEwgODYuOTI1NzgxIDcyIEwgODYuMDc0MjE5IDcyIFogTSA4OS4wNzQyMTkgMCBMIDg5LjkyNTc4MSAwIEwgODkuOTI1NzgxIDcyIEwgODkuMDc0MjE5IDcyIFogTSA5Mi4wNzQyMTkgMCBMIDkyLjkyNTc4MSAwIEwgOTIuOTI1NzgxIDcyIEwgOTIuMDc0MjE5IDcyIFogTSA5Ni4wNzQyMTkgMCBMIDk2LjkyNTc4MSAwIEwgOTYuOTI1NzgxIDcyIEwgOTYuMDc0MjE5IDcyIFogTSA5OS4wNzQyMTkgMCBMIDk5LjkyNTc4MSAwIEwgOTkuOTI1NzgxIDcyIEwgOTkuMDc0MjE5IDcyIFogTSAxMDMuMDc0MjE5IDAgTCAxMDMuOTI1NzgxIDAgTCAxMDMuOTI1NzgxIDc3IEwgMTAzLjA3NDIxOSA3NyBaIE0gMTA1LjA3NDIxOSAwIEwgMTA1LjkyNTc4MSAwIEwgMTA1LjkyNTc4MSA3NyBMIDEwNS4wNzQyMTkgNzcgWiBNIDEwNS4wNzQyMTkgMCAiLz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTAiIHg9Ii0wLjA4NTkzNzUiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0xIiB4PSIxNC45MTQwNjMiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSIyMS45MTQwNjIiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0zIiB4PSIyOC45MTQwNjIiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC00IiB4PSIzNS45MTQwNjEiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC0yIiB4PSI0Mi45MTQwNjEiIHk9IjgxLjQ0NzY1NiIvPgo8L2c{plus}CjxnIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIj4KPHVzZSB4bGluazpocmVmPSIjZ2x5cGgtMC01IiB4PSI0OS45MTQwNiIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTYiIHg9IjYwLjkxNDA2NCIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTEiIHg9IjY3LjkxNDA2OCIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTciIHg9Ijc0LjkxNDA3MSIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTgiIHg9IjgxLjkxNDA3NCIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijg4LjkxNDA3NyIgeT0iODEuNDQ3NjU2Ii8{plus}CjwvZz4KPGcgZmlsbD0icmdiKDAlLCAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiPgo8dXNlIHhsaW5rOmhyZWY9IiNnbHlwaC0wLTkiIHg9Ijk1LjkxNDA4IiB5PSI4MS40NDc2NTYiLz4KPC9nPgo8L3N2Zz4K]
 
 ==== griddpi
 
-Specify the target resolution for grid-aligned module boundaries, in
-dots per inch. This can be useful if the target device's resolution
-cannot be probed.
+Specify the target resolution for grid-aligned module boundaries, in dots per inch. This can be useful if the target device's resolution cannot be probed.
 
 Setting *griddpi* automatically enables <<_gridfit,gridfit>>.
 
@@ -627,30 +474,20 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === Element Properties
 
-These are options that allow you to compensate for print gain or print
-loss resulting from the properties of the printing process or substrate.
+These are options that allow you to compensate for print gain or print loss resulting from the properties of the printing process or substrate.
 
 ==== inkspread
 
-For linear barcodes, the amount by which to reduce the bar widths to
-compensate for inkspread, as a fraction of the X-dimension.
+For linear barcodes, the amount by which to reduce the bar widths to compensate for inkspread, as a fraction of the X-dimension.
 
-For matrix barcodes, the amount by which to reduce the width and height
-of dark modules to compensate for inkspread, as a fraction of the module
-size.
+For matrix barcodes, the amount by which to reduce the width and height of dark modules to compensate for inkspread, as a fraction of the module size.
 
-For MaxiCode, the amount by which to reduce the width and height of
-hexagons and the thickness of the finder pattern rings to compensate for
-inkspread, as a fraction of the module pitch. The hexagons are drawn
-0.12mm narrower than the module pitch, as the specification requires,
-before any inkspread is applied.
+For MaxiCode, the amount by which to reduce the width and height of hexagons and the thickness of the finder pattern rings to compensate for inkspread, as a fraction of the module pitch. The hexagons are drawn 0.12mm narrower than the module pitch, as the specification requires, before any inkspread is applied.
 
 ===== Notes
 
 * Negative values will increase the bar width.
-* When <<_strictspec,strictspec>> is enabled, inkspread is automatically
-adjusted so that the physical reduction (in mm) remains constant
-regardless of magnification.
+* When <<_strictspec,strictspec>> is enabled, inkspread is automatically adjusted so that the physical reduction (in mm) remains constant regardless of magnification.
 
 ===== Example
 
@@ -664,11 +501,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== inkspreadh
 
-For matrix barcodes, the amount by which to reduce the width of dark
-modules to compensate for inkspread, in points.
+For matrix barcodes, the amount by which to reduce the width of dark modules to compensate for inkspread, in points.
 
-Note: inkspreadh is most useful for stacked-linear type barcodes such as
-PDF417 and Codablock F.
+Note: inkspreadh is most useful for stacked-linear type barcodes such as PDF417 and Codablock F.
 
 ===== Example
 
@@ -682,8 +517,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== inkspreadv
 
-For matrix barcodes, the amount by which to reduce the height of dark
-modules to compensate for inkspread, in points.
+For matrix barcodes, the amount by which to reduce the height of dark modules to compensate for inkspread, in points.
 
 ===== Example
 
@@ -693,16 +527,13 @@ Options: inkspreadv=0.5
 Encoder: ultracode
 ....
 
-image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzQiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzNCAzMCI+CjxyZWN0IHg9Ii0zLjQiIHk9Ii0zIiB3aWR0aD0iNDAuOCIgaGVpZ2h0PSIzNiIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiLz4KPHJlY3QgeD0iLTMuNCIgeT0iLTMiIHdpZHRoPSI0MC44IiBoZWlnaHQ9IjM2IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA2LjE0ODQzOCA0LjUgTCA3Ljg1MTU2MiA0LjUgTCA3Ljg1MTU2MiA1LjUgTCA2LjE0ODQzOCA1LjUgWiBNIDE0LjE0ODQzOCA0LjUgTCAxNS44NTE1NjIgNC41IEwgMTUuODUxNTYyIDUuNSBMIDE0LjE0ODQzOCA1LjUgWiBNIDIwLjE0ODQzOCA0LjUgTCAyMS44NTE1NjIgNC41IEwgMjEuODUxNTYyIDUuNSBMIDIwLjE0ODQzOCA1LjUgWiBNIDE4LjE0ODQzOCA2LjUgTCAxOS44NTE1NjIgNi41IEwgMTkuODUxNTYyIDcuNSBMIDE4LjE0ODQzOCA3LjUgWiBNIDI0LjE0ODQzOCA2LjUgTCAyNS44NTE1NjIgNi41IEwgMjUuODUxNTYyIDcuNSBMIDI0LjE0ODQzOCA3LjUgWiBNIDI4LjE0ODQzOCA2LjUgTCAyOS44NTE1NjIgNi41IEwgMjkuODUxNTYyIDcuNSBMIDI4LjE0ODQzOCA3LjUgWiBNIDE0LjE0ODQzOCA4LjUgTCAxNS44NTE1NjIgOC41IEwgMTUuODUxNTYyIDkuNSBMIDE0LjE0ODQzOCA5LjUgWiBNIDYuMTQ4NDM4IDEwLjUgTCA3Ljg1MTU2MiAxMC41IEwgNy44NTE1NjIgMTEuNSBMIDYuMTQ4NDM4IDExLjUgWiBNIDE2LjE0ODQzOCAxMC41IEwgMTkuODUxNTYyIDEwLjUgTCAxOS44NTE1NjIgMTEuNSBMIDE2LjE0ODQzOCAxMS41IFogTSAyOC4xNDg0MzggMTAuNSBMIDI5Ljg1MTU2MiAxMC41IEwgMjkuODUxNTYyIDExLjUgTCAyOC4xNDg0MzggMTEuNSBaIE0gMTIuMTQ4NDM4IDEyLjUgTCAxMy44NTE1NjIgMTIuNSBMIDEzLjg1MTU2MiAxMy41IEwgMTIuMTQ4NDM4IDEzLjUgWiBNIDEyLjE0ODQzOCAxNi41IEwgMTUuODUxNTYyIDE2LjUgTCAxNS44NTE1NjIgMTcuNSBMIDEyLjE0ODQzOCAxNy41IFogTSAxOC4xNDg0MzggMTYuNSBMIDIzLjg1MTU2MiAxNi41IEwgMjMuODUxNTYyIDE3LjUgTCAxOC4xNDg0MzggMTcuNSBaIE0gMjguMTQ4NDM4IDE2LjUgTCAyOS44NTE1NjIgMTYuNSBMIDI5Ljg1MTU2MiAxNy41IEwgMjguMTQ4NDM4IDE3LjUgWiBNIDYuMTQ4NDM4IDIwLjUgTCA3Ljg1MTU2MiAyMC41IEwgNy44NTE1NjIgMjEuNSBMIDYuMTQ4NDM4IDIxLjUgWiBNIDE2LjE0ODQzOCAyMC41IEwgMTcuODUxNTYyIDIwLjUgTCAxNy44NTE1NjIgMjEuNSBMIDE2LjE0ODQzOCAyMS41IFogTSAyMi4xNDg0MzggMjAuNSBMIDI1Ljg1MTU2MiAyMC41IEwgMjUuODUxNTYyIDIxLjUgTCAyMi4xNDg0MzggMjEuNSBaIE0gMTIuMTQ4NDM4IDIyLjUgTCAxNS44NTE1NjIgMjIuNSBMIDE1Ljg1MTU2MiAyMy41IEwgMTIuMTQ4NDM4IDIzLjUgWiBNIDI4LjE0ODQzOCAyMi41IEwgMjkuODUxNTYyIDIyLjUgTCAyOS44NTE1NjIgMjMuNSBMIDI4LjE0ODQzOCAyMy41IFogTSAyOC4xNDg0MzggMjIuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAyLjE0ODQzOCAyLjUgTCAzMS44NTE1NjIgMi41IEwgMzEuODUxNTYyIDI3LjUgTCAyLjE0ODQzOCAyNy41IFogTSAzLjg1MTU2MiAzLjUgTCAzLjg1MTU2MiA2LjUgTCA1Ljg1MTU2MiA2LjUgTCA1Ljg1MTU2MiA3LjUgTCAzLjg1MTU2MiA3LjUgTCAzLjg1MTU2MiAxMC41IEwgNS44NTE1NjIgMTAuNSBMIDUuODUxNTYyIDExLjUgTCAzLjg1MTU2MiAxMS41IEwgMy44NTE1NjIgMTQuNSBMIDUuODUxNTYyIDE0LjUgTCA1Ljg1MTU2MiAxNS41IEwgMy44NTE1NjIgMTUuNSBMIDMuODUxNTYyIDE4LjUgTCA1Ljg1MTU2MiAxOC41IEwgNS44NTE1NjIgMTkuNSBMIDMuODUxNTYyIDE5LjUgTCAzLjg1MTU2MiAyMi41IEwgNS44NTE1NjIgMjIuNSBMIDUuODUxNTYyIDIzLjUgTCAzLjg1MTU2MiAyMy41IEwgMy44NTE1NjIgMjYuNSBMIDguMTQ4NDM4IDI2LjUgTCA4LjE0ODQzOCAzLjUgWiBNIDkuODUxNTYyIDMuNSBMIDkuODUxNTYyIDI2LjUgTCAzMC4xNDg0MzggMjYuNSBMIDMwLjE0ODQzOCAxNS41IEwgMjguMTQ4NDM4IDE1LjUgTCAyOC4xNDg0MzggMTQuNSBMIDMwLjE0ODQzOCAxNC41IEwgMzAuMTQ4NDM4IDMuNSBaIE0gMTIuMTQ4NDM4IDE0LjUgTCAxMy44NTE1NjIgMTQuNSBMIDEzLjg1MTU2MiAxNS41IEwgMTIuMTQ4NDM4IDE1LjUgWiBNIDE2LjE0ODQzOCAxNC41IEwgMTcuODUxNTYyIDE0LjUgTCAxNy44NTE1NjIgMTUuNSBMIDE2LjE0ODQzOCAxNS41IFogTSAyMC4xNDg0MzggMTQuNSBMIDIxLjg1MTU2MiAxNC41IEwgMjEuODUxNTYyIDE1LjUgTCAyMC4xNDg0MzggMTUuNSBaIE0gMjQuMTQ4NDM4IDE0LjUgTCAyNS44NTE1NjIgMTQuNSBMIDI1Ljg1MTU2MiAxNS41IEwgMjQuMTQ4NDM4IDE1LjUgWiBNIDI0LjE0ODQzOCAxNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxOC4xNDg0MzggNC41IEwgMTkuODUxNTYyIDQuNSBMIDE5Ljg1MTU2MiA1LjUgTCAxOC4xNDg0MzggNS41IFogTSAyNC4xNDg0MzggNC41IEwgMjcuODUxNTYyIDQuNSBMIDI3Ljg1MTU2MiA1LjUgTCAyNC4xNDg0MzggNS41IFogTSA2LjE0ODQzOCA2LjUgTCA3Ljg1MTU2MiA2LjUgTCA3Ljg1MTU2MiA3LjUgTCA2LjE0ODQzOCA3LjUgWiBNIDEyLjE0ODQzOCA2LjUgTCAxMy44NTE1NjIgNi41IEwgMTMuODUxNTYyIDcuNSBMIDEyLjE0ODQzOCA3LjUgWiBNIDIwLjE0ODQzOCA2LjUgTCAyMS44NTE1NjIgNi41IEwgMjEuODUxNTYyIDcuNSBMIDIwLjE0ODQzOCA3LjUgWiBNIDE0LjE0ODQzOCAxMC41IEwgMTUuODUxNTYyIDEwLjUgTCAxNS44NTE1NjIgMTEuNSBMIDE0LjE0ODQzOCAxMS41IFogTSAxNi4xNDg0MzggMTIuNSBMIDE3Ljg1MTU2MiAxMi41IEwgMTcuODUxNTYyIDEzLjUgTCAxNi4xNDg0MzggMTMuNSBaIE0gMjYuMTQ4NDM4IDEyLjUgTCAyNy44NTE1NjIgMTIuNSBMIDI3Ljg1MTU2MiAxMy41IEwgMjYuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE2LjUgTCA3Ljg1MTU2MiAxNi41IEwgNy44NTE1NjIgMTcuNSBMIDYuMTQ4NDM4IDE3LjUgWiBNIDI0LjE0ODQzOCAxNi41IEwgMjcuODUxNTYyIDE2LjUgTCAyNy44NTE1NjIgMTcuNSBMIDI0LjE0ODQzOCAxNy41IFogTSAxMi4xNDg0MzggMTguNSBMIDE1Ljg1MTU2MiAxOC41IEwgMTUuODUxNTYyIDE5LjUgTCAxMi4xNDg0MzggMTkuNSBaIE0gMjAuMTQ4NDM4IDE4LjUgTCAyMy44NTE1NjIgMTguNSBMIDIzLjg1MTU2MiAxOS41IEwgMjAuMTQ4NDM4IDE5LjUgWiBNIDI4LjE0ODQzOCAxOC41IEwgMjkuODUxNTYyIDE4LjUgTCAyOS44NTE1NjIgMTkuNSBMIDI4LjE0ODQzOCAxOS41IFogTSAxOC4xNDg0MzggMjAuNSBMIDE5Ljg1MTU2MiAyMC41IEwgMTkuODUxNTYyIDIxLjUgTCAxOC4xNDg0MzggMjEuNSBaIE0gNi4xNDg0MzggMjIuNSBMIDcuODUxNTYyIDIyLjUgTCA3Ljg1MTU2MiAyMy41IEwgNi4xNDg0MzggMjMuNSBaIE0gMTYuMTQ4NDM4IDI0LjUgTCAxOS44NTE1NjIgMjQuNSBMIDE5Ljg1MTU2MiAyNS41IEwgMTYuMTQ4NDM4IDI1LjUgWiBNIDIyLjE0ODQzOCAyNC41IEwgMjMuODUxNTYyIDI0LjUgTCAyMy44NTE1NjIgMjUuNSBMIDIyLjE0ODQzOCAyNS41IFogTSAyMi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMTYuMTQ4NDM4IDQuNSBMIDE3Ljg1MTU2MiA0LjUgTCAxNy44NTE1NjIgNS41IEwgMTYuMTQ4NDM4IDUuNSBaIE0gMjIuMTQ4NDM4IDQuNSBMIDIzLjg1MTU2MiA0LjUgTCAyMy44NTE1NjIgNS41IEwgMjIuMTQ4NDM4IDUuNSBaIE0gMjguMTQ4NDM4IDQuNSBMIDI5Ljg1MTU2MiA0LjUgTCAyOS44NTE1NjIgNS41IEwgMjguMTQ4NDM4IDUuNSBaIE0gMjYuMTQ4NDM4IDYuNSBMIDI3Ljg1MTU2MiA2LjUgTCAyNy44NTE1NjIgNy41IEwgMjYuMTQ4NDM4IDcuNSBaIE0gMTYuMTQ4NDM4IDguNSBMIDE3Ljg1MTU2MiA4LjUgTCAxNy44NTE1NjIgOS41IEwgMTYuMTQ4NDM4IDkuNSBaIE0gMjIuMTQ4NDM4IDguNSBMIDI1Ljg1MTU2MiA4LjUgTCAyNS44NTE1NjIgOS41IEwgMjIuMTQ4NDM4IDkuNSBaIE0gMjguMTQ4NDM4IDguNSBMIDI5Ljg1MTU2MiA4LjUgTCAyOS44NTE1NjIgOS41IEwgMjguMTQ4NDM4IDkuNSBaIE0gMTIuMTQ4NDM4IDEwLjUgTCAxMy44NTE1NjIgMTAuNSBMIDEzLjg1MTU2MiAxMS41IEwgMTIuMTQ4NDM4IDExLjUgWiBNIDIwLjE0ODQzOCAxMC41IEwgMjEuODUxNTYyIDEwLjUgTCAyMS44NTE1NjIgMTEuNSBMIDIwLjE0ODQzOCAxMS41IFogTSAyNi4xNDg0MzggMTAuNSBMIDI3Ljg1MTU2MiAxMC41IEwgMjcuODUxNTYyIDExLjUgTCAyNi4xNDg0MzggMTEuNSBaIE0gMTguMTQ4NDM4IDEyLjUgTCAxOS44NTE1NjIgMTIuNSBMIDE5Ljg1MTU2MiAxMy41IEwgMTguMTQ4NDM4IDEzLjUgWiBNIDIyLjE0ODQzOCAxMi41IEwgMjUuODUxNTYyIDEyLjUgTCAyNS44NTE1NjIgMTMuNSBMIDIyLjE0ODQzOCAxMy41IFogTSAyOC4xNDg0MzggMTIuNSBMIDI5Ljg1MTU2MiAxMi41IEwgMjkuODUxNTYyIDEzLjUgTCAyOC4xNDg0MzggMTMuNSBaIE0gMTYuMTQ4NDM4IDE2LjUgTCAxNy44NTE1NjIgMTYuNSBMIDE3Ljg1MTU2MiAxNy41IEwgMTYuMTQ4NDM4IDE3LjUgWiBNIDE4LjE0ODQzOCAxOC41IEwgMTkuODUxNTYyIDE4LjUgTCAxOS44NTE1NjIgMTkuNSBMIDE4LjE0ODQzOCAxOS41IFogTSAyNC4xNDg0MzggMTguNSBMIDI3Ljg1MTU2MiAxOC41IEwgMjcuODUxNTYyIDE5LjUgTCAyNC4xNDg0MzggMTkuNSBaIE0gMTIuMTQ4NDM4IDIwLjUgTCAxMy44NTE1NjIgMjAuNSBMIDEzLjg1MTU2MiAyMS41IEwgMTIuMTQ4NDM4IDIxLjUgWiBNIDIwLjE0ODQzOCAyMC41IEwgMjEuODUxNTYyIDIwLjUgTCAyMS44NTE1NjIgMjEuNSBMIDIwLjE0ODQzOCAyMS41IFogTSAyOC4xNDg0MzggMjAuNSBMIDI5Ljg1MTU2MiAyMC41IEwgMjkuODUxNTYyIDIxLjUgTCAyOC4xNDg0MzggMjEuNSBaIE0gMTYuMTQ4NDM4IDIyLjUgTCAxNy44NTE1NjIgMjIuNSBMIDE3Ljg1MTU2MiAyMy41IEwgMTYuMTQ4NDM4IDIzLjUgWiBNIDI2LjE0ODQzOCAyMi41IEwgMjcuODUxNTYyIDIyLjUgTCAyNy44NTE1NjIgMjMuNSBMIDI2LjE0ODQzOCAyMy41IFogTSA2LjE0ODQzOCAyNC41IEwgNy44NTE1NjIgMjQuNSBMIDcuODUxNTYyIDI1LjUgTCA2LjE0ODQzOCAyNS41IFogTSAxMi4xNDg0MzggMjQuNSBMIDEzLjg1MTU2MiAyNC41IEwgMTMuODUxNTYyIDI1LjUgTCAxMi4xNDg0MzggMjUuNSBaIE0gMjAuMTQ4NDM4IDI0LjUgTCAyMS44NTE1NjIgMjQuNSBMIDIxLjg1MTU2MiAyNS41IEwgMjAuMTQ4NDM4IDI1LjUgWiBNIDI0LjE0ODQzOCAyNC41IEwgMjUuODUxNTYyIDI0LjUgTCAyNS44NTE1NjIgMjUuNSBMIDI0LjE0ODQzOCAyNS41IFogTSAyOC4xNDg0MzggMjQuNSBMIDI5Ljg1MTU2MiAyNC41IEwgMjkuODUxNTYyIDI1LjUgTCAyOC4xNDg0MzggMjUuNSBaIE0gMjguMTQ4NDM4IDI0LjUgIi8+CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDAlLCAxMDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMi4xNDg0MzggNC41IEwgMTMuODUxNTYyIDQuNSBMIDEzLjg1MTU2MiA1LjUgTCAxMi4xNDg0MzggNS41IFogTSAxNC4xNDg0MzggNi41IEwgMTcuODUxNTYyIDYuNSBMIDE3Ljg1MTU2MiA3LjUgTCAxNC4xNDg0MzggNy41IFogTSAyMi4xNDg0MzggNi41IEwgMjMuODUxNTYyIDYuNSBMIDIzLjg1MTU2MiA3LjUgTCAyMi4xNDg0MzggNy41IFogTSA2LjE0ODQzOCA4LjUgTCA3Ljg1MTU2MiA4LjUgTCA3Ljg1MTU2MiA5LjUgTCA2LjE0ODQzOCA5LjUgWiBNIDEyLjE0ODQzOCA4LjUgTCAxMy44NTE1NjIgOC41IEwgMTMuODUxNTYyIDkuNSBMIDEyLjE0ODQzOCA5LjUgWiBNIDE4LjE0ODQzOCA4LjUgTCAyMS44NTE1NjIgOC41IEwgMjEuODUxNTYyIDkuNSBMIDE4LjE0ODQzOCA5LjUgWiBNIDI2LjE0ODQzOCA4LjUgTCAyNy44NTE1NjIgOC41IEwgMjcuODUxNTYyIDkuNSBMIDI2LjE0ODQzOCA5LjUgWiBNIDIyLjE0ODQzOCAxMC41IEwgMjUuODUxNTYyIDEwLjUgTCAyNS44NTE1NjIgMTEuNSBMIDIyLjE0ODQzOCAxMS41IFogTSA2LjE0ODQzOCAxMi41IEwgNy44NTE1NjIgMTIuNSBMIDcuODUxNTYyIDEzLjUgTCA2LjE0ODQzOCAxMy41IFogTSAxNC4xNDg0MzggMTIuNSBMIDE1Ljg1MTU2MiAxMi41IEwgMTUuODUxNTYyIDEzLjUgTCAxNC4xNDg0MzggMTMuNSBaIE0gMjAuMTQ4NDM4IDEyLjUgTCAyMS44NTE1NjIgMTIuNSBMIDIxLjg1MTU2MiAxMy41IEwgMjAuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE4LjUgTCA3Ljg1MTU2MiAxOC41IEwgNy44NTE1NjIgMTkuNSBMIDYuMTQ4NDM4IDE5LjUgWiBNIDE2LjE0ODQzOCAxOC41IEwgMTcuODUxNTYyIDE4LjUgTCAxNy44NTE1NjIgMTkuNSBMIDE2LjE0ODQzOCAxOS41IFogTSAxNC4xNDg0MzggMjAuNSBMIDE1Ljg1MTU2MiAyMC41IEwgMTUuODUxNTYyIDIxLjUgTCAxNC4xNDg0MzggMjEuNSBaIE0gMjYuMTQ4NDM4IDIwLjUgTCAyNy44NTE1NjIgMjAuNSBMIDI3Ljg1MTU2MiAyMS41IEwgMjYuMTQ4NDM4IDIxLjUgWiBNIDE4LjE0ODQzOCAyMi41IEwgMjUuODUxNTYyIDIyLjUgTCAyNS44NTE1NjIgMjMuNSBMIDE4LjE0ODQzOCAyMy41IFogTSAxNC4xNDg0MzggMjQuNSBMIDE1Ljg1MTU2MiAyNC41IEwgMTUuODUxNTYyIDI1LjUgTCAxNC4xNDg0MzggMjUuNSBaIE0gMjYuMTQ4NDM4IDI0LjUgTCAyNy44NTE1NjIgMjQuNSBMIDI3Ljg1MTU2MiAyNS41IEwgMjYuMTQ4NDM4IDI1LjUgWiBNIDI2LjE0ODQzOCAyNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDQuMTQ4NDM4IDQuNSBMIDUuODUxNTYyIDQuNSBMIDUuODUxNTYyIDUuNSBMIDQuMTQ4NDM4IDUuNSBaIE0gMTAuMTQ4NDM4IDQuNSBMIDExLjg1MTU2MiA0LjUgTCAxMS44NTE1NjIgMjUuNSBMIDEwLjE0ODQzOCAyNS41IFogTSA0LjE0ODQzOCA4LjUgTCA1Ljg1MTU2MiA4LjUgTCA1Ljg1MTU2MiA5LjUgTCA0LjE0ODQzOCA5LjUgWiBNIDQuMTQ4NDM4IDEyLjUgTCA1Ljg1MTU2MiAxMi41IEwgNS44NTE1NjIgMTMuNSBMIDQuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE0LjUgTCA3Ljg1MTU2MiAxNC41IEwgNy44NTE1NjIgMTUuNSBMIDYuMTQ4NDM4IDE1LjUgWiBNIDE0LjE0ODQzOCAxNC41IEwgMTUuODUxNTYyIDE0LjUgTCAxNS44NTE1NjIgMTUuNSBMIDE0LjE0ODQzOCAxNS41IFogTSAxOC4xNDg0MzggMTQuNSBMIDE5Ljg1MTU2MiAxNC41IEwgMTkuODUxNTYyIDE1LjUgTCAxOC4xNDg0MzggMTUuNSBaIE0gMjIuMTQ4NDM4IDE0LjUgTCAyMy44NTE1NjIgMTQuNSBMIDIzLjg1MTU2MiAxNS41IEwgMjIuMTQ4NDM4IDE1LjUgWiBNIDI2LjE0ODQzOCAxNC41IEwgMjcuODUxNTYyIDE0LjUgTCAyNy44NTE1NjIgMTUuNSBMIDI2LjE0ODQzOCAxNS41IFogTSA0LjE0ODQzOCAxNi41IEwgNS44NTE1NjIgMTYuNSBMIDUuODUxNTYyIDE3LjUgTCA0LjE0ODQzOCAxNy41IFogTSA0LjE0ODQzOCAyMC41IEwgNS44NTE1NjIgMjAuNSBMIDUuODUxNTYyIDIxLjUgTCA0LjE0ODQzOCAyMS41IFogTSA0LjE0ODQzOCAyNC41IEwgNS44NTE1NjIgMjQuNSBMIDUuODUxNTYyIDI1LjUgTCA0LjE0ODQzOCAyNS41IFogTSA0LjE0ODQzOCAyNC41ICIvPgo8L3N2Zz4K[data:image/svg{plus}xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzQiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzNCAzMCI{plus}CjxyZWN0IHg9Ii0zLjQiIHk9Ii0zIiB3aWR0aD0iNDAuOCIgaGVpZ2h0PSIzNiIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiLz4KPHJlY3QgeD0iLTMuNCIgeT0iLTMiIHdpZHRoPSI0MC44IiBoZWlnaHQ9IjM2IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA2LjE0ODQzOCA0LjUgTCA3Ljg1MTU2MiA0LjUgTCA3Ljg1MTU2MiA1LjUgTCA2LjE0ODQzOCA1LjUgWiBNIDE0LjE0ODQzOCA0LjUgTCAxNS44NTE1NjIgNC41IEwgMTUuODUxNTYyIDUuNSBMIDE0LjE0ODQzOCA1LjUgWiBNIDIwLjE0ODQzOCA0LjUgTCAyMS44NTE1NjIgNC41IEwgMjEuODUxNTYyIDUuNSBMIDIwLjE0ODQzOCA1LjUgWiBNIDE4LjE0ODQzOCA2LjUgTCAxOS44NTE1NjIgNi41IEwgMTkuODUxNTYyIDcuNSBMIDE4LjE0ODQzOCA3LjUgWiBNIDI0LjE0ODQzOCA2LjUgTCAyNS44NTE1NjIgNi41IEwgMjUuODUxNTYyIDcuNSBMIDI0LjE0ODQzOCA3LjUgWiBNIDI4LjE0ODQzOCA2LjUgTCAyOS44NTE1NjIgNi41IEwgMjkuODUxNTYyIDcuNSBMIDI4LjE0ODQzOCA3LjUgWiBNIDE0LjE0ODQzOCA4LjUgTCAxNS44NTE1NjIgOC41IEwgMTUuODUxNTYyIDkuNSBMIDE0LjE0ODQzOCA5LjUgWiBNIDYuMTQ4NDM4IDEwLjUgTCA3Ljg1MTU2MiAxMC41IEwgNy44NTE1NjIgMTEuNSBMIDYuMTQ4NDM4IDExLjUgWiBNIDE2LjE0ODQzOCAxMC41IEwgMTkuODUxNTYyIDEwLjUgTCAxOS44NTE1NjIgMTEuNSBMIDE2LjE0ODQzOCAxMS41IFogTSAyOC4xNDg0MzggMTAuNSBMIDI5Ljg1MTU2MiAxMC41IEwgMjkuODUxNTYyIDExLjUgTCAyOC4xNDg0MzggMTEuNSBaIE0gMTIuMTQ4NDM4IDEyLjUgTCAxMy44NTE1NjIgMTIuNSBMIDEzLjg1MTU2MiAxMy41IEwgMTIuMTQ4NDM4IDEzLjUgWiBNIDEyLjE0ODQzOCAxNi41IEwgMTUuODUxNTYyIDE2LjUgTCAxNS44NTE1NjIgMTcuNSBMIDEyLjE0ODQzOCAxNy41IFogTSAxOC4xNDg0MzggMTYuNSBMIDIzLjg1MTU2MiAxNi41IEwgMjMuODUxNTYyIDE3LjUgTCAxOC4xNDg0MzggMTcuNSBaIE0gMjguMTQ4NDM4IDE2LjUgTCAyOS44NTE1NjIgMTYuNSBMIDI5Ljg1MTU2MiAxNy41IEwgMjguMTQ4NDM4IDE3LjUgWiBNIDYuMTQ4NDM4IDIwLjUgTCA3Ljg1MTU2MiAyMC41IEwgNy44NTE1NjIgMjEuNSBMIDYuMTQ4NDM4IDIxLjUgWiBNIDE2LjE0ODQzOCAyMC41IEwgMTcuODUxNTYyIDIwLjUgTCAxNy44NTE1NjIgMjEuNSBMIDE2LjE0ODQzOCAyMS41IFogTSAyMi4xNDg0MzggMjAuNSBMIDI1Ljg1MTU2MiAyMC41IEwgMjUuODUxNTYyIDIxLjUgTCAyMi4xNDg0MzggMjEuNSBaIE0gMTIuMTQ4NDM4IDIyLjUgTCAxNS44NTE1NjIgMjIuNSBMIDE1Ljg1MTU2MiAyMy41IEwgMTIuMTQ4NDM4IDIzLjUgWiBNIDI4LjE0ODQzOCAyMi41IEwgMjkuODUxNTYyIDIyLjUgTCAyOS44NTE1NjIgMjMuNSBMIDI4LjE0ODQzOCAyMy41IFogTSAyOC4xNDg0MzggMjIuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAyLjE0ODQzOCAyLjUgTCAzMS44NTE1NjIgMi41IEwgMzEuODUxNTYyIDI3LjUgTCAyLjE0ODQzOCAyNy41IFogTSAzLjg1MTU2MiAzLjUgTCAzLjg1MTU2MiA2LjUgTCA1Ljg1MTU2MiA2LjUgTCA1Ljg1MTU2MiA3LjUgTCAzLjg1MTU2MiA3LjUgTCAzLjg1MTU2MiAxMC41IEwgNS44NTE1NjIgMTAuNSBMIDUuODUxNTYyIDExLjUgTCAzLjg1MTU2MiAxMS41IEwgMy44NTE1NjIgMTQuNSBMIDUuODUxNTYyIDE0LjUgTCA1Ljg1MTU2MiAxNS41IEwgMy44NTE1NjIgMTUuNSBMIDMuODUxNTYyIDE4LjUgTCA1Ljg1MTU2MiAxOC41IEwgNS44NTE1NjIgMTkuNSBMIDMuODUxNTYyIDE5LjUgTCAzLjg1MTU2MiAyMi41IEwgNS44NTE1NjIgMjIuNSBMIDUuODUxNTYyIDIzLjUgTCAzLjg1MTU2MiAyMy41IEwgMy44NTE1NjIgMjYuNSBMIDguMTQ4NDM4IDI2LjUgTCA4LjE0ODQzOCAzLjUgWiBNIDkuODUxNTYyIDMuNSBMIDkuODUxNTYyIDI2LjUgTCAzMC4xNDg0MzggMjYuNSBMIDMwLjE0ODQzOCAxNS41IEwgMjguMTQ4NDM4IDE1LjUgTCAyOC4xNDg0MzggMTQuNSBMIDMwLjE0ODQzOCAxNC41IEwgMzAuMTQ4NDM4IDMuNSBaIE0gMTIuMTQ4NDM4IDE0LjUgTCAxMy44NTE1NjIgMTQuNSBMIDEzLjg1MTU2MiAxNS41IEwgMTIuMTQ4NDM4IDE1LjUgWiBNIDE2LjE0ODQzOCAxNC41IEwgMTcuODUxNTYyIDE0LjUgTCAxNy44NTE1NjIgMTUuNSBMIDE2LjE0ODQzOCAxNS41IFogTSAyMC4xNDg0MzggMTQuNSBMIDIxLjg1MTU2MiAxNC41IEwgMjEuODUxNTYyIDE1LjUgTCAyMC4xNDg0MzggMTUuNSBaIE0gMjQuMTQ4NDM4IDE0LjUgTCAyNS44NTE1NjIgMTQuNSBMIDI1Ljg1MTU2MiAxNS41IEwgMjQuMTQ4NDM4IDE1LjUgWiBNIDI0LjE0ODQzOCAxNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxOC4xNDg0MzggNC41IEwgMTkuODUxNTYyIDQuNSBMIDE5Ljg1MTU2MiA1LjUgTCAxOC4xNDg0MzggNS41IFogTSAyNC4xNDg0MzggNC41IEwgMjcuODUxNTYyIDQuNSBMIDI3Ljg1MTU2MiA1LjUgTCAyNC4xNDg0MzggNS41IFogTSA2LjE0ODQzOCA2LjUgTCA3Ljg1MTU2MiA2LjUgTCA3Ljg1MTU2MiA3LjUgTCA2LjE0ODQzOCA3LjUgWiBNIDEyLjE0ODQzOCA2LjUgTCAxMy44NTE1NjIgNi41IEwgMTMuODUxNTYyIDcuNSBMIDEyLjE0ODQzOCA3LjUgWiBNIDIwLjE0ODQzOCA2LjUgTCAyMS44NTE1NjIgNi41IEwgMjEuODUxNTYyIDcuNSBMIDIwLjE0ODQzOCA3LjUgWiBNIDE0LjE0ODQzOCAxMC41IEwgMTUuODUxNTYyIDEwLjUgTCAxNS44NTE1NjIgMTEuNSBMIDE0LjE0ODQzOCAxMS41IFogTSAxNi4xNDg0MzggMTIuNSBMIDE3Ljg1MTU2MiAxMi41IEwgMTcuODUxNTYyIDEzLjUgTCAxNi4xNDg0MzggMTMuNSBaIE0gMjYuMTQ4NDM4IDEyLjUgTCAyNy44NTE1NjIgMTIuNSBMIDI3Ljg1MTU2MiAxMy41IEwgMjYuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE2LjUgTCA3Ljg1MTU2MiAxNi41IEwgNy44NTE1NjIgMTcuNSBMIDYuMTQ4NDM4IDE3LjUgWiBNIDI0LjE0ODQzOCAxNi41IEwgMjcuODUxNTYyIDE2LjUgTCAyNy44NTE1NjIgMTcuNSBMIDI0LjE0ODQzOCAxNy41IFogTSAxMi4xNDg0MzggMTguNSBMIDE1Ljg1MTU2MiAxOC41IEwgMTUuODUxNTYyIDE5LjUgTCAxMi4xNDg0MzggMTkuNSBaIE0gMjAuMTQ4NDM4IDE4LjUgTCAyMy44NTE1NjIgMTguNSBMIDIzLjg1MTU2MiAxOS41IEwgMjAuMTQ4NDM4IDE5LjUgWiBNIDI4LjE0ODQzOCAxOC41IEwgMjkuODUxNTYyIDE4LjUgTCAyOS44NTE1NjIgMTkuNSBMIDI4LjE0ODQzOCAxOS41IFogTSAxOC4xNDg0MzggMjAuNSBMIDE5Ljg1MTU2MiAyMC41IEwgMTkuODUxNTYyIDIxLjUgTCAxOC4xNDg0MzggMjEuNSBaIE0gNi4xNDg0MzggMjIuNSBMIDcuODUxNTYyIDIyLjUgTCA3Ljg1MTU2MiAyMy41IEwgNi4xNDg0MzggMjMuNSBaIE0gMTYuMTQ4NDM4IDI0LjUgTCAxOS44NTE1NjIgMjQuNSBMIDE5Ljg1MTU2MiAyNS41IEwgMTYuMTQ4NDM4IDI1LjUgWiBNIDIyLjE0ODQzOCAyNC41IEwgMjMuODUxNTYyIDI0LjUgTCAyMy44NTE1NjIgMjUuNSBMIDIyLjE0ODQzOCAyNS41IFogTSAyMi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMTYuMTQ4NDM4IDQuNSBMIDE3Ljg1MTU2MiA0LjUgTCAxNy44NTE1NjIgNS41IEwgMTYuMTQ4NDM4IDUuNSBaIE0gMjIuMTQ4NDM4IDQuNSBMIDIzLjg1MTU2MiA0LjUgTCAyMy44NTE1NjIgNS41IEwgMjIuMTQ4NDM4IDUuNSBaIE0gMjguMTQ4NDM4IDQuNSBMIDI5Ljg1MTU2MiA0LjUgTCAyOS44NTE1NjIgNS41IEwgMjguMTQ4NDM4IDUuNSBaIE0gMjYuMTQ4NDM4IDYuNSBMIDI3Ljg1MTU2MiA2LjUgTCAyNy44NTE1NjIgNy41IEwgMjYuMTQ4NDM4IDcuNSBaIE0gMTYuMTQ4NDM4IDguNSBMIDE3Ljg1MTU2MiA4LjUgTCAxNy44NTE1NjIgOS41IEwgMTYuMTQ4NDM4IDkuNSBaIE0gMjIuMTQ4NDM4IDguNSBMIDI1Ljg1MTU2MiA4LjUgTCAyNS44NTE1NjIgOS41IEwgMjIuMTQ4NDM4IDkuNSBaIE0gMjguMTQ4NDM4IDguNSBMIDI5Ljg1MTU2MiA4LjUgTCAyOS44NTE1NjIgOS41IEwgMjguMTQ4NDM4IDkuNSBaIE0gMTIuMTQ4NDM4IDEwLjUgTCAxMy44NTE1NjIgMTAuNSBMIDEzLjg1MTU2MiAxMS41IEwgMTIuMTQ4NDM4IDExLjUgWiBNIDIwLjE0ODQzOCAxMC41IEwgMjEuODUxNTYyIDEwLjUgTCAyMS44NTE1NjIgMTEuNSBMIDIwLjE0ODQzOCAxMS41IFogTSAyNi4xNDg0MzggMTAuNSBMIDI3Ljg1MTU2MiAxMC41IEwgMjcuODUxNTYyIDExLjUgTCAyNi4xNDg0MzggMTEuNSBaIE0gMTguMTQ4NDM4IDEyLjUgTCAxOS44NTE1NjIgMTIuNSBMIDE5Ljg1MTU2MiAxMy41IEwgMTguMTQ4NDM4IDEzLjUgWiBNIDIyLjE0ODQzOCAxMi41IEwgMjUuODUxNTYyIDEyLjUgTCAyNS44NTE1NjIgMTMuNSBMIDIyLjE0ODQzOCAxMy41IFogTSAyOC4xNDg0MzggMTIuNSBMIDI5Ljg1MTU2MiAxMi41IEwgMjkuODUxNTYyIDEzLjUgTCAyOC4xNDg0MzggMTMuNSBaIE0gMTYuMTQ4NDM4IDE2LjUgTCAxNy44NTE1NjIgMTYuNSBMIDE3Ljg1MTU2MiAxNy41IEwgMTYuMTQ4NDM4IDE3LjUgWiBNIDE4LjE0ODQzOCAxOC41IEwgMTkuODUxNTYyIDE4LjUgTCAxOS44NTE1NjIgMTkuNSBMIDE4LjE0ODQzOCAxOS41IFogTSAyNC4xNDg0MzggMTguNSBMIDI3Ljg1MTU2MiAxOC41IEwgMjcuODUxNTYyIDE5LjUgTCAyNC4xNDg0MzggMTkuNSBaIE0gMTIuMTQ4NDM4IDIwLjUgTCAxMy44NTE1NjIgMjAuNSBMIDEzLjg1MTU2MiAyMS41IEwgMTIuMTQ4NDM4IDIxLjUgWiBNIDIwLjE0ODQzOCAyMC41IEwgMjEuODUxNTYyIDIwLjUgTCAyMS44NTE1NjIgMjEuNSBMIDIwLjE0ODQzOCAyMS41IFogTSAyOC4xNDg0MzggMjAuNSBMIDI5Ljg1MTU2MiAyMC41IEwgMjkuODUxNTYyIDIxLjUgTCAyOC4xNDg0MzggMjEuNSBaIE0gMTYuMTQ4NDM4IDIyLjUgTCAxNy44NTE1NjIgMjIuNSBMIDE3Ljg1MTU2MiAyMy41IEwgMTYuMTQ4NDM4IDIzLjUgWiBNIDI2LjE0ODQzOCAyMi41IEwgMjcuODUxNTYyIDIyLjUgTCAyNy44NTE1NjIgMjMuNSBMIDI2LjE0ODQzOCAyMy41IFogTSA2LjE0ODQzOCAyNC41IEwgNy44NTE1NjIgMjQuNSBMIDcuODUxNTYyIDI1LjUgTCA2LjE0ODQzOCAyNS41IFogTSAxMi4xNDg0MzggMjQuNSBMIDEzLjg1MTU2MiAyNC41IEwgMTMuODUxNTYyIDI1LjUgTCAxMi4xNDg0MzggMjUuNSBaIE0gMjAuMTQ4NDM4IDI0LjUgTCAyMS44NTE1NjIgMjQuNSBMIDIxLjg1MTU2MiAyNS41IEwgMjAuMTQ4NDM4IDI1LjUgWiBNIDI0LjE0ODQzOCAyNC41IEwgMjUuODUxNTYyIDI0LjUgTCAyNS44NTE1NjIgMjUuNSBMIDI0LjE0ODQzOCAyNS41IFogTSAyOC4xNDg0MzggMjQuNSBMIDI5Ljg1MTU2MiAyNC41IEwgMjkuODUxNTYyIDI1LjUgTCAyOC4xNDg0MzggMjUuNSBaIE0gMjguMTQ4NDM4IDI0LjUgIi8{plus}CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDAlLCAxMDAlLCAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSAxMi4xNDg0MzggNC41IEwgMTMuODUxNTYyIDQuNSBMIDEzLjg1MTU2MiA1LjUgTCAxMi4xNDg0MzggNS41IFogTSAxNC4xNDg0MzggNi41IEwgMTcuODUxNTYyIDYuNSBMIDE3Ljg1MTU2MiA3LjUgTCAxNC4xNDg0MzggNy41IFogTSAyMi4xNDg0MzggNi41IEwgMjMuODUxNTYyIDYuNSBMIDIzLjg1MTU2MiA3LjUgTCAyMi4xNDg0MzggNy41IFogTSA2LjE0ODQzOCA4LjUgTCA3Ljg1MTU2MiA4LjUgTCA3Ljg1MTU2MiA5LjUgTCA2LjE0ODQzOCA5LjUgWiBNIDEyLjE0ODQzOCA4LjUgTCAxMy44NTE1NjIgOC41IEwgMTMuODUxNTYyIDkuNSBMIDEyLjE0ODQzOCA5LjUgWiBNIDE4LjE0ODQzOCA4LjUgTCAyMS44NTE1NjIgOC41IEwgMjEuODUxNTYyIDkuNSBMIDE4LjE0ODQzOCA5LjUgWiBNIDI2LjE0ODQzOCA4LjUgTCAyNy44NTE1NjIgOC41IEwgMjcuODUxNTYyIDkuNSBMIDI2LjE0ODQzOCA5LjUgWiBNIDIyLjE0ODQzOCAxMC41IEwgMjUuODUxNTYyIDEwLjUgTCAyNS44NTE1NjIgMTEuNSBMIDIyLjE0ODQzOCAxMS41IFogTSA2LjE0ODQzOCAxMi41IEwgNy44NTE1NjIgMTIuNSBMIDcuODUxNTYyIDEzLjUgTCA2LjE0ODQzOCAxMy41IFogTSAxNC4xNDg0MzggMTIuNSBMIDE1Ljg1MTU2MiAxMi41IEwgMTUuODUxNTYyIDEzLjUgTCAxNC4xNDg0MzggMTMuNSBaIE0gMjAuMTQ4NDM4IDEyLjUgTCAyMS44NTE1NjIgMTIuNSBMIDIxLjg1MTU2MiAxMy41IEwgMjAuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE4LjUgTCA3Ljg1MTU2MiAxOC41IEwgNy44NTE1NjIgMTkuNSBMIDYuMTQ4NDM4IDE5LjUgWiBNIDE2LjE0ODQzOCAxOC41IEwgMTcuODUxNTYyIDE4LjUgTCAxNy44NTE1NjIgMTkuNSBMIDE2LjE0ODQzOCAxOS41IFogTSAxNC4xNDg0MzggMjAuNSBMIDE1Ljg1MTU2MiAyMC41IEwgMTUuODUxNTYyIDIxLjUgTCAxNC4xNDg0MzggMjEuNSBaIE0gMjYuMTQ4NDM4IDIwLjUgTCAyNy44NTE1NjIgMjAuNSBMIDI3Ljg1MTU2MiAyMS41IEwgMjYuMTQ4NDM4IDIxLjUgWiBNIDE4LjE0ODQzOCAyMi41IEwgMjUuODUxNTYyIDIyLjUgTCAyNS44NTE1NjIgMjMuNSBMIDE4LjE0ODQzOCAyMy41IFogTSAxNC4xNDg0MzggMjQuNSBMIDE1Ljg1MTU2MiAyNC41IEwgMTUuODUxNTYyIDI1LjUgTCAxNC4xNDg0MzggMjUuNSBaIE0gMjYuMTQ4NDM4IDI0LjUgTCAyNy44NTE1NjIgMjQuNSBMIDI3Ljg1MTU2MiAyNS41IEwgMjYuMTQ4NDM4IDI1LjUgWiBNIDI2LjE0ODQzOCAyNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigxMDAlLCAxMDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDQuMTQ4NDM4IDQuNSBMIDUuODUxNTYyIDQuNSBMIDUuODUxNTYyIDUuNSBMIDQuMTQ4NDM4IDUuNSBaIE0gMTAuMTQ4NDM4IDQuNSBMIDExLjg1MTU2MiA0LjUgTCAxMS44NTE1NjIgMjUuNSBMIDEwLjE0ODQzOCAyNS41IFogTSA0LjE0ODQzOCA4LjUgTCA1Ljg1MTU2MiA4LjUgTCA1Ljg1MTU2MiA5LjUgTCA0LjE0ODQzOCA5LjUgWiBNIDQuMTQ4NDM4IDEyLjUgTCA1Ljg1MTU2MiAxMi41IEwgNS44NTE1NjIgMTMuNSBMIDQuMTQ4NDM4IDEzLjUgWiBNIDYuMTQ4NDM4IDE0LjUgTCA3Ljg1MTU2MiAxNC41IEwgNy44NTE1NjIgMTUuNSBMIDYuMTQ4NDM4IDE1LjUgWiBNIDE0LjE0ODQzOCAxNC41IEwgMTUuODUxNTYyIDE0LjUgTCAxNS44NTE1NjIgMTUuNSBMIDE0LjE0ODQzOCAxNS41IFogTSAxOC4xNDg0MzggMTQuNSBMIDE5Ljg1MTU2MiAxNC41IEwgMTkuODUxNTYyIDE1LjUgTCAxOC4xNDg0MzggMTUuNSBaIE0gMjIuMTQ4NDM4IDE0LjUgTCAyMy44NTE1NjIgMTQuNSBMIDIzLjg1MTU2MiAxNS41IEwgMjIuMTQ4NDM4IDE1LjUgWiBNIDI2LjE0ODQzOCAxNC41IEwgMjcuODUxNTYyIDE0LjUgTCAyNy44NTE1NjIgMTUuNSBMIDI2LjE0ODQzOCAxNS41IFogTSA0LjE0ODQzOCAxNi41IEwgNS44NTE1NjIgMTYuNSBMIDUuODUxNTYyIDE3LjUgTCA0LjE0ODQzOCAxNy41IFogTSA0LjE0ODQzOCAyMC41IEwgNS44NTE1NjIgMjAuNSBMIDUuODUxNTYyIDIxLjUgTCA0LjE0ODQzOCAyMS41IFogTSA0LjE0ODQzOCAyNC41IEwgNS44NTE1NjIgMjQuNSBMIDUuODUxNTYyIDI1LjUgTCA0LjE0ODQzOCAyNS41IFogTSA0LjE0ODQzOCAyNC41ICIvPgo8L3N2Zz4K]
+image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzQiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzNCAzMCI+CjxyZWN0IHg9Ii0zLjQiIHk9Ii0zIiB3aWR0aD0iNDAuOCIgaGVpZ2h0PSIzNiIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiLz4KPHJlY3QgeD0iLTMuNCIgeT0iLTMiIHdpZHRoPSI0MC44IiBoZWlnaHQ9IjM2IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA2LjE0ODQzOCA0LjUgTCA3Ljg1MTU2MiA0LjUgTCA3Ljg1MTU2MiA1LjUgTCA2LjE0ODQzOCA1LjUgWiBNIDE0LjE0ODQzOCA0LjUgTCAxNy44NTE1NjIgNC41IEwgMTcuODUxNTYyIDUuNSBMIDE0LjE0ODQzOCA1LjUgWiBNIDIwLjE0ODQzOCA0LjUgTCAyMS44NTE1NjIgNC41IEwgMjEuODUxNTYyIDUuNSBMIDIwLjE0ODQzOCA1LjUgWiBNIDI0LjE0ODQzOCA2LjUgTCAyNS44NTE1NjIgNi41IEwgMjUuODUxNTYyIDcuNSBMIDI0LjE0ODQzOCA3LjUgWiBNIDI4LjE0ODQzOCA2LjUgTCAyOS44NTE1NjIgNi41IEwgMjkuODUxNTYyIDcuNSBMIDI4LjE0ODQzOCA3LjUgWiBNIDIwLjE0ODQzOCA4LjUgTCAyMS44NTE1NjIgOC41IEwgMjEuODUxNTYyIDkuNSBMIDIwLjE0ODQzOCA5LjUgWiBNIDYuMTQ4NDM4IDEwLjUgTCA3Ljg1MTU2MiAxMC41IEwgNy44NTE1NjIgMTEuNSBMIDYuMTQ4NDM4IDExLjUgWiBNIDE0LjE0ODQzOCAxMC41IEwgMTUuODUxNTYyIDEwLjUgTCAxNS44NTE1NjIgMTEuNSBMIDE0LjE0ODQzOCAxMS41IFogTSAyOC4xNDg0MzggMTAuNSBMIDI5Ljg1MTU2MiAxMC41IEwgMjkuODUxNTYyIDExLjUgTCAyOC4xNDg0MzggMTEuNSBaIE0gMTIuMTQ4NDM4IDE2LjUgTCAxMy44NTE1NjIgMTYuNSBMIDEzLjg1MTU2MiAxNy41IEwgMTIuMTQ4NDM4IDE3LjUgWiBNIDE2LjE0ODQzOCAxNi41IEwgMTcuODUxNTYyIDE2LjUgTCAxNy44NTE1NjIgMTcuNSBMIDE2LjE0ODQzOCAxNy41IFogTSAyMC4xNDg0MzggMTYuNSBMIDIzLjg1MTU2MiAxNi41IEwgMjMuODUxNTYyIDE3LjUgTCAyMC4xNDg0MzggMTcuNSBaIE0gMjguMTQ4NDM4IDE2LjUgTCAyOS44NTE1NjIgMTYuNSBMIDI5Ljg1MTU2MiAxNy41IEwgMjguMTQ4NDM4IDE3LjUgWiBNIDE4LjE0ODQzOCAxOC41IEwgMTkuODUxNTYyIDE4LjUgTCAxOS44NTE1NjIgMTkuNSBMIDE4LjE0ODQzOCAxOS41IFogTSA2LjE0ODQzOCAyMC41IEwgNy44NTE1NjIgMjAuNSBMIDcuODUxNTYyIDIxLjUgTCA2LjE0ODQzOCAyMS41IFogTSAyMi4xNDg0MzggMjAuNSBMIDI1Ljg1MTU2MiAyMC41IEwgMjUuODUxNTYyIDIxLjUgTCAyMi4xNDg0MzggMjEuNSBaIE0gMTIuMTQ4NDM4IDIyLjUgTCAxMy44NTE1NjIgMjIuNSBMIDEzLjg1MTU2MiAyMy41IEwgMTIuMTQ4NDM4IDIzLjUgWiBNIDE2LjE0ODQzOCAyMi41IEwgMTcuODUxNTYyIDIyLjUgTCAxNy44NTE1NjIgMjMuNSBMIDE2LjE0ODQzOCAyMy41IFogTSAyOC4xNDg0MzggMjIuNSBMIDI5Ljg1MTU2MiAyMi41IEwgMjkuODUxNTYyIDIzLjUgTCAyOC4xNDg0MzggMjMuNSBaIE0gMTQuMTQ4NDM4IDI0LjUgTCAxNS44NTE1NjIgMjQuNSBMIDE1Ljg1MTU2MiAyNS41IEwgMTQuMTQ4NDM4IDI1LjUgWiBNIDE0LjE0ODQzOCAyNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDIuMTQ4NDM4IDIuNSBMIDMxLjg1MTU2MiAyLjUgTCAzMS44NTE1NjIgMjcuNSBMIDIuMTQ4NDM4IDI3LjUgWiBNIDMuODUxNTYyIDMuNSBMIDMuODUxNTYyIDYuNSBMIDUuODUxNTYyIDYuNSBMIDUuODUxNTYyIDcuNSBMIDMuODUxNTYyIDcuNSBMIDMuODUxNTYyIDEwLjUgTCA1Ljg1MTU2MiAxMC41IEwgNS44NTE1NjIgMTEuNSBMIDMuODUxNTYyIDExLjUgTCAzLjg1MTU2MiAxNC41IEwgNS44NTE1NjIgMTQuNSBMIDUuODUxNTYyIDE1LjUgTCAzLjg1MTU2MiAxNS41IEwgMy44NTE1NjIgMTguNSBMIDUuODUxNTYyIDE4LjUgTCA1Ljg1MTU2MiAxOS41IEwgMy44NTE1NjIgMTkuNSBMIDMuODUxNTYyIDIyLjUgTCA1Ljg1MTU2MiAyMi41IEwgNS44NTE1NjIgMjMuNSBMIDMuODUxNTYyIDIzLjUgTCAzLjg1MTU2MiAyNi41IEwgOC4xNDg0MzggMjYuNSBMIDguMTQ4NDM4IDMuNSBaIE0gOS44NTE1NjIgMy41IEwgOS44NTE1NjIgMjYuNSBMIDMwLjE0ODQzOCAyNi41IEwgMzAuMTQ4NDM4IDE1LjUgTCAyOC4xNDg0MzggMTUuNSBMIDI4LjE0ODQzOCAxNC41IEwgMzAuMTQ4NDM4IDE0LjUgTCAzMC4xNDg0MzggMy41IFogTSAxMi4xNDg0MzggMTQuNSBMIDEzLjg1MTU2MiAxNC41IEwgMTMuODUxNTYyIDE1LjUgTCAxMi4xNDg0MzggMTUuNSBaIE0gMTYuMTQ4NDM4IDE0LjUgTCAxNy44NTE1NjIgMTQuNSBMIDE3Ljg1MTU2MiAxNS41IEwgMTYuMTQ4NDM4IDE1LjUgWiBNIDIwLjE0ODQzOCAxNC41IEwgMjEuODUxNTYyIDE0LjUgTCAyMS44NTE1NjIgMTUuNSBMIDIwLjE0ODQzOCAxNS41IFogTSAyNC4xNDg0MzggMTQuNSBMIDI1Ljg1MTU2MiAxNC41IEwgMjUuODUxNTYyIDE1LjUgTCAyNC4xNDg0MzggMTUuNSBaIE0gMjQuMTQ4NDM4IDE0LjUgIi8+CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDEwMCUsIDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDE4LjE0ODQzOCA0LjUgTCAxOS44NTE1NjIgNC41IEwgMTkuODUxNTYyIDUuNSBMIDE4LjE0ODQzOCA1LjUgWiBNIDI0LjE0ODQzOCA0LjUgTCAyNy44NTE1NjIgNC41IEwgMjcuODUxNTYyIDUuNSBMIDI0LjE0ODQzOCA1LjUgWiBNIDYuMTQ4NDM4IDYuNSBMIDcuODUxNTYyIDYuNSBMIDcuODUxNTYyIDcuNSBMIDYuMTQ4NDM4IDcuNSBaIE0gMTIuMTQ4NDM4IDYuNSBMIDE3Ljg1MTU2MiA2LjUgTCAxNy44NTE1NjIgNy41IEwgMTIuMTQ4NDM4IDcuNSBaIE0gMTIuMTQ4NDM4IDEwLjUgTCAxMy44NTE1NjIgMTAuNSBMIDEzLjg1MTU2MiAxMS41IEwgMTIuMTQ4NDM4IDExLjUgWiBNIDE0LjE0ODQzOCAxMi41IEwgMTcuODUxNTYyIDEyLjUgTCAxNy44NTE1NjIgMTMuNSBMIDE0LjE0ODQzOCAxMy41IFogTSAyNi4xNDg0MzggMTIuNSBMIDI3Ljg1MTU2MiAxMi41IEwgMjcuODUxNTYyIDEzLjUgTCAyNi4xNDg0MzggMTMuNSBaIE0gNi4xNDg0MzggMTYuNSBMIDcuODUxNTYyIDE2LjUgTCA3Ljg1MTU2MiAxNy41IEwgNi4xNDg0MzggMTcuNSBaIE0gMjQuMTQ4NDM4IDE2LjUgTCAyNy44NTE1NjIgMTYuNSBMIDI3Ljg1MTU2MiAxNy41IEwgMjQuMTQ4NDM4IDE3LjUgWiBNIDEyLjE0ODQzOCAxOC41IEwgMTUuODUxNTYyIDE4LjUgTCAxNS44NTE1NjIgMTkuNSBMIDEyLjE0ODQzOCAxOS41IFogTSAyMC4xNDg0MzggMTguNSBMIDIzLjg1MTU2MiAxOC41IEwgMjMuODUxNTYyIDE5LjUgTCAyMC4xNDg0MzggMTkuNSBaIE0gMjguMTQ4NDM4IDE4LjUgTCAyOS44NTE1NjIgMTguNSBMIDI5Ljg1MTU2MiAxOS41IEwgMjguMTQ4NDM4IDE5LjUgWiBNIDE2LjE0ODQzOCAyMC41IEwgMTcuODUxNTYyIDIwLjUgTCAxNy44NTE1NjIgMjEuNSBMIDE2LjE0ODQzOCAyMS41IFogTSA2LjE0ODQzOCAyMi41IEwgNy44NTE1NjIgMjIuNSBMIDcuODUxNTYyIDIzLjUgTCA2LjE0ODQzOCAyMy41IFogTSAxNC4xNDg0MzggMjIuNSBMIDE1Ljg1MTU2MiAyMi41IEwgMTUuODUxNTYyIDIzLjUgTCAxNC4xNDg0MzggMjMuNSBaIE0gMTguMTQ4NDM4IDIyLjUgTCAxOS44NTE1NjIgMjIuNSBMIDE5Ljg1MTU2MiAyMy41IEwgMTguMTQ4NDM4IDIzLjUgWiBNIDIyLjE0ODQzOCAyNC41IEwgMjMuODUxNTYyIDI0LjUgTCAyMy44NTE1NjIgMjUuNSBMIDIyLjE0ODQzOCAyNS41IFogTSAyMi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMjIuMTQ4NDM4IDQuNSBMIDIzLjg1MTU2MiA0LjUgTCAyMy44NTE1NjIgNS41IEwgMjIuMTQ4NDM4IDUuNSBaIE0gMjguMTQ4NDM4IDQuNSBMIDI5Ljg1MTU2MiA0LjUgTCAyOS44NTE1NjIgNS41IEwgMjguMTQ4NDM4IDUuNSBaIE0gMTguMTQ4NDM4IDYuNSBMIDIxLjg1MTU2MiA2LjUgTCAyMS44NTE1NjIgNy41IEwgMTguMTQ4NDM4IDcuNSBaIE0gMjYuMTQ4NDM4IDYuNSBMIDI3Ljg1MTU2MiA2LjUgTCAyNy44NTE1NjIgNy41IEwgMjYuMTQ4NDM4IDcuNSBaIE0gMjIuMTQ4NDM4IDguNSBMIDI1Ljg1MTU2MiA4LjUgTCAyNS44NTE1NjIgOS41IEwgMjIuMTQ4NDM4IDkuNSBaIE0gMjguMTQ4NDM4IDguNSBMIDI5Ljg1MTU2MiA4LjUgTCAyOS44NTE1NjIgOS41IEwgMjguMTQ4NDM4IDkuNSBaIE0gMTYuMTQ4NDM4IDEwLjUgTCAxOS44NTE1NjIgMTAuNSBMIDE5Ljg1MTU2MiAxMS41IEwgMTYuMTQ4NDM4IDExLjUgWiBNIDI2LjE0ODQzOCAxMC41IEwgMjcuODUxNTYyIDEwLjUgTCAyNy44NTE1NjIgMTEuNSBMIDI2LjE0ODQzOCAxMS41IFogTSAxMi4xNDg0MzggMTIuNSBMIDEzLjg1MTU2MiAxMi41IEwgMTMuODUxNTYyIDEzLjUgTCAxMi4xNDg0MzggMTMuNSBaIE0gMjAuMTQ4NDM4IDEyLjUgTCAyNS44NTE1NjIgMTIuNSBMIDI1Ljg1MTU2MiAxMy41IEwgMjAuMTQ4NDM4IDEzLjUgWiBNIDI4LjE0ODQzOCAxMi41IEwgMjkuODUxNTYyIDEyLjUgTCAyOS44NTE1NjIgMTMuNSBMIDI4LjE0ODQzOCAxMy41IFogTSAxOC4xNDg0MzggMTYuNSBMIDE5Ljg1MTU2MiAxNi41IEwgMTkuODUxNTYyIDE3LjUgTCAxOC4xNDg0MzggMTcuNSBaIE0gMTYuMTQ4NDM4IDE4LjUgTCAxNy44NTE1NjIgMTguNSBMIDE3Ljg1MTU2MiAxOS41IEwgMTYuMTQ4NDM4IDE5LjUgWiBNIDI0LjE0ODQzOCAxOC41IEwgMjcuODUxNTYyIDE4LjUgTCAyNy44NTE1NjIgMTkuNSBMIDI0LjE0ODQzOCAxOS41IFogTSAxMi4xNDg0MzggMjAuNSBMIDE1Ljg1MTU2MiAyMC41IEwgMTUuODUxNTYyIDIxLjUgTCAxMi4xNDg0MzggMjEuNSBaIE0gMjAuMTQ4NDM4IDIwLjUgTCAyMS44NTE1NjIgMjAuNSBMIDIxLjg1MTU2MiAyMS41IEwgMjAuMTQ4NDM4IDIxLjUgWiBNIDI4LjE0ODQzOCAyMC41IEwgMjkuODUxNTYyIDIwLjUgTCAyOS44NTE1NjIgMjEuNSBMIDI4LjE0ODQzOCAyMS41IFogTSAyNi4xNDg0MzggMjIuNSBMIDI3Ljg1MTU2MiAyMi41IEwgMjcuODUxNTYyIDIzLjUgTCAyNi4xNDg0MzggMjMuNSBaIE0gNi4xNDg0MzggMjQuNSBMIDcuODUxNTYyIDI0LjUgTCA3Ljg1MTU2MiAyNS41IEwgNi4xNDg0MzggMjUuNSBaIE0gMTIuMTQ4NDM4IDI0LjUgTCAxMy44NTE1NjIgMjQuNSBMIDEzLjg1MTU2MiAyNS41IEwgMTIuMTQ4NDM4IDI1LjUgWiBNIDE2LjE0ODQzOCAyNC41IEwgMTcuODUxNTYyIDI0LjUgTCAxNy44NTE1NjIgMjUuNSBMIDE2LjE0ODQzOCAyNS41IFogTSAyMC4xNDg0MzggMjQuNSBMIDIxLjg1MTU2MiAyNC41IEwgMjEuODUxNTYyIDI1LjUgTCAyMC4xNDg0MzggMjUuNSBaIE0gMjQuMTQ4NDM4IDI0LjUgTCAyNS44NTE1NjIgMjQuNSBMIDI1Ljg1MTU2MiAyNS41IEwgMjQuMTQ4NDM4IDI1LjUgWiBNIDI4LjE0ODQzOCAyNC41IEwgMjkuODUxNTYyIDI0LjUgTCAyOS44NTE1NjIgMjUuNSBMIDI4LjE0ODQzOCAyNS41IFogTSAyOC4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDEwMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDEyLjE0ODQzOCA0LjUgTCAxMy44NTE1NjIgNC41IEwgMTMuODUxNTYyIDUuNSBMIDEyLjE0ODQzOCA1LjUgWiBNIDIyLjE0ODQzOCA2LjUgTCAyMy44NTE1NjIgNi41IEwgMjMuODUxNTYyIDcuNSBMIDIyLjE0ODQzOCA3LjUgWiBNIDYuMTQ4NDM4IDguNSBMIDcuODUxNTYyIDguNSBMIDcuODUxNTYyIDkuNSBMIDYuMTQ4NDM4IDkuNSBaIE0gMTIuMTQ4NDM4IDguNSBMIDE5Ljg1MTU2MiA4LjUgTCAxOS44NTE1NjIgOS41IEwgMTIuMTQ4NDM4IDkuNSBaIE0gMjYuMTQ4NDM4IDguNSBMIDI3Ljg1MTU2MiA4LjUgTCAyNy44NTE1NjIgOS41IEwgMjYuMTQ4NDM4IDkuNSBaIE0gMjAuMTQ4NDM4IDEwLjUgTCAyNS44NTE1NjIgMTAuNSBMIDI1Ljg1MTU2MiAxMS41IEwgMjAuMTQ4NDM4IDExLjUgWiBNIDYuMTQ4NDM4IDEyLjUgTCA3Ljg1MTU2MiAxMi41IEwgNy44NTE1NjIgMTMuNSBMIDYuMTQ4NDM4IDEzLjUgWiBNIDE4LjE0ODQzOCAxMi41IEwgMTkuODUxNTYyIDEyLjUgTCAxOS44NTE1NjIgMTMuNSBMIDE4LjE0ODQzOCAxMy41IFogTSAxNC4xNDg0MzggMTYuNSBMIDE1Ljg1MTU2MiAxNi41IEwgMTUuODUxNTYyIDE3LjUgTCAxNC4xNDg0MzggMTcuNSBaIE0gNi4xNDg0MzggMTguNSBMIDcuODUxNTYyIDE4LjUgTCA3Ljg1MTU2MiAxOS41IEwgNi4xNDg0MzggMTkuNSBaIE0gMTguMTQ4NDM4IDIwLjUgTCAxOS44NTE1NjIgMjAuNSBMIDE5Ljg1MTU2MiAyMS41IEwgMTguMTQ4NDM4IDIxLjUgWiBNIDI2LjE0ODQzOCAyMC41IEwgMjcuODUxNTYyIDIwLjUgTCAyNy44NTE1NjIgMjEuNSBMIDI2LjE0ODQzOCAyMS41IFogTSAyMC4xNDg0MzggMjIuNSBMIDI1Ljg1MTU2MiAyMi41IEwgMjUuODUxNTYyIDIzLjUgTCAyMC4xNDg0MzggMjMuNSBaIE0gMTguMTQ4NDM4IDI0LjUgTCAxOS44NTE1NjIgMjQuNSBMIDE5Ljg1MTU2MiAyNS41IEwgMTguMTQ4NDM4IDI1LjUgWiBNIDI2LjE0ODQzOCAyNC41IEwgMjcuODUxNTYyIDI0LjUgTCAyNy44NTE1NjIgMjUuNSBMIDI2LjE0ODQzOCAyNS41IFogTSAyNi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA0LjE0ODQzOCA0LjUgTCA1Ljg1MTU2MiA0LjUgTCA1Ljg1MTU2MiA1LjUgTCA0LjE0ODQzOCA1LjUgWiBNIDEwLjE0ODQzOCA0LjUgTCAxMS44NTE1NjIgNC41IEwgMTEuODUxNTYyIDI1LjUgTCAxMC4xNDg0MzggMjUuNSBaIE0gNC4xNDg0MzggOC41IEwgNS44NTE1NjIgOC41IEwgNS44NTE1NjIgOS41IEwgNC4xNDg0MzggOS41IFogTSA0LjE0ODQzOCAxMi41IEwgNS44NTE1NjIgMTIuNSBMIDUuODUxNTYyIDEzLjUgTCA0LjE0ODQzOCAxMy41IFogTSA2LjE0ODQzOCAxNC41IEwgNy44NTE1NjIgMTQuNSBMIDcuODUxNTYyIDE1LjUgTCA2LjE0ODQzOCAxNS41IFogTSAxNC4xNDg0MzggMTQuNSBMIDE1Ljg1MTU2MiAxNC41IEwgMTUuODUxNTYyIDE1LjUgTCAxNC4xNDg0MzggMTUuNSBaIE0gMTguMTQ4NDM4IDE0LjUgTCAxOS44NTE1NjIgMTQuNSBMIDE5Ljg1MTU2MiAxNS41IEwgMTguMTQ4NDM4IDE1LjUgWiBNIDIyLjE0ODQzOCAxNC41IEwgMjMuODUxNTYyIDE0LjUgTCAyMy44NTE1NjIgMTUuNSBMIDIyLjE0ODQzOCAxNS41IFogTSAyNi4xNDg0MzggMTQuNSBMIDI3Ljg1MTU2MiAxNC41IEwgMjcuODUxNTYyIDE1LjUgTCAyNi4xNDg0MzggMTUuNSBaIE0gNC4xNDg0MzggMTYuNSBMIDUuODUxNTYyIDE2LjUgTCA1Ljg1MTU2MiAxNy41IEwgNC4xNDg0MzggMTcuNSBaIE0gNC4xNDg0MzggMjAuNSBMIDUuODUxNTYyIDIwLjUgTCA1Ljg1MTU2MiAyMS41IEwgNC4xNDg0MzggMjEuNSBaIE0gNC4xNDg0MzggMjQuNSBMIDUuODUxNTYyIDI0LjUgTCA1Ljg1MTU2MiAyNS41IEwgNC4xNDg0MzggMjUuNSBaIE0gNC4xNDg0MzggMjQuNSAiLz4KPC9zdmc+Cg==[data:image/svg{plus}xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzQiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzNCAzMCI{plus}CjxyZWN0IHg9Ii0zLjQiIHk9Ii0zIiB3aWR0aD0iNDAuOCIgaGVpZ2h0PSIzNiIgZmlsbD0icmdiKDEwMCUsIDEwMCUsIDEwMCUpIiBmaWxsLW9wYWNpdHk9IjEiLz4KPHJlY3QgeD0iLTMuNCIgeT0iLTMiIHdpZHRoPSI0MC44IiBoZWlnaHQ9IjM2IiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA2LjE0ODQzOCA0LjUgTCA3Ljg1MTU2MiA0LjUgTCA3Ljg1MTU2MiA1LjUgTCA2LjE0ODQzOCA1LjUgWiBNIDE0LjE0ODQzOCA0LjUgTCAxNy44NTE1NjIgNC41IEwgMTcuODUxNTYyIDUuNSBMIDE0LjE0ODQzOCA1LjUgWiBNIDIwLjE0ODQzOCA0LjUgTCAyMS44NTE1NjIgNC41IEwgMjEuODUxNTYyIDUuNSBMIDIwLjE0ODQzOCA1LjUgWiBNIDI0LjE0ODQzOCA2LjUgTCAyNS44NTE1NjIgNi41IEwgMjUuODUxNTYyIDcuNSBMIDI0LjE0ODQzOCA3LjUgWiBNIDI4LjE0ODQzOCA2LjUgTCAyOS44NTE1NjIgNi41IEwgMjkuODUxNTYyIDcuNSBMIDI4LjE0ODQzOCA3LjUgWiBNIDIwLjE0ODQzOCA4LjUgTCAyMS44NTE1NjIgOC41IEwgMjEuODUxNTYyIDkuNSBMIDIwLjE0ODQzOCA5LjUgWiBNIDYuMTQ4NDM4IDEwLjUgTCA3Ljg1MTU2MiAxMC41IEwgNy44NTE1NjIgMTEuNSBMIDYuMTQ4NDM4IDExLjUgWiBNIDE0LjE0ODQzOCAxMC41IEwgMTUuODUxNTYyIDEwLjUgTCAxNS44NTE1NjIgMTEuNSBMIDE0LjE0ODQzOCAxMS41IFogTSAyOC4xNDg0MzggMTAuNSBMIDI5Ljg1MTU2MiAxMC41IEwgMjkuODUxNTYyIDExLjUgTCAyOC4xNDg0MzggMTEuNSBaIE0gMTIuMTQ4NDM4IDE2LjUgTCAxMy44NTE1NjIgMTYuNSBMIDEzLjg1MTU2MiAxNy41IEwgMTIuMTQ4NDM4IDE3LjUgWiBNIDE2LjE0ODQzOCAxNi41IEwgMTcuODUxNTYyIDE2LjUgTCAxNy44NTE1NjIgMTcuNSBMIDE2LjE0ODQzOCAxNy41IFogTSAyMC4xNDg0MzggMTYuNSBMIDIzLjg1MTU2MiAxNi41IEwgMjMuODUxNTYyIDE3LjUgTCAyMC4xNDg0MzggMTcuNSBaIE0gMjguMTQ4NDM4IDE2LjUgTCAyOS44NTE1NjIgMTYuNSBMIDI5Ljg1MTU2MiAxNy41IEwgMjguMTQ4NDM4IDE3LjUgWiBNIDE4LjE0ODQzOCAxOC41IEwgMTkuODUxNTYyIDE4LjUgTCAxOS44NTE1NjIgMTkuNSBMIDE4LjE0ODQzOCAxOS41IFogTSA2LjE0ODQzOCAyMC41IEwgNy44NTE1NjIgMjAuNSBMIDcuODUxNTYyIDIxLjUgTCA2LjE0ODQzOCAyMS41IFogTSAyMi4xNDg0MzggMjAuNSBMIDI1Ljg1MTU2MiAyMC41IEwgMjUuODUxNTYyIDIxLjUgTCAyMi4xNDg0MzggMjEuNSBaIE0gMTIuMTQ4NDM4IDIyLjUgTCAxMy44NTE1NjIgMjIuNSBMIDEzLjg1MTU2MiAyMy41IEwgMTIuMTQ4NDM4IDIzLjUgWiBNIDE2LjE0ODQzOCAyMi41IEwgMTcuODUxNTYyIDIyLjUgTCAxNy44NTE1NjIgMjMuNSBMIDE2LjE0ODQzOCAyMy41IFogTSAyOC4xNDg0MzggMjIuNSBMIDI5Ljg1MTU2MiAyMi41IEwgMjkuODUxNTYyIDIzLjUgTCAyOC4xNDg0MzggMjMuNSBaIE0gMTQuMTQ4NDM4IDI0LjUgTCAxNS44NTE1NjIgMjQuNSBMIDE1Ljg1MTU2MiAyNS41IEwgMTQuMTQ4NDM4IDI1LjUgWiBNIDE0LjE0ODQzOCAyNC41ICIvPgo8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9InJnYigwJSwgMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDIuMTQ4NDM4IDIuNSBMIDMxLjg1MTU2MiAyLjUgTCAzMS44NTE1NjIgMjcuNSBMIDIuMTQ4NDM4IDI3LjUgWiBNIDMuODUxNTYyIDMuNSBMIDMuODUxNTYyIDYuNSBMIDUuODUxNTYyIDYuNSBMIDUuODUxNTYyIDcuNSBMIDMuODUxNTYyIDcuNSBMIDMuODUxNTYyIDEwLjUgTCA1Ljg1MTU2MiAxMC41IEwgNS44NTE1NjIgMTEuNSBMIDMuODUxNTYyIDExLjUgTCAzLjg1MTU2MiAxNC41IEwgNS44NTE1NjIgMTQuNSBMIDUuODUxNTYyIDE1LjUgTCAzLjg1MTU2MiAxNS41IEwgMy44NTE1NjIgMTguNSBMIDUuODUxNTYyIDE4LjUgTCA1Ljg1MTU2MiAxOS41IEwgMy44NTE1NjIgMTkuNSBMIDMuODUxNTYyIDIyLjUgTCA1Ljg1MTU2MiAyMi41IEwgNS44NTE1NjIgMjMuNSBMIDMuODUxNTYyIDIzLjUgTCAzLjg1MTU2MiAyNi41IEwgOC4xNDg0MzggMjYuNSBMIDguMTQ4NDM4IDMuNSBaIE0gOS44NTE1NjIgMy41IEwgOS44NTE1NjIgMjYuNSBMIDMwLjE0ODQzOCAyNi41IEwgMzAuMTQ4NDM4IDE1LjUgTCAyOC4xNDg0MzggMTUuNSBMIDI4LjE0ODQzOCAxNC41IEwgMzAuMTQ4NDM4IDE0LjUgTCAzMC4xNDg0MzggMy41IFogTSAxMi4xNDg0MzggMTQuNSBMIDEzLjg1MTU2MiAxNC41IEwgMTMuODUxNTYyIDE1LjUgTCAxMi4xNDg0MzggMTUuNSBaIE0gMTYuMTQ4NDM4IDE0LjUgTCAxNy44NTE1NjIgMTQuNSBMIDE3Ljg1MTU2MiAxNS41IEwgMTYuMTQ4NDM4IDE1LjUgWiBNIDIwLjE0ODQzOCAxNC41IEwgMjEuODUxNTYyIDE0LjUgTCAyMS44NTE1NjIgMTUuNSBMIDIwLjE0ODQzOCAxNS41IFogTSAyNC4xNDg0MzggMTQuNSBMIDI1Ljg1MTU2MiAxNC41IEwgMjUuODUxNTYyIDE1LjUgTCAyNC4xNDg0MzggMTUuNSBaIE0gMjQuMTQ4NDM4IDE0LjUgIi8{plus}CjxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0icmdiKDEwMCUsIDAlLCAxMDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDE4LjE0ODQzOCA0LjUgTCAxOS44NTE1NjIgNC41IEwgMTkuODUxNTYyIDUuNSBMIDE4LjE0ODQzOCA1LjUgWiBNIDI0LjE0ODQzOCA0LjUgTCAyNy44NTE1NjIgNC41IEwgMjcuODUxNTYyIDUuNSBMIDI0LjE0ODQzOCA1LjUgWiBNIDYuMTQ4NDM4IDYuNSBMIDcuODUxNTYyIDYuNSBMIDcuODUxNTYyIDcuNSBMIDYuMTQ4NDM4IDcuNSBaIE0gMTIuMTQ4NDM4IDYuNSBMIDE3Ljg1MTU2MiA2LjUgTCAxNy44NTE1NjIgNy41IEwgMTIuMTQ4NDM4IDcuNSBaIE0gMTIuMTQ4NDM4IDEwLjUgTCAxMy44NTE1NjIgMTAuNSBMIDEzLjg1MTU2MiAxMS41IEwgMTIuMTQ4NDM4IDExLjUgWiBNIDE0LjE0ODQzOCAxMi41IEwgMTcuODUxNTYyIDEyLjUgTCAxNy44NTE1NjIgMTMuNSBMIDE0LjE0ODQzOCAxMy41IFogTSAyNi4xNDg0MzggMTIuNSBMIDI3Ljg1MTU2MiAxMi41IEwgMjcuODUxNTYyIDEzLjUgTCAyNi4xNDg0MzggMTMuNSBaIE0gNi4xNDg0MzggMTYuNSBMIDcuODUxNTYyIDE2LjUgTCA3Ljg1MTU2MiAxNy41IEwgNi4xNDg0MzggMTcuNSBaIE0gMjQuMTQ4NDM4IDE2LjUgTCAyNy44NTE1NjIgMTYuNSBMIDI3Ljg1MTU2MiAxNy41IEwgMjQuMTQ4NDM4IDE3LjUgWiBNIDEyLjE0ODQzOCAxOC41IEwgMTUuODUxNTYyIDE4LjUgTCAxNS44NTE1NjIgMTkuNSBMIDEyLjE0ODQzOCAxOS41IFogTSAyMC4xNDg0MzggMTguNSBMIDIzLjg1MTU2MiAxOC41IEwgMjMuODUxNTYyIDE5LjUgTCAyMC4xNDg0MzggMTkuNSBaIE0gMjguMTQ4NDM4IDE4LjUgTCAyOS44NTE1NjIgMTguNSBMIDI5Ljg1MTU2MiAxOS41IEwgMjguMTQ4NDM4IDE5LjUgWiBNIDE2LjE0ODQzOCAyMC41IEwgMTcuODUxNTYyIDIwLjUgTCAxNy44NTE1NjIgMjEuNSBMIDE2LjE0ODQzOCAyMS41IFogTSA2LjE0ODQzOCAyMi41IEwgNy44NTE1NjIgMjIuNSBMIDcuODUxNTYyIDIzLjUgTCA2LjE0ODQzOCAyMy41IFogTSAxNC4xNDg0MzggMjIuNSBMIDE1Ljg1MTU2MiAyMi41IEwgMTUuODUxNTYyIDIzLjUgTCAxNC4xNDg0MzggMjMuNSBaIE0gMTguMTQ4NDM4IDIyLjUgTCAxOS44NTE1NjIgMjIuNSBMIDE5Ljg1MTU2MiAyMy41IEwgMTguMTQ4NDM4IDIzLjUgWiBNIDIyLjE0ODQzOCAyNC41IEwgMjMuODUxNTYyIDI0LjUgTCAyMy44NTE1NjIgMjUuNSBMIDIyLjE0ODQzOCAyNS41IFogTSAyMi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMCUpIiBmaWxsLW9wYWNpdHk9IjEiIGQ9Ik0gMjIuMTQ4NDM4IDQuNSBMIDIzLjg1MTU2MiA0LjUgTCAyMy44NTE1NjIgNS41IEwgMjIuMTQ4NDM4IDUuNSBaIE0gMjguMTQ4NDM4IDQuNSBMIDI5Ljg1MTU2MiA0LjUgTCAyOS44NTE1NjIgNS41IEwgMjguMTQ4NDM4IDUuNSBaIE0gMTguMTQ4NDM4IDYuNSBMIDIxLjg1MTU2MiA2LjUgTCAyMS44NTE1NjIgNy41IEwgMTguMTQ4NDM4IDcuNSBaIE0gMjYuMTQ4NDM4IDYuNSBMIDI3Ljg1MTU2MiA2LjUgTCAyNy44NTE1NjIgNy41IEwgMjYuMTQ4NDM4IDcuNSBaIE0gMjIuMTQ4NDM4IDguNSBMIDI1Ljg1MTU2MiA4LjUgTCAyNS44NTE1NjIgOS41IEwgMjIuMTQ4NDM4IDkuNSBaIE0gMjguMTQ4NDM4IDguNSBMIDI5Ljg1MTU2MiA4LjUgTCAyOS44NTE1NjIgOS41IEwgMjguMTQ4NDM4IDkuNSBaIE0gMTYuMTQ4NDM4IDEwLjUgTCAxOS44NTE1NjIgMTAuNSBMIDE5Ljg1MTU2MiAxMS41IEwgMTYuMTQ4NDM4IDExLjUgWiBNIDI2LjE0ODQzOCAxMC41IEwgMjcuODUxNTYyIDEwLjUgTCAyNy44NTE1NjIgMTEuNSBMIDI2LjE0ODQzOCAxMS41IFogTSAxMi4xNDg0MzggMTIuNSBMIDEzLjg1MTU2MiAxMi41IEwgMTMuODUxNTYyIDEzLjUgTCAxMi4xNDg0MzggMTMuNSBaIE0gMjAuMTQ4NDM4IDEyLjUgTCAyNS44NTE1NjIgMTIuNSBMIDI1Ljg1MTU2MiAxMy41IEwgMjAuMTQ4NDM4IDEzLjUgWiBNIDI4LjE0ODQzOCAxMi41IEwgMjkuODUxNTYyIDEyLjUgTCAyOS44NTE1NjIgMTMuNSBMIDI4LjE0ODQzOCAxMy41IFogTSAxOC4xNDg0MzggMTYuNSBMIDE5Ljg1MTU2MiAxNi41IEwgMTkuODUxNTYyIDE3LjUgTCAxOC4xNDg0MzggMTcuNSBaIE0gMTYuMTQ4NDM4IDE4LjUgTCAxNy44NTE1NjIgMTguNSBMIDE3Ljg1MTU2MiAxOS41IEwgMTYuMTQ4NDM4IDE5LjUgWiBNIDI0LjE0ODQzOCAxOC41IEwgMjcuODUxNTYyIDE4LjUgTCAyNy44NTE1NjIgMTkuNSBMIDI0LjE0ODQzOCAxOS41IFogTSAxMi4xNDg0MzggMjAuNSBMIDE1Ljg1MTU2MiAyMC41IEwgMTUuODUxNTYyIDIxLjUgTCAxMi4xNDg0MzggMjEuNSBaIE0gMjAuMTQ4NDM4IDIwLjUgTCAyMS44NTE1NjIgMjAuNSBMIDIxLjg1MTU2MiAyMS41IEwgMjAuMTQ4NDM4IDIxLjUgWiBNIDI4LjE0ODQzOCAyMC41IEwgMjkuODUxNTYyIDIwLjUgTCAyOS44NTE1NjIgMjEuNSBMIDI4LjE0ODQzOCAyMS41IFogTSAyNi4xNDg0MzggMjIuNSBMIDI3Ljg1MTU2MiAyMi41IEwgMjcuODUxNTYyIDIzLjUgTCAyNi4xNDg0MzggMjMuNSBaIE0gNi4xNDg0MzggMjQuNSBMIDcuODUxNTYyIDI0LjUgTCA3Ljg1MTU2MiAyNS41IEwgNi4xNDg0MzggMjUuNSBaIE0gMTIuMTQ4NDM4IDI0LjUgTCAxMy44NTE1NjIgMjQuNSBMIDEzLjg1MTU2MiAyNS41IEwgMTIuMTQ4NDM4IDI1LjUgWiBNIDE2LjE0ODQzOCAyNC41IEwgMTcuODUxNTYyIDI0LjUgTCAxNy44NTE1NjIgMjUuNSBMIDE2LjE0ODQzOCAyNS41IFogTSAyMC4xNDg0MzggMjQuNSBMIDIxLjg1MTU2MiAyNC41IEwgMjEuODUxNTYyIDI1LjUgTCAyMC4xNDg0MzggMjUuNSBaIE0gMjQuMTQ4NDM4IDI0LjUgTCAyNS44NTE1NjIgMjQuNSBMIDI1Ljg1MTU2MiAyNS41IEwgMjQuMTQ4NDM4IDI1LjUgWiBNIDI4LjE0ODQzOCAyNC41IEwgMjkuODUxNTYyIDI0LjUgTCAyOS44NTE1NjIgMjUuNSBMIDI4LjE0ODQzOCAyNS41IFogTSAyOC4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMCUsIDEwMCUsIDAlKSIgZmlsbC1vcGFjaXR5PSIxIiBkPSJNIDEyLjE0ODQzOCA0LjUgTCAxMy44NTE1NjIgNC41IEwgMTMuODUxNTYyIDUuNSBMIDEyLjE0ODQzOCA1LjUgWiBNIDIyLjE0ODQzOCA2LjUgTCAyMy44NTE1NjIgNi41IEwgMjMuODUxNTYyIDcuNSBMIDIyLjE0ODQzOCA3LjUgWiBNIDYuMTQ4NDM4IDguNSBMIDcuODUxNTYyIDguNSBMIDcuODUxNTYyIDkuNSBMIDYuMTQ4NDM4IDkuNSBaIE0gMTIuMTQ4NDM4IDguNSBMIDE5Ljg1MTU2MiA4LjUgTCAxOS44NTE1NjIgOS41IEwgMTIuMTQ4NDM4IDkuNSBaIE0gMjYuMTQ4NDM4IDguNSBMIDI3Ljg1MTU2MiA4LjUgTCAyNy44NTE1NjIgOS41IEwgMjYuMTQ4NDM4IDkuNSBaIE0gMjAuMTQ4NDM4IDEwLjUgTCAyNS44NTE1NjIgMTAuNSBMIDI1Ljg1MTU2MiAxMS41IEwgMjAuMTQ4NDM4IDExLjUgWiBNIDYuMTQ4NDM4IDEyLjUgTCA3Ljg1MTU2MiAxMi41IEwgNy44NTE1NjIgMTMuNSBMIDYuMTQ4NDM4IDEzLjUgWiBNIDE4LjE0ODQzOCAxMi41IEwgMTkuODUxNTYyIDEyLjUgTCAxOS44NTE1NjIgMTMuNSBMIDE4LjE0ODQzOCAxMy41IFogTSAxNC4xNDg0MzggMTYuNSBMIDE1Ljg1MTU2MiAxNi41IEwgMTUuODUxNTYyIDE3LjUgTCAxNC4xNDg0MzggMTcuNSBaIE0gNi4xNDg0MzggMTguNSBMIDcuODUxNTYyIDE4LjUgTCA3Ljg1MTU2MiAxOS41IEwgNi4xNDg0MzggMTkuNSBaIE0gMTguMTQ4NDM4IDIwLjUgTCAxOS44NTE1NjIgMjAuNSBMIDE5Ljg1MTU2MiAyMS41IEwgMTguMTQ4NDM4IDIxLjUgWiBNIDI2LjE0ODQzOCAyMC41IEwgMjcuODUxNTYyIDIwLjUgTCAyNy44NTE1NjIgMjEuNSBMIDI2LjE0ODQzOCAyMS41IFogTSAyMC4xNDg0MzggMjIuNSBMIDI1Ljg1MTU2MiAyMi41IEwgMjUuODUxNTYyIDIzLjUgTCAyMC4xNDg0MzggMjMuNSBaIE0gMTguMTQ4NDM4IDI0LjUgTCAxOS44NTE1NjIgMjQuNSBMIDE5Ljg1MTU2MiAyNS41IEwgMTguMTQ4NDM4IDI1LjUgWiBNIDI2LjE0ODQzOCAyNC41IEwgMjcuODUxNTYyIDI0LjUgTCAyNy44NTE1NjIgMjUuNSBMIDI2LjE0ODQzOCAyNS41IFogTSAyNi4xNDg0MzggMjQuNSAiLz4KPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSJyZ2IoMTAwJSwgMTAwJSwgMTAwJSkiIGZpbGwtb3BhY2l0eT0iMSIgZD0iTSA0LjE0ODQzOCA0LjUgTCA1Ljg1MTU2MiA0LjUgTCA1Ljg1MTU2MiA1LjUgTCA0LjE0ODQzOCA1LjUgWiBNIDEwLjE0ODQzOCA0LjUgTCAxMS44NTE1NjIgNC41IEwgMTEuODUxNTYyIDI1LjUgTCAxMC4xNDg0MzggMjUuNSBaIE0gNC4xNDg0MzggOC41IEwgNS44NTE1NjIgOC41IEwgNS44NTE1NjIgOS41IEwgNC4xNDg0MzggOS41IFogTSA0LjE0ODQzOCAxMi41IEwgNS44NTE1NjIgMTIuNSBMIDUuODUxNTYyIDEzLjUgTCA0LjE0ODQzOCAxMy41IFogTSA2LjE0ODQzOCAxNC41IEwgNy44NTE1NjIgMTQuNSBMIDcuODUxNTYyIDE1LjUgTCA2LjE0ODQzOCAxNS41IFogTSAxNC4xNDg0MzggMTQuNSBMIDE1Ljg1MTU2MiAxNC41IEwgMTUuODUxNTYyIDE1LjUgTCAxNC4xNDg0MzggMTUuNSBaIE0gMTguMTQ4NDM4IDE0LjUgTCAxOS44NTE1NjIgMTQuNSBMIDE5Ljg1MTU2MiAxNS41IEwgMTguMTQ4NDM4IDE1LjUgWiBNIDIyLjE0ODQzOCAxNC41IEwgMjMuODUxNTYyIDE0LjUgTCAyMy44NTE1NjIgMTUuNSBMIDIyLjE0ODQzOCAxNS41IFogTSAyNi4xNDg0MzggMTQuNSBMIDI3Ljg1MTU2MiAxNC41IEwgMjcuODUxNTYyIDE1LjUgTCAyNi4xNDg0MzggMTUuNSBaIE0gNC4xNDg0MzggMTYuNSBMIDUuODUxNTYyIDE2LjUgTCA1Ljg1MTU2MiAxNy41IEwgNC4xNDg0MzggMTcuNSBaIE0gNC4xNDg0MzggMjAuNSBMIDUuODUxNTYyIDIwLjUgTCA1Ljg1MTU2MiAyMS41IEwgNC4xNDg0MzggMjEuNSBaIE0gNC4xNDg0MzggMjQuNSBMIDUuODUxNTYyIDI0LjUgTCA1Ljg1MTU2MiAyNS41IEwgNC4xNDg0MzggMjUuNSBaIE0gNC4xNDg0MzggMjQuNSAiLz4KPC9zdmc{plus}Cg==]
 
 ==== dotty
 
-For matrix barcodes, render the modules as dots rather than squares. The
-dot radius can be adjusted using the *inkspread* option.
+For matrix barcodes, render the modules as dots rather than squares. The dot radius can be adjusted using the *inkspread* option.
 
-When <<_gridfit,gridfit>> is enabled, each dot is a disc of whole device
-pixels: the largest that keeps diagonally adjacent dots apart, reduced
-by the inkspread.
+When <<_gridfit,gridfit>> is enabled, each dot is a disc of whole device pixels: the largest that keeps diagonally adjacent dots apart, reduced by the inkspread.
 
 ===== Example
 
@@ -716,23 +547,12 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== barratio
 
-For linear barcodes, scales the width of the bars that are wider than
-one module, which sets the ratio of wide to narrow bars in symbologies
-such as <<_code_39,Code 39>>, <<_codabar,Codabar>> and
-<<_interleaved_2_of_5,Interleaved 2 of 5>>. A bar of _n_ modules is
-drawn (_n_ - 1) x *barratio* {plus} 1 modules wide, so a narrow bar is
-unchanged and a wide bar of 3 modules becomes 2 modules at
-`barratio=0.5` and 2.5 modules at `barratio=0.75`. Default: `1` (the
-symbology's own widths).
+For linear barcodes, scales the width of the bars that are wider than one module, which sets the ratio of wide to narrow bars in symbologies such as <<_code_39,Code 39>>, <<_codabar,Codabar>> and <<_interleaved_2_of_5,Interleaved 2 of 5>>. A bar of _n_ modules is drawn (_n_ - 1) x *barratio* {plus} 1 modules wide, so a narrow bar is unchanged and a wide bar of 3 modules becomes 2 modules at `barratio=0.5` and 2.5 modules at `barratio=0.75`. Default: `1` (the symbology's own widths).
 
 ===== Notes
 
 * Values from 0.1 to 5 are accepted.
-* Use it with *spaceratio* to set the wide-to-narrow ratio of bars and
-spaces alike, such as to make a symbol narrower. The symbology's
-standard sets the ratios it permits: <<_code_39,Code 39>> (ISO/IEC
-16388), for example, permits 2:1 to 3:1, and at least 2.2:1 where the
-X-dimension is below 0.5 mm.
+* Use it with *spaceratio* to set the wide-to-narrow ratio of bars and spaces alike, such as to make a symbol narrower. The symbology's standard sets the ratios it permits: <<_code_39,Code 39>> (ISO/IEC 16388), for example, permits 2:1 to 3:1, and at least 2.2:1 where the X-dimension is below 0.5 mm.
 * A non-integer *barratio* disables <<_gridfit,gridfit>>.
 
 ===== Example
@@ -747,10 +567,7 @@ Encoder: code39
 
 ==== spaceratio
 
-For linear barcodes, scales the width of the spaces that are wider than
-one module, in the same way as *barratio* does for bars. A space of _n_
-modules is drawn (_n_ - 1) x *spaceratio* {plus} 1 modules wide.
-Default: `1`.
+For linear barcodes, scales the width of the spaces that are wider than one module, in the same way as *barratio* does for bars. A space of _n_ modules is drawn (_n_ - 1) x *spaceratio* {plus} 1 modules wide. Default: `1`.
 
 ===== Notes
 
@@ -758,35 +575,19 @@ Default: `1`.
 
 === Text Properties
 
-Up to nine independent text groups can be configured using options
-prefixed with `text1` through `text9`. The old option names are retained
-as aliases: `alttext` = `text1`, `extratext` = `text2`, `textfont` =
-`text1font`, `extratextfont` = `text2font`, and so on for the remaining
-properties.
+Up to nine independent text groups can be configured using options prefixed with `text1` through `text9`. The old option names are retained as aliases: `alttext` = `text1`, `extratext` = `text2`, `textfont` = `text1font`, `extratextfont` = `text2font`, and so on for the remaining properties.
 
-*Note:* Some encoders (e.g. EAN/UPC) provide directly-positioned text
-where each character is placed by the encoder at a specific location.
-The font, size and color options apply to encoder-positioned text. The
-subspace, split, linegaps and gaps options do not apply unless the text
-content is overridden using `text1` (or `alttext`), which switches to
-the general text layout engine.
+*Note:* Some encoders (e.g. EAN/UPC) provide directly-positioned text where each character is placed by the encoder at a specific location. The font, size and color options apply to encoder-positioned text. The subspace, split, linegaps and gaps options do not apply unless the text content is overridden using `text1` (or `alttext`), which switches to the general text layout engine.
 
 ==== includetext
 
-Enable display of the encoder's default text for the symbol. This
-activates the encoder-positioned text for text1. There is no equivalent
-for other text groups.
+Enable display of the encoder's default text for the symbol. This activates the encoder-positioned text for text1. There is no equivalent for other text groups.
 
-Setting content directly (e.g. `text1=HELLO` or `alttext=HELLO`)
-activates text1 without requiring `includetext`. When both `includetext`
-and `text1` content are set, the explicit content takes precedence. For
-text2 through text9, setting content (e.g. `text3=LABEL`) is sufficient
-to activate the group.
+Setting content directly (e.g. `text1=HELLO` or `alttext=HELLO`) activates text1 without requiring `includetext`. When both `includetext` and `text1` content are set, the explicit content takes precedence. For text2 through text9, setting content (e.g. `text3=LABEL`) is sufficient to activate the group.
 
 ===== Notes
 
-* If a character in the data does not have a printable representation
-then it is not displayed.
+* If a character in the data does not have a printable representation then it is not displayed.
 
 ===== Example
 
@@ -806,10 +607,8 @@ Aliases: `textfont` = `text1font`, `extratextfont` = `text2font`
 
 ===== Notes
 
-* The font name must be the literal name of a PostScript font that is
-available to the system.
-* The PostScript font name for a font file can be determined with the
-following command from the fontconfig library:
+* The font name must be the literal name of a PostScript font that is available to the system.
+* The PostScript font name for a font file can be determined with the following command from the fontconfig library:
 ** `fc-scan --format "%++{++postscriptname}++\++n" /usr/share/fonts/truetype/somefont.ttf`
 
 ===== Example
@@ -860,16 +659,13 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9} (content)
 
-Specify the text content to display for a text group. For text1, this
-overrides the encoder's default text. For text2 through text9, setting
-the content activates the text group.
+Specify the text content to display for a text group. For text1, this overrides the encoder's default text. For text2 through text9, setting the content activates the text group.
 
 Aliases: `alttext` = `text1`, `extratext` = `text2`
 
 ===== Notes
 
-* Text1 defaults to centered below the symbol (or encoder-positioned
-when using `includetext`).
+* Text1 defaults to centered below the symbol (or encoder-positioned when using `includetext`).
 * Text2 through text9 default to left-aligned above the symbol.
 
 ===== Example: text1 content
@@ -906,16 +702,13 @@ Encoder: qrcode
 
 ==== text++{++1-9}subspace
 
-Specify a set of characters that will be replaced with spaces within the
-text content.
+Specify a set of characters that will be replaced with spaces within the text content.
 
-Aliases: `textsubspace` = `text1subspace`, `extratextsubspace` =
-`text2subspace`
+Aliases: `textsubspace` = `text1subspace`, `extratextsubspace` = `text2subspace`
 
 ===== Note
 
-* Applies to text content set via *text__N__* (or
-*alttext*/*extratext*), not to encoder-positioned text.
+* Applies to text content set via *text__N__* (or *alttext*/*extratext*), not to encoder-positioned text.
 
 ===== Example
 
@@ -929,15 +722,13 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9}split
 
-Specify a character by which to split the text content into separate
-lines.
+Specify a character by which to split the text content into separate lines.
 
 Aliases: `textsplit` = `text1split`, `extratextsplit` = `text2split`
 
 ===== Note
 
-* Applies to text content set via *text__N__* (or
-*alttext*/*extratext*), not to encoder-positioned text.
+* Applies to text content set via *text__N__* (or *alttext*/*extratext*), not to encoder-positioned text.
 
 ===== Example
 
@@ -953,13 +744,11 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 Specify the gap between consecutive text lines for a text group.
 
-Aliases: `textlinegaps` = `text1linegaps`, `extratextlinegaps` =
-`text2linegaps`
+Aliases: `textlinegaps` = `text1linegaps`, `extratextlinegaps` = `text2linegaps`
 
 ===== Note
 
-* This option should be used in combination with *text__N__split* (or
-*textsplit*/*extratextsplit*).
+* This option should be used in combination with *text__N__split* (or *textsplit*/*extratextsplit*).
 
 ===== Example
 
@@ -974,24 +763,13 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === Text Positioning
 
-Up to nine independent text groups can be positioned using options
-prefixed with `text1` through `text9`. The old option names
-`textxalign`, `textyalign`, etc. are retained as aliases for
-`text1xalign`, `text1yalign`, etc. Similarly `extratextxalign`,
-`extratextyalign`, etc. are aliases for `text2xalign`, `text2yalign`,
-etc.
+Up to nine independent text groups can be positioned using options prefixed with `text1` through `text9`. The old option names `textxalign`, `textyalign`, etc. are retained as aliases for `text1xalign`, `text1yalign`, etc. Similarly `extratextxalign`, `extratextyalign`, etc. are aliases for `text2xalign`, `text2yalign`, etc.
 
-*Note:* Some encoders (e.g. EAN/UPC, ISBN, ISSN, ISMN) provide
-directly-positioned text where each character is placed by the encoder
-at a specific location relative to the bars. For this encoder-positioned
-text, the alignment, direction and offset options do not apply unless
-the text content is overridden using `text1` (or `alttext`), which
-switches to the general text layout engine.
+*Note:* Some encoders (e.g. EAN/UPC, ISBN, ISSN, ISMN) provide directly-positioned text where each character is placed by the encoder at a specific location relative to the bars. For this encoder-positioned text, the alignment, direction and offset options do not apply unless the text content is overridden using `text1` (or `alttext`), which switches to the general text layout engine.
 
 ==== text++{++1-9}xalign
 
-The *text__N__xalign* option is used to specify where to horizontally
-position the text for a given text group.
+The *text__N__xalign* option is used to specify where to horizontally position the text for a given text group.
 
 Values: `offleft`, `left`, `center`, `right`, `offright`, `justify`
 
@@ -1049,8 +827,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9}yalign
 
-The *text__N__yalign* option is used to specify where to vertically
-position the text for a given text group.
+The *text__N__yalign* option is used to specify where to vertically position the text for a given text group.
 
 Values: `below`, `bottom`, `center`, `top`, `above`
 
@@ -1108,13 +885,11 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9}direction
 
-The *text__N__direction* option is used to specify in which direction to
-orient text for a given text group.
+The *text__N__direction* option is used to specify in which direction to orient text for a given text group.
 
 Values: `forward`, `backward`, `upward`, `downward`
 
-Aliases: `textdirection` = `text1direction`, `extratextdirection` =
-`text2direction`
+Aliases: `textdirection` = `text1direction`, `extratextdirection` = `text2direction`
 
 ===== Example: textdirection=forward
 
@@ -1160,11 +935,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9}xoffset
 
-The horizontal position of the text in points relative to the leftmost
-bar or modules.
+The horizontal position of the text in points relative to the leftmost bar or modules.
 
-Aliases: `textxoffset` = `text1xoffset`, `extratextxoffset` =
-`text2xoffset`
+Aliases: `textxoffset` = `text1xoffset`, `extratextxoffset` = `text2xoffset`
 
 ===== Example
 
@@ -1178,11 +951,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== text++{++1-9}yoffset
 
-The vertical position of the text in points relative to the base of the
-bars or modules.
+The vertical position of the text in points relative to the base of the bars or modules.
 
-Aliases: `textyoffset` = `text1yoffset`, `extratextyoffset` =
-`text2yoffset`
+Aliases: `textyoffset` = `text1yoffset`, `extratextyoffset` = `text2yoffset`
 
 ===== Example
 
@@ -1196,19 +967,14 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ===== Notes
 
-* By default (in the absence of *textxalign* or *textyalign*), each
-character of text is placed immediately below the corresponding modules
-where this is possible.
-* Where there isn't such a direct relationship then the default is to
-position the text centrally beneath the symbol.
+* By default (in the absence of *textxalign* or *textyalign*), each character of text is placed immediately below the corresponding modules where this is possible.
+* Where there isn't such a direct relationship then the default is to position the text centrally beneath the symbol.
 
 === Border Properties
 
 ==== showborder
 
-Display a border around the graphical (non-text) components of the
-symbol, e.g. bar/space array, matrix, composite separator. By default
-the border (and any background) will designate the symbol's quiet zone.
+Display a border around the graphical (non-text) components of the symbol, e.g. bar/space array, matrix, composite separator. By default the border (and any background) will designate the symbol's quiet zone.
 
 ===== Example
 
@@ -1224,9 +990,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== showbearer
 
-Display bearer bars above and below the graphical (non-text) components
-of the symbol, e.g. bar/space array, matrix, composite separator. By
-default the bearer bars will designate the symbol's quiet zone.
+Display bearer bars above and below the graphical (non-text) components of the symbol, e.g. bar/space array, matrix, composite separator. By default the bearer bars will designate the symbol's quiet zone.
 
 ===== Example
 
@@ -1246,8 +1010,7 @@ Width of the border/bearers, in points.
 
 ==== borderleft
 
-Custom gap between the left edge of the symbol and the border or bearer
-bars, in points.
+Custom gap between the left edge of the symbol and the border or bearer bars, in points.
 
 ===== Example
 
@@ -1261,8 +1024,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== borderright
 
-Custom gap between the right edge of the symbol and the border or bearer
-bars, in points.
+Custom gap between the right edge of the symbol and the border or bearer bars, in points.
 
 ===== Example
 
@@ -1276,8 +1038,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== bordertop
 
-Custom gap between the top edge of the symbol and the border or bearer
-bar, in points.
+Custom gap between the top edge of the symbol and the border or bearer bar, in points.
 
 ===== Example
 
@@ -1291,8 +1052,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== borderbottom
 
-Custom gap between the bottom edge of the symbol and the border or
-bearer bar, in points.
+Custom gap between the bottom edge of the symbol and the border or bearer bar, in points.
 
 ===== Example
 
@@ -1306,12 +1066,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === Symbol Colors
 
-Colors can be specified as a hex `RRGGBB` value (RGB) or a hex
-`CCMMYYKK` value (CMYK) or a predefined color name beginning with
-"`++_++`".
+Colors can be specified as a hex `RRGGBB` value (RGB) or a hex `CCMMYYKK` value (CMYK) or a predefined color name beginning with "`++_++`".
 
-For information about advanced use of colors (separations, non-standard
-colour spaces, etc.) read the article on <<_named_colors,named colors>>.
+For information about advanced use of colors (separations, non-standard colour spaces, etc.) read the article on <<_named_colors,named colors>>.
 
 ==== barcolor
 
@@ -1398,13 +1155,11 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === EAN-UPC Add-ons
 
-These options control the appearance of the add-on (supplement) text for
-EAN/UPC barcodes with 2-digit or 5-digit add-ons.
+These options control the appearance of the add-on (supplement) text for EAN/UPC barcodes with 2-digit or 5-digit add-ons.
 
 ==== addongap
 
-The gap between the main barcode and the add-on, in points. Default is
-12.
+The gap between the main barcode and the add-on, in points. Default is 12.
 
 ===== Example
 
@@ -1478,15 +1233,9 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== addondescent
 
-The distance that the add-on bars extend below the baseline, in
-multiples of the X-dimension. Defaults to the value of
-<<_guarddescent,guarddescent>>, so the add-on bars match the primary
-guard bars unless overridden.
+The distance that the add-on bars extend below the baseline, in multiples of the X-dimension. Defaults to the value of <<_guarddescent,guarddescent>>, so the add-on bars match the primary guard bars unless overridden.
 
-Set this to `0` to produce the traditional appearance where the add-on
-bars terminate at the baseline. Set it to a different value from
-`guarddescent` to have the primary guard bars and the add-on bars
-descend by different amounts.
+Set this to `0` to produce the traditional appearance where the add-on bars terminate at the baseline. Set it to a different value from `guarddescent` to have the primary guard bars and the add-on bars descend by different amounts.
 
 ===== Example
 
@@ -1500,15 +1249,11 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 === EAN-UPC Guards
 
-These options control the whitespace guards (quiet zone indicators) for
-EAN/UPC barcodes.
+These options control the whitespace guards (quiet zone indicators) for EAN/UPC barcodes.
 
 ==== guardwhitespace
 
-Display whitespace guards: a `++<++` at the left and a `++>++` at the
-right of the symbol, in its quiet zones, marking how far the light
-margins must extend. They help keep text and graphics clear of the quiet
-zones, which scanners need.
+Display whitespace guards: a `++<++` at the left and a `++>++` at the right of the symbol, in its quiet zones, marking how far the light margins must extend. They help keep text and graphics clear of the quiet zones, which scanners need.
 
 ===== Example
 
@@ -1606,8 +1351,7 @@ image:data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgi
 
 ==== guarddescent
 
-The distance that the guard bars extend below the data bars, in
-multiples of the X-dimension. Default is 5.
+The distance that the guard bars extend below the data bars, in multiples of the X-dimension. Default is 5.
 
 ===== Example
 

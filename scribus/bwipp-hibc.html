@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="robots" content="noindex, nofollow" />
+	<title>HIBC Data Structures</title>
+<style>
+@import "../manual.css"</style>
+</head>
+<body>
+<h3 id="hibc-data-structures">HIBC Data Structures</h3>
+<p>The HIBC symbologies, <a href="bwipp-symbologies.html#hibc-code-39">HIBC Code 39</a>, <a href="bwipp-symbologies.html#hibc-code-128">HIBC Code 128</a>, <a href="bwipp-symbologies.html#hibc-pdf417">HIBC PDF417</a>, <a href="bwipp-symbologies.html#hibc-micropdf417">HIBC MicroPDF417</a>, <a href="bwipp-symbologies.html#hibc-qr-code">HIBC QR Code</a>, <a href="bwipp-symbologies.html#hibc-data-matrix">HIBC Data Matrix</a>, <a href="bwipp-symbologies.html#hibc-codablock-f">HIBC Codablock F</a> and
+<a href="bwipp-symbologies.html#hibc-aztec-code">HIBC Aztec Code</a>,
+carry data in the data structures of the HIBC Supplier Labeling Standard
+(SLS), which identifies products by the Labeler Identification Code
+(LIC) of their supplier, or of the HIBC Provider Applications Standard
+(PAS), which identifies patients, records and items within healthcare
+provider facilities.</p>
+<p>The data is given without the leading <em>+</em> and the check
+character, which the encoders add. They are shown in the examples
+below.</p>
+<h4 id="supplier-labeling-standard">Supplier Labeling Standard</h4>
+<p>Primary data identifies the product. It consists of a four-character
+LIC beginning with a letter, a product or catalogue number of 1 to 18
+digits or capital letters, and a unit of measure digit:</p>
+<pre><code>+A999123457</code></pre>
+<p>Secondary data carries the expiry date and the lot or serial number.
+It begins with one of:</p>
+<ul>
+<li>A five-digit Julian date, <em>YYJJJ</em>, optionally followed by a
+lot number of up to 13 characters.</li>
+<li><code>$</code> followed by a lot number.</li>
+<li><code>$+</code> followed by a serial number.</li>
+<li><code>$$</code>, for a lot number, or <code>$$+</code>, for a serial
+number, followed by a format digit:
+<ul>
+<li><em>0</em> or <em>1</em> is the first digit of the date
+<em>MMYY</em>.</li>
+<li><em>2</em>, <em>3</em>, <em>4</em>, <em>5</em> and <em>6</em> are
+followed by the date <em>MMDDYY</em>, <em>YYMMDD</em>,
+<em>YYMMDDHH</em>, <em>YYJJJ</em> and <em>YYJJJHH</em>
+respectively.</li>
+<li><em>7</em> indicates no date.</li>
+<li><em>8</em> and <em>9</em> are followed by a quantity of two and five
+digits respectively, and then optionally by one of the date
+formats.</li>
+</ul></li>
+</ul>
+<p>A lot or serial number of up to 18 digits, capital letters,
+<code>-</code> and <code>.</code> follows. Secondary data in a symbol of
+its own ends with a link character, the check character of the primary
+data:</p>
+<pre><code>+$$3270630LOT427C</code></pre>
+<p>Primary and secondary data combined in one symbol are separated by
+<code>/</code>, without the <em>+</em> of the secondary data or the link
+character:</p>
+<pre><code>+A99912345/$$3270630LOT42B</code></pre>
+<p>Supplemental data fields follow the secondary data, each introduced
+by <code>/</code> and a Data Identifier:</p>
+<ul>
+<li><em>16D</em> is the date of manufacture, <em>YYYYMMDD</em>.</li>
+<li><em>14D</em> is the expiry date, <em>YYYYMMDD</em>.</li>
+<li><em>S</em> is a serial number of up to 18 characters.</li>
+<li><em>Q</em> is a quantity of up to five digits, and must be the last
+field.</li>
+</ul>
+<pre><code>+A99912345/$$7LOT42/16D20260115/SSN1001N</code></pre>
+<h4 id="provider-applications-standard">Provider Applications
+Standard</h4>
+<p>PAS data begins with <code>/</code> and a flag indicating where the
+data is located, <em>A</em> to <em>L</em>, or <em>Z</em> for a data
+structure that does not conform to the PAS. One or more fields follow,
+separated by <code>/</code>, each a flag indicating what the data is,
+<em>A</em> to <em>V</em>, <em>X</em> or <em>Z</em>, followed by 1 to 15
+digits or capital letters. Fields with flag <em>A</em> are an LIC,
+fields with flag <em>M</em> are a date and time, <em>YYYJJJ</em>
+optionally followed by <em>HHMM</em> and then <em>G</em> for GMT, fields
+with flag <em>U</em> are a nine-character Health Industry Number, and
+the data of fields with flag <em>Z</em> is user defined:</p>
+<pre><code>+/AC4417PQ/V202601150</code></pre>
+<h4 id="hibc-data-structure-linting">HIBC Data Structure Linting</h4>
+<p>The input is checked against the data structures of the SLS and the
+PAS, including the validity of dates and times, unless the
+<strong>dontlint</strong> option is given. Reserved flags, unknown Data
+Identifiers and the split data structures of the PAS are refused. The
+standards are provided by the <a href="https://www.hibcc.org/udi-labeling-standards/barcode-standards/">Health
+Industry Business Communications Council</a>.</p>
+</body>
+</html>
