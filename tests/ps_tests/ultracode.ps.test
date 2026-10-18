@@ -690,3 +690,67 @@
 
 % A Start Character can only be given with raw codewords or revision 1
 (ABC) (start=256 dontdraw) /bwipp.ultracodeStartWithoutRaw er_tmpl
+
+% The link1 flag is set by the encoder unless the codewords are raw
+(ABC) (link1=1 dontdraw) /bwipp.ultracodeLink1WithoutRaw er_tmpl
+(ABC) (rev=1 link1=1 dontdraw) /bwipp.ultracodeLink1WithoutRaw er_tmpl
+
+% Associated Data Carrier: SCR type 70*0 + type, signalled by Link1
+{ (ABC) (adctype=7 debugcws) ultracode } [7 65 66 67] debugIsEqual
+{ (ABC) (adctype=7 dontdraw) ultracode /pixs get } (^007^065^066^067) (raw start=256 link1=1 dontdraw) ultracode /pixs get isEqual
+{ (ABC) (adctype=0 debugcws) ultracode } [0 65 66 67] debugIsEqual
+{ (ABC) (adctype=69 debugcws) ultracode } [69 65 66 67] debugIsEqual
+{ (ABC) (rev=1 adctype=50 debugcws) ultracode } [50 65 66 67] debugIsEqual
+{ (ABC) (adctype=9 debugcws) ultracode } [9 65 66 67] debugIsEqual
+{ (ABC) (adctype=20 debugcws) ultracode } [20 65 66 67] debugIsEqual
+{ (ABC) (adctype=34 debugcws) ultracode } [34 65 66 67] debugIsEqual
+{ (ABC) (adctype=40 debugcws) ultracode } [40 65 66 67] debugIsEqual
+{ (ABC) (adctype=45 debugcws) ultracode } [45 65 66 67] debugIsEqual
+{ (ABC) (adctype=60 debugcws) ultracode } [60 65 66 67] debugIsEqual
+% Reserved by Table 11, or out of range
+(ABC) (adctype=10 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=19 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=35 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=39 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=46 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=49 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=51 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=59 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=70 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+(ABC) (adctype=-2 dontdraw) /bwipp.ultracodeBadADCtype er_tmpl
+% The Symbol Control Region holds one SCR type
+(ABC) (adctype=7 sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeADCwithSAM er_tmpl
+(^065) (adctype=7 raw dontdraw) /bwipp.ultracodeADCwithRaw er_tmpl
+
+% Symbol size: Table 1 Models of 2 to 5 rows, columns D including secondary vertical clock tracks
+{ [ (ABC) (rows=5 dontdraw) ultracode dup /pixx get exch /pixy get ] } [35 31] debugIsEqual
+{ [ (ABC) (columns=21 dontdraw) ultracode dup /pixx get exch /pixy get ] } [27 13] debugIsEqual
+{ [ (ABC) (columns=22 dontdraw) ultracode dup /pixx get exch /pixy get ] } [28 19] debugIsEqual
+{ [ (ABC) (rows=4 columns=22 dontdraw) ultracode dup /pixx get exch /pixy get ] } [28 25] debugIsEqual
+{ [ (ABCDEFGHIJ) (rows=3 columns=13 dontdraw) ultracode dup /pixx get exch /pixy get ] } [19 19] debugIsEqual
+{ [ (ABC) (rows=5 columns=60 dontdraw) ultracode dup /pixx get exch /pixy get ] } [66 31] debugIsEqual
+(ABC) (rows=1 dontdraw) /bwipp.ultracodeInvalidRows er_tmpl
+(ABC) (rows=6 dontdraw) /bwipp.ultracodeInvalidRows er_tmpl
+(ABC) (columns=4 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (columns=61 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (columns=15 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (columns=31 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (columns=47 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (rows=2 columns=22 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (rows=4 columns=21 dontdraw) /bwipp.ultracodeInvalidColumns er_tmpl
+(ABC) (rows=2 columns=5 dontdraw) /bwipp.ultracodeNoValidSymbol er_tmpl
+
+% The error correction level is raised to fill the symbol unless fixedeclevel is given
+{ { (A) (eclevel=EC1 debugecc) ultracode } stopped pop $error /errorinfo get length } 7 isEqual
+{ { (A) (eclevel=EC1 fixedeclevel debugecc) ultracode } stopped pop $error /errorinfo get length } 6 isEqual
+{ { (ABC) (rows=5 debugecc) ultracode } stopped pop $error /errorinfo get length } 13 isEqual
+{ { (ABC) (rows=5 fixedeclevel debugecc) ultracode } stopped pop $error /errorinfo get length } 7 isEqual
+{ { (ABC) (columns=21 debugecc) ultracode } stopped pop $error /errorinfo get length } 13 isEqual
+% Revision 1 keeps the requested level
+{ { (ABC) (rev=1 rows=5 debugecc) ultracode } stopped pop $error /errorinfo get length } 7 isEqual
+
+% Spec modes and dotty rendering with the colour map
+(ABC) (strictspec dontdraw) /bwipp.renderNeedXnom er_tmpl
+{ (ABC) (loosespec dontdraw) ultracode /pixx get } 14 isEqual
+{ 0 0 moveto (ABC) (dotty) ultracode true } true isEqual
+{ 0 0 moveto (ABC) (dotty inkspread=0.3 strictspec xdim=0.5) ultracode true } true isEqual

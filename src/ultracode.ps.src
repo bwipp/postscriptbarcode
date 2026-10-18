@@ -57,11 +57,11 @@ begin
 (setup.define) //ultracode.before exec
 
 /ultracode.metrics [
-    % rows  minc  maxc  mcol
-    [   2     7    37     5  ]
-    [   3    36    84    13  ]
-    [   4    85   161    22  ]
-    [   5   142   282    29  ]
+    % rows  minc  maxc  mcol  maxcol
+    [   2     7    37     5     21  ]
+    [   3    36    84    13     30  ]
+    [   4    85   161    22     43  ]
+    [   5   142   282    29     60  ]
 ] readonly def
 
 /ultracode.tiles [
@@ -242,6 +242,9 @@ begin
 
     /dontdraw false def
     /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
+    /fixedeclevel false def
+    /rows -1 def
+    /columns -1 def
     /parse false def
     /parsefnc false def
     /start -1 def          % Chosen by the encoder; 257 for raw codewords and revision 1
@@ -250,6 +253,7 @@ begin
     /rev 2 def             % Ultracode specification revision
     /sampos -1 def
     /samtotal -1 def
+    /adctype -1 def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -318,6 +322,20 @@ begin
     link1 0 ne link1 1 ne and {
         /bwipp.ultracodeBadLink1 (The link1 flag must be 0 or 1) //raiseerror exec
     } if
+    % Otherwise the encoder writes the Symbol Control Region and sets link1 itself
+    link1 1 eq raw not and {
+        /bwipp.ultracodeLink1WithoutRaw (The link1 flag can only be given with raw codewords) //raiseerror exec
+    } if
+
+    rows -1 ne rows 2 lt rows 5 gt or and {
+        /bwipp.ultracodeInvalidRows (The rows must be from 2 to 5) //raiseerror exec
+    } if
+    columns -1 ne {
+        % Secondary vertical clock tracks are interior columns
+        columns 5 lt columns 60 gt or columns 15 eq or columns 31 eq or columns 47 eq or {
+            /bwipp.ultracodeInvalidColumns (The columns must be from 5 to 60, excluding 15, 31 and 47) //raiseerror exec
+        } if
+    } if
 
     /structapp sampos -1 ne samtotal -1 ne or def
     structapp {
@@ -332,6 +350,24 @@ begin
         } if
         sampos 1 lt sampos samtotal gt or {
             /bwipp.ultracodeBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
+        } if
+    } if
+
+    adctype -1 ne {
+        % Table 11 reserves 10-19, 35-39, 46-49 and 51-59
+        adctype 0 lt adctype 69 gt or
+        adctype 10 ge adctype 19 le and or
+        adctype 35 ge adctype 39 le and or
+        adctype 46 ge adctype 49 le and or
+        adctype 51 ge adctype 59 le and or {
+            /bwipp.ultracodeBadADCtype (The adctype must be an Associated Data Carrier type from Table 11) //raiseerror exec
+        } if
+        % The Symbol Control Region holds one SCR type
+        structapp {
+            /bwipp.ultracodeADCwithSAM (An Associated Data Carrier is not available with Structured Append) //raiseerror exec
+        } if
+        raw {
+            /bwipp.ultracodeADCwithRaw (An Associated Data Carrier is not available with raw codewords) //raiseerror exec
         } if
     } if
 
@@ -422,9 +458,15 @@ begin
         (input.encoding.normal) //ultracode.before exec
 
         %
-        % Symbol control region: a Structured Append Group without a File Number is SCR type 70*2 + 8*(n-1) + (x-1), signalled by Link1
+        % Symbol control region, signalled by Link1: a Structured Append Group without a File Number is SCR type
+        % 70*2 + 8*(n-1) + (x-1), and an Associated Data Carrier without a File Number is SCR type 70*0 + type
         %
-        /scr structapp { [ 140 samtotal 1 sub 8 mul add sampos 1 sub add ] /link1 1 def } { [] } ifelse def
+        /scr
+            structapp { [ 140 samtotal 1 sub 8 mul add sampos 1 sub add ] /link1 1 def } {
+            adctype -1 ne { [ adctype ] /link1 1 def } {
+                []
+            } ifelse } ifelse
+        def
         /scp [] def     % Empty start sequence parameters
 
         rev 1 eq {
@@ -724,48 +766,76 @@ begin
 
     /mcc dcws length 3 add def  % Message codewords: start mcc acc [dcws ...]
 
+    /qccof {  % eclval -> qcc
+        dup 0 ne {
+            //ultracode.qccfact exch get mcc 25 idiv mcc 25 mod 0 ne {1 add} if mul 5 add
+        } {
+            pop 3
+        } ifelse
+    } def
+
+    /capof {  % rows columns -> capacity in codewords, less the secondary vertical clock tracks
+        dup dup 15 ge {1 sub} if
+        1 index 31 ge {1 sub} if
+        exch 47 ge {1 sub} if
+        mul 3 sub
+    } def
+
     /eclval eclevel 2 get 48 sub def
-    eclval 0 ne {
-        /qcc //ultracode.qccfact eclval get mcc 25 idiv mcc 25 mod 0 ne {1 add} if mul 5 add def
-    } {
-        /qcc 3 def
-    } ifelse
-    /acc qcc 3 sub 78 link1 mul add def
-    /tcc mcc qcc add def
+    /tcc mcc eclval qccof add def
 
     %
-    % Lookup the most appropriate symbol specification
+    % The first Model that permits the codewords, or the requested rows, with the fewest columns that fit
     %
+    /userrows rows def
+    /usercols columns def
+    /okay false def
+    /colsvalid usercols -1 eq def
     //ultracode.metrics {
         /m exch def
         /rows m 0 get def
-        /minc m 1 get def  % Minimum permissible codewords
-        /maxc m 2 get def  % Maximum permissible codewords
-        /mcol m 3 get def  % Minimum tile columns
-        /okay true def
-        tcc minc lt tcc maxc gt or {/okay false def} if
+        /minc m 1 get def  % Least codewords for which the Model is chosen automatically
+        /maxc m 2 get def  % Most codewords that the Model permits
+        /mcol m 3 get def  % Least columns, from which the DCC is measured
+        /maxcol m 4 get def
+        userrows -1 eq userrows rows eq or {
+            usercols -1 eq {mcol maxcol} {usercols dup} ifelse  % first last
+            usercols mcol ge usercols maxcol le and {/colsvalid true def} if
+            tcc maxc le
+            userrows -1 eq usercols -1 eq and {tcc minc ge and} if
+            usercols -1 eq usercols mcol ge usercols maxcol le and or and {
+                1 exch {
+                    /columns exch def
+                    columns 15 ne columns 31 ne and columns 47 ne and {
+                        rows columns capof tcc ge {/okay true def exit} if
+                    } if
+                } for
+            } {pop pop} ifelse
+        } if
         okay {exit} if
     } forall
 
+    colsvalid not {
+        /bwipp.ultracodeInvalidColumns (The columns are not available for the requested rows) //raiseerror exec
+    } if
     okay not {
         /bwipp.ultracodeNoValidSymbol (Maximum length exceeded or invalid content) //raiseerror exec
     } if
 
     %
-    % Determine required number of columns and pads
+    % Raise the error correction level to the highest that fits the symbol
     %
-    mcol 1 61 {
-        /columns exch def
-        columns
-        columns 15 ge {1 sub} if
-        columns 31 ge {1 sub} if
-        columns 47 ge {1 sub} if
-        rows mul 3 sub tcc sub dup 0 ge {
-            /pads exch def
-            exit
-        } if
-        pop
-    } for
+    /cap rows columns capof def
+    fixedeclevel not rev 2 eq and {
+        eclval 1 add 1 5 {
+            dup qccof mcc add cap le {/eclval exch def} {pop} ifelse
+        } for
+    } if
+
+    /qcc eclval qccof def
+    /acc qcc 3 sub 78 link1 mul add def
+    /tcc mcc qcc add def
+    /pads cap tcc sub def
     /dcc columns mcol sub def
 
     (metrics.selection) //ultracode.after exec
