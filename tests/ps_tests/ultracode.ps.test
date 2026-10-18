@@ -552,7 +552,7 @@
 2501 string (dontdraw) /bwipp.ultracodeInputTooLong er_tmpl
 
 % Input too long (post-parse guard: any input larger than the absolute symbol capacity)
-{ 277 string 0 1 276 { 1 index exch 49 put } for (dontdraw) ultracode } /bwipp.ultracodeInputTooLong isError
+{ 559 string 0 1 558 { 1 index exch 49 put } for (dontdraw) ultracode } /bwipp.ultracodeInputTooLong isError
 
 % Invalid revision (valid: 1-2)
 (TEST) (rev=0 dontdraw) /bwipp.ultracodeInvalidRevision er_tmpl
@@ -574,7 +574,20 @@
 (^999) (raw dontdraw) /bwipp.ultracodeBadRawCodeword er_tmpl
 
 % Data within absolute bound but exceeding the default eclevel's capacity
-{ 260 string 0 1 259 { 1 index exch 65 put } for (dontdraw) ultracode } /bwipp.ultracodeNoValidSymbol isError
+{ 260 string 0 1 259 { 1 index exch 200 put } for (dontdraw) ultracode } /bwipp.ultracodeNoValidSymbol isError
+
+% Capacity at each eclevel: Max C of Table 14 less the Start Character, MCC and ACC
+/str200 { dup string exch 1 sub 0 1 3 -1 roll { 1 index exch 200 put } for } def  % n -> n bytes of value 200
+{ 263 str200 (dontdraw eclevel=EC1) ultracode /pixs get length 0 gt } true isEqual
+{ 264 str200 (dontdraw eclevel=EC1) ultracode } /bwipp.ultracodeNoValidSymbol isError
+{ 252 str200 (dontdraw eclevel=EC2) ultracode /pixs get length 0 gt } true isEqual
+{ 253 str200 (dontdraw eclevel=EC2) ultracode } /bwipp.ultracodeNoValidSymbol isError
+{ 234 str200 (dontdraw eclevel=EC3) ultracode /pixs get length 0 gt } true isEqual
+{ 235 str200 (dontdraw eclevel=EC3) ultracode } /bwipp.ultracodeNoValidSymbol isError
+{ 220 str200 (dontdraw eclevel=EC4) ultracode /pixs get length 0 gt } true isEqual
+{ 221 str200 (dontdraw eclevel=EC4) ultracode } /bwipp.ultracodeNoValidSymbol isError
+{ 202 str200 (dontdraw eclevel=EC5) ultracode /pixs get length 0 gt } true isEqual
+{ 203 str200 (dontdraw eclevel=EC5) ultracode } /bwipp.ultracodeNoValidSymbol isError
 
 (TEST) (eclevel=EC0 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
 (TEST) (eclevel=EC7 dontdraw) /bwipp.ultracodeInvalidErrorCorrectionLevel er_tmpl
@@ -588,7 +601,7 @@
 {
     (ABC) (sampos=3 samtotal=7 debugcws) ultracode  % SCR parameter 50 for the third of seven, as in the example
 } [190 65 66 67] debugIsEqual
-{ (ABC) (sampos=3 samtotal=7 dontdraw) ultracode /pixs get } (^190^065^066^067) (raw link1=1 dontdraw) ultracode /pixs get isEqual
+{ (ABC) (sampos=3 samtotal=7 dontdraw) ultracode /pixs get } (^190^065^066^067) (raw start=256 link1=1 dontdraw) ultracode /pixs get isEqual
 
 (ABC) (samtotal=2 dontdraw) /bwipp.ultracodeSAMincomplete er_tmpl
 (ABC) (sampos=1 dontdraw) /bwipp.ultracodeSAMincomplete er_tmpl
@@ -598,13 +611,82 @@
 (ABC) (sampos=3 samtotal=2 dontdraw) /bwipp.ultracodeBadSAMpos er_tmpl
 (ABC) (rev=1 eclevel=EC0 sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
 (^065) (raw sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
-(ABC) (start=281 sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMunavailable er_tmpl
 (^FNC101) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMfnc1 er_tmpl
 (A^FNC3) (parsefnc sampos=1 samtotal=2 dontdraw) /bwipp.ultracodeSAMfnc3 er_tmpl
-(Awesome colours) (start=-1 dontdraw) /bwipp.ultracodeBadStart er_tmpl
-(Awesome colours) (start=283 dontdraw) /bwipp.ultracodeBadStart er_tmpl
+(Awesome colours) (raw start=-2 dontdraw) /bwipp.ultracodeBadStart er_tmpl
+(Awesome colours) (raw start=283 dontdraw) /bwipp.ultracodeBadStart er_tmpl
 (Awesome colours) (link1=2 dontdraw) /bwipp.ultracodeBadLink1 er_tmpl
 (Awesome colours) (link1=-1 dontdraw) /bwipp.ultracodeBadLink1 er_tmpl
 
 % FNC1 in second position is not available
 { (^FNC@TABC) (parsefnc dontdraw) ultracode } /bwipp.unknownFNC isError
+
+
+%
+% High-level encodation, ISO/IEC CD 25449:2026
+%
+
+% Figure G.5, same: the Start Character [273] implies the leading FNC1
+{ (^FNC101034531200000111712112510ABCD1234) (parsefnc debugcws) ultracode }
+[129 131 173 159 148 128 128 139 145 140 139 153 138 274 0 45 23 250 162] debugIsEqual
+{ (^FNC101034531200000111712112510ABCD1234) (parsefnc dontdraw) ultracode /pixs get }
+(^129^131^173^159^148^128^128^139^145^140^139^153^138^274^000^045^023^250^162) (raw start=273 dontdraw) ultracode /pixs get isEqual
+
+% Figure G.1, not same: the figure starts in Numeric Submode with [272], whose implied ECI \000003 conflicts with
+% Symbology Identifier ]u0; BWIPP starts with [256] and latches to Numeric Submode, one codeword longer
+% [275 132 248 111 133 92 75 95 140 162 184 206 57 33]
+{ (ULTRACODE_123456789!) (debugcws) ultracode }
+[267 276 132 248 111 133 92 75 267 155 151 173 195 217 33] debugIsEqual
+{ (ULTRACODE_123456789!) (dontdraw) ultracode /pixs get }
+(^267^276^132^248^111^133^092^075^267^155^151^173^195^217^033) (raw start=256 dontdraw) ultracode /pixs get isEqual
+
+% Figure G.2, not same but of equal length: the figure encodes 'A' in C43 and 'H' as a byte, BWIPP the reverse
+% [256 46 151 78 210 205 208 257 5 148 28 72 2 167 72 193 83 75 211 76 65 32 205 256 119 197 85 214]
+{ (HEIMAS^205^208A KENNARAH^193SK^211LA ^205SLANDS) (parse debugcws) ultracode }
+[256 46 151 78 210 205 208 65 257 237 164 87 62 111 138 193 83 75 211 76 65 32 205 256 119 197 85 214] debugIsEqual
+{ (HEIMAS^205^208A KENNARAH^193SK^211LA ^205SLANDS) (parse dontdraw) ultracode /pixs get }
+(^256^046^151^078^210^205^208^065^257^237^164^087^062^111^138^193^083^075^211^076^065^032^205^256^119^197^085^214) (raw start=256 dontdraw) ultracode /pixs get isEqual
+
+% The Start Character is always [256]
+{ (123456) (debugcws) ultracode } [267 140 162 184] debugIsEqual
+{ (123456) (dontdraw) ultracode /pixs get } (^267^140^162^184) (raw start=256 dontdraw) ultracode /pixs get isEqual
+{ (123456) (sampos=1 samtotal=2 debugcws) ultracode } [148 267 140 162 184] debugIsEqual
+
+% Numeric Submode, C43 groups from it and from Primary Mode, a mid-message FNC1
+{ (Item 12345, Lot ab-77/Q) (debugcws) ultracode }
+[73 116 101 109 260 240 73 194 234 272 44 78 34 130 227 0 81 260 243 266 125] debugIsEqual
+{ (https://example.com/abc?x=1) (debugcws) ultracode }
+[104 266 127 149 122 23 177 204 1 249 72 244 15 82 177 10 17 131 222 117] debugIsEqual
+{ (^FNC10109521234543213^FNC110ABC) (parsefnc debugcws) ultracode }
+[129 137 180 140 162 182 160 141 272 138 65 66 67] debugIsEqual
+
+% URL fragments are encoded character by character, since a Set 3 macro disables ECI transmission and Structured Append
+{ (https://www.example.com/index.html) (debugcws) ultracode }
+[104 266 127 149 122 23 180 131 149 255 150 239 100 12 242 269 82 233 85 200 156 133 126 126] debugIsEqual
+
+% An ISO/IEC 15434 Format 06 message: [270] in the first data position, from Primary Mode
+{ ([\)>^03006^029ABC123^030^004) (parse debugcws) ultracode } [270 256 0 45 181 114] debugIsEqual
+{ ([\)>^03006^029ABC123^030^004) (parse dontdraw) ultracode /pixs get }
+(^270^256^000^045^181^114) (raw start=256 dontdraw) ultracode /pixs get isEqual
+% but not in a Structured Append group
+{ ([\)>^03006^029A^030^004) (parse sampos=1 samtotal=2 debugcws) ultracode } [148 91 41 62 30 48 54 29 65 30 4] debugIsEqual
+
+% ECI and FNC3 in Primary Mode
+{ (^ECI000026A) (parsefnc debugcws) ultracode } [273 154 65] debugIsEqual
+
+% Compaction applies to byte values whatever ECI is in effect
+{ (^ECI000026ABCDEFGHIJ0123456789) (parsefnc debugcws) ultracode }
+[273 154 267 276 0 45 20 84 40 123 63 20 151 173 195 217] debugIsEqual
+{ (abc^ECI000007defghi) (parsefnc debugcws) ultracode } [97 98 99 273 135 262 20 84 40 123] debugIsEqual
+{ (^FNC3ABC) (parsefnc debugcws) ultracode } [269 65 66 67] debugIsEqual
+(^ECI811800A) (parsefnc dontdraw) /bwipp.ultracodeBadECI er_tmpl
+(^FNC101^ECI000026A) (parsefnc dontdraw) /bwipp.ultracodeECIwithFNC1 er_tmpl
+
+% FNC1 in second position has no defined transmission
+(A^FNC1BC) (parsefnc dontdraw) /bwipp.ultracodeFNC1secondPosition er_tmpl
+
+% Revision 1 uses Start Character [257] without compaction
+{ (ABC123) (rev=1 debugcws) ultracode } [65 66 67 49 50 51] debugIsEqual
+
+% A Start Character can only be given with raw codewords or revision 1
+(ABC) (start=256 dontdraw) /bwipp.ultracodeStartWithoutRaw er_tmpl

@@ -135,7 +135,13 @@ begin
 
 /ultracode.qccfact [ 0 1 2 4 6 8 ] readonly def
 
-/ultracode.latevars dup 4 dict def load /init {
+/ultracode.c43set1 (ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .%) readonly def
+/ultracode.c43set2 (abcdefghijklmnopqrstuvwxyz:/?#[]@=_&!.-) readonly def
+/ultracode.head06 <5b293e1e30361d> readonly def  % [)> RS 06 GS
+/ultracode.tail06 <1e04> readonly def            % RS EOT
+/ultracode.c43set3 <ffffffffffffffffffffffffffffffffffffff7b7d2c28295e2a60222b273c3e7c243b7e5cffffffffffff> readonly def
+
+/ultracode.latevars dup 8 dict def load /init {
 
     (setup.latevars) //ultracode.before exec
 
@@ -148,6 +154,17 @@ begin
     /rslog 283 array def
     1 1 282 {dup rsalog exch get exch rslog 3 1 roll put} for
     /rslog rslog readonly def
+
+    % C43 value of each byte in Sets 1, 2 and 3, or 255
+    [ //ultracode.c43set1 //ultracode.c43set2 //ultracode.c43set3 ] {
+        256 string dup 0 1 255 {255 put dup} for pop
+        exch 0 1 2 index length 1 sub {
+            2 copy get dup 128 lt {  % lookup set k c
+                exch 3 index 3 1 roll put
+            } {pop pop} ifelse
+        } for pop readonly
+    } forall
+    /c43v3 exch def /c43v2 exch def /c43v1 exch def
 
     /init { //ultracode.latevars {def} forall } def
 
@@ -227,7 +244,7 @@ begin
     /eclevel (EC2) def     % EC1-EC5, and EC0 for rev 1
     /parse false def
     /parsefnc false def
-    /start 257 def         % 8-bit ISO-8859-1, until we write high-level encoders
+    /start -1 def          % Chosen by the encoder; 257 for raw codewords and revision 1
     /link1 0 def
     /raw false def
     /rev 2 def             % Ultracode specification revision
@@ -288,17 +305,24 @@ begin
         /bwipp.ultracodeInvalidErrorCorrectionLevel (Valid error correction levels are EC1 to EC5, and EC0 for legacy revision 1) //raiseerror exec
     } if
 
-    start 0 lt start 282 gt or {
-        /bwipp.ultracodeBadStart (The start character must be a codeword from 0 to 282) //raiseerror exec
-    } if
+    start -1 ne {
+        start 0 lt start 282 gt or {
+            /bwipp.ultracodeBadStart (The start character must be a codeword from 0 to 282) //raiseerror exec
+        } if
+        raw not rev 2 eq and {
+            /bwipp.ultracodeStartWithoutRaw (The start character can only be given with raw codewords or revision 1) //raiseerror exec
+        } if
+    } {
+        rev 1 eq raw or {/start 257 def} if
+    } ifelse
     link1 0 ne link1 1 ne and {
         /bwipp.ultracodeBadLink1 (The link1 flag must be 0 or 1) //raiseerror exec
     } if
 
     /structapp sampos -1 ne samtotal -1 ne or def
     structapp {
-        rev 1 eq raw or start 281 eq or {
-            /bwipp.ultracodeSAMunavailable (Structured Append is not available for revision 1, raw codewords or the URL Start Character) //raiseerror exec
+        rev 1 eq raw or {
+            /bwipp.ultracodeSAMunavailable (Structured Append is not available for revision 1 or raw codewords) //raiseerror exec
         } if
         sampos -1 eq samtotal -1 eq or {
             /bwipp.ultracodeSAMincomplete (Structured Append requires sampos and samtotal) //raiseerror exec
@@ -349,6 +373,7 @@ begin
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
+            rev 2 eq {/eci true} if
             (FNC1) fn1
             (FNC3) fn3
         >> def
@@ -366,8 +391,29 @@ begin
             } forall
         } if
 
-        % Absolute capacity at rev=1 eclevel=EC0.
-        msglen 276 gt {
+        msg {
+            -1000000 exch sub 811799 gt {
+                /bwipp.ultracodeBadECI (Ultracode supports ECIs up to 811799) //raiseerror exec
+            } if
+        } forall
+
+        rev 2 eq {
+            % ECIs are not transmitted from GS1 symbols
+            msglen 0 gt { msg 0 get fn1 eq } { false } ifelse {
+                msg {
+                    -1000000 le {
+                        /bwipp.ultracodeECIwithFNC1 (ECIs are not available with FNC1 in first position) //raiseerror exec
+                    } if
+                } forall
+            } if
+            % FNC1 in second position has no defined transmission
+            msglen 1 gt { msg 0 get fn1 ne msg 1 get fn1 eq and } { false } ifelse {
+                /bwipp.ultracodeFNC1secondPosition (FNC1 is not available in the second data position) //raiseerror exec
+            } if
+        } if
+
+        % Most characters that 279 data codewords can carry, at two digits per codeword
+        msglen 558 gt {
             /bwipp.ultracodeInputTooLong (The input data is too long) //raiseerror exec
         } if
 
@@ -380,16 +426,293 @@ begin
         %
         /scr structapp { [ 140 samtotal 1 sub 8 mul add sampos 1 sub add ] /link1 1 def } { [] } ifelse def
         /scp [] def     % Empty start sequence parameters
+
+        rev 1 eq {
+
+            /cws [
+                msg {
+                    dup fn1 eq {pop 268} if
+                    dup fn3 eq {pop 269} if
+                } forall
+            ] def
+
+        } {
+
+            %
+            % Shortest encodation over Primary Mode (P), Numeric Submode (N) and
+            % variable-length C43 groups, as states carrying the calling mode,
+            % the C43 set and the count of C43 values modulo 3. Costs are in
+            % thirds of a codeword: a codeword costs 3 and a C43 value 2.
+            %
+            % Back pointers hold [i state event], an event being one of:
+            %   [0 codewords] [1 opcode] [2 c43values] [3 pads exit] [4 opcode c43values size]
+            %
+            /ns 14 def
+            /inf 99999999 def
+            /dpcost msglen 1 add ns mul array def
+            0 1 dpcost length 1 sub {dpcost exch inf put} for
+            /dpback msglen 1 add ns mul array def
+
+            /relax {  % j t c i s event
+                /ev exch def /rs exch def /ri exch def /rc exch def
+                exch ns mul add /ridx exch def
+                rc dpcost ridx get lt {
+                    dpcost ridx rc put
+                    dpback ridx [ri rs ev] put
+                } if
+            } def
+
+            /cst { exch 1 sub 3 mul add exch 6 mul add 2 add } def  % caller set r -> state
+
+            /c43val {  % b set -> v or 255
+                1 index dup 0 lt exch 127 gt or {pop pop 255} {
+                    dup 1 eq {pop c43v1} {2 eq {c43v2} {c43v3} ifelse} ifelse exch get
+                } ifelse
+            } def
+
+            /isdigit { dup 48 ge exch 57 le and } def
+
+            % An ISO/IEC 15434 Format 06 message in a single symbol: [270] in the first data position
+            /mac06 false def
+            structapp not msglen 9 ge and {
+                /mac06 true def
+                0 1 6 { dup msg exch get exch //ultracode.head06 exch get ne {/mac06 false def} if } for
+                0 1 1 { dup msg exch msglen 2 sub add get exch //ultracode.tail06 exch get ne {/mac06 false def} if } for
+            } if
+            mac06 {
+                /msg msg 7 msglen 9 sub getinterval def
+                /msglen msg length def
+            } if
+
+            /gs1 msglen 0 gt mac06 not and { msg 0 get fn1 eq } { false } ifelse def
+            gs1 {
+                dpcost 1 ns mul 1 add 0 put
+            } {
+                dpcost 0 0 put
+            } ifelse
+
+            0 1 msglen {
+                /i exch def
+                /atend i msglen eq def
+                /row i ns mul def
+
+                % Exit variable C43 groups to the caller after whole triplets with [282], or padded at the end
+                0 1 1 { /caller exch def
+                    1 1 2 { /set exch def
+                        0 1 2 { /r exch def
+                            caller set r cst /t exch def
+                            dpcost row t add get dup inf lt r 0 eq atend or and {
+                                3 r sub 3 mod /pad exch def
+                                pad 2 mul add atend {0} {3} ifelse add
+                                i caller 3 -1 roll i t [3 pad atend not] relax
+                            } {pop} ifelse
+                        } for
+                    } for
+                } for
+
+                atend not {
+
+                    /cp dpcost row get def
+                    /cn dpcost row 1 add get def
+                    i 1 cp 3 add i 0 [0 [267]] relax
+                    i 0 cn 3 add i 1 [0 [282]] relax
+                    /cp dpcost row get def
+                    /cn dpcost row 1 add get def
+                    i 0 1 0 cst cp 3 add i 0 [1 260] relax
+                    i 0 2 0 cst cp 3 add i 0 [1 266] relax
+                    i 1 1 0 cst cn 3 add i 1 [1 278] relax
+
+                    /b msg i get def
+
+                    % Primary Mode
+                    cp inf lt {
+                        b 0 ge {
+                            i 1 add 0 cp 3 add i 0 [0 [b]] relax
+                        } {
+                        b fn1 eq {
+                            i 1 add 0 cp 3 add i 0 [0 [268]] relax
+                        } {
+                        b fn3 eq {
+                            i 1 add 0 cp 3 add i 0 [0 [269]] relax
+                        } {
+                            /e -1000000 b sub def  % ECI as digit pairs after [273], [274] or [275]
+                            /e [
+                                e 100 lt {273} {e 10000 lt {274} {275 e 10000 idiv 128 add} ifelse e 100 idiv 100 mod 128 add} ifelse
+                                e 100 mod 128 add
+                            ] def
+                            i 1 add 0 cp e length 3 mul add i 0 [0 e] relax
+                        } ifelse
+                        } ifelse
+                        } ifelse
+                    } if
+
+                    % Numeric Submode
+                    cn inf lt {
+                        b 0 ge b 127 le and {
+                            i 1 add 1 cn 3 add i 1 [0 [b]] relax
+                        } if
+                        i 1 add msglen lt {
+                            b isdigit msg i 1 add get isdigit and {
+                                i 2 add 1 cn 3 add i 1 [0 [b 48 sub 10 mul msg i 1 add get 48 sub add 128 add]] relax
+                            } if
+                        } if
+                        b fn1 eq {
+                            i 1 add 1 cn 3 add i 1 [0 [272]] relax
+                        } if
+                    } if
+
+                    % Variable-length C43 groups
+                    0 1 1 { /caller exch def
+                        1 1 2 { /set exch def
+                            /oset 3 set sub def
+                            0 1 2 { /r exch def
+                                caller set r cst /t exch def
+                                /c dpcost row t add get def
+                                c inf lt {
+                                    /r1 r 1 add 3 mod def
+                                    /r2 r 2 add 3 mod def
+                                    /v b set c43val def
+                                    v 255 ne {
+                                        i 1 add caller set r1 cst c 2 add i t [2 [v]] relax
+                                    } if
+                                    /v b oset c43val def
+                                    v 255 ne {
+                                        i 1 add caller set r2 cst c 4 add i t [2 [40 v]] relax
+                                        i 1 add caller oset r2 cst c 4 add i t [2 [39 v]] relax
+                                    } if
+                                    /v b 3 c43val def
+                                    v 255 ne {
+                                        i 1 add caller set r2 cst c 4 add i t [2 [41 v]] relax
+                                    } if
+                                } if
+                            } for
+                        } for
+                    } for
+
+                    % Fixed-length C43 groups of 6, 9, 12 or 15 values need no exit codeword
+                    [ [0 1 256] [0 2 262] [1 1 274] ] {
+                        aload pop /base exch def /set exch def /caller exch def
+                        /c dpcost row caller add get def
+                        c inf lt {
+                            /fwin msglen i sub 1 add def
+                            /fpos fwin array def
+                            /fput {  % pos set r count values
+                                /fv exch def /fc exch def
+                                exch 1 sub 3 mul add /fk exch def
+                                /fp exch i sub def
+                                fpos fp get null eq {fpos fp 6 array put} if
+                                fpos fp get fk get dup null eq {pop true} {0 get fc gt} ifelse {
+                                    fpos fp get fk [fc fv] put
+                                } if
+                            } def
+                            i set 0 0 [] fput
+                            0 1 fwin 1 sub { /fp0 exch def
+                                /fst fpos fp0 get def
+                                fst null ne {
+                                    /j i fp0 add def
+                                    fp0 0 gt {
+                                        /best null def
+                                        fst {
+                                            dup null ne {
+                                                best null eq {/best exch def} {
+                                                    dup 0 get best 0 get lt {/best exch def} {pop} ifelse
+                                                } ifelse
+                                            } {pop} ifelse
+                                        } forall
+                                        /size best 0 get 2 add 3 idiv 3 mul dup 6 lt {pop 6} if def
+                                        j caller c 3 add size 2 mul add i caller [4 base size 3 idiv 2 sub add best 1 get size] relax
+                                    } if
+                                    j msglen lt {
+                                        /bj msg j get def
+                                        0 1 5 { /k exch def
+                                            fst k get dup null ne {
+                                                aload pop /fvals exch def /fcnt exch def
+                                                fcnt 15 lt {
+                                                    /fs k 3 idiv 1 add def /fr k 3 mod def
+                                                    /fother 3 fs sub def
+                                                    /v bj fs c43val def
+                                                    v 255 ne {
+                                                        j 1 add fs fr 1 add 3 mod fcnt 1 add [fvals aload pop v] fput
+                                                    } if
+                                                    fcnt 14 lt {
+                                                        /v bj fother c43val def
+                                                        v 255 ne {
+                                                            j 1 add fs fr 2 add 3 mod fcnt 2 add [fvals aload pop 40 v] fput
+                                                            j 1 add fother fr 2 add 3 mod fcnt 2 add [fvals aload pop 39 v] fput
+                                                        } if
+                                                        /v bj 3 c43val def
+                                                        v 255 ne {
+                                                            j 1 add fs fr 2 add 3 mod fcnt 2 add [fvals aload pop 41 v] fput
+                                                        } if
+                                                    } if
+                                                } if
+                                            } {pop} ifelse
+                                        } for
+                                    } if
+                                } if
+                            } for
+                        } if
+                    } forall
+
+                } if
+
+            } for
+
+            %
+            % Trace back
+            %
+            /t dpcost msglen ns mul get dpcost msglen ns mul 1 add get le {0} {1} ifelse def
+            /i msglen def
+            /evs [
+                { % loop
+                    dpback i ns mul t add get dup null eq {pop exit} if
+                    aload pop /e exch def /t exch def /i exch def
+                    e
+                } loop
+            ] def
+            /start gs1 {273} {t 0 eq {256} {272} ifelse} ifelse def
+
+            /pack {  % c43values -> codewords
+                [ exch 0 3 2 index length 1 sub {
+                    1 index exch 3 getinterval aload pop
+                    exch 43 mul add exch 1849 mul add
+                    dup 282 idiv exch 282 mod
+                    3 -1 roll
+                } for pop ]
+            } def
+
+            /cws [
+                mac06 {270} if
+                /vals null def
+                evs length 1 sub -1 0 {
+                    evs exch get /ev exch def
+                    ev 0 get
+                    dup 0 eq {pop ev 1 get aload pop} {
+                    dup 1 eq {pop ev 1 get /vals [] def} {
+                    dup 2 eq {pop /vals [vals aload pop ev 1 get aload pop] def} {
+                    dup 3 eq {pop
+                        [vals aload pop ev 1 get {42} repeat] pack aload pop
+                        ev 2 get {282} if
+                        /vals null def
+                    } {pop
+                        ev 1 get
+                        [ev 2 get aload pop ev 3 get ev 2 get length sub {42} repeat] pack aload pop
+                    } ifelse
+                    } ifelse
+                    } ifelse
+                    } ifelse
+                } for
+            ] def
+
+        } ifelse
+
         /dcws [
             scr aload pop
             scp aload pop
-            msg {
-                dup fn1 eq {pop 268} if
-                dup fn3 eq {pop 269} if
-            } forall
+            cws aload pop
         ] def
 
-        (input.encoding.normal) //ultracode.before exec
+        (input.encoding.normal) //ultracode.after exec
 
     } ifelse
 
