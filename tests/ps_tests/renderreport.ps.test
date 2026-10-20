@@ -75,6 +75,40 @@
 % MaxiCode grid-fitted at 300 DPI: 0.880mm -> 10.39 px, X=10, eff=0.8467; Y=round(10*sqrt(3)/2)=9 px, 0.7620
 { (This is MaxiCode) (strictspec gridfit griddpi=300) /maxicode report } [/xdim 8467 /xmax 9310 /xmin 8280 /ydim 7620] isEqual
 
+% The factors that grid-fitting applies, x and y, to 4 decimal places
+/gridscale {  % data options encoder => [ x y ] or null
+    10 dict begin /uk.co.terryburton.bwipp.report 10 dict def
+    gsave 0 0 moveto /uk.co.terryburton.bwipp findresource exec grestore
+    uk.co.terryburton.bwipp.report /gridscale known {
+        [ uk.co.terryburton.bwipp.report /gridscale get { 10000 mul round cvi } forall ]
+    } { null } ifelse
+    end
+} def
+
+% 0.264mm -> 3.118 px at 300 DPI, below xmin at 3, so 4: eff 0.3387; the bar height scales with x
+{ (9520123456788) (strictspec ast=gs1.sst1 mag=0.8 gridfit griddpi=300) /ean13 gridscale } [12828 12828] isEqual
+
+% Dividing by the factors recovers the specification's dimensions
+{
+    10 dict begin /uk.co.terryburton.bwipp.report 10 dict def
+    gsave 0 0 moveto (9520123456788) (strictspec ast=gs1.sst1 mag=0.8 gridfit griddpi=300) /ean13 /uk.co.terryburton.bwipp findresource exec grestore
+    uk.co.terryburton.bwipp.report begin
+    [ xdim gridscale 0 get div hdim gridscale 1 get div hnom gridscale 1 get div ] { 10000 mul round cvi } forall 3 array astore
+    end end
+} [2640 182800 182800] isEqual
+
+% Matrix: 0.500mm -> 12 px at 600 DPI
+{ (Hello) (strictspec xdim=0.500 gridfit griddpi=600) /qrcode gridscale } [10160 10160] isEqual
+
+% MaxiCode: the module pitch and the row pitch snap separately
+{ (This is MaxiCode) (strictspec gridfit griddpi=300) /maxicode gridscale } [9621 9999] isEqual
+
+% No grid-fitting, grid-fitting without a specification, or loosespec dropping out: no factors
+{ (9520123456788) (strictspec ast=gs1.sst1 mag=0.8) /ean13 gridscale } null isEqual
+{ (9520123456788) (gridfit griddpi=300) /ean13 gridscale } null isEqual
+{ (This is MaxiCode) (gridfit griddpi=300) /maxicode gridscale } null isEqual
+{ (Hello) (loosespec gridfit griddpi=300) /code128 gridscale } null isEqual
+
 % loosespec drops out of the physical specification: the error that strictspec would raise
 { (Hello) (loosespec) /code128 report } [/fallback /bwipp.renderNeedXnom] isEqual
 { (9520123456788) (loosespec width=2) /ean13 report } [/fallback /bwipp.renderStrictspecDimOverride] isEqual
@@ -95,6 +129,16 @@
     uk.co.terryburton.bwipp.report dup /xdim get 10000 mul round cvi exch /ydim get 10000 mul round cvi 2 array astore
     end grestore
 } [3168 3600] isEqual
+
+% The same, the factors applied to x and y: 4/4.167 and 5/4.583
+{
+    gsave 0 0 moveto 1 1.1 scale
+    10 dict begin /loosespec false def /griddpi 300 def
+    /uk.co.terryburton.bwipp.report 2 dict def
+    1 0.330 0.264 0.660 false true /gridfit render pop
+    [ uk.co.terryburton.bwipp.report /gridscale get { 10000 mul round cvi } forall ]
+    end grestore
+} [9600 10909] isEqual
 
 % gridfit without a specification records nothing
 {

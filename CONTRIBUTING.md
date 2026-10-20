@@ -840,9 +840,13 @@ is not found, `default` silently passes; non-default profiles error.
   does nothing. Renderers record `xdim`, `ydim` (matrix) or `hdim` (linear),
   `xmin` and `xmax` in mm as they apply the strictspec scale; `gridfit`
   replaces `xdim` with the snapped value and rescales the caller's vertical
-  keys. `resolve_strictspec` records `hnom` (`hnom * mag`, in mm) where it
-  derives a linear encoder's default `hdim`, so that a user `hdim` below it
-  shows truncation; wrappers leave this to the encoder that they wrap.
+  keys, recording the factors as `gridscale`, an array of the X and Y
+  factors (the bar height scales with X; the module height and MaxiCode's
+  row pitch snap separately), so that dividing by them recovers the
+  specification's values. `resolve_strictspec` records `hnom` (`hnom *
+  mag`, in mm) where it derives a linear encoder's default `hdim`, so that
+  a user `hdim` below it shows truncation; wrappers leave this to the
+  encoder that they wrap.
   `resolve_strictspec` (and `renmatrix`, for `width`/`height`) record
   `fallback` and `fallbackmsg`, the name and message of the error that
   loosespec suppressed when it drops out of spec mode.

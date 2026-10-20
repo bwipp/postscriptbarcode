@@ -801,8 +801,11 @@ begin
 %  asks by putting a dictionary named uk.co.terryburton.bwipp.report where the
 %  renderer finds it on the dictionary stack. In a physical specification mode
 %  a renderer records the dimensions of the specification as it scales to
-%  them, and grid-fitting rescales them to its whole device pixels. The
-%  dimensions assume that the caller has not scaled the coordinate system.
+%  them, and grid-fitting rescales them to its whole device pixels, recording
+%  as /gridscale the factors applied to the X-dimension and to the module
+%  height or row pitch, or to the bar height, which scales with the
+%  X-dimension. The dimensions assume that the caller has not scaled the
+%  coordinate system.
 %  When loosespec drops out of the physical specification, /fallback is the
 %  error that strictspec would have raised and /fallbackmsg its message. An encoder that adds a check
 %  digit on the user's behalf, to complete a short input or for includecheck,
@@ -1103,6 +1106,7 @@ begin
         } { dup } ifelse
 
         xdim 0 ne {  % The module height snaps independently; bar heights snap with x
+            2 copy 2 array astore /gridscale exch //render.report exec
             snapy {
                 /ydim 1 index //render.reportscale exec
             } {
