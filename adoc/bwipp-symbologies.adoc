@@ -4556,12 +4556,22 @@ Standards: AIM ISS - Ultracode, ISO/IEC CD 25449.
 ** `eclevel=EC3`
 ** `eclevel=EC4`
 ** `eclevel=EC5` - Highest
+* The *fixedeclevel* option will prevent the error correction level from being opportunistically raised when a better fit to the current symbol is possible.
 * _Deprecated_: `eclevel=EC0`, error detection only, is accepted only with *rev=1*, the legacy revision.
+* The *rows* and *columns* options are used to specify the size of the symbol:
+** *rows* is the number of rows of tiles, from 2 to 5.
+** *columns* is the number of data columns, including the secondary vertical clock tracks, which are columns 15, 31 and 47. Valid ranges are 5 to 21 for 2 rows, 13 to 30 for 3 rows, 22 to 43 for 4 rows and 29 to 60 for 5 rows.
+** If *rows* and *columns* are unspecified the encoder will default to creating the smallest symbol that holds the data.
+* The *adctype* option links the symbol to an Associated Data Carrier that holds the remaining data, such as `adctype=8` for a secure website URL or `adctype=20` for an RFID transponder. The value is a type from ISO/IEC CD 25449 Table 11, from 0 to 69, excluding the reserved values. It is not available with Structured Append.
 * The *sampos* and *samtotal* options make the symbol one of a Structured Append Group of 2 to 8 symbols, which a reader reassembles into a single message. Both are required:
 ** *sampos* is the position of the symbol in the group, from 1 to *samtotal*.
 ** *samtotal* is the number of symbols in the group.
 ** The optional File Number of a Structured Append Group is not supported.
 ** Structured Append is not available for revision 1 symbols, with FNC1 in first position, with FNC3 or with the *raw* option.
+* The *raw* option denotes that the data field is providing the input as pre-encoded codewords in `^NNN` format, suitable for direct low-level encoding:
+** The *start* option gives the Start Character, 257 by default. It is also accepted with *rev=1*.
+** The *link1* option signals that the codewords begin with a Symbol Control Region.
+* The *rev* option selects the revision of the specification: `rev=2`, the default, is ISO/IEC CD 25449; `rev=1` is the legacy AIM Ultracode 2016, which encodes the data without compaction.
 
 ===== Examples
 

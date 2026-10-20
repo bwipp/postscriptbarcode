@@ -5253,8 +5253,30 @@ correction level:
 <li><code>eclevel=EC4</code></li>
 <li><code>eclevel=EC5</code> - Highest</li>
 </ul></li>
+<li>The <strong>fixedeclevel</strong> option will prevent the error
+correction level from being opportunistically raised when a better fit
+to the current symbol is possible.</li>
 <li><em>Deprecated</em>: <code>eclevel=EC0</code>, error detection only,
 is accepted only with <strong>rev=1</strong>, the legacy revision.</li>
+<li>The <strong>rows</strong> and <strong>columns</strong> options are
+used to specify the size of the symbol:
+<ul>
+<li><strong>rows</strong> is the number of rows of tiles, from 2 to
+5.</li>
+<li><strong>columns</strong> is the number of data columns, including
+the secondary vertical clock tracks, which are columns 15, 31 and 47.
+Valid ranges are 5 to 21 for 2 rows, 13 to 30 for 3 rows, 22 to 43 for 4
+rows and 29 to 60 for 5 rows.</li>
+<li>If <strong>rows</strong> and <strong>columns</strong> are
+unspecified the encoder will default to creating the smallest symbol
+that holds the data.</li>
+</ul></li>
+<li>The <strong>adctype</strong> option links the symbol to an
+Associated Data Carrier that holds the remaining data, such as
+<code>adctype=8</code> for a secure website URL or
+<code>adctype=20</code> for an RFID transponder. The value is a type
+from ISO/IEC CD 25449 Table 11, from 0 to 69, excluding the reserved
+values. It is not available with Structured Append.</li>
 <li>The <strong>sampos</strong> and <strong>samtotal</strong> options
 make the symbol one of a Structured Append Group of 2 to 8 symbols,
 which a reader reassembles into a single message. Both are required:
@@ -5269,6 +5291,19 @@ supported.</li>
 in first position, with FNC3 or with the <strong>raw</strong>
 option.</li>
 </ul></li>
+<li>The <strong>raw</strong> option denotes that the data field is
+providing the input as pre-encoded codewords in <code>^NNN</code>
+format, suitable for direct low-level encoding:
+<ul>
+<li>The <strong>start</strong> option gives the Start Character, 257 by
+default. It is also accepted with <strong>rev=1</strong>.</li>
+<li>The <strong>link1</strong> option signals that the codewords begin
+with a Symbol Control Region.</li>
+</ul></li>
+<li>The <strong>rev</strong> option selects the revision of the
+specification: <code>rev=2</code>, the default, is ISO/IEC CD 25449;
+<code>rev=1</code> is the legacy AIM Ultracode 2016, which encodes the
+data without compaction.</li>
 </ul>
 <h4 id="examples-81">Examples</h4>
 <p>A symbol with increased error correction:</p>
