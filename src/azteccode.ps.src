@@ -411,6 +411,9 @@ begin
         /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
     def
 
+    % Set by aztecmesas, which lays out the codewords of its own symbol sizes
+    /mesa /uk.co.terryburton.bwipp._aztecmesa dup where {exch get} {pop null} ifelse def
+
     /modunit 2 def
     /uk.co.terryburton.bwipp.global_ctx dup where {
         exch get /default_modunit 2 copy known {get /modunit exch def} {pop pop} ifelse
@@ -1069,7 +1072,7 @@ begin
     % Lookup the most appropriate symbol specification
     %
     /stuffedbpcw -1 def
-    //azteccode.metrics {
+    mesa null eq {//azteccode.metrics} {mesa /metrics get} ifelse {
         /m exch def
         /frmt m 0 get def                          % Format of the symbol
         /mlyr m 1 get def                          % Data layers
@@ -1080,6 +1083,7 @@ begin
         msgbits length 0 eq {/numecw 0 def} if     % Error correction codewords
         /numdcw ncws numecw sub def                % Data codewords
         frmt (compact) eq numdcw 64 gt and {/numdcw 64 def} if  % Compact mode message counts at most 64
+        mesa null ne { numdcw mesa /maxdcw get gt { /numdcw mesa /maxdcw get def } if } if  % The Mesa Mode Message counts at most maxdcw
         /okay true def
         format frmt ne {/okay false def} if
         readerinit icap 1 ne and {/okay false def} if
@@ -1140,6 +1144,7 @@ begin
     format (full) eq {
         /mode layers 1 sub 11 bitshift cws length 1 sub add def
         readerinit {/mode mode 2#0000010000000000 or def} if
+        mesa null ne {/mode mode mesa /modeflags get or def} if
         /mode [
             mode 2#1111000000000000 and -12 bitshift
             mode 2#0000111100000000 and -8 bitshift
@@ -1183,177 +1188,184 @@ begin
     and { /bwipp.debugecc ecws //raiseerror exec } if
 
     /cws [ cws aload pop ecws aload pop ] def
-    format (full) eq {
-        /databits layers layers mul 16 mul layers 112 mul add string def
+
+    mesa null ne {
+        << /layers layers /bpcw bpcw /cws cws /modebits modebits >>
     } {
-        /databits layers layers mul 16 mul layers 88 mul add string def
-    } ifelse
-    0 1 databits length 1 sub {databits exch (0) putinterval} for
-    0 1 ncws 1 sub {
-        /i exch def
-        databits cws i get 2 bpcw string cvrs
-        dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add
-        exch putinterval
-    } for
 
-    (matrix.layout) //azteccode.before exec
-
-    %
-    % Move to a point in the cartesian plane centered on the bullseye
-    %
-    /cmv {size mul sub mid add} def
-
-    %
-    % Move to a bit position within a layer
-    %
-    /lmv {
-        /lbit exch def
-        /llyr exch def
-        /lwid fw llyr 4 mul add def
-        /ldir lbit 2 idiv lwid idiv def
-        ldir 0 eq {  % Top
-            lwid 1 sub 2 idiv neg 1 add lbit 2 idiv lwid mod add
-            fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add
-            cmv
-        } if
-        ldir 1 eq {  % Right
-            fw 2 idiv llyr 2 mul add lbit 2 mod add
-            lwid 1 sub 2 idiv 1 sub lbit 2 idiv lwid mod sub
-            cmv
-        } if
-        ldir 2 eq {  % Bottom
-            lwid 2 idiv neg 1 add lbit 2 idiv lwid mod add neg
-            fw 2 idiv llyr 2 mul add lbit 2 mod add neg
-            cmv
-        } if
-        ldir 3 eq {  % Left
-            fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add neg
-            lwid 2 idiv 1 sub lbit 2 idiv lwid mod sub neg
-            cmv
-        } if
-    } def
-
-    %
-    % Create the pixel map
-    %
-    % For full symbols we disregard the reference grid at this stage
-    %
-    format (full) eq {/fw 12 def} {/fw 9 def} ifelse
-    /size fw layers 4 mul add 2 add def
-    /pixs [size size mul {-1} repeat] def
-    /mid size 1 sub 2 idiv size mul size 1 sub 2 idiv add def
-
-    (matrix.layout.data) //azteccode.before exec
-
-    %
-    % Data layers
-    %
-    /i 0 def
-    1 1 layers {
-        /layer exch def
-        0 1 fw layer 4 mul add 8 mul 1 sub {
-            /pos exch def
-            pixs layer pos lmv databits databits length i sub 1 sub get 48 sub put
-            /i i 1 add def
-        } for
-    } for
-
-    (matrix.layout.data) //azteccode.after exec
-
-    (matrix.layout.fixtures) //azteccode.before exec
-
-    %
-    % For full symbols expand the pixel map by inserting the reference grid
-    %
-    format (full) eq {
-        /fw 13 def
-        /size fw layers 4 mul add 2 add layers 10.5 add 7.5 div 1 sub cvi 2 mul add def
-        /mid size size mul 2 idiv def
-        /npixs [size size mul {-2} repeat] def
-        0 16 size 2 idiv {
+        format (full) eq {
+            /databits layers layers mul 16 mul layers 112 mul add string def
+        } {
+            /databits layers layers mul 16 mul layers 88 mul add string def
+        } ifelse
+        0 1 databits length 1 sub {databits exch (0) putinterval} for
+        0 1 ncws 1 sub {
             /i exch def
-            0 1 size 1 sub {
-                /j exch def
-                npixs size 2 idiv neg j add i cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
-                npixs size 2 idiv neg j add i neg cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
-                npixs i size 2 idiv neg j add cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
-                npixs i neg size 2 idiv neg j add cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
+            databits cws i get 2 bpcw string cvrs
+            dup length bpcw exch sub bpcw i mul add databits length ncws bpcw mul sub add
+            exch putinterval
+        } for
+
+        (matrix.layout) //azteccode.before exec
+
+        %
+        % Move to a point in the cartesian plane centered on the bullseye
+        %
+        /cmv {size mul sub mid add} def
+
+        %
+        % Move to a bit position within a layer
+        %
+        /lmv {
+            /lbit exch def
+            /llyr exch def
+            /lwid fw llyr 4 mul add def
+            /ldir lbit 2 idiv lwid idiv def
+            ldir 0 eq {  % Top
+                lwid 1 sub 2 idiv neg 1 add lbit 2 idiv lwid mod add
+                fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add
+                cmv
+            } if
+            ldir 1 eq {  % Right
+                fw 2 idiv llyr 2 mul add lbit 2 mod add
+                lwid 1 sub 2 idiv 1 sub lbit 2 idiv lwid mod sub
+                cmv
+            } if
+            ldir 2 eq {  % Bottom
+                lwid 2 idiv neg 1 add lbit 2 idiv lwid mod add neg
+                fw 2 idiv llyr 2 mul add lbit 2 mod add neg
+                cmv
+            } if
+            ldir 3 eq {  % Left
+                fw 1 sub 2 idiv llyr 2 mul add lbit 2 mod add neg
+                lwid 2 idiv 1 sub lbit 2 idiv lwid mod sub neg
+                cmv
+            } if
+        } def
+
+        %
+        % Create the pixel map
+        %
+        % For full symbols we disregard the reference grid at this stage
+        %
+        format (full) eq {/fw 12 def} {/fw 9 def} ifelse
+        /size fw layers 4 mul add 2 add def
+        /pixs [size size mul {-1} repeat] def
+        /mid size 1 sub 2 idiv size mul size 1 sub 2 idiv add def
+
+        (matrix.layout.data) //azteccode.before exec
+
+        %
+        % Data layers
+        %
+        /i 0 def
+        1 1 layers {
+            /layer exch def
+            0 1 fw layer 4 mul add 8 mul 1 sub {
+                /pos exch def
+                pixs layer pos lmv databits databits length i sub 1 sub get 48 sub put
+                /i i 1 add def
             } for
         } for
-        /j 0 def
-        0 1 npixs length 1 sub {
-            /i exch def
-            npixs i get -2 eq {
-                npixs i pixs j get put
-                /j j 1 add def
-            } if
-        } for
-        /pixs npixs def
-    } if
 
-    %
-    % Finder pattern
-    %
-    /fw fw 2 idiv def
-    fw neg 1 fw {
-        /i exch def
+        (matrix.layout.data) //azteccode.after exec
+
+        (matrix.layout.fixtures) //azteccode.before exec
+
+        %
+        % For full symbols expand the pixel map by inserting the reference grid
+        %
+        format (full) eq {
+            /fw 13 def
+            /size fw layers 4 mul add 2 add layers 10.5 add 7.5 div 1 sub cvi 2 mul add def
+            /mid size size mul 2 idiv def
+            /npixs [size size mul {-2} repeat] def
+            0 16 size 2 idiv {
+                /i exch def
+                0 1 size 1 sub {
+                    /j exch def
+                    npixs size 2 idiv neg j add i cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
+                    npixs size 2 idiv neg j add i neg cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
+                    npixs i size 2 idiv neg j add cmv     [size 2 idiv j add i add 1 add 2 mod] putinterval
+                    npixs i neg size 2 idiv neg j add cmv [size 2 idiv j add i add 1 add 2 mod] putinterval
+                } for
+            } for
+            /j 0 def
+            0 1 npixs length 1 sub {
+                /i exch def
+                npixs i get -2 eq {
+                    npixs i pixs j get put
+                    /j j 1 add def
+                } if
+            } for
+            /pixs npixs def
+        } if
+
+        %
+        % Finder pattern
+        %
+        /fw fw 2 idiv def
         fw neg 1 fw {
-            /j exch def
-            pixs i j cmv
-            i abs j abs gt {i abs} {j abs} ifelse 1 add 2 mod
-            put
+            /i exch def
+            fw neg 1 fw {
+                /j exch def
+                pixs i j cmv
+                i abs j abs gt {i abs} {j abs} ifelse 1 add 2 mod
+                put
+            } for
         } for
-    } for
 
-    %
-    % Orientation bits
-    %
-    [ [ fw 1 add neg   fw             1 ] [ fw 1 add neg   fw 1 add       1 ]
-      [ fw neg         fw 1 add       1 ] [ fw 1 add       fw 1 add       1 ]
-      [ fw 1 add       fw             1 ] [ fw 1 add       fw neg         1 ]
-      [ fw             fw 1 add       0 ] [ fw 1 add       fw 1 add neg   0 ]
-      [ fw             fw 1 add neg   0 ] [ fw neg         fw 1 add neg   0 ]
-      [ fw 1 add neg   fw 1 add neg   0 ] [ fw 1 add neg   fw neg         0 ]
-    ] {pixs exch aload pop 3 1 roll cmv exch put} forall
+        %
+        % Orientation bits
+        %
+        [ [ fw 1 add neg   fw             1 ] [ fw 1 add neg   fw 1 add       1 ]
+          [ fw neg         fw 1 add       1 ] [ fw 1 add       fw 1 add       1 ]
+          [ fw 1 add       fw             1 ] [ fw 1 add       fw neg         1 ]
+          [ fw             fw 1 add       0 ] [ fw 1 add       fw 1 add neg   0 ]
+          [ fw             fw 1 add neg   0 ] [ fw neg         fw 1 add neg   0 ]
+          [ fw 1 add neg   fw 1 add neg   0 ] [ fw 1 add neg   fw neg         0 ]
+        ] {pixs exch aload pop 3 1 roll cmv exch put} forall
 
-    (matrix.layout.fixtures) //azteccode.after exec
+        (matrix.layout.fixtures) //azteccode.after exec
 
-    (matrix.layout.reserve) //azteccode.before exec
+        (matrix.layout.reserve) //azteccode.before exec
 
-    %
-    % Mode ring
-    %
-    /modemap format (full) eq {//azteccode.modemapfull} {//azteccode.modemapcompact} ifelse def
-    0 1 modemap length 1 sub {
-        pixs modemap 2 index get aload pop cmv modebits 3 index get 48 sub put
-        pop
-    } for
+        %
+        % Mode ring
+        %
+        /modemap format (full) eq {//azteccode.modemapfull} {//azteccode.modemapcompact} ifelse def
+        0 1 modemap length 1 sub {
+            pixs modemap 2 index get aload pop cmv modebits 3 index get 48 sub put
+            pop
+        } for
 
-    (matrix.layout.reserve) //azteccode.after exec
+        (matrix.layout.reserve) //azteccode.after exec
 
-    (matrix.layout) //azteccode.after exec
+        (matrix.layout) //azteccode.after exec
 
-    <<
-    /ren /renmatrix
-    /pixs pixs
-    /pixx size
-    /pixy size
-    /height size modunit mul 72 div
-    /width size modunit mul 72 div
-    /borderleft 0.0
-    /borderright 0.0
-    /bordertop 0.0
-    /borderbottom 0.0
-    /strictspec strictspec
-    /loosespec loosespec
-    /xdim xdim
-    /xmin xmin
-    /xmax xmax
-    /modunit modunit
-    /opt options
-    >>
+        <<
+        /ren /renmatrix
+        /pixs pixs
+        /pixx size
+        /pixy size
+        /height size modunit mul 72 div
+        /width size modunit mul 72 div
+        /borderleft 0.0
+        /borderright 0.0
+        /bordertop 0.0
+        /borderbottom 0.0
+        /strictspec strictspec
+        /loosespec loosespec
+        /xdim xdim
+        /xmin xmin
+        /xmax xmax
+        /modunit modunit
+        /opt options
+        >>
 
-    _render //renmatrix if
+        _render //renmatrix if
+
+    } ifelse
 
     } stopped {end stop} if
     end
