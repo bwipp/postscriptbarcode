@@ -1,0 +1,252 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+% AIM ITS/99-003 International Symbology Specification - Aztec Mesas
+%
+% Expected values are from an independent model whose layout reproduces every
+% symbol figure of the specification.
+
+
+/aztecmesas dup /uk.co.terryburton.bwipp findresource cvx def
+
+/eq_tmpl {  % data options [pixs rowheights]
+    3 1 roll {
+        mark 0 0 aztecmesas
+        dup /pixs get aload pop counttomark -1 roll /rowheights get aload pop
+        counttomark array astore exch pop
+    }
+    dup 3 -1 roll 2 exch put
+    dup 3 -1 roll 1 exch put
+    exch isEqual
+} def
+
+/ok_tmpl {
+    exch { 0 0 aztecmesas pop true } dup 3 -1 roll 0 exch put
+    dup 3 -1 roll 1 exch put
+    true isEqual
+} def
+
+/er_tmpl {
+    3 1 roll { 0 0 aztecmesas }
+    dup 3 -1 roll 1 exch put
+    dup 3 -1 roll 0 exch put
+    exch isError
+} def
+
+
+(0123456789|Aztec Mesas) (host=code128 dontdraw)  % One-sided Mesa on Code 128
+[
+    1 0 1 0 0 0 1 0 0 0 1 0 1 0 1 1 0 0 1 0 0 0 1 0 0 1 0 1 1 1 1 0 0 0 1 1 0 1 1 0 0 0 1 1 0 1 0 1 1 0 1 0 0 0 1 1 1 0 1 0 1 0 0 0 1 1 0 0 0 0 0 0 0 1 0 1 0 0 1 0 1 0 0 1 0 1 0 0 0 0 0 1
+    1 0 0 0 0 0 1 0 0 0 0 1 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 0 0 1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 0 1 0 0 1 0 0 0 1 0 0 0 1 1 0 1 1 1 0 1 1 0 0 0 0 1 1 0 1 0 0 1 1 0 1 1 0 1 1 0 1 0 1 1 0 1 1
+    0 1 1 0 1 0 0 1 1 1 0 0 1 1 0 0 1 1 0 1 1 0 0 1 1 1 0 1 1 0 1 1 1 0 1 0 1 1 1 0 1 1 0 0 0 1 0 0 0 0 1 0 1 1 0 0 1 1 0 1 1 0 1 1 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    2 2 14  % Row heights
+] eq_tmpl
+
+(AIM|Two-sided Mesa) (host=code39 twosided hostwidenarrow=2 layers=3 dontdraw)  % Two-sided Mesa on Code 39 at 2:1, three layers
+[
+    1 0 0 1 1 0 1 1 1 0 0 1 1 0 1 1 1 1 0 0 1 1 1 0 0 1 0 0 1 1 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 1 1 1 1 0 1
+    1 1 1 1 1 1 0 1 0 1 1 0 0 1 0 1 1 0 0 0 0 0 0 1 0 1 1 0 1 1 0 0 1 1 0 1 0 1 1 1 0 0 1 1 0 1 1 1 0 0 1 0 1 0 0 0 1 0 1 0 1 1 0 0 0 1
+    1 0 0 1 0 0 0 0 0 0 0 0 1 0 1 1 0 0 0 0 0 1 1 0 1 1 0 0 0 1 0 0 0 0 1 0 1 0 1 0 1 1 1 1 1 0 1 1 1 1 1 1 0 1 1 0 0 0 0 1 1 1 1 1 0 1
+    1 0 0 0 1 1 1 1 1 1 0 0 0 1 0 1 0 0 0 0 0 0 1 0 0 0 1 0 0 0 1 1 0 1 1 1 0 1 0 1 0 1 1 1 0 0 0 1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 1 1 1 1
+    0 1 0 0 1 0 1 1 0 1 1 0 1 0 1 1 0 1 0 1 0 0 1 0 1 1 0 1 0 1 1 0 1 0 0 1 1 0 1 0 1 1 0 1 1 0 1 0 1 0 0 1 0 1 0 0 1 0 1 1 0 1 1 0 1 0
+    1 1 0 1 1 0 1 1 1 1 0 0 0 1 0 1 0 0 1 1 1 1 1 1 0 0 1 1 0 1 0 1 0 0 1 1 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0 1 1 0 1 0 0 1 1 0 1 1 0 0 1 1
+    1 1 0 0 1 0 1 0 0 1 1 1 1 0 1 1 1 0 0 0 1 1 1 1 1 0 0 0 0 1 1 1 1 1 1 0 0 1 1 0 1 1 0 1 1 1 1 1 1 1 0 0 0 1 1 1 0 1 1 1 0 0 0 1 1 1
+    2 2 2 2 12 2 2  % Row heights
+] eq_tmpl
+
+(1234|Bearers) (host=interleaved2of5 hostwidenarrow=2 bearers dontdraw)  % Interleaved 2 of 5 of two pairs, with bearers
+[
+    1 0 0 1 0 1 1 1 0 0 1 0 0 1 1 0 1 0 1 1 0 1 0 0 1 0 1 1 1 0 1 0 0 1 1 1 0 1
+    1 0 1 0 1 0 1 1 0 0 1 0 0 0 0 1 0 1 0 0 1 1 1 0 1 1 1 1 0 0 0 0 1 0 1 1 0 1
+    1 0 1 1 0 1 0 1 0 0 0 0 0 0 1 1 0 0 1 1 0 0 0 0 0 0 0 1 1 0 1 0 0 1 0 1 1 1
+    1 0 0 0 1 0 0 0 1 0 0 1 0 1 1 0 0 0 0 1 1 0 0 1 0 1 0 1 1 0 1 0 1 0 0 1 0 1
+    0 1 1 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 1 1 1 1 0
+    0 1 0 1 0 1 1 0 1 0 0 1 0 1 0 1 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 0 0 1 1 0 1 0
+    0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+    2 2 2 2 2 12 2  % Row heights
+] eq_tmpl
+
+(00123456|ITF) (host=interleaved2of5 twosided layers=2 bearers barrier=2 dontdraw)  % Interleaved 2 of 5 of four pairs, two-sided with bearers and a barrier
+[
+    1 0 1 0 0 0 1 1 0 1 1 0 1 0 0 1 1 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 1 1 0 0 1 0 1 1 0 0 0 0 1 0 0 0 1 0 1 1 1 1 0 0 1 1 0 1
+    1 0 1 1 0 0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 1 0 1 0 0 1 0 0 0 0 1 1 0 1 1 0 1 0 0 0 1 0 0 1 1 1 0 0 1 1 0 1 1 1 1 1 1 1 1 0 0 0 0 1 0 1 0 1 1 0 1 1 1 1 1 1 0 0 1 1 0 1 1
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+    0 1 0 1 0 1 0 1 0 1 1 1 0 0 0 1 1 1 0 0 0 1 0 1 1 1 0 1 0 0 0 1 0 1 0 1 1 1 0 0 0 1 1 1 0 1 1 1 0 1 0 0 0 1 0 1 0 0 0 1 1 1 0 1 0 0 0 1 1 1 0 0 0 1 0 1 0 1 1 1 0 1 0
+    0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    1 1 1 1 1 1 0 1 1 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 1 0 0 1 1 0 0 0 0 1 0 1 0 1 0 1 0 0 1 1 1 1 0 1 1 0 1 1 0 0 1 1 1 0 1 0 0 1 1 0 0 1 1 1 0 1 0 1 0 0 1 1
+    1 0 0 0 0 0 0 1 1 1 1 0 1 0 1 1 0 0 0 0 1 1 0 1 0 1 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 1 1 0 1 1 1 0 1 1 0 1 0 1 1 1 0 0 0 1 1 1 1 1 1 1 0 1 1 1 0 0 0 1 0 1 0 0 1 1 1 0 1
+    2 2 2 2 13 2 2 2 2  % Row heights
+] eq_tmpl
+
+(036000291452|Stilts) (host=upca dontdraw)  % UPC-A with the default barrier stilts
+[
+    1 0 1 0 0 0 0 1 1 1 0 0 1 0 0 0 1 1 0 0 0 0 0 1 1 0 0 1 0 0 0 1 0 1 1 0 1 0 1 0 1 1 0 1 0 0 0 1 0 1 1 0 1 0 1 1 1 1 0 0 0 1 0 1 1 1 1 1 0 1 1 1 0 0 1 0 1 0 0 1 1 0 1 1 1 1 0 0 1 0 1 1 1 0 0 0 1
+    1 0 0 1 1 1 0 0 0 1 0 0 1 0 0 0 1 0 1 0 1 0 1 0 1 1 0 0 1 0 1 1 0 1 1 1 1 1 0 1 0 1 1 0 0 1 0 0 1 0 0 0 0 1 1 1 1 0 0 0 1 1 1 0 0 0 1 1 1 0 0 0 1 1 1 1 0 1 1 0 0 1 0 0 0 0 0 0 1 1 0 0 0 0 0 1 1
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 1 0 1 0 0 0 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 1 1 1 0 0 0 1 1 0 1 0 0 0 1 1 0 1 0 0 0 1 1 0 1 0 1 0 1 0 1 1 0 1 1 0 0 1 1 1 0 1 0 0 1 1 0 0 1 1 0 1 0 1 1 1 0 0 1 0 0 1 1 1 0 1 1 0 1 1 0 0 1 0 1 0
+    2 2 6 15  % Row heights
+] eq_tmpl
+
+(4006381333931|Clock) (host=ean13 clocktrack=3 hostheight=15 dontdraw)  % EAN-13 with a clocking track for a post-printed Mesa
+[
+    1 0 0 1 1 0 0 1 1 0 0 1 0 0 1 0 1 1 0 1 1 0 1 1 0 0 0 0 0 0 0 1 0 1 0 0 1 1 0 0 1 1 0 0 1 0 0 1 0 1 1 1 0 0 0 1 1 1 1 1 1 1 0 0 1 1 0 1 1 0 0 1 0 1 0 0 1 0 0 1 0 1 0 1 1 0 1 0 1 0 0 1 0 0 0 0 1
+    1 0 0 1 1 1 0 0 0 0 0 0 1 0 0 0 0 0 1 1 0 0 0 1 1 0 0 1 1 0 1 0 0 0 0 0 0 0 1 0 1 0 0 1 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 1 0 1 0 1 0 1 1 0 1 0 0 1 0 1 0 0 1 0 0 1 0 1 0 1 0 0 1 1 1 0 0 0 0 1 1
+    0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+    0 1 0 1 0 0 0 1 1 0 1 0 1 0 0 1 1 1 0 1 0 1 1 1 1 0 1 1 1 1 0 1 0 0 0 1 0 0 1 0 1 1 0 0 1 1 0 1 0 1 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 1 0 0 0 0 1 0 1 1 1 0 1 0 0 1 0 0 0 0 1 0 1 1 0 0 1 1 0 1 0 1 0
+    2 2 3 6 15  % Row heights
+] eq_tmpl
+
+(AZTEC|93) (host=code93 twosided dontdraw)  % Code 93 with its check characters, two-sided
+[
+    1 0 0 1 1 0 0 1 1 0 1 0 0 0 1 1 0 0 1 1 0 1 1 0 1 0 1 0 0 0 1 1 0 0 1 0 0 1 0 1 1 1 1 1 0 0 1 1 0 1 1 1 1 1 0 0 1 0 0 0 1 0 0 1 0 0 0 1 1 1 1 1 0 1 1 1 0 0 1 1 1 0 0 1
+    1 0 1 0 0 0 1 0 0 1 0 1 1 0 0 0 0 1 0 0 0 1 1 0 1 1 0 0 1 0 0 0 0 1 1 1 0 1 0 0 1 1 1 0 0 1 0 0 1 1 1 1 0 0 0 1 0 0 0 1 0 1 1 1 0 1 1 0 0 1 1 0 1 0 0 0 1 1 1 1 1 0 1 1
+    0 1 0 1 0 1 1 1 1 0 1 1 0 1 0 1 0 0 0 1 0 0 1 1 1 0 1 0 1 1 0 1 0 0 1 1 0 1 1 0 0 1 0 0 1 0 1 1 0 1 0 0 0 1 0 1 0 0 1 1 1 0 1 0 1 1 0 1 0 0 1 1 0 1 0 1 0 1 1 1 1 0 1 0
+    2 2 13  % Row heights
+] eq_tmpl
+
+(abc|93i) (host=code93i dontdraw)  % Code 93i, the Mesa ending with the 93i stop character
+[
+    1 0 0 1 1 0 0 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 1 1 0 0 1 1 0 0 1 1 1 1 1 1 0 1 0 0 1 0 1 0 1 1 1 1 0 0 1 1 0 1 0 0 0 1 0 0 0 0 0 0 1 0 1 1 1 1 0 1 1 1 0 0 0 1 1 0 0 1
+    1 0 0 0 1 0 1 1 0 1 0 0 0 0 1 1 0 1 1 1 0 1 0 0 1 0 1 1 1 1 0 0 0 1 0 1 0 1 1 1 1 0 0 0 0 1 0 1 0 0 0 0 1 1 1 0 1 0 1 1 1 1 1 1 1 0 1 1 1 1 1 0 1 0 0 0 1 1 1 1 1 0 1 1
+    0 1 0 1 0 1 1 1 1 0 1 0 0 1 1 0 0 1 0 1 0 0 0 1 0 1 0 0 1 1 0 1 0 1 0 0 0 1 1 0 1 0 0 1 0 0 1 1 0 1 0 0 0 1 0 1 1 0 1 0 0 1 1 0 1 1 0 0 1 1 0 1 0 1 1 0 1 1 1 0 1 0 1 1
+    2 2 13  % Row heights
+] eq_tmpl
+
+(ABC|93) (host=code93i dontdraw)  % Code 93i data that gives a Code 93 symbol, the Mesa extending one module beyond it
+[
+    1 0 1 1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 0 0 1 1 0 1 1 0 1 0 1 0 0 1 0 1 1 0 1 1 1 1 1 1 0 0 1 1 0 1 0 1 1 1 0 1 1
+    1 0 0 0 0 1 1 0 0 1 0 0 1 0 0 1 0 0 0 0 1 0 0 1 0 0 1 1 1 0 1 0 1 0 1 0 1 0 1 1 1 1 1 0 0 0 0 0 0 1 1 1 0 1 1 0 0 1 1 1 1 0 1 0 1 1
+    0 1 0 1 0 1 1 1 1 0 1 1 0 1 0 1 0 0 0 1 1 0 1 0 0 1 0 0 1 1 0 1 0 0 0 1 0 1 0 1 1 0 0 1 0 0 1 0 0 0 1 1 0 1 0 1 0 1 0 1 1 1 1 0 1 0
+    2 2 12  % Row heights
+] eq_tmpl
+
+(00000|Part one) (host=code128 sampos=1 samtotal=2 samid=X dontdraw)  % Structured Append on a host of zeros
+[
+    1 0 1 1 1 1 0 0 0 1 1 0 1 1 0 0 0 1 0 1 0 0 1 0 0 1 1 0 0 1 1 0 1 0 0 0 0 1 0 0 0 1 1 0 0 1 1 0 1 1 0 0 1 0 0 0 0 1 1 1 0 0 1 1 1 0 0 1 1 1 0 1 0 0 1 1 0 0 1 0 1
+    1 0 1 0 1 1 1 0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 1 0 1 1 0 0 0 0 0 1 1 1 1 0 0 1 0 0 1 1 1 0 1 0 1 1 1 1 1 1 0 1 0 1 0 0 1 0 1 0 0 1 1 1 1 0 0 1 1 1 1 1 1 0 1 1 1 0 1
+    1 0 0 0 0 0 0 1 1 1 1 0 1 1 1 0 0 1 0 0 0 0 1 0 0 0 1 0 1 1 0 1 1 0 0 0 0 0 1 1 1 1 1 0 0 1 0 0 1 1 1 1 0 0 1 1 0 0 1 0 0 1 1 1 1 0 0 1 0 0 0 1 1 1 1 1 1 1 1 1 1
+    1 0 0 1 1 0 0 1 0 0 0 1 0 0 1 0 1 0 1 0 1 0 1 0 0 1 1 1 0 1 1 1 1 0 1 0 1 0 0 0 0 0 0 1 1 0 1 0 1 1 0 0 0 0 0 1 1 0 1 1 1 0 0 0 1 0 1 0 0 1 0 0 0 1 1 1 0 1 1 1 1
+    0 1 1 0 1 0 0 1 1 1 0 0 1 1 0 1 1 0 0 1 1 0 0 1 1 0 1 1 0 0 1 1 0 0 1 0 1 1 1 1 0 1 1 1 0 1 0 0 1 1 1 0 1 1 0 0 1 1 1 0 1 1 0 1 0 0 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    2 2 2 2 12  % Row heights
+] eq_tmpl
+
+(RI|config) (host=code128 readerinit dontdraw)  % Reader initialisation
+[
+    1 1 1 0 0 0 1 0 0 1 1 0 1 1 0 1 1 1 1 0 0 0 1 1 1 0 1 0 0 1 0 0 1 0 0 1 1 0 1 1 0 0 1 0 0 1 0 1 0 1 0 0 1 0 0 1 0 1 1
+    1 1 0 0 1 0 0 0 0 1 0 1 0 1 0 1 0 0 0 1 0 1 0 1 0 0 1 0 0 0 1 1 1 1 1 0 1 0 1 1 0 0 1 0 1 0 1 1 0 1 1 1 0 1 1 0 1 0 1
+    1 0 0 1 0 0 1 1 0 1 1 0 1 1 0 0 0 0 1 0 0 0 0 0 0 1 0 0 1 0 1 1 1 0 0 0 0 1 0 1 1 0 1 0 0 1 1 0 1 0 1 0 1 0 0 0 0 1 1
+    1 0 1 1 0 1 0 1 0 0 0 1 0 1 1 0 0 0 0 1 1 0 1 1 0 1 0 1 1 1 1 0 1 0 1 0 1 0 0 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 1 0 0 0 1
+    0 1 1 0 1 0 0 1 0 0 0 0 1 1 0 0 0 1 0 1 1 1 0 1 1 0 0 0 1 0 0 0 1 0 1 1 0 1 1 0 1 1 0 0 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    2 2 2 2 12  % Row heights
+] eq_tmpl
+
+(0|^ECI000007^182) (host=code128 parse parsefnc dontdraw)  % ECI
+[
+    1 0 0 0 0 0 0 0 0 0 1 0 1 1 0 1 1 1 1 0 0 1 1 0 1 1 1 0 1 0 1 0 1 0 1 1 0 0 0 1 0 0 0 0 0 1 0 1
+    1 0 0 0 0 1 0 0 1 0 0 1 0 1 0 1 1 0 0 0 1 0 1 1 0 1 1 0 1 0 1 0 1 1 0 0 0 0 0 0 1 1 1 0 1 0 1 1
+    1 0 0 0 0 1 1 0 1 0 1 0 1 0 1 0 0 0 1 1 0 0 0 1 1 0 0 0 0 0 1 0 1 0 1 0 1 0 1 0 0 0 0 1 0 1 1 1
+    1 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 1 1 1 0 1 0 1 0 0 1 0 0 0 1 1 1 0 1 0 0 0 0 1 1 0 0 0 0 0 1 0 1
+    0 1 1 0 1 0 0 1 0 0 0 0 1 0 0 1 1 1 0 1 1 0 0 1 0 0 1 1 1 0 0 1 1 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    2 2 2 2 12  % Row heights
+] eq_tmpl
+
+(RH|Rows) (host=code128 rowheight=3 hostheight=20 dontdraw)  % Taller rows
+[
+    1 1 0 1 1 0 1 0 0 1 1 0 1 0 1 1 0 1 1 0 1 1 1 0 1 1 1 0 0 0 0 1 0 1 1 1 1 0 1 1 1 0 1 0 0 1 1 1 1 1 1 0 0 1 0 0 1 0 1
+    1 0 1 1 1 0 0 0 1 0 0 1 0 0 0 0 1 1 1 1 1 1 1 0 1 0 0 1 1 1 1 0 1 0 0 1 0 1 0 0 1 0 1 1 1 0 0 1 0 1 0 0 0 1 1 1 1 0 1
+    1 0 0 0 0 0 1 1 0 0 1 0 1 0 1 0 0 0 0 0 0 0 1 0 1 1 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0 0 1 1 0 1 0 1 1 0 1 1 1 1 1 1 0 0 1
+    1 0 0 1 0 1 0 1 1 0 0 1 0 1 0 0 1 0 0 1 1 1 0 0 1 1 1 1 0 0 0 1 0 0 1 1 0 1 0 1 1 0 0 0 1 0 0 1 0 1 0 0 1 0 0 1 0 1 1
+    0 1 1 0 1 0 0 1 0 0 0 0 1 1 0 0 0 1 0 1 1 1 0 1 1 0 0 0 1 0 1 0 0 0 1 1 1 0 0 1 1 0 1 0 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    3 3 3 3 20  % Row heights
+] eq_tmpl
+
+(0|^FNC@99ABC) (host=code128 parsefnc dontdraw)  % FNC1 in second position, after an AIM application indicator
+[
+    1 0 0 1 1 0 0 1 0 1 1 0 1 0 0 0 0 0 0 1 1 0 0 0 0 1 0 1 0 1 0 1 1 0 1 0 1 1 1 1 0 1 0 1 0 0 0 1
+    1 0 0 1 1 1 1 1 1 0 0 1 0 0 0 0 0 1 0 1 0 0 1 0 0 1 0 0 1 1 1 0 0 1 0 0 1 1 1 0 1 1 0 0 0 1 1 1
+    1 0 1 0 0 1 0 0 0 0 1 0 1 1 1 0 0 0 1 1 1 0 1 0 0 1 0 0 0 0 0 1 0 0 1 1 1 1 1 1 1 0 1 0 1 1 1 1
+    1 0 1 0 0 0 1 0 0 0 0 1 0 1 1 0 1 1 1 1 1 1 0 1 0 1 0 1 0 1 0 0 0 1 0 1 1 1 1 0 0 0 0 0 1 0 0 1
+    0 1 1 0 1 0 0 1 0 0 0 0 1 0 0 1 1 1 0 1 1 0 0 1 0 0 1 1 1 0 0 1 1 0 1 1 0 0 0 1 1 1 0 1 0 1 1 0
+    2 2 2 2 12  % Row heights
+] eq_tmpl
+
+
+% Data codewords of the supplement, not the host
+
+{
+    (0|Mesa) (host=code128 debugcws) aztecmesas
+} [ 29 48 53 1 47 ] debugIsEqual
+
+
+% Smoke tests
+
+{
+    0 0 moveto (0123456789|This is Aztec Mesas) (host=code128 twosided layers=2) aztecmesas true
+} true isEqual
+(C|Mesa) (host=code39 hostwidenarrow=3 dontdraw) ok_tmpl
+(123456|Mesa) (host=interleaved2of5 hostwidenarrow=3 bearers dontdraw) ok_tmpl
+(1234567890|Mesa) (host=interleaved2of5 twosided bearers dontdraw) ok_tmpl
+(012345678905|Mesa) (host=upca barrier=0 dontdraw) ok_tmpl
+(012345678905|Mesa) (host=upca twosided barrier=8 dontdraw) ok_tmpl
+(^FNC110ABC|^FNC117261231) (host=code128 parsefnc dontdraw) ok_tmpl  % GS1-128 host, its element strings continued after a separator
+(MESA|Mesa) (host=code93 layers=32 dontdraw) ok_tmpl
+(Mesa|Mesa) (host=code93i errorcorrection twosided dontdraw) ok_tmpl
+(0000000000|Mesa) (host=code128 sampos=26 samtotal=26 dontdraw) ok_tmpl
+(ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ|Mesa) (host=code128 twosided layers=32 dontdraw) ok_tmpl
+(^048^048^048|Mesa) (host=code128 parse sampos=1 samtotal=2 dontdraw) ok_tmpl  % Host of zeros given as ordinals
+(|^FNC@99Mesa) (host=code128 parsefnc dontdraw) ok_tmpl  % An empty host transmits nothing before the supplement
+{  % Check characters that the Mesa always carries are not reported
+    /uk.co.terryburton.bwipp.report 4 dict def
+    (AZTEC|Mesa) (host=code93 dontdraw) aztecmesas pop
+    uk.co.terryburton.bwipp.report /checkdigit known
+    currentdict /uk.co.terryburton.bwipp.report undef
+} false isEqual
+(AB|Mesa) (host=code128 width=0.5 height=0.5 includetext dontdraw) ok_tmpl  % Renderer options are not for the host
+
+% The X-dimension is that of the host, so the host's specification profile applies
+{ (012345678905|Mesa) (host=upca strictspec dontdraw) aztecmesas /xdim get } 0.33 isEqual
+{ (012345678905|Mesa) (host=upca ast=gs1.sst2 loosespec dontdraw) aztecmesas /xdim get } 0.66 isEqual
+
+% A symbol of over 65535 modules, which an interpreter may refuse to allocate
+{
+    {
+        505 string 0 1 499 { 1 index exch 65 put } for dup 500 (|Mesa) putinterval
+        (host=code39 twosided layers=3 barrier=1 dontdraw) aztecmesas /pixs get length 72297 eq
+    } stopped { $error /errorname get /bwipp.aztecmesasSymbolTooLarge eq } if
+} true isEqual
+
+
+% Errors
+
+(0123456789) (host=code128 dontdraw) /bwipp.aztecmesasMissingSupplement er_tmpl
+(0123456789|Mesa) (host=code11 dontdraw) /bwipp.aztecmesasBadHost er_tmpl
+(0123456789|Mesa) (host=interleaved2of5 hostwidenarrow=4 dontdraw) /bwipp.aztecmesasBadHostWideNarrow er_tmpl
+(0123456789|Mesa) (host=code128 layers=0 dontdraw) /bwipp.aztecmesasBadLayers er_tmpl
+(0123456789|Mesa) (host=code128 layers=33 dontdraw) /bwipp.aztecmesasBadLayers er_tmpl
+(0123456789|Mesa) (host=code128 rowheight=1 dontdraw) /bwipp.aztecmesasBadRowheight er_tmpl
+(0123456789|Mesa) (host=code128 hostheight=0 dontdraw) /bwipp.aztecmesasBadHostheight er_tmpl
+(0123456789|Mesa) (host=code128 barrier=-2 dontdraw) /bwipp.aztecmesasBadBarrier er_tmpl
+(0123456789|Mesa) (host=code128 bearers dontdraw) /bwipp.aztecmesasBearersNotITF er_tmpl
+(012345678905|Mesa) (host=upca clocktrack=-1 dontdraw) /bwipp.aztecmesasBadClocktrack er_tmpl
+(0123456789|Mesa) (host=code128 clocktrack=2 dontdraw) /bwipp.aztecmesasClocktrackNotUPCEAN er_tmpl
+(012345678905|Mesa) (host=upca clocktrack=2 twosided dontdraw) /bwipp.aztecmesasClocktrackTwosided er_tmpl
+(012345678905|Mesa) (host=upca clocktrack=2 barrier=6 dontdraw) /bwipp.aztecmesasClocktrackBarrier er_tmpl
+(0123456789|Mesa) (host=code128 sampos=1 samtotal=2 dontdraw) /bwipp.aztecmesasSAMnonZeroHost er_tmpl
+(0000|Mesa) (host=code128 sampos=1 samtotal=2 readerinit dontdraw) /bwipp.aztecmesasSAMreaderinit er_tmpl
+(0123456789|^FNC@99ABC) (host=code128 parsefnc dontdraw) /bwipp.aztecmesasFNC1secondNonZeroHost er_tmpl
+(012345678905 12|Mesa) (host=upca dontdraw) /bwipp.aztecmesasNoAddOns er_tmpl
+(12|Mesa) (host=interleaved2of5 dontdraw) /bwipp.aztecmesasITFTooShort er_tmpl
+(ABCDEFGHIJKLMNOPQRSTUVWXYZ|Mesa) (host=code128 readerinit layers=32 dontdraw) /bwipp.aztecmesasReaderInitTooLarge er_tmpl
+(0|Mesa) (host=code128 eclevel=4 dontdraw) /bwipp.aztecInvalidEClevel er_tmpl
+(AB|Mesa) (host=code39 strictspec xdim=0.1 dontdraw) /bwipp.renderXdimTooSmall er_tmpl
+(0|) (host=code128 dontdraw) /bwipp.aztecEmptyData er_tmpl
+(0|ABCDEFGHIJKLMNOPQRSTUVWXYZ) (host=code128 layers=1 dontdraw) /bwipp.aztecNoValidSymbol er_tmpl
+(ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ|Mesa) (host=code128 layers=32 dontdraw) /bwipp.aztecmesasLayersTooLarge er_tmpl  % Over 4095 codewords

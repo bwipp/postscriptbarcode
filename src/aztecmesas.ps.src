@@ -1,0 +1,555 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+% $Id$
+%
+% Permission is hereby granted, free of charge, to any
+% person obtaining a copy of this software and associated
+% documentation files (the "Software"), to deal in the
+% Software without restriction, including without
+% limitation the rights to use, copy, modify, merge,
+% publish, distribute, sublicense, and/or sell copies of
+% the Software, and to permit persons to whom the Software
+% is furnished to do so, subject to the following
+% conditions:
+%
+% The above copyright notice and this permission notice
+% shall be included in all copies or substantial portions
+% of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+% KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+% THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+% PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+% THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+% DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+% CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+% CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+% IN THE SOFTWARE.
+
+% --BEGIN ENCODER aztecmesas--
+% --REQUIRES preamble raiseerror setuphooks processoptions parseinput setanycolor fifocache rsecbinary rsecprime render renlinear renmatrix ean5 ean2 ean13 upca code128 code39 code93 code93i interleaved2of5 azteccode--
+% --DESC: Aztec Mesas
+% --EXAM: 0123456789|This is Aztec Mesas
+% --EXOP: host=code128 twosided layers=2
+% --RNDR: renmatrix
+% --FMLY: Less-used Symbols
+currentglobal
+true setglobal
+/setpacking where {pop currentpacking true setpacking} if
+20 dict
+dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
+dup /processoptions dup /uk.co.terryburton.bwipp findresource put
+dup /parseinput dup /uk.co.terryburton.bwipp findresource put
+dup /setuphooks dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
+dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
+dup /ean13 dup /uk.co.terryburton.bwipp findresource put
+dup /upca dup /uk.co.terryburton.bwipp findresource put
+dup /code128 dup /uk.co.terryburton.bwipp findresource put
+dup /code39 dup /uk.co.terryburton.bwipp findresource put
+dup /code93 dup /uk.co.terryburton.bwipp findresource put
+dup /code93i dup /uk.co.terryburton.bwipp findresource put
+dup /interleaved2of5 dup /uk.co.terryburton.bwipp findresource put
+dup /azteccode dup /uk.co.terryburton.bwipp findresource put
+begin
+
+/aztecmesas [/before /after] //setuphooks exec
+
+(setup.define) //aztecmesas.before exec
+
+%
+% Host symbologies of Section 8. Hosts of characters have a triple ladder after the first
+% character and the rest spread evenly to the last; the count of characters is the count of
+% elements, adjusted by adj, divided by epc. Wide elements of value wide take hostwidenarrow
+% modules. A Mesa on Code 93 or 93i is (C x charwidth) + 3 wide, otherwise two modules wider
+% than its host.
+%
+/aztecmesas.hosts <<
+    /code128         << /enc //code128          /layout /chars  /epc  6  /adj -1  /nl { 3 idiv 1 add       } bind  /wide 0  /charwidth 0  /checks false >> readonly
+    /code39          << /enc //code39           /layout /chars  /epc 10  /adj  1  /nl { 1 add 2 idiv       } bind  /wide 3  /charwidth 0  /checks false >> readonly
+    /code93          << /enc //code93           /layout /chars  /epc  6  /adj -1  /nl { 1 add 4 idiv 1 add } bind  /wide 0  /charwidth 9  /checks true  >> readonly
+    /code93i         << /enc //code93i          /layout /chars  /epc  6  /adj -1  /nl { 1 add 4 idiv 1 add } bind  /wide 0  /charwidth 9  /checks false >> readonly
+    /interleaved2of5 << /enc //interleaved2of5  /layout /pairs                                                     /wide 2  /charwidth 0  /checks false >> readonly
+    /ean13           << /enc //ean13            /layout /fixed                                                     /wide 0  /charwidth 0  /checks false >> readonly
+    /upca            << /enc //upca             /layout /fixed                                                     /wide 0  /charwidth 0  /checks false >> readonly
+>> readonly def
+
+% Interleaved 2 of 5: start pattern, pairs of digits and stop pattern, in elements
+/aztecmesas.itfstart 4 def
+/aztecmesas.itfpair 10 def
+/aztecmesas.itfstop 3 def
+
+% UPC-A and EAN-13: width, ladder columns with the colour nearest the host, and barrier stilts
+/aztecmesas.upceanwidth 95 def
+/aztecmesas.upceanladders [ 18 0  19 1  48 0  49 1  50 0  79 1  80 0 ] readonly def
+/aztecmesas.upceanstilts [ 18 50 80 ] readonly def
+/aztecmesas.upceanbarrier 6 def
+/aztecmesas.clearheight 6 def  % Between a post-printed Mesa and its host
+
+/aztecmesas.mmbits 40 def             % Mode Message, in dominos of two bits
+/aztecmesas.maxdcw 1 10 bitshift def  % The Mode Message counts datawords in 10 bits
+
+% Options that change the encodation of a host; the others belong to the Mesa or the renderer
+/aztecmesas.hostopts [
+    (parse) (parsefnc) (raw) (suppressc) (unlatchextbeforec) (includecheck) (validatecheck) (errorcorrection)
+] readonly def
+
+/aztecmesas.debugopts [ (debugbits) (debugcws) (debugecc) ] readonly def
+
+/aztecmesas {
+
+    128 dict begin
+    {
+
+    (input.processoptions) //aztecmesas.before exec
+
+    /dontdraw false def
+    /host (code128) def
+    /twosided false def
+    /hostwidenarrow 3 def
+    /layers -1 def
+    /eclevel 23 def
+    /ecaddchars 3 def
+    /readerinit false def
+    /parse false def
+    /parsefnc false def
+    /sampos -1 def
+    /samtotal -1 def
+    /samid () def
+    /rowheight 2 def
+    /hostheight -1 def
+    /barrier -1 def
+    /bearers false def
+    /clocktrack 0 def
+    /strictspec false def
+    /propspec false def
+    /loosespec false def
+    /mag 1.0 def
+    /xdim -1.0 def
+    /ast (default) def
+    /xnom -1.0 def
+    /xmin -1.0 def
+    /xmax -1.0 def
+
+    null /apply //processoptions exec /options exch def
+    /global_encoder_defaults //render exec
+
+    /barcode exch def
+
+    /_render
+        dontdraw /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledontdraw known} {pop false} ifelse and
+        /uk.co.terryburton.bwipp._dontdraw dup where {exch get} {pop false} ifelse or not
+    def
+
+    (input.processoptions) //aztecmesas.after exec
+
+    (input.validate) //aztecmesas.before exec
+
+    barcode (|) search {
+        /primary exch def
+        pop
+        /supplement exch def
+    } {
+        pop /bwipp.aztecmesasMissingSupplement (The supplement for the Mesa must follow a pipe character) //raiseerror exec
+    } ifelse
+
+    //aztecmesas.hosts host known not {
+        /bwipp.aztecmesasBadHost (The host must be code128, code39, code93, code93i, interleaved2of5, ean13 or upca) //raiseerror exec
+    } if
+    /hostdef //aztecmesas.hosts host get def
+    /upcean hostdef /layout get /fixed eq def
+    /itf hostdef /layout get /pairs eq def
+
+    hostwidenarrow 2 ne hostwidenarrow 3 ne and {
+        /bwipp.aztecmesasBadHostWideNarrow (The hostwidenarrow must be 2 or 3) //raiseerror exec
+    } if
+
+    layers -1 ne layers 1 lt layers 32 gt or and {
+        /bwipp.aztecmesasBadLayers (The number of layers must be from 1 to 32) //raiseerror exec
+    } if
+
+    rowheight 2 lt {
+        /bwipp.aztecmesasBadRowheight (The rowheight must be at least 2) //raiseerror exec
+    } if
+
+    hostheight -1 ne hostheight 1 lt and {
+        /bwipp.aztecmesasBadHostheight (The hostheight must be at least 1) //raiseerror exec
+    } if
+
+    barrier -1 lt {
+        /bwipp.aztecmesasBadBarrier (The barrier height must not be negative) //raiseerror exec
+    } if
+    clocktrack 0 gt barrier 0 gt and {
+        /bwipp.aztecmesasClocktrackBarrier (A clocking track has a clear area in place of a barrier) //raiseerror exec
+    } if
+    barrier -1 eq { /barrier upcean { //aztecmesas.upceanbarrier } { 0 } ifelse def } if
+
+    bearers itf not and {
+        /bwipp.aztecmesasBearersNotITF (Bearers are available only for an interleaved2of5 host) //raiseerror exec
+    } if
+
+    clocktrack 0 lt {
+        /bwipp.aztecmesasBadClocktrack (The clocktrack height must not be negative) //raiseerror exec
+    } if
+    clocktrack 0 gt {
+        upcean not {
+            /bwipp.aztecmesasClocktrackNotUPCEAN (A clocking track is available only for an ean13 or upca host) //raiseerror exec
+        } if
+        twosided {
+            /bwipp.aztecmesasClocktrackTwosided (A clocking track is available only for a one-sided Mesa) //raiseerror exec
+        } if
+    } if
+
+    % Readers transmit the host data before the supplement, unless the host is only zeros
+    primary << /parse parse /parsefnc false /parseonly true >> //parseinput exec
+    /zerohost true def
+    { 48 ne { /zerohost false def exit } if } forall
+
+    % Only a supplement that starts the message can declare FNC1 in second position
+    parsefnc zerohost not and supplement (^FNC@) anchorsearch { pop pop true } { pop false } ifelse and {
+        /bwipp.aztecmesasFNC1secondNonZeroHost (FNC1 in second position requires a host of only zeros) //raiseerror exec
+    } if
+
+    % Only a Mesa that stands alone is part of a sequence
+    /structapp sampos -1 ne samtotal -1 ne or samid () ne or def
+    structapp {
+        zerohost not {
+            /bwipp.aztecmesasSAMnonZeroHost (Structured Append requires a host of only zeros) //raiseerror exec
+        } if
+        readerinit {
+            /bwipp.aztecmesasSAMreaderinit (Structured Append is not available for reader initialisation) //raiseerror exec
+        } if
+    } if
+
+    (input.validate) //aztecmesas.after exec
+
+    %
+    % Apply AST spec overrides and resolve physical specification; X is the narrow
+    % element width of the host, so the profile is that of the host
+    %
+    host cvn ast /apply_ast //render exec not { //raiseerror exec } if
+    /resolve_strictspec //render exec
+
+    %
+    % Encode the host
+    %
+    (input.host) //aztecmesas.before exec
+
+    /hostopts << >> def
+    //aztecmesas.hostopts {
+        options 1 index known { dup options exch get hostopts 3 1 roll put } { pop } ifelse
+    } forall
+    hostdef /checks get { hostopts (includecheck) true put } if  % The Mesa format counts its check characters
+
+    /uk.co.terryburton.bwipp._dontdraw true def
+    /uk.co.terryburton.bwipp._nested true def
+    primary hostopts hostdef /enc get exec /hostsym exch def
+    hostdef /checks get { /checkdigit null /report //render exec } if  % Not added on the user's behalf
+
+    % Element widths in modules, ending with a bar
+    /sbs hostsym /sbs get def
+    sbs length 2 mod 0 eq { /sbs sbs 0 sbs length 1 sub getinterval def } if
+    /wide hostdef /wide get def
+    /sbs wide 0 eq {
+        [ sbs { cvi } forall ]
+    } {
+        [ sbs { cvi wide eq { hostwidenarrow } { 1 } ifelse } forall ]
+    } ifelse def
+    /cum [ 0 sbs { 1 index add } forall ] def
+    /hostwidth cum sbs length get def
+
+    upcean hostwidth //aztecmesas.upceanwidth ne and {
+        /bwipp.aztecmesasNoAddOns (Add-ons are not available for the host) //raiseerror exec
+    } if
+
+    % Element index of the start of the pair of digits after the given number of pairs
+    /pairstart { //aztecmesas.itfpair mul //aztecmesas.itfstart add } def
+
+    itf sbs length 2 pairstart //aztecmesas.itfstop add lt and {
+        /bwipp.aztecmesasITFTooShort (An interleaved2of5 host must encode at least two pairs of digits) //raiseerror exec
+    } if
+
+    (input.host) //aztecmesas.after exec
+
+    (matrix.layout) //aztecmesas.before exec
+
+    %
+    % End bars and reference ladders
+    %
+    (matrix.layout.fixtures) //aztecmesas.before exec
+
+    /nc hostdef /layout get /chars eq { sbs length hostdef /adj get add hostdef /epc get idiv } { 0 } ifelse def
+    /charwidth hostdef /charwidth get def
+    /W charwidth 0 ne { nc charwidth mul 3 add } { hostwidth 2 add } ifelse def
+    /lad [ W 1 add { -1 } repeat ] def  % By column: 0 if a ladder is light nearest the host, 1 if dark
+    /ladends sbs length array def       % Last column of each ladder location, of which there are fewer than elements
+    /nlad 0 def
+
+    % Mesa column of the start of the element at an index
+    /elcol { cum exch get 2 add } def
+
+    /addladend {
+        ladends nlad 3 -1 roll put
+        /nlad nlad 1 add def
+    } def
+    /triple {  % b -> ; even, odd, even ending at b
+        dup 2 sub lad exch 0 put
+        dup 1 sub lad exch 1 put
+        dup lad exch 0 put
+        addladend
+    } def
+    /double {  % b -> ; odd, even ending at b
+        dup 1 sub lad exch 1 put
+        dup lad exch 0 put
+        addladend
+    } def
+
+    hostdef /layout get /chars eq {
+        /epc hostdef /epc get def
+        /nl nc hostdef /nl get exec def
+        epc elcol triple
+        1 1 nl 1 sub {  % Characters along, rounded half up
+            nc 2 sub mul 2 mul nl 1 sub add nl 1 sub 2 mul idiv
+            1 add epc mul elcol double
+        } for
+    } if
+    itf {
+        /npairs sbs length //aztecmesas.itfstart sub //aztecmesas.itfstop sub //aztecmesas.itfpair idiv def
+        npairs 2 eq {
+            0 pairstart elcol triple
+            2 pairstart elcol double
+        } {
+            1 pairstart elcol triple
+            3 2 npairs { pairstart elcol double } for
+        } ifelse
+    } if
+    upcean {
+        0 2 //aztecmesas.upceanladders length 1 sub {
+            //aztecmesas.upceanladders exch 2 getinterval aload pop lad 3 1 roll put
+        } for
+        //aztecmesas.upceanstilts { addladend } forall
+    } if
+    /ladends ladends 0 nlad getinterval def
+
+    /datacols [ 2 1 W 1 sub { dup lad exch get -1 ne { pop } if } for ] def
+    /nd datacols length def
+    /rdatacols [ nd 1 sub -1 0 { datacols exch get } for ] def
+
+    % The Mode Message dominos are spread evenly across the data columns of Layer 1, rounded half up
+    /mmdominos //aztecmesas.mmbits 2 idiv def
+    /ismm [ W 1 add { false } repeat ] def
+    /mmcols [
+        0 1 mmdominos 1 sub {
+            nd 1 sub mul 2 mul mmdominos 1 sub add mmdominos 1 sub 2 mul idiv datacols exch get
+            ismm 1 index true put
+        } for
+    ] def
+
+    (matrix.layout.fixtures) //aztecmesas.after exec
+
+    %
+    % Encode the supplement as Aztec Code, sized by the capacities of the Mesa
+    %
+    (input.encoding) //aztecmesas.before exec
+
+    /metrics [
+        1 1 32 {
+            /l exch def
+            /cb l 2 mul nd mul //aztecmesas.mmbits sub def
+            /bpcw cb 382 le { 6 } { cb 2046 le { 8 } { cb 10234 le { 10 } { 12 } ifelse } ifelse } ifelse def
+            /ncws cb bpcw idiv def
+            /icap ncws 512 lt { 1 } { 0 } ifelse def
+            layers -1 eq layers l eq or
+            readerinit not icap 1 eq or and
+            ncws 1 bpcw bitshift lt and {  % Reed-Solomon codes of the field are at most 2^bpcw - 1 codewords long
+                [ (full) l icap ncws bpcw ]
+            } if
+        } for
+    ] def
+    metrics length 0 eq {
+        readerinit {
+            /bwipp.aztecmesasReaderInitTooLarge (Reader initialisation requires a Mesa of fewer than 512 codewords) //raiseerror exec
+        } if
+        /bwipp.aztecmesasLayersTooLarge (The layers hold more codewords than error correction allows for the width of the host) //raiseerror exec
+    } if
+
+    /aopts <<
+        /parse parse
+        /parsefnc parsefnc
+        /eclevel eclevel
+        /ecaddchars ecaddchars
+        /sampos sampos
+        /samtotal samtotal
+        /samid samid
+    >> def
+    //aztecmesas.debugopts {
+        options 1 index known { aopts exch true put } { pop } ifelse
+    } forall
+
+    /uk.co.terryburton.bwipp._aztecmesa <<
+        /metrics metrics
+        /maxdcw //aztecmesas.maxdcw
+        /modeflags twosided { 1024 } { 0 } ifelse readerinit { 512 or } if
+    >> def
+    supplement aopts //azteccode exec /mesasym exch def
+
+    /L mesasym /layers get def
+    /bpcw mesasym /bpcw get def
+    /cws mesasym /cws get def
+    /modebits mesasym /modebits get def
+
+    (input.encoding) //aztecmesas.after exec
+
+    %
+    % Place the Mode Message and the dominos of the codewords, last first
+    %
+    (matrix.layout.data) //aztecmesas.before exec
+
+    % Every layer starts with the end bars and ladders, the rest light
+    /fartpl  [ 0 1 W { dup 1 eq exch W eq or { 1 } { 0 } ifelse } for ] def
+    /neartpl [ fartpl aload pop ] def
+    1 1 W {
+        lad 1 index get dup -1 eq { pop pop } {
+            neartpl 2 index 2 index put
+            1 exch sub fartpl 3 1 roll put
+        } ifelse
+    } for
+    /near [ L { neartpl W 1 add array copy } repeat ] def
+    /far  [ L { fartpl W 1 add array copy } repeat ] def
+
+    0 1 mmdominos 1 sub {
+        /i exch def
+        far 0 get mmcols i get modebits i 2 mul get 48 sub put
+        near 0 get mmcols i get modebits i 2 mul 1 add get 48 sub put
+    } for
+
+    /hb bpcw 2 idiv def
+    /ncw cws length def
+    0  % Domino index
+    0 1 L 1 sub {
+        /l exch def
+        l 2 mod 0 eq { datacols } { rdatacols } ifelse {  % d c
+            l 0 eq { ismm 1 index get } { false } ifelse { pop } {
+                exch                                                   % c d
+                ncw 1 sub 1 index hb idiv sub                          % c d k
+                dup 0 ge {
+                    cws exch get 1 index hb mod 2 mul neg bitshift     % c d v
+                } { pop 0 } ifelse                                     % Dominos after the last codeword are light
+                far l get 3 index 2 index -1 bitshift 1 and put
+                near l get 3 index 3 -1 roll 1 and put                 % c d
+                1 add exch pop
+            } ifelse
+        } forall
+    } for
+    pop
+
+    (matrix.layout.data) //aztecmesas.after exec
+
+    %
+    % Stack the rows of the Mesa, the host and the patterns between them
+    %
+    (matrix.layout.rows) //aztecmesas.before exec
+
+    /row { 1 W getinterval } def
+
+    % The host between light columns, the Mesa of Code 93i ending at its stop character
+    /hostrow [
+        0
+        0 1 sbs length 1 sub { dup 2 mod 1 exch sub exch sbs exch get { dup } repeat pop } for
+        0
+    ] 0 W getinterval def
+
+    /blank [ W { 0 } repeat ] def
+    /barrierrow [ W { 0 } repeat ] def
+    ladends { barrierrow exch 1 sub 1 put } forall
+    /bearerrow [ 0 W 2 sub { 1 } repeat 0 ] def
+    /mesabearer [ bearerrow aload pop ] def
+    ladends { 1 sub hostwidenarrow { dup 1 sub mesabearer exch 0 put 1 sub } repeat pop } forall
+    /trackrow [ 1 1 W { 2 mod 1 exch sub } for ] def
+
+    % At least 15% of the width of the host, or 12X
+    /hostheight hostheight -1 eq {
+        hostwidth 15 mul 99 add 100 idiv dup 12 lt { pop 12 } if
+    } { hostheight } ifelse def
+
+    /nbelow twosided { L 2 idiv } { 0 } ifelse def
+    /rows [  % Each row with its height
+        L 1 sub -1 0 {
+            /l exch def
+            twosided l 2 mod 1 eq and not {
+                [ far l get row rowheight ]
+                [ near l get row rowheight ]
+            } if
+        } for
+        clocktrack 0 gt {
+            [ trackrow clocktrack ]
+            [ blank //aztecmesas.clearheight ]
+        } {
+            barrier 0 gt { [ barrierrow barrier ] } if
+            bearers { [ mesabearer 2 ] } if
+        } ifelse
+        [ hostrow hostheight ]
+        bearers { [ nbelow 0 gt { mesabearer } { bearerrow } ifelse 2 ] } if
+        nbelow 0 gt barrier 0 gt and { [ barrierrow barrier ] } if
+        twosided {
+            1 2 L 1 sub {
+                /l exch def
+                [ near l get row rowheight ]
+                [ far l get row rowheight ]
+            } for
+        } if
+    ] def
+    rows length W mul { array } stopped {
+        pop /bwipp.aztecmesasSymbolTooLarge (The symbol size exceeds the implementation limits) //raiseerror exec
+    } if /pixs exch def
+    0 1 rows length 1 sub { pixs exch dup W mul exch rows exch get 0 get putinterval } for
+    /rowheights [ rows { 1 get } forall ] def
+    /pixy 0 rowheights { add } forall def
+
+    /borderleft hostsym /borderleft 2 copy known { get } { pop pop 10.0 } ifelse 1 sub def
+    /borderright hostsym /borderright 2 copy known { get } { pop pop 10.0 } ifelse W hostwidth 1 add sub sub def
+
+    (matrix.layout.rows) //aztecmesas.after exec
+
+    (matrix.layout) //aztecmesas.after exec
+
+    <<
+    /ren /renmatrix
+    /pixs pixs
+    /pixx W
+    /pixy pixy
+    /rowheights rowheights
+    /height pixy 72 div
+    /width W 72 div
+    /borderleft borderleft
+    /borderright borderright
+    /bordertop 1.0
+    /borderbottom nbelow 0 gt { 1.0 } { 0.0 } ifelse
+    /strictspec strictspec
+    /loosespec loosespec
+    /xdim xdim
+    /xmin xmin
+    /xmax xmax
+    /modunit 1
+    /opt options
+    >>
+
+    _render //renmatrix if
+
+    } stopped {end stop} if
+    end
+
+}
+[/barcode] {null def} forall
+bind def
+/aztecmesas dup load executeonly /uk.co.terryburton.bwipp defineresource pop
+(setup.define) //aztecmesas.after exec
+end
+/setpacking where {pop setpacking} if
+setglobal
+% --END ENCODER aztecmesas--
