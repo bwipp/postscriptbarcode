@@ -1458,6 +1458,17 @@ begin
 
     (matrix.layout) //micropdf417.after exec
 
+    %
+    % Report the choices in the form of the options that select them, except for a composite component
+    %
+    cca ccb or not {
+        /version
+        [ r 3 string cvs (x) c 3 string cvs ]
+        dup 0 exch {length add} forall string
+        exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+        /report //render exec
+    } if
+
     <<
     /ren /renmatrix
     /pixs pixs

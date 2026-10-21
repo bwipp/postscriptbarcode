@@ -861,6 +861,11 @@ is not found, `default` silently passes; non-default profiles error.
   `qrcode` records `samparity`, the Structured Append parity of the message
   that it encodes, so that a caller can derive the parity of a message that
   it splits across symbols.
+  Encoders of symbols with a size, error correction level, mask or mode
+  record the choice under the option that selects it, as that option's
+  value, so that giving the reported values as options reproduces the
+  symbol. The PDF417 and MicroPDF417 components of a composite record
+  nothing, and `gs1-cc` records `ccversion` and `cccolumns` in their place.
 
 **Encoder integration pattern** (see `ean13.ps.src` for linear,
 `qrcode.ps.src` for matrix):

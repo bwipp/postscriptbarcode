@@ -307,7 +307,7 @@ begin
 
 /dotcode {
 
-    175 dict begin
+    176 dict begin
     {
 
     (input.processoptions) //dotcode.before exec
@@ -1597,7 +1597,7 @@ begin
         masksyms mask pixs put
         litscores mask litscore put
         score bestscore gt {
-            /bestsym pixs def  /bestlit false def
+            /bestsym pixs def  /bestlit false def  /bestmaskval mask def
             /bestscore score def
             fast bestscore rows columns mul 2 idiv gt and {exit} if
         } if
@@ -1607,7 +1607,7 @@ begin
         %
         fast {
             litscore bestscore gt {
-                /bestsym pixs def  /bestlit true def
+                /bestsym pixs def  /bestlit true def  /bestmaskval mask def
                 /bestscore litscore def
                 bestscore rows columns mul 2 idiv gt {exit} if
             } if
@@ -1628,7 +1628,7 @@ begin
         masks {
             /mask exch def
             litscores mask get bestscore gt {
-                /bestsym masksyms mask get def  /bestlit true def
+                /bestsym masksyms mask get def  /bestlit true def  /bestmaskval mask def
                 /bestscore litscores mask get def
             } if
         } forall
@@ -1645,6 +1645,13 @@ begin
     bestlit {
         sixedges { pixs exch aload pop dmv 1 put } forall
     } if
+
+    %
+    % Report the choices in the form of the options that select them
+    %
+    /columns columns /report //render exec
+    /rows rows /report //render exec
+    /mask bestmaskval /report //render exec
 
     <<
     /ren /renmatrix

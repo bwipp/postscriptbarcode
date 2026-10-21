@@ -44,6 +44,7 @@ true setglobal
 dup /raiseerror dup /uk.co.terryburton.bwipp findresource put
 dup /processoptions dup /uk.co.terryburton.bwipp findresource put
 dup /gs1process dup /uk.co.terryburton.bwipp findresource put
+dup /render dup /uk.co.terryburton.bwipp findresource put
 dup /renmatrix dup /uk.co.terryburton.bwipp findresource put
 dup /pdf417 dup /uk.co.terryburton.bwipp findresource put
 dup /micropdf417 dup /uk.co.terryburton.bwipp findresource put
@@ -767,6 +768,12 @@ begin
         /uk.co.terryburton.bwipp._dontdraw true def
         barcode options //pdf417 exec /args exch def
     } if
+
+    %
+    % Report the choices in the form of the options that select them
+    %
+    /ccversion ccversion dup length string copy /report //render exec
+    /cccolumns cccolumns /report //render exec
 
     args
     _render //renmatrix if

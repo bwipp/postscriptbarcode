@@ -1,0 +1,280 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2026 Terry Burton
+%
+
+% The choices that an encoder reports (uk.co.terryburton.bwipp.report) take the
+% form of the options that select them: giving them as options again reproduces
+% the symbol.
+
+/rep {  % data options encoder -> output report
+    20 dict begin
+    /enc exch /uk.co.terryburton.bwipp findresource def
+    /uk.co.terryburton.bwipp.report 16 dict def
+    enc exec
+    uk.co.terryburton.bwipp.report
+    end
+} def
+
+/optdict {  % string -> dict  Each option of the string, as processoptions reads it
+    32 dict exch
+    {
+        dup () eq { pop exit } if
+        ( ) search not { () exch null exch } if exch pop  % dict rest token
+        dup () eq { pop } {
+            (=) search { exch pop } { true exch } ifelse  % dict rest value key
+            3 index 3 1 roll exch put
+        } ifelse
+    } loop
+} def
+
+% Reports exactly the given keys, besides samparity and checkdigit, and
+% encoding again with the reported values, or overrides, put into the options
+% gives the same symbol
+/rto {  % data options encoder keys overrides -> bool
+    20 dict begin
+    /ovr exch def
+    /keys exch def
+    /enc exch def
+    /opts exch def
+    /dat exch def
+    dat opts enc rep /r exch def /p1 exch /pixs get def
+    /ok true def
+    r {
+        pop /k exch def
+        k /samparity ne k /checkdigit ne and {
+            false keys { k eq or } forall not { /ok false def } if
+        } if
+    } forall
+    /o2 opts optdict def
+    keys {
+        /k exch def
+        r k known {
+            o2 k ovr k known { ovr k get } { r k get } ifelse put
+        } {
+            /ok false def
+        } ifelse
+    } forall
+    /p2 dat o2 enc rep pop /pixs get def
+    ok p1 length p2 length eq and {
+        true 0 1 p1 length 1 sub { dup p1 exch get exch p2 exch get ne { pop false } if } for
+    } {
+        false
+    } ifelse
+    end
+} def
+
+/rt_tmpl {  % data options encoder keys
+    4 array astore { null aload pop 0 dict rto } dup 3 -1 roll 0 exch put
+    true isEqual
+} def
+
+% An altered choice gives a different symbol, so the round trip discriminates
+/neg_tmpl {  % data options encoder keys overrides
+    5 array astore { null aload pop rto } dup 3 -1 roll 0 exch put
+    false isEqual
+} def
+
+% The values reported, or /missing
+/rv_tmpl {  % data options encoder keys values
+    5 1 roll 4 array astore
+    {
+        null aload pop
+        4 1 roll rep exch pop exch
+        [ 3 1 roll { 1 index exch 2 copy known { get } { pop pop /missing } ifelse exch } forall pop ]
+    } dup 3 -1 roll 0 exch put
+    exch isEqual
+} def
+
+% A reported string is the encoder's own copy, so altering it alters nothing
+/cp_tmpl {  % data options encoder key
+    4 array astore
+    {
+        null aload pop
+        20 dict begin
+        /k exch def /enc exch def /opts exch def /dat exch def
+        dat opts enc rep exch pop k get /v1 exch def
+        /saved v1 dup length string copy def
+        0 1 v1 length 1 sub { v1 exch 88 put } for
+        dat opts enc rep exch pop k get saved eq
+        end
+    } dup 3 -1 roll 0 exch put
+    true isEqual
+} def
+
+% QR Code, Micro QR Code and rMQR
+(Hello World) (dontdraw) /qrcode [/version /eclevel /mask] rt_tmpl
+(Hello World) (dontdraw eclevel=H mask=3) /qrcode [/version /eclevel /mask] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /qrcode [/version /eclevel /mask] rt_tmpl
+(12345) (dontdraw) /microqrcode [/version /eclevel /mask] rt_tmpl
+(ABC123) (dontdraw) /microqrcode [/version /eclevel /mask] rt_tmpl
+(12345) (dontdraw) /rectangularmicroqrcode [/version /eclevel] rt_tmpl
+(\(01\)09521234543213\(10\)ABC123) (dontdraw) /gs1qrcode [/version /eclevel /mask] rt_tmpl
+
+% Data Matrix
+(Hello World) (dontdraw) /datamatrix [/version] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /datamatrix [/version] rt_tmpl
+(Hello World) (dontdraw) /datamatrixrectangular [/version] rt_tmpl
+(Hello World) (dontdraw) /datamatrixrectangularextension [/version] rt_tmpl
+(\(01\)09521234543213\(10\)ABC123) (dontdraw) /gs1datamatrix [/version] rt_tmpl
+(A123BJC5D6E71) (dontdraw) /hibcdatamatrix [/version] rt_tmpl
+
+% Aztec Code, which reports no layers for a rune and no format for a Mesa
+(Hello World) (dontdraw) /azteccode [/format /layers] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /azteccode [/format /layers] rt_tmpl
+(Hello) (dontdraw) /azteccodecompact [/format /layers] rt_tmpl
+(123) (dontdraw) /aztecrune [/format] rt_tmpl
+(A123BJC5D6E71) (dontdraw) /hibcazteccode [/format /layers] rt_tmpl
+(0123456789|This is Aztec Mesas) (dontdraw host=code128 twosided) /aztecmesas [/layers] rt_tmpl
+
+% PDF417 and MicroPDF417
+(Hello World) (dontdraw) /pdf417 [/columns /rows /eclevel] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /pdf417 [/columns /rows /eclevel] rt_tmpl
+(Hello World) (dontdraw columns=3 eclevel=4) /pdf417 [/columns /rows /eclevel] rt_tmpl
+(Hello World) (dontdraw) /pdf417compact [/columns /rows /eclevel] rt_tmpl
+(A123BJC5D6E71) (dontdraw) /hibcpdf417 [/columns /rows /eclevel] rt_tmpl
+(Hello World) (dontdraw) /micropdf417 [/version] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ) (dontdraw) /micropdf417 [/version] rt_tmpl
+(A123BJC5D6E71) (dontdraw) /hibcmicropdf417 [/version] rt_tmpl
+
+% MaxiCode
+(This is MaxiCode) (dontdraw) /maxicode [/mode] rt_tmpl
+(This MaxiCode message is longer than the 77 characters that mode 5 holds: ABCDEFGHIJ) (dontdraw) /maxicode [/mode] rt_tmpl
+([\)>^03001^02996152382802^029840^029001^0291Z00004951^029UPSN^02906X610^029159^0291234567^0291/1^029^029Y^029634 ALPHA DR^029PITTSBURGH^029PA^029^004) (dontdraw parse mode=2) /maxicode [/mode] rt_tmpl
+
+% DotCode
+(This is DotCode) (dontdraw) /dotcode [/columns /rows /mask] rt_tmpl
+(This is DotCode) (dontdraw fast) /dotcode [/columns /rows /mask] rt_tmpl
+(This is DotCode) (dontdraw columns=31) /dotcode [/columns /rows /mask] rt_tmpl
+(\(01\)09521234543213\(10\)ABC123) (dontdraw) /gs1dotcode [/columns /rows /mask] rt_tmpl
+
+% Code One
+(Code One) (dontdraw) /codeone [/version] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /codeone [/version] rt_tmpl
+(1234567890) (dontdraw version=S) /codeone [/version] rt_tmpl
+(Code One) (dontdraw version=T) /codeone [/version] rt_tmpl
+
+% Grid Matrix
+(Grid Matrix) (dontdraw) /gridmatrix [/version /eclevel] rt_tmpl
+(Real knowledge is to know the extent of one's ignorance.) (dontdraw) /gridmatrix [/version /eclevel] rt_tmpl
+(Grid Matrix) (dontdraw eclevel=loose) /gridmatrix [/version /eclevel] rt_tmpl
+
+% Han Xin Code
+(This is Han Xin) (dontdraw) /hanxin [/version /eclevel /mask] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw eclevel=L4) /hanxin [/version /eclevel /mask] rt_tmpl
+
+% Ultracode
+(Awesome colours!) (dontdraw) /ultracode [/columns /rows /eclevel] rt_tmpl
+(Hello World 0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz) (dontdraw) /ultracode [/columns /rows /eclevel] rt_tmpl
+(Awesome colours!) (dontdraw rows=4) /ultracode [/columns /rows /eclevel] rt_tmpl
+
+% Stacked linear
+(Abcd-1234567890-wxyZ) (dontdraw) /code16k [/rows] rt_tmpl
+(Abcd) (dontdraw) /code16k [/rows] rt_tmpl
+(MULTIPLE ROWS IN CODE 49) (dontdraw) /code49 [/rows] rt_tmpl
+(CODE 49) (dontdraw) /code49 [/rows] rt_tmpl
+(CODABLOCK F 34567890123456789010040digit) (dontdraw) /codablockf [/columns /rows] rt_tmpl
+(CODABLOCK F 34567890123456789010040digit) (dontdraw columns=10 rows=6) /codablockf [/columns /rows] rt_tmpl
+(A123BJC5D6E71) (dontdraw) /hibccodablockf [/columns /rows] rt_tmpl
+(THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG) (dontdraw) /codablocka [/columns /rows] rt_tmpl
+(THE QUICK BROWN FOX) (dontdraw columns=5 rows=6) /codablocka [/columns /rows] rt_tmpl
+
+% Data Strip 2D
+(This is Datastrip 2D) (dontdraw) /datastrip [/columns /rows] rt_tmpl
+(This is Datastrip 2D) (dontdraw columns=6) /datastrip [/columns /rows] rt_tmpl
+
+% Wrappers report the choices of the encoder that they wrap
+(SPC^0100200^0101^010CH5800791123000889012^010S^010Robert Schneider AG^010Rue du Lac^0101268^0102501^010Biel^010CH^010^010^010^010^010^010^010^010199.95^010CHF^010S^010Pia-Maria Rutschmann-Schnyder^010Grosse Marktgasse^01028^0109400^010Rorschach^010CH^010SCOR^010RF18539007547034^010^010EPD) (dontdraw parse) /swissqrcode [/version /eclevel /mask] rt_tmpl
+(BCD^010002^0101^010SCT^010^010Harbour Choir^010DE89370400440532013000^010EUR12.50^010^010^010^010Donation) (dontdraw parse) /epcqrcode [/version /eclevel /mask] rt_tmpl
+(00020101021126310015COM.EXAMPLE.PAY0108123456785204581253038405802US5913CORNER BAKERY6009SPRINGTON) (dontdraw) /emvqrcode [/version /eclevel /mask] rt_tmpl
+(HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw) /gs1dlqrcode [/version /eclevel /mask] rt_tmpl
+(A999BJC5D6E71) (dontdraw) /hibcqrcode [/version /eclevel /mask] rt_tmpl
+(HTTPS://ID.GS1.ORG/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw category=2842 hostratio=2) /d3aqr [/version /eclevel /mask] rt_tmpl
+(JGB 012100123412345678AB19XY1A 0             www.xyz.com) (dontdraw type=29) /mailmark [/version] rt_tmpl
+(9N112048163909^0291TBATCH42^029D281200^029SA1B2C3D4E5) (dontdraw parse) /ppncode [/version] rt_tmpl
+(https://id.gs1.org/01/09521234543213/22/ABC%2D123?99=XYZ-987) (dontdraw) /gs1dldatamatrix [/version] rt_tmpl
+(\(01\)09521234543213\(17\)120508\(10\)ABCD1234\(410\)9501101020917) (dontdraw) /gs1datamatrixrectangular [/version] rt_tmpl
+(A999BJC5D6E71) (dontdraw) /hibcdatamatrixrectangular [/version] rt_tmpl
+([\)>^03001^02996123450001^029840^029001^0291Z12345678^029UPSN^029A1B2C3^029042^0298901234^0291/2^0295^029Y^02912 EXAMPLE ST^029SPRINGTON^029CA^030^004) (dontdraw parse) /upsmaxicode [/mode] rt_tmpl
+(\(235\)5vBZIF%!<B;?oa%\(01\)09521234543213\(8008\)19052001) (dontdraw rows=16) /gs1dotcode [/columns /rows /mask] rt_tmpl
+
+% Composite symbols report the choices of the 2D component, and those alone
+(\(01\)09521234543213\(3103\)000123) (dontdraw ccversion=b cccolumns=4) /gs1-cc [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(11\)990102) (dontdraw) /databaromnicomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(17\)010200) (dontdraw) /databarstackedcomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)03612345678904|\(11\)990102) (dontdraw) /databarstackedomnicomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(11\)990102) (dontdraw) /databartruncatedcomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(21\)abcdefghijklmnopqrst) (dontdraw) /databarlimitedcomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213\(3103\)001234|\(91\)1A2B3C4D5E) (dontdraw) /databarexpandedcomposite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213\(10\)ABCDEF|\(21\)12345678) (dontdraw segments=4) /databarexpandedstackedcomposite [/ccversion /cccolumns] rt_tmpl
+(9520123456788|\(99\)1234-abcd) (dontdraw) /ean13composite [/ccversion /cccolumns] rt_tmpl
+(95200002|\(21\)A12345678) (dontdraw) /ean8composite [/ccversion /cccolumns] rt_tmpl
+(012345000058|\(99\)1234-abcd) (dontdraw) /upcacomposite [/ccversion /cccolumns] rt_tmpl
+(01234558|\(15\)021231) (dontdraw) /upcecomposite [/ccversion /cccolumns] rt_tmpl
+(\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c) /gs1-128composite [/ccversion /cccolumns] rt_tmpl
+(9520123456788|\(10\)ABCDEFGHIJKLMNOPQRST\(21\)ABCDEFGHIJKLMNOPQRST) (dontdraw) /ean13composite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(10\)ABCDEFGHIJKLMNOPQRST\(240\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(241\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(91\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(92\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(93\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(94\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234) (dontdraw) /gs1-128composite [/ccversion /cccolumns] rt_tmpl
+(\(01\)09521234543213|\(10\)ABCDEFGHIJKLMNOPQRST\(240\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(241\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(91\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(92\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(93\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(94\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234) (dontdraw ccversion=b) /gs1-128composite [/ccversion /cccolumns] rt_tmpl
+
+% Reported values, whether chosen or given
+(Hello World) (dontdraw version=10 eclevel=H mask=4) /qrcode [/version /eclevel /mask] [(10) (H) 4] rv_tmpl
+(12345) (dontdraw) /rectangularmicroqrcode [/version /eclevel /mask] [(R11x27) (H) /missing] rv_tmpl
+(Hello World) (dontdraw version=32x32) /datamatrix [/version] [(32x32)] rv_tmpl
+(Hello World) (dontdraw format=full layers=5) /azteccode [/format /layers] [(full) 5] rv_tmpl
+(123) (dontdraw) /aztecrune [/format /layers] [(rune) /missing] rv_tmpl
+(0123456789|This is Aztec Mesas) (dontdraw host=code128 twosided layers=2) /aztecmesas [/format /layers] [/missing 2] rv_tmpl
+(Hello World) (dontdraw columns=5 rows=20 eclevel=5) /pdf417 [/columns /rows /eclevel] [5 20 5] rv_tmpl
+(Hello World) (dontdraw version=14x2) /micropdf417 [/version] [(14x2)] rv_tmpl
+(This is MaxiCode) (dontdraw) /maxicode [/mode] [5] rv_tmpl
+(This MaxiCode message is longer than the 77 characters that mode 5 holds: ABCDEFGHIJ) (dontdraw) /maxicode [/mode] [4] rv_tmpl
+(This is MaxiCode) (dontdraw mode=6) /maxicode [/mode] [6] rv_tmpl
+(This is DotCode) (dontdraw columns=31 mask=1) /dotcode [/columns /mask] [31 1] rv_tmpl
+(1234567890) (dontdraw version=S) /codeone [/version] [(S-20)] rv_tmpl
+(Code One) (dontdraw version=T-32) /codeone [/version] [(T-32)] rv_tmpl
+(Grid Matrix) (dontdraw version=5 eclevel=2 fixedeclevel) /gridmatrix [/version /eclevel] [(5) (2)] rv_tmpl
+(This is Han Xin) (dontdraw version=7 eclevel=L3 mask=2) /hanxin [/version /eclevel /mask] [(7) (L3) 2] rv_tmpl
+(Awesome colours!) (dontdraw columns=20 rows=3 eclevel=EC1 fixedeclevel) /ultracode [/columns /rows /eclevel] [20 3 (EC1)] rv_tmpl
+(Abcd) (dontdraw rows=10) /code16k [/rows] [10] rv_tmpl
+(CODE 49) (dontdraw rows=6) /code49 [/rows] [6] rv_tmpl
+(CODABLOCK F) (dontdraw columns=10 rows=6) /codablockf [/columns /rows] [10 6] rv_tmpl
+(THE QUICK BROWN FOX) (dontdraw columns=5 rows=6) /codablocka [/columns /rows] [5 6] rv_tmpl
+(This is Datastrip 2D) (dontdraw columns=6 rows=62) /datastrip [/columns /rows] [6 62] rv_tmpl
+(\(01\)09521234543213\(3103\)000123) (dontdraw ccversion=b cccolumns=3) /gs1-cc [/ccversion /cccolumns] [(b) 3] rv_tmpl
+(9520123456788|\(99\)1234-abcd) (dontdraw ccversion=b) /ean13composite [/ccversion /cccolumns /version /columns /rows /eclevel] [(b) 4 /missing /missing /missing /missing] rv_tmpl
+(\(00\)095287654321012346|\(02\)09521234543213\(37\)24\(10\)1234567ABCDEFG) (dontdraw ccversion=c) /gs1-128composite [/ccversion /cccolumns /version /columns /rows /eclevel] [(c) 6 /missing /missing /missing /missing] rv_tmpl
+
+% Automatic raises and upgrades are reported
+(Hello World) (dontdraw eclevel=L) /qrcode [/version /eclevel] [(1) (Q)] rv_tmpl
+(Hello World) (dontdraw eclevel=L fixedeclevel) /qrcode [/version /eclevel] [(1) (L)] rv_tmpl
+(9520123456788|\(10\)ABCDEFGHIJKLMNOPQRST\(21\)ABCDEFGHIJKLMNOPQRST) (dontdraw) /ean13composite [/ccversion] [(b)] rv_tmpl
+(\(01\)09521234543213|\(10\)ABCDEFGHIJKLMNOPQRST\(240\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(241\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(91\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(92\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(93\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234\(94\)ABCDEFGHIJKLMNOPQRSTUVWXYZ1234) (dontdraw) /gs1-128composite [/ccversion] [(c)] rv_tmpl
+
+% An altered choice changes the symbol
+(Hello World) (dontdraw) /qrcode [/version /eclevel /mask] << /mask 1 >> neg_tmpl
+(Hello World) (dontdraw) /qrcode [/version /eclevel /mask] << /version (2) >> neg_tmpl
+(Hello World) (dontdraw) /datamatrix [/version] << /version (20x20) >> neg_tmpl
+(Hello World) (dontdraw) /azteccode [/format /layers] << /layers 3 >> neg_tmpl
+(Hello World) (dontdraw) /pdf417 [/columns /rows /eclevel] << /eclevel 3 >> neg_tmpl
+(This is DotCode) (dontdraw) /dotcode [/columns /rows /mask] << /mask 0 >> neg_tmpl
+(This is Han Xin) (dontdraw) /hanxin [/version /eclevel /mask] << /mask 1 >> neg_tmpl
+(9520123456788|\(99\)1234-abcd) (dontdraw) /ean13composite [/ccversion /cccolumns] << /ccversion (b) >> neg_tmpl
+
+% Reported strings are copies
+(Hello World) (dontdraw) /qrcode /version cp_tmpl
+(Hello World) (dontdraw) /qrcode /eclevel cp_tmpl
+(12345) (dontdraw) /microqrcode /version cp_tmpl
+(12345) (dontdraw) /rectangularmicroqrcode /version cp_tmpl
+(Hello World) (dontdraw) /datamatrix /version cp_tmpl
+(Hello World) (dontdraw) /azteccode /format cp_tmpl
+(123) (dontdraw) /aztecrune /format cp_tmpl
+(Hello World) (dontdraw) /micropdf417 /version cp_tmpl
+(Code One) (dontdraw) /codeone /version cp_tmpl
+(Grid Matrix) (dontdraw) /gridmatrix /version cp_tmpl
+(Grid Matrix) (dontdraw) /gridmatrix /eclevel cp_tmpl
+(This is Han Xin) (dontdraw) /hanxin /version cp_tmpl
+(This is Han Xin) (dontdraw) /hanxin /eclevel cp_tmpl
+(Awesome colours!) (dontdraw) /ultracode /eclevel cp_tmpl
+(9520123456788|\(99\)1234-abcd) (dontdraw) /ean13composite /ccversion cp_tmpl
