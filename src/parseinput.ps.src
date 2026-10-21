@@ -86,8 +86,17 @@ begin
 
     /parse     dup dup fncvals exch get def fncvals exch undef
     /parsefnc  dup dup fncvals exch get def fncvals exch undef
-    /parseonly dup dup fncvals exch known def fncvals exch undef
-    /eci       dup dup fncvals exch known def fncvals exch undef
+    % These keys enable their option by their presence, so a caller omits them rather than give false
+    /parseonly dup dup fncvals exch 2 copy known {
+        get dup true ne {
+            pop pop pop /bwipp.parseinputPresenceKeyNotTrue (Keys that enable an option by their presence must be true) //raiseerror exec
+        } if
+    } { pop pop false } ifelse def fncvals exch undef
+    /eci       dup dup fncvals exch 2 copy known {
+        get dup true ne {
+            pop pop pop /bwipp.parseinputPresenceKeyNotTrue (Keys that enable an option by their presence must be true) //raiseerror exec
+        } if
+    } { pop pop false } ifelse def fncvals exch undef
 
     //parseinput.latevars /init get exec
 

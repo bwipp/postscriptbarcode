@@ -185,6 +185,14 @@
     (A^ECI123456BC) << /parse false /parsefnc true (FNC1) -1 >> parseinput
 } /bwipp.unknownFNC isError
 
+{  % Keys that enable an option by their presence are refused when false
+    (A) << /parse false /parsefnc false /eci false >> parseinput
+} /bwipp.parseinputPresenceKeyNotTrue isError
+
+{
+    (A) << /parseonly false /parse false /parsefnc false >> parseinput
+} /bwipp.parseinputPresenceKeyNotTrue isError
+
 {  % ECI 000000
     (A^ECI000000BC) << /parse false /parsefnc true /eci true (FNC1) -1 >> parseinput
 } [65 -1000000 66 67] isEqual
