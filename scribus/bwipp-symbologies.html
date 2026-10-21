@@ -664,7 +664,8 @@ minimal number of layers to encode the given data.</li>
 used for programming the barcode reader. Reader programming is only
 compatible with 1- to 22-layer full-range Aztec Code symbols, so
 <strong>layers</strong> must also be given, from <code>1</code> to
-<code>22</code>.</li>
+<code>22</code>. It is also available with the <strong>raw</strong>
+option.</li>
 <li>The <strong>raw</strong> option denotes that the data field is
 providing the input as a pre-encoded bitstream suitable for direct
 low-level encoding.</li>
@@ -878,6 +879,12 @@ data, e.g. <code>^FNC@T...</code> or <code>^FNC@99...</code>. See <a href="bwipp
 position</a>.</li>
 <li>ECIs are not available with FNC1 in first or second position.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing the Reader
+Programming codeword (<code>^PROG</code>) at the start of the data. With
+the <strong>raw</strong> option it precedes the raw codewords. It is not
+available with FNC1 in first or second position, nor with Structured
+Append.</li>
 <li>The encoder compresses ISO/IEC 15434 messages in Format 05 or 06,
 except in a Structured Append symbol.</li>
 <li>The <strong>sampos</strong>, <strong>samtotal</strong> and
@@ -917,6 +924,11 @@ symbol size, as <code>version=RxC</code>. Valid options are
 <li>If <strong>columns</strong>, <strong>rows</strong> and
 <strong>version</strong> are unspecified the encoder will default to
 creating the smallest symbol that holds the data.</li>
+<li>The <strong>iso144</strong> option places the error correction
+codewords of a 144x144 symbol in the order given by the ISO/IEC
+standard. By default they are placed in the rotated order that readers
+have long expected, since many readers cannot decode a 144x144 symbol in
+the standard order.</li>
 <li>The <strong>c40headerlength</strong> option specifies the number of
 leading characters in the data field that must be stored using C40
 encodation.</li>
@@ -1283,8 +1295,9 @@ option or for GS1 Composite symbols.</li>
 </ul></li>
 <li><p>The <strong>readerinit</strong> option denotes that the symbol is
 used for programming the barcode reader. Every symbol of a Structured
-Append sequence for reader programming is given it. It is not available
-with the <strong>raw</strong> option or for GS1 Composite
+Append sequence for reader programming is given it. With the
+<strong>raw</strong> option it precedes the raw codewords, which readers
+dictate for programming. It is not available for GS1 Composite
 symbols.</p></li>
 <li><p><em>Deprecated: Internal use.</em> The <strong>cca</strong>
 option identifies this symbol as a <a href="#cc-a">CC-A</a> 2D component
@@ -1393,8 +1406,10 @@ or for GS1 Composite symbols.</li>
 </ul></li>
 <li>The <strong>readerinit</strong> option denotes that the symbol is
 used for programming the barcode reader. Every symbol of a Macro PDF417
-sequence for reader programming is given it. It is not available with
-the <strong>raw</strong> option or for GS1 Composite symbols.</li>
+sequence for reader programming is given it. With the
+<strong>raw</strong> option it precedes the raw codewords, which readers
+dictate for programming. It is not available for GS1 Composite
+symbols.</li>
 <li><em>Deprecated: Use <a href="#compact-pdf417">Compact PDF417</a>
 instead. The <strong>compact</strong> option is used to create a
 compact/truncated PDF417 symbol that has fewer bars per row than a
@@ -1493,8 +1508,9 @@ option.</li>
 </ul></li>
 <li>The <strong>readerinit</strong> option denotes that the symbol is
 used for programming the barcode reader. Every symbol of a Macro PDF417
-sequence for reader programming is given it. It is not available with
-the <strong>raw</strong> option.</li>
+sequence for reader programming is given it. With the
+<strong>raw</strong> option it precedes the raw codewords, which readers
+dictate for programming.</li>
 </ul>
 <h4 id="examples-16">Examples</h4>
 <p>A compact symbol with four columns:</p>
@@ -2123,6 +2139,11 @@ position</a>. The human readable text leaves out this FNC1.</li>
 <li><code>^FNC2</code>: FNC2</li>
 <li><code>^FNC3</code>: FNC3</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the data. It is not available with FNC1 in first or second
+position, nor with the <strong>raw</strong> option, whose codewords can
+include <em>FNC3</em> directly.</li>
 <li><em>Deprecated:</em> The <strong>raw</strong> option denotes that
 the data field is providing the input as pre-encoded codewords in
 <code>^NNN</code> format, suitable for direct low-level encoding. You
@@ -2350,8 +2371,13 @@ that suits Code 93 as an ordinary Code 93 symbol.</p>
 <p>Standards: AIM ITS/99-004 - ISS 93i.</p>
 <h4 id="data-and-options-28">Data and Options</h4>
 <ul>
-<li>The data field can hold any byte values 0 to 255, given as ordinals
-with the <strong>parse</strong> option, e.g. <code>^233</code>.</li>
+<li>The data field can contain any extended ASCII data. When supported
+by the receiver, characters from other code pages can be encoded using
+Extended Channel Interpretation (ECI).</li>
+<li>When the <strong>parse</strong> option is specified, any instances
+of <code>^NNN</code> in the data field are replaced with their
+equivalent ASCII value, useful for specifying unprintable characters,
+e.g. <code>^233</code> for <em>é</em>.</li>
 <li>The encoder chooses a shortest encodation using the base Code 93
 characters, shifts, group shifts, Numeric Mode and Byte Mode.</li>
 <li>Data that Code 93 can encode is encoded as a <a href="#code-93">Code
@@ -2367,8 +2393,8 @@ and data consisting of a single space requires
 error correction characters in place of the check characters, with the
 93i start character. The data may then occupy at most 44 symbol
 characters.</li>
-<li>The <strong>parsefnc</strong> option allows the following non-data
-characters to be specified:
+<li>When the <strong>parsefnc</strong> option is specified, non-data
+function characters can be specified by escape sequences:
 <ul>
 <li><code>^FNC1</code>: FNC1, which in first position signifies
 compliance with an application standard, and elsewhere is transmitted as
@@ -2596,6 +2622,12 @@ since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
 GS1 Application Identifier syntax validation allowing images to be
 generated for input that does not comply with GS1 standards.</li>
+<li>The <strong>gssep</strong> option separates the AIs with <em>GS</em>
+(ASCII 29) characters in place of <em>FNC1</em>. The GS1 standards
+tolerate this but do not encourage it. It is intended only for
+applications that mandate it, since a reader that conforms to the
+standards transmits either separator as <em>GS</em>. See <a href="bwipp-gs1ai.html#use-of-group-separator-character-gs-ascii-29-as-an-ai-separator">Use
+of Group Separator character as an AI separator</a>.</li>
 <li>The <strong>format</strong> option is used to specify the shape of
 the symbol, either <code>square</code> (default) or
 <code>rectangle</code>.</li>
@@ -2670,6 +2702,12 @@ since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
 GS1 Application Identifier syntax validation allowing images to be
 generated for input that does not comply with GS1 standards.</li>
+<li>The <strong>gssep</strong> option separates the AIs with <em>GS</em>
+(ASCII 29) characters in place of <em>FNC1</em>. The GS1 standards
+tolerate this but do not encourage it. It is intended only for
+applications that mandate it, since a reader that conforms to the
+standards transmits either separator as <em>GS</em>. See <a href="bwipp-gs1ai.html#use-of-group-separator-character-gs-ascii-29-as-an-ai-separator">Use
+of Group Separator character as an AI separator</a>.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are
 used to specify the size of the symbol.</li>
 <li>The <strong>version</strong> option can also be used to specify the
@@ -4937,6 +4975,10 @@ function characters can be specified by escape sequences:
 <li><code>^FNC1</code>: FNC1</li>
 <li><code>^FNC3</code>: FNC3</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the symbol. It is not available with FNC1 in first
+position.</li>
 <li>The <strong>columns</strong> option specifies the number of columns
 in the symbol, from 4 to 62, default 8.</li>
 <li>The <strong>rows</strong> option specifies the number of rows in the
@@ -5061,6 +5103,11 @@ application indicator of one letter or two digits at the start of the
 data, e.g. <code>^FNC@T...</code> or <code>^FNC@99...</code>. See <a href="bwipp-options.html#fnc1-in-second-position">FNC1 in second
 position</a>. It is not available with Structured Append.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the data. It is not available with FNC1 in first or second
+position, nor with the <strong>raw</strong> option, whose codewords can
+include <em>FNC3</em> directly.</li>
 <li>The <strong>sam</strong> option specifies this symbol to be part of
 multi-part structured data held in up to nine symbols. For example
 <code>sam=25</code> specifies this to be the second symbol in a group of
@@ -5183,12 +5230,23 @@ data or of a message segment that follows FNC3, e.g.
 position</a>.</li>
 <li>ECIs are not available with FNC1 in first or second position.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> in the
+first position. It is not available with FNC1 in first or second
+position, nor with Structured Append.</li>
 <li>The <strong>ratio</strong> option sets the width-to-height ratio of
 the symbol. The default is 1.5.</li>
 <li>The <strong>columns</strong> and <strong>rows</strong> options are
 used to specify the size of the symbol, each from 5 to 200, with an odd
 sum. When these are not specified a symbol is generated that maintains
-the selected aspect ratio.</li>
+the selected aspect ratio, except that a dimension that would exceed 200
+is held at 200. Data that does not fit within 200 rows and 200 columns
+is refused.</li>
+<li>The specification places no limit on the size of a symbol, so the
+limit of 200 rows and columns can be changed by defining
+<code>dotcode.maxrows</code> and <code>dotcode.maxcols</code> in the
+global context:
+<div class="sourceCode" id="cb186"><pre class="sourceCode postscript"><code class="sourceCode postscript"><span id="cb186-1"><a href="#cb186-1" aria-hidden="true" tabindex="-1"></a><span class="dt">/uk.co.terryburton.bwipp.global_ctx</span> &lt;&lt; <span class="dt">/dotcode.maxrows</span> <span class="dv">300</span> <span class="dt">/dotcode.maxcols</span> <span class="dv">1000</span> &gt;&gt; <span class="kw">def</span></span></code></pre></div></li>
 <li>The <strong>mask</strong> option selects mask <code>0</code> to
 <code>3</code> instead of the best one.</li>
 <li><em>Deprecated.</em> The <strong>fast</strong> option is used to
@@ -5246,6 +5304,12 @@ indicators</li>
 <li>ECIs are not available with FNC1 in first position, and FNC1 is not
 available in second position.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the data. With the <strong>raw</strong> option it precedes the
+raw codewords, other than with <strong>link1</strong>, whose codewords
+can include <em>FNC3</em> directly. It is not available with FNC1 in
+first position, nor with Structured Append.</li>
 <li>The <strong>eclevel</strong> option is used to specify the error
 correction level:
 <ul>
@@ -5521,6 +5585,10 @@ data, e.g. <code>^FNC@T...</code> or <code>^FNC@99...</code>. See <a href="bwipp
 position</a>.</li>
 <li>ECIs are not available with FNC1 in first or second position.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the data. It is not available for <em>S-type</em> symbols, with
+FNC1 in first or second position, nor with Structured Append.</li>
 <li>The <strong>version</strong> option is used to specify the size and
 type of the symbol:
 <ul>
@@ -5930,6 +5998,11 @@ application indicator of one letter or two digits at the start of the
 data, e.g. <code>^FNC@T...</code> or <code>^FNC@99...</code>. See <a href="bwipp-options.html#fnc1-in-second-position">FNC1 in second
 position</a>. It is not available in the limited versions.</li>
 </ul></li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader, by placing <em>FNC3</em> at the
+start of the data. It is not available for <em>limited</em> symbols,
+with FNC1 in first or second position, nor with the <strong>raw</strong>
+option, whose codewords can include <em>FNC3</em> directly.</li>
 <li>The <strong>inkspread</strong> option can be used to adjust the
 width of the bars.</li>
 </ul>
@@ -6220,76 +6293,129 @@ and the Mesa is read by imagers.</p>
 <p>Standards: AIM ITS/99-003 - ISS Aztec Mesas.</p>
 <h4 id="data-and-options-110">Data and Options</h4>
 <ul>
-<li>The data field contains the primary message for the host followed by
-a pipe character <code>|</code> and the supplemental message for the
-Mesa, e.g. <code>0123456789|Supplement</code>.</li>
-<li>The first pipe character separates the two messages, so a pipe
-character in the primary message is given as <code>^124</code> with the
-<strong>parse</strong> option.</li>
+<li>The data field consists of a primary and secondary component
+separated by a pipe <code>|</code> character.
+<ul>
+<li>The data for the primary component (preceding the pipe) is entered
+in the format of the host symbology. A pipe character in it is given as
+<code>^124</code> with the <strong>parse</strong> option.</li>
 <li>A host that encodes only zeros, or nothing, is not transmitted by
 readers, so that the Mesa functions as a stand-alone symbol. The zeros
 are given as digits, or as <code>^048</code> with the
 <strong>parse</strong> option; a host that transmits only zeros from raw
 codewords or after FNC1 is not treated as one.</li>
-<li>The <code>host</code> option selects the host symbology:
-<code>code128</code> (the default), <code>code39</code>,
-<code>code93</code>, <code>code93i</code>, <code>interleaved2of5</code>,
-<code>ean13</code> or <code>upca</code>. The width of the host sets the
-width, and therefore the capacity, of the Mesa. The options that change
-the encodation of the host are passed to it: <code>includecheck</code>,
-<code>validatecheck</code>, <code>errorcorrection</code>,
-<code>suppressc</code>, <code>unlatchextbeforec</code>,
-<code>raw</code>, <code>parse</code> and <code>parsefnc</code>. A Code
-93 host always has its check characters, a Code 93i host has no 93i
-companion flag, an Interleaved 2 of 5 host has at least two pairs of
-digits, and UPC-A and EAN-13 hosts have no add-on.</li>
-<li><code>hostwidenarrow=2</code> or <code>hostwidenarrow=3</code> (the
-default) sets the wide-to-narrow ratio of a Code 39 or Interleaved 2 of
-5 host.</li>
-<li>The supplemental message is encoded as for <a href="#aztec-code">Aztec Code</a>, with the <code>parse</code> and
-<code>parsefnc</code> options (<code>^FNC1</code>, <code>^FNC@</code>
-and <code>^ECInnnnnn</code>), <code>eclevel</code> (default 23) and
-<code>ecaddchars</code> (default 3) for the minimum error correction,
-<code>readerinit</code> for reader initialisation, which requires a Mesa
-of fewer than 512 codewords, and <code>sampos</code>,
-<code>samtotal</code> and <code>samid</code> for Structured Append,
-which requires a host that encodes only zeros.</li>
-<li>Readers transmit the data of the host before the supplemental
-message, so FNC1 at the start of the supplemental message is in first
-position, and <code>^FNC@</code> is available, only with a host that
-encodes only zeros. Otherwise FNC1 is a field separator.</li>
-<li>ECIs are not available with FNC1 at the start of the supplemental
-message, or in second position.</li>
-<li><code>layers=1</code> to <code>layers=32</code> fixes the number of
-layers; otherwise the Mesa has the fewest layers that hold the data with
-the minimum error correction. A Mesa holds at most 4095 codewords, which
-limits the layers of a host wider than about 770 modules.</li>
-<li><code>twosided</code> places the even-numbered layers below the
-host, so that an odd number of layers has one more above it.</li>
-<li><code>rowheight</code> sets the height of each row of the Mesa in
-modules (default 2). <code>hostheight</code> sets the height of the host
-in modules, by default the greater of 12 and 15% of its width.</li>
-<li><code>barrier=n</code> places a barrier pattern n modules high
-between the host and each side of the Mesa. UPC-A and EAN-13 hosts have
-a barrier of stilts 6 modules high by default, which
-<code>barrier=0</code> removes for closed systems.</li>
-<li><code>bearers</code> adds bearer bars 2 modules high to an
-Interleaved 2 of 5 host, open at the reference ladders on any side that
-carries the Mesa.</li>
-<li><code>clocktrack=n</code> places a clocking track n modules high
-below a one-sided Mesa on a UPC-A or EAN-13 host, above a clear area 6
-modules high in place of the barrier, for a Mesa that is printed
-separately from its host.</li>
-<li>The quiet zone is 1 module above the Mesa, and below it when it is
-two-sided; at the sides it is that of the host, into which the Mesa
-extends.</li>
-<li><code>width</code> and <code>height</code> scale the whole symbol,
-as for other two-dimensional symbols.</li>
+<li>The data for the 2D component (following the pipe) can contain any
+extended ASCII data. The default interpretation of data by readers is in
+accordance with ISO/IEC 8859-1. When supported by the receiver,
+characters from other code pages can be encoded using Extended Channel
+Interpretation (ECI).</li>
+</ul></li>
+<li>When the <strong>parse</strong> option is specified, any instances
+of <code>^NNN</code> in the data field are replaced with their
+equivalent ASCII value, useful for specifying unprintable
+characters.</li>
+<li>When the <strong>parsefnc</strong> option is specified, non-data
+function characters can be specified by escape sequences:
+<ul>
+<li><code>^FNC1</code>: FNC1. Readers transmit the data of the host
+before that of the 2D component, so FNC1 at the start of the 2D
+component is in first position only with a host that encodes only zeros.
+Otherwise it is a field separator.</li>
+<li><code>^ECI000000</code> to <code>^ECI999999</code>: ECI
+indicators</li>
+<li><code>^FNC@</code>: FNC1 in second position, written before an AIM
+application indicator of one letter or two digits at the start of the 2D
+component, with a host that encodes only zeros, e.g.
+<code>^FNC@T...</code> or <code>^FNC@99...</code>. See <a href="bwipp-options.html#fnc1-in-second-position">FNC1 in second
+position</a>.</li>
+<li>ECIs are not available with FNC1 at the start of the 2D component,
+or in second position.</li>
+</ul></li>
+<li>The <strong>parse</strong> and <strong>parsefnc</strong> options
+apply to both components.</li>
+<li>The <strong>host</strong> option selects the host symbology, which
+sets the width, and therefore the capacity, of the Mesa:
+<ul>
+<li><code>host=code128</code> - <a href="#code-128">Code 128</a>
+(default)</li>
+<li><code>host=code39</code> - <a href="#code-39">Code 39</a></li>
+<li><code>host=code93</code> - <a href="#code-93">Code 93</a>, always
+with its check characters</li>
+<li><code>host=code93i</code> - <a href="#code-93i">Code 93i</a>,
+without a 93i companion flag</li>
+<li><code>host=interleaved2of5</code> - <a href="#interleaved-2-of-5">Interleaved 2 of 5</a>, of at least two pairs
+of digits</li>
+<li><code>host=ean13</code> - <a href="#ean-13">EAN-13</a>, without an
+add-on</li>
+<li><code>host=upca</code> - <a href="#upc-a">UPC-A</a>, without an
+add-on</li>
+</ul></li>
+<li>The <strong>includecheck</strong>, <strong>validatecheck</strong>,
+<strong>errorcorrection</strong>, <strong>suppressc</strong>,
+<strong>unlatchextbeforec</strong> and <strong>raw</strong> options are
+passed to the host symbology. The human readable text of the host is not
+shown.</li>
+<li>The <strong>hostwidenarrow</strong> option sets the wide-to-narrow
+ratio of a Code 39 or Interleaved 2 of 5 host, <code>2</code> or
+<code>3</code>, by default <code>3</code>.</li>
+<li>The <strong>hostheight</strong> option sets the height of the host
+in modules, by default the greater of <code>12</code> and 15% of its
+width.</li>
+<li>The <strong>eclevel</strong> option is used to specify the
+percentage of error correction to be applied when expanding the data,
+from <code>5</code> to <code>95</code>, by default <code>23</code>.</li>
+<li>The <strong>ecaddchars</strong> option is used to specify how many
+additional error correction characters to add after applying the eclevel
+percentage, <code>3</code> or more, by default <code>3</code>.</li>
+<li>The <strong>layers</strong> option is used to specify a particular
+number of layers in which to encode the data, between <code>1</code> and
+<code>32</code>. By default the encoder will create a symbol with the
+minimal number of layers to encode the given data. A Mesa holds at most
+4095 codewords, which limits the layers of a host wider than about 770
+modules.</li>
+<li>The <strong>twosided</strong> option places the even-numbered layers
+below the host, so that an odd number of layers has one more above
+it.</li>
+<li>The <strong>rowheight</strong> option sets the height of each row of
+the Mesa in modules, by default <code>2</code>.</li>
+<li>The <strong>barrier</strong> option places a barrier pattern of the
+given height in modules between the host and each side of the Mesa.
+UPC-A and EAN-13 hosts have a barrier of stilts 6 modules high by
+default, which <code>barrier=0</code> removes for closed systems.</li>
+<li>The <strong>bearers</strong> option adds bearer bars 2 modules high
+to an Interleaved 2 of 5 host, open at the reference ladders on any side
+that carries the Mesa.</li>
+<li>The <strong>clocktrack</strong> option places a clocking track of
+the given height in modules below a one-sided Mesa on a UPC-A or EAN-13
+host, above a clear area 6 modules high in place of the barrier, for a
+Mesa that is printed separately from its host.</li>
+<li>The <strong>readerinit</strong> option denotes that the symbol is
+used for programming the barcode reader. Reader programming requires a
+Mesa of fewer than 512 codewords.</li>
+<li>The <strong>sampos</strong>, <strong>samtotal</strong> and
+<strong>samid</strong> options make the symbol one of a Structured
+Append sequence of 2 to 26 symbols, which a reader reassembles into a
+single message. <strong>sampos</strong> and <strong>samtotal</strong>
+are required:
+<ul>
+<li><strong>sampos</strong> is the position of the symbol in the
+sequence, from 1 to <strong>samtotal</strong>.</li>
+<li><strong>samtotal</strong> is the number of symbols in the
+sequence.</li>
+<li><strong>samid</strong> is an optional message ID, which is the same
+in every symbol of the sequence and must not contain spaces. Uppercase
+letters encode most compactly.</li>
+<li>Structured Append requires a host that encodes only zeros, and is
+not available for reader initialisation symbols.</li>
+</ul></li>
+<li>The <strong>width</strong> and <strong>height</strong> options scale
+the whole symbol, as for other two-dimensional symbols. The quiet zone
+is 1 module above the Mesa, and below it when it is two-sided; at the
+sides it is that of the host, into which the Mesa extends.</li>
 <li>The X-dimension of the Mesa is that of its host, so the physical
-specification options, such as <code>strictspec</code>,
-<code>loosespec</code> and <code>ast</code>, apply the specification
-profile of the host.</li>
-<li>The human readable text of the host is not shown.</li>
+specification options, such as <strong>strictspec</strong>,
+<strong>loosespec</strong> and <strong>ast</strong>, apply the
+specification profile of the host.</li>
 </ul>
 <h4 id="examples-101">Examples</h4>
 <p>A two-sided Mesa on a Code 128 host:</p>
@@ -6369,11 +6495,13 @@ Specifications.</p>
 <h4 id="data-and-options-111">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#ean-13">EAN-13</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6421,11 +6549,13 @@ Specifications.</p>
 <h4 id="data-and-options-112">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#ean-8">EAN-8</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6473,11 +6603,13 @@ Specifications.</p>
 <h4 id="data-and-options-113">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#upc-a">UPC-A</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6525,11 +6657,13 @@ Specifications.</p>
 <h4 id="data-and-options-114">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#upc-e">UPC-E</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6581,12 +6715,14 @@ Specifications.</p>
 <h4 id="data-and-options-115">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-omnidirectional">GS1
 DataBar Omnidirectional</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6638,12 +6774,14 @@ Specifications.</p>
 <h4 id="data-and-options-116">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-stacked-omnidirectional">GS1 DataBar Stacked
 Omnidirectional</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6694,12 +6832,14 @@ Specifications.</p>
 <h4 id="data-and-options-117">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-expanded">GS1 DataBar
 Expanded</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6751,12 +6891,14 @@ Specifications.</p>
 <h4 id="data-and-options-118">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-expanded-stacked">GS1
 DataBar Expanded Stacked</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6807,12 +6949,14 @@ Specifications.</p>
 <h4 id="data-and-options-119">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-truncated">GS1 DataBar
 Truncated</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6866,12 +7010,14 @@ Specifications.</p>
 <h4 id="data-and-options-120">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-stacked">GS1 DataBar
 Stacked</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6925,12 +7071,14 @@ Specifications.</p>
 <h4 id="data-and-options-121">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-databar-limited">GS1 DataBar
 Limited</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables
@@ -6978,11 +7126,13 @@ Symbology, GS1 General Specifications.</p>
 <h4 id="data-and-options-122">Data and Options</h4>
 <ul>
 <li>The data field consists of a primary and secondary component
-separated by a pipe <code>|</code> character.</li>
+separated by a pipe <code>|</code> character.
+<ul>
 <li>The data for the primary component (preceding the pipe) is entered
 in a format identical to <a href="#gs1-128">GS1-128</a>.</li>
 <li>The data for the 2D component (following the pipe) is entered in <a href="bwipp-gs1ai.html#gs1-application-identifier-standard-format">GS1
 Application Identifier standard format</a>.</li>
+</ul></li>
 <li>Note that it is not necessary to specify <em>FNC1</em> characters
 since the encoder will insert these automatically where necessary.</li>
 <li><em>Deprecated.</em> The <strong>dontlint</strong> option disables

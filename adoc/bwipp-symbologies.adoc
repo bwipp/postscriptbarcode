@@ -594,7 +594,7 @@ Standards: ISO/IEC 24778, ANSI/AIM BC13 - ISS Aztec Code.
 * The *eclevel* option is used to specify the percentage of error correction to be applied when expanding the data, from `5` to `95`, by default `23`.
 * The *ecaddchars* option is used to specify how many additional error correction characters to add after applying the eclevel percentage, `3` or more, by default `3`.
 * The *layers* option is used to specify a particular number of layers in which to encode the data, between `1` and `32`. By default the encoder will create a symbol with the minimal number of layers to encode the given data.
-* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Reader programming is only compatible with 1- to 22-layer full-range Aztec Code symbols, so *layers* must also be given, from `1` to `22`.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Reader programming is only compatible with 1- to 22-layer full-range Aztec Code symbols, so *layers* must also be given, from `1` to `22`. It is also available with the *raw* option.
 * The *raw* option denotes that the data field is providing the input as a pre-encoded bitstream suitable for direct low-level encoding.
 * _Deprecated: Consider <<_compact_aztec_code,Compact Aztec Code>> instead._ The *format* option can also be used to create Compact Aztec Code symbols, using `format=compact`.
 * _Deprecated: Consider <<_aztec_runes,Aztec Runes>> instead._ The *format* option can also be used to create Aztec Code "runes", using `format=rune`. In this case the rune symbol number should be given in the data field.
@@ -763,6 +763,7 @@ Standards: ISO/IEC 16022, ANSI/AIM BC11 - ISS Data Matrix.
 ** `^ECI000000` to `^ECI999999`: ECI indicators
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>.
 ** ECIs are not available with FNC1 in first or second position.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing the Reader Programming codeword (`^PROG`) at the start of the data. With the *raw* option it precedes the raw codewords. It is not available with FNC1 in first or second position, nor with Structured Append.
 * The encoder compresses ISO/IEC 15434 messages in Format 05 or 06, except in a Structured Append symbol.
 * The *sampos*, *samtotal* and *samid* options make the symbol one of a Structured Append sequence of 2 to 16 symbols, which a reader reassembles into a single message. All three are required:
 ** *sampos* is the position of the symbol in the sequence, from 1 to *samtotal*.
@@ -775,6 +776,7 @@ Standards: ISO/IEC 16022, ANSI/AIM BC11 - ISS Data Matrix.
 * The *columns* and *rows* options are used to specify the size of the symbol.
 * The *version* option can also be used to specify the symbol size, as `version=RxC`. Valid options are _10x10_, _12x12_, _14x14_, _16x16_, _18x18_, _20x20_, _22x22_, _24x24_, _26x26_, _32x32_, _36x36_, _40x40_, _44x44_, _48x48_, _52x52_, _64x64_, _72x72_, _80x80_, _88x88_, _96x96_, _104x104_, _120x120_, _132x132_, _144x144_
 * If *columns*, *rows* and *version* are unspecified the encoder will default to creating the smallest symbol that holds the data.
+* The *iso144* option places the error correction codewords of a 144x144 symbol in the order given by the ISO/IEC standard. By default they are placed in the rotated order that readers have long expected, since many readers cannot decode a 144x144 symbol in the standard order.
 * The *c40headerlength* option specifies the number of leading characters in the data field that must be stored using C40 encodation.
 * The *raw* option denotes that the data field is providing the input as pre-encoded codewords in `^NNN` format, suitable for direct low-level encoding.
 * _Deprecated_: The *format* option is used to specify the shape of the symbol, either:
@@ -999,7 +1001,7 @@ Standards: ISO/IEC 24728, AIM ISS - MicroPDF417.
 ** *samid* is the file ID, which is the same in every symbol of the sequence, given as one or more groups of three digits, each from 000 to 899, for example `samid=017053`.
 ** The optional fields that describe the file, such as its name, sender and time stamp, are not supported.
 ** Structured Append is not available with the *raw* option or for GS1 Composite symbols.
-* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Structured Append sequence for reader programming is given it. It is not available with the *raw* option or for GS1 Composite symbols.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Structured Append sequence for reader programming is given it. With the *raw* option it precedes the raw codewords, which readers dictate for programming. It is not available for GS1 Composite symbols.
 * _Deprecated: Internal use._ The *cca* option identifies this symbol as a <<_cc_a,CC-A>> 2D component of a GS1 Composite symbol.
 ** Special size rules apply when the *cca* option is given, in which case the *columns* and *rows* options that are used to specify the size of the symbol must be one of:
 *** _2x5_, _2x6_, _2x7_, _2x8_, _2x9_, _2x10_, _2x12_, _3x4_, _3x5_, _3x6_, _3x7_, _3x8_, _4x3_, _4x4_, _4x5_, _4x6_, _4x7_
@@ -1064,7 +1066,7 @@ Standards: ISO/IEC 15438, DD ENV 12925, AIM USS - PDF417.
 ** *samid* is the file ID, which is the same in every symbol of the sequence, given as one or more groups of three digits, each from 000 to 899, for example `samid=017053`.
 ** The optional fields that describe the file, such as its name, sender and time stamp, are not supported.
 ** Macro PDF417 is not available with the *raw* option or for GS1 Composite symbols.
-* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Macro PDF417 sequence for reader programming is given it. It is not available with the *raw* option or for GS1 Composite symbols.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Macro PDF417 sequence for reader programming is given it. With the *raw* option it precedes the raw codewords, which readers dictate for programming. It is not available for GS1 Composite symbols.
 * _Deprecated: Use <<_compact_pdf417,Compact PDF417>> instead. The *compact* option is used to create a compact/truncated PDF417 symbol that has fewer bars per row than a standard symbol and hence is more narrow._
 * _Deprecated: Internal use._ The *ccc* option identifies this symbol as a <<_cc_c,CC-C>> 2D component of a GS1 Composite symbol.
 
@@ -1143,7 +1145,7 @@ Standards: ISO/IEC 15438, DD ENV 12925, AIM USS - PDF417.
 ** *samid* is the file ID, which is the same in every symbol of the sequence, given as one or more groups of three digits, each from 000 to 899, for example `samid=017053`.
 ** The optional fields that describe the file, such as its name, sender and time stamp, are not supported.
 ** Macro PDF417 is not available with the *raw* option.
-* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Macro PDF417 sequence for reader programming is given it. It is not available with the *raw* option.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Every symbol of a Macro PDF417 sequence for reader programming is given it. With the *raw* option it precedes the raw codewords, which readers dictate for programming.
 
 ===== Examples
 
@@ -1598,6 +1600,7 @@ Standards: ISO/IEC 15417, ANSI/AIM BC4 - ISS Code 128, BS EN 799.
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>. The human readable text leaves out this FNC1.
 ** `^FNC2`: FNC2
 ** `^FNC3`: FNC3
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the data. It is not available with FNC1 in first or second position, nor with the *raw* option, whose codewords can include _FNC3_ directly.
 * _Deprecated:_ The *raw* option denotes that the data field is providing the input as pre-encoded codewords in `^NNN` format, suitable for direct low-level encoding. You can use the *alttext* option to specify human-readable text.
 * _Deprecated: For internal use._ When the *parsefnc* option is specified, the special pseudo characters `^LNKA` and `^LNKC` at the end of the symbol indicate that a GS1-128 symbol includes a _CC-A/B_ or _CC-C_ GS1 composite 2D component.
 
@@ -1832,12 +1835,13 @@ Standards: AIM ITS/99-004 - ISS 93i.
 
 ===== Data and Options
 
-* The data field can hold any byte values 0 to 255, given as ordinals with the *parse* option, e.g. `^233`.
+* The data field can contain any extended ASCII data. When supported by the receiver, characters from other code pages can be encoded using Extended Channel Interpretation (ECI).
+* When the *parse* option is specified, any instances of `^NNN` in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters, e.g. `^233` for _é_.
 * The encoder chooses a shortest encodation using the base Code 93 characters, shifts, group shifts, Numeric Mode and Byte Mode.
 * Data that Code 93 can encode is encoded as a <<_code_93,Code 93>> symbol, with the Code 93 start and stop characters and check characters, unless 93i compaction gives a shorter symbol. Otherwise the symbol has the 93i stop character and check characters calculated modulo 53.
 * The data never begins with a space, which would ask the reader to append the following symbol; a leading space is encoded in Byte Mode, and data consisting of a single space requires *errorcorrection*.
 * The *errorcorrection* option adds six Reed-Solomon error correction characters in place of the check characters, with the 93i start character. The data may then occupy at most 44 symbol characters.
-* The *parsefnc* option allows the following non-data characters to be specified:
+* When the *parsefnc* option is specified, non-data function characters can be specified by escape sequences:
 ** `^FNC1`: FNC1, which in first position signifies compliance with an application standard, and elsewhere is transmitted as GS.
 ** `^FNC@`: FNC1 in second position, followed by an AIM application indicator of one letter or two digits. See <<_input_processing,Input Processing>>.
 ** `^ECInnnnnn`: ECI indicator, for ECIs 000000 to 811799. ECIs are not available with FNC1 in first or second position.
@@ -2068,6 +2072,7 @@ Standards: ISO/IEC 16022, ANSI/AIM BC11 - ISS Data Matrix, GS1 General Specifica
 * The data field input is provided in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
+* The *gssep* option separates the AIs with _GS_ (ASCII 29) characters in place of _FNC1_. The GS1 standards tolerate this but do not encourage it. It is intended only for applications that mandate it, since a reader that conforms to the standards transmits either separator as _GS_. See <<_use_of_group_separator_character_gs_ascii_29_as_an_ai_separator,Use of Group Separator character as an AI separator>>.
 * The *format* option is used to specify the shape of the symbol, either `square` (default) or `rectangle`.
 * The *columns* and *rows* options are used to specify the size of the symbol.
 * The *version* option can also be used to specify the symbol size, as `version=RxC`. Valid options are:
@@ -2115,6 +2120,7 @@ Standards: ISO/IEC 16022, ANSI/AIM BC11 - ISS Data Matrix, GS1 General Specifica
 * The data field input is provided in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
+* The *gssep* option separates the AIs with _GS_ (ASCII 29) characters in place of _FNC1_. The GS1 standards tolerate this but do not encourage it. It is intended only for applications that mandate it, since a reader that conforms to the standards transmits either separator as _GS_. See <<_use_of_group_separator_character_gs_ascii_29_as_an_ai_separator,Use of Group Separator character as an AI separator>>.
 * The *columns* and *rows* options are used to specify the size of the symbol.
 * The *version* option can also be used to specify the symbol size, as `version=RxC`. Valid options are _8x18_, _8x32_, _12x26_, _12x36_, _16x36_, _16x48_.
 * If *columns*, *rows* and *version* are unspecified the encoder will default to creating a symbol that is the minimum size to represent the given data.
@@ -4273,6 +4279,7 @@ Standards: USS Codablock F.
 * When the *parsefnc* option is specified, non-data function characters can be specified by escape sequences:
 ** `^FNC1`: FNC1
 ** `^FNC3`: FNC3
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the symbol. It is not available with FNC1 in first position.
 * The *columns* option specifies the number of columns in the symbol, from 4 to 62, default 8.
 * The *rows* option specifies the number of rows in the symbol, between 2 and 44.
 * If *rows* is unspecified the encoder will default to the smallest number of rows that can hold the given data.
@@ -4387,6 +4394,7 @@ Standards: ANSI/AIM BC7 - USS Code 16K, BS EN 12323.
 ** `^FNC2`: FNC2
 ** `^FNC3`: FNC3
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>. It is not available with Structured Append.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the data. It is not available with FNC1 in first or second position, nor with the *raw* option, whose codewords can include _FNC3_ directly.
 * The *sam* option specifies this symbol to be part of multi-part structured data held in up to nine symbols. For example `sam=25` specifies this to be the second symbol in a group of five symbols.
 * The *sampos* and *samtotal* options are an alternative to *sam* that give the position and the total separately, for example `sampos=2 samtotal=5`. They cannot be combined with *sam*.
 * The *rows* option specifies the number of rows in the symbol, between two and sixteen.
@@ -4502,8 +4510,15 @@ Standards: AIM - ISS DotCode.
 ** `^ECI000000` to `^ECI999999`: ECI indicators
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data or of a message segment that follows FNC3, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>.
 ** ECIs are not available with FNC1 in first or second position.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ in the first position. It is not available with FNC1 in first or second position, nor with Structured Append.
 * The *ratio* option sets the width-to-height ratio of the symbol. The default is 1.5.
-* The *columns* and *rows* options are used to specify the size of the symbol, each from 5 to 200, with an odd sum. When these are not specified a symbol is generated that maintains the selected aspect ratio.
+* The *columns* and *rows* options are used to specify the size of the symbol, each from 5 to 200, with an odd sum. When these are not specified a symbol is generated that maintains the selected aspect ratio, except that a dimension that would exceed 200 is held at 200. Data that does not fit within 200 rows and 200 columns is refused.
+* The specification places no limit on the size of a symbol, so the limit of 200 rows and columns can be changed by defining `dotcode.maxrows` and `dotcode.maxcols` in the global context:
++
+[source,postscript]
+----
+/uk.co.terryburton.bwipp.global_ctx << /dotcode.maxrows 300 /dotcode.maxcols 1000 >> def
+----
 * The *mask* option selects mask `0` to `3` instead of the best one.
 * _Deprecated._ The *fast* option is used to enable the optional high-speed symbol masking algorithm.
 * The *sampos* and *samtotal* options make the symbol one of a Structured Append sequence of 2 to 35 symbols, which a reader reassembles into a single message. Both are required:
@@ -4551,6 +4566,7 @@ Standards: AIM ISS - Ultracode, ISO/IEC CD 25449.
 ** `^FNC3`: FNC3
 ** `^ECI000000` to `^ECI811799`: ECI indicators
 ** ECIs are not available with FNC1 in first position, and FNC1 is not available in second position.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the data. With the *raw* option it precedes the raw codewords, other than with *link1*, whose codewords can include _FNC3_ directly. It is not available with FNC1 in first position, nor with Structured Append.
 * The *eclevel* option is used to specify the error correction level:
 ** `eclevel=EC1` - Low
 ** `eclevel=EC2` - Medium (default)
@@ -4794,6 +4810,7 @@ Standards: AIM USS - Code One.
 ** `^ECI000000` to `^ECI999999`: ECI indicators
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>.
 ** ECIs are not available with FNC1 in first or second position.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the data. It is not available for _S-type_ symbols, with FNC1 in first or second position, nor with Structured Append.
 * The *version* option is used to specify the size and type of the symbol:
 ** `version=A` to `version=H` - for standard format symbols (default automatic selection)
 ** `version=T-16`, `version=T-32`, `version=T-48` - _T-type_ symbols, 16 modules high
@@ -5164,6 +5181,7 @@ Standards: ITS PosiCode.
 ** `^FNC2`: FNC2
 ** `^FNC3`: FNC3
 ** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the data, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>. It is not available in the limited versions.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader, by placing _FNC3_ at the start of the data. It is not available for _limited_ symbols, with FNC1 in first or second position, nor with the *raw* option, whose codewords can include _FNC3_ directly.
 * The *inkspread* option can be used to adjust the width of the bars.
 
 ===== Examples
@@ -5489,24 +5507,44 @@ Standards: AIM ITS/99-003 - ISS Aztec Mesas.
 
 ===== Data and Options
 
-* The data field contains the primary message for the host followed by a pipe character `++|++` and the supplemental message for the Mesa, e.g. `0123456789++|++Supplement`.
-* The first pipe character separates the two messages, so a pipe character in the primary message is given as `^124` with the *parse* option.
-* A host that encodes only zeros, or nothing, is not transmitted by readers, so that the Mesa functions as a stand-alone symbol. The zeros are given as digits, or as `^048` with the *parse* option; a host that transmits only zeros from raw codewords or after FNC1 is not treated as one.
-* The `host` option selects the host symbology: `code128` (the default), `code39`, `code93`, `code93i`, `interleaved2of5`, `ean13` or `upca`. The width of the host sets the width, and therefore the capacity, of the Mesa. The options that change the encodation of the host are passed to it: `includecheck`, `validatecheck`, `errorcorrection`, `suppressc`, `unlatchextbeforec`, `raw`, `parse` and `parsefnc`. A Code 93 host always has its check characters, a Code 93i host has no 93i companion flag, an Interleaved 2 of 5 host has at least two pairs of digits, and UPC-A and EAN-13 hosts have no add-on.
-* `hostwidenarrow=2` or `hostwidenarrow=3` (the default) sets the wide-to-narrow ratio of a Code 39 or Interleaved 2 of 5 host.
-* The supplemental message is encoded as for <<_aztec_code,Aztec Code>>, with the `parse` and `parsefnc` options (`^FNC1`, `^FNC@` and `^ECInnnnnn`), `eclevel` (default 23) and `ecaddchars` (default 3) for the minimum error correction, `readerinit` for reader initialisation, which requires a Mesa of fewer than 512 codewords, and `sampos`, `samtotal` and `samid` for Structured Append, which requires a host that encodes only zeros.
-* Readers transmit the data of the host before the supplemental message, so FNC1 at the start of the supplemental message is in first position, and `^FNC@` is available, only with a host that encodes only zeros. Otherwise FNC1 is a field separator.
-* ECIs are not available with FNC1 at the start of the supplemental message, or in second position.
-* `layers=1` to `layers=32` fixes the number of layers; otherwise the Mesa has the fewest layers that hold the data with the minimum error correction. A Mesa holds at most 4095 codewords, which limits the layers of a host wider than about 770 modules.
-* `twosided` places the even-numbered layers below the host, so that an odd number of layers has one more above it.
-* `rowheight` sets the height of each row of the Mesa in modules (default 2). `hostheight` sets the height of the host in modules, by default the greater of 12 and 15% of its width.
-* `barrier=n` places a barrier pattern n modules high between the host and each side of the Mesa. UPC-A and EAN-13 hosts have a barrier of stilts 6 modules high by default, which `barrier=0` removes for closed systems.
-* `bearers` adds bearer bars 2 modules high to an Interleaved 2 of 5 host, open at the reference ladders on any side that carries the Mesa.
-* `clocktrack=n` places a clocking track n modules high below a one-sided Mesa on a UPC-A or EAN-13 host, above a clear area 6 modules high in place of the barrier, for a Mesa that is printed separately from its host.
-* The quiet zone is 1 module above the Mesa, and below it when it is two-sided; at the sides it is that of the host, into which the Mesa extends.
-* `width` and `height` scale the whole symbol, as for other two-dimensional symbols.
-* The X-dimension of the Mesa is that of its host, so the physical specification options, such as `strictspec`, `loosespec` and `ast`, apply the specification profile of the host.
-* The human readable text of the host is not shown.
+* The data field consists of a primary and secondary component separated by a pipe `++|++` character.
+** The data for the primary component (preceding the pipe) is entered in the format of the host symbology. A pipe character in it is given as `^124` with the *parse* option.
+** A host that encodes only zeros, or nothing, is not transmitted by readers, so that the Mesa functions as a stand-alone symbol. The zeros are given as digits, or as `^048` with the *parse* option; a host that transmits only zeros from raw codewords or after FNC1 is not treated as one.
+** The data for the 2D component (following the pipe) can contain any extended ASCII data. The default interpretation of data by readers is in accordance with ISO/IEC 8859-1. When supported by the receiver, characters from other code pages can be encoded using Extended Channel Interpretation (ECI).
+* When the *parse* option is specified, any instances of `^NNN` in the data field are replaced with their equivalent ASCII value, useful for specifying unprintable characters.
+* When the *parsefnc* option is specified, non-data function characters can be specified by escape sequences:
+** `^FNC1`: FNC1. Readers transmit the data of the host before that of the 2D component, so FNC1 at the start of the 2D component is in first position only with a host that encodes only zeros. Otherwise it is a field separator.
+** `^ECI000000` to `^ECI999999`: ECI indicators
+** `^FNC@`: FNC1 in second position, written before an AIM application indicator of one letter or two digits at the start of the 2D component, with a host that encodes only zeros, e.g. `^FNC@T...` or `^FNC@99...`. See <<_fnc1_in_second_position,FNC1 in second position>>.
+** ECIs are not available with FNC1 at the start of the 2D component, or in second position.
+* The *parse* and *parsefnc* options apply to both components.
+* The *host* option selects the host symbology, which sets the width, and therefore the capacity, of the Mesa:
+** `host=code128` - <<_code_128,Code 128>> (default)
+** `host=code39` - <<_code_39,Code 39>>
+** `host=code93` - <<_code_93,Code 93>>, always with its check characters
+** `host=code93i` - <<_code_93i,Code 93i>>, without a 93i companion flag
+** `host=interleaved2of5` - <<_interleaved_2_of_5,Interleaved 2 of 5>>, of at least two pairs of digits
+** `host=ean13` - <<_ean_13,EAN-13>>, without an add-on
+** `host=upca` - <<_upc_a,UPC-A>>, without an add-on
+* The *includecheck*, *validatecheck*, *errorcorrection*, *suppressc*, *unlatchextbeforec* and *raw* options are passed to the host symbology. The human readable text of the host is not shown.
+* The *hostwidenarrow* option sets the wide-to-narrow ratio of a Code 39 or Interleaved 2 of 5 host, `2` or `3`, by default `3`.
+* The *hostheight* option sets the height of the host in modules, by default the greater of `12` and 15% of its width.
+* The *eclevel* option is used to specify the percentage of error correction to be applied when expanding the data, from `5` to `95`, by default `23`.
+* The *ecaddchars* option is used to specify how many additional error correction characters to add after applying the eclevel percentage, `3` or more, by default `3`.
+* The *layers* option is used to specify a particular number of layers in which to encode the data, between `1` and `32`. By default the encoder will create a symbol with the minimal number of layers to encode the given data. A Mesa holds at most 4095 codewords, which limits the layers of a host wider than about 770 modules.
+* The *twosided* option places the even-numbered layers below the host, so that an odd number of layers has one more above it.
+* The *rowheight* option sets the height of each row of the Mesa in modules, by default `2`.
+* The *barrier* option places a barrier pattern of the given height in modules between the host and each side of the Mesa. UPC-A and EAN-13 hosts have a barrier of stilts 6 modules high by default, which `barrier=0` removes for closed systems.
+* The *bearers* option adds bearer bars 2 modules high to an Interleaved 2 of 5 host, open at the reference ladders on any side that carries the Mesa.
+* The *clocktrack* option places a clocking track of the given height in modules below a one-sided Mesa on a UPC-A or EAN-13 host, above a clear area 6 modules high in place of the barrier, for a Mesa that is printed separately from its host.
+* The *readerinit* option denotes that the symbol is used for programming the barcode reader. Reader programming requires a Mesa of fewer than 512 codewords.
+* The *sampos*, *samtotal* and *samid* options make the symbol one of a Structured Append sequence of 2 to 26 symbols, which a reader reassembles into a single message. *sampos* and *samtotal* are required:
+** *sampos* is the position of the symbol in the sequence, from 1 to *samtotal*.
+** *samtotal* is the number of symbols in the sequence.
+** *samid* is an optional message ID, which is the same in every symbol of the sequence and must not contain spaces. Uppercase letters encode most compactly.
+** Structured Append requires a host that encodes only zeros, and is not available for reader initialisation symbols.
+* The *width* and *height* options scale the whole symbol, as for other two-dimensional symbols. The quiet zone is 1 module above the Mesa, and below it when it is two-sided; at the sides it is that of the host, into which the Mesa extends.
+* The X-dimension of the Mesa is that of its host, so the physical specification options, such as *strictspec*, *loosespec* and *ast*, apply the specification profile of the host.
 
 ===== Examples
 
@@ -5635,8 +5673,8 @@ Standards: ISO/IEC 15420, BS EN 797, ISO/IEC 24723, ITS EAN.UCC Composite Symbol
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_ean_13,EAN-13>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_ean_13,EAN-13>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5674,8 +5712,8 @@ Standards: ISO/IEC 15420, BS EN 797, ISO/IEC 24723, ITS EAN.UCC Composite Symbol
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_ean_8,EAN-8>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_ean_8,EAN-8>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5713,8 +5751,8 @@ Standards: ISO/IEC 15420, BS EN 797, ISO/IEC 24723, ITS EAN.UCC Composite Symbol
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_upc_a,UPC-A>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_upc_a,UPC-A>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5752,8 +5790,8 @@ Standards: ISO/IEC 15420, BS EN 797, ISO/IEC 24723, ITS EAN.UCC Composite Symbol
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_upc_e,UPC-E>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_upc_e,UPC-E>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5791,8 +5829,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_omnidirectional,GS1 DataBar Omnidirectional>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_omnidirectional,GS1 DataBar Omnidirectional>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5830,8 +5868,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_stacked_omnidirectional,GS1 DataBar Stacked Omnidirectional>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_stacked_omnidirectional,GS1 DataBar Stacked Omnidirectional>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5869,8 +5907,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_expanded,GS1 DataBar Expanded>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_expanded,GS1 DataBar Expanded>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5908,8 +5946,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_expanded_stacked,GS1 DataBar Expanded Stacked>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_expanded_stacked,GS1 DataBar Expanded Stacked>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5947,8 +5985,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_truncated,GS1 DataBar Truncated>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_truncated,GS1 DataBar Truncated>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -5987,8 +6025,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_stacked,GS1 DataBar Stacked>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_stacked,GS1 DataBar Stacked>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -6027,8 +6065,8 @@ Standards: ISO/IEC 24724, ITS Reduced Space Symbology (RSS), AIM ISS - Reduced S
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_limited,GS1 DataBar Limited>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_databar_limited,GS1 DataBar Limited>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -6066,8 +6104,8 @@ Standards: ISO/IEC 15417, ANSI/AIM BC4-1999 ISS, BS EN 799, ISO/IEC 24723, ITS E
 ===== Data and Options
 
 * The data field consists of a primary and secondary component separated by a pipe `++|++` character.
-* The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_128,GS1-128>>.
-* The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
+** The data for the primary component (preceding the pipe) is entered in a format identical to <<_gs1_128,GS1-128>>.
+** The data for the 2D component (following the pipe) is entered in <<_gs1_application_identifier_standard_format,GS1 Application Identifier standard format>>.
 * Note that it is not necessary to specify _FNC1_ characters since the encoder will insert these automatically where necessary.
 * _Deprecated._ The *dontlint* option disables GS1 Application Identifier syntax validation allowing images to be generated for input that does not comply with GS1 standards.
 * For maximum efficiency, if the data for the 2D component contains a number of application identifiers matching any of the specifications below then they should be provided in this given order:
@@ -6379,9 +6417,17 @@ The input is checked against the structural rules for the GS1 Application Identi
 
 ===== Use of Group Separator character (GS; ASCII 29) as an AI separator
 
-FNC1 is the canonical AI separator in GS1 symbols, and BWIPP always encodes it. GS characters are tolerated as separators by the GS1 standards but not encouraged, and can produce larger symbols.
+FNC1 is the canonical AI separator in GS1 symbols, and BWIPP encodes it by default. GS characters are tolerated as separators by the GS1 standards but not encouraged, and can produce larger symbols.
 
-Where an application nevertheless requires GS separators, the message can be encoded manually with a general (non-GS1) encoder, without the benefit of BWIPP's validation of the AI data:
+Where an application nevertheless mandates GS separators in GS1 DataMatrix, the <<_gs1_datamatrix,GS1 DataMatrix>> and <<_gs1_datamatrix_rectangular,GS1 DataMatrix Rectangular>> encoders accept the *gssep* option, which retains BWIPP's validation of the AI data:
+
+....
+Data:    (01)09521234543213(17)100101(10)123ABC(21)1234567890
+Options: gssep
+Encoder: gs1datamatrix
+....
+
+For other symbologies, the message can be encoded manually with a general (non-GS1) encoder, without the benefit of BWIPP's validation of the AI data:
 
 ....
 Data:    ^FNC1095212345432131710010110123ABC^GS211234567890

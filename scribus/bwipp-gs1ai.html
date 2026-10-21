@@ -50,12 +50,20 @@ definitions are provided in the <a href="https://ref.gs1.org/standards/genspecs/
 Specifications</a>.</p>
 <h4 id="use-of-group-separator-character-gs-ascii-29-as-an-ai-separator">Use
 of Group Separator character (GS; ASCII 29) as an AI separator</h4>
-<p>FNC1 is the canonical AI separator in GS1 symbols, and BWIPP always
-encodes it. GS characters are tolerated as separators by the GS1
+<p>FNC1 is the canonical AI separator in GS1 symbols, and BWIPP encodes
+it by default. GS characters are tolerated as separators by the GS1
 standards but not encouraged, and can produce larger symbols.</p>
-<p>Where an application nevertheless requires GS separators, the message
-can be encoded manually with a general (non-GS1) encoder, without the
-benefit of BWIPP&#39;s validation of the AI data:</p>
+<p>Where an application nevertheless mandates GS separators in GS1
+DataMatrix, the <a href="bwipp-symbologies.html#gs1-datamatrix">GS1
+DataMatrix</a> and <a href="bwipp-symbologies.html#gs1-datamatrix-rectangular">GS1 DataMatrix
+Rectangular</a> encoders accept the <strong>gssep</strong> option, which
+retains BWIPP&#39;s validation of the AI data:</p>
+<pre><code>Data:    (01)09521234543213(17)100101(10)123ABC(21)1234567890
+Options: gssep
+Encoder: gs1datamatrix</code></pre>
+<p>For other symbologies, the message can be encoded manually with a
+general (non-GS1) encoder, without the benefit of BWIPP&#39;s validation of
+the AI data:</p>
 <pre><code>Data:    ^FNC1095212345432131710010110123ABC^GS211234567890
 Options: parse parsefnc
 Encoder: datamatrix</code></pre>
