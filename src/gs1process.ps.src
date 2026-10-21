@@ -2361,7 +2361,9 @@ begin
 
     % Extract AIs and vals from provided GS1 data in the indicated format
 
-    /ai eq {  % Bracketed AI element string
+    /ai eq /bracketed exch def
+
+    bracketed {  % Bracketed AI element string
 
         % Parse out AIs and values
         (\() anchorsearch not {
@@ -2371,7 +2373,17 @@ begin
         mark exch {  % loop
             dup () eq {pop exit} if
             (\)) search not {
-                cleartomark /bwipp.GS1aiMissingCloseParen (AIs must end with '\)') //raiseerror exec
+                % Following an AI, an unclosed parenthesis that does not open digits is likely within a value
+                counttomark 1 gt {
+                    dup length 2 lt { true } {
+                        false 1 index 0 2 getinterval { dup 48 lt exch 57 gt or or } forall
+                    } ifelse
+                } { false } ifelse {
+                    cleartomark (AIs must end with '\)'; to encode parentheses within an AI value use ^040 and ^041 with the parse option)
+                } {
+                    cleartomark (AIs must end with '\)')
+                } ifelse
+                /bwipp.GS1aiMissingCloseParen exch //raiseerror exec
             } if
             exch pop exch
             (\() search { exch pop exch } { () } ifelse
@@ -3298,7 +3310,19 @@ begin
                     pop /bwipp.GS1valueTooLong (Too long) false exit
                 } if
             } {
-                pop /bwipp.GS1unknownAI (Unrecognised AI) false exit
+                % Following an AI in bracketed syntax, an unknown AI other than two to four digits is
+                % likely a parenthesised part of a value. The first AI is known by now, so an unknown
+                % AI that differs from it follows it.
+                pop /bwipp.GS1unknownAI
+                bracketed ai ais 0 get ne and {
+                    ai length dup 2 lt exch 4 gt or
+                    false ai { dup 48 lt exch 57 gt or or } forall or
+                } { false } ifelse {
+                    (Unrecognised AI; to encode parentheses within an AI value use ^040 and ^041 with the parse option)
+                } {
+                    (Unrecognised AI)
+                } ifelse
+                false exit
             } ifelse
         } for
         not {

@@ -1067,6 +1067,21 @@
 % Missing close paren in AI
 (\(01) /bwipp.GS1aiMissingCloseParen er_tmpl
 
+% Stray parentheses within a value suggest the escapes
+{ (\(01) /ai gs1process } [/bwipp.GS1aiMissingCloseParen (AIs must end with '\)')] isErrorInfo
+{ (\(10\)AB\(CD) /ai gs1process }
+[/bwipp.GS1aiMissingCloseParen (AIs must end with '\)'; to encode parentheses within an AI value use ^040 and ^041 with the parse option)] isErrorInfo
+{ (\(89\)ABC) /ai gs1process } [/bwipp.GS1unknownAI (AI 89: Unrecognised AI)] isErrorInfo
+{ (\(10\)AB\(C\)D) /ai gs1process }
+[/bwipp.GS1unknownAI (AI C: Unrecognised AI; to encode parentheses within an AI value use ^040 and ^041 with the parse option)] isErrorInfo
+{ (\(10\)AB\(12345\)D) /ai gs1process }
+[/bwipp.GS1unknownAI (AI 12345: Unrecognised AI; to encode parentheses within an AI value use ^040 and ^041 with the parse option)] isErrorInfo
+
+% An unknown AI of two to four digits, or an unclosed one, is likely mistyped, so the escapes are not suggested
+{ (\(01\)09521234543213\(89\)X) /ai gs1process } [/bwipp.GS1unknownAI (AI 89: Unrecognised AI)] isErrorInfo
+{ (\(01\)09521234543213\(10) /ai gs1process } [/bwipp.GS1aiMissingCloseParen (AIs must end with '\)')] isErrorInfo
+
+
 % Multi-AI parse preserves AI and value order and pairing
 { ((01)12312312312319(21)ABC123(8030)1) /ai gs1process pop pop }
 [ (01) (21) (8030) ] isEqual
