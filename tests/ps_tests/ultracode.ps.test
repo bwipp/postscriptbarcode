@@ -754,3 +754,10 @@
 { (ABC) (loosespec dontdraw) ultracode /pixx get } 14 isEqual
 { 0 0 moveto (ABC) (dotty) ultracode true } true isEqual
 { 0 0 moveto (ABC) (dotty inkspread=0.3 strictspec xdim=0.5) ultracode true } true isEqual
+
+% Reader initialisation leads with FNC3, the first codeword after the Start Sequence
+{ (ABC123) (readerinit dontdraw) ultracode /pixs get } (^FNC3ABC123) (parsefnc dontdraw) ultracode /pixs get isEqual
+{ (^065^066) (raw readerinit dontdraw) ultracode /pixs get } (^269^065^066) (raw dontdraw) ultracode /pixs get isEqual
+{ (^065^066) (raw readerinit link1=1 dontdraw) ultracode } /bwipp.ultracodeReaderinitLink1 isError
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) ultracode } /bwipp.ultracodeReaderinitFNC1 isError
+{ (ABC) (readerinit sampos=1 samtotal=2 dontdraw) ultracode } /bwipp.ultracodeSAMfnc3 isError

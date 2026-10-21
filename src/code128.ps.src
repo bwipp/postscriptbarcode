@@ -146,6 +146,7 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /readerinit false def
     /suppressc false def          % Suppress code set C
     /unlatchextbeforec false def  % Suppress extended ASCII with code set C
 
@@ -196,6 +197,21 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
+    % or second position would declare a format that is never received
+    %
+    readerinit {
+        raw {
+            /bwipp.code128ReaderinitRaw (Reader initialisation is not available with raw codewords, which can include FNC3 directly) //raiseerror exec
+        } if
+        msglen 0 gt { msg 0 get dup //code128.fn1 eq exch //code128.fna eq or } { false } ifelse {
+            /bwipp.code128ReaderinitFNC1 (Reader initialisation is not available with FNC1 in first or second position) //raiseerror exec
+        } if
+        /msg msglen 1 add array dup 0 //code128.fn3 put dup 1 msg putinterval def
+        /msglen msg length def
+    } if
 
     %
     % FNC1 in second position follows an AIM application indicator of one letter or two digits
@@ -258,6 +274,9 @@ begin
             /i exch def
             text i msg i get dup 0 lt { pop 32 } if put
         } for
+        readerinit {  % The leading FNC3 is not shown
+            /text text 1 msglen 1 sub getinterval def
+        } if
         fnc1second {  % FNC1 in second position is not shown
             msglen 1 sub string
             dup 0 text 0 appindlen getinterval putinterval

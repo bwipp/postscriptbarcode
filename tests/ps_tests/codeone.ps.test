@@ -818,3 +818,10 @@ systemdict /STRING_CONTINUE_BUG known not {
 (^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.codeoneECIwithFNC1 er_tmpl
 (A^FNC@T) (parsefnc dontdraw) /bwipp.codeoneFNC1secondNotFirst er_tmpl
 (^FNC@TABC) (parsefnc version=S-10 dontdraw) /bwipp.codeoneStypeNonDigit er_tmpl
+
+% Reader initialisation leads with FNC3
+{ (ABC123) (readerinit dontdraw) codeone /pixs get } (^FNC3ABC123) (parsefnc dontdraw) codeone /pixs get isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) codeone } /bwipp.codeoneReaderinitFNC1 isError
+{ (^FNC@TABC) (parsefnc readerinit dontdraw) codeone } /bwipp.codeoneReaderinitFNC1 isError
+{ (123) (readerinit version=S dontdraw) codeone } /bwipp.codeoneReaderinitStype isError
+{ (ABC) (readerinit sampos=1 samtotal=2 dontdraw) codeone } /bwipp.codeoneSAMfnc3 isError

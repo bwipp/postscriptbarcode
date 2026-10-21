@@ -201,3 +201,9 @@
 % The quiet zones are within the symbol
 { (Abcd-1234567890-wxyZ) (dontdraw) code16k dup /borderleft get exch dup /borderright get exch dup /bordertop get exch /borderbottom get 4 array astore } [0.0 0.0 0.0 0.0] isEqual
 { (Abcd-1234567890-wxyZ) (dontdraw) code16k /pixx get } 81 isEqual
+
+% Reader initialisation leads with FNC3
+{ (ABC123) (readerinit dontdraw) code16k /pixs get } (^FNC3ABC123) (parsefnc dontdraw) code16k /pixs get isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) code16k } /bwipp.code16kReaderinitFNC1 isError
+{ (^FNC@AABC) (parsefnc readerinit dontdraw) code16k } /bwipp.code16kReaderinitFNC1 isError
+{ (^001^033) (raw readerinit dontdraw) code16k } /bwipp.code16kReaderinitRaw isError

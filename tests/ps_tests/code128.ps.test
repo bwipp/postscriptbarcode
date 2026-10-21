@@ -230,3 +230,10 @@
 % The quiet zones
 { (Count01234567!) (dontdraw) code128 /borderleft get } 10.0 isEqual
 { (Count01234567!) (dontdraw) code128 /borderright get } 10.0 isEqual
+
+% Reader initialisation leads with FNC3, which is not shown in the text
+{ (ABC123) (readerinit dontdraw) code128 /sbs get } (^FNC3ABC123) (parsefnc dontdraw) code128 /sbs get isEqual
+{ (ABC123) (readerinit includetext dontdraw) code128 /txt get 0 get 0 get } (ABC123) isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) code128 } /bwipp.code128ReaderinitFNC1 isError
+{ (^FNC@AABC) (parsefnc readerinit dontdraw) code128 } /bwipp.code128ReaderinitFNC1 isError
+{ (^104^033^106) (raw readerinit dontdraw) code128 } /bwipp.code128ReaderinitRaw isError

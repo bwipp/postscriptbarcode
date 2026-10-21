@@ -540,3 +540,10 @@
 % ECIs are not available with FNC1 in first position at the start of any message segment
 (AB^FNC3^ECI000026^FNC101234567890) (parsefnc dontdraw) /bwipp.dotcodeECIwithFNC1 er_tmpl
 (AB^FNC3^FNC10123^ECI000026A) (parsefnc dontdraw) /bwipp.dotcodeECIwithFNC1 er_tmpl
+
+% Reader initialisation is FNC3 in the first position
+{ (ABC123) (readerinit dontdraw) dotcode /pixs get } (^FNC3ABC123) (parsefnc dontdraw) dotcode /pixs get isEqual
+{ (12AB) (readerinit dontdraw) dotcode /pixs get } (^FNC312AB) (parsefnc dontdraw) dotcode /pixs get isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) dotcode } /bwipp.dotcodeReaderinitFNC1 isError
+{ (^FNC@TABC) (parsefnc readerinit dontdraw) dotcode } /bwipp.dotcodeReaderinitFNC1 isError
+{ (ABC) (readerinit sampos=1 samtotal=2 dontdraw) dotcode } /bwipp.dotcodeSAMfnc3 isError

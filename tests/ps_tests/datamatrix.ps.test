@@ -2068,3 +2068,10 @@
 (^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.datamatrixECIwithFNC1 er_tmpl
 (A^FNC@TB) (parsefnc dontdraw) /bwipp.datamatrixFNC1secondNotFirst er_tmpl
 (^FNC@1A) (parsefnc dontdraw) /bwipp.invalidAIMapplicationIndicator er_tmpl
+
+% Reader initialisation is the Reader Programming codeword at the start, as ^PROG
+{ (ABC123) (readerinit dontdraw) datamatrix /pixs get } (^PROGABC123) (parsefnc dontdraw) datamatrix /pixs get isEqual
+{ (^066^067) (raw readerinit dontdraw) datamatrix /pixs get } (^234^066^067) (raw dontdraw) datamatrix /pixs get isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) datamatrix } /bwipp.datamatrixReaderinitFNC1 isError
+{ (^FNC@TABC) (parsefnc readerinit dontdraw) datamatrix } /bwipp.datamatrixReaderinitFNC1 isError
+{ (ABC) (readerinit sampos=1 samtotal=2 samid=1 dontdraw) datamatrix } /bwipp.datamatrixSAMprog isError

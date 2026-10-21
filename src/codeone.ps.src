@@ -384,6 +384,7 @@ begin
     /version (unset) def
     /parse false def
     /parsefnc false def
+    /readerinit false def
     /sampos -1 def
     /samtotal -1 def
     /strictspec false def
@@ -463,6 +464,10 @@ begin
         sampos 1 lt sampos samtotal gt or {
             /bwipp.codeoneBadSAMpos (The sampos must be from 1 to samtotal) //raiseerror exec
         } if
+    } if
+
+    readerinit stype and {
+        /bwipp.codeoneReaderinitStype (Reader initialisation is not available for S-Type symbols) //raiseerror exec
     } if
 
     (input.validate.common) //codeone.after exec
@@ -588,6 +593,18 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
+        % or second position would declare a format that is never received
+        %
+        readerinit {
+            msglen 0 gt { msg 0 get dup //codeone.fnc1 eq exch //codeone.fna eq or } { false } ifelse {
+                /bwipp.codeoneReaderinitFNC1 (Reader initialisation is not available with FNC1 in first or second position) //raiseerror exec
+            } if
+            /msg msglen 1 add array dup 0 //codeone.fnc3 put dup 1 msg putinterval def
+            /msglen msg length def
+        } if
 
         %
         % FNC1 in second position follows an AIM application indicator of one letter or two digits

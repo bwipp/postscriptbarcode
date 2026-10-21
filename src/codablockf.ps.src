@@ -184,6 +184,7 @@ begin
     /sepheight 1 def
     /parse false def
     /parsefnc false def
+    /readerinit false def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -247,6 +248,18 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % Reader initialisation is FNC3 at the start of the symbol. Readers do not transmit the data,
+    % so FNC1 in first position would declare a format that is never received
+    %
+    readerinit {
+        msglen 0 gt { msg 0 get //codablockf.fn1 eq } { false } ifelse {
+            /bwipp.codablockfReaderinitFNC1 (Reader initialisation is not available with FNC1 in first position) //raiseerror exec
+        } if
+        /msg msglen 1 add array dup 0 //codablockf.fn3 put dup 1 msg putinterval def
+        /msglen msg length def
+    } if
 
     %
     % FNC4 codeword insertion for extended ASCII

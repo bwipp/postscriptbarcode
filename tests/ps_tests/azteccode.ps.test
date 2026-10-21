@@ -1209,6 +1209,8 @@
 
 % Reader init invalid layers (valid: 1-22 for full)
 (TEST) (layers=23 readerinit dontdraw) /bwipp.aztecFullInitInvalidLayers er_tmpl
+% Reader initialisation with raw bits, which readers dictate for programming, sets the mode message flag
+{ (010011110000110011010110110000) (raw layers=1 readerinit dontdraw) azteccode /pixs get } (Hello) (layers=1 readerinit dontdraw) azteccode /pixs get isEqual
 
 % Data too long for symbol
 (ABCDEFGHIJKLMNOPQRSTUVWXYZ) (layers=1 dontdraw) /bwipp.aztecNoValidSymbol er_tmpl

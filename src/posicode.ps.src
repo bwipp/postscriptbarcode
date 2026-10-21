@@ -237,6 +237,7 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /readerinit false def
 
     /propspec false def
     /loosespec false def
@@ -311,6 +312,15 @@ begin
         /bwipp.posicodeBadEncoding (The encoding must be auto or raw) //raiseerror exec
     } if
 
+    readerinit {
+        encoding (raw) eq {
+            /bwipp.posicodeReaderinitRaw (Reader initialisation is not available with raw codewords, which can include FNC3 directly) //raiseerror exec
+        } if
+        version (limiteda) eq version (limitedb) eq or {
+            /bwipp.posicodeReaderinitLimited (Reader initialisation is not available for Posicode limited) //raiseerror exec
+        } if
+    } if
+
     encoding (raw) eq {
         /cws barcode length array def
         /i 0 def /j 0 def
@@ -353,6 +363,18 @@ begin
         /msglen msg length def
 
         %
+        % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
+        % or second position would declare a format that is never received
+        %
+        readerinit {
+            msglen 0 gt { msg 0 get dup //posicode.fn1 eq exch //posicode.fna eq or } { false } ifelse {
+                /bwipp.posicodeReaderinitFNC1 (Reader initialisation is not available with FNC1 in first or second position) //raiseerror exec
+            } if
+            /msg msglen 1 add array dup 0 //posicode.fn3 put dup 1 msg putinterval def
+            /msglen msg length def
+        } if
+
+        %
         % FNC1 in second position follows an AIM application indicator of one letter or two digits
         %
         /fnc1second msglen 0 gt { msg 0 get //posicode.fna eq } { false } ifelse def
@@ -377,6 +399,9 @@ begin
             /i exch def
             text i msg i get dup 0 lt { pop 32 } if put
         } for
+        readerinit {  % The leading FNC3 is not shown
+            /text text 1 msglen 1 sub getinterval def
+        } if
         fnc1second {  % FNC1 in second position is not shown
             msglen 1 sub string
             dup 0 text 0 appindlen getinterval putinterval

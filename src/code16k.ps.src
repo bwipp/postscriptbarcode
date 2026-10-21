@@ -221,6 +221,7 @@ begin
     /raw false def
     /parse false def
     /parsefnc false def
+    /readerinit false def
     /strictspec false def
     /propspec false def
     /loosespec false def
@@ -298,6 +299,10 @@ begin
 
     raw {
 
+        readerinit {
+            /bwipp.code16kReaderinitRaw (Reader initialisation is not available with raw codewords, which can include FNC3 directly) //raiseerror exec
+        } if
+
         /mode 0 def
         /cws barcode length array def
         /i 0 def /j 0 def
@@ -336,6 +341,18 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
+        % or second position would declare a format that is never received
+        %
+        readerinit {
+            msglen 0 gt { msg 0 get dup //code16k.fn1 eq exch //code16k.fna eq or } { false } ifelse {
+                /bwipp.code16kReaderinitFNC1 (Reader initialisation is not available with FNC1 in first or second position) //raiseerror exec
+            } if
+            /msg msglen 1 add array dup 0 //code16k.fn3 put dup 1 msg putinterval def
+            /msglen msg length def
+        } if
 
         %
         % FNC1 in second position follows an AIM application indicator of one letter or two digits

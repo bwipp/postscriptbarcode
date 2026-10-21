@@ -154,3 +154,11 @@
 { (ABC123) (rows=2 rowheight=0 dontdraw) posicode } /bwipp.posicodeBadRowHeight isError
 { (ABC123) (rows=2 sepheight=0 dontdraw) posicode } /bwipp.posicodeBadSepHeight isError
 { (A) (rows=2 dontdraw) posicode } /bwipp.posicodeTooFewCharacters isError
+
+% Reader initialisation leads with FNC3, which is not shown in the text
+{ (ABC123) (readerinit dontdraw) posicode /sbs get } (^FNC3ABC123) (parsefnc dontdraw) posicode /sbs get isEqual
+{ (ABC123) (readerinit includetext dontdraw) posicode /txt get 0 get 0 get } (ABC123) isEqual
+{ (^FNC1ABC) (parsefnc readerinit dontdraw) posicode } /bwipp.posicodeReaderinitFNC1 isError
+{ (^FNC@AABC) (parsefnc readerinit dontdraw) posicode } /bwipp.posicodeReaderinitFNC1 isError
+{ (^001) (raw readerinit dontdraw) posicode } /bwipp.posicodeReaderinitRaw isError
+{ (ABC) (readerinit version=limiteda dontdraw) posicode } /bwipp.posicodeReaderinitLimited isError

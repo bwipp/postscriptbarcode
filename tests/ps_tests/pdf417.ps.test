@@ -703,8 +703,9 @@ s (dontdraw) /bwipp.pdf417dataTooLong er_tmpl
     (ABC) (readerinit sampos=1 samtotal=2 samid=017053 debugcws) pdf417  % In every symbol of a Macro PDF417 sequence
 } [13 921 1 89 928 111 100 17 53 923 1 111 102] debugIsEqual
 
-(^065) (raw readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
-(ABC) (ccc readerinit dontdraw) /bwipp.pdf417readerinitRawOrCcc er_tmpl
+% Reader initialisation precedes raw codewords, which readers dictate for programming
+{ (^065^066) (raw readerinit debugcws) pdf417 } [4 921 65 66] debugIsEqual
+(ABC) (ccc readerinit dontdraw) /bwipp.pdf417readerinitCcc er_tmpl
 
 % FNC1 in second position is not available
 { (^FNC@TABC) (parsefnc dontdraw) pdf417 } /bwipp.unknownFNC isError

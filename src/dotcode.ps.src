@@ -318,6 +318,7 @@ begin
     /ratio -1.0 def
     /parse false def
     /parsefnc false def
+    /readerinit false def
     /sampos -1 def
     /samtotal -1 def
     /fast false def
@@ -431,6 +432,18 @@ begin
     >> def
     barcode fncvals //parseinput exec /msg exch def
     /msglen msg length def
+
+    %
+    % Reader initialisation is FNC3 in the first position. Readers do not transmit the data of the
+    % first segment, so FNC1 in first or second position would declare a format that is never received
+    %
+    readerinit {
+        msglen 0 gt { msg 0 get dup //dotcode.fn1 eq exch //dotcode.fna eq or } { false } ifelse {
+            /bwipp.dotcodeReaderinitFNC1 (Reader initialisation is not available with FNC1 in first or second position) //raiseerror exec
+        } if
+        /msg msglen 1 add array dup 0 //dotcode.fn3 put dup 1 msg putinterval def
+        /msglen msg length def
+    } if
 
     %
     % Message segments begin at the start of the data and after each FNC3 within the data. A

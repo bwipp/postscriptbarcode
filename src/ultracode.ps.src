@@ -250,6 +250,7 @@ begin
     /start -1 def          % Chosen by the encoder; 257 for raw codewords and revision 1
     /link1 0 def
     /raw false def
+    /readerinit false def
     /rev 2 def             % Ultracode specification revision
     /sampos -1 def
     /samtotal -1 def
@@ -371,6 +372,11 @@ begin
         } if
     } if
 
+    % Raw codewords with link1 begin with a Symbol Control Region, so they place FNC3 themselves
+    readerinit link1 1 eq and {
+        /bwipp.ultracodeReaderinitLink1 (Reader initialisation is not available with link1, so the raw codewords can include FNC3 directly) //raiseerror exec
+    } if
+
     (input.validate) //ultracode.after exec
 
     raw {
@@ -397,6 +403,9 @@ begin
             /bwipp.ultracodeBadRawFormat (Raw codewords must be formatted as ^NNN) //raiseerror exec
         } if
         /dcws dcws 0 j getinterval def
+        readerinit {  % FNC3 precedes the raw codewords
+            /dcws j 1 add array dup 0 269 put dup 1 dcws putinterval def
+        } if
 
         (input.encoding.raw) //ultracode.after exec
 
@@ -415,6 +424,18 @@ begin
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        %
+        % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
+        % position would declare a format that is never received
+        %
+        readerinit {
+            msglen 0 gt { msg 0 get fn1 eq } { false } ifelse {
+                /bwipp.ultracodeReaderinitFNC1 (Reader initialisation is not available with FNC1 in first position) //raiseerror exec
+            } if
+            /msg msglen 1 add array dup 0 fn3 put dup 1 msg putinterval def
+            /msglen msg length def
+        } if
 
         structapp {
             msglen 0 gt { msg 0 get fn1 eq } { false } ifelse {
