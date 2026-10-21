@@ -21,12 +21,10 @@
     180 74 224 109 194 122 190 143 226 80 96 58 88 228 144 88 201
 ] debugIsEqual
 
-% ECC check: 144x144 triggers the v144 fixup (ecbs[8..9] reshuffled ahead of [0..7]).
+% ECC check: 144x144 rotates the error correction blocks, 9 and 10 ahead of 1 to 8.
 % Input is 1000 'A' codewords.
 /dm144data 1000 string def 0 1 999 { dm144data exch 65 put } for
-{
-    dm144data (version=144x144 debugecc) datamatrix
-} [
+/dm144ecc [
     232 110 83 28 200 76 106 115 62 220 240 114 92 161 242 42 133 141 226 62
     59 65 231 184 41 26 43 12 72 243 96 161 43 233 46 243 178 169 174 69
     115 89 243 112 186 136 239 136 21 203 230 118 216 235 104 160 76 131 173 38
@@ -58,7 +56,15 @@
     176 224 226 20 245 11 238 46 216 85 113 5 179 252 10 10 199 41 20 80
     26 96 235 101 70 26 82 22 29 222 203 121 37 225 232 250 43 182 110 150
     245 48 51 4 197 11 78 161 222 14 136 2 187 194 233 249 131 87 243 215
-] debugIsEqual
+] def
+{
+    dm144data (version=144x144 debugecc) datamatrix
+} dm144ecc debugIsEqual
+
+% ECC check: iso144 gives the blocks in the order of ISO/IEC 16022 Table G1, without rotation.
+{
+    dm144data (version=144x144 iso144 debugecc) datamatrix
+} [ dm144ecc 124 496 getinterval aload pop dm144ecc 0 124 getinterval aload pop ] debugIsEqual
 
 /er_tmpl {
     3 1 roll { 0 0 datamatrix }

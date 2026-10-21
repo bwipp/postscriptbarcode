@@ -377,6 +377,7 @@ begin
     /c40headerlength -1 def
     /raw false def
     /dmre false def
+    /iso144 false def
     /sampos -1 def
     /samtotal -1 def
     /samid () def
@@ -1161,9 +1162,10 @@ begin
     } for
 
     %
-    % Strange fixup for 144x144 symbols
+    % 144x144 symbols rotate the error correction blocks, as deployed readers expect,
+    % unless the ordering of ISO/IEC 16022 Table G1 is requested
     %
-    ncws 1558 eq {
+    ncws 1558 eq iso144 not and {
         /ecbs [
             ecbs 8 2 getinterval aload pop
             ecbs 0 8 getinterval aload pop
