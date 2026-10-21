@@ -958,7 +958,7 @@ linear encoder call and before the gs1-cc call:
 options (strictspec) undef
 options (propspec) undef
 ```
-For `gs1-128composite` which uses `<< options {} forall >>` clones, strip
+For `gs1-128composite`, which uses a `<< options {} forall >>` clone, strip
 from the clone passed to gs1-cc.
 
 
