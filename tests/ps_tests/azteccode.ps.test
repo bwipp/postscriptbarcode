@@ -1232,7 +1232,7 @@ azc4data (format=compact layers=4 eclevel=5 dontdraw) /bwipp.aztecNoValidSymbol 
 
 
 %
-% Coefficient cache tests (azteccode.cachelimit in global context)
+% Coefficient cache tests (azteccode.coeffscachelimit in global context)
 %
 
 % Large symbol with caching (default)
@@ -1240,12 +1240,28 @@ azc4data (format=compact layers=4 eclevel=5 dontdraw) /bwipp.aztecNoValidSymbol 
     (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws) azteccode
 } [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
 
-% Cache disabled via global context - same result
-uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit 0 put
-{
-    (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws) azteccode
-} [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
-uk.co.terryburton.bwipp.global_ctx /azteccode.cachelimit undef  % Remove to restore default
+% Cache disabled via global context - same result. The cache parameters are
+% read when the resource is defined, so it is defined afresh from its file,
+% where there is one, and the original restored afterwards.
+currentglobal true setglobal
+/azteccode.saved /azteccode /uk.co.terryburton.bwipp findresource def
+uk.co.terryburton.bwipp.global_ctx /azteccode.coeffscachelimit 0 put
+/azteccode /uk.co.terryburton.bwipp undefineresource
+/azteccode.reloaded {
+    /azteccode /uk.co.terryburton.bwipp findresource
+} stopped { pop pop false } { /azteccode.saved load ne } ifelse def
+setglobal
+azteccode.reloaded {
+    {
+        (Aztec Code is a public domain 2D matrix barcode symbology) (debugcws)
+        /azteccode /uk.co.terryburton.bwipp findresource exec
+    } [23 55 83 16 60 36 10 96 170 129 16 99 97 181 68 9 96 225 41 254 10 113 120 23 10 179 86 66 49 76 144 41 131 77 56 112 108 17 175] debugIsEqual
+} if
+currentglobal true setglobal
+uk.co.terryburton.bwipp.global_ctx /azteccode.coeffscachelimit undef
+/azteccode /uk.co.terryburton.bwipp undefineresource
+/azteccode /azteccode.saved load /uk.co.terryburton.bwipp defineresource pop
+setglobal
 
 
 % Option edges: layers
