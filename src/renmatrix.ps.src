@@ -53,6 +53,7 @@ begin
 /renmatrix.right 2 def
 /renmatrix.up    4 def
 /renmatrix.down  8 def
+/renmatrix.upleft //renmatrix.up //renmatrix.left or def
 
 %
 % Direction lookup table indexed by 2x2 neighbourhood:
@@ -334,7 +335,7 @@ begin
     % Convert pixs to string for efficient padding and comparison
     %
     /spixs pixs length string def
-    0 1 pixs length 1 sub { dup pixs exch get spixs 3 1 roll put } for
+    0 pixs { spixs 2 index 3 -1 roll put 1 add } forall pop
     /pixs spixs def
 
     %
@@ -344,20 +345,11 @@ begin
     /xyget { pixx mul add pixs exch get } def
     /cget { pixx mul add cache exch get and } def
     /cput {  % Optimise by only storing "stem" corners
-        dup dup //renmatrix.up eq exch //renmatrix.left eq or {  % dir is up or left
+        dup //renmatrix.upleft and 0 ne {  % dir is up or left
             3 1 roll pixx mul add cache exch 2 copy get 4 -1 roll or put
         } {
             pop pop pop
         } ifelse
-    } def
-
-    /abcd {
-        pixx mul add      dup 1 add  % A B
-        1 index pixx add  dup 1 add  % C D
-             pixs exch get
-        exch pixs exch get 2 mul add
-        exch pixs exch get 4 mul add
-        exch pixs exch get 8 mul add
     } def
 
     /pack   { pixxpad mul add } def                    % x y -> y*pixxpad+x
@@ -468,16 +460,25 @@ begin
         abcdw pixycomp 1 sub mul { string } stopped {
             pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
         } if /abcdcache exch def
-        /abcdrow abcdw string def
+        %
+        % A*8 + B*4 + C*2 + D is twice the code 4A + C of a column plus that
+        % of the next, so each column's code is computed once
+        %
         0 1 pixycomp 2 sub {
             /j exch def
-            0 1 abcdw 1 sub {
-                dup j abcd  abcdrow 3 1 roll put
+            /r0 pixs j pixx mul pixx getinterval def
+            /r1 pixs j 1 add pixx mul pixx getinterval def
+            abcdcache j abcdw mul abcdw getinterval
+            r0 0 get 4 mul r1 0 get add                  % s q
+            0 1 abcdw 1 sub {                            % s q i
+                dup 1 add r0 1 index get 4 mul r1 3 -1 roll get add  % s q i q'
+                3 -1 roll 2 mul 1 index add              % s i q' code
+                3 index 3 index 3 -1 roll put exch pop   % s q'
             } for
-            abcdcache j abcdw mul abcdrow putinterval
+            pop pop
         } for
 
-        /abcdget { pixx 1 sub mul add abcdcache exch get } def
+        /abcdget { abcdw mul add abcdcache exch get } def
 
         (render.tracepaths.corners) //renmatrix.after exec
 
@@ -535,26 +536,28 @@ begin
         %
         (render.drawpaths) //renmatrix.before exec
 
+        %
+        % Each vertex is placed from its neighbours: x1 y1 x2 y2 next -> x2 y2 x3 y3 x y
+        %
+        /vertex {
+            unpack rowcumul exch get 6 -2 roll             % x3 y3 x1 y1 x2 y2
+            5 index inkspreadh 2 div
+            4 index 4 -1 roll lt {add} {sub} ifelse        % y3<y1 ? x2+ih : x2-ih
+            4 1 roll
+            4 index inkspreadv 2 div
+            4 index 4 -1 roll gt {add} {sub} ifelse        % x3>x1 ? y2+iv : y2-iv
+            4 -1 roll exch pixy exch sub
+        } def
+
         newpath
-        paths {
-            /p exch def
-            /len p length def
-            p len 1 sub get unpack rowcumul exch get
-            p 0 get unpack rowcumul exch get
-            0 1 len 1 sub {                                % x1 y1 x2 y2
-                /i exch def
-                p i 1 add len mod get unpack
-                rowcumul exch get 6 -2 roll                % x3 y3 x1 y1 x2 y2
-                5 index inkspreadh 2 div
-                4 index 4 -1 roll lt {add} {sub} ifelse    % y3<y1 ? x2+ih : x2-ih
-                4 1 roll
-                4 index inkspreadv 2 div
-                4 index 4 -1 roll gt {add} {sub} ifelse    % x3>x1 ? y2+iv : y2-iv
-                4 -1 roll exch pixy exch sub
-                i 0 eq {moveto} {lineto} ifelse
-            } for                                          % x2 y2 x3 y3
+        paths {                                            % p
+            dup dup length 1 sub get unpack rowcumul exch get
+            2 index 0 get unpack rowcumul exch get         % p x1 y1 x2 y2
+            4 index 1 get vertex moveto
+            4 index 2 1 index length 2 sub getinterval { vertex lineto } forall
+            4 index 0 get vertex lineto
             closepath
-            pop pop pop pop
+            pop pop pop pop pop
         } forall
         fill
 
@@ -572,16 +575,19 @@ begin
         /pixs exch def
 
         newpath
-        0 1 pixs length 1 sub {
-            dup pixx mod /x exch def
-            pixx idiv /y exch def
-            x y xyget 1 eq {
-                rowcumul y get 1 rowcumul y 1 add get 1 sub {
-                    /vy exch def
-                    x 0.5 add pixy vy sub 0.5 sub moveto
-                    x 0.5 add pixy vy sub 0.5 sub 0.5 inkspread 2 div sub 0 360 arc
-                } for
-            } if
+        0 1 pixycomp 1 sub {
+            /y exch def
+            0 pixs y pixx mul pixx getinterval {  % x v
+                1 eq {
+                    /x 1 index def
+                    rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                        /vy exch def
+                        x 0.5 add pixy vy sub 0.5 sub moveto
+                        x 0.5 add pixy vy sub 0.5 sub 0.5 inkspread 2 div sub 0 360 arc
+                    } for
+                } if
+                1 add
+            } forall pop
         } for
         fill
 
@@ -606,17 +612,20 @@ begin
         /cellctm matrix currentmatrix def
         dotfont {
             dotrects length 0 gt {
-                0 1 pixs length 1 sub {
-                    dup pixx mod /x exch def
-                    pixx idiv /y exch def
-                    x y xyget 1 eq {
-                        rowcumul y get 1 rowcumul y 1 add get 1 sub {
-                            /vy exch def
-                            cellctm setmatrix
-                            x modpx mul pixy vy sub 1 sub modpx mul translate
-                            dotrects rectfill
-                        } for
-                    } if
+                0 1 pixycomp 1 sub {
+                    /y exch def
+                    0 pixs y pixx mul pixx getinterval {  % x v
+                        1 eq {
+                            /x 1 index def
+                            rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                                /vy exch def
+                                cellctm setmatrix
+                                x modpx mul pixy vy sub 1 sub modpx mul translate
+                                dotrects rectfill
+                            } for
+                        } if
+                        1 add
+                    } forall pop
                 } for
             } if
         } {
@@ -624,17 +633,20 @@ begin
             dotr 0 gt {
                 /dotc doto dotd 2 div add def
                 newpath
-                0 1 pixs length 1 sub {
-                    dup pixx mod /x exch def
-                    pixx idiv /y exch def
-                    x y xyget 1 eq {
-                        rowcumul y get 1 rowcumul y 1 add get 1 sub {
-                            /vy exch def
-                            x modpx mul dotc add  pixy vy sub 1 sub modpx mul dotc add
-                            2 copy exch dotr add exch moveto
-                            dotr 0 360 arc closepath
-                        } for
-                    } if
+                0 1 pixycomp 1 sub {
+                    /y exch def
+                    0 pixs y pixx mul pixx getinterval {  % x v
+                        1 eq {
+                            /x 1 index def
+                            rowcumul y get 1 rowcumul y 1 add get 1 sub {
+                                /vy exch def
+                                x modpx mul dotc add  pixy vy sub 1 sub modpx mul dotc add
+                                2 copy exch dotr add exch moveto
+                                dotr 0 360 arc closepath
+                            } for
+                        } if
+                        1 add
+                    } forall pop
                 } for
                 fill
             } if
@@ -739,9 +751,9 @@ begin
             pixs length { string } stopped {
                 pop /bwipp.renmatrixBitmapTooLarge (The bitmap exceeds the implementation limits) //raiseerror exec
             } if /layer exch def
-            0 1 pixs length 1 sub {
-                dup pixs exch get key eq {layer exch 1 put} {layer exch 0 put} ifelse
-            } for
+            0 pixs {  % i v
+                key eq {1} {0} ifelse layer 2 index 3 -1 roll put 1 add
+            } forall pop
             layer
         } ifelse
         dotty { dotgrid {drawlayergriddots} {drawlayerdots} ifelse } {drawlayer} ifelse
