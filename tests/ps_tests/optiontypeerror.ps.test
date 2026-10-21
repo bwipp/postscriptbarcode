@@ -1,0 +1,42 @@
+% Barcode Writer in Pure PostScript
+% https://bwipp.terryburton.co.uk
+%
+% vim: set sw=4 sts=4 et:
+%
+% Copyright (c) 2004-2026 Terry Burton
+%
+
+%
+% An option of the wrong type raises an error after the encoder has received
+% its data, which the encoder must drop before the error propagates. Every
+% registered resource other than the utilities is treated as an encoder, so
+% that a new encoder is covered without being listed here.
+%
+
+/utilities <<
+    /deflate true /fifocache true /gs1process true /hibcprocess true
+    /parseinput true /preamble true /processoptions true /raiseerror true
+    /render true /renlinear true /renmatrix true /renmaximatrix true
+    /rsecbinary true /rsecprime true /setanycolor true /setuphooks true
+>> def
+
+{
+    /visited 0 def
+    /checked 0 def
+    /leaks 0 def
+    (*) {
+        cvn dup utilities exch known { pop } {
+            /uk.co.terryburton.bwipp findresource /enc exch def
+            /visited visited 1 add def
+            count /depth exch def
+            { (1) (dontdraw=maybe) enc } stopped {
+                $error /errorname get /bwipp.invalidOptionType eq { /checked checked 1 add def } if
+            } if
+            count depth ne {
+                /leaks leaks 1 add def
+                count depth sub dup 0 gt { { pop } repeat } { pop } ifelse
+            } if
+        } ifelse
+    } 128 string /uk.co.terryburton.bwipp resourceforall
+    [ checked visited eq visited 100 gt leaks ]
+} [ true true 0 ] isEqual
