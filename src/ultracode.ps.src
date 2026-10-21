@@ -418,12 +418,20 @@ begin
         /fncvals <<
             /parse parse
             /parsefnc parsefnc
-            rev 2 eq {/eci true} if
+            /eci true
             (FNC1) fn1
             (FNC3) fn3
         >> def
         barcode fncvals //parseinput exec /msg exch def
         /msglen msg length def
+
+        rev 1 eq {
+            msg {
+                -1000000 le {
+                    /bwipp.ultracodeECIrev1 (ECIs are not available in revision 1 symbols) //raiseerror exec
+                } if
+            } forall
+        } if
 
         %
         % Reader initialisation leads with FNC3. Readers do not transmit the data, so FNC1 in first
@@ -455,8 +463,15 @@ begin
         } forall
 
         rev 2 eq {
-            % ECIs are not transmitted from GS1 symbols
-            msglen 0 gt { msg 0 get fn1 eq } { false } ifelse {
+            % ECIs are not transmitted from GS1 symbols, with FNC1 in first position including after leading ECIs
+            false msg {  % Skip leading ECIs
+                dup -1000000 gt {
+                    fn1 eq or
+                    exit
+                } if
+                pop
+            } forall
+            {
                 msg {
                     -1000000 le {
                         /bwipp.ultracodeECIwithFNC1 (ECIs are not available with FNC1 in first position) //raiseerror exec
@@ -464,9 +479,18 @@ begin
                 } forall
             } if
             % FNC1 in second position has no defined transmission
-            msglen 1 gt { msg 0 get fn1 ne msg 1 get fn1 eq and } { false } ifelse {
-                /bwipp.ultracodeFNC1secondPosition (FNC1 is not available in the second data position) //raiseerror exec
-            } if
+            0 msg {  % Data position, skipping ECIs
+                dup -1000000 le { pop } {
+                    fn1 eq {
+                        dup 1 eq {
+                            pop /bwipp.ultracodeFNC1secondPosition (FNC1 is not available in the second data position) //raiseerror exec
+                        } if
+                        exit
+                    } if
+                    1 add dup 2 eq { exit } if
+                } ifelse
+            } forall
+            pop
         } if
 
         % Most characters that 279 data codewords can carry, at two digits per codeword

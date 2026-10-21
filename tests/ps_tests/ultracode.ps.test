@@ -681,11 +681,16 @@
 { (^FNC3ABC) (parsefnc debugcws) ultracode } [269 65 66 67] debugIsEqual
 (^ECI811800A) (parsefnc dontdraw) /bwipp.ultracodeBadECI er_tmpl
 (^FNC101^ECI000026A) (parsefnc dontdraw) /bwipp.ultracodeECIwithFNC1 er_tmpl
+(^ECI000026^FNC101) (parsefnc dontdraw) /bwipp.ultracodeECIwithFNC1 er_tmpl
 
-% FNC1 in second position has no defined transmission
+% FNC1 in second position has no defined transmission; data positions do not count ECIs
 (A^FNC1BC) (parsefnc dontdraw) /bwipp.ultracodeFNC1secondPosition er_tmpl
+(^ECI000026A^FNC1B) (parsefnc dontdraw) /bwipp.ultracodeFNC1secondPosition er_tmpl
+(A^ECI000026^FNC1B) (parsefnc dontdraw) /bwipp.ultracodeFNC1secondPosition er_tmpl
+{ (AB^FNC1C) (parsefnc dontdraw) ultracode pop true } true isEqual
 
 % Revision 1 uses Start Character [257] without compaction
+(^ECI000026A) (rev=1 parsefnc dontdraw) /bwipp.ultracodeECIrev1 er_tmpl
 { (ABC123) (rev=1 debugcws) ultracode } [65 66 67 49 50 51] debugIsEqual
 
 % A Start Character can only be given with raw codewords or revision 1
