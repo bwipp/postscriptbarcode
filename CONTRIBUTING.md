@@ -541,6 +541,7 @@ showpage
 - Accepts space-separated `key=value` pairs or just `key` (to set boolean to true)
 - Options update corresponding PostScript variable in the current dictionary, only if it exists
 - Values are type checked against the option's default value type, otherwise error is raised
+- A dictionary of options is copied, so the caller's dictionary is left unchanged and may be read-only, and a resource may alter the dictionary that is returned
 
 
 ### Barcode Data Parsing (`parseinput.ps.src`)

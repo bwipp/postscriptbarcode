@@ -93,11 +93,18 @@ begin
 
 /processoptions.apply {
 
+    1 index type dup /stringtype ne exch /dicttype ne and {
+        pop pop
+        /bwipp.invalidOptionType (Options must be a string or a dictionary) //raiseerror exec
+    } if
+
     %
     %  Alias-search list: [ supaliases general ], or just [ general ] when no
     %  supplementary dict was provided.
     %
     [ exch dup null eq { pop } if  //processoptions.aliases ] exch  % aliasdicts options
+
+    dup type /dicttype eq { dup length dict copy } if  % Leave the caller's dictionary untouched
 
     %
     %  Convert string to dict
@@ -108,7 +115,7 @@ begin
                 dup () eq {pop exit} if
                 ( ) search not { () exch null exch } if exch pop
                 (=) search not { true exch null exch } if exch pop   % k => k = true
-                exch 3 -1 roll
+                dup length 127 gt { pop pop } { exch 3 -1 roll } ifelse  % Skip names beyond the name length limit, which no option has
             } loop
         >>
     } if

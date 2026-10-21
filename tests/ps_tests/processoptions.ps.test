@@ -51,6 +51,20 @@
 % Dict input
 { << /stropt (test) >> null /apply processoptions pop stropt (test) eq } ok_apply
 
+% Options that are neither a string nor a dictionary
+{ 5        null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ null     null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ /boolopt null /apply processoptions } /bwipp.invalidOptionType er_apply
+{ [1 2]    null /apply processoptions } /bwipp.invalidOptionType er_apply
+
+% The caller's dictionary is left unchanged, and may be read-only
+{ << (alttext) (x) >> dup null /apply processoptions pop length 1 eq } ok_apply
+{ << (alttext) (x) >> readonly null /apply processoptions pop text1 (x) eq } ok_apply
+{ << /boolopt true >> readonly null /apply processoptions wcheck } ok_apply
+
+% Names beyond the name length limit are skipped
+{ (aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=1 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=1) null /apply processoptions length 1 eq } ok_apply
+
 % String type
 { (stropt=hello) null /apply processoptions pop stropt (hello) eq } ok_apply
 { (stropt=123)   null /apply processoptions pop stropt (123)   eq } ok_apply
