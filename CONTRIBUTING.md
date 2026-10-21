@@ -1024,6 +1024,25 @@ Loops should be commented as such in the first line:
 } loop
 ```
 
+**Sizing working dictionaries**
+
+The `N dict begin` that opens a procedure's working dictionary should declare
+the number of names that the procedure can define: option defaults, working
+variables and helper procedures, including names defined only on some paths.
+A dictionary that fills beyond its declared size is grown on every call, which
+is expensive, while an oversized one costs allocation for nothing.
+
+Interpreters may round the table up to a power of two yet still grow it when
+its length reaches the declared size. A table that is then exactly or nearly
+full makes every lookup of a name that is defined further down the dictionary
+stack search most of it. When the count exceeds 7/8 of a power of two, declare
+a size past that power of two and give the count in a comment (see `kix`).
+
+Update the size whenever a change adds a name. To check it, temporarily print
+`currentdict length` before the procedure's final `end` and run its tests: the
+largest value printed must not exceed the declared size.
+
+
 **Reading Global Context**
 
 Read configuration from (optional) global context with a default:
