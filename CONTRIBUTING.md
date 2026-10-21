@@ -354,7 +354,10 @@ Example for an encoder:
     %
     % 2. Process input
     %
-    //processoptions exec /options exch def
+    % Options are processed before the data is named, so that no option can
+    % overwrite it, and the data is dropped if processing raises an error
+    {null /apply //processoptions exec} stopped {pop stop} if
+    /options exch def
     /barcode exch def
 
     %
@@ -881,7 +884,8 @@ is not found, `default` silently passes; non-default profiles error.
    `loosespec`, `propspec`, `strictspec`)
 2. After processoptions, apply global defaults:
    ```postscript
-   /apply //processoptions exec /options exch def
+   {null /apply //processoptions exec} stopped {pop stop} if
+   /options exch def
    /global_encoder_defaults //render exec
    ```
 3. After input validation, call AST and strictspec resolution:
