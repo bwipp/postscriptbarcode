@@ -64,66 +64,66 @@ begin
 %   |C=2|D=1|
 %   +---+---+
 %
-/renmatrix.tracestep [
+/renmatrix.turns [
 
                                                            %  0 0
     null                                                   %   ?
                                                            %  0 0
 
                                                            %  0 0
-    {right}                                                %   +>
+    //renmatrix.right                                      %   +>
                                                            %  0|1
 
                                                            %  0 0
-    {down}                                                 %  -+
+    //renmatrix.down                                       %  -+
                                                            %  1v0
 
                                                            %  0 0
-    {right}                                                %  -->
+    //renmatrix.right                                      %  -->
                                                            %  1 1
 
                                                            %  0^1
-    {up}                                                   %   +-
+    //renmatrix.up                                         %   +-
                                                            %  0 0
 
                                                            %  0^1
-    {up}                                                   %   |
+    //renmatrix.up                                         %   |
                                                            %  0|1
 
                                                            %  0 1      0^1
-    {dup //renmatrix.right eq {down} {up} ifelse} bind     %  -+   or   +-
+    [//renmatrix.right //renmatrix.down //renmatrix.up]    %  -+   or   +-
                                                            %  1v0      1 0
 
                                                            %  0^1
-    {up}                                                   %  -+
+    //renmatrix.up                                         %  -+
                                                            %  1 1
 
                                                            %  1|0
-    {left}                                                 %  <+
+    //renmatrix.left                                       %  <+
                                                            %  0 0
 
                                                            %  1|0      1 0
-    {dup //renmatrix.down eq {left} {right} ifelse} bind   %  <+   or   +>
+    [//renmatrix.down //renmatrix.left //renmatrix.right]  %  <+   or   +>
                                                            %  0 1      0|1
 
                                                            %  1|0
-    {down}                                                 %   |
+    //renmatrix.down                                       %   |
                                                            %  1v0
 
                                                            %  1|0
-    {right}                                                %   +>
+    //renmatrix.right                                      %   +>
                                                            %  1 1
 
                                                            %  1 1
-    {left}                                                 %  <--
+    //renmatrix.left                                       %  <--
                                                            %  0 0
 
                                                            %  1 1
-    {left}                                                 %  <+
+    //renmatrix.left                                       %  <+
                                                            %  0|1
 
                                                            %  1 1
-    {down}                                                 %   +-
+    //renmatrix.down                                       %   +-
                                                            %  1v0
 
                                                            %  1 1
@@ -131,6 +131,48 @@ begin
                                                            %  1 1
 
 ] readonly def
+
+%
+% Step of the trace for each corner code and incoming direction, indexed by
+% code*16 + dir, specialised so that a step tests nothing: k dir -> k' dir',
+% where k is the corner's index in abcdcache, y*abcdw + x. Ambiguous turns
+% are given as [old new otherwise]. Only the stem corners, where the scan
+% starts traces, are marked as visited.
+%
+% At a turn, the vertex is given to vop as its point in the path, moved by
+% half the inkspread away from the outside of the turn, which the old and new
+% directions determine: k dir X Y -> k dir
+%
+/renmatrix.tracestep 256 array def
+0 1 15 {
+    8 dict begin
+    /c exch def
+    /t //renmatrix.turns c get def
+    t null ne {
+        [//renmatrix.left //renmatrix.right //renmatrix.up //renmatrix.down] {
+            /d exch def
+            /n t type /arraytype eq { t 0 get d eq { t 1 get } { t 2 get } ifelse } { t } ifelse def
+            /h n //renmatrix.left eq n //renmatrix.right eq or def
+            [
+                n d ne {
+                    c 1 eq c 9 eq or c 14 eq or { 2 /copy load /cput cvx } if
+                    1 /index load /abcdw cvx /mod load /ih cvx
+                    h { d //renmatrix.up eq } { n //renmatrix.up eq } ifelse { /add load } { /sub load } ifelse
+                    /rowcumul cvx 3 /index load /abcdw cvx /idiv load /get load /iv cvx
+                    h { n //renmatrix.right eq } { d //renmatrix.right eq } ifelse { /add load } { /sub load } ifelse
+                    /pixy cvx /exch load /sub load /vop cvx
+                } if
+                /pop load
+                h { 1 } { /abcdw cvx } ifelse
+                n //renmatrix.left eq n //renmatrix.up eq or { /sub load } { /add load } ifelse
+                n
+            ] cvx readonly
+            //renmatrix.tracestep c 16 mul d add 3 -1 roll put
+        } forall
+    } if
+    end
+} for
+/renmatrix.tracestep //renmatrix.tracestep readonly def
 
 %
 % Corner codes at which a region boundary trace starts:
@@ -143,7 +185,7 @@ begin
 %                                     *
 %                                    1 0
 %
-/renmatrix.stemclass <00010000000000000001000000000200> readonly def
+/renmatrix.stemclass 256 string dup 16 1 put dup 144 1 put dup 224 2 put readonly def  % Indexed by code*16
 
 %
 % Below this many device pixels per module, dots on the pixel grid are drawn
@@ -343,12 +385,12 @@ begin
     %
 
     /xyget { pixx mul add pixs exch get } def
-    /cget { pixx mul add cache exch get and } def
-    /cput {  % Optimise by only storing "stem" corners
+    /cget { abcdw mul add cache exch get and } def
+    /cput {  % Only the stem corners, where the scan starts traces, are marked
         dup //renmatrix.upleft and 0 ne {  % dir is up or left
-            3 1 roll pixx mul add cache exch 2 copy get 4 -1 roll or put
+            exch cache exch 2 copy get 4 -1 roll or put
         } {
-            pop pop pop
+            pop pop
         } ifelse
     } def
 
@@ -356,64 +398,25 @@ begin
     /unpack { dup pixxpad mod exch pixxpad idiv } def  % y*pixxpad+x -> x y
 
     %
-    % Stack: x y dir -> (packed vertex?) x' y' dir'
-    %
-    /left {
-        dup //renmatrix.left ne {
-            3 copy cput
-            2 index 2 index pack 4 1 roll
-        } if
-        pop
-        exch 1 sub exch  % x--
-        //renmatrix.left
-    } def
-
-    /right {
-        dup //renmatrix.right ne {
-            3 copy cput
-            2 index 2 index pack 4 1 roll
-        } if
-        pop
-        exch 1 add exch  % x++
-        //renmatrix.right
-    } def
-
-    /up {
-        dup //renmatrix.up ne {
-            3 copy cput
-            2 index 2 index pack 4 1 roll
-        } if
-        pop
-        1 sub  % y--
-        //renmatrix.up
-    } def
-
-    /down {
-        dup //renmatrix.down ne {
-            3 copy cput
-            2 index 2 index pack 4 1 roll
-        } if
-        pop
-        1 add  % y++
-        //renmatrix.down
-    } def
-
-    %
     % Walk the outline of a region emitting edge coordinates of the path
     %
+    /vmove { moveto /vop /lineto load def } def
+    /vdebug { pop pop 1 index dup abcdw mod exch abcdw idiv pack 3 1 roll } def  % Record the vertex for debugpaths
+
     /trace {
         /y exch def  /x exch def
         /dir x 1 add y 1 add xyget 1 eq {//renmatrix.up} {//renmatrix.left} ifelse def
-        /sx x def  /sy y def  /sdir dir def
+        /sk y abcdw mul x add def  /sdir dir def
 
-        mark x y dir
-        {  % [vertex...] x y dir
-            //renmatrix.tracestep 3 index 3 index abcdget get exec
-            dup sdir eq { 1 index sy eq { 2 index sx eq {
-                pop pop pop exit
-            } if } if } if
+        dbgpaths { mark /vop /vdebug load def } { /vop /vmove load def } ifelse
+        sk dir
+        {  % [vertex...] k dir
+            //renmatrix.tracestep abcdcache 3 index get 2 index add get exec
+            dup sdir eq { 1 index sk eq {
+                pop pop exit
+            } if } if
         } loop
-        counttomark array astore exch pop
+        dbgpaths { counttomark array astore exch pop } { closepath } ifelse
 
     } def
 
@@ -462,23 +465,23 @@ begin
         } if /abcdcache exch def
         %
         % A*8 + B*4 + C*2 + D is twice the code 4A + C of a column plus that
-        % of the next, so each column's code is computed once
+        % of the next, so each column's code is computed once; codes are held
+        % times 16 to index the step table
         %
         0 1 pixycomp 2 sub {
             /j exch def
             /r0 pixs j pixx mul pixx getinterval def
             /r1 pixs j 1 add pixx mul pixx getinterval def
             abcdcache j abcdw mul abcdw getinterval
-            r0 0 get 4 mul r1 0 get add                  % s q
+            r0 0 get 64 mul r1 0 get 16 mul add          % s q
             0 1 abcdw 1 sub {                            % s q i
-                dup 1 add r0 1 index get 4 mul r1 3 -1 roll get add  % s q i q'
+                dup 1 add r0 1 index get 64 mul r1 3 -1 roll get 16 mul add  % s q i q'
                 3 -1 roll 2 mul 1 index add              % s i q' code
                 3 index 3 index 3 -1 roll put exch pop   % s q'
             } for
             pop pop
         } for
 
-        /abcdget { abcdw mul add abcdcache exch get } def
 
         (render.tracepaths.corners) //renmatrix.after exec
 
@@ -489,6 +492,13 @@ begin
         % spill to variables.
         %
         (render.tracepaths.scan) //renmatrix.before exec
+
+        /dbgpaths options /debugpaths known
+        /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
+        and def
+        /ih inkspreadh 2 div def
+        /iv inkspreadv 2 div def
+        newpath
 
         /paths [
             0 1 pixycomp 2 sub {
@@ -525,9 +535,7 @@ begin
         /pixx pixx 2 sub def
         /pixycomp pixycomp 2 sub def
 
-        options /debugpaths known
-        /uk.co.terryburton.bwipp.global_ctx dup where {exch get /enabledebug known} {pop false} ifelse
-        and { grestore /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
+        dbgpaths { grestore /bwipp.debugpaths [ paths { dup length 2 mul exch { unpack } forall } forall ] //raiseerror exec } if
 
         (render.tracepaths) //renmatrix.after exec
 
@@ -536,29 +544,6 @@ begin
         %
         (render.drawpaths) //renmatrix.before exec
 
-        %
-        % Each vertex is placed from its neighbours: x1 y1 x2 y2 next -> x2 y2 x3 y3 x y
-        %
-        /vertex {
-            unpack rowcumul exch get 6 -2 roll             % x3 y3 x1 y1 x2 y2
-            5 index inkspreadh 2 div
-            4 index 4 -1 roll lt {add} {sub} ifelse        % y3<y1 ? x2+ih : x2-ih
-            4 1 roll
-            4 index inkspreadv 2 div
-            4 index 4 -1 roll gt {add} {sub} ifelse        % x3>x1 ? y2+iv : y2-iv
-            4 -1 roll exch pixy exch sub
-        } def
-
-        newpath
-        paths {                                            % p
-            dup dup length 1 sub get unpack rowcumul exch get
-            2 index 0 get unpack rowcumul exch get         % p x1 y1 x2 y2
-            4 index 1 get vertex moveto
-            4 index 2 1 index length 2 sub getinterval { vertex lineto } forall
-            4 index 0 get vertex lineto
-            closepath
-            pop pop pop pop pop
-        } forall
         fill
 
         /pixs pixsorig def
