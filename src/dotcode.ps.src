@@ -307,7 +307,7 @@ begin
 
 /dotcode {
 
-    176 dict begin
+    178 dict begin
     {
 
     (input.processoptions) //dotcode.before exec
@@ -352,6 +352,15 @@ begin
         exch get /default_modunit 2 copy known {get /modunit exch def} {pop pop} ifelse
     } {pop} ifelse
 
+    % Limits on the size of a symbol, which the specification leaves to applications
+    /maxrows 200 def
+    /maxcols 200 def
+    /uk.co.terryburton.bwipp.global_ctx dup where {
+        exch get
+        dup /dotcode.maxrows 2 copy known {get /maxrows exch def} {pop pop} ifelse
+        /dotcode.maxcols 2 copy known {get /maxcols exch def} {pop pop} ifelse
+    } {pop} ifelse
+
     %
     % Apply AST spec overrides and resolve physical specification
     %
@@ -365,14 +374,22 @@ begin
     (input.validate) //dotcode.before exec
 
     rows -1 ne {
-        rows 5 lt rows 200 gt or {
-            /bwipp.dotcodeBadRows (Rows must be from 5 to 200) //raiseerror exec
+        rows 5 lt rows maxrows gt or {
+            /bwipp.dotcodeBadRows
+            [ (Rows must be from 5 to ) maxrows 20 string cvs ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
 
     columns -1 ne {
-        columns 5 lt columns 200 gt or {
-            /bwipp.dotcodeBadColumns (Columns must be from 5 to 200) //raiseerror exec
+        columns 5 lt columns maxcols gt or {
+            /bwipp.dotcodeBadColumns
+            [ (Columns must be from 5 to ) maxcols 20 string cvs ]
+            dup 0 exch {length add} forall string
+            exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+            //raiseerror exec
         } if
     } if
 
@@ -387,9 +404,8 @@ begin
         /ratio 3 2 div def
     } if
     ratio -1 ne {
-        % Aspect ratios beyond 40:1 are unrepresentable within the 5 to 200
-        % row and column limits; the bounds also keep the rational sizing
-        % arithmetic within 32-bit integers
+        % Aspect ratios beyond 40:1 are unrepresentable within the default
+        % limits of 5 to 200 rows and columns
         ratio 0.025 lt ratio 40 gt or {
             /bwipp.dotcodeRatio (The ratio must be from 0.025 to 40) //raiseerror exec
         } if
@@ -1053,7 +1069,7 @@ begin
         % minarea*ratio; sqrt provides an estimate that is corrected in
         % integer arithmetic
         /hsq minarea rd mul rn idiv def
-        /wsq minarea rn mul rd idiv def
+        /wsq minarea rd idiv rn mul minarea rd mod rn mul rd idiv add def  % Within 32-bit integers
         /h hsq sqrt cvi def
         h 1 add dup mul hsq le {/h h 1 add def} if
         h dup mul hsq gt {/h h 1 sub def} if
@@ -1085,6 +1101,10 @@ begin
                 } if
             } ifelse
         } ifelse
+        % A dimension beyond its limit is held at the limit and the other
+        % rebalanced, as for the minimum dimension
+        w maxcols gt { /w maxcols def /h minarea w add 1 sub w idiv dup w add 2 mod 0 eq {1 add} if def } if
+        h maxrows gt { /h maxrows def /w minarea h add 1 sub h idiv dup h add 2 mod 0 eq {1 add} if def } if
         /rows h def  /columns w def
     } {
         columns -1 eq {  % Fixed height
@@ -1096,6 +1116,13 @@ begin
             rows 5 lt { /rows 5 columns 2 mod add def } if
         } if
     } ifelse
+    rows maxrows gt columns maxcols gt or {
+        /bwipp.dotcodeTooLong
+        [ (The symbol would exceed ) maxrows 20 string cvs ( rows or ) maxcols 20 string cvs ( columns) ]
+        dup 0 exch {length add} forall string
+        exch 0 exch { dup length 2 index add 3 index 4 2 roll putinterval } forall pop
+        //raiseerror exec
+    } if
 
     %
     % Extend the codewords with padding

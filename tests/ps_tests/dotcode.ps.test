@@ -411,11 +411,11 @@
 
 % Invalid rows (valid: 5 to 200)
 (TEST) (rows=4 dontdraw) /bwipp.dotcodeBadRows er_tmpl
-(TEST) (rows=201 dontdraw) /bwipp.dotcodeBadRows er_tmpl
+{ (TEST) (rows=201 dontdraw) dotcode } [/bwipp.dotcodeBadRows (Rows must be from 5 to 200)] isErrorInfo
 
 % Invalid columns (valid: 5 to 200)
 (TEST) (columns=4 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
-(TEST) (columns=201 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
+{ (TEST) (columns=201 dontdraw) dotcode } [/bwipp.dotcodeBadColumns (Columns must be from 5 to 200)] isErrorInfo
 
 % Rows + columns must be odd
 (TEST) (rows=6 columns=6 dontdraw) /bwipp.dotcodeRowsColumnsBadParity er_tmpl
@@ -444,6 +444,10 @@
 % Extreme ratios clamp to the minimum dimension and rebalance the other
 (A)     (dontdraw ratio=0.025) [5 24]  sz_tmpl
 (A)     (dontdraw ratio=40)    [24 5]  sz_tmpl
+% A dimension beyond its limit is held at the limit and the other rebalanced
+200 string 0 1 199 { 1 index exch 65 put } for (dontdraw ratio=40)    [200 29]  sz_tmpl
+200 string 0 1 199 { 1 index exch 65 put } for (dontdraw ratio=0.025) [29 200]  sz_tmpl
+1000 string 0 1 999 { 1 index exch 65 put } for (dontdraw)            [200 137] sz_tmpl
 
 % Invalid mask (valid: 0-3)
 (TEST) (mask=4 dontdraw) /bwipp.dotcodeBadMask er_tmpl
@@ -454,6 +458,26 @@
 20001 string (dontdraw) /bwipp.dotcodeinputTooLong er_tmpl
 { 20000 string (rows=5 columns=6 dontdraw) dotcode } /bwipp.dotcodeTooLong isError  % Within the input cap
 
+% Symbols within the default limits of 200 rows and columns
+{ 300 string (rows=5 dontdraw) dotcode } [/bwipp.dotcodeTooLong (The symbol would exceed 200 rows or 200 columns)] isErrorInfo
+{ 300 string (columns=5 dontdraw) dotcode } [/bwipp.dotcodeTooLong (The symbol would exceed 200 rows or 200 columns)] isErrorInfo
+{ 1500 string 0 1 1499 { 1 index exch 65 put } for (dontdraw) dotcode } /bwipp.dotcodeTooLong isError
+% Fixed rows or columns hold the other dimension within its limit
+140 string 0 1 139 { 1 index exch 65 put } for (dontdraw rows=20)    [193 20] sz_tmpl
+140 string 0 1 139 { 1 index exch 65 put } for (dontdraw columns=20) [20 193] sz_tmpl
+{ 160 string 0 1 159 { 1 index exch 65 put } for (rows=20 dontdraw) dotcode } [/bwipp.dotcodeTooLong (The symbol would exceed 200 rows or 200 columns)] isErrorInfo
+{ 160 string 0 1 159 { 1 index exch 65 put } for (columns=20 dontdraw) dotcode } [/bwipp.dotcodeTooLong (The symbol would exceed 200 rows or 200 columns)] isErrorInfo
+
+% Limits changed via global context
+uk.co.terryburton.bwipp.global_ctx dup /dotcode.maxrows 300 put /dotcode.maxcols 1000 put
+(TEST) (dontdraw rows=300)    [5 300]  sz_tmpl
+(TEST) (dontdraw columns=1000) [1000 5] sz_tmpl
+1500 string 0 1 1499 { 1 index exch 65 put } for (dontdraw) [246 165] sz_tmpl
+{ (TEST) (rows=301 dontdraw) dotcode } [/bwipp.dotcodeBadRows (Rows must be from 5 to 300)] isErrorInfo
+{ (TEST) (columns=1001 dontdraw) dotcode } [/bwipp.dotcodeBadColumns (Columns must be from 5 to 1000)] isErrorInfo
+{ 5000 string (rows=5 dontdraw) dotcode } [/bwipp.dotcodeTooLong (The symbol would exceed 300 rows or 1000 columns)] isErrorInfo
+uk.co.terryburton.bwipp.global_ctx dup /dotcode.maxrows undef /dotcode.maxcols undef  % Remove to restore defaults
+
 (TEST) (columns=0 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
 (TEST) (columns=1 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
 (TEST) (columns=2 dontdraw) /bwipp.dotcodeBadColumns er_tmpl
@@ -461,6 +485,7 @@
 (TEST) (rows=0 dontdraw) /bwipp.dotcodeBadRows er_tmpl
 (TEST) (rows=1 dontdraw) /bwipp.dotcodeBadRows er_tmpl
 { (TEST) (columns=200 dontdraw) dotcode pop true } true isEqual
+(TEST) (dontdraw rows=200) [5 200] sz_tmpl
 
 % ECI range
 { (^ECI000000TEST) (parsefnc dontdraw) dotcode pop true } true isEqual
