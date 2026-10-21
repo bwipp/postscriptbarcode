@@ -2071,6 +2071,25 @@
 
 % Reader initialisation is the Reader Programming codeword at the start, as ^PROG
 { (ABC123) (readerinit dontdraw) datamatrix /pixs get } (^PROGABC123) (parsefnc dontdraw) datamatrix /pixs get isEqual
+% Reader Programming is the first codeword, ahead of a latch to C40 (expected from an independent implementation)
+{ (ABCDEFGHIJKL) (readerinit dontdraw) datamatrix /pixs get } [
+    1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0
+    1 1 1 0 0 1 1 0 1 1 1 1 1 1 1 1
+    1 1 0 0 0 1 0 0 1 1 0 1 1 0 1 0
+    1 1 1 0 1 0 1 1 0 1 0 1 1 1 1 1
+    1 1 0 0 1 0 1 0 0 0 1 0 1 0 0 0
+    1 0 1 0 0 1 1 0 0 1 0 0 0 1 1 1
+    1 0 1 0 0 1 1 1 1 0 1 0 0 1 0 0
+    1 0 0 1 0 1 1 0 1 1 0 0 0 0 1 1
+    1 0 0 0 1 1 0 0 0 0 0 1 0 1 1 0
+    1 1 0 0 1 0 1 0 0 1 1 1 0 1 0 1
+    1 0 1 0 0 0 0 0 0 1 1 0 1 0 0 0
+    1 0 1 1 0 0 1 0 1 0 0 1 0 1 1 1
+    1 0 0 1 1 1 1 0 0 0 0 1 0 1 0 0
+    1 1 1 1 1 0 1 1 0 0 1 0 0 1 0 1
+    1 0 1 1 0 0 1 1 1 1 1 0 1 0 1 0
+    1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+] isEqual
 { (^066^067) (raw readerinit dontdraw) datamatrix /pixs get } (^234^066^067) (raw dontdraw) datamatrix /pixs get isEqual
 { (^FNC1ABC) (parsefnc readerinit dontdraw) datamatrix } /bwipp.datamatrixReaderinitFNC1 isError
 { (^FNC@TABC) (parsefnc readerinit dontdraw) datamatrix } /bwipp.datamatrixReaderinitFNC1 isError
