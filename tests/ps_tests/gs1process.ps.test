@@ -1081,6 +1081,10 @@
 { (\(01\)09521234543213\(89\)X) /ai gs1process } [/bwipp.GS1unknownAI (AI 89: Unrecognised AI)] isErrorInfo
 { (\(01\)09521234543213\(10) /ai gs1process } [/bwipp.GS1aiMissingCloseParen (AIs must end with '\)')] isErrorInfo
 
+% A trailing opening parenthesis is not dropped
+{ (\(01\)09521234543213\() /ai gs1process }
+[/bwipp.GS1aiMissingCloseParen (AIs must end with '\)'; to encode parentheses within an AI value use ^040 and ^041 with the parse option)] isErrorInfo
+{ (\(10\)ABC\() (dontdraw) /gs1-128 /uk.co.terryburton.bwipp findresource exec } /bwipp.GS1aiMissingCloseParen isError
 
 % Multi-AI parse preserves AI and value order and pairing
 { ((01)12312312312319(21)ABC123(8030)1) /ai gs1process pop pop }

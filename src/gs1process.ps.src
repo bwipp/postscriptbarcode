@@ -2370,8 +2370,10 @@ begin
             pop /bwipp.GS1aiMissingOpenParen (AIs must start with '\(') //raiseerror exec
         } if
         pop
+        dup () eq {
+            pop /bwipp.GS1noAIs (The data must contain at least one AI) //raiseerror exec
+        } if
         mark exch {  % loop
-            dup () eq {pop exit} if
             (\)) search not {
                 % Following an AI, an unclosed parenthesis that does not open digits is likely within a value
                 counttomark 1 gt {
@@ -2386,12 +2388,10 @@ begin
                 /bwipp.GS1aiMissingCloseParen exch //raiseerror exec
             } if
             exch pop exch
-            (\() search { exch pop exch } { () } ifelse
+            (\() search not {exit} if  % Each opening parenthesis, even a trailing one, opens an AI
+            exch pop exch
         } loop
         counttomark array astore exch pop /aivals exch def
-        aivals length 0 eq {
-            /bwipp.GS1noAIs (The data must contain at least one AI) //raiseerror exec
-        } if
         /ais [ 0 2 aivals length 1 sub { aivals exch get } for ] def
         /vals ais length array def  % Expand ordinals of the form ^NNN to ASCII, leaving nothing on the stack on error
         0 1 vals length 1 sub {
