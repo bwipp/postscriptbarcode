@@ -118,14 +118,21 @@ large values at define time from small operands and reference via `//name`.
 "Global context" is an optional dictionary configured in **global VM**
 containing optional keys that affect the behaviour of BWIPP:
 
-- `preload`        - Perform eager initialisation of normally lazy variables during resource definition
-- `enabledebug`    - Allow the user to set debug options (e.g. `debugcws`), for development purposes
-- `enabledontdraw` - Allow the user to set dontdraw, in case they are providing custom renderers
-- `hooks`          - Dictionary of hook procedures for debugging purposes, including profiling
-- `default_*`      - Defaults for certain renderer options set by the user, e.g. `default_barcolor`
-- `loosespec`        - Enable best-fit specification mode globally (implies `strictspec`, lenient)
-- `strictspec`       - Enable strict physical specification mode globally
-- `propspec`       - Enable proportional specification mode globally (linear only)
+- `preload`              - Perform eager initialisation of normally lazy variables during resource definition
+- `enabledebug`          - Allow the user to set debug options (e.g. `debugcws`), for development purposes
+- `enabledontdraw`       - Allow the user to set dontdraw, in case they are providing custom renderers
+- `hooks`                - Dictionary of hook procedures for debugging purposes, including profiling
+- `named_colors`         - Dictionary of color names that color options accept
+- `default_*`            - Defaults for options that the user does not set, e.g. `default_barcolor` (renderers), `default_modunit` (matrix encoders)
+- `loosespec`            - Enable best-fit specification mode globally (implies `strictspec`, lenient)
+- `strictspec`           - Enable strict physical specification mode globally
+- `propspec`             - Enable proportional specification mode globally (linear only)
+- `<resource>.<setting>` - Settings of one resource, e.g. `dotcode.maxrows`, `qrcode.coeffscachemax`
+
+Keys are read on each call, so that they apply to resources already loaded,
+except those that shape what a resource builds when it is defined: `preload`,
+`hooks` and the FIFO cache parameters, which must be set before the resource
+is loaded.
 
 For example:
 
