@@ -686,7 +686,7 @@ begin
 
 /hanxin {
 
-    158 dict begin
+    165 dict begin
     {
 
     (input.processoptions) //hanxin.before exec
@@ -779,6 +779,7 @@ begin
     /fncvals <<
         /parse parse
         /parsefnc parsefnc
+        /eci true
         (FNC1) //hanxin.fn1
     >> def
     barcode fncvals //parseinput exec /msg exch def
@@ -811,6 +812,17 @@ begin
                 /bwipp.hanxinFNC1NotFirstPosition (Han Xin requires that FNC1 only appears in the first position) //raiseerror exec
             } if
         } for
+    } if
+
+    %
+    % GS1 mode must be the first mode, and its data needs no ECI
+    %
+    fnc1first {
+        msg {
+            -1000000 le {
+                /bwipp.hanxinECIwithFNC1 (ECIs are not available with FNC1 in first position) //raiseerror exec
+            } if
+        } forall
     } if
 
     (input.preprocess) //hanxin.after exec
@@ -901,141 +913,160 @@ begin
     % converted from, a byte each in a string for each mode. A token reaches
     % at most four positions ahead, so the costs are kept for five positions.
     %
-    (input.encoding.optimise) //hanxin.before exec
     /nm //hanxin.nmodes def
-    /cost [ 5 { [ nm {//hanxin.inf} repeat ] } repeat ] def
-    /tok [ nm { msglen 1 add string } repeat ] def
-    /rel [ nm { msglen 1 add string } repeat ] def
-    /pre nm array def
-    cost 0 get 0 //hanxin.startcost putinterval
+    /optimise {  % -> toks startm
+        /cost [ 5 { [ nm {//hanxin.inf} repeat ] } repeat ] def
+        /tok [ nm { msglen 1 add string } repeat ] def
+        /rel [ nm { msglen 1 add string } repeat ] def
+        /pre nm array def
+        cost 0 get 0 //hanxin.startcost putinterval
 
-    0 1 msglen 1 sub {  % i
+        0 1 msglen 1 sub {  % i
 
-        /cr cost 2 index 5 mod get def
-        dup 0 gt {
-            %
-            % Convert between modes: stay, reopen from the mode that is cheapest
-            % to close, or take the switch between the Text submodes or between
-            % the common Chinese regions, the earliest mode winning a tie
-            %
-            /ci 1 index def
-            pre 0 cr putinterval
-            //hanxin.inf -1
-            0 1 nm 1 sub {  % ... closed bs s
-                pre 1 index get //hanxin.closelen 2 index get add               % ... closed bs s v
-                dup 4 index lt { 4 2 roll pop pop exch } { pop pop } ifelse
-            } for
-            /bs exch def 4 add /cb exch def                                    % Cheapest closed mode and a mode indicator
-            //hanxin.plainto {  % t
-                pre 1 index get cb //hanxin.entry 3 index get add               % t stay reopen
-                2 copy gt { exch pop bs 1 add } { pop 0 } ifelse                % t best rb
-                rel 3 index get ci 3 -1 roll put
-                cr 3 1 roll put
-            } forall
-            //hanxin.switchto {
-                aload pop /sw exch def /ss exch def /t exch def
-                pre t get -1                                                    % best from
-                ss bs lt {
-                    pre ss get sw add ss try
-                    cb //hanxin.entry t get add bs try
-                } {
-                    cb //hanxin.entry t get add bs try
-                    pre ss get sw add ss try
-                } ifelse
-                rel t get ci 3 -1 roll 1 add put
-                cr t 3 -1 roll put
-            } forall
-        } if
-
-        /c msg 2 index get def
-        /c2 1 index 1 add msglen lt { msg 2 index 1 add get } { -1 } ifelse def
-
-        % Numerals in groups of three digits, or a shorter final group, and FNC1
-        cr //hanxin.N get dup //hanxin.inf lt {                                 % i cn
-            c isdigit {
-                10 add                                                          % i c
-                dup 2 index 1 add //hanxin.NX 16 //hanxin.N add upd
-                1 index 1 add msglen lt { msg 2 index 1 add get isdigit } { false } ifelse {
-                    dup 2 index 2 add //hanxin.NX 32 //hanxin.N add upd
-                    1 index 2 add msglen lt { msg 2 index 2 add get isdigit } { false } ifelse {
-                        dup 2 index 3 add //hanxin.N 48 //hanxin.N add upd
-                    } if
-                } if
-            } {
-                c //hanxin.fn1 eq {
-                    10 add dup 2 index 1 add //hanxin.N 16 //hanxin.N add upd
-                } if
-            } ifelse
-        } if
-        pop
-
-        c 0 ge {
-
-            % Text1 and Text2 submodes
-            cr //hanxin.T1 get dup //hanxin.inf lt //hanxin.t1val c get 0 ge and {
-                6 add 1 index 1 add //hanxin.T1 16 //hanxin.T1 add upd
-            } { pop } ifelse
-            cr //hanxin.T2 get dup //hanxin.inf lt //hanxin.t2val c get 0 ge and {
-                6 add 1 index 1 add //hanxin.T2 16 //hanxin.T2 add upd
-            } { pop } ifelse
-
-            % Binary bytes
-            cr //hanxin.B get dup //hanxin.inf lt {
-                8 add 1 index 1 add //hanxin.B 16 //hanxin.B add upd
-            } { pop } ifelse
-
-            % Common Chinese characters and the GB18030 2-byte region
-            //hanxin.pairmodes {
-                aload pop                                                       % i m valp w
-                cr 3 index get dup //hanxin.inf lt {                            % i m valp w cm
-                    c c2 4 index load exec 0 ge {
-                        add 3 index 2 add 3 index 32 1 index add upd            % i m valp
-                    } { pop pop } ifelse
-                } { pop pop } ifelse
-                pop pop
-            } forall
-
-            % GB18030 4-byte region, one character after its mode indicator
-            cr //hanxin.F get dup //hanxin.inf lt {
-                1 index fval 0 ge {
-                    21 add 1 index 4 add //hanxin.FX 64 //hanxin.F add upd
-                } { pop } ifelse
-            } { pop } ifelse
-
-        } if
-
-        cost 1 index 5 mod get 0 //hanxin.infrow putinterval            % Free the row for position i+5
-        pop
-    } for
-
-    %
-    % Cheapest mode in which to end
-    %
-    /best //hanxin.inf def
-    0 1 nm 1 sub {  % m
-        cost msglen 5 mod get 1 index get //hanxin.termlen 2 index get add
-        dup best lt { /best exch def /bm exch def } { pop pop } ifelse
-    } for
-
-    %
-    % Trace back the tokens, as mode, start and end in turn
-    %
-    /i msglen def  /m bm def
-    /toks [
-        {  % loop
-            i 0 eq { exit } if
-            i msglen lt {  % Converted to here
-                rel m get i get dup 0 ne { 1 sub /m exch def } { pop } ifelse
+            /cr cost 2 index 5 mod get def
+            dup 0 gt {
+                %
+                % Convert between modes: stay, reopen from the mode that is cheapest
+                % to close, or take the switch between the Text submodes or between
+                % the common Chinese regions, the earliest mode winning a tie
+                %
+                /ci 1 index def
+                pre 0 cr putinterval
+                //hanxin.inf -1
+                0 1 nm 1 sub {  % ... closed bs s
+                    pre 1 index get //hanxin.closelen 2 index get add               % ... closed bs s v
+                    dup 4 index lt { 4 2 roll pop pop exch } { pop pop } ifelse
+                } for
+                /bs exch def 4 add /cb exch def                                    % Cheapest closed mode and a mode indicator
+                //hanxin.plainto {  % t
+                    pre 1 index get cb //hanxin.entry 3 index get add               % t stay reopen
+                    2 copy gt { exch pop bs 1 add } { pop 0 } ifelse                % t best rb
+                    rel 3 index get ci 3 -1 roll put
+                    cr 3 1 roll put
+                } forall
+                //hanxin.switchto {
+                    aload pop /sw exch def /ss exch def /t exch def
+                    pre t get -1                                                    % best from
+                    ss bs lt {
+                        pre ss get sw add ss try
+                        cb //hanxin.entry t get add bs try
+                    } {
+                        cb //hanxin.entry t get add bs try
+                        pre ss get sw add ss try
+                    } ifelse
+                    rel t get ci 3 -1 roll 1 add put
+                    cr t 3 -1 roll put
+                } forall
             } if
-            tok m get i get
-            dup -4 bitshift i exch sub /p exch def  15 and /pm exch def
-            m p i
-            /i p def  /m pm def
-        } loop
+
+            /c msg 2 index get def
+            /c2 1 index 1 add msglen lt { msg 2 index 1 add get } { -1 } ifelse def
+
+            % Numerals in groups of three digits, or a shorter final group, and FNC1
+            cr //hanxin.N get dup //hanxin.inf lt {                                 % i cn
+                c isdigit {
+                    10 add                                                          % i c
+                    dup 2 index 1 add //hanxin.NX 16 //hanxin.N add upd
+                    1 index 1 add msglen lt { msg 2 index 1 add get isdigit } { false } ifelse {
+                        dup 2 index 2 add //hanxin.NX 32 //hanxin.N add upd
+                        1 index 2 add msglen lt { msg 2 index 2 add get isdigit } { false } ifelse {
+                            dup 2 index 3 add //hanxin.N 48 //hanxin.N add upd
+                        } if
+                    } if
+                } {
+                    c //hanxin.fn1 eq {
+                        10 add dup 2 index 1 add //hanxin.N 16 //hanxin.N add upd
+                    } if
+                } ifelse
+            } if
+            pop
+
+            c 0 ge {
+
+                % Text1 and Text2 submodes
+                cr //hanxin.T1 get dup //hanxin.inf lt //hanxin.t1val c get 0 ge and {
+                    6 add 1 index 1 add //hanxin.T1 16 //hanxin.T1 add upd
+                } { pop } ifelse
+                cr //hanxin.T2 get dup //hanxin.inf lt //hanxin.t2val c get 0 ge and {
+                    6 add 1 index 1 add //hanxin.T2 16 //hanxin.T2 add upd
+                } { pop } ifelse
+
+                % Binary bytes
+                cr //hanxin.B get dup //hanxin.inf lt {
+                    8 add 1 index 1 add //hanxin.B 16 //hanxin.B add upd
+                } { pop } ifelse
+
+                % Common Chinese characters and the GB18030 2-byte region
+                //hanxin.pairmodes {
+                    aload pop                                                       % i m valp w
+                    cr 3 index get dup //hanxin.inf lt {                            % i m valp w cm
+                        c c2 4 index load exec 0 ge {
+                            add 3 index 2 add 3 index 32 1 index add upd            % i m valp
+                        } { pop pop } ifelse
+                    } { pop pop } ifelse
+                    pop pop
+                } forall
+
+                % GB18030 4-byte region, one character after its mode indicator
+                cr //hanxin.F get dup //hanxin.inf lt {
+                    1 index fval 0 ge {
+                        21 add 1 index 4 add //hanxin.FX 64 //hanxin.F add upd
+                    } { pop } ifelse
+                } { pop } ifelse
+
+            } if
+
+            cost 1 index 5 mod get 0 //hanxin.infrow putinterval            % Free the row for position i+5
+            pop
+        } for
+
+        %
+        % Cheapest mode in which to end
+        %
+        /best //hanxin.inf def
+        0 1 nm 1 sub {  % m
+            cost msglen 5 mod get 1 index get //hanxin.termlen 2 index get add
+            dup best lt { /best exch def /bm exch def } { pop pop } ifelse
+        } for
+
+        %
+        % Trace back the tokens, as mode, start and end in turn
+        %
+        /i msglen def  /m bm def
+        /toks [
+            {  % loop
+                i 0 eq { exit } if
+                i msglen lt {  % Converted to here
+                    rel m get i get dup 0 ne { 1 sub /m exch def } { pop } ifelse
+                } if
+                tok m get i get
+                dup -4 bitshift i exch sub /p exch def  15 and /pm exch def
+                m p i
+                /i p def  /m pm def
+            } loop
+        ] def
+        [ toks length 3 idiv 1 sub -1 0 { 3 mul toks exch 3 getinterval aload pop } for ] m
+    } def
+
+    %
+    % Segments of data [eci data] between ECIs, with eci -1 for none. An ECI
+    % closes the mode before it, so each segment is optimised on its own.
+    %
+    /eci -1 def  /segst 0 def
+    /segs [
+        0 1 msglen 1 sub {
+            /i exch def
+            msg i get -1000000 le {
+                i 0 gt { [ eci msg segst i segst sub getinterval ] } if
+                /eci msg i get neg 1000000 sub def
+                /segst i 1 add def
+            } if
+        } for
+        [ eci msg segst msglen segst sub getinterval ]
     ] def
-    /startm m def
-    /toks [ toks length 3 idiv 1 sub -1 0 { 3 mul toks exch 3 getinterval aload pop } for ] def
-    /ntoks toks length 3 idiv def
+
+    (input.encoding.optimise) //hanxin.before exec
+    /encs [ segs { 1 get /msg exch def /msglen msg length def optimise 2 array astore } forall ] def
     (input.encoding.optimise) //hanxin.after exec
 
     /addtobits {
@@ -1090,59 +1121,80 @@ begin
         } if
     } def
 
-    fnc1first { //hanxin.gs1pre addtobits } if
-
-    /lastg 3 def
-    /cur startm def
-    /pst -1 def
-    /k 0 def
-    ntoks 0 gt { enter } if
-    0 1 ntoks 1 sub {
-        /k exch def
-        toks k 3 mul 3 getinterval aload pop /te exch def /ts exch def /st exch def
-        /md st modeof def
-        md cur ne {
-            cur //hanxin.T1 eq md //hanxin.T2 eq and cur //hanxin.T2 eq md //hanxin.T1 eq and or {
-                (111110) addtobits
-                /cur md def
+    /emit {
+        /lastg 3 def
+        /cur startm def
+        /pst -1 def
+        /k 0 def
+        ntoks 0 gt { enter } if
+        0 1 ntoks 1 sub {
+            /k exch def
+            toks k 3 mul 3 getinterval aload pop /te exch def /ts exch def /st exch def
+            /md st modeof def
+            md cur ne {
+                cur //hanxin.T1 eq md //hanxin.T2 eq and cur //hanxin.T2 eq md //hanxin.T1 eq and or {
+                    (111110) addtobits
+                    /cur md def
+                } {
+                cur //hanxin.R1 eq md //hanxin.R2 eq and cur //hanxin.R2 eq md //hanxin.R1 eq and or {
+                    (111111111110) addtobits
+                    /cur md def
+                } {
+                    terminate
+                    /cur md def
+                    enter
+                } ifelse } ifelse
             } {
-            cur //hanxin.R1 eq md //hanxin.R2 eq and cur //hanxin.R2 eq md //hanxin.R1 eq and or {
-                (111111111110) addtobits
-                /cur md def
-            } {
-                terminate
-                /cur md def
-                enter
-            } ifelse } ifelse
-        } {
-            % Numerals restart after a shorter final group, and the 4-byte
-            % region is entered for each character
-            pst //hanxin.NX eq pst //hanxin.FX eq or k 0 gt and {
-                terminate
-                enter
-            } if
-        } ifelse
-        md //hanxin.N eq {
-            msg ts get //hanxin.fn1 eq {
-                //hanxin.fnc1ext addtobits
-                /lastg 3 def
-            } {
-                0 ts 1 te 1 sub { msg exch get 48 sub exch 10 mul add } for
-                10 addval
-                /lastg te ts sub def
+                % Numerals restart after a shorter final group, and the 4-byte
+                % region is entered for each character
+                pst //hanxin.NX eq pst //hanxin.FX eq or k 0 gt and {
+                    terminate
+                    enter
+                } if
             } ifelse
-        } {
-        md //hanxin.T1 eq { //hanxin.t1val msg ts get get 6 addval } {
-        md //hanxin.T2 eq { //hanxin.t2val msg ts get get 6 addval } {
-        md //hanxin.B eq { msg ts get 8 addval } {
-        md //hanxin.R1 eq { msg ts get msg ts 1 add get r1val 12 addval } {
-        md //hanxin.R2 eq { msg ts get msg ts 1 add get r2val 12 addval } {
-        md //hanxin.D eq { msg ts get msg ts 1 add get dval 15 addval } {
-            ts fval 21 addval
-        } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse
-        /pst st def
+            md //hanxin.N eq {
+                msg ts get //hanxin.fn1 eq {
+                    //hanxin.fnc1ext addtobits
+                    /lastg 3 def
+                } {
+                    0 ts 1 te 1 sub { msg exch get 48 sub exch 10 mul add } for
+                    10 addval
+                    /lastg te ts sub def
+                } ifelse
+            } {
+            md //hanxin.T1 eq { //hanxin.t1val msg ts get get 6 addval } {
+            md //hanxin.T2 eq { //hanxin.t2val msg ts get get 6 addval } {
+            md //hanxin.B eq { msg ts get 8 addval } {
+            md //hanxin.R1 eq { msg ts get msg ts 1 add get r1val 12 addval } {
+            md //hanxin.R2 eq { msg ts get msg ts 1 add get r2val 12 addval } {
+            md //hanxin.D eq { msg ts get msg ts 1 add get dval 15 addval } {
+                ts fval 21 addval
+            } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse } ifelse
+            /pst st def
+        } for
+        ntoks 0 gt { terminate } if
+    } def
+
+    %
+    % ECI header, with the assignment number in the fewest bits
+    %
+    /addeci {  % eci ->
+        (1000) addtobits
+        dup 128 lt { 8 addval } {
+        dup 16384 lt { (10) addtobits 14 addval } {
+            (110) addtobits 21 addval
+        } ifelse } ifelse
+    } def
+
+    fnc1first { //hanxin.gs1pre addtobits } if
+    0 1 segs length 1 sub {
+        /si exch def
+        segs si get aload pop /msg exch def /msglen msg length def
+        dup -1 ne { addeci } { pop } ifelse
+        encs si get aload pop /startm exch def /toks exch def
+        /ntoks toks length 3 idiv def
+        emit
     } for
-    ntoks 0 gt { terminate } if
 
     fnc1first { //hanxin.gs1post addtobits } if
 

@@ -518,6 +518,121 @@
 ] bits_tmpl
 
 %
+% ECIs: the ECI mode indicator and the assignment number in 8, 16 or 24 bits,
+% after the terminator of any mode before it, with the data after it in a
+% mode segment of its own. The ECI headers of 000128, 016384 and 811799 agree
+% with an independent implementation.
+%
+
+% Example of 5.4.8.1: Greek letters of ISO 8859-7
+(^ECI000009^161^162^163^164^165) (parse parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (00001001)                      % ECI 000009
+    (0011)                          % byte mode indicator
+    (0000000000101)                 % count: 5
+    (10100001)                      % 0xA1
+    (10100010)                      % 0xA2
+    (10100011)                      % 0xA3
+    (10100100)                      % 0xA4
+    (10100101)                      % 0xA5
+] bits_tmpl
+
+% Largest ECI in 8 bits
+(^ECI000127A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (01111111)                      % ECI 000127
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Smallest ECI in 16 bits
+(^ECI000128A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (1000000010000000)              % ECI 000128
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Largest ECI in 16 bits
+(^ECI016383A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (1011111111111111)              % ECI 016383
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Smallest ECI in 24 bits
+(^ECI016384A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (110000000100000000000000)      % ECI 016384
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Largest ECI of the AIM range
+(^ECI811799A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (110011000110001100010111)      % ECI 811799
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Largest ECI of Table 5
+(^ECI999999A) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (110011110100001000111111)      % ECI 999999
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Numerals terminated before an ECI
+(123^ECI000026A) (parsefnc debugbits) [
+    (0001)                          % numeric mode indicator
+    (0001111011)                    % 123
+    (1111111111)                    % numeric terminator: final group of three
+    (1000)                          % ECI mode indicator
+    (00011010)                      % ECI 000026
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Consecutive ECIs
+(A^ECI000003^ECI000026B) (parsefnc debugbits) [
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+    (1000)                          % ECI mode indicator
+    (00000011)                      % ECI 000003
+    (1000)                          % ECI mode indicator
+    (00011010)                      % ECI 000026
+    (0010)                          % text mode indicator
+    (001011)                        % 'B'
+    (111111)                        % text terminator
+] bits_tmpl
+
+% Trailing ECI
+(A^ECI000003) (parsefnc debugbits) [
+    (0010)                          % text mode indicator
+    (001010)                        % 'A'
+    (111111)                        % text terminator
+    (1000)                          % ECI mode indicator
+    (00000011)                      % ECI 000003
+] bits_tmpl
+
+% ECI without data
+(^ECI000003) (parsefnc debugbits) [
+    (1000)                          % ECI mode indicator
+    (00000011)                      % ECI 000003
+] bits_tmpl
+
+%
 % Codeword check (debugcws) - pre-ECC data codewords: the message bits in
 % codewords, padded with zeros. The codewords of v1-L4 agree with an independent implementation.
 %
@@ -1960,6 +2075,10 @@
 % FNC1 outside first position is invalid when GS1 mode isn't active
 (ABC^FNC1123) (parsefnc dontdraw) /bwipp.hanxinFNC1NotFirstPosition er_tmpl
 (ABC123^FNC1) (parsefnc dontdraw) /bwipp.hanxinFNC1NotFirstPosition er_tmpl
+
+% ECIs are not available in GS1 mode, which must be the first mode
+(^FNC1ABC^ECI000003123) (parsefnc dontdraw) /bwipp.hanxinECIwithFNC1 er_tmpl
+(^ECI000003^FNC1ABC123) (parsefnc dontdraw) /bwipp.hanxinFNC1NotFirstPosition er_tmpl
 
 { (TEST) (version=1 dontdraw) hanxin pop true } true isEqual
 { (TEST) (version=84 dontdraw) hanxin pop true } true isEqual
