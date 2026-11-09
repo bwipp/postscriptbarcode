@@ -568,7 +568,9 @@ begin
         /i exch def
         /barchar msg i get def
         barchar 48 ge barchar 57 le and {
-            nDigits i nDigits i 1 add get 1 add put
+            structapp not i 3 add msglen lt or {  % Exclude sampos/total
+                nDigits i nDigits i 1 add get 1 add put
+            } if
         } if
         Avals barchar known {DatumA i true put} if
         Bvals barchar known {DatumB i true put} if
