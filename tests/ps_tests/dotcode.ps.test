@@ -504,6 +504,9 @@ uk.co.terryburton.bwipp.global_ctx dup /dotcode.maxrows undef /dotcode.maxcols u
     (ABC) (sampos=10 samtotal=35 debugcws) dotcode  % ABC A Z FNC2
 } [106 33 34 35 33 58 108] debugIsEqual
 {
+    (1234) (sampos=9 samtotal=9 debugcws) dotcode  % 12 34 9 9 FNC2, do not encode sampos/total as "99"
+} [107 12 34 104 25 25 108] debugIsEqual
+{
     (Hello World) (sampos=10 samtotal=35 columns=20 mask=1 dontdraw) dotcode /pixs get
 } [
     1 0 1 0 0 0 0 0 0 0 1 0 1 0 1 0 1 0 0 0
@@ -556,7 +559,7 @@ uk.co.terryburton.bwipp.global_ctx dup /dotcode.maxrows undef /dotcode.maxcols u
 { (^FNC@991234567890) (parsefnc debugcws) dotcode } [99 107 12 34 56 78 90] debugIsEqual
 { (AB^FNC3^FNC@99CD) (parsefnc debugcws) dotcode } [103 33 34 109 99 107 103 35 36] debugIsEqual  % Start of a message segment
 { (^FNC@TA^FNC3^FNC@99B) (parsefnc debugcws) dotcode } [104 52 107 33 109 99 107 102 34] debugIsEqual
-{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 debugcws) dotcode } [106 52 107 33 34 35 103 12 108] debugIsEqual
+{ (^FNC@TABC) (parsefnc sampos=1 samtotal=2 debugcws) dotcode } [106 52 107 33 34 35 17 18 108] debugIsEqual
 (A^FNC@TB) (parsefnc dontdraw) /bwipp.dotcodeFNC1secondNotFirst er_tmpl
 (^FNC3^FNC@TB) (parsefnc dontdraw) /bwipp.dotcodeFNC1secondNotFirst er_tmpl
 (^FNC@T^ECI000026A) (parsefnc dontdraw) /bwipp.dotcodeECIwithFNC1 er_tmpl
